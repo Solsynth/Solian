@@ -68,8 +68,15 @@ const kPresenseActivityIcons = <IconData>[
 
 class ActivityPresenceWidget extends ConsumerWidget {
   final String uname;
+  final bool isCompact;
+  final EdgeInsets compactPadding;
 
-  const ActivityPresenceWidget({super.key, required this.uname});
+  const ActivityPresenceWidget({
+    super.key,
+    required this.uname,
+    this.isCompact = false,
+    this.compactPadding = EdgeInsets.zero,
+  });
 
   List<Widget> _buildDiscordImages(WidgetRef ref, SnPresenceActivity activity) {
     final List<Widget> images = [];
@@ -139,6 +146,106 @@ class ActivityPresenceWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activitiesAsync = ref.watch(presenceActivitiesProvider(uname));
 
+    if (isCompact) {
+      return activitiesAsync.when(
+        data: (activities) {
+          if (activities.isEmpty) return const SizedBox.shrink();
+          final activity = activities.first;
+          return Padding(
+            padding: compactPadding,
+            child: Row(
+              spacing: 8,
+              children: [
+                if (activity.largeImage != null &&
+                    activity.largeImage!.startsWith('discord:'))
+                  ref
+                      .watch(
+                        discordAssetsUrlProvider(
+                          activity,
+                          activity.largeImage!.substring('discord:'.length),
+                        ),
+                      )
+                      .when(
+                        data:
+                            (url) =>
+                                url != null
+                                    ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: CachedNetworkImage(
+                                        imageUrl: url,
+                                        width: 32,
+                                        height: 32,
+                                      ),
+                                    )
+                                    : const SizedBox.shrink(),
+                        loading:
+                            () => const SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: CircularProgressIndicator(strokeWidth: 1),
+                            ),
+                        error: (error, stack) => const SizedBox.shrink(),
+                      ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (activity.title?.isEmpty ?? true)
+                            ? 'unknown'.tr()
+                            : activity.title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).fontSize(13),
+                      Row(
+                        children: [
+                          Text(
+                            kPresenseActivityTypes[activity.type],
+                          ).tr().fontSize(11),
+                          Icon(
+                            kPresenseActivityIcons[activity.type],
+                            size: 15,
+                            fill: 1,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                StreamBuilder(
+                  stream: Stream.periodic(const Duration(seconds: 1)),
+                  builder: (context, snapshot) {
+                    final now = DateTime.now();
+
+                    // Check if lease has expired and refresh if needed
+                    if (now.isAfter(activity.leaseExpiresAt)) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ref.invalidate(presenceActivitiesProvider(uname));
+                      });
+                    }
+
+                    final duration = now.difference(activity.createdAt);
+                    final hours = duration.inHours.toString().padLeft(2, '0');
+                    final minutes = (duration.inMinutes % 60)
+                        .toString()
+                        .padLeft(2, '0');
+                    final seconds = (duration.inSeconds % 60)
+                        .toString()
+                        .padLeft(2, '0');
+                    return Text(
+                      '$hours:$minutes:$seconds',
+                    ).textColor(Colors.green).fontSize(12);
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+        loading: () => const SizedBox.shrink(),
+        error: (error, stack) => const SizedBox.shrink(),
+      );
+    }
+
     return activitiesAsync.when(
       data:
           (activities) => Card(
@@ -206,8 +313,12 @@ class ActivityPresenceWidget extends ConsumerWidget {
 
                               // Check if lease has expired and refresh if needed
                               if (now.isAfter(activity.leaseExpiresAt)) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  ref.invalidate(presenceActivitiesProvider(uname));
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  ref.invalidate(
+                                    presenceActivitiesProvider(uname),
+                                  );
                                 });
                               }
 
@@ -238,23 +349,36 @@ class ActivityPresenceWidget extends ConsumerWidget {
                             Row(
                               spacing: 8,
                               children: [
-                                if (activity.titleUrl != null && activity.titleUrl!.isNotEmpty)
+                                if (activity.titleUrl != null &&
+                                    activity.titleUrl!.isNotEmpty)
                                   ElevatedButton.icon(
-                                    onPressed: () => launchUrlString(activity.titleUrl!),
+                                    onPressed:
+                                        () =>
+                                            launchUrlString(activity.titleUrl!),
                                     icon: const Icon(Symbols.link, size: 16),
                                     label: const Text('Open Title Link'),
                                     style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
                                       textStyle: const TextStyle(fontSize: 12),
                                     ),
                                   ),
-                                if (activity.subtitleUrl != null && activity.subtitleUrl!.isNotEmpty)
+                                if (activity.subtitleUrl != null &&
+                                    activity.subtitleUrl!.isNotEmpty)
                                   ElevatedButton.icon(
-                                    onPressed: () => launchUrlString(activity.subtitleUrl!),
+                                    onPressed:
+                                        () => launchUrlString(
+                                          activity.subtitleUrl!,
+                                        ),
                                     icon: const Icon(Symbols.link, size: 16),
                                     label: const Text('Open Subtitle Link'),
                                     style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
                                       textStyle: const TextStyle(fontSize: 12),
                                     ),
                                   ),

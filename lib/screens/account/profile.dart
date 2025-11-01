@@ -206,7 +206,7 @@ class _AccountProfileDetail extends StatelessWidget {
         child: Row(
           spacing: 6,
           children: [
-            Icon(Symbols.star, size: 17, fill: 1).padding(right: 2),
+            Icon(Symbols.attribution, size: 17, fill: 1).padding(right: 2),
             Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
             Text('·').bold(),
             switch (data.profile.socialCreditsLevel) {

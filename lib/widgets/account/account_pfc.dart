@@ -11,8 +11,9 @@ import 'package:island/screens/account/profile.dart';
 import 'package:island/services/time.dart';
 import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
+import 'package:island/widgets/account/activity_presence.dart';
 import 'package:island/widgets/account/badge.dart';
-import 'package:island/widgets/account/leveling_progress.dart';
+
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/response.dart';
@@ -54,7 +55,30 @@ class AccountProfileCard extends HookConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          ProfilePictureWidget(file: data.profile.picture),
+                          GestureDetector(
+                            child: Badge(
+                              isLabelVisible: true,
+                              padding: EdgeInsets.all(2),
+                              label: Icon(
+                                Symbols.launch,
+                                size: 12,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              offset: Offset(4, 28),
+                              child: ProfilePictureWidget(
+                                file: data.profile.picture,
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              context.pushNamed(
+                                'accountProfile',
+                                pathParameters: {'name': data.name},
+                              );
+                            },
+                          ),
                           const Gap(12),
                           Expanded(
                             child: Column(
@@ -81,7 +105,7 @@ class AccountProfileCard extends HookConsumerWidget {
                           spacing: 6,
                           children: [
                             Icon(
-                              Symbols.star,
+                              Symbols.attribution,
                               size: 17,
                               fill: 1,
                             ).padding(right: 2),
@@ -144,25 +168,40 @@ class AccountProfileCard extends HookConsumerWidget {
                             ).padding(top: 2);
                           }
                         }(),
+                      Row(
+                        spacing: 6,
+                        children: [
+                          Icon(
+                            Symbols.stairs,
+                            size: 17,
+                            fill: 1,
+                          ).padding(right: 2),
+                          Text(
+                            'levelingProgressLevel'.tr(
+                              args: [data.profile.level.toString()],
+                            ),
+                          ).fontSize(12),
+                          Expanded(
+                            child: Tooltip(
+                              message:
+                                  '${(data.profile.levelingProgress * 100).toStringAsFixed(2)}%',
+                              child: LinearProgressIndicator(
+                                value: data.profile.levelingProgress,
+                                stopIndicatorRadius: 0,
+                                trackGap: 0,
+                                minHeight: 4,
+                              ).padding(top: 1),
+                            ),
+                          ),
+                        ],
+                      ).padding(top: 2),
                       if (data.badges.isNotEmpty)
                         BadgeList(badges: data.badges).padding(top: 12),
-                      LevelingProgressCard(
+                      ActivityPresenceWidget(
+                        uname: uname,
                         isCompact: true,
-                        level: data.profile.level,
-                        experience: data.profile.experience,
-                        progress: data.profile.levelingProgress,
-                      ).padding(top: 12),
-                      FilledButton.tonalIcon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.pushNamed(
-                            'accountProfile',
-                            pathParameters: {'name': data.name},
-                          );
-                        },
-                        icon: const Icon(Symbols.launch),
-                        label: Text('accountProfileView').tr(),
-                      ).padding(top: 12, horizontal: 2),
+                        compactPadding: const EdgeInsets.only(top: 12),
+                      ),
                     ],
                   ).padding(horizontal: 24, vertical: 16),
                 ],
