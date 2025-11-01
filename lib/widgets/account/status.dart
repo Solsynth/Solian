@@ -84,21 +84,29 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
                     : Padding(
                       padding:
                           padding ??
-                          EdgeInsets.symmetric(horizontal: 27, vertical: 4),
-                      child: Row(
-                        spacing: 4,
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Symbols.keyboard_arrow_up),
-                          Expanded(
-                            child: Text('statusCreateHint', maxLines: 1).tr(),
+                          Row(
+                            children: [
+                              Icon(Symbols.keyboard_arrow_up),
+                              SizedBox(width: 4),
+                              Text('Create Status').tr(),
+                            ],
                           ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Tap to set your current activity and let others know what you\'re up to',
+                            style: TextStyle(fontSize: 12),
+                          ).tr().opacity(0.75),
                         ],
                       ),
                     ).opacity(0.85),
         error:
             (error, _) => Padding(
               padding:
-                  padding ?? EdgeInsets.symmetric(horizontal: 26, vertical: 4),
+                  padding ?? EdgeInsets.symmetric(horizontal: 26, vertical: 12),
               child: Row(
                 spacing: 4,
                 children: [Icon(Symbols.close), Text('Error: $error')],
@@ -107,7 +115,7 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
         loading:
             () => Padding(
               padding:
-                  padding ?? EdgeInsets.symmetric(horizontal: 26, vertical: 4),
+                  padding ?? EdgeInsets.symmetric(horizontal: 26, vertical: 12),
               child: Row(
                 spacing: 4,
                 children: [Icon(Symbols.more_vert), Text('loading').tr()],
