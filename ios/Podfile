@@ -49,7 +49,7 @@ target 'Runner' do
   end
 end
 
-target 'WatchRunner Watch App' do
+target 'Solian Watch App' do
   platform :watchos, '11.0'
 
   use_frameworks!
