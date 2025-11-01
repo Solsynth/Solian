@@ -51,7 +51,7 @@ import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/post_detail.dart';
-import 'package:island/screens/posts/pub_profile.dart';
+import 'package:island/screens/posts/publisher_profile.dart';
 import 'package:island/screens/auth/login.dart';
 import 'package:island/screens/auth/create_account.dart';
 import 'package:island/screens/settings.dart';

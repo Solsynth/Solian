@@ -27,7 +27,7 @@ import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'pub_profile.g.dart';
+part 'publisher_profile.g.dart';
 
 class _PublisherBasisWidget extends StatelessWidget {
   final SnPublisher data;
@@ -98,7 +98,8 @@ class _PublisherBasisWidget extends StatelessWidget {
                               size: 16,
                               color: Theme.of(context).colorScheme.onPrimary,
                             ),
-                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                             offset: Offset(0, 48),
                             child: ProfilePictureWidget(
                               file: data.picture,
@@ -123,7 +124,15 @@ class _PublisherBasisWidget extends StatelessWidget {
                             Row(
                               spacing: 6,
                               children: [
-                                Text(data.nick).fontSize(20),
+                                if (data.account != null && data.type == 0)
+                                  AccountName(
+                                    account: data.account!,
+                                    textOverride: data.nick,
+                                    hideVerificationMark: true,
+                                    style: TextStyle(fontSize: 20),
+                                  )
+                                else
+                                  Text(data.nick).fontSize(20),
                                 if (data.verification != null)
                                   VerificationMark(mark: data.verification!),
                                 if (isWideScreen(context))
@@ -141,19 +150,23 @@ class _PublisherBasisWidget extends StatelessWidget {
                                 '@${data.name}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                              ).fontSize(14).opacity(0.85).padding(top: 4),
+                              ).fontSize(14).opacity(0.85).padding(bottom: 2.5),
                             if (data.type == 0 && data.account != null)
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 spacing: 6,
                                 children: [
                                   Icon(
-                                    data.type == 0 ? Symbols.person : Symbols.workspaces,
+                                    data.type == 0
+                                        ? Symbols.person
+                                        : Symbols.workspaces,
                                     fill: 1,
                                     size: 17,
                                   ),
                                   Text(
-                                    'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
+                                    'publisherBelongsTo'.tr(
+                                      args: ['@${data.account!.name}'],
+                                    ),
                                   ).fontSize(14),
                                 ],
                               ).opacity(0.85),
@@ -185,7 +198,9 @@ class _PublisherBasisWidget extends StatelessWidget {
                                                   : 'subscribe',
                                             ).tr(),
                                         style: ButtonStyle(
-                                          visualDensity: VisualDensity(vertical: -2),
+                                          visualDensity: VisualDensity(
+                                            vertical: -2,
+                                          ),
                                         ),
                                       ),
                                   error: (_, _) => const SizedBox(),
@@ -196,12 +211,14 @@ class _PublisherBasisWidget extends StatelessWidget {
                                           child: SizedBox(
                                             width: 20,
                                             height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
                                           ),
                                         ),
                                       ),
                                 )
-                                .padding(vertical: 8),
+                                .padding(vertical: 12),
                           ],
                         ),
                       ),
@@ -596,7 +613,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: _PublisherBioWidget(data: data),
                         ),
                         SliverToBoxAdapter(
-                          child: _PublisherHeatmapWidget(heatmap: heatmap).padding(vertical: 4),
+                          child: _PublisherHeatmapWidget(
+                            heatmap: heatmap,
+                          ).padding(vertical: 4),
                         ),
                         SliverPostList(pubName: name, pinned: true),
                         SliverToBoxAdapter(
