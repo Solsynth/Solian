@@ -121,3 +121,40 @@ Map<String, dynamic> _$SnEventCalendarEntryToJson(
   'check_in_result': instance.checkInResult?.toJson(),
   'statuses': instance.statuses.map((e) => e.toJson()).toList(),
 };
+
+_SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
+    _SnPresenceActivity(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      manualId: json['manual_id'] as String?,
+      title: json['title'] as String?,
+      subtitle: json['subtitle'] as String?,
+      caption: json['caption'] as String?,
+      meta: json['meta'] as Map<String, dynamic>?,
+      leaseMinutes: (json['lease_minutes'] as num).toInt(),
+      leaseExpiresAt: DateTime.parse(json['lease_expires_at'] as String),
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'manual_id': instance.manualId,
+      'title': instance.title,
+      'subtitle': instance.subtitle,
+      'caption': instance.caption,
+      'meta': instance.meta,
+      'lease_minutes': instance.leaseMinutes,
+      'lease_expires_at': instance.leaseExpiresAt.toIso8601String(),
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };
