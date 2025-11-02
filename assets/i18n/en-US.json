@@ -470,6 +470,7 @@
     "pronouns": "Pronouns",
     "location": "Location",
     "timeZone": "Time Zone",
+    "timezoneNotFound": "Time zone not found",
     "birthday": "Birthday",
     "selectADate": "Select a date",
     "checkInResultT0": "Worst",

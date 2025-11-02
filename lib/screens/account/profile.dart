@@ -332,30 +332,34 @@ class _AccountProfileDetail extends StatelessWidget {
               children: _buildSubcolumn(),
             ),
           if (data.profile.timeZone.isNotEmpty && !kIsWeb)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('timeZone').tr().bold(),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  spacing: 6,
-                  children: [
-                    Text(data.profile.timeZone),
-                    Text(
-                      getTzInfo(
-                        data.profile.timeZone,
-                      ).$2.formatCustomGlobal('HH:mm'),
-                    ),
-                    Text(
-                      getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
-                    ).fontSize(11),
-                    Text(
-                      'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
-                    ).fontSize(11).opacity(0.75),
-                  ],
-                ),
-              ],
+            Builder(
+              builder: (context) {
+                try {
+                  final tzInfo = getTzInfo(data.profile.timeZone);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('timeZone').tr().bold(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        spacing: 6,
+                        children: [
+                          Text(data.profile.timeZone),
+                          Text(tzInfo.$2.formatCustomGlobal('HH:mm')),
+                          Text(tzInfo.$1.formatOffsetLocal()).fontSize(11),
+                          Text(
+                            'UTC${tzInfo.$1.formatOffset()}',
+                          ).fontSize(11).opacity(0.75),
+                        ],
+                      ),
+                    ],
+                  );
+                } catch (e) {
+                  // Hide timezone section if timezone is invalid
+                  return const SizedBox.shrink();
+                }
+              },
             ),
         ],
       ).padding(horizontal: 24, vertical: 16),

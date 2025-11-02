@@ -21,7 +21,6 @@ import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 part 'hub.g.dart';
 
@@ -190,13 +189,7 @@ class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
             currentProject: currentProject,
             onProjectChanged: onProjectChanged,
           ),
-        IconButton(
-          icon: const Icon(Symbols.help, color: Color(0xFF5F6368)),
-          onPressed: () {
-            launchUrlString('https://kb.solsynth.dev');
-          },
-        ),
-        const Gap(12),
+        const Gap(8),
       ],
     );
   }
