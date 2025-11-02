@@ -120,9 +120,11 @@ class ActivityRpcServer {
         };
 
         // Set up IPC close handler
-        _ipcServer!.onSocketClose = (socket) {
-          handlers['close']?.call(socket);
-        };
+        if (!kIsWeb) {
+          (_ipcServer as dynamic).onSocketClose = (socket) {
+            handlers['close']?.call(socket);
+          };
+        }
 
         await _ipcServer!.start();
       } catch (e) {
