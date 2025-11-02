@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,7 +8,6 @@ import 'package:island/models/auth.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/account_settings.dart';
-import 'package:island/screens/auth/oidc.native.dart';
 import 'package:island/utils/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
@@ -206,25 +204,13 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
         case 'github':
         case 'discord':
         case 'afdian':
-          if (kIsWeb) {
-            final serverUrl = ref.watch(serverUrlProvider);
-            final accessToken = ref.watch(tokenProvider);
-            launchUrlString(
-              '$serverUrl/pass/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
-            );
-          } else {
-            await Navigator.of(context, rootNavigator: true).push(
-              MaterialPageRoute(
-                builder:
-                    (context) => OidcScreen(
-                      provider: selectedProvider.value.toLowerCase(),
-                      title:
-                          'Connect with ${selectedProvider.value.capitalizeEachWord()}',
-                    ),
-              ),
-            );
-            if (context.mounted) Navigator.pop(context, true);
-          }
+        case 'spotify':
+          final serverUrl = ref.watch(serverUrlProvider);
+          final accessToken = ref.watch(tokenProvider);
+          launchUrlString(
+            '$serverUrl/pass/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
+          );
+          if (context.mounted) Navigator.pop(context, true);
           break;
         default:
           showSnackBar('accountConnectionAddError'.tr());
