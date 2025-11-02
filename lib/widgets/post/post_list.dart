@@ -24,6 +24,12 @@ class PostListNotifier extends _$PostListNotifier
     bool? pinned,
     bool shuffle = false,
     bool? includeReplies,
+    bool? mediaOnly,
+    String? queryTerm,
+    String? order,
+    int? periodStart,
+    int? periodEnd,
+    bool orderDesc = true,
   }) {
     return fetch(cursor: null);
   }
@@ -36,14 +42,20 @@ class PostListNotifier extends _$PostListNotifier
     final queryParams = {
       'offset': offset,
       'take': _pageSize,
+      'replies': includeReplies,
+      'orderDesc': orderDesc,
+      if (shuffle) 'shuffle': shuffle,
       if (pubName != null) 'pub': pubName,
       if (realm != null) 'realm': realm,
       if (type != null) 'type': type,
       if (tags != null) 'tags': tags,
       if (categories != null) 'categories': categories,
-      if (shuffle) 'shuffle': true,
       if (pinned != null) 'pinned': pinned,
-      if (includeReplies != null) 'includeReplies': includeReplies,
+      if (order != null) 'order': order,
+      if (periodStart != null) 'periodStart': periodStart,
+      if (periodEnd != null) 'periodEnd': periodEnd,
+      if (queryTerm != null) 'query': queryTerm,
+      if (mediaOnly != null) 'media': mediaOnly,
     };
 
     final response = await client.get(
@@ -82,6 +94,14 @@ class SliverPostList extends HookConsumerWidget {
   final List<String>? tags;
   final bool shuffle;
   final bool? pinned;
+  final bool? includeReplies;
+  final bool? mediaOnly;
+  final String? queryTerm;
+  // Can be "populaurity", other value will be treated as "date"
+  final String? order;
+  final int? periodStart;
+  final int? periodEnd;
+  final bool? orderDesc;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -99,6 +119,13 @@ class SliverPostList extends HookConsumerWidget {
     this.tags,
     this.shuffle = false,
     this.pinned,
+    this.includeReplies,
+    this.mediaOnly,
+    this.queryTerm,
+    this.order,
+    this.orderDesc = true,
+    this.periodStart,
+    this.periodEnd,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -118,6 +145,13 @@ class SliverPostList extends HookConsumerWidget {
       tags: tags,
       shuffle: shuffle,
       pinned: pinned,
+      includeReplies: includeReplies,
+      mediaOnly: mediaOnly,
+      queryTerm: queryTerm,
+      order: order,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      orderDesc: orderDesc ?? true,
     );
     return PagingHelperSliverView(
       provider: provider,

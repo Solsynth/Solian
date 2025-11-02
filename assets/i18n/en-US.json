@@ -1310,5 +1310,12 @@
     "presenceTypeMusic": "Listening to Music",
     "presenceTypeWorkout": "Working out",
     "articleCompose": "Compose Article",
-    "backToHub": "Back to Hub"
+    "backToHub": "Back to Hub",
+    "advancedFilters": "Advanced Filters",
+    "searchPosts": "Search Posts",
+    "sortBy": "Sort by",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "popularity": "Popularity",
+    "descendingOrder": "Descending Order"
 }
