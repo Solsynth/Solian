@@ -201,7 +201,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                                                   );
                                                 },
                                                 icon: const Icon(
-                                                  Symbols.add_circle,
+                                                  Symbols.remove_circle,
                                                 ),
                                                 label: Text('unsubscribe'.tr()),
                                               )
@@ -214,7 +214,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                                                   );
                                                 },
                                                 icon: const Icon(
-                                                  Symbols.remove_circle,
+                                                  Symbols.add_circle,
                                                 ),
                                                 label: Text('subscribe'.tr()),
                                               ),
