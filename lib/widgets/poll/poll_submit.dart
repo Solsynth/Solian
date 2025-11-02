@@ -4,15 +4,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/poll/poll_stats_widget.dart';
 
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({
     super.key,
-    required this.poll,
+    required this.pollId,
     required this.onSubmit,
-    required this.stats,
     this.initialAnswers,
     this.onCancel,
     this.showProgress = true,
@@ -20,14 +20,13 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.isInitiallyExpanded = false,
   });
 
-  final SnPollWithStats poll;
+  final String pollId;
 
   /// Callback when user submits all answers. Map questionId -> answer.
   final void Function(Map<String, dynamic> answers) onSubmit;
 
   /// Optional initial answers, keyed by questionId.
   final Map<String, dynamic>? initialAnswers;
-  final Map<String, dynamic>? stats;
 
   /// Optional cancel callback.
   final VoidCallback? onCancel;
@@ -45,7 +44,7 @@ class PollSubmit extends ConsumerStatefulWidget {
 }
 
 class _PollSubmitState extends ConsumerState<PollSubmit> {
-  late final List<SnPollQuestion> _questions;
+  List<SnPollQuestion>? _questions;
   int _index = 0;
   bool _submitting = false;
   bool _isModifying = false; // New state to track if user is modifying answers
@@ -66,14 +65,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   @override
   void initState() {
     super.initState();
-    // Ensure questions are ordered by `order`
-    _questions = [...widget.poll.questions]
-      ..sort((a, b) => a.order.compareTo(b.order));
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
     // Set initial collapse state based on the parameter
     _isCollapsed = !widget.isInitiallyExpanded;
     if (!widget.isReadonly) {
-      _loadCurrentIntoLocalState();
       // If initial answers are provided, set _isModifying to false initially
       // so the "Modify" button is shown.
       if (widget.initialAnswers != null && widget.initialAnswers!.isNotEmpty) {
@@ -82,23 +77,25 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
+  void _initializeFromPollData(SnPollWithStats poll) {
+    // Initialize answers from poll data if available
+    if (poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty) {
+      _answers = Map<String, dynamic>.from(poll.userAnswer!.answer);
+      if (!widget.isReadonly && !_isModifying) {
+        _isModifying = false; // Show modify button if user has answered
+      }
+    }
+    _loadCurrentIntoLocalState();
+  }
+
   @override
   void didUpdateWidget(covariant PollSubmit oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.poll.id != widget.poll.id) {
+    if (oldWidget.pollId != widget.pollId) {
       _index = 0;
       _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
-      _questions
-        ..clear()
-        ..addAll(
-          [...widget.poll.questions]
-            ..sort((a, b) => a.order.compareTo(b.order)),
-        );
-      if (!widget.isReadonly) {
-        _loadCurrentIntoLocalState();
-        // If poll ID changes, reset modification state
-        _isModifying = false;
-      }
+      // Reset modification state when poll changes
+      _isModifying = false;
     }
   }
 
@@ -108,7 +105,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     super.dispose();
   }
 
-  SnPollQuestion get _current => _questions[_index];
+  SnPollQuestion get _current => _questions![_index];
 
   void _loadCurrentIntoLocalState() {
     final q = _current;
@@ -201,7 +198,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  Future<void> _submitToServer() async {
+  Future<void> _submitToServer(SnPollWithStats poll) async {
     // Persist current question before final submit
     _persistCurrentAnswer();
 
@@ -213,7 +210,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       final dio = ref.read(apiClientProvider);
 
       await dio.post(
-        '/sphere/polls/${widget.poll.id}/answer',
+        '/sphere/polls/${poll.id}/answer',
         data: {'answer': _answers},
       );
 
@@ -233,17 +230,17 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  void _next() {
+  void _next(SnPollWithStats poll) {
     if (_submitting) return;
     _persistCurrentAnswer();
-    if (_index < _questions.length - 1) {
+    if (_index < _questions!.length - 1) {
       setState(() {
         _index++;
         _loadCurrentIntoLocalState();
       });
     } else {
       // Final submit to API
-      _submitToServer();
+      _submitToServer(poll);
     }
   }
 
@@ -261,41 +258,15 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, SnPollWithStats poll) {
     final q = _current;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.poll.title != null || widget.poll.description != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.poll.title != null)
-                  Text(
-                    widget.poll.title!,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                if (widget.poll.description != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      widget.poll.description!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         if (widget.showProgress &&
             _isModifying) // Only show progress when modifying
           Text(
-            '${_index + 1} / ${_questions.length}',
+            '${_index + 1} / ${_questions!.length}',
             style: Theme.of(context).textTheme.labelMedium,
           ),
         Row(
@@ -334,12 +305,18 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildStats(BuildContext context, SnPollQuestion q) {
-    return PollStatsWidget(question: q, stats: widget.stats);
+  Widget _buildStats(
+    BuildContext context,
+    SnPollQuestion q,
+    Map<String, dynamic>? stats,
+  ) {
+    return PollStatsWidget(question: q, stats: stats);
   }
 
-  Widget _buildBody(BuildContext context) {
-    if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
+  Widget _buildBody(BuildContext context, SnPollWithStats poll) {
+    final hasUserAnswer =
+        poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
+    if (hasUserAnswer && !widget.isReadonly && !_isModifying) {
       return const SizedBox.shrink(); // Collapse input fields if already submitted and not modifying
     }
     final q = _current;
@@ -449,11 +426,13 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildNavBar(BuildContext context) {
-    final isLast = _index == _questions.length - 1;
+  Widget _buildNavBar(BuildContext context, SnPollWithStats poll) {
+    final isLast = _index == _questions!.length - 1;
     final canProceed = _isCurrentAnswered() && !_submitting;
+    final hasUserAnswer =
+        poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
 
-    if (widget.initialAnswers != null && !_isModifying && !widget.isReadonly) {
+    if (hasUserAnswer && !_isModifying && !widget.isReadonly) {
       // If poll is submitted and not in modification mode, show "Modify" button
       return FilledButton.icon(
         icon: const Icon(Icons.edit),
@@ -498,32 +477,32 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                   )
                   : Icon(isLast ? Icons.check : Icons.arrow_forward),
           label: Text(isLast ? 'submit'.tr() : 'next'.tr()),
-          onPressed: canProceed ? _next : null,
+          onPressed: canProceed ? () => _next(poll) : null,
         ),
       ],
     );
   }
 
-  Widget _buildSubmittedView(BuildContext context) {
+  Widget _buildSubmittedView(BuildContext context, SnPollWithStats poll) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.poll.title != null || widget.poll.description != null)
+        if (poll.title != null || poll.description != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.poll.title?.isNotEmpty ?? false)
+                if (poll.title?.isNotEmpty ?? false)
                   Text(
-                    widget.poll.title!,
+                    poll.title!,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                if (widget.poll.description?.isNotEmpty ?? false)
+                if (poll.description?.isNotEmpty ?? false)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      widget.poll.description!,
+                      poll.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -534,7 +513,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               ],
             ),
           ),
-        for (final q in _questions)
+        for (final q in _questions!)
           Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Column(
@@ -574,7 +553,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                       ),
                     ),
                   ),
-                _buildStats(context, q),
+                _buildStats(context, q, poll.stats),
               ],
             ),
           ),
@@ -582,26 +561,26 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildReadonlyView(BuildContext context) {
+  Widget _buildReadonlyView(BuildContext context, SnPollWithStats poll) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.poll.title != null || widget.poll.description != null)
+        if (poll.title != null || poll.description != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.poll.title != null)
+                if (poll.title != null)
                   Text(
-                    widget.poll.title!,
+                    poll.title!,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                if (widget.poll.description != null)
+                if (poll.description != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      widget.poll.description!,
+                      poll.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -612,7 +591,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               ],
             ),
           ),
-        for (final q in _questions)
+        for (final q in _questions!)
           Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Column(
@@ -652,7 +631,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                       ),
                     ),
                   ),
-                _buildStats(context, q),
+                _buildStats(context, q, poll.stats),
               ],
             ),
           ),
@@ -660,7 +639,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildCollapsedView(BuildContext context) {
+  Widget _buildCollapsedView(BuildContext context, SnPollWithStats poll) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -670,20 +649,20 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (widget.poll.title != null)
+                  if (poll.title != null)
                     Text(
-                      widget.poll.title!,
+                      poll.title!,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (widget.poll.description != null)
+                  if (poll.description != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        widget.poll.description!,
+                        poll.description!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
@@ -697,7 +676,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        '${_questions.length} question${_questions.length == 1 ? '' : 's'}',
+                        '${_questions!.length} question${_questions!.length == 1 ? '' : 's'}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
@@ -729,111 +708,156 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   @override
   Widget build(BuildContext context) {
-    if (_questions.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final pollAsync = ref.watch(pollWithStatsProvider(widget.pollId));
 
-    // If collapsed, show collapsed view for all states
-    if (_isCollapsed) {
-      return _buildCollapsedView(context);
-    }
-
-    // If poll is already submitted and not in readonly mode, and not in modification mode, show submitted view
-    if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildCollapsedView(context),
-          const SizedBox(height: 8),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, anim) {
-              final offset = Tween<Offset>(
-                begin: const Offset(0, -0.1),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
-              final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
-              return FadeTransition(
-                opacity: fade,
-                child: SlideTransition(position: offset, child: child),
-              );
-            },
-            child: Column(
-              key: const ValueKey('submitted_expanded'),
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [_buildSubmittedView(context), _buildNavBar(context)],
+    return pollAsync.when(
+      loading:
+          () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
             ),
           ),
-        ],
-      );
-    }
-
-    // If poll is in readonly mode, show readonly view
-    if (widget.isReadonly) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildCollapsedView(context),
-          const SizedBox(height: 8),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, anim) {
-              final offset = Tween<Offset>(
-                begin: const Offset(0, -0.1),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
-              final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
-              return FadeTransition(
-                opacity: fade,
-                child: SlideTransition(position: offset, child: child),
-              );
-            },
-            child: _buildReadonlyView(context),
+      error:
+          (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text('Failed to load poll: $error'),
+            ),
           ),
-        ],
-      );
-    }
+      data: (poll) {
+        // Initialize questions when data is available
+        _questions = [...poll.questions]
+          ..sort((a, b) => a.order.compareTo(b.order));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildCollapsedView(context),
-        const SizedBox(height: 8),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, anim) {
-            final offset = Tween<Offset>(
-              begin: const Offset(0, -0.1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
-            final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
-            return FadeTransition(
-              opacity: fade,
-              child: SlideTransition(position: offset, child: child),
-            );
-          },
-          child: Column(
-            key: const ValueKey('normal_expanded'),
+        // Initialize answers from poll data
+        _initializeFromPollData(poll);
+
+        if (_questions!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        // If collapsed, show collapsed view for all states
+        if (_isCollapsed) {
+          return _buildCollapsedView(context, poll);
+        }
+
+        // If poll is already submitted and not in readonly mode, and not in modification mode, show submitted view
+        final hasUserAnswer =
+            poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
+        if (hasUserAnswer && !widget.isReadonly && !_isModifying) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildHeader(context),
-              const SizedBox(height: 12),
-              _AnimatedStep(
-                key: ValueKey(_current.id),
+              _buildCollapsedView(context, poll),
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(0, -0.1),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                  );
+                  final fade = CurvedAnimation(
+                    parent: anim,
+                    curve: Curves.easeOut,
+                  );
+                  return FadeTransition(
+                    opacity: fade,
+                    child: SlideTransition(position: offset, child: child),
+                  );
+                },
                 child: Column(
+                  key: const ValueKey('submitted_expanded'),
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildBody(context),
-                    _buildStats(context, _current),
+                    _buildSubmittedView(context, poll),
+                    _buildNavBar(context, poll),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildNavBar(context),
             ],
-          ),
-        ),
-      ],
+          );
+        }
+
+        // If poll is in readonly mode, show readonly view
+        if (widget.isReadonly) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCollapsedView(context, poll),
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(0, -0.1),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                  );
+                  final fade = CurvedAnimation(
+                    parent: anim,
+                    curve: Curves.easeOut,
+                  );
+                  return FadeTransition(
+                    opacity: fade,
+                    child: SlideTransition(position: offset, child: child),
+                  );
+                },
+                child: _buildReadonlyView(context, poll),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildCollapsedView(context, poll),
+            const SizedBox(height: 8),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, anim) {
+                final offset = Tween<Offset>(
+                  begin: const Offset(0, -0.1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
+                final fade = CurvedAnimation(
+                  parent: anim,
+                  curve: Curves.easeOut,
+                );
+                return FadeTransition(
+                  opacity: fade,
+                  child: SlideTransition(position: offset, child: child),
+                );
+              },
+              child: Column(
+                key: const ValueKey('normal_expanded'),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(context, poll),
+                  const SizedBox(height: 12),
+                  _AnimatedStep(
+                    key: ValueKey(_current.id),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildBody(context, poll),
+                        _buildStats(context, _current, poll.stats),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildNavBar(context, poll),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

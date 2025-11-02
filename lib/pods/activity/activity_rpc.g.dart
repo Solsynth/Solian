@@ -7,7 +7,7 @@ part of 'activity_rpc.dart';
 // **************************************************************************
 
 String _$presenceActivitiesHash() =>
-    r'dcea3cad01b4010c0087f5281413d83a754c2a17';
+    r'3bfaa638eeb961ecd62a32d6a7760a6a7e7bf6f2';
 
 /// Copied from Dart SDK
 class _SystemHash {

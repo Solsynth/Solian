@@ -8,7 +8,12 @@ part of 'poll.dart';
 
 _SnPollWithStats _$SnPollWithStatsFromJson(Map<String, dynamic> json) =>
     _SnPollWithStats(
-      userAnswer: json['user_answer'] as Map<String, dynamic>?,
+      userAnswer:
+          json['user_answer'] == null
+              ? null
+              : SnPollAnswer.fromJson(
+                json['user_answer'] as Map<String, dynamic>,
+              ),
       stats: json['stats'] as Map<String, dynamic>? ?? const {},
       id: json['id'] as String,
       questions:
@@ -32,7 +37,7 @@ _SnPollWithStats _$SnPollWithStatsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SnPollWithStatsToJson(_SnPollWithStats instance) =>
     <String, dynamic>{
-      'user_answer': instance.userAnswer,
+      'user_answer': instance.userAnswer?.toJson(),
       'stats': instance.stats,
       'id': instance.id,
       'questions': instance.questions.map((e) => e.toJson()).toList(),

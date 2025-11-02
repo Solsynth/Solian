@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:island/models/embed.dart';
-import 'package:island/models/poll.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/content/embed/link.dart';
@@ -54,13 +53,10 @@ class EmbedListWidget extends StatelessWidget {
                       vertical: 8,
                     ),
                     child:
-                        embedData['poll'] == null
-                            ? const Text('Poll was not loaded...')
+                        embedData['id'] == null
+                            ? const Text('Poll was unavailable...')
                             : PollSubmit(
-                              initialAnswers:
-                                  embedData['poll']?['user_answer']?['answer'],
-                              stats: embedData['poll']?['stats'],
-                              poll: SnPollWithStats.fromJson(embedData['poll']),
+                              pollId: embedData['id'],
                               onSubmit: (_) {},
                               isReadonly: !isInteractive,
                               isInitiallyExpanded: isFullPost,

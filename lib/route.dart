@@ -8,11 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
-import 'package:island/screens/developers/edit_app.dart';
-import 'package:island/screens/developers/edit_bot.dart';
 import 'package:island/screens/developers/hub.dart';
-import 'package:island/screens/developers/new_app.dart';
-import 'package:island/screens/developers/new_bot.dart';
 import 'package:island/screens/developers/edit_project.dart';
 import 'package:island/screens/developers/new_project.dart';
 import 'package:island/screens/discovery/articles.dart';
@@ -571,25 +567,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                     routes: [
                       GoRoute(
-                        name: 'developerAppNew',
-                        path: 'apps/new',
-                        builder:
-                            (context, state) => NewCustomAppScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                            ),
-                      ),
-                      GoRoute(
-                        name: 'developerAppEdit',
-                        path: 'apps/:id/edit',
-                        builder:
-                            (context, state) => EditAppScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                              id: state.pathParameters['id']!,
-                            ),
-                      ),
-                      GoRoute(
                         name: 'developerAppDetail',
                         path: 'apps/:appId',
                         builder:
@@ -600,15 +577,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                             ),
                       ),
                       GoRoute(
-                        name: 'developerBotNew',
-                        path: 'bots/new',
-                        builder:
-                            (context, state) => NewBotScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                            ),
-                      ),
-                      GoRoute(
                         name: 'developerBotDetail',
                         path: 'bots/:botId',
                         builder:
@@ -616,16 +584,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                               publisherName: state.pathParameters['name']!,
                               projectId: state.pathParameters['projectId']!,
                               botId: state.pathParameters['botId']!,
-                            ),
-                      ),
-                      GoRoute(
-                        name: 'developerBotEdit',
-                        path: 'bots/:id/edit',
-                        builder:
-                            (context, state) => EditBotScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                              id: state.pathParameters['id']!,
                             ),
                       ),
                     ],

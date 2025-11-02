@@ -7,7 +7,7 @@ part of 'explore.dart';
 // **************************************************************************
 
 String _$activityListNotifierHash() =>
-    r'a3ad3242f08139bef14a2f0fab6591ce8b3cb9f0';
+    r'77ffc7852feffa5438b56fa26123d453b7c310cf';
 
 /// Copied from Dart SDK
 class _SystemHash {
