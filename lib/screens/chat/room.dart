@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:math" as math;
 import "package:easy_localization/easy_localization.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
@@ -140,6 +141,9 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
 
+    // Scroll animation notifiers
+    final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
+
     final messageReplyingTo = useState<SnChatMessage?>(null);
     final messageForwardingTo = useState<SnChatMessage?>(null);
     final messageEditingTo = useState<SnChatMessage?>(null);
@@ -164,6 +168,12 @@ class ChatRoomScreen extends HookConsumerWidget {
           isLoading = true;
           messagesNotifier.loadMore().then((_) => isLoading = false);
         }
+
+        // Update gradient animations
+        final pixels = scrollController.position.pixels;
+
+        // Bottom gradient: appears when not at bottom (pixels > 0)
+        bottomGradientNotifier.value.value = (pixels / 500.0).clamp(0.0, 1.0);
       }
 
       scrollController.addListener(onScroll);
@@ -589,7 +599,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       listController: listController,
       padding: EdgeInsets.only(
         top: 16,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        bottom:
+            MediaQuery.of(context).padding.bottom +
+            80, // Leave space for chat input
       ),
       controller: scrollController,
       reverse: true, // Show newest messages at the bottom
@@ -828,7 +840,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       ),
       body: Stack(
         children: [
-          // Messages and Input in Column
+          // Messages only in Column
           Positioned.fill(
             child: Column(
               children: [
@@ -872,73 +884,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                     ),
                   ),
                 ),
-                if (!isSelectionMode.value)
-                  chatRoom.when(
-                    data:
-                        (room) => Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ChatInput(
-                              messageController: messageController,
-                              chatRoom: room!,
-                              onSend: sendMessage,
-                              onClear: () {
-                                if (messageEditingTo.value != null) {
-                                  attachments.value.clear();
-                                  messageController.clear();
-                                }
-                                messageEditingTo.value = null;
-                                messageReplyingTo.value = null;
-                                messageForwardingTo.value = null;
-                              },
-                              messageEditingTo: messageEditingTo.value,
-                              messageReplyingTo: messageReplyingTo.value,
-                              messageForwardingTo: messageForwardingTo.value,
-                              onPickFile: (bool isPhoto) {
-                                if (isPhoto) {
-                                  pickPhotoMedia();
-                                } else {
-                                  pickVideoMedia();
-                                }
-                              },
-                              onPickAudio: pickAudioMedia,
-                              onPickGeneralFile: pickGeneralFile,
-                              onLinkAttachment: linkAttachment,
-                              attachments: attachments.value,
-                              onUploadAttachment: uploadAttachment,
-                              onDeleteAttachment: (index) async {
-                                final attachment = attachments.value[index];
-                                if (attachment.isOnCloud &&
-                                    !attachment.isLink) {
-                                  final client = ref.watch(apiClientProvider);
-                                  await client.delete(
-                                    '/drive/files/${attachment.data.id}',
-                                  );
-                                }
-                                final clone = List.of(attachments.value);
-                                clone.removeAt(index);
-                                attachments.value = clone;
-                              },
-                              onMoveAttachment: (idx, delta) {
-                                if (idx + delta < 0 ||
-                                    idx + delta >= attachments.value.length) {
-                                  return;
-                                }
-                                final clone = List.of(attachments.value);
-                                clone.insert(idx + delta, clone.removeAt(idx));
-                                attachments.value = clone;
-                              },
-                              onAttachmentsChanged: (newAttachments) {
-                                attachments.value = newAttachments;
-                              },
-                              attachmentProgress: attachmentProgress.value,
-                            ),
-                            Gap(MediaQuery.of(context).padding.bottom),
-                          ],
-                        ),
-                    error: (_, _) => const SizedBox.shrink(),
-                    loading: () => const SizedBox.shrink(),
-                  ),
               ],
             ),
           ),
@@ -975,6 +920,112 @@ class ChatRoomScreen extends HookConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          // Bottom gradient - appears when scrolling towards newer messages (behind chat input)
+          if (!isSelectionMode.value)
+            AnimatedBuilder(
+              animation: bottomGradientNotifier.value,
+              builder:
+                  (context, child) => Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Opacity(
+                      opacity: bottomGradientNotifier.value.value,
+                      child: Container(
+                        height: math.min(
+                          MediaQuery.of(context).size.height * 0.1,
+                          128,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer.withOpacity(0.8),
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer.withOpacity(0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+            ),
+          // Chat Input positioned above gradient (higher z-index)
+          if (!isSelectionMode.value)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0, // At the very bottom, above gradient
+              child: chatRoom.when(
+                data:
+                    (room) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ChatInput(
+                          messageController: messageController,
+                          chatRoom: room!,
+                          onSend: sendMessage,
+                          onClear: () {
+                            if (messageEditingTo.value != null) {
+                              attachments.value.clear();
+                              messageController.clear();
+                            }
+                            messageEditingTo.value = null;
+                            messageReplyingTo.value = null;
+                            messageForwardingTo.value = null;
+                          },
+                          messageEditingTo: messageEditingTo.value,
+                          messageReplyingTo: messageReplyingTo.value,
+                          messageForwardingTo: messageForwardingTo.value,
+                          onPickFile: (bool isPhoto) {
+                            if (isPhoto) {
+                              pickPhotoMedia();
+                            } else {
+                              pickVideoMedia();
+                            }
+                          },
+                          onPickAudio: pickAudioMedia,
+                          onPickGeneralFile: pickGeneralFile,
+                          onLinkAttachment: linkAttachment,
+                          attachments: attachments.value,
+                          onUploadAttachment: uploadAttachment,
+                          onDeleteAttachment: (index) async {
+                            final attachment = attachments.value[index];
+                            if (attachment.isOnCloud && !attachment.isLink) {
+                              final client = ref.watch(apiClientProvider);
+                              await client.delete(
+                                '/drive/files/${attachment.data.id}',
+                              );
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.removeAt(index);
+                            attachments.value = clone;
+                          },
+                          onMoveAttachment: (idx, delta) {
+                            if (idx + delta < 0 ||
+                                idx + delta >= attachments.value.length) {
+                              return;
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.insert(idx + delta, clone.removeAt(idx));
+                            attachments.value = clone;
+                          },
+                          onAttachmentsChanged: (newAttachments) {
+                            attachments.value = newAttachments;
+                          },
+                          attachmentProgress: attachmentProgress.value,
+                        ),
+                        Gap(MediaQuery.of(context).padding.bottom),
+                      ],
+                    ),
+                error: (_, _) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
               ),
             ),
           // Selection mode toolbar
