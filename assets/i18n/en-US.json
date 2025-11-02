@@ -1309,5 +1309,6 @@
     "presenceTypeGaming": "Playing",
     "presenceTypeMusic": "Listening to Music",
     "presenceTypeWorkout": "Working out",
-    "articleCompose": "Compose Article"
+    "articleCompose": "Compose Article",
+    "backToHub": "Back to Hub"
 }
