@@ -444,7 +444,7 @@ final rpcServerStateProvider = StateNotifierProvider<
     'message': (socket, dynamic data) async {
       if (data['cmd'] == 'SET_ACTIVITY') {
         final activity = data['args']['activity'];
-        final appId = socket.clientId;
+        final appId = 'rpc:${socket.clientId}';
 
         final currentId = notifier.currentActivityManualId;
         if (currentId != null && currentId != appId) {
