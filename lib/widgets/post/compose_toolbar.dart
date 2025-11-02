@@ -14,12 +14,14 @@ class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
   final SnPost? originalPost;
   final bool isCompact;
+  final bool useSafeArea;
 
   const ComposeToolbar({
     super.key,
     required this.state,
     this.originalPost,
     this.isCompact = false,
+    this.useSafeArea = false,
   });
 
   @override
@@ -200,7 +202,12 @@ class ComposeToolbar extends HookConsumerWidget {
                     ),
                   ),
               ],
-            ).padding(horizontal: 8, vertical: 4),
+            ).padding(
+              horizontal: 8,
+              top: 4,
+              bottom:
+                  useSafeArea ? MediaQuery.of(context).padding.bottom + 4 : 4,
+            ),
           ),
         ),
       );

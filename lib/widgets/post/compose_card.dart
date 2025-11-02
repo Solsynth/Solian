@@ -423,6 +423,7 @@ class PostComposeCard extends HookConsumerWidget {
                   state: composeState,
                   originalPost: originalPost,
                   isCompact: true,
+                  useSafeArea: isContained,
                 ),
               ),
             ),
