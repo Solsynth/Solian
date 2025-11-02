@@ -676,6 +676,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final periodEnd = useState<int?>(null);
     final showAdvancedFilters = useState(false);
     final subscribing = useState(false);
+    final isPinnedExpanded = useState(true);
 
     Future<void> subscribe() async {
       final apiClient = ref.watch(apiClientProvider);
@@ -746,7 +747,36 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: CustomScrollView(
                             slivers: [
                               SliverGap(16),
-                              SliverPostList(pubName: name, pinned: true),
+                              SliverToBoxAdapter(
+                                child: Card(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  child: ListTile(
+                                    title: Text('pinnedPosts'.tr()),
+                                    leading: const Icon(Symbols.push_pin),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(8),
+                                      ),
+                                    ),
+                                    trailing: Icon(
+                                      isPinnedExpanded.value
+                                          ? Symbols.expand_less
+                                          : Symbols.expand_more,
+                                    ),
+                                    onTap:
+                                        () =>
+                                            isPinnedExpanded.value =
+                                                !isPinnedExpanded.value,
+                                  ),
+                                ),
+                              ),
+                              ...[
+                                if (isPinnedExpanded.value)
+                                  SliverPostList(pubName: name, pinned: true),
+                              ],
                               SliverToBoxAdapter(
                                 child: _PublisherCategoryTabWidget(
                                   categoryTabController: categoryTabController,
@@ -885,7 +915,30 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             heatmap: heatmap,
                           ).padding(vertical: 4),
                         ),
-                        SliverPostList(pubName: name, pinned: true),
+                        SliverToBoxAdapter(
+                          child: Card(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: ListTile(
+                              title: Text('pinnedPosts'.tr()),
+                              trailing: Icon(
+                                isPinnedExpanded.value
+                                    ? Symbols.expand_less
+                                    : Symbols.expand_more,
+                              ),
+                              onTap:
+                                  () =>
+                                      isPinnedExpanded.value =
+                                          !isPinnedExpanded.value,
+                            ),
+                          ),
+                        ),
+                        ...[
+                          if (isPinnedExpanded.value)
+                            SliverPostList(pubName: name, pinned: true),
+                        ],
                         SliverToBoxAdapter(
                           child: _PublisherCategoryTabWidget(
                             categoryTabController: categoryTabController,

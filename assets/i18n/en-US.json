@@ -1318,5 +1318,6 @@
     "toDate": "To Date",
     "popularity": "Popularity",
     "descendingOrder": "Descending Order",
-    "selectDate": "Select Date"
+    "selectDate": "Select Date",
+    "pinnedPosts": "Pinned Posts"
 }
