@@ -38,6 +38,13 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
         height: size,
         color: color,
       );
+    case 'spotify':
+      return Image.asset(
+        'assets/images/oidc/spotify.png',
+        width: size,
+        height: size,
+        color: color,
+      );
     default:
       return Icon(Symbols.link, size: size);
   }
@@ -57,6 +64,8 @@ String getLocalizedProviderName(String provider) {
       return 'accountConnectionProviderDiscord'.tr();
     case 'afdian':
       return 'accountConnectionProviderAfdian'.tr();
+    case 'spotify':
+      return 'accountConnectionProviderSpotify'.tr();
     default:
       return provider;
   }
@@ -156,6 +165,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
       'github',
       'discord',
       'afdian',
+      'spotify',
     ];
 
     Future<void> addConnection() async {
