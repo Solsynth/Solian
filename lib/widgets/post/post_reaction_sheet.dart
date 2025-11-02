@@ -542,6 +542,7 @@ class ReactionDetailsPopup extends HookConsumerWidget {
                 notifierRefreshable: provider.notifier,
                 contentBuilder:
                     (data, widgetCount, endItemView) => ListView.builder(
+                      padding: EdgeInsets.zero,
                       itemCount: widgetCount,
                       itemBuilder: (context, index) {
                         if (index == widgetCount - 1) {
