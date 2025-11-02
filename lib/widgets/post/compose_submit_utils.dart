@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 
@@ -96,6 +97,7 @@ class ComposeSubmitUtils {
 
       // Call the success callback
       onSuccess();
+      eventBus.fire(PostCreatedEvent());
 
       return post;
     } catch (err) {

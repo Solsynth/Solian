@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -709,6 +710,8 @@ class ComposeLogic {
       if (context.mounted) {
         Navigator.of(context).maybePop(true);
       }
+
+      eventBus.fire(PostCreatedEvent());
     } catch (err) {
       showErrorAlert(err);
     } finally {
