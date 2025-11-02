@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'fc139ad4df0deb67bcbb949560319f2f7fbfb503';
+String _$postListNotifierHash() => r'8241120dc3c2004387c6cf881e5cb9224cbd3a97';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,6 +39,12 @@ abstract class _$PostListNotifier
   late final bool? pinned;
   late final bool shuffle;
   late final bool? includeReplies;
+  late final bool? mediaOnly;
+  late final String? queryTerm;
+  late final String? order;
+  late final int? periodStart;
+  late final int? periodEnd;
+  late final bool orderDesc;
 
   FutureOr<CursorPagingData<SnPost>> build({
     String? pubName,
@@ -49,6 +55,12 @@ abstract class _$PostListNotifier
     bool? pinned,
     bool shuffle = false,
     bool? includeReplies,
+    bool? mediaOnly,
+    String? queryTerm,
+    String? order,
+    int? periodStart,
+    int? periodEnd,
+    bool orderDesc = true,
   });
 }
 
@@ -72,6 +84,12 @@ class PostListNotifierFamily
     bool? pinned,
     bool shuffle = false,
     bool? includeReplies,
+    bool? mediaOnly,
+    String? queryTerm,
+    String? order,
+    int? periodStart,
+    int? periodEnd,
+    bool orderDesc = true,
   }) {
     return PostListNotifierProvider(
       pubName: pubName,
@@ -82,6 +100,12 @@ class PostListNotifierFamily
       pinned: pinned,
       shuffle: shuffle,
       includeReplies: includeReplies,
+      mediaOnly: mediaOnly,
+      queryTerm: queryTerm,
+      order: order,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      orderDesc: orderDesc,
     );
   }
 
@@ -98,6 +122,12 @@ class PostListNotifierFamily
       pinned: provider.pinned,
       shuffle: provider.shuffle,
       includeReplies: provider.includeReplies,
+      mediaOnly: provider.mediaOnly,
+      queryTerm: provider.queryTerm,
+      order: provider.order,
+      periodStart: provider.periodStart,
+      periodEnd: provider.periodEnd,
+      orderDesc: provider.orderDesc,
     );
   }
 
@@ -133,6 +163,12 @@ class PostListNotifierProvider
     bool? pinned,
     bool shuffle = false,
     bool? includeReplies,
+    bool? mediaOnly,
+    String? queryTerm,
+    String? order,
+    int? periodStart,
+    int? periodEnd,
+    bool orderDesc = true,
   }) : this._internal(
          () =>
              PostListNotifier()
@@ -143,7 +179,13 @@ class PostListNotifierProvider
                ..tags = tags
                ..pinned = pinned
                ..shuffle = shuffle
-               ..includeReplies = includeReplies,
+               ..includeReplies = includeReplies
+               ..mediaOnly = mediaOnly
+               ..queryTerm = queryTerm
+               ..order = order
+               ..periodStart = periodStart
+               ..periodEnd = periodEnd
+               ..orderDesc = orderDesc,
          from: postListNotifierProvider,
          name: r'postListNotifierProvider',
          debugGetCreateSourceHash:
@@ -161,6 +203,12 @@ class PostListNotifierProvider
          pinned: pinned,
          shuffle: shuffle,
          includeReplies: includeReplies,
+         mediaOnly: mediaOnly,
+         queryTerm: queryTerm,
+         order: order,
+         periodStart: periodStart,
+         periodEnd: periodEnd,
+         orderDesc: orderDesc,
        );
 
   PostListNotifierProvider._internal(
@@ -178,6 +226,12 @@ class PostListNotifierProvider
     required this.pinned,
     required this.shuffle,
     required this.includeReplies,
+    required this.mediaOnly,
+    required this.queryTerm,
+    required this.order,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.orderDesc,
   }) : super.internal();
 
   final String? pubName;
@@ -188,6 +242,12 @@ class PostListNotifierProvider
   final bool? pinned;
   final bool shuffle;
   final bool? includeReplies;
+  final bool? mediaOnly;
+  final String? queryTerm;
+  final String? order;
+  final int? periodStart;
+  final int? periodEnd;
+  final bool orderDesc;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
@@ -202,6 +262,12 @@ class PostListNotifierProvider
       pinned: pinned,
       shuffle: shuffle,
       includeReplies: includeReplies,
+      mediaOnly: mediaOnly,
+      queryTerm: queryTerm,
+      order: order,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      orderDesc: orderDesc,
     );
   }
 
@@ -219,7 +285,13 @@ class PostListNotifierProvider
               ..tags = tags
               ..pinned = pinned
               ..shuffle = shuffle
-              ..includeReplies = includeReplies,
+              ..includeReplies = includeReplies
+              ..mediaOnly = mediaOnly
+              ..queryTerm = queryTerm
+              ..order = order
+              ..periodStart = periodStart
+              ..periodEnd = periodEnd
+              ..orderDesc = orderDesc,
         from: from,
         name: null,
         dependencies: null,
@@ -233,6 +305,12 @@ class PostListNotifierProvider
         pinned: pinned,
         shuffle: shuffle,
         includeReplies: includeReplies,
+        mediaOnly: mediaOnly,
+        queryTerm: queryTerm,
+        order: order,
+        periodStart: periodStart,
+        periodEnd: periodEnd,
+        orderDesc: orderDesc,
       ),
     );
   }
@@ -256,7 +334,13 @@ class PostListNotifierProvider
         other.tags == tags &&
         other.pinned == pinned &&
         other.shuffle == shuffle &&
-        other.includeReplies == includeReplies;
+        other.includeReplies == includeReplies &&
+        other.mediaOnly == mediaOnly &&
+        other.queryTerm == queryTerm &&
+        other.order == order &&
+        other.periodStart == periodStart &&
+        other.periodEnd == periodEnd &&
+        other.orderDesc == orderDesc;
   }
 
   @override
@@ -270,6 +354,12 @@ class PostListNotifierProvider
     hash = _SystemHash.combine(hash, pinned.hashCode);
     hash = _SystemHash.combine(hash, shuffle.hashCode);
     hash = _SystemHash.combine(hash, includeReplies.hashCode);
+    hash = _SystemHash.combine(hash, mediaOnly.hashCode);
+    hash = _SystemHash.combine(hash, queryTerm.hashCode);
+    hash = _SystemHash.combine(hash, order.hashCode);
+    hash = _SystemHash.combine(hash, periodStart.hashCode);
+    hash = _SystemHash.combine(hash, periodEnd.hashCode);
+    hash = _SystemHash.combine(hash, orderDesc.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -302,6 +392,24 @@ mixin PostListNotifierRef
 
   /// The parameter `includeReplies` of this provider.
   bool? get includeReplies;
+
+  /// The parameter `mediaOnly` of this provider.
+  bool? get mediaOnly;
+
+  /// The parameter `queryTerm` of this provider.
+  String? get queryTerm;
+
+  /// The parameter `order` of this provider.
+  String? get order;
+
+  /// The parameter `periodStart` of this provider.
+  int? get periodStart;
+
+  /// The parameter `periodEnd` of this provider.
+  int? get periodEnd;
+
+  /// The parameter `orderDesc` of this provider.
+  bool get orderDesc;
 }
 
 class _PostListNotifierProviderElement
@@ -331,6 +439,18 @@ class _PostListNotifierProviderElement
   @override
   bool? get includeReplies =>
       (origin as PostListNotifierProvider).includeReplies;
+  @override
+  bool? get mediaOnly => (origin as PostListNotifierProvider).mediaOnly;
+  @override
+  String? get queryTerm => (origin as PostListNotifierProvider).queryTerm;
+  @override
+  String? get order => (origin as PostListNotifierProvider).order;
+  @override
+  int? get periodStart => (origin as PostListNotifierProvider).periodStart;
+  @override
+  int? get periodEnd => (origin as PostListNotifierProvider).periodEnd;
+  @override
+  bool get orderDesc => (origin as PostListNotifierProvider).orderDesc;
 }
 
 // ignore_for_file: type=lint

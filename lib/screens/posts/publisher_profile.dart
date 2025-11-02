@@ -326,21 +326,233 @@ class _PublisherHeatmapWidget extends StatelessWidget {
 
 class _PublisherCategoryTabWidget extends StatelessWidget {
   final TabController categoryTabController;
+  final ValueNotifier<bool?> includeReplies;
+  final ValueNotifier<bool> mediaOnly;
+  final ValueNotifier<String?> queryTerm;
+  final ValueNotifier<String?> order;
+  final ValueNotifier<bool> orderDesc;
+  final ValueNotifier<int?> periodStart;
+  final ValueNotifier<int?> periodEnd;
+  final ValueNotifier<bool> showAdvancedFilters;
 
-  const _PublisherCategoryTabWidget({required this.categoryTabController});
+  const _PublisherCategoryTabWidget({
+    required this.categoryTabController,
+    required this.includeReplies,
+    required this.mediaOnly,
+    required this.queryTerm,
+    required this.order,
+    required this.orderDesc,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.showAdvancedFilters,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: TabBar(
-        controller: categoryTabController,
-        dividerColor: Colors.transparent,
-        splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
-        tabs: [
-          Tab(text: 'all'.tr()),
-          Tab(text: 'postTypePost'.tr()),
-          Tab(text: 'postArticle'.tr()),
+      child: Column(
+        children: [
+          TabBar(
+            controller: categoryTabController,
+            dividerColor: Colors.transparent,
+            splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
+            tabs: [
+              Tab(text: 'all'.tr()),
+              Tab(text: 'postTypePost'.tr()),
+              Tab(text: 'postArticle'.tr()),
+            ],
+          ),
+          const Divider(height: 1),
+          Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: CheckboxListTile(
+                      title: Text('reply'.tr()),
+                      value: includeReplies.value,
+                      tristate: true,
+                      onChanged: (value) {
+                        // Cycle through: null -> false -> true -> null
+                        if (includeReplies.value == null) {
+                          includeReplies.value = false;
+                        } else if (includeReplies.value == false) {
+                          includeReplies.value = true;
+                        } else {
+                          includeReplies.value = null;
+                        }
+                      },
+                      dense: true,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      secondary: const Icon(Symbols.reply),
+                    ),
+                  ),
+                  Expanded(
+                    child: CheckboxListTile(
+                      title: Text('attachments'.tr()),
+                      value: mediaOnly.value,
+                      onChanged: (value) {
+                        if (value != null) {
+                          mediaOnly.value = value;
+                        }
+                      },
+                      dense: true,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      secondary: const Icon(Symbols.attachment),
+                    ),
+                  ),
+                ],
+              ),
+              CheckboxListTile(
+                title: Text('descendingOrder'.tr()),
+                value: orderDesc.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    orderDesc.value = value;
+                  }
+                },
+                dense: true,
+                controlAffinity: ListTileControlAffinity.leading,
+                secondary: const Icon(Symbols.sort),
+              ),
+            ],
+          ),
+          const Divider(height: 1),
+          ListTile(
+            title: Text('advancedFilters'.tr()),
+            leading: const Icon(Symbols.filter_list),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(const Radius.circular(8)),
+            ),
+            trailing: Icon(
+              showAdvancedFilters.value
+                  ? Symbols.expand_less
+                  : Symbols.expand_more,
+            ),
+            onTap: () {
+              showAdvancedFilters.value = !showAdvancedFilters.value;
+            },
+          ),
+          if (showAdvancedFilters.value) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'search'.tr(),
+                      hintText: 'searchPosts'.tr(),
+                      prefixIcon: const Icon(Symbols.search),
+                      border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      queryTerm.value = value.isEmpty ? null : value;
+                    },
+                  ),
+                  const Gap(12),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'sortBy'.tr(),
+                      border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    value: order.value,
+                    items: [
+                      DropdownMenuItem(value: 'date', child: Text('date'.tr())),
+                      DropdownMenuItem(
+                        value: 'popularity',
+                        child: Text('popularity'.tr()),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      order.value = value;
+                    },
+                  ),
+                  const Gap(12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            labelText: 'fromDate'.tr(),
+                            hintText: 'YYYY-MM-DD',
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              periodStart.value = null;
+                            } else {
+                              try {
+                                final date = DateTime.parse(value);
+                                periodStart.value =
+                                    date.millisecondsSinceEpoch ~/ 1000;
+                              } catch (_) {
+                                periodStart.value = null;
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            labelText: 'toDate'.tr(),
+                            hintText: 'YYYY-MM-DD',
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              periodEnd.value = null;
+                            } else {
+                              try {
+                                final date = DateTime.parse(value);
+                                periodEnd.value =
+                                    date.millisecondsSinceEpoch ~/ 1000;
+                              } catch (_) {
+                                periodEnd.value = null;
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -423,6 +635,16 @@ class PublisherProfileScreen extends HookConsumerWidget {
       categoryTab.value = categoryTabController.index;
     });
 
+    final includeReplies = useState<bool?>(null);
+    final mediaOnly = useState(false);
+    final queryTerm = useState<String?>(null);
+    final order = useState<String?>('date'); // 'popularity' or 'date'
+    final orderDesc = useState(
+      true,
+    ); // true for descending, false for ascending
+    final periodStart = useState<int?>(null);
+    final periodEnd = useState<int?>(null);
+    final showAdvancedFilters = useState(false);
     final subscribing = useState(false);
 
     Future<void> subscribe() async {
@@ -498,17 +720,33 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               SliverToBoxAdapter(
                                 child: _PublisherCategoryTabWidget(
                                   categoryTabController: categoryTabController,
+                                  includeReplies: includeReplies,
+                                  mediaOnly: mediaOnly,
+                                  queryTerm: queryTerm,
+                                  order: order,
+                                  orderDesc: orderDesc,
+                                  periodStart: periodStart,
+                                  periodEnd: periodEnd,
+                                  showAdvancedFilters: showAdvancedFilters,
                                 ),
                               ),
                               SliverPostList(
-                                key: ValueKey(categoryTab.value),
+                                key: ValueKey(
+                                  '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
+                                ),
                                 pubName: name,
                                 pinned: false,
-                                type: switch (categoryTab.value) {
-                                  1 => 0,
-                                  2 => 1,
-                                  _ => null,
-                                },
+                                type:
+                                    categoryTab.value == 1
+                                        ? 0
+                                        : (categoryTab.value == 2 ? 1 : null),
+                                includeReplies: includeReplies.value,
+                                mediaOnly: mediaOnly.value,
+                                queryTerm: queryTerm.value,
+                                order: order.value,
+                                orderDesc: orderDesc.value,
+                                periodStart: periodStart.value,
+                                periodEnd: periodEnd.value,
                               ),
                               SliverGap(
                                 MediaQuery.of(context).padding.bottom + 16,
@@ -621,17 +859,33 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         SliverToBoxAdapter(
                           child: _PublisherCategoryTabWidget(
                             categoryTabController: categoryTabController,
+                            includeReplies: includeReplies,
+                            mediaOnly: mediaOnly,
+                            queryTerm: queryTerm,
+                            order: order,
+                            orderDesc: orderDesc,
+                            periodStart: periodStart,
+                            periodEnd: periodEnd,
+                            showAdvancedFilters: showAdvancedFilters,
                           ),
                         ),
                         SliverPostList(
-                          key: ValueKey(categoryTab.value),
+                          key: ValueKey(
+                            '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
+                          ),
                           pubName: name,
                           pinned: false,
-                          type: switch (categoryTab.value) {
-                            1 => 0,
-                            2 => 1,
-                            _ => null,
-                          },
+                          type:
+                              categoryTab.value == 1
+                                  ? 0
+                                  : (categoryTab.value == 2 ? 1 : null),
+                          includeReplies: includeReplies.value,
+                          mediaOnly: mediaOnly.value,
+                          queryTerm: queryTerm.value,
+                          order: order.value,
+                          orderDesc: orderDesc.value,
+                          periodStart: periodStart.value,
+                          periodEnd: periodEnd.value,
                         ),
                         SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
