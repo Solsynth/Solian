@@ -52,14 +52,14 @@ Future<String?> discordAssetsUrl(
   return null;
 }
 
-const kPresenseActivityTypes = [
+const kPresenceActivityTypes = [
   'unknown',
   'presenceTypeGaming',
   'presenceTypeMusic',
   'presenceTypeWorkout',
 ];
 
-const kPresenseActivityIcons = <IconData>[
+const kPresenceActivityIcons = <IconData>[
   Symbols.question_mark_rounded,
   Symbols.play_arrow_rounded,
   Symbols.music_note_rounded,
@@ -200,10 +200,10 @@ class ActivityPresenceWidget extends ConsumerWidget {
                       Row(
                         children: [
                           Text(
-                            kPresenseActivityTypes[activity.type],
+                            kPresenceActivityTypes[activity.type],
                           ).tr().fontSize(11),
                           Icon(
-                            kPresenseActivityIcons[activity.type],
+                            kPresenceActivityIcons[activity.type],
                             size: 15,
                             fill: 1,
                           ),
@@ -298,9 +298,9 @@ class ActivityPresenceWidget extends ConsumerWidget {
                           Row(
                             spacing: 4,
                             children: [
-                              Text(kPresenseActivityTypes[activity.type]).tr(),
+                              Text(kPresenceActivityTypes[activity.type]).tr(),
                               Icon(
-                                kPresenseActivityIcons[activity.type],
+                                kPresenceActivityIcons[activity.type],
                                 size: 16,
                                 fill: 1,
                               ),

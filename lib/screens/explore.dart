@@ -147,6 +147,7 @@ class ExploreScreen extends HookConsumerWidget {
               tabAlignment: TabAlignment.start,
               isScrollable: true,
               dividerColor: Colors.transparent,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 12),
               tabs: [
                 Tab(
                   icon: Tooltip(
@@ -392,6 +393,7 @@ class ExploreScreen extends HookConsumerWidget {
                 tabAlignment: TabAlignment.start,
                 isScrollable: true,
                 dividerColor: Colors.transparent,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                 tabs: [
                   Tab(
                     icon: Tooltip(

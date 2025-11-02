@@ -71,6 +71,9 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userStatus = ref.watch(accountStatusProvider(uname));
 
+    final renderPadding =
+        padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 8);
+
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: userStatus.when(
@@ -79,12 +82,13 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
                 (status?.isCustomized ?? false)
                     ? Padding(
                       padding: const EdgeInsets.only(left: 4),
-                      child: AccountStatusWidget(uname: uname),
+                      child: AccountStatusWidget(
+                        uname: uname,
+                        padding: renderPadding,
+                      ),
                     )
                     : Padding(
-                      padding:
-                          padding ??
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: renderPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

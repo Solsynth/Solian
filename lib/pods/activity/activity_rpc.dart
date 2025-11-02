@@ -362,7 +362,10 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
   }
 
   void setCurrentActivity(String? id, Map<String, dynamic>? data) {
-    state = state.copyWith(currentActivityManualId: id, currentActivityData: data);
+    state = state.copyWith(
+      currentActivityManualId: id,
+      currentActivityData: data,
+    );
     if (id != null && data != null) {
       _startRenewal();
     } else {
@@ -372,8 +375,10 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
 
   void _startRenewal() {
     _renewalTimer?.cancel();
-    const int renewalIntervalSeconds = kPresenseActivityLease * 60 - 30;
-    _renewalTimer = Timer.periodic(Duration(seconds: renewalIntervalSeconds), (timer) {
+    const int renewalIntervalSeconds = kPresenceActivityLease * 60 - 30;
+    _renewalTimer = Timer.periodic(Duration(seconds: renewalIntervalSeconds), (
+      timer,
+    ) {
       _renewActivity();
     });
   }
@@ -386,7 +391,10 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
   Future<void> _renewActivity() async {
     if (state.currentActivityData != null) {
       try {
-        await apiClient.post('/pass/activities', data: state.currentActivityData);
+        await apiClient.post(
+          '/pass/activities',
+          data: state.currentActivityData,
+        );
         talker.log('Activity lease renewed');
       } catch (e) {
         talker.log('Failed to renew activity lease: $e');
@@ -395,7 +403,7 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
   }
 }
 
-const kPresenseActivityLease = 5;
+const kPresenceActivityLease = 5;
 
 // Providers
 final rpcServerStateProvider = StateNotifierProvider<
@@ -459,8 +467,10 @@ final rpcServerStateProvider = StateNotifierProvider<
             activity['details'] ?? activity['assets']?['large_text'];
         var imageSmall = activity['assets']?['small_image'];
         var imageLarge = activity['assets']?['large_image'];
-        if (imageSmall != null && !imageSmall!.contains(':')) imageSmall = 'discord:$imageSmall';
-        if (imageLarge != null && !imageLarge!.contains(':')) imageLarge = 'discord:$imageLarge';
+        if (imageSmall != null && !imageSmall!.contains(':'))
+          imageSmall = 'discord:$imageSmall';
+        if (imageLarge != null && !imageLarge!.contains(':'))
+          imageLarge = 'discord:$imageLarge';
         try {
           final apiClient = ref.watch(apiClientProvider);
           final activityData = {
@@ -474,7 +484,7 @@ final rpcServerStateProvider = StateNotifierProvider<
             'small_image': imageSmall,
             'large_image': imageLarge,
             'meta': activity,
-            'lease_minutes': kPresenseActivityLease,
+            'lease_minutes': kPresenceActivityLease,
           };
 
           await apiClient.post('/pass/activities', data: activityData);
