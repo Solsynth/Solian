@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/dev_project.dart';
 import 'package:island/screens/developers/apps.dart';
@@ -54,6 +55,36 @@ class ProjectDetailView extends HookConsumerWidget {
                     label: Text('bots'.tr()),
                   ),
                 ],
+                leading: Container(
+                  width: 256,
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 8,
+                    top: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.12),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      IconButton(
+                        onPressed: onBackToHub,
+                        icon: const Icon(Icons.arrow_back),
+                        iconSize: 16,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Expanded(child: Text("backToHub").tr()),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -69,6 +100,7 @@ class ProjectDetailView extends HookConsumerWidget {
               ],
             ),
           ),
+          const Gap(4),
         ],
       );
     } else {

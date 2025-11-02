@@ -737,7 +737,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
     };
 
     final response = await client.get(
-      '/sphere/activities',
+      '/sphere/timeline',
       queryParameters: queryParameters,
     );
 
