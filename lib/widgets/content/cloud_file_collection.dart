@@ -1,27 +1,18 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
-import 'package:file_saver/file_saver.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:gal/gal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/network.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/file_info_sheet.dart';
+import 'package:island/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/widgets/content/sensitive.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:path/path.dart' show extension;
-import 'package:path_provider/path_provider.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,13 +38,100 @@ class CloudFileList extends HookConsumerWidget {
   });
 
   double calculateAspectRatio() {
-    double total = 0;
-    for (var ratio in files.map((e) => e.fileMeta?['ratio'] ?? 1)) {
-      if (ratio is double) total += ratio;
-      if (ratio is String) total += double.parse(ratio);
+    final ratios = <double>[];
+
+    // Collect all valid ratios
+    for (final file in files) {
+      final meta = file.fileMeta;
+      if (meta is Map<String, dynamic> && meta.containsKey('ratio')) {
+        final ratioValue = meta['ratio'];
+        if (ratioValue is num && ratioValue > 0) {
+          ratios.add(ratioValue.toDouble());
+        } else if (ratioValue is String) {
+          try {
+            final parsed = double.parse(ratioValue);
+            if (parsed > 0) ratios.add(parsed);
+          } catch (_) {
+            // Skip invalid string ratios
+          }
+        }
+      }
     }
-    if (total == 0) return 1;
-    return total / files.length;
+
+    if (ratios.isEmpty) {
+      // Default to 4:3 aspect ratio when no valid ratios found
+      return 4 / 3;
+    }
+
+    if (ratios.length == 1) {
+      return ratios.first;
+    }
+
+    // Group similar ratios and find the most common one
+    final commonRatios = <double, int>{};
+
+    // Common aspect ratios to round to (with tolerance)
+    const tolerance = 0.05;
+    final standardRatios = [
+      1.0,
+      4 / 3,
+      3 / 2,
+      16 / 9,
+      5 / 3,
+      5 / 4,
+      7 / 5,
+      9 / 16,
+      2 / 3,
+      3 / 4,
+      4 / 5,
+    ];
+
+    for (final ratio in ratios) {
+      // Find the closest standard ratio within tolerance
+      double closestRatio = ratio;
+      double minDiff = double.infinity;
+
+      for (final standard in standardRatios) {
+        final diff = (ratio - standard).abs();
+        if (diff < minDiff && diff <= tolerance) {
+          minDiff = diff;
+          closestRatio = standard;
+        }
+      }
+
+      // If no standard ratio is close enough, keep original
+      if (minDiff == double.infinity || minDiff > tolerance) {
+        closestRatio = ratio;
+      }
+
+      commonRatios[closestRatio] = (commonRatios[closestRatio] ?? 0) + 1;
+    }
+
+    // Find the most frequent ratio(s)
+    int maxCount = 0;
+    final mostFrequent = <double>[];
+
+    for (final entry in commonRatios.entries) {
+      if (entry.value > maxCount) {
+        maxCount = entry.value;
+        mostFrequent.clear();
+        mostFrequent.add(entry.key);
+      } else if (entry.value == maxCount) {
+        mostFrequent.add(entry.key);
+      }
+    }
+
+    // If only one most frequent ratio, return it
+    if (mostFrequent.length == 1) {
+      return mostFrequent.first;
+    }
+
+    // If multiple ratios have the same highest frequency, use median of them
+    mostFrequent.sort();
+    final mid = mostFrequent.length ~/ 2;
+    return mostFrequent.length.isEven
+        ? (mostFrequent[mid - 1] + mostFrequent[mid]) / 2
+        : mostFrequent[mid];
   }
 
   @override
@@ -90,7 +168,7 @@ class CloudFileList extends HookConsumerWidget {
               }
               if (!disableZoomIn) {
                 context.pushTransparentRoute(
-                  CloudFileZoomIn(item: file, heroTag: heroTags[i]),
+                  CloudFileLightbox(item: file, heroTag: heroTags[i]),
                   rootNavigator: true,
                 );
               }
@@ -151,7 +229,7 @@ class CloudFileList extends HookConsumerWidget {
             }
             if (!disableZoomIn) {
               context.pushTransparentRoute(
-                CloudFileZoomIn(item: files.first, heroTag: heroTags.first),
+                CloudFileLightbox(item: files.first, heroTag: heroTags.first),
                 rootNavigator: true,
               );
             }
@@ -169,10 +247,7 @@ class CloudFileList extends HookConsumerWidget {
         child:
             isAudio
                 ? widgetItem
-                : AspectRatio(
-                  aspectRatio: calculateAspectRatio(),
-                  child: widgetItem,
-                ),
+                : IntrinsicWidth(child: IntrinsicHeight(child: widgetItem)),
       );
     }
 
@@ -188,53 +263,60 @@ class CloudFileList extends HookConsumerWidget {
           aspectRatio: calculateAspectRatio(),
           child: Padding(
             padding: padding ?? EdgeInsets.zero,
-            child: CarouselView(
-              itemSnapping: true,
-              itemExtent: math.min(
-                math.min(
-                  MediaQuery.of(context).size.width * 0.75,
-                  maxWidth * 0.75,
-                ),
-                640,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-              ),
-              children: [
-                for (var i = 0; i < files.length; i++)
-                  Stack(
-                    children: [
-                      _CloudFileListEntry(
-                        file: files[i],
-                        heroTag: heroTags[i],
-                        isImage:
-                            files[i].mimeType?.startsWith('image') ?? false,
-                        disableZoomIn: disableZoomIn,
-                      ),
-                      Positioned(
-                        bottom: 12,
-                        left: 16,
-                        child: Text('${i + 1}/${files.length}')
-                            .textColor(Colors.white)
-                            .textShadow(
-                              color: Colors.black54,
-                              offset: Offset(1, 1),
-                              blurRadius: 3,
-                            ),
-                      ),
-                    ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availableWidth =
+                    constraints.maxWidth.isFinite
+                        ? constraints.maxWidth
+                        : MediaQuery.of(context).size.width;
+                final itemExtent = math.min(
+                  math.min(availableWidth * 0.75, maxWidth * 0.75).toDouble(),
+                  640.0,
+                );
+
+                return CarouselView(
+                  itemSnapping: true,
+                  itemExtent: itemExtent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
                   ),
-              ],
-              onTap: (i) {
-                if (!(files[i].mimeType?.startsWith('image') ?? false)) {
-                  return;
-                }
-                if (!disableZoomIn) {
-                  context.pushTransparentRoute(
-                    CloudFileZoomIn(item: files[i], heroTag: heroTags[i]),
-                    rootNavigator: true,
-                  );
-                }
+                  children: [
+                    for (var i = 0; i < files.length; i++)
+                      Stack(
+                        children: [
+                          _CloudFileListEntry(
+                            file: files[i],
+                            heroTag: heroTags[i],
+                            isImage:
+                                files[i].mimeType?.startsWith('image') ?? false,
+                            disableZoomIn: disableZoomIn,
+                          ),
+                          Positioned(
+                            bottom: 12,
+                            left: 16,
+                            child: Text('${i + 1}/${files.length}')
+                                .textColor(Colors.white)
+                                .textShadow(
+                                  color: Colors.black54,
+                                  offset: Offset(1, 1),
+                                  blurRadius: 3,
+                                ),
+                          ),
+                        ],
+                      ),
+                  ],
+                  onTap: (i) {
+                    if (!(files[i].mimeType?.startsWith('image') ?? false)) {
+                      return;
+                    }
+                    if (!disableZoomIn) {
+                      context.pushTransparentRoute(
+                        CloudFileLightbox(item: files[i], heroTag: heroTags[i]),
+                        rootNavigator: true,
+                      );
+                    }
+                  },
+                );
               },
             ),
           ),
@@ -273,7 +355,7 @@ class CloudFileList extends HookConsumerWidget {
                         }
                         if (!disableZoomIn) {
                           context.pushTransparentRoute(
-                            CloudFileZoomIn(
+                            CloudFileLightbox(
                               item: files[index],
                               heroTag: heroTags[index],
                             ),
@@ -305,211 +387,6 @@ class CloudFileList extends HookConsumerWidget {
   }
 }
 
-class CloudFileZoomIn extends HookConsumerWidget {
-  final SnCloudFile item;
-  final String heroTag;
-  const CloudFileZoomIn({super.key, required this.item, required this.heroTag});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final serverUrl = ref.watch(serverUrlProvider);
-    final photoViewController = useMemoized(() => PhotoViewController(), []);
-    final rotation = useState(0);
-
-    final showOriginal = useState(false);
-
-    Future<void> saveToGallery() async {
-      try {
-        // Show loading indicator
-        showSnackBar('Saving image...');
-
-        // Get the image URL
-        final client = ref.watch(apiClientProvider);
-
-        // Create a temporary file to save the image
-        final tempDir = await getTemporaryDirectory();
-        var extName = extension(item.name).trim();
-        if (extName.isEmpty) {
-          extName = item.mimeType?.split('/').lastOrNull ?? 'jpeg';
-        }
-        final filePath = '${tempDir.path}/${item.id}.$extName';
-
-        await client.download(
-          '/drive/files/${item.id}',
-          filePath,
-          queryParameters: {'original': true},
-        );
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          // Save to gallery
-          await Gal.putImage(filePath, album: 'Solar Network');
-          // Show success message
-          showSnackBar('Image saved to gallery');
-        } else {
-          await FileSaver.instance.saveFile(
-            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-            file: File(filePath),
-          );
-          showSnackBar('Image saved to $filePath');
-        }
-      } catch (e) {
-        showErrorAlert(e);
-      }
-    }
-
-    void showInfoSheet() {
-      showModalBottomSheet(
-        useRootNavigator: true,
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => FileInfoSheet(item: item),
-      );
-    }
-
-    final shadow = [
-      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
-    ];
-
-    return DismissiblePage(
-      isFullScreen: true,
-      backgroundColor: Colors.transparent,
-      direction: DismissiblePageDismissDirection.down,
-      onDismissed: () {
-        Navigator.of(context).pop();
-      },
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: PhotoView(
-              backgroundDecoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.9),
-              ),
-              controller: photoViewController,
-              heroAttributes: PhotoViewHeroAttributes(tag: heroTag),
-              imageProvider: CloudImageWidget.provider(
-                fileId: item.id,
-                serverUrl: serverUrl,
-                original: showOriginal.value,
-              ),
-              // Apply rotation transformation
-              customSize: MediaQuery.of(context).size,
-              basePosition: Alignment.center,
-              filterQuality: FilterQuality.high,
-            ),
-          ),
-          // Close button and save button
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            left: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    if (!kIsWeb)
-                      IconButton(
-                        icon: Icon(
-                          Icons.save_alt,
-                          color: Colors.white,
-                          shadows: shadow,
-                        ),
-                        onPressed: () async {
-                          saveToGallery();
-                        },
-                      ),
-                    IconButton(
-                      onPressed: () {
-                        showOriginal.value = !showOriginal.value;
-                      },
-                      icon: Icon(
-                        showOriginal.value ? Symbols.hd : Symbols.sd,
-                        color: Colors.white,
-                        shadows: shadow,
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.white, shadows: shadow),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-          // Rotation controls
-          Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-            left: 16,
-            right: 16,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    shadows: shadow,
-                  ),
-                  onPressed: showInfoSheet,
-                ),
-                Spacer(),
-                IconButton(
-                  icon: Icon(
-                    Icons.remove,
-                    color: Colors.white,
-                    shadows: shadow,
-                  ),
-                  onPressed: () {
-                    photoViewController.scale =
-                        (photoViewController.scale ?? 1) - 0.05;
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.add, color: Colors.white, shadows: shadow),
-                  onPressed: () {
-                    photoViewController.scale =
-                        (photoViewController.scale ?? 1) + 0.05;
-                  },
-                ),
-                const Gap(8),
-                IconButton(
-                  icon: Icon(
-                    Icons.rotate_left,
-                    color: Colors.white,
-                    shadows: shadow,
-                  ),
-                  onPressed: () {
-                    rotation.value = (rotation.value - 1) % 4;
-                    photoViewController.rotation =
-                        rotation.value * -math.pi / 2;
-                  },
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.rotate_right,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        blurRadius: 5.0,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    rotation.value = (rotation.value + 1) % 4;
-                    photoViewController.rotation =
-                        rotation.value * -math.pi / 2;
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CloudFileListEntry extends HookConsumerWidget {
   final SnCloudFile file;
   final String heroTag;
@@ -535,15 +412,8 @@ class _CloudFileListEntry extends HookConsumerWidget {
     final lockedByDS = dataSaving && !showDataSaving.value;
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
     final meta = file.fileMeta is Map ? file.fileMeta as Map : const {};
-    final hasRatio =
-        meta.containsKey('ratio') &&
-        (meta['ratio'] is num && (meta['ratio'] as num) != 0);
-    final ratio =
-        (meta['ratio'] is num && (meta['ratio'] as num) != 0)
-            ? (meta['ratio'] as num).toDouble()
-            : 1.0;
 
-    final fit = hasRatio ? BoxFit.cover : BoxFit.contain;
+    final fit = BoxFit.cover;
 
     Widget bg = const SizedBox.shrink();
     if (isImage) {
@@ -551,7 +421,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
         bg = BlurHash(hash: meta['blur'] as String);
       } else if (!lockedByDS && !lockedByMature) {
         bg = ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
           child: CloudFileWidget(
             fit: BoxFit.cover,
             item: file,
@@ -581,7 +451,9 @@ class _CloudFileListEntry extends HookConsumerWidget {
                   fit: fit,
                   useInternalGate: false,
                 ))
-            : AspectRatio(aspectRatio: ratio, child: const SizedBox.shrink());
+            : IntrinsicWidth(
+              child: IntrinsicHeight(child: const SizedBox.shrink()),
+            );
 
     Widget overlays;
     if (lockedByDS) {

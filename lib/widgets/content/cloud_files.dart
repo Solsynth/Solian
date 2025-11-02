@@ -371,13 +371,21 @@ class CloudFileWidget extends HookConsumerWidget {
     }
 
     var content = switch (item.mimeType?.split('/').firstOrNull) {
-      'image' => AspectRatio(
-        aspectRatio: ratio,
-        child:
-            (useInternalGate && dataSaving && !unlocked.value)
-                ? dataPlaceHolder(Symbols.image)
-                : cloudImage(),
-      ),
+      'image' =>
+        ratio == 1.0
+            ? IntrinsicHeight(
+              child:
+                  (useInternalGate && dataSaving && !unlocked.value)
+                      ? dataPlaceHolder(Symbols.image)
+                      : cloudImage(),
+            )
+            : AspectRatio(
+              aspectRatio: ratio,
+              child:
+                  (useInternalGate && dataSaving && !unlocked.value)
+                      ? dataPlaceHolder(Symbols.image)
+                      : cloudImage(),
+            ),
       'video' => AspectRatio(
         aspectRatio: ratio,
         child:
