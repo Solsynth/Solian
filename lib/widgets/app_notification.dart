@@ -17,8 +17,7 @@ class NotificationCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final icon = Symbols.info;
 
-    return InkWell(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+    return GestureDetector(
       onTap: () {
         if (notification.meta['action_uri'] != null) {
           var uri = notification.meta['action_uri'] as String;
