@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/screens/account/profile.dart';
+import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown_latex.dart';
@@ -426,18 +427,43 @@ class MentionChipSpanNode extends SpanNode {
                         data:
                             (data) => ProfilePictureWidget(
                               file: data.profile.picture,
+                              fallbackIcon: Symbols.person_rounded,
                               radius: 9,
                             ),
                         error: (_, _) => const Icon(Symbols.close),
-                        loading: () => const CircularProgressIndicator(),
+                        loading:
+                            () => const SizedBox(
+                              width: 9,
+                              height: 9,
+                              child: CircularProgressIndicator(),
+                            ),
+                      );
+                    },
+                  ),
+                  'p' => Consumer(
+                    builder: (context, ref, _) {
+                      final pubData = ref.watch(publisherProvider(parts.last));
+                      return pubData.when(
+                        data:
+                            (data) => ProfilePictureWidget(
+                              file: data?.picture,
+                              fallbackIcon: Symbols.design_services_rounded,
+                              radius: 9,
+                            ),
+                        error: (_, _) => const Icon(Symbols.close),
+                        loading:
+                            () => const SizedBox(
+                              width: 9,
+                              height: 9,
+                              child: CircularProgressIndicator(),
+                            ),
                       );
                     },
                   ),
                   _ => Icon(
-                    (switch (parts.first.isEmpty ? 'u' : parts.first) {
+                    (switch (parts.length == 1 ? 'u' : parts.first) {
                       'c' => Symbols.forum_rounded,
                       'r' => Symbols.group_rounded,
-                      'p' => Symbols.edit_rounded,
                       _ => Symbols.person_rounded,
                     }),
                     size: 14,
