@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:math" as math;
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
@@ -57,6 +58,9 @@ class ThoughtScreen extends HookConsumerWidget {
 
     final listController = useMemoized(() => ListController(), []);
 
+    // Scroll animation notifiers
+    final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
+
     // Update local thoughts when provider data changes
     useEffect(() {
       thoughts.whenData((data) {
@@ -85,6 +89,20 @@ class ThoughtScreen extends HookConsumerWidget {
       }
       return null;
     }, [localThoughts.value.length, isStreaming.value]);
+
+    // Add scroll listener for gradient animations
+    useEffect(() {
+      void onScroll() {
+        // Update gradient animations
+        final pixels = scrollController.position.pixels;
+
+        // Bottom gradient: appears when not at bottom (pixels > 0)
+        bottomGradientNotifier.value.value = (pixels / 500.0).clamp(0.0, 1.0);
+      }
+
+      scrollController.addListener(onScroll);
+      return () => scrollController.removeListener(onScroll);
+    }, [scrollController]);
 
     void sendMessage() async {
       if (messageController.text.trim().isEmpty) return;
@@ -258,65 +276,120 @@ class ThoughtScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: 640),
-          child: Column(
-            children: [
-              Expanded(
-                child: thoughts.when(
-                  data:
-                      (thoughtList) => SuperListView.builder(
-                        listController: listController,
-                        controller: scrollController,
-                        padding: const EdgeInsets.only(top: 16, bottom: 16),
-                        reverse: true,
-                        itemCount:
-                            localThoughts.value.length +
-                            (isStreaming.value ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (isStreaming.value && index == 0) {
-                            return ThoughtItem(
-                              isStreaming: true,
-                              streamingText: streamingText.value,
-                              reasoningChunks: reasoningChunks.value,
-                              streamingFunctionCalls: functionCalls.value,
-                            );
-                          }
-                          final thoughtIndex =
-                              isStreaming.value ? index - 1 : index;
-                          final thought = localThoughts.value[thoughtIndex];
-                          return ThoughtItem(
-                            thought: thought,
-                            thoughtIndex: thoughtIndex,
-                          );
-                        },
+      body: Stack(
+        children: [
+          // Thoughts list
+          Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 640),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: thoughts.when(
+                      data:
+                          (thoughtList) => SuperListView.builder(
+                            listController: listController,
+                            controller: scrollController,
+                            padding: EdgeInsets.only(
+                              top: 16,
+                              bottom:
+                                  MediaQuery.of(context).padding.bottom +
+                                  80, // Leave space for thought input
+                            ),
+                            reverse: true,
+                            itemCount:
+                                localThoughts.value.length +
+                                (isStreaming.value ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (isStreaming.value && index == 0) {
+                                return ThoughtItem(
+                                  isStreaming: true,
+                                  streamingText: streamingText.value,
+                                  reasoningChunks: reasoningChunks.value,
+                                  streamingFunctionCalls: functionCalls.value,
+                                );
+                              }
+                              final thoughtIndex =
+                                  isStreaming.value ? index - 1 : index;
+                              final thought = localThoughts.value[thoughtIndex];
+                              return ThoughtItem(
+                                thought: thought,
+                                thoughtIndex: thoughtIndex,
+                              );
+                            },
+                          ),
+                      loading:
+                          () =>
+                              const Center(child: CircularProgressIndicator()),
+                      error:
+                          (error, _) => ResponseErrorWidget(
+                            error: error,
+                            onRetry:
+                                () =>
+                                    selectedSequenceId.value != null
+                                        ? ref.invalidate(
+                                          thoughtSequenceProvider(
+                                            selectedSequenceId.value!,
+                                          ),
+                                        )
+                                        : null,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Bottom gradient - appears when scrolling towards newer thoughts (behind thought input)
+          AnimatedBuilder(
+            animation: bottomGradientNotifier.value,
+            builder:
+                (context, child) => Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Opacity(
+                    opacity: bottomGradientNotifier.value.value,
+                    child: Container(
+                      height: math.min(
+                        MediaQuery.of(context).size.height * 0.1,
+                        128,
                       ),
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error:
-                      (error, _) => ResponseErrorWidget(
-                        error: error,
-                        onRetry:
-                            () =>
-                                selectedSequenceId.value != null
-                                    ? ref.invalidate(
-                                      thoughtSequenceProvider(
-                                        selectedSequenceId.value!,
-                                      ),
-                                    )
-                                    : null,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer.withOpacity(0.8),
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer.withOpacity(0.0),
+                          ],
+                        ),
                       ),
+                    ),
+                  ),
+                ),
+          ),
+          // Thought Input positioned above gradient (higher z-index)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0, // At the very bottom, above gradient
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 640),
+                child: ThoughtInput(
+                  messageController: messageController,
+                  isStreaming: isStreaming.value,
+                  onSend: sendMessage,
                 ),
               ),
-              ThoughtInput(
-                messageController: messageController,
-                isStreaming: isStreaming.value,
-                onSend: sendMessage,
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
