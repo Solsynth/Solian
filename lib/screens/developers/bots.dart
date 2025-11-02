@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/bot.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/developers/edit_bot.dart';
+import 'package:island/screens/developers/new_bot.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -48,12 +51,18 @@ class BotsScreen extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {
-                    context.pushNamed(
-                      'developerBotNew',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                      },
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder:
+                          (context) => SheetScaffold(
+                            titleText: 'createBot'.tr(),
+                            child: NewBotScreen(
+                              publisherName: publisherName,
+                              projectId: projectId,
+                              isModal: true,
+                            ),
+                          ),
                     );
                   },
                   icon: const Icon(Symbols.add),
@@ -74,12 +83,18 @@ class BotsScreen extends HookConsumerWidget {
                   title: Text('bots').tr().padding(horizontal: 8),
                   trailing: IconButton(
                     onPressed: () {
-                      context.pushNamed(
-                        'developerBotNew',
-                        pathParameters: {
-                          'name': publisherName,
-                          'projectId': projectId,
-                        },
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder:
+                            (context) => SheetScaffold(
+                              titleText: 'createBot'.tr(),
+                              child: NewBotScreen(
+                                publisherName: publisherName,
+                                projectId: projectId,
+                                isModal: true,
+                              ),
+                            ),
                       );
                     },
                     icon: const Icon(Symbols.add),
@@ -93,7 +108,6 @@ class BotsScreen extends HookConsumerWidget {
                   itemBuilder: (context, index) {
                     final bot = data[index];
                     return Card(
-                      margin: const EdgeInsets.all(8.0),
                       child: ListTile(
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(8.0)),
@@ -140,13 +154,19 @@ class BotsScreen extends HookConsumerWidget {
                               ],
                           onSelected: (value) {
                             if (value == 'edit') {
-                              context.pushNamed(
-                                'developerBotEdit',
-                                pathParameters: {
-                                  'name': publisherName,
-                                  'projectId': projectId,
-                                  'id': bot.id,
-                                },
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder:
+                                    (context) => SheetScaffold(
+                                      titleText: 'editBot'.tr(),
+                                      child: EditBotScreen(
+                                        publisherName: publisherName,
+                                        projectId: projectId,
+                                        id: bot.id,
+                                        isModal: true,
+                                      ),
+                                    ),
                               );
                             } else if (value == 'delete') {
                               showConfirmAlert(

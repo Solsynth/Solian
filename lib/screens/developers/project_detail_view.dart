@@ -58,8 +58,8 @@ class ProjectDetailView extends HookConsumerWidget {
                 leading: Container(
                   width: 256,
                   padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
+                    left: 24,
+                    right: 24,
                     bottom: 8,
                     top: 2,
                   ),

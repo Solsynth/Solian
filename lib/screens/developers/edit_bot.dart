@@ -38,11 +38,13 @@ class EditBotScreen extends HookConsumerWidget {
   final String publisherName;
   final String projectId;
   final String? id;
+  final bool isModal;
   const EditBotScreen({
     super.key,
     required this.publisherName,
     required this.projectId,
     this.id,
+    this.isModal = false,
   });
 
   @override
@@ -191,230 +193,293 @@ class EditBotScreen extends HookConsumerWidget {
       }
     }
 
+    final bodyContent =
+        botData == null && !isNew
+            ? const Center(child: CircularProgressIndicator())
+            : botData?.hasError == true && !isNew
+            ? ResponseErrorWidget(
+              error: botData!.error,
+              onRetry:
+                  () => ref.invalidate(
+                    botProvider(publisherName, projectId, id!),
+                  ),
+            )
+            : SingleChildScrollView(
+              child: Column(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 16 / 7,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      fit: StackFit.expand,
+                      children: [
+                        GestureDetector(
+                          child: Container(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                            child:
+                                background.value != null
+                                    ? CloudFileWidget(
+                                      item: background.value!,
+                                      fit: BoxFit.cover,
+                                    )
+                                    : const SizedBox.shrink(),
+                          ),
+                          onTap: () {
+                            setPicture('background');
+                          },
+                        ),
+                        Positioned(
+                          left: 20,
+                          bottom: -32,
+                          child: GestureDetector(
+                            child: ProfilePictureWidget(
+                              fileId: picture.value?.id,
+                              radius: 40,
+                              fallbackIcon: Symbols.smart_toy,
+                            ),
+                            onTap: () {
+                              setPicture('picture');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).padding(bottom: 32),
+                  Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            labelText: 'name'.tr(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: nickController,
+                          decoration: InputDecoration(
+                            labelText: 'nickname'.tr(),
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: slugController,
+                          decoration: InputDecoration(
+                            labelText: 'slug'.tr(),
+                            helperText: 'slugHint'.tr(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: bioController,
+                          decoration: InputDecoration(
+                            labelText: 'bio'.tr(),
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                          ),
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          spacing: 16,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: firstNameController,
+                                decoration: InputDecoration(
+                                  labelText: 'firstName'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: middleNameController,
+                                decoration: InputDecoration(
+                                  labelText: 'middleName'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: lastNameController,
+                                decoration: InputDecoration(
+                                  labelText: 'lastName'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          spacing: 16,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: genderController,
+                                decoration: InputDecoration(
+                                  labelText: 'gender'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: pronounsController,
+                                decoration: InputDecoration(
+                                  labelText: 'pronouns'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          spacing: 16,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: locationController,
+                                decoration: InputDecoration(
+                                  labelText: 'location'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: timeZoneController,
+                                decoration: InputDecoration(
+                                  labelText: 'timeZone'.tr(),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        GestureDetector(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: birthday.value ?? DateTime.now(),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) {
+                              birthday.value = date;
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  'birthday'.tr(),
+                                  style: TextStyle(
+                                    color: Theme.of(context).hintColor,
+                                  ),
+                                ),
+                                Text(
+                                  birthday.value != null
+                                      ? DateFormat.yMMMd().format(
+                                        birthday.value!,
+                                      )
+                                      : 'Select a date'.tr(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: submitting.value ? null : performAction,
+                            label: Text('saveChanges').tr(),
+                            icon: const Icon(Symbols.save),
+                          ),
+                        ),
+                      ],
+                    ).padding(all: 24),
+                  ),
+                ],
+              ),
+            );
+
+    if (isModal) {
+      return bodyContent;
+    }
+
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(title: Text(isNew ? 'createBot'.tr() : 'editBot'.tr())),
-      body:
-          botData == null && !isNew
-              ? const Center(child: CircularProgressIndicator())
-              : botData?.hasError == true && !isNew
-              ? ResponseErrorWidget(
-                error: botData!.error,
-                onRetry:
-                    () => ref.invalidate(
-                      botProvider(publisherName, projectId, id!),
-                    ),
-              )
-              : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 16 / 7,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        fit: StackFit.expand,
-                        children: [
-                          GestureDetector(
-                            child: Container(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHigh,
-                              child:
-                                  background.value != null
-                                      ? CloudFileWidget(
-                                        item: background.value!,
-                                        fit: BoxFit.cover,
-                                      )
-                                      : const SizedBox.shrink(),
-                            ),
-                            onTap: () {
-                              setPicture('background');
-                            },
-                          ),
-                          Positioned(
-                            left: 20,
-                            bottom: -32,
-                            child: GestureDetector(
-                              child: ProfilePictureWidget(
-                                fileId: picture.value?.id,
-                                radius: 40,
-                                fallbackIcon: Symbols.smart_toy,
-                              ),
-                              onTap: () {
-                                setPicture('picture');
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ).padding(bottom: 32),
-                    Form(
-                      key: formKey,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: nameController,
-                            decoration: InputDecoration(labelText: 'name'.tr()),
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: nickController,
-                            decoration: InputDecoration(
-                              labelText: 'nickname'.tr(),
-                              alignLabelWithHint: true,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: slugController,
-                            decoration: InputDecoration(
-                              labelText: 'slug'.tr(),
-                              helperText: 'slugHint'.tr(),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: bioController,
-                            decoration: InputDecoration(
-                              labelText: 'bio'.tr(),
-                              alignLabelWithHint: true,
-                            ),
-                            maxLines: 3,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            spacing: 16,
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: firstNameController,
-                                  decoration: InputDecoration(
-                                    labelText: 'firstName'.tr(),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: middleNameController,
-                                  decoration: InputDecoration(
-                                    labelText: 'middleName'.tr(),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: lastNameController,
-                                  decoration: InputDecoration(
-                                    labelText: 'lastName'.tr(),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            spacing: 16,
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: genderController,
-                                  decoration: InputDecoration(
-                                    labelText: 'gender'.tr(),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: pronounsController,
-                                  decoration: InputDecoration(
-                                    labelText: 'pronouns'.tr(),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            spacing: 16,
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: locationController,
-                                  decoration: InputDecoration(
-                                    labelText: 'location'.tr(),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: timeZoneController,
-                                  decoration: InputDecoration(
-                                    labelText: 'timeZone'.tr(),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          GestureDetector(
-                            onTap: () async {
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate: birthday.value ?? DateTime.now(),
-                                firstDate: DateTime(1900),
-                                lastDate: DateTime.now(),
-                              );
-                              if (date != null) {
-                                birthday.value = date;
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'birthday'.tr(),
-                                    style: TextStyle(
-                                      color: Theme.of(context).hintColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    birthday.value != null
-                                        ? DateFormat.yMMMd().format(
-                                          birthday.value!,
-                                        )
-                                        : 'Select a date'.tr(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton.icon(
-                              onPressed:
-                                  submitting.value ? null : performAction,
-                              label: Text('saveChanges').tr(),
-                              icon: const Icon(Symbols.save),
-                            ),
-                          ),
-                        ],
-                      ).padding(all: 24),
-                    ),
-                  ],
-                ),
-              ),
+      body: bodyContent,
     );
   }
 }
