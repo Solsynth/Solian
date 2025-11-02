@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/screens/account/profile.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown_latex.dart';
@@ -397,7 +398,13 @@ class MentionChipSpanNode extends SpanNode {
         onTap: () => onTap(type, id),
         borderRadius: BorderRadius.circular(32),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.only(
+            left: 5,
+            right: 7,
+            top: 2.5,
+            bottom: 2.5,
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: backgroundColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(32),
@@ -411,18 +418,33 @@ class MentionChipSpanNode extends SpanNode {
                   color: backgroundColor.withOpacity(0.5),
                   borderRadius: const BorderRadius.all(Radius.circular(32)),
                 ),
-                child: Icon(
-                  switch (parts.first.isEmpty ? 'u' : parts.first) {
-                    'c' => Symbols.forum_rounded,
-                    'r' => Symbols.group_rounded,
-                    'u' => Symbols.person_rounded,
-                    'p' => Symbols.edit_rounded,
-                    _ => Symbols.person_rounded,
-                  },
-                  size: 14,
-                  color: foregroundColor,
-                  fill: 1,
-                ).padding(all: 2),
+                child: switch (parts.length == 1 ? 'u' : parts.first) {
+                  'u' => Consumer(
+                    builder: (context, ref, _) {
+                      final userData = ref.watch(accountProvider(parts.last));
+                      return userData.when(
+                        data:
+                            (data) => ProfilePictureWidget(
+                              file: data.profile.picture,
+                              radius: 9,
+                            ),
+                        error: (_, _) => const Icon(Symbols.close),
+                        loading: () => const CircularProgressIndicator(),
+                      );
+                    },
+                  ),
+                  _ => Icon(
+                    (switch (parts.first.isEmpty ? 'u' : parts.first) {
+                      'c' => Symbols.forum_rounded,
+                      'r' => Symbols.group_rounded,
+                      'p' => Symbols.edit_rounded,
+                      _ => Symbols.person_rounded,
+                    }),
+                    size: 14,
+                    color: foregroundColor,
+                    fill: 1,
+                  ).padding(all: 2),
+                },
               ),
               Text(
                 parts.last,
