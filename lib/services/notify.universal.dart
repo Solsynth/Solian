@@ -106,20 +106,6 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
               child: NotificationCard(notification: notification),
             ),
           ),
-          onTap: () {
-            if (notification.meta['action_uri'] != null) {
-              var uri = notification.meta['action_uri'] as String;
-              if (uri.startsWith('/')) {
-                // In-app routes
-                rootNavigatorKey.currentContext?.push(
-                  notification.meta['action_uri'],
-                );
-              } else {
-                // External URLs
-                launchUrlString(uri);
-              }
-            }
-          },
           onDismissed: () {},
           dismissType: DismissType.onSwipe,
           displayDuration: const Duration(seconds: 5),
