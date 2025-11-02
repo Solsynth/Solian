@@ -6,8 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/custom_app.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/developers/edit_app.dart';
+import 'package:island/screens/developers/new_app.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -70,12 +73,18 @@ class CustomAppsScreen extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {
-                    context.pushNamed(
-                      'developerAppNew',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                      },
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder:
+                          (context) => SheetScaffold(
+                            titleText: 'createCustomApp'.tr(),
+                            child: NewCustomAppScreen(
+                              publisherName: publisherName,
+                              projectId: projectId,
+                              isModal: true,
+                            ),
+                          ),
                     );
                   },
                   icon: const Icon(Symbols.add),
@@ -98,12 +107,18 @@ class CustomAppsScreen extends HookConsumerWidget {
                   title: Text('customApps').tr().padding(horizontal: 8),
                   trailing: IconButton(
                     onPressed: () {
-                      context.pushNamed(
-                        'developerAppNew',
-                        pathParameters: {
-                          'name': publisherName,
-                          'projectId': projectId,
-                        },
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder:
+                            (context) => SheetScaffold(
+                              titleText: 'createCustomApp'.tr(),
+                              child: NewCustomAppScreen(
+                                publisherName: publisherName,
+                                projectId: projectId,
+                                isModal: true,
+                              ),
+                            ),
                       );
                     },
                     icon: const Icon(Symbols.add),
@@ -198,13 +213,19 @@ class CustomAppsScreen extends HookConsumerWidget {
                                     ],
                                 onSelected: (value) {
                                   if (value == 'edit') {
-                                    context.pushNamed(
-                                      'developerAppEdit',
-                                      pathParameters: {
-                                        'name': publisherName,
-                                        'projectId': projectId,
-                                        'id': app.id,
-                                      },
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder:
+                                          (context) => SheetScaffold(
+                                            titleText: 'editCustomApp'.tr(),
+                                            child: EditAppScreen(
+                                              publisherName: publisherName,
+                                              projectId: projectId,
+                                              id: app.id,
+                                              isModal: true,
+                                            ),
+                                          ),
                                     );
                                   } else if (value == 'delete') {
                                     showConfirmAlert(
