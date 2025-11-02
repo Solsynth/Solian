@@ -1317,5 +1317,6 @@
     "fromDate": "From Date",
     "toDate": "To Date",
     "popularity": "Popularity",
-    "descendingOrder": "Descending Order"
+    "descendingOrder": "Descending Order",
+    "selectDate": "Select Date"
 }

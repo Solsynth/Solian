@@ -487,64 +487,94 @@ class _PublisherCategoryTabWidget extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: 'fromDate'.tr(),
-                            hintText: 'YYYY-MM-DD',
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
+                        child: InkWell(
+                          onTap: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  periodStart.value != null
+                                      ? DateTime.fromMillisecondsSinceEpoch(
+                                        periodStart.value! * 1000,
+                                      )
+                                      : DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
                               ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onChanged: (value) {
-                            if (value.isEmpty) {
-                              periodStart.value = null;
-                            } else {
-                              try {
-                                final date = DateTime.parse(value);
-                                periodStart.value =
-                                    date.millisecondsSinceEpoch ~/ 1000;
-                              } catch (_) {
-                                periodStart.value = null;
-                              }
+                            );
+                            if (pickedDate != null) {
+                              periodStart.value =
+                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
                             }
                           },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'fromDate'.tr(),
+                              border: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              suffixIcon: const Icon(Symbols.calendar_today),
+                            ),
+                            child: Text(
+                              periodStart.value != null
+                                  ? DateTime.fromMillisecondsSinceEpoch(
+                                    periodStart.value! * 1000,
+                                  ).toString().split(' ')[0]
+                                  : 'selectDate'.tr(),
+                            ),
+                          ),
                         ),
                       ),
                       const Gap(8),
                       Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: 'toDate'.tr(),
-                            hintText: 'YYYY-MM-DD',
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
+                        child: InkWell(
+                          onTap: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  periodEnd.value != null
+                                      ? DateTime.fromMillisecondsSinceEpoch(
+                                        periodEnd.value! * 1000,
+                                      )
+                                      : DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
                               ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onChanged: (value) {
-                            if (value.isEmpty) {
-                              periodEnd.value = null;
-                            } else {
-                              try {
-                                final date = DateTime.parse(value);
-                                periodEnd.value =
-                                    date.millisecondsSinceEpoch ~/ 1000;
-                              } catch (_) {
-                                periodEnd.value = null;
-                              }
+                            );
+                            if (pickedDate != null) {
+                              periodEnd.value =
+                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
                             }
                           },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'toDate'.tr(),
+                              border: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              suffixIcon: const Icon(Symbols.calendar_today),
+                            ),
+                            child: Text(
+                              periodEnd.value != null
+                                  ? DateTime.fromMillisecondsSinceEpoch(
+                                    periodEnd.value! * 1000,
+                                  ).toString().split(' ')[0]
+                                  : 'selectDate'.tr(),
+                            ),
+                          ),
                         ),
                       ),
                     ],
