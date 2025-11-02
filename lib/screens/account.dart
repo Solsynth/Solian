@@ -8,6 +8,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
+import 'package:island/widgets/account/activity_presence.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/alert.dart';
@@ -177,7 +178,21 @@ class AccountScreen extends HookConsumerWidget {
             ).padding(horizontal: 8),
             Card(
               margin: EdgeInsets.zero,
-              child: AccountStatusCreationWidget(uname: user.value!.name),
+              child: Column(
+                children: [
+                  AccountStatusCreationWidget(uname: user.value!.name),
+                  ActivityPresenceWidget(
+                    uname: user.value!.name,
+                    isCompact: true,
+                    compactPadding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      bottom: 8,
+                      top: 4,
+                    ),
+                  ),
+                ],
+              ),
             ).padding(horizontal: 12, bottom: 4),
             LevelingProgressCard(
               isCompact: true,
@@ -251,7 +266,9 @@ class AccountScreen extends HookConsumerWidget {
               ).padding(horizontal: 12),
             const SizedBox.shrink(),
             ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width,
+              ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   const minWidth = 160.0;
@@ -312,14 +329,23 @@ class AccountScreen extends HookConsumerWidget {
                   if (availableWidth > totalMin) {
                     return Row(
                       spacing: 8,
-                      children: children.map((child) => Expanded(child: child)).toList(),
+                      children:
+                          children
+                              .map((child) => Expanded(child: child))
+                              .toList(),
                     ).padding(horizontal: 12).height(48);
                   } else {
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         spacing: 8,
-                        children: children.map((child) => SizedBox(width: minWidth, child: child)).toList(),
+                        children:
+                            children
+                                .map(
+                                  (child) =>
+                                      SizedBox(width: minWidth, child: child),
+                                )
+                                .toList(),
                       ).padding(horizontal: 12),
                     ).height(48);
                   }
