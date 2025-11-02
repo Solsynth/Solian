@@ -7,6 +7,7 @@ import 'package:island/models/dev_project.dart';
 import 'package:island/screens/developers/apps.dart';
 import 'package:island/screens/developers/bots.dart';
 import 'package:island/services/responsive.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class ProjectDetailView extends HookConsumerWidget {
   final String publisherName;
@@ -56,8 +57,8 @@ class ProjectDetailView extends HookConsumerWidget {
                   ),
                 ],
                 leading: Container(
-                  width: 256,
-                  padding: EdgeInsets.only(
+                  width: isWiderScreen(context) ? 256 : 80,
+                  padding: const EdgeInsets.only(
                     left: 24,
                     right: 24,
                     bottom: 8,
@@ -81,7 +82,8 @@ class ProjectDetailView extends HookConsumerWidget {
                         iconSize: 16,
                         visualDensity: VisualDensity.compact,
                       ),
-                      Expanded(child: Text("backToHub").tr()),
+                      if (isWiderScreen(context))
+                        Expanded(child: Text("backToHub").tr()),
                     ],
                   ),
                 ),
@@ -129,7 +131,7 @@ class ProjectDetailView extends HookConsumerWidget {
                 ),
                 BotsScreen(publisherName: publisherName, projectId: project.id),
               ],
-            ),
+            ).padding(horizontal: 8),
           ),
         ],
       );
