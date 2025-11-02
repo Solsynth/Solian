@@ -36,8 +36,9 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
   Future<void> _checkIfSquare() async {
     if (widget.link.imageUrl == null ||
         widget.link.imageUrl!.isEmpty ||
-        widget.link.imageUrl == widget.link.faviconUrl)
+        widget.link.imageUrl == widget.link.faviconUrl) {
       return;
+    }
 
     try {
       final image = CachedNetworkImageProvider(widget.link.imageUrl!);

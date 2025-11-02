@@ -467,10 +467,12 @@ final rpcServerStateProvider = StateNotifierProvider<
             activity['details'] ?? activity['assets']?['large_text'];
         var imageSmall = activity['assets']?['small_image'];
         var imageLarge = activity['assets']?['large_image'];
-        if (imageSmall != null && !imageSmall!.contains(':'))
+        if (imageSmall != null && !imageSmall!.contains(':')) {
           imageSmall = 'discord:$imageSmall';
-        if (imageLarge != null && !imageLarge!.contains(':'))
+        }
+        if (imageLarge != null && !imageLarge!.contains(':')) {
           imageLarge = 'discord:$imageLarge';
+        }
         try {
           final apiClient = ref.watch(apiClientProvider);
           final activityData = {
@@ -528,6 +530,13 @@ Future<List<SnPresenceActivity>> presenceActivities(
   Ref ref,
   String uname,
 ) async {
+  ref.keepAlive();
+  final timer = Timer.periodic(
+    const Duration(minutes: 1),
+    (_) => ref.invalidateSelf(),
+  );
+  ref.onDispose(() => timer.cancel());
+
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/pass/activities/$uname');
   final data = response.data as List<dynamic>;
