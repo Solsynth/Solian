@@ -49,38 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  app_links:
-    dependency: "direct main"
-    description:
-      name: app_links
-      sha256: "5f88447519add627fe1cbcab4fd1da3d4fed15b9baf29f28b22535c95ecee3e8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.4.1"
-  app_links_linux:
-    dependency: transitive
-    description:
-      name: app_links_linux
-      sha256: f5f7173a78609f3dfd4c2ff2c95bd559ab43c80a87dc6a095921d96c05688c81
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.3"
-  app_links_platform_interface:
-    dependency: transitive
-    description:
-      name: app_links_platform_interface
-      sha256: "05f5379577c513b534a29ddea68176a4d4802c46180ee8e2e966257158772a3f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
-  app_links_web:
-    dependency: transitive
-    description:
-      name: app_links_web
-      sha256: af060ed76183f9e2b87510a9480e56a5352b6c249778d07bd2c95fc35632a555
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   archive:
     dependency: "direct main"
     description:
@@ -429,10 +397,10 @@ packages:
     dependency: "direct main"
     description:
       name: device_info_plus
-      sha256: "98f28b42168cc509abc92f88518882fd58061ea372d7999aecc424345c7bff6a"
+      sha256: "72d146c6d7098689ff5c5f66bcf593ac11efc530095385356e131070333e64da"
       url: "https://pub.dev"
     source: hosted
-    version: "11.5.0"
+    version: "11.3.0"
   device_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -1245,14 +1213,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.3.4"
-  gtk:
-    dependency: transitive
-    description:
-      name: gtk
-      sha256: e8ce9ca4b1df106e4d72dad201d345ea1a036cc12c360f1a7d5a758f78ffa42c
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   highlight:
     dependency: transitive
     description:
@@ -1957,6 +1917,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.0"
+  protocol_handler:
+    dependency: "direct main"
+    description:
+      name: protocol_handler
+      sha256: dc2e2dcb1e0e313c3f43827ec3fa6d98adee6e17edc0c3923ac67efee87479a9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_android:
+    dependency: transitive
+    description:
+      name: protocol_handler_android
+      sha256: "82eb860ca42149e400328f54b85140329a1766d982e94705b68271f6ca73895c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_ios:
+    dependency: transitive
+    description:
+      name: protocol_handler_ios
+      sha256: "0d3a56b8c1926002cb1e32b46b56874759f4dcc8183d389b670864ac041b6ec2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_macos:
+    dependency: transitive
+    description:
+      name: protocol_handler_macos
+      sha256: "6eb8687a84e7da3afbc5660ce046f29d7ecf7976db45a9dadeae6c87147dd710"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_platform_interface:
+    dependency: transitive
+    description:
+      name: protocol_handler_platform_interface
+      sha256: "53776b10526fdc25efdf1abcf68baf57fdfdb75342f4101051db521c9e3f3e5b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_windows:
+    dependency: transitive
+    description:
+      name: protocol_handler_windows
+      sha256: d8f3a58938386aca2c76292757392f4d059d09f11439d6d896d876ebe997f2c4
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   provider:
     dependency: transitive
     description:
@@ -2984,10 +2992,10 @@ packages:
     dependency: transitive
     description:
       name: win32_registry
-      sha256: "6f1b564492d0147b330dd794fee8f512cec4977957f310f9951b5f9d83618dae"
+      sha256: "21ec76dfc731550fd3e2ce7a33a9ea90b828fdf19a5c3bcf556fa992cfa99852"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "1.1.5"
   window_manager:
     dependency: "direct main"
     description:

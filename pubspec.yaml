@@ -67,7 +67,8 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   animations: ^2.1.0
   package_info_plus: ^9.0.0
-  device_info_plus: ^11.5.0
+  device_info_plus: ^11.2.2
+  protocol_handler: ^0.2.0
   tus_client_dart:
     git: https://github.com/LittleSheep2Code/tus_client.git
   cross_file: ^0.3.5
@@ -158,7 +159,6 @@ dependencies:
   talker_logger: ^5.0.2
   talker_dio_logger: ^5.0.2
   talker_riverpod_logger: ^5.0.1
-  app_links: ^6.4.1
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
   fl_heatmap: ^0.4.6

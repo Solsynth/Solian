@@ -1,6 +1,4 @@
 PODS:
-  - app_links (6.4.1):
-    - FlutterMacOS
   - connectivity_plus (0.0.1):
     - FlutterMacOS
   - croppy (0.0.1):
@@ -199,6 +197,8 @@ PODS:
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
+  - protocol_handler_macos (0.0.1):
+    - FlutterMacOS
   - record_macos (1.1.0):
     - FlutterMacOS
   - SAMKeychain (1.5.3)
@@ -256,7 +256,6 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - croppy (from `Flutter/ephemeral/.symlinks/plugins/croppy/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
@@ -284,6 +283,7 @@ DEPENDENCIES:
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pasteboard (from `Flutter/ephemeral/.symlinks/plugins/pasteboard/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - protocol_handler_macos (from `Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos`)
   - record_macos (from `Flutter/ephemeral/.symlinks/plugins/record_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
@@ -323,8 +323,6 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  app_links:
-    :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
   connectivity_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
   croppy:
@@ -379,6 +377,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/pasteboard/macos
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  protocol_handler_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos
   record_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/record_macos/macos
   screen_retriever_macos:
@@ -409,7 +409,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  app_links: 05a6ec2341985eb05e9f97dc63f5837c39895c3f
   connectivity_plus: 4adf20a405e25b42b9c9f87feff8f4b6fde18a4e
   croppy: d9bfc8c02f3cd1851f669a421df298a474b78f43
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
@@ -454,6 +453,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
+  protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   record_macos: 43194b6c06ca6f8fa132e2acea72b202b92a0f5b
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f

@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/pods/activity/activity_rpc.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
@@ -15,57 +14,61 @@ import 'package:island/widgets/tour/tour.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-class AppWrapper extends HookConsumerWidget with TrayListener {
+class AppWrapper extends ConsumerStatefulWidget {
   final Widget child;
   const AppWrapper({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(() {
-      StreamSubscription? ntySubs;
-      StreamSubscription? appLinksSubs;
-      Future(() async {
-        final appLinks = AppLinks();
+  ConsumerState<AppWrapper> createState() => _AppWrapperState();
+}
 
-        if (context.mounted) ntySubs = setupNotificationListener(context, ref);
+class _AppWrapperState extends ConsumerState<AppWrapper>
+    with ProtocolListener, TrayListener {
+  StreamSubscription? ntySubs;
+  bool networkStateShowing = false;
 
-        final sharingService = SharingIntentService();
-        if (context.mounted) sharingService.initialize(context);
-        if (context.mounted) UpdateService().checkForUpdates(context);
+  @override
+  void initState() {
+    super.initState();
+    protocolHandler.addListener(this);
+    Future(() async {
+      if (mounted) ntySubs = setupNotificationListener(context, ref);
 
-        TrayService.instance.initialize(this);
+      final sharingService = SharingIntentService();
+      if (mounted) sharingService.initialize(context);
+      if (mounted) UpdateService().checkForUpdates(context);
 
-        ref.read(rpcServerStateProvider.notifier).start();
+      TrayService.instance.initialize(this);
 
-        final initialUri = await appLinks.getLatestLink();
-        if (initialUri != null && context.mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _handleDeepLink(initialUri, ref);
-          });
-        }
+      ref.read(rpcServerStateProvider.notifier).start();
 
-        appLinksSubs = appLinks.uriLinkStream.listen((uri) {
-          _handleDeepLink(uri, ref);
+      final initialUrl = await protocolHandler.getInitialUrl();
+      if (initialUrl != null && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleDeepLink(Uri.parse(initialUrl), ref);
         });
-      });
+      }
+    });
+  }
 
-      return () {
-        ref.read(rpcServerProvider).stop();
-        TrayService.instance.dispose(this);
-        ntySubs?.cancel();
-        appLinksSubs?.cancel();
-      };
-    }, const []);
+  @override
+  void dispose() {
+    protocolHandler.removeListener(this);
+    ref.read(rpcServerProvider).stop();
+    TrayService.instance.dispose(this);
+    ntySubs?.cancel();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final wsNotifier = ref.watch(websocketStateProvider.notifier);
     final websocketState = ref.watch(websocketStateProvider);
 
-    final networkStateShowing = useState(false);
-
     if (websocketState == WebSocketState.duplicateDevice()) {
-      if (!networkStateShowing.value) {
+      if (!networkStateShowing) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          networkStateShowing.value = true;
+          setState(() => networkStateShowing = true);
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -73,12 +76,17 @@ class AppWrapper extends HookConsumerWidget with TrayListener {
             builder:
                 (context) =>
                     NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
-          ).then((_) => networkStateShowing.value = false);
+          ).then((_) => setState(() => networkStateShowing = false));
         });
       }
     }
 
-    return TourTriggerWidget(key: UniqueKey(), child: child);
+    return TourTriggerWidget(key: UniqueKey(), child: widget.child);
+  }
+
+  @override
+  void onProtocolUrlReceived(String url) {
+    _handleDeepLink(Uri.parse(url), ref);
   }
 
   void _trayIconPrimaryAction() {

@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  app_links
   connectivity_plus
   dart_ipc
   file_saver
@@ -22,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_libs_windows_video
   media_kit_video
   pasteboard
+  protocol_handler_windows
   record_windows
   screen_retriever_windows
   share_plus

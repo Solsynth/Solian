@@ -30,6 +30,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:protocol_handler/protocol_handler.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -48,6 +49,12 @@ void main() async {
 
   if (kIsWeb) {
     GoRouter.optionURLReflectsImperativeAPIs = true;
+  }
+
+  if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+    talker.info("[SplashScreen] Initializing desktop window manager...");
+    await protocolHandler.register('myprotocol');
+    talker.info("[SplashScreen] Desktop window manager is ready!");
   }
 
   try {

@@ -6,7 +6,6 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <app_links/app_links_plugin_c_api.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <dart_ipc/dart_ipc_plugin_c_api.h>
 #include <file_saver/file_saver_plugin.h>
@@ -25,6 +24,7 @@
 #include <media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h>
 #include <media_kit_video/media_kit_video_plugin_c_api.h>
 #include <pasteboard/pasteboard_plugin.h>
+#include <protocol_handler_windows/protocol_handler_windows_plugin_c_api.h>
 #include <record_windows/record_windows_plugin_c_api.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
@@ -38,8 +38,6 @@
 #include <windows_notification/windows_notification_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  AppLinksPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("AppLinksPluginCApi"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
   DartIpcPluginCApiRegisterWithRegistrar(
@@ -76,6 +74,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("MediaKitVideoPluginCApi"));
   PasteboardPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PasteboardPlugin"));
+  ProtocolHandlerWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ProtocolHandlerWindowsPluginCApi"));
   RecordWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("RecordWindowsPluginCApi"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
