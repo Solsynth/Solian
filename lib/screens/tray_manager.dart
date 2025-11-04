@@ -22,7 +22,8 @@ class TrayService {
     await trayManager.setIcon(
       Platform.isWindows
           ? 'assets/icons/icon.ico'
-          : 'assets/icons/icon-outline.svg',
+          : 'assets/icons/icon-tray.png',
+      isTemplate: Platform.isMacOS,
     );
 
     final menu = Menu(
