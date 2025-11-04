@@ -30,6 +30,7 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
     case 'github':
     case 'discord':
     case 'afdian':
+    case 'steam':
       return SvgPicture.asset(
         'assets/images/oidc/$providerLower.svg',
         width: size,
@@ -64,6 +65,8 @@ String getLocalizedProviderName(String provider) {
       return 'accountConnectionProviderAfdian'.tr();
     case 'spotify':
       return 'accountConnectionProviderSpotify'.tr();
+    case 'steam':
+      return 'accountConnectionProviderSteam'.tr();
     default:
       return provider;
   }
@@ -164,6 +167,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
       'discord',
       'afdian',
       'spotify',
+      'steam',
     ];
 
     Future<void> addConnection() async {
@@ -199,12 +203,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           } finally {
             if (context.mounted) hideLoadingModal(context);
           }
-        case 'microsoft':
-        case 'google':
-        case 'github':
-        case 'discord':
-        case 'afdian':
-        case 'spotify':
+        default:
           final serverUrl = ref.watch(serverUrlProvider);
           final accessToken = ref.watch(tokenProvider);
           launchUrlString(
@@ -212,9 +211,6 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           );
           if (context.mounted) Navigator.pop(context, true);
           break;
-        default:
-          showSnackBar('accountConnectionAddError'.tr());
-          return;
       }
     }
 
