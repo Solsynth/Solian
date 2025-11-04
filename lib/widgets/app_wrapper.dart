@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protocol_handler/protocol_handler.dart';
@@ -114,13 +116,17 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
 
   void _handleDeepLink(Uri uri, WidgetRef ref) {
     final router = ref.read(routerProvider);
-    String path = '/${uri.path}';
+    String path = '/${uri.host}${uri.path}';
     if (uri.queryParameters.isNotEmpty) {
       path =
           Uri.parse(
             path,
           ).replace(queryParameters: uri.queryParameters).toString();
     }
-    router.go(path);
+    router.push(path);
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      windowManager.show();
+    }
   }
 }
