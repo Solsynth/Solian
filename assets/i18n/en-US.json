@@ -163,6 +163,7 @@
     "accountConnectionProviderDiscord": "Discord",
     "accountConnectionProviderAfdian": "Afdian",
     "accountConnectionProviderSpotify": "Spotify",
+    "accountConnectionProviderSteam": "Steam",
     "checkIn": "Check In",
     "checkInNone": "Not checked-in yet",
     "checkInNoneHint": "Get your fortune tips and daily rewards by checking in.",
