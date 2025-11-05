@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -16,16 +15,15 @@ class FileUploader {
 
   FileUploader(this._client);
 
-  /// Calculates the MD5 hash of a file.
-  Future<String> _calculateFileHash(XFile file) async {
-    final bytes = await file.readAsBytes();
+  /// Calculates the MD5 hash of file bytes.
+  String _calculateFileHash(Uint8List bytes) {
     final digest = md5.convert(bytes);
     return digest.toString();
   }
 
   /// Creates an upload task for the given file.
   Future<Map<String, dynamic>> createUploadTask({
-    required XFile file,
+    required Uint8List bytes,
     required String fileName,
     required String contentType,
     String? poolId,
@@ -34,8 +32,8 @@ class FileUploader {
     String? expiredAt,
     int? chunkSize,
   }) async {
-    final hash = await _calculateFileHash(file);
-    final fileSize = await file.length();
+    final hash = _calculateFileHash(bytes);
+    final fileSize = bytes.length;
 
     final response = await _client.post(
       '/drive/files/upload/create',
@@ -83,7 +81,7 @@ class FileUploader {
 
   /// Uploads a file in chunks using the multi-part API.
   Future<SnCloudFile> uploadFile({
-    required XFile file,
+    required Uint8List bytes,
     required String fileName,
     required String contentType,
     String? poolId,
@@ -94,7 +92,7 @@ class FileUploader {
   }) async {
     // Step 1: Create upload task
     final createResponse = await createUploadTask(
-      file: file,
+      bytes: bytes,
       fileName: fileName,
       contentType: contentType,
       poolId: poolId,
@@ -114,24 +112,10 @@ class FileUploader {
     final chunksCount = createResponse['chunks_count'] as int;
 
     // Step 2: Upload chunks
-    final stream = file.openRead();
     final chunks = <Uint8List>[];
-    int bytesRead = 0;
-    final buffer = BytesBuilder();
-
-    await for (final chunk in stream) {
-      buffer.add(chunk);
-      bytesRead += chunk.length;
-
-      if (bytesRead >= chunkSize) {
-        chunks.add(buffer.takeBytes());
-        bytesRead = 0;
-      }
-    }
-
-    // Add remaining bytes as last chunk
-    if (buffer.length > 0) {
-      chunks.add(buffer.takeBytes());
+    for (int i = 0; i < bytes.length; i += chunkSize) {
+      final end = i + chunkSize > bytes.length ? bytes.length : i + chunkSize;
+      chunks.add(Uint8List.fromList(bytes.sublist(i, end)));
     }
 
     // Ensure we have the correct number of chunks
@@ -225,20 +209,34 @@ class FileUploader {
     Completer<SnCloudFile?> completer,
   ) {
     String actualMimetype = getMimeType(fileData);
-    late XFile file;
     String actualFilename = fileData.displayName ?? 'randomly_file';
-    Uint8List? byteData;
+    Uint8List? bytes;
 
     // Handle the data based on what's in the UniversalFile
     final data = fileData.data;
 
     if (data is XFile) {
-      file = data;
-      actualFilename = fileData.displayName ?? data.name;
+      // Read bytes from XFile
+      data
+          .readAsBytes()
+          .then((readBytes) {
+            _performUpload(
+              bytes: readBytes,
+              fileName: fileData.displayName ?? data.name,
+              contentType: actualMimetype,
+              client: client,
+              poolId: poolId,
+              onProgress: onProgress,
+              completer: completer,
+            );
+          })
+          .catchError((e) {
+            completer.completeError(e);
+          });
+      return completer;
     } else if (data is List<int> || data is Uint8List) {
-      byteData = data is List<int> ? Uint8List.fromList(data) : data;
+      bytes = data is List<int> ? Uint8List.fromList(data) : data;
       actualFilename = fileData.displayName ?? 'uploaded_file';
-      file = XFile.fromData(byteData!, mimeType: actualMimetype);
     } else if (data is SnCloudFile) {
       // If the file is already on the cloud, just return it
       completer.complete(data);
@@ -252,15 +250,40 @@ class FileUploader {
       return completer;
     }
 
+    if (bytes != null) {
+      _performUpload(
+        bytes: bytes,
+        fileName: actualFilename,
+        contentType: actualMimetype,
+        client: client,
+        poolId: poolId,
+        onProgress: onProgress,
+        completer: completer,
+      );
+    }
+
+    return completer;
+  }
+
+  // Helper method to perform the actual upload
+  static void _performUpload({
+    required Uint8List bytes,
+    required String fileName,
+    required String contentType,
+    required Dio client,
+    String? poolId,
+    Function(double progress, Duration estimate)? onProgress,
+    required Completer<SnCloudFile?> completer,
+  }) {
     final uploader = FileUploader(client);
 
     // Call progress start
     onProgress?.call(0.0, Duration.zero);
     uploader
         .uploadFile(
-          file: file,
-          fileName: actualFilename,
-          contentType: actualMimetype,
+          bytes: bytes,
+          fileName: fileName,
+          contentType: contentType,
           poolId: poolId,
         )
         .then((result) {
@@ -272,8 +295,6 @@ class FileUploader {
           completer.completeError(e);
           throw e;
         });
-
-    return completer;
   }
 
   /// Gets the MIME type of a UniversalFile.
