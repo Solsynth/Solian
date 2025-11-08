@@ -306,7 +306,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
         // Navigate to chat if requested
         if (shouldNavigate == true && mounted) {
-          context.push('/sphere/chat/${chatRoom.id}');
+          context.push('/chat/${chatRoom.id}');
         }
       }
     } catch (e) {
