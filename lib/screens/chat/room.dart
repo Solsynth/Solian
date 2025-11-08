@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:math" as math;
 import "package:easy_localization/easy_localization.dart";
 import "package:file_picker/file_picker.dart";
+import "package:image_picker/image_picker.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
@@ -181,16 +182,13 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [scrollController]);
 
     Future<void> pickPhotoMedia() async {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: true,
-        allowCompression: false,
-      );
-      if (result == null || result.count == 0) return;
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> results = await picker.pickMultiImage();
+      if (results.isEmpty) return;
       attachments.value = [
         ...attachments.value,
-        ...result.files.map(
-          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.image),
+        ...results.map(
+          (xfile) => UniversalFile(data: xfile, type: UniversalFileType.image),
         ),
       ];
     }

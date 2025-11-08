@@ -112,23 +112,28 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickImage() async {
       showLoadingModal(context);
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: allowMultiple,
-        type: FileType.image,
-      );
-      if (result == null || result.files.isEmpty) {
+      final ImagePicker picker = ImagePicker();
+      List<XFile> results;
+      if (allowMultiple) {
+        results = await picker.pickMultiImage();
+      } else {
+        final XFile? result = await picker.pickImage(
+          source: ImageSource.gallery,
+        );
+        results = result != null ? [result] : [];
+      }
+      if (results.isEmpty) {
         if (context.mounted) hideLoadingModal(context);
         return;
       }
 
       final newFiles =
-          result.files.map((e) {
-            final xfile =
-                e.bytes != null
-                    ? XFile.fromData(e.bytes!, name: e.name)
-                    : XFile(e.path!);
-            return UniversalFile(data: xfile, type: UniversalFileType.image);
-          }).toList();
+          results
+              .map(
+                (xfile) =>
+                    UniversalFile(data: xfile, type: UniversalFileType.image),
+              )
+              .toList();
 
       if (!allowMultiple) {
         files.value = newFiles;

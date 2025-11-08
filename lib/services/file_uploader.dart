@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:convert/convert.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -21,9 +22,51 @@ class FileUploader {
     return digest.toString();
   }
 
+  /// Calculates the MD5 hash from a stream.
+  Future<String> _calculateFileHashFromStream(Stream<List<int>> stream) async {
+    final accumulator = AccumulatorSink<Digest>();
+    final converter = md5.startChunkedConversion(accumulator);
+    await for (final chunk in stream) {
+      converter.add(chunk);
+    }
+    converter.close();
+    final digest = accumulator.events.single;
+    return digest.toString();
+  }
+
+  /// Reads the next chunk from a stream subscription.
+  Future<Uint8List> _readNextChunk(
+    StreamSubscription<List<int>> subscription,
+    int size,
+  ) async {
+    final completer = Completer<Uint8List>();
+    final buffer = <int>[];
+    int remaining = size;
+
+    void onData(List<int> data) {
+      buffer.addAll(data);
+      remaining -= data.length;
+      if (remaining <= 0) {
+        subscription.pause();
+        completer.complete(Uint8List.fromList(buffer.sublist(0, size)));
+      }
+    }
+
+    void onDone() {
+      if (!completer.isCompleted) {
+        completer.complete(Uint8List.fromList(buffer));
+      }
+    }
+
+    subscription.onData(onData);
+    subscription.onDone(onDone);
+
+    return completer.future;
+  }
+
   /// Creates an upload task for the given file.
   Future<Map<String, dynamic>> createUploadTask({
-    required Uint8List bytes,
+    required dynamic fileData,
     required String fileName,
     required String contentType,
     String? poolId,
@@ -32,8 +75,17 @@ class FileUploader {
     String? expiredAt,
     int? chunkSize,
   }) async {
-    final hash = _calculateFileHash(bytes);
-    final fileSize = bytes.length;
+    String hash;
+    int fileSize;
+    if (fileData is XFile) {
+      fileSize = await fileData.length();
+      hash = await _calculateFileHashFromStream(fileData.openRead());
+    } else if (fileData is Uint8List) {
+      hash = _calculateFileHash(fileData);
+      fileSize = fileData.length;
+    } else {
+      throw ArgumentError('Invalid fileData type');
+    }
 
     final response = await _client.post(
       '/drive/files/upload/create',
@@ -81,7 +133,7 @@ class FileUploader {
 
   /// Uploads a file in chunks using the multi-part API.
   Future<SnCloudFile> uploadFile({
-    required Uint8List bytes,
+    required dynamic fileData,
     required String fileName,
     required String contentType,
     String? poolId,
@@ -92,7 +144,7 @@ class FileUploader {
   }) async {
     // Step 1: Create upload task
     final createResponse = await createUploadTask(
-      bytes: bytes,
+      fileData: fileData,
       fileName: fileName,
       contentType: contentType,
       poolId: poolId,
@@ -112,22 +164,31 @@ class FileUploader {
     final chunksCount = createResponse['chunks_count'] as int;
 
     // Step 2: Upload chunks
-    final chunks = <Uint8List>[];
-    for (int i = 0; i < bytes.length; i += chunkSize) {
-      final end = i + chunkSize > bytes.length ? bytes.length : i + chunkSize;
-      chunks.add(Uint8List.fromList(bytes.sublist(i, end)));
-    }
+    if (fileData is XFile) {
+      // Use stream for XFile
+      final subscription = fileData.openRead().listen(null);
+      subscription.pause();
+      for (int i = 0; i < chunksCount; i++) {
+        subscription.resume();
+        final chunkData = await _readNextChunk(subscription, chunkSize);
+        await uploadChunk(taskId: taskId, chunkIndex: i, chunkData: chunkData);
+      }
+      subscription.cancel();
+    } else if (fileData is Uint8List) {
+      // Use old way for Uint8List
+      final chunks = <Uint8List>[];
+      for (int i = 0; i < fileData.length; i += chunkSize) {
+        final end =
+            i + chunkSize > fileData.length ? fileData.length : i + chunkSize;
+        chunks.add(Uint8List.fromList(fileData.sublist(i, end)));
+      }
 
-    // Ensure we have the correct number of chunks
-    if (chunks.length != chunksCount) {
-      throw Exception(
-        'Chunk count mismatch: expected $chunksCount, got ${chunks.length}',
-      );
-    }
-
-    // Upload each chunk
-    for (int i = 0; i < chunks.length; i++) {
-      await uploadChunk(taskId: taskId, chunkIndex: i, chunkData: chunks[i]);
+      // Upload each chunk
+      for (int i = 0; i < chunks.length; i++) {
+        await uploadChunk(taskId: taskId, chunkIndex: i, chunkData: chunks[i]);
+      }
+    } else {
+      throw ArgumentError('Invalid fileData type');
     }
 
     // Step 3: Complete upload
@@ -216,23 +277,15 @@ class FileUploader {
     final data = fileData.data;
 
     if (data is XFile) {
-      // Read bytes from XFile
-      data
-          .readAsBytes()
-          .then((readBytes) {
-            _performUpload(
-              bytes: readBytes,
-              fileName: fileData.displayName ?? data.name,
-              contentType: actualMimetype,
-              client: client,
-              poolId: poolId,
-              onProgress: onProgress,
-              completer: completer,
-            );
-          })
-          .catchError((e) {
-            completer.completeError(e);
-          });
+      _performUpload(
+        fileData: data,
+        fileName: fileData.displayName ?? data.name,
+        contentType: actualMimetype,
+        client: client,
+        poolId: poolId,
+        onProgress: onProgress,
+        completer: completer,
+      );
       return completer;
     } else if (data is List<int> || data is Uint8List) {
       bytes = data is List<int> ? Uint8List.fromList(data) : data;
@@ -252,7 +305,7 @@ class FileUploader {
 
     if (bytes != null) {
       _performUpload(
-        bytes: bytes,
+        fileData: bytes,
         fileName: actualFilename,
         contentType: actualMimetype,
         client: client,
@@ -267,7 +320,7 @@ class FileUploader {
 
   // Helper method to perform the actual upload
   static void _performUpload({
-    required Uint8List bytes,
+    required dynamic fileData,
     required String fileName,
     required String contentType,
     required Dio client,
@@ -281,7 +334,7 @@ class FileUploader {
     onProgress?.call(0.0, Duration.zero);
     uploader
         .uploadFile(
-          bytes: bytes,
+          fileData: fileData,
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,

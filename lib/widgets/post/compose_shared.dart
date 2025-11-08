@@ -402,16 +402,13 @@ class ComposeLogic {
   }
 
   static Future<void> pickPhotoMedia(WidgetRef ref, ComposeState state) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: true,
-      allowCompression: false,
-    );
-    if (result == null || result.count == 0) return;
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> results = await picker.pickMultiImage();
+    if (results.isEmpty) return;
     state.attachments.value = [
       ...state.attachments.value,
-      ...result.files.map(
-        (e) => UniversalFile(data: e.xFile, type: UniversalFileType.image),
+      ...results.map(
+        (xfile) => UniversalFile(data: xfile, type: UniversalFileType.image),
       ),
     ];
   }
