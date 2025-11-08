@@ -33,7 +33,7 @@ class ComposeState {
   final TextEditingController slugController;
   final ValueNotifier<int> visibility;
   final ValueNotifier<List<UniversalFile>> attachments;
-  final ValueNotifier<Map<int, double>> attachmentProgress;
+  final ValueNotifier<Map<int, double?>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
   final ValueNotifier<bool> submitting;
   final ValueNotifier<List<SnPostCategory>> categories;
@@ -520,7 +520,7 @@ class ComposeLogic {
             onProgress: (progress, _) {
               state.attachmentProgress.value = {
                 ...state.attachmentProgress.value,
-                index: progress,
+                index: progress ?? 0.0,
               };
             },
           ).future;

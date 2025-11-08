@@ -44,7 +44,7 @@ class ChatInput extends HookConsumerWidget {
   final Function(int) onDeleteAttachment;
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
-  final Map<String, Map<int, double>> attachmentProgress;
+  final Map<String, Map<int, double?>> attachmentProgress;
 
   const ChatInput({
     super.key,

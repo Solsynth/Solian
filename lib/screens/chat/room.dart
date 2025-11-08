@@ -149,7 +149,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageForwardingTo = useState<SnChatMessage?>(null);
     final messageEditingTo = useState<SnChatMessage?>(null);
     final attachments = useState<List<UniversalFile>>([]);
-    final attachmentProgress = useState<Map<String, Map<int, double>>>({});
+    final attachmentProgress = useState<Map<String, Map<int, double?>>>({});
 
     // Selection mode state
     final isSelectionMode = useState<bool>(false);
@@ -571,7 +571,7 @@ class ChatRoomScreen extends HookConsumerWidget {
               onProgress: (progress, _) {
                 attachmentProgress.value = {
                   ...attachmentProgress.value,
-                  'chat-upload': {index: progress},
+                  'chat-upload': {index: progress ?? 0.0},
                 };
               },
             ).future;

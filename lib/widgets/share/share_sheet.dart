@@ -246,7 +246,8 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                     onProgress: (progress, _) {
                       if (mounted) {
                         setState(() {
-                          _fileUploadProgress[messageId]?[idx] = progress;
+                          _fileUploadProgress[messageId]?[idx] =
+                              progress ?? 0.0;
                         });
                       }
                     },

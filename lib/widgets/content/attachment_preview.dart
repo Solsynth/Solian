@@ -411,10 +411,7 @@ class AttachmentPreview extends HookConsumerWidget {
                               ),
                             Gap(6),
                             Center(
-                              child: LinearProgressIndicator(
-                                value:
-                                    progress != null ? progress! / 100.0 : null,
-                              ),
+                              child: LinearProgressIndicator(value: progress),
                             ),
                           ],
                         ),

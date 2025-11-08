@@ -306,7 +306,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                         ],
                       ),
                       children: [
-                        ValueListenableBuilder<Map<int, double>>(
+                        ValueListenableBuilder<Map<int, double?>>(
                           valueListenable: state.attachmentProgress,
                           builder: (context, progressMap, _) {
                             return Wrap(

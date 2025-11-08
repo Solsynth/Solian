@@ -110,6 +110,7 @@ class FileUploader {
     required String taskId,
     required int chunkIndex,
     required Uint8List chunkData,
+    ProgressCallback? onSendProgress,
   }) async {
     final formData = FormData.fromMap({
       'chunk': MultipartFile.fromBytes(
@@ -121,6 +122,7 @@ class FileUploader {
     await _client.post(
       '/drive/files/upload/chunk/$taskId/$chunkIndex',
       data: formData,
+      onSendProgress: onSendProgress,
     );
   }
 
@@ -141,8 +143,10 @@ class FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? customChunkSize,
+    Function(double? progress, Duration estimate)? onProgress,
   }) async {
     // Step 1: Create upload task
+    onProgress?.call(null, Duration.zero);
     final createResponse = await createUploadTask(
       fileData: fileData,
       fileName: fileName,
@@ -162,8 +166,17 @@ class FileUploader {
     final taskId = createResponse['task_id'] as String;
     final chunkSize = createResponse['chunk_size'] as int;
     final chunksCount = createResponse['chunks_count'] as int;
+    int totalSize;
+    if (fileData is XFile) {
+      totalSize = await fileData.length();
+    } else if (fileData is Uint8List) {
+      totalSize = fileData.length;
+    } else {
+      throw ArgumentError('Invalid fileData type');
+    }
 
     // Step 2: Upload chunks
+    int bytesUploaded = 0;
     if (fileData is XFile) {
       // Use stream for XFile
       final subscription = fileData.openRead().listen(null);
@@ -171,7 +184,16 @@ class FileUploader {
       for (int i = 0; i < chunksCount; i++) {
         subscription.resume();
         final chunkData = await _readNextChunk(subscription, chunkSize);
-        await uploadChunk(taskId: taskId, chunkIndex: i, chunkData: chunkData);
+        await uploadChunk(
+          taskId: taskId,
+          chunkIndex: i,
+          chunkData: chunkData,
+          onSendProgress: (sent, total) {
+            final overallProgress = (bytesUploaded + sent) / totalSize;
+            onProgress?.call(overallProgress, Duration.zero);
+          },
+        );
+        bytesUploaded += chunkData.length;
       }
       subscription.cancel();
     } else if (fileData is Uint8List) {
@@ -185,13 +207,23 @@ class FileUploader {
 
       // Upload each chunk
       for (int i = 0; i < chunks.length; i++) {
-        await uploadChunk(taskId: taskId, chunkIndex: i, chunkData: chunks[i]);
+        await uploadChunk(
+          taskId: taskId,
+          chunkIndex: i,
+          chunkData: chunks[i],
+          onSendProgress: (sent, total) {
+            final overallProgress = (bytesUploaded + sent) / totalSize;
+            onProgress?.call(overallProgress, Duration.zero);
+          },
+        );
+        bytesUploaded += chunks[i].length;
       }
     } else {
       throw ArgumentError('Invalid fileData type');
     }
 
     // Step 3: Complete upload
+    onProgress?.call(null, Duration.zero);
     return await completeUpload(taskId);
   }
 
@@ -200,7 +232,7 @@ class FileUploader {
     required Dio client,
     String? poolId,
     FileUploadMode? mode,
-    Function(double progress, Duration estimate)? onProgress,
+    Function(double? progress, Duration estimate)? onProgress,
   }) {
     final completer = Completer<SnCloudFile?>();
 
@@ -266,7 +298,7 @@ class FileUploader {
     UniversalFile fileData,
     Dio client,
     String? poolId,
-    Function(double progress, Duration estimate)? onProgress,
+    Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer,
   ) {
     String actualMimetype = getMimeType(fileData);
@@ -325,23 +357,24 @@ class FileUploader {
     required String contentType,
     required Dio client,
     String? poolId,
-    Function(double progress, Duration estimate)? onProgress,
+    Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
     final uploader = FileUploader(client);
 
     // Call progress start
-    onProgress?.call(0.0, Duration.zero);
+    onProgress?.call(null, Duration.zero);
     uploader
         .uploadFile(
           fileData: fileData,
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,
+          onProgress: onProgress,
         )
         .then((result) {
           // Call progress end
-          onProgress?.call(1.0, Duration.zero);
+          onProgress?.call(null, Duration.zero);
           completer.complete(result);
         })
         .catchError((e) {

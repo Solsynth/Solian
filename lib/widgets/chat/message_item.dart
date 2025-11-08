@@ -40,7 +40,7 @@ class MessageItem extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
   final Function(String action)? onAction;
-  final Map<int, double>? progress;
+  final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
   final bool isSelectionMode;
@@ -689,7 +689,7 @@ class MessageHoverActionMenu extends StatelessWidget {
 class MessageItemDisplayBubble extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
-  final Map<int, double>? progress;
+  final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
   final String? translatedText;
@@ -821,7 +821,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
 class MessageItemDisplayIRC extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
-  final Map<int, double>? progress;
+  final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
   final String? translatedText;
@@ -949,7 +949,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
 class MessageItemDisplayDiscord extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
-  final Map<int, double>? progress;
+  final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
   final String? translatedText;
@@ -1238,7 +1238,7 @@ class MessageQuoteWidget extends HookConsumerWidget {
 }
 
 class FileUploadProgressWidget extends StatelessWidget {
-  final Map<int, double>? progress;
+  final Map<int, double?>? progress;
   final Color textColor;
   final bool hasContent;
 
@@ -1266,7 +1266,9 @@ class FileUploadProgressWidget extends StatelessWidget {
                 'fileUploadingProgress'.tr(
                   args: [
                     (entry.key + 1).toString(),
-                    (entry.value * 100).toStringAsFixed(1),
+                    entry.value != null
+                        ? (entry.value! * 100).toStringAsFixed(1)
+                        : '0.0',
                   ],
                 ),
                 style: TextStyle(

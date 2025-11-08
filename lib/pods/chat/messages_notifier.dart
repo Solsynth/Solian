@@ -28,7 +28,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late final SnChatMember _identity;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
-  final Map<String, Map<int, double>> _fileUploadProgress = {};
+  final Map<String, Map<int, double?>> _fileUploadProgress = {};
   int? _totalCount;
   String? _searchQuery;
   bool? _withLinks;
@@ -438,7 +438,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
-    Function(String, Map<int, double>)? onProgress,
+    Function(String, Map<int, double?>)? onProgress,
   }) async {
     final nonce = const Uuid().v4();
     talker.log('Sending message with nonce $nonce');
@@ -474,7 +474,7 @@ class MessagesNotifier extends _$MessagesNotifier {
               fileData: attachments[idx],
               client: ref.read(apiClientProvider),
               onProgress: (progress, _) {
-                _fileUploadProgress[localMessage.id]?[idx] = progress;
+                _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
                 onProgress?.call(
                   localMessage.id,
                   _fileUploadProgress[localMessage.id] ?? {},
