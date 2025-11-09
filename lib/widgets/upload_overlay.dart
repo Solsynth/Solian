@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/upload_task.dart';
 import 'package:island/pods/upload_tasks.dart';
@@ -22,9 +25,9 @@ class UploadOverlay extends HookConsumerWidget {
                   task.status == UploadTaskStatus.completed,
             )
             .toList();
-    // if (activeTasks.isEmpty) {
-    //   return const SizedBox.shrink();
-    // }
+    if (activeTasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return _UploadOverlayContent(activeTasks: activeTasks);
   }
@@ -103,8 +106,8 @@ class _UploadOverlayContent extends HookConsumerWidget {
                               child: Icon(
                                 key: ValueKey(isExpanded.value),
                                 isExpanded.value
-                                    ? Symbols.expand_more
-                                    : Symbols.upload,
+                                    ? Symbols.list_rounded
+                                    : _getOverallStatusIcon(activeTasks),
                                 size: 24,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -120,7 +123,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                   Text(
                                     isExpanded.value
                                         ? 'uploadTasks'.tr()
-                                        : '${activeTasks.length} ${'uploading'.tr()}',
+                                        : _getOverallStatusText(activeTasks),
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleSmall
@@ -188,8 +191,10 @@ class _UploadOverlayContent extends HookConsumerWidget {
                             decoration: BoxDecoration(
                               border: Border(
                                 top: BorderSide(
-                                  color: Theme.of(context).dividerColor,
-                                  width: 1,
+                                  color: Theme.of(context).colorScheme.outline,
+                                  width:
+                                      1 /
+                                      MediaQuery.of(context).devicePixelRatio,
                                 ),
                               ),
                             ),
@@ -197,44 +202,26 @@ class _UploadOverlayContent extends HookConsumerWidget {
                               children: [
                                 // Clear completed tasks button
                                 if (_hasCompletedTasks(activeTasks))
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
+                                  ListTile(
+                                    dense: true,
+                                    title: const Text('Clear Completed'),
+                                    leading: Icon(
+                                      Symbols.clear_all,
+                                      size: 18,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                     ),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Theme.of(context).dividerColor,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        TextButton.icon(
-                                          onPressed: () {
-                                            ref
-                                                .read(
-                                                  uploadTasksProvider.notifier,
-                                                )
-                                                .clearCompletedTasks();
-                                          },
-                                          icon: Icon(
-                                            Symbols.clear_all,
-                                            size: 18,
-                                          ),
-                                          label: const Text('Clear Completed'),
-                                          style: TextButton.styleFrom(
-                                            foregroundColor:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    onTap: () {
+                                      ref
+                                          .read(uploadTasksProvider.notifier)
+                                          .clearCompletedTasks();
+                                    },
+                                    tileColor:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
                                   ),
 
                                 // Task list
@@ -282,6 +269,82 @@ class _UploadOverlayContent extends HookConsumerWidget {
     return '${(overallProgress * 100).toStringAsFixed(0)}%';
   }
 
+  IconData _getOverallStatusIcon(List<UploadTask> tasks) {
+    if (tasks.isEmpty) return Symbols.upload;
+
+    final hasInProgress = tasks.any(
+      (task) => task.status == UploadTaskStatus.inProgress,
+    );
+    final hasPending = tasks.any(
+      (task) => task.status == UploadTaskStatus.pending,
+    );
+    final hasPaused = tasks.any(
+      (task) => task.status == UploadTaskStatus.paused,
+    );
+    final hasFailed = tasks.any(
+      (task) =>
+          task.status == UploadTaskStatus.failed ||
+          task.status == UploadTaskStatus.cancelled ||
+          task.status == UploadTaskStatus.expired,
+    );
+    final hasCompleted = tasks.any(
+      (task) => task.status == UploadTaskStatus.completed,
+    );
+
+    // Priority order: in progress > pending > paused > failed > completed
+    if (hasInProgress) {
+      return Symbols.upload;
+    } else if (hasPending) {
+      return Symbols.schedule;
+    } else if (hasPaused) {
+      return Symbols.pause_circle;
+    } else if (hasFailed) {
+      return Symbols.error;
+    } else if (hasCompleted) {
+      return Symbols.check_circle;
+    } else {
+      return Symbols.upload;
+    }
+  }
+
+  String _getOverallStatusText(List<UploadTask> tasks) {
+    if (tasks.isEmpty) return '0 tasks';
+
+    final hasInProgress = tasks.any(
+      (task) => task.status == UploadTaskStatus.inProgress,
+    );
+    final hasPending = tasks.any(
+      (task) => task.status == UploadTaskStatus.pending,
+    );
+    final hasPaused = tasks.any(
+      (task) => task.status == UploadTaskStatus.paused,
+    );
+    final hasFailed = tasks.any(
+      (task) =>
+          task.status == UploadTaskStatus.failed ||
+          task.status == UploadTaskStatus.cancelled ||
+          task.status == UploadTaskStatus.expired,
+    );
+    final hasCompleted = tasks.any(
+      (task) => task.status == UploadTaskStatus.completed,
+    );
+
+    // Priority order: in progress > pending > paused > failed > completed
+    if (hasInProgress) {
+      return '${tasks.length} ${'uploading'.tr()}';
+    } else if (hasPending) {
+      return '${tasks.length} ${'pending'.tr()}';
+    } else if (hasPaused) {
+      return '${tasks.length} ${'paused'.tr()}';
+    } else if (hasFailed) {
+      return '${tasks.length} ${'failed'.tr()}';
+    } else if (hasCompleted) {
+      return '${tasks.length} ${'completed'.tr()}';
+    } else {
+      return '${tasks.length} ${'tasks'.tr()}';
+    }
+  }
+
   bool _hasCompletedTasks(List<UploadTask> tasks) {
     return tasks.any(
       (task) =>
@@ -293,88 +356,108 @@ class _UploadOverlayContent extends HookConsumerWidget {
   }
 }
 
-class UploadTaskTile extends HookConsumerWidget {
+class UploadTaskTile extends StatefulWidget {
   final UploadTask task;
 
   const UploadTaskTile({super.key, required this.task});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isExpanded = useState(false);
+  State<UploadTaskTile> createState() => _UploadTaskTileState();
+}
 
-    return InkWell(
-      onTap: () => isExpanded.value = !isExpanded.value,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Status icon
-                _buildStatusIcon(context),
-                const SizedBox(width: 8),
+class _UploadTaskTileState extends State<UploadTaskTile>
+    with TickerProviderStateMixin {
+  late AnimationController _rotationController;
+  late Animation<double> _rotationAnimation;
 
-                // File info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        task.fileName,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _formatFileSize(task.fileSize),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _rotationAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(
+      CurvedAnimation(parent: _rotationController, curve: Curves.easeInOut),
+    );
+  }
 
-                // Progress indicator
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    value: task.progress,
-                    strokeWidth: 3,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                ),
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
 
-                // Expand/collapse button
-                IconButton(
-                  icon: Icon(
-                    isExpanded.value
-                        ? Symbols.expand_less
-                        : Symbols.expand_more,
-                    size: 16,
-                  ),
-                  onPressed: () => isExpanded.value = !isExpanded.value,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      leading: _buildStatusIcon(context),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.task.fileName,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _formatFileSize(widget.task.fileSize),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-
-            // Expanded details
-            if (isExpanded.value) ...[
-              const SizedBox(height: 8),
-              _buildExpandedDetails(context),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: CircularProgressIndicator(
+                value: widget.task.progress,
+                strokeWidth: 2.5,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+            ),
+          ),
+          const Gap(4),
+          AnimatedBuilder(
+            animation: _rotationAnimation,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _rotationAnimation.value * math.pi,
+                child: Icon(
+                  Symbols.expand_more,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+      onExpansionChanged: (expanded) {
+        if (expanded) {
+          _rotationController.forward();
+        } else {
+          _rotationController.reverse();
+        }
+      },
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+          child: _buildExpandedDetails(context),
+        ),
+      ],
     );
   }
 
@@ -382,7 +465,7 @@ class UploadTaskTile extends HookConsumerWidget {
     IconData icon;
     Color color;
 
-    switch (task.status) {
+    switch (widget.task.status) {
       case UploadTaskStatus.pending:
         icon = Symbols.schedule;
         color = Theme.of(context).colorScheme.secondary;
@@ -413,11 +496,11 @@ class UploadTaskTile extends HookConsumerWidget {
         break;
     }
 
-    return Icon(icon, size: 16, color: color);
+    return Icon(icon, size: 24, color: color);
   }
 
   Widget _buildExpandedDetails(BuildContext context) {
-    final transmissionProgress = task.transmissionProgress ?? 0.0;
+    final transmissionProgress = widget.task.transmissionProgress ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -441,20 +524,20 @@ class UploadTaskTile extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${(task.progress * 100).toStringAsFixed(1)}%',
+                '${(widget.task.progress * 100).toStringAsFixed(1)}%',
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
-                '${task.uploadedChunks}/${task.totalChunks} chunks',
+                '${widget.task.uploadedChunks}/${widget.task.totalChunks} chunks',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
           const SizedBox(height: 4),
           LinearProgressIndicator(
-            value: task.progress,
+            value: widget.task.progress,
             backgroundColor: Theme.of(context).colorScheme.surface,
             valueColor: AlwaysStoppedAnimation<Color>(
               Theme.of(context).colorScheme.primary,
@@ -482,7 +565,7 @@ class UploadTaskTile extends HookConsumerWidget {
                 ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
-                '${_formatFileSize((transmissionProgress * task.fileSize).toInt())} / ${_formatFileSize(task.fileSize)}',
+                '${_formatFileSize((transmissionProgress * widget.task.fileSize).toInt())} / ${_formatFileSize(widget.task.fileSize)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -503,14 +586,14 @@ class UploadTaskTile extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _formatBytesPerSecond(task),
+                _formatBytesPerSecond(widget.task),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (task.status == UploadTaskStatus.inProgress)
+              if (widget.task.status == UploadTaskStatus.inProgress)
                 Text(
-                  'ETA: ${_formatDuration(task.estimatedTimeRemaining)}',
+                  'ETA: ${_formatDuration(widget.task.estimatedTimeRemaining)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -519,10 +602,10 @@ class UploadTaskTile extends HookConsumerWidget {
           ),
 
           // Error message if failed
-          if (task.errorMessage != null) ...[
+          if (widget.task.errorMessage != null) ...[
             const SizedBox(height: 4),
             Text(
-              task.errorMessage!,
+              widget.task.errorMessage!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.error,
               ),
