@@ -42,7 +42,6 @@ import 'package:island/screens/stickers/pack_detail.dart';
 import 'package:island/screens/discovery/feeds/feed_marketplace.dart';
 import 'package:island/screens/discovery/feeds/feed_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
-import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
@@ -505,19 +504,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
                       return StickersScreen(pubName: name);
-                    },
-                  ),
-                  GoRoute(
-                    name: 'creatorNew',
-                    path: 'new',
-                    builder: (context, state) => const NewPublisherScreen(),
-                  ),
-                  GoRoute(
-                    name: 'creatorEdit',
-                    path: ':name/edit',
-                    builder: (context, state) {
-                      final name = state.pathParameters['name']!;
-                      return EditPublisherScreen(name: name);
                     },
                   ),
                 ],

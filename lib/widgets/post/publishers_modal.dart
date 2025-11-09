@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -43,9 +42,13 @@ class PublisherModal extends HookConsumerWidget {
                                     const Gap(12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        context.pushNamed('creatorNew').then((
-                                          value,
-                                        ) {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder:
+                                              (context) =>
+                                                  const NewPublisherScreen(),
+                                        ).then((value) {
                                           if (value != null) {
                                             ref.invalidate(
                                               publishersManagedProvider,

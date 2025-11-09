@@ -16,8 +16,8 @@ import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -177,13 +177,11 @@ class EditPublisherScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        title: Text(name == null ? 'createPublisher' : 'editPublisher').tr(),
-        leading: const PageBackButton(),
-      ),
-      body: SingleChildScrollView(
+    final titleText = (name == null ? 'createPublisher' : 'editPublisher').tr();
+
+    return SheetScaffold(
+      titleText: titleText,
+      child: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: 16),
         child: Column(
           children: [

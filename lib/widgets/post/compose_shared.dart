@@ -123,7 +123,7 @@ class ComposeLogic {
       slugController: TextEditingController(text: originalPost?.slug),
       visibility: ValueNotifier<int>(originalPost?.visibility ?? 0),
       submitting: ValueNotifier<bool>(false),
-      attachmentProgress: ValueNotifier<Map<int, double>>({}),
+      attachmentProgress: ValueNotifier<Map<int, double?>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
       tags: ValueNotifier<List<String>>(tags),
       categories: ValueNotifier<List<SnPostCategory>>(categories),
@@ -149,7 +149,7 @@ class ComposeLogic {
       slugController: TextEditingController(text: draft.slug),
       visibility: ValueNotifier<int>(draft.visibility),
       submitting: ValueNotifier<bool>(false),
-      attachmentProgress: ValueNotifier<Map<int, double>>({}),
+      attachmentProgress: ValueNotifier<Map<int, double?>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
       tags: ValueNotifier<List<String>>(tags),
       categories: ValueNotifier<List<SnPostCategory>>(draft.categories),
@@ -500,7 +500,7 @@ class ComposeLogic {
     try {
       state.attachmentProgress.value = {
         ...state.attachmentProgress.value,
-        index: 0,
+        index: 0.0,
       };
 
       SnCloudFile? cloudFile;

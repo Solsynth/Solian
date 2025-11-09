@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
@@ -330,7 +329,13 @@ class PostComposeCard extends HookConsumerWidget {
                               if (isContained) {
                                 Navigator.of(context).pop();
                               }
-                              context.pushNamed('creatorNew').then((value) {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                useRootNavigator: true,
+                                builder:
+                                    (context) => const NewPublisherScreen(),
+                              ).then((value) {
                                 if (value != null) {
                                   composeState.currentPublisher.value =
                                       value as SnPublisher;
@@ -368,9 +373,14 @@ class PostComposeCard extends HookConsumerWidget {
                                     if (isContained) {
                                       Navigator.of(context).pop();
                                     }
-                                    context.pushNamed('creatorNew').then((
-                                      value,
-                                    ) {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      useRootNavigator: true,
+                                      builder:
+                                          (context) =>
+                                              const NewPublisherScreen(),
+                                    ).then((value) {
                                       if (value != null) {
                                         composeState.currentPublisher.value =
                                             value as SnPublisher;

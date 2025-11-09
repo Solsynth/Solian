@@ -261,7 +261,11 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
             subtitle: Text('createPublisherHint').tr(),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
-              context.pushNamed('creatorNew').then((value) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => const NewPublisherScreen(),
+              ).then((value) {
                 if (value != null) {
                   ref.invalidate(publishersManagedProvider);
                 }
@@ -285,19 +289,18 @@ class CreatorHubScreen extends HookConsumerWidget {
     );
 
     void updatePublisher() {
-      context
-          .pushNamed(
-            'creatorEdit',
-            pathParameters: {'name': currentPublisher.value!.name},
-          )
-          .then((value) async {
-            if (value == null) return;
-            final data = await ref.refresh(publishersManagedProvider.future);
-            currentPublisher.value =
-                data
-                    .where((e) => e.id == currentPublisher.value!.id)
-                    .firstOrNull;
-          });
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder:
+            (context) =>
+                EditPublisherScreen(name: currentPublisher.value!.name),
+      ).then((value) async {
+        if (value == null) return;
+        final data = await ref.refresh(publishersManagedProvider.future);
+        currentPublisher.value =
+            data.where((e) => e.id == currentPublisher.value!.id).firstOrNull;
+      });
     }
 
     void deletePublisher() {

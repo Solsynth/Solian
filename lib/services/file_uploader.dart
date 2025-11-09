@@ -128,7 +128,13 @@ class FileUploader {
 
   /// Completes the upload and returns the CloudFile object.
   Future<SnCloudFile> completeUpload(String taskId) async {
-    final response = await _client.post('/drive/files/upload/complete/$taskId');
+    final response = await _client.post(
+      '/drive/files/upload/complete/$taskId',
+      options: Options(
+        sendTimeout: Duration(minutes: 1),
+        receiveTimeout: Duration(minutes: 1),
+      ),
+    );
 
     return SnCloudFile.fromJson(response.data);
   }
