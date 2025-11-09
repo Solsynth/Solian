@@ -104,9 +104,7 @@ class CheckInWidget extends HookConsumerWidget {
       } catch (err) {
         if (err is DioException) {
           if (err.response?.statusCode == 423 && context.mounted) {
-            final captchaTk = await Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
+            final captchaTk = await CaptchaScreen.show(context);
             if (captchaTk == null) return;
             return await checkIn(captchatTk: captchaTk);
           }

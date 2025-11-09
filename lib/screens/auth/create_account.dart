@@ -38,9 +38,7 @@ class CreateAccountScreen extends HookConsumerWidget {
     void performAction() async {
       if (!formKey.currentState!.validate()) return;
 
-      final captchaTk = await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
+      final captchaTk = await CaptchaScreen.show(context);
       if (captchaTk == null) return;
 
       if (!context.mounted) return;

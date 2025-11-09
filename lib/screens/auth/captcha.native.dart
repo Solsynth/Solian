@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/screens/auth/captcha.config.dart';
-import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/sheet.dart';
 
 class CaptchaScreen extends ConsumerWidget {
+  static Future<String?> show(BuildContext context) {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const CaptchaScreen(),
+    );
+  }
+
   const CaptchaScreen({super.key});
 
   @override
@@ -13,9 +21,9 @@ class CaptchaScreen extends ConsumerWidget {
 
     if (!captchaUrl.hasValue) return Center(child: CircularProgressIndicator());
 
-    return AppScaffold(
-      appBar: AppBar(title: Text("Anti-Robot")),
-      body: InAppWebView(
+    return SheetScaffold(
+      titleText: "Anti-Robot",
+      child: InAppWebView(
         initialUrlRequest: URLRequest(
           url: WebUri('${captchaUrl.value}?redirect_uri=solian://captcha'),
         ),

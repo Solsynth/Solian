@@ -84,9 +84,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
         'accountPasswordChange'.tr(),
       );
       if (!confirm || !context.mounted) return;
-      final captchaTk = await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
+      final captchaTk = await CaptchaScreen.show(context);
       if (captchaTk == null) return;
       try {
         if (context.mounted) showLoadingModal(context);

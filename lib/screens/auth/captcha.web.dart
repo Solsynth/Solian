@@ -4,11 +4,19 @@ import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/screens/auth/captcha.config.dart';
-import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 
 class CaptchaScreen extends ConsumerStatefulWidget {
+  static Future<String?> show(BuildContext context) {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const CaptchaScreen(),
+    );
+  }
+
   const CaptchaScreen({super.key});
 
   @override
@@ -61,9 +69,9 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      appBar: AppBar(title: Text("Anti-Robot")),
-      body:
+    return SheetScaffold(
+      titleText: "Anti-Robot",
+      child:
           _isInitialized
               ? HtmlElementView(viewType: 'captcha-iframe')
               : Center(child: CircularProgressIndicator()),
