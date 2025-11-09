@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/upload_task.dart';
 import 'package:island/pods/upload_tasks.dart';
+import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -24,12 +25,44 @@ class UploadOverlay extends HookConsumerWidget {
                   task.status == UploadTaskStatus.paused ||
                   task.status == UploadTaskStatus.completed,
             )
-            .toList();
-    if (activeTasks.isEmpty) {
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+
+    final isVisible = activeTasks.isNotEmpty;
+    final slideController = useAnimationController(
+      duration: const Duration(milliseconds: 300),
+    );
+    final slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1), // Start from below the screen
+      end: Offset.zero, // End at normal position
+    ).animate(CurvedAnimation(parent: slideController, curve: Curves.easeOut));
+
+    // Animate when visibility changes
+    useEffect(() {
+      if (isVisible) {
+        slideController.forward();
+      } else {
+        slideController.reverse();
+      }
+      return null;
+    }, [isVisible]);
+
+    if (!isVisible && slideController.status == AnimationStatus.dismissed) {
+      // If not visible and animation is complete (back to start), don't show anything
       return const SizedBox.shrink();
     }
 
-    return _UploadOverlayContent(activeTasks: activeTasks);
+    final isDesktop = isWideScreen(context);
+
+    return Positioned(
+      bottom: 16 + MediaQuery.of(context).padding.bottom,
+      left: isDesktop ? null : 0,
+      right: isDesktop ? 24 : 0,
+      child: SlideTransition(
+        position: slideAnimation,
+        child: _UploadOverlayContent(activeTasks: activeTasks),
+      ),
+    );
   }
 }
 
@@ -198,47 +231,49 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                            child: Column(
-                              children: [
+                            child: CustomScrollView(
+                              slivers: [
                                 // Clear completed tasks button
                                 if (_hasCompletedTasks(activeTasks))
-                                  ListTile(
-                                    dense: true,
-                                    title: const Text('Clear Completed'),
-                                    leading: Icon(
-                                      Symbols.clear_all,
-                                      size: 18,
-                                      color:
+                                  SliverToBoxAdapter(
+                                    child: ListTile(
+                                      dense: true,
+                                      title: const Text('Clear Completed'),
+                                      leading: Icon(
+                                        Symbols.clear_all,
+                                        size: 18,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                      ),
+                                      onTap: () {
+                                        ref
+                                            .read(uploadTasksProvider.notifier)
+                                            .clearCompletedTasks();
+                                      },
+                                      tileColor:
                                           Theme.of(
                                             context,
-                                          ).colorScheme.onSurfaceVariant,
+                                          ).colorScheme.surfaceContainerHighest,
                                     ),
-                                    onTap: () {
-                                      ref
-                                          .read(uploadTasksProvider.notifier)
-                                          .clearCompletedTasks();
-                                    },
-                                    tileColor:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
                                   ),
 
                                 // Task list
-                                Expanded(
-                                  child: AnimatedOpacity(
-                                    opacity: opacityAnimation,
-                                    duration: const Duration(milliseconds: 150),
-                                    child: ListView.builder(
-                                      shrinkWrap: true,
-                                      padding: EdgeInsets.zero,
-                                      itemCount: activeTasks.length,
-                                      itemBuilder: (context, index) {
-                                        final task = activeTasks[index];
-                                        return UploadTaskTile(task: task);
-                                      },
-                                    ),
-                                  ),
+                                SliverList(
+                                  delegate: SliverChildBuilderDelegate((
+                                    context,
+                                    index,
+                                  ) {
+                                    final task = activeTasks[index];
+                                    return AnimatedOpacity(
+                                      opacity: opacityAnimation,
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
+                                      child: UploadTaskTile(task: task),
+                                    );
+                                  }, childCount: activeTasks.length),
                                 ),
                               ],
                             ),
@@ -259,7 +294,13 @@ class _UploadOverlayContent extends HookConsumerWidget {
     if (tasks.isEmpty) return 0.0;
     final totalProgress = tasks.fold<double>(
       0.0,
-      (sum, task) => sum + task.progress,
+      (sum, task) =>
+          sum +
+          (task.status == UploadTaskStatus.inProgress
+              ? task.progress
+              : task.status == UploadTaskStatus.completed
+              ? 1
+              : 0),
     );
     return totalProgress / tasks.length;
   }
