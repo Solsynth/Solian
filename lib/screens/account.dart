@@ -129,7 +129,7 @@ class AccountScreen extends HookConsumerWidget {
                                   pathParameters: {'name': user.value!.name},
                                 );
                               },
-                            ),
+                            ).padding(bottom: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
