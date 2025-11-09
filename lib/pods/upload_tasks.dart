@@ -101,6 +101,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         status: UploadTaskStatus.pending,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        type: 'FileUpload',
         poolId: metadata['poolId'] as String?,
         bundleId: metadata['bundleId'] as String?,
         encryptPassword: metadata['encryptPassword'] as String?,
@@ -128,6 +129,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         status: UploadTaskStatus.pending,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        type: 'FileUpload',
       );
 
       state = [...state, uploadTask];
@@ -390,6 +392,7 @@ class EnhancedFileUploader extends FileUploader {
         status: UploadTaskStatus.completed,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        type: 'FileUpload',
         poolId: poolId,
         bundleId: bundleId,
         encryptPassword: encryptPassword,

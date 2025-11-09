@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UploadTask {
 
- String get id; String get taskId; String get fileName; String get contentType; int get fileSize; int get uploadedBytes; int get totalChunks; int get uploadedChunks; UploadTaskStatus get status; DateTime get createdAt; DateTime get updatedAt; double? get transmissionProgress;// Local file upload progress (0.0-1.0)
+ String get id; String get taskId; String get fileName; String get contentType; int get fileSize; int get uploadedBytes; int get totalChunks; int get uploadedChunks; UploadTaskStatus get status; DateTime get createdAt; DateTime get updatedAt; String get type;// Task type (e.g., 'FileUpload')
+ double? get transmissionProgress;// Local file upload progress (0.0-1.0)
  String? get errorMessage; SnCloudFile? get result; String? get poolId; String? get bundleId; String? get encryptPassword; String? get expiredAt;
 /// Create a copy of UploadTask
 /// with the given fields replaced by the non-null parameter values.
@@ -29,16 +30,16 @@ $UploadTaskCopyWith<UploadTask> get copyWith => _$UploadTaskCopyWithImpl<UploadT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UploadTask&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.uploadedBytes, uploadedBytes) || other.uploadedBytes == uploadedBytes)&&(identical(other.totalChunks, totalChunks) || other.totalChunks == totalChunks)&&(identical(other.uploadedChunks, uploadedChunks) || other.uploadedChunks == uploadedChunks)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.transmissionProgress, transmissionProgress) || other.transmissionProgress == transmissionProgress)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.result, result) || other.result == result)&&(identical(other.poolId, poolId) || other.poolId == poolId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.encryptPassword, encryptPassword) || other.encryptPassword == encryptPassword)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UploadTask&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.uploadedBytes, uploadedBytes) || other.uploadedBytes == uploadedBytes)&&(identical(other.totalChunks, totalChunks) || other.totalChunks == totalChunks)&&(identical(other.uploadedChunks, uploadedChunks) || other.uploadedChunks == uploadedChunks)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.type, type) || other.type == type)&&(identical(other.transmissionProgress, transmissionProgress) || other.transmissionProgress == transmissionProgress)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.result, result) || other.result == result)&&(identical(other.poolId, poolId) || other.poolId == poolId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.encryptPassword, encryptPassword) || other.encryptPassword == encryptPassword)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,taskId,fileName,contentType,fileSize,uploadedBytes,totalChunks,uploadedChunks,status,createdAt,updatedAt,transmissionProgress,errorMessage,result,poolId,bundleId,encryptPassword,expiredAt);
+int get hashCode => Object.hashAll([runtimeType,id,taskId,fileName,contentType,fileSize,uploadedBytes,totalChunks,uploadedChunks,status,createdAt,updatedAt,type,transmissionProgress,errorMessage,result,poolId,bundleId,encryptPassword,expiredAt]);
 
 @override
 String toString() {
-  return 'UploadTask(id: $id, taskId: $taskId, fileName: $fileName, contentType: $contentType, fileSize: $fileSize, uploadedBytes: $uploadedBytes, totalChunks: $totalChunks, uploadedChunks: $uploadedChunks, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, transmissionProgress: $transmissionProgress, errorMessage: $errorMessage, result: $result, poolId: $poolId, bundleId: $bundleId, encryptPassword: $encryptPassword, expiredAt: $expiredAt)';
+  return 'UploadTask(id: $id, taskId: $taskId, fileName: $fileName, contentType: $contentType, fileSize: $fileSize, uploadedBytes: $uploadedBytes, totalChunks: $totalChunks, uploadedChunks: $uploadedChunks, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, type: $type, transmissionProgress: $transmissionProgress, errorMessage: $errorMessage, result: $result, poolId: $poolId, bundleId: $bundleId, encryptPassword: $encryptPassword, expiredAt: $expiredAt)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $UploadTaskCopyWith<$Res>  {
   factory $UploadTaskCopyWith(UploadTask value, $Res Function(UploadTask) _then) = _$UploadTaskCopyWithImpl;
 @useResult
 $Res call({
- String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, UploadTaskStatus status, DateTime createdAt, DateTime updatedAt, double? transmissionProgress, String? errorMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
+ String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, UploadTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
 });
 
 
@@ -66,7 +67,7 @@ class _$UploadTaskCopyWithImpl<$Res>
 
 /// Create a copy of UploadTask
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? fileName = null,Object? contentType = null,Object? fileSize = null,Object? uploadedBytes = null,Object? totalChunks = null,Object? uploadedChunks = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? transmissionProgress = freezed,Object? errorMessage = freezed,Object? result = freezed,Object? poolId = freezed,Object? bundleId = freezed,Object? encryptPassword = freezed,Object? expiredAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? fileName = null,Object? contentType = null,Object? fileSize = null,Object? uploadedBytes = null,Object? totalChunks = null,Object? uploadedChunks = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? type = null,Object? transmissionProgress = freezed,Object? errorMessage = freezed,Object? result = freezed,Object? poolId = freezed,Object? bundleId = freezed,Object? encryptPassword = freezed,Object? expiredAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
@@ -79,7 +80,8 @@ as int,uploadedChunks: null == uploadedChunks ? _self.uploadedChunks : uploadedC
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as UploadTaskStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,transmissionProgress: freezed == transmissionProgress ? _self.transmissionProgress : transmissionProgress // ignore: cast_nullable_to_non_nullable
+as DateTime,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,transmissionProgress: freezed == transmissionProgress ? _self.transmissionProgress : transmissionProgress // ignore: cast_nullable_to_non_nullable
 as double?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
@@ -180,10 +182,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UploadTask() when $default != null:
-return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
+return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
   return orElse();
 
 }
@@ -201,10 +203,10 @@ return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fil
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)  $default,) {final _that = this;
 switch (_that) {
 case _UploadTask():
-return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);}
+return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -218,10 +220,10 @@ return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fil
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  UploadTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,) {final _that = this;
 switch (_that) {
 case _UploadTask() when $default != null:
-return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
+return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
   return null;
 
 }
@@ -233,7 +235,7 @@ return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fil
 @JsonSerializable()
 
 class _UploadTask extends UploadTask {
-  const _UploadTask({required this.id, required this.taskId, required this.fileName, required this.contentType, required this.fileSize, required this.uploadedBytes, required this.totalChunks, required this.uploadedChunks, required this.status, required this.createdAt, required this.updatedAt, this.transmissionProgress, this.errorMessage, this.result, this.poolId, this.bundleId, this.encryptPassword, this.expiredAt}): super._();
+  const _UploadTask({required this.id, required this.taskId, required this.fileName, required this.contentType, required this.fileSize, required this.uploadedBytes, required this.totalChunks, required this.uploadedChunks, required this.status, required this.createdAt, required this.updatedAt, required this.type, this.transmissionProgress, this.errorMessage, this.result, this.poolId, this.bundleId, this.encryptPassword, this.expiredAt}): super._();
   factory _UploadTask.fromJson(Map<String, dynamic> json) => _$UploadTaskFromJson(json);
 
 @override final  String id;
@@ -247,6 +249,8 @@ class _UploadTask extends UploadTask {
 @override final  UploadTaskStatus status;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
+@override final  String type;
+// Task type (e.g., 'FileUpload')
 @override final  double? transmissionProgress;
 // Local file upload progress (0.0-1.0)
 @override final  String? errorMessage;
@@ -269,16 +273,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UploadTask&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.uploadedBytes, uploadedBytes) || other.uploadedBytes == uploadedBytes)&&(identical(other.totalChunks, totalChunks) || other.totalChunks == totalChunks)&&(identical(other.uploadedChunks, uploadedChunks) || other.uploadedChunks == uploadedChunks)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.transmissionProgress, transmissionProgress) || other.transmissionProgress == transmissionProgress)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.result, result) || other.result == result)&&(identical(other.poolId, poolId) || other.poolId == poolId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.encryptPassword, encryptPassword) || other.encryptPassword == encryptPassword)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UploadTask&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.uploadedBytes, uploadedBytes) || other.uploadedBytes == uploadedBytes)&&(identical(other.totalChunks, totalChunks) || other.totalChunks == totalChunks)&&(identical(other.uploadedChunks, uploadedChunks) || other.uploadedChunks == uploadedChunks)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.type, type) || other.type == type)&&(identical(other.transmissionProgress, transmissionProgress) || other.transmissionProgress == transmissionProgress)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.result, result) || other.result == result)&&(identical(other.poolId, poolId) || other.poolId == poolId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.encryptPassword, encryptPassword) || other.encryptPassword == encryptPassword)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,taskId,fileName,contentType,fileSize,uploadedBytes,totalChunks,uploadedChunks,status,createdAt,updatedAt,transmissionProgress,errorMessage,result,poolId,bundleId,encryptPassword,expiredAt);
+int get hashCode => Object.hashAll([runtimeType,id,taskId,fileName,contentType,fileSize,uploadedBytes,totalChunks,uploadedChunks,status,createdAt,updatedAt,type,transmissionProgress,errorMessage,result,poolId,bundleId,encryptPassword,expiredAt]);
 
 @override
 String toString() {
-  return 'UploadTask(id: $id, taskId: $taskId, fileName: $fileName, contentType: $contentType, fileSize: $fileSize, uploadedBytes: $uploadedBytes, totalChunks: $totalChunks, uploadedChunks: $uploadedChunks, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, transmissionProgress: $transmissionProgress, errorMessage: $errorMessage, result: $result, poolId: $poolId, bundleId: $bundleId, encryptPassword: $encryptPassword, expiredAt: $expiredAt)';
+  return 'UploadTask(id: $id, taskId: $taskId, fileName: $fileName, contentType: $contentType, fileSize: $fileSize, uploadedBytes: $uploadedBytes, totalChunks: $totalChunks, uploadedChunks: $uploadedChunks, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, type: $type, transmissionProgress: $transmissionProgress, errorMessage: $errorMessage, result: $result, poolId: $poolId, bundleId: $bundleId, encryptPassword: $encryptPassword, expiredAt: $expiredAt)';
 }
 
 
@@ -289,7 +293,7 @@ abstract mixin class _$UploadTaskCopyWith<$Res> implements $UploadTaskCopyWith<$
   factory _$UploadTaskCopyWith(_UploadTask value, $Res Function(_UploadTask) _then) = __$UploadTaskCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, UploadTaskStatus status, DateTime createdAt, DateTime updatedAt, double? transmissionProgress, String? errorMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
+ String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, UploadTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
 });
 
 
@@ -306,7 +310,7 @@ class __$UploadTaskCopyWithImpl<$Res>
 
 /// Create a copy of UploadTask
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? taskId = null,Object? fileName = null,Object? contentType = null,Object? fileSize = null,Object? uploadedBytes = null,Object? totalChunks = null,Object? uploadedChunks = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? transmissionProgress = freezed,Object? errorMessage = freezed,Object? result = freezed,Object? poolId = freezed,Object? bundleId = freezed,Object? encryptPassword = freezed,Object? expiredAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? taskId = null,Object? fileName = null,Object? contentType = null,Object? fileSize = null,Object? uploadedBytes = null,Object? totalChunks = null,Object? uploadedChunks = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? type = null,Object? transmissionProgress = freezed,Object? errorMessage = freezed,Object? result = freezed,Object? poolId = freezed,Object? bundleId = freezed,Object? encryptPassword = freezed,Object? expiredAt = freezed,}) {
   return _then(_UploadTask(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
@@ -319,7 +323,8 @@ as int,uploadedChunks: null == uploadedChunks ? _self.uploadedChunks : uploadedC
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as UploadTaskStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,transmissionProgress: freezed == transmissionProgress ? _self.transmissionProgress : transmissionProgress // ignore: cast_nullable_to_non_nullable
+as DateTime,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,transmissionProgress: freezed == transmissionProgress ? _self.transmissionProgress : transmissionProgress // ignore: cast_nullable_to_non_nullable
 as double?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable

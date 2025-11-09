@@ -30,6 +30,7 @@ sealed class UploadTask with _$UploadTask {
     required UploadTaskStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
+    required String type, // Task type (e.g., 'FileUpload')
     double? transmissionProgress, // Local file upload progress (0.0-1.0)
     String? errorMessage,
     SnCloudFile? result,

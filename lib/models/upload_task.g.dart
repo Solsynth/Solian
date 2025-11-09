@@ -18,6 +18,7 @@ _UploadTask _$UploadTaskFromJson(Map<String, dynamic> json) => _UploadTask(
   status: $enumDecode(_$UploadTaskStatusEnumMap, json['status']),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
+  type: json['type'] as String,
   transmissionProgress: (json['transmission_progress'] as num?)?.toDouble(),
   errorMessage: json['error_message'] as String?,
   result:
@@ -43,6 +44,7 @@ Map<String, dynamic> _$UploadTaskToJson(_UploadTask instance) =>
       'status': _$UploadTaskStatusEnumMap[instance.status]!,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
+      'type': instance.type,
       'transmission_progress': instance.transmissionProgress,
       'error_message': instance.errorMessage,
       'result': instance.result?.toJson(),

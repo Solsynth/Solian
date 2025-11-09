@@ -59,6 +59,8 @@ void main() async {
 
   try {
     await EasyLocalization.ensureInitialized();
+    // Disable logs
+    EasyLocalization.logger.enableBuildModes = [];
 
     if (kIsWeb || !Platform.isLinux) {
       await Firebase.initializeApp(

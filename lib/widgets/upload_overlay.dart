@@ -541,119 +541,177 @@ class _UploadTaskTileState extends State<UploadTaskTile>
   }
 
   Widget _buildExpandedDetails(BuildContext context) {
-    final transmissionProgress = widget.task.transmissionProgress ?? 0.0;
-
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Server Processing Progress
-          Text(
-            'Server Processing',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(widget.task.progress * 100).toStringAsFixed(1)}%',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                '${widget.task.uploadedChunks}/${widget.task.totalChunks} chunks',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: widget.task.progress,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
-            ),
-          ),
+      child: switch (widget.task.type) {
+        'FileUpload' => _buildFileUploadDetails(context),
+        _ => _buildGenericTaskDetails(context),
+      },
+    );
+  }
 
-          const SizedBox(height: 8),
+  Widget _buildFileUploadDetails(BuildContext context) {
+    final transmissionProgress = widget.task.transmissionProgress ?? 0.0;
 
-          // File Transmission Progress
-          Text(
-            'File Transmission',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.secondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Server Processing Progress
+        Text(
+          'Server Processing',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
-          ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(transmissionProgress * 100).toStringAsFixed(1)}%',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                '${_formatFileSize((transmissionProgress * widget.task.fileSize).toInt())} / ${_formatFileSize(widget.task.fileSize)}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: transmissionProgress,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.secondary,
+            Text(
+              '${widget.task.uploadedChunks}/${widget.task.totalChunks} chunks',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: widget.task.progress,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
           ),
+        ),
 
-          const SizedBox(height: 4),
+        const SizedBox(height: 8),
 
-          // Speed and ETA
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+        // File Transmission Progress
+        Text(
+          'File Transmission',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${(transmissionProgress * 100).toStringAsFixed(1)}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              '${_formatFileSize((transmissionProgress * widget.task.fileSize).toInt())} / ${_formatFileSize(widget.task.fileSize)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: transmissionProgress,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        // Speed and ETA
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              _formatBytesPerSecond(widget.task),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (widget.task.status == UploadTaskStatus.inProgress)
               Text(
-                _formatBytesPerSecond(widget.task),
+                'ETA: ${_formatDuration(widget.task.estimatedTimeRemaining)}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (widget.task.status == UploadTaskStatus.inProgress)
-                Text(
-                  'ETA: ${_formatDuration(widget.task.estimatedTimeRemaining)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-            ],
-          ),
+          ],
+        ),
 
-          // Error message if failed
-          if (widget.task.errorMessage != null) ...[
-            const SizedBox(height: 4),
+        // Error message if failed
+        if (widget.task.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.task.errorMessage!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGenericTaskDetails(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Generic task progress
+        Text(
+          'Progress',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Text(
-              widget.task.errorMessage!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.error,
-              ),
+              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              widget.task.status.name,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: widget.task.progress,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
+          ),
+        ),
+
+        // Error message if failed
+        if (widget.task.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.task.errorMessage!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
         ],
-      ),
+      ],
     );
   }
 
