@@ -13,6 +13,7 @@ import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/upload_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -198,6 +199,7 @@ class WindowScaffold extends HookConsumerWidget {
                   ],
                 ),
                 _WebSocketIndicator(),
+                const UploadOverlay(),
               ],
             ),
           ),
@@ -213,7 +215,11 @@ class WindowScaffold extends HookConsumerWidget {
         actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
         child: Stack(
           fit: StackFit.expand,
-          children: [Positioned.fill(child: child), _WebSocketIndicator()],
+          children: [
+            Positioned.fill(child: child),
+            _WebSocketIndicator(),
+            const UploadOverlay(),
+          ],
         ),
       ),
     );
