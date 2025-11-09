@@ -99,7 +99,7 @@ class EditChatScreen extends HookConsumerWidget {
       try {
         final cloudFile =
             await FileUploader.createCloudFile(
-              client: ref.read(apiClientProvider),
+              ref: ref,
               fileData: UniversalFile(
                 data: result,
                 type: UniversalFileType.image,

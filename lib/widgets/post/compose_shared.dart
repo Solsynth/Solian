@@ -180,7 +180,7 @@ class ComposeLogic {
           try {
             final cloudFile =
                 await FileUploader.createCloudFile(
-                  client: ref.read(apiClientProvider),
+                  ref: ref,
                   fileData: attachment,
                 ).future;
             if (cloudFile != null) {
@@ -510,7 +510,7 @@ class ComposeLogic {
 
       cloudFile =
           await FileUploader.createCloudFile(
-            client: ref.read(apiClientProvider),
+            ref: ref,
             fileData: attachment,
             poolId: poolId ?? selectedPoolId,
             mode:

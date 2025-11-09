@@ -241,7 +241,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
               final file = universalFiles[idx];
               final cloudFile =
                   await FileUploader.createCloudFile(
-                    client: apiClient,
+                    ref: ref,
                     fileData: file,
                     onProgress: (progress, _) {
                       if (mounted) {

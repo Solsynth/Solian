@@ -7,6 +7,7 @@ import 'package:island/models/upload_task.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/services/file_uploader.dart';
+import 'package:island/talker.dart';
 
 final uploadTasksProvider =
     StateNotifierProvider<UploadTasksNotifier, List<UploadTask>>(
@@ -16,6 +17,7 @@ final uploadTasksProvider =
 class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
   final Ref ref;
   StreamSubscription? _websocketSubscription;
+  final Map<String, Map<String, dynamic>> _pendingUploads = {};
 
   UploadTasksNotifier(this.ref) : super([]) {
     _listenToWebSocket();
@@ -29,40 +31,121 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
   }
 
   void _handleWebSocketPacket(dynamic packet) {
-    if (packet.type.startsWith('upload.')) {
+    if (packet.type.startsWith('task.')) {
       final data = packet.data;
       if (data == null) return;
+
+      // Debug logging
+      talker.info(
+        '[UploadTasks] Received WebSocket packet: ${packet.type}, data: $data',
+      );
 
       final taskId = data['task_id'] as String?;
       if (taskId == null) return;
 
       switch (packet.type) {
-        case 'upload.progress':
+        case 'task.created':
+          _handleTaskCreated(taskId, data);
+          break;
+        case 'task.progress':
           _handleProgressUpdate(taskId, data);
           break;
-        case 'upload.completed':
+        case 'task.completed':
           _handleUploadCompleted(taskId, data);
           break;
-        case 'upload.failed':
+        case 'task.failed':
           _handleUploadFailed(taskId, data);
           break;
       }
     }
   }
 
+  void _handleTaskCreated(String taskId, Map<String, dynamic> data) {
+    talker.info('[UploadTasks] Handling task.created for taskId: $taskId');
+
+    // Check if task already exists (might have been created locally)
+    final existingTask =
+        state.where((task) => task.taskId == taskId).firstOrNull;
+    if (existingTask != null) {
+      talker.info('[UploadTasks] Task already exists, updating status');
+      // Task already exists, just update its status to confirm server creation
+      state =
+          state.map((task) {
+            if (task.taskId == taskId) {
+              return task.copyWith(
+                status: UploadTaskStatus.pending,
+                updatedAt: DateTime.now(),
+              );
+            }
+            return task;
+          }).toList();
+      return;
+    }
+
+    // Check if we have stored metadata for this task
+    final metadata = _pendingUploads[taskId];
+    talker.info('[UploadTasks] Metadata for taskId $taskId: $metadata');
+
+    if (metadata != null) {
+      talker.info('[UploadTasks] Creating task with full metadata');
+      // Create task with full metadata
+      final uploadTask = UploadTask(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        taskId: taskId,
+        fileName: metadata['fileName'] as String,
+        contentType: metadata['contentType'] as String,
+        fileSize: metadata['fileSize'] as int,
+        uploadedBytes: 0,
+        totalChunks: metadata['totalChunks'] as int,
+        uploadedChunks: 0,
+        status: UploadTaskStatus.pending,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        poolId: metadata['poolId'] as String?,
+        bundleId: metadata['bundleId'] as String?,
+        encryptPassword: metadata['encryptPassword'] as String?,
+        expiredAt: metadata['expiredAt'] as String?,
+      );
+
+      state = [...state, uploadTask];
+      talker.info(
+        '[UploadTasks] Task created successfully. Total tasks: ${state.length}',
+      );
+      // Clean up stored metadata
+      _pendingUploads.remove(taskId);
+    } else {
+      talker.info('[UploadTasks] No metadata found, creating minimal task');
+      // Create minimal task if no metadata is stored
+      final uploadTask = UploadTask(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        taskId: taskId,
+        fileName: data['name'] as String? ?? 'Unknown file',
+        contentType: 'application/octet-stream',
+        fileSize: 0,
+        uploadedBytes: 0,
+        totalChunks: 0,
+        uploadedChunks: 0,
+        status: UploadTaskStatus.pending,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      state = [...state, uploadTask];
+      talker.info(
+        '[UploadTasks] Minimal task created. Total tasks: ${state.length}',
+      );
+    }
+  }
+
   void _handleProgressUpdate(String taskId, Map<String, dynamic> data) {
-    final uploadedChunks = data['chunksUploaded'] as int? ?? 0;
-    final uploadedBytes =
-        (data['progress'] as num? ?? 0.0) /
-        100.0 *
-        (data['fileSize'] as int? ?? 0);
+    final progress = data['progress'] as num? ?? 0.0;
 
     state =
         state.map((task) {
           if (task.taskId == taskId) {
+            final uploadedBytes = (progress / 100.0 * task.fileSize).toInt();
             return task.copyWith(
-              uploadedChunks: uploadedChunks,
-              uploadedBytes: uploadedBytes.toInt(),
+              uploadedBytes: uploadedBytes,
               status: UploadTaskStatus.inProgress,
               updatedAt: DateTime.now(),
             );
@@ -72,11 +155,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
   }
 
   void _handleUploadCompleted(String taskId, Map<String, dynamic> data) {
-    final fileData = data['file'];
-    if (fileData != null) {
-      // Assuming the file data comes in the expected format
-      // You might need to adjust this based on the actual API response
-    }
+    final results = data['results'] as Map<String, dynamic>?;
 
     state =
         state.map((task) {
@@ -85,6 +164,14 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
               status: UploadTaskStatus.completed,
               uploadedChunks: task.totalChunks,
               uploadedBytes: task.fileSize,
+              // Update file information from Results if available
+              fileName: results?['file_name'] as String? ?? task.fileName,
+              fileSize: results?['file_size'] as int? ?? task.fileSize,
+              contentType: results?['mime_type'] as String? ?? task.contentType,
+              result:
+                  results?['file_info'] != null
+                      ? SnCloudFile.fromJson(results!['file_info'])
+                      : null,
               updatedAt: DateTime.now(),
             );
           }
@@ -93,7 +180,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
   }
 
   void _handleUploadFailed(String taskId, Map<String, dynamic> data) {
-    final errorMessage = data['error'] as String? ?? 'Upload failed';
+    final errorMessage = data['error_message'] as String? ?? 'Upload failed';
 
     state =
         state.map((task) {
@@ -110,6 +197,29 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
 
   void addUploadTask(UploadTask task) {
     state = [...state, task];
+  }
+
+  void storeUploadMetadata(
+    String taskId, {
+    required String fileName,
+    required String contentType,
+    required int fileSize,
+    required int totalChunks,
+    String? poolId,
+    String? bundleId,
+    String? encryptPassword,
+    String? expiredAt,
+  }) {
+    _pendingUploads[taskId] = {
+      'fileName': fileName,
+      'contentType': contentType,
+      'fileSize': fileSize,
+      'totalChunks': totalChunks,
+      'poolId': poolId,
+      'bundleId': bundleId,
+      'encryptPassword': encryptPassword,
+      'expiredAt': expiredAt,
+    };
   }
 
   void updateTaskStatus(
@@ -130,8 +240,34 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         }).toList();
   }
 
+  void updateTransmissionProgress(String taskId, double progress) {
+    state =
+        state.map((task) {
+          if (task.taskId == taskId) {
+            return task.copyWith(
+              transmissionProgress: progress,
+              updatedAt: DateTime.now(),
+            );
+          }
+          return task;
+        }).toList();
+  }
+
   void removeTask(String taskId) {
     state = state.where((task) => task.taskId != taskId).toList();
+  }
+
+  void clearCompletedTasks() {
+    state =
+        state
+            .where(
+              (task) =>
+                  task.status != UploadTaskStatus.completed &&
+                  task.status != UploadTaskStatus.failed &&
+                  task.status != UploadTaskStatus.cancelled &&
+                  task.status != UploadTaskStatus.expired,
+            )
+            .toList();
   }
 
   UploadTask? getTask(String taskId) {
@@ -144,7 +280,8 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
           (task) =>
               task.status == UploadTaskStatus.pending ||
               task.status == UploadTaskStatus.inProgress ||
-              task.status == UploadTaskStatus.paused,
+              task.status == UploadTaskStatus.paused ||
+              task.status == UploadTaskStatus.completed,
         )
         .toList();
   }
@@ -222,14 +359,6 @@ class EnhancedFileUploader extends FileUploader {
       chunkSize: customChunkSize,
     );
 
-    if (createResponse['file_exists'] == true) {
-      // File already exists, return the existing file
-      return SnCloudFile.fromJson(createResponse['file']);
-    }
-
-    final taskId = createResponse['task_id'] as String;
-    final chunkSize = createResponse['chunk_size'] as int;
-    final chunksCount = createResponse['chunks_count'] as int;
     int totalSize;
     if (fileData is XFile) {
       totalSize = await fileData.length();
@@ -239,26 +368,58 @@ class EnhancedFileUploader extends FileUploader {
       throw ArgumentError('Invalid fileData type');
     }
 
-    // Create upload task and add to state
-    final uploadTask = UploadTask(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      taskId: taskId,
-      fileName: fileName,
-      contentType: contentType,
-      fileSize: totalSize,
-      uploadedBytes: 0,
-      totalChunks: chunksCount,
-      uploadedChunks: 0,
-      status: UploadTaskStatus.pending,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      poolId: poolId,
-      bundleId: bundleId,
-      encryptPassword: encryptPassword,
-      expiredAt: expiredAt,
-    );
+    if (createResponse['file_exists'] == true) {
+      // File already exists, create a local task to show it was found
+      final existingFile = SnCloudFile.fromJson(createResponse['file']);
 
-    ref.read(uploadTasksProvider.notifier).addUploadTask(uploadTask);
+      // Create a task that shows as completed immediately
+      // Use a generated taskId since the server might not provide one for existing files
+      final taskId =
+          createResponse['task_id'] as String? ??
+          'existing-${DateTime.now().millisecondsSinceEpoch}';
+
+      final uploadTask = UploadTask(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        taskId: taskId,
+        fileName: fileName,
+        contentType: contentType,
+        fileSize: totalSize,
+        uploadedBytes: totalSize,
+        totalChunks: 1, // For existing files, we consider it as 1 chunk
+        uploadedChunks: 1,
+        status: UploadTaskStatus.completed,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        poolId: poolId,
+        bundleId: bundleId,
+        encryptPassword: encryptPassword,
+        expiredAt: expiredAt,
+      );
+
+      ref.read(uploadTasksProvider.notifier).addUploadTask(uploadTask);
+
+      return existingFile;
+    }
+
+    final taskId = createResponse['task_id'] as String;
+    final chunkSize = createResponse['chunk_size'] as int;
+    final chunksCount = createResponse['chunks_count'] as int;
+
+    // Store upload metadata for when task.created event arrives
+    talker.info('[UploadTasks] Storing metadata for taskId: $taskId');
+    ref
+        .read(uploadTasksProvider.notifier)
+        .storeUploadMetadata(
+          taskId,
+          fileName: fileName,
+          contentType: contentType,
+          fileSize: totalSize,
+          totalChunks: chunksCount,
+          poolId: poolId,
+          bundleId: bundleId,
+          encryptPassword: encryptPassword,
+          expiredAt: expiredAt,
+        );
 
     // Step 2: Upload chunks
     int bytesUploaded = 0;
@@ -279,6 +440,10 @@ class EnhancedFileUploader extends FileUploader {
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
+            // Update transmission progress in UI
+            ref
+                .read(uploadTasksProvider.notifier)
+                .updateTransmissionProgress(taskId, overallProgress);
           },
         );
         bytesUploaded += chunkData.length;
@@ -302,6 +467,10 @@ class EnhancedFileUploader extends FileUploader {
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
+            // Update transmission progress in UI
+            ref
+                .read(uploadTasksProvider.notifier)
+                .updateTransmissionProgress(taskId, overallProgress);
           },
         );
         bytesUploaded += chunks[i].length;

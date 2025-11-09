@@ -3,6 +3,7 @@ import "package:dio/dio.dart";
 import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/drift_db.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
@@ -433,6 +434,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> sendMessage(
+    WidgetRef ref,
     String content,
     List<UniversalFile> attachments, {
     SnChatMessage? editingTo,
@@ -471,8 +473,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile =
             await FileUploader.createCloudFile(
+              ref: ref,
               fileData: attachments[idx],
-              client: ref.read(apiClientProvider),
               onProgress: (progress, _) {
                 _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
                 onProgress?.call(
