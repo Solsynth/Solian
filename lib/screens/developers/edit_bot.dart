@@ -127,11 +127,11 @@ class EditBotScreen extends HookConsumerWidget {
       try {
         final cloudFile =
             await FileUploader.createCloudFile(
+              ref: ref,
               fileData: UniversalFile(
                 data: result,
                 type: UniversalFileType.image,
               ),
-              client: ref.read(apiClientProvider),
             ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');

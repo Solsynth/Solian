@@ -265,6 +265,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       if (messageController.text.trim().isNotEmpty ||
           attachments.value.isNotEmpty) {
         messagesNotifier.sendMessage(
+          ref,
           messageController.text.trim(),
           attachments.value,
           editingTo: messageEditingTo.value,
@@ -561,7 +562,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
         final cloudFile =
             await FileUploader.createCloudFile(
-              client: ref.read(apiClientProvider),
+              ref: ref,
               fileData: attachment,
               poolId: config.poolId,
               mode:

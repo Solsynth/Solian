@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/upload_tasks.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:path/path.dart' show extension;
@@ -235,7 +236,7 @@ class FileUploader {
 
   static Completer<SnCloudFile?> createCloudFile({
     required UniversalFile fileData,
-    required Dio client,
+    required WidgetRef ref,
     String? poolId,
     FileUploadMode? mode,
     Function(double? progress, Duration estimate)? onProgress,
@@ -272,19 +273,14 @@ class FileUploader {
               await exif.writeAttributes(gpsAttributes);
             })
             .then(
-              (_) => _processUploadWithEnhancedUploader(
-                fileData,
-                client,
-                poolId,
-                onProgress,
-                completer,
-              ),
+              (_) =>
+                  _processUpload(fileData, ref, poolId, onProgress, completer),
             )
             .catchError((e) {
               debugPrint('Error removing GPS EXIF data: $e');
-              return _processUploadWithEnhancedUploader(
+              return _processUpload(
                 fileData,
-                client,
+                ref,
                 poolId,
                 onProgress,
                 completer,
@@ -295,20 +291,14 @@ class FileUploader {
       }
     }
 
-    _processUploadWithEnhancedUploader(
-      fileData,
-      client,
-      poolId,
-      onProgress,
-      completer,
-    );
+    _processUpload(fileData, ref, poolId, onProgress, completer);
     return completer;
   }
 
   // Helper method to process the upload with enhanced uploader
-  static Completer<SnCloudFile?> _processUploadWithEnhancedUploader(
+  static Completer<SnCloudFile?> _processUpload(
     UniversalFile fileData,
-    Dio client,
+    WidgetRef ref,
     String? poolId,
     Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer,
@@ -321,11 +311,11 @@ class FileUploader {
     final data = fileData.data;
 
     if (data is XFile) {
-      _performUploadWithEnhancedUploader(
+      _performUpload(
         fileData: data,
         fileName: fileData.displayName ?? data.name,
         contentType: actualMimetype,
-        client: client,
+        ref: ref,
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
@@ -348,11 +338,11 @@ class FileUploader {
     }
 
     if (bytes != null) {
-      _performUploadWithEnhancedUploader(
+      _performUpload(
         fileData: bytes,
         fileName: actualFilename,
         contentType: actualMimetype,
-        client: client,
+        ref: ref,
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
@@ -362,17 +352,18 @@ class FileUploader {
     return completer;
   }
 
-  // Helper method to perform the actual upload
+  // Helper method to perform the actual upload with enhanced uploader
   static void _performUpload({
     required dynamic fileData,
     required String fileName,
     required String contentType,
-    required Dio client,
+    required WidgetRef ref,
     String? poolId,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
-    final uploader = FileUploader(client);
+    // Use the enhanced uploader with task tracking
+    final uploader = ref.read(enhancedFileUploaderProvider);
 
     // Call progress start
     onProgress?.call(null, Duration.zero);
@@ -393,30 +384,6 @@ class FileUploader {
           completer.completeError(e);
           throw e;
         });
-  }
-
-  // Helper method to perform the actual upload with enhanced uploader
-  static void _performUploadWithEnhancedUploader({
-    required dynamic fileData,
-    required String fileName,
-    required String contentType,
-    required Dio client,
-    String? poolId,
-    Function(double? progress, Duration estimate)? onProgress,
-    required Completer<SnCloudFile?> completer,
-  }) {
-    // Use the enhanced uploader from Riverpod context
-    // This will be called from a context where we have access to Riverpod
-    // For now, fall back to the regular uploader
-    _performUpload(
-      fileData: fileData,
-      fileName: fileName,
-      contentType: contentType,
-      client: client,
-      poolId: poolId,
-      onProgress: onProgress,
-      completer: completer,
-    );
   }
 
   /// Gets the MIME type of a UniversalFile.

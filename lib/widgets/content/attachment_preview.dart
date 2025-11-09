@@ -401,7 +401,7 @@ class AttachmentPreview extends HookConsumerWidget {
                           children: [
                             if (progress != null)
                               Text(
-                                '${progress!.toStringAsFixed(2)}%',
+                                '${(progress! * 100).toStringAsFixed(2)}%',
                                 style: TextStyle(color: Colors.white),
                               )
                             else

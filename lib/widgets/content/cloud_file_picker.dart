@@ -6,7 +6,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
-import 'package:island/pods/network.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
@@ -61,7 +60,7 @@ class CloudFilePicker extends HookConsumerWidget {
           final cloudFile =
               await FileUploader.createCloudFile(
                 fileData: file,
-                client: ref.read(apiClientProvider),
+                ref: ref,
                 onProgress: (progress, _) {
                   uploadProgress.value = progress;
                 },
