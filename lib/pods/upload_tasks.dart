@@ -3,18 +3,18 @@ import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/upload_task.dart';
+import 'package:island/models/drive_task.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/talker.dart';
 
 final uploadTasksProvider =
-    StateNotifierProvider<UploadTasksNotifier, List<UploadTask>>(
+    StateNotifierProvider<UploadTasksNotifier, List<DriveTask>>(
       (ref) => UploadTasksNotifier(ref),
     );
 
-class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
+class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
   final Ref ref;
   StreamSubscription? _websocketSubscription;
   final Map<String, Map<String, dynamic>> _pendingUploads = {};
@@ -73,7 +73,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
           state.map((task) {
             if (task.taskId == taskId) {
               return task.copyWith(
-                status: UploadTaskStatus.pending,
+                status: DriveTaskStatus.pending,
                 updatedAt: DateTime.now(),
               );
             }
@@ -89,7 +89,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
     if (metadata != null) {
       talker.info('[UploadTasks] Creating task with full metadata');
       // Create task with full metadata
-      final uploadTask = UploadTask(
+      final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
         fileName: metadata['fileName'] as String,
@@ -98,7 +98,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         uploadedBytes: 0,
         totalChunks: metadata['totalChunks'] as int,
         uploadedChunks: 0,
-        status: UploadTaskStatus.pending,
+        status: DriveTaskStatus.pending,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         type: 'FileUpload',
@@ -117,7 +117,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
     } else {
       talker.info('[UploadTasks] No metadata found, creating minimal task');
       // Create minimal task if no metadata is stored
-      final uploadTask = UploadTask(
+      final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
         fileName: data['name'] as String? ?? 'Unknown file',
@@ -126,7 +126,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         uploadedBytes: 0,
         totalChunks: 0,
         uploadedChunks: 0,
-        status: UploadTaskStatus.pending,
+        status: DriveTaskStatus.pending,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         type: 'FileUpload',
@@ -148,7 +148,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
             final uploadedBytes = (progress / 100.0 * task.fileSize).toInt();
             return task.copyWith(
               uploadedBytes: uploadedBytes,
-              status: UploadTaskStatus.inProgress,
+              status: DriveTaskStatus.inProgress,
               updatedAt: DateTime.now(),
             );
           }
@@ -163,7 +163,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         state.map((task) {
           if (task.taskId == taskId) {
             return task.copyWith(
-              status: UploadTaskStatus.completed,
+              status: DriveTaskStatus.completed,
               uploadedChunks: task.totalChunks,
               uploadedBytes: task.fileSize,
               // Update file information from Results if available
@@ -188,7 +188,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         state.map((task) {
           if (task.taskId == taskId) {
             return task.copyWith(
-              status: UploadTaskStatus.failed,
+              status: DriveTaskStatus.failed,
               errorMessage: errorMessage,
               updatedAt: DateTime.now(),
             );
@@ -197,7 +197,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         }).toList();
   }
 
-  void addUploadTask(UploadTask task) {
+  void addUploadTask(DriveTask task) {
     state = [...state, task];
   }
 
@@ -226,7 +226,7 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
 
   void updateTaskStatus(
     String taskId,
-    UploadTaskStatus status, {
+    DriveTaskStatus status, {
     String? errorMessage,
   }) {
     state =
@@ -264,26 +264,26 @@ class UploadTasksNotifier extends StateNotifier<List<UploadTask>> {
         state
             .where(
               (task) =>
-                  task.status != UploadTaskStatus.completed &&
-                  task.status != UploadTaskStatus.failed &&
-                  task.status != UploadTaskStatus.cancelled &&
-                  task.status != UploadTaskStatus.expired,
+                  task.status != DriveTaskStatus.completed &&
+                  task.status != DriveTaskStatus.failed &&
+                  task.status != DriveTaskStatus.cancelled &&
+                  task.status != DriveTaskStatus.expired,
             )
             .toList();
   }
 
-  UploadTask? getTask(String taskId) {
+  DriveTask? getTask(String taskId) {
     return state.where((task) => task.taskId == taskId).firstOrNull;
   }
 
-  List<UploadTask> getActiveTasks() {
+  List<DriveTask> getActiveTasks() {
     return state
         .where(
           (task) =>
-              task.status == UploadTaskStatus.pending ||
-              task.status == UploadTaskStatus.inProgress ||
-              task.status == UploadTaskStatus.paused ||
-              task.status == UploadTaskStatus.completed,
+              task.status == DriveTaskStatus.pending ||
+              task.status == DriveTaskStatus.inProgress ||
+              task.status == DriveTaskStatus.paused ||
+              task.status == DriveTaskStatus.completed,
         )
         .toList();
   }
@@ -380,7 +380,7 @@ class EnhancedFileUploader extends FileUploader {
           createResponse['task_id'] as String? ??
           'existing-${DateTime.now().millisecondsSinceEpoch}';
 
-      final uploadTask = UploadTask(
+      final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
         fileName: fileName,
@@ -389,7 +389,7 @@ class EnhancedFileUploader extends FileUploader {
         uploadedBytes: totalSize,
         totalChunks: 1, // For existing files, we consider it as 1 chunk
         uploadedChunks: 1,
-        status: UploadTaskStatus.completed,
+        status: DriveTaskStatus.completed,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         type: 'FileUpload',

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/upload_task.dart';
+import 'package:island/models/drive_task.dart';
 import 'package:island/pods/upload_tasks.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -20,10 +20,10 @@ class UploadOverlay extends HookConsumerWidget {
         uploadTasks
             .where(
               (task) =>
-                  task.status == UploadTaskStatus.pending ||
-                  task.status == UploadTaskStatus.inProgress ||
-                  task.status == UploadTaskStatus.paused ||
-                  task.status == UploadTaskStatus.completed,
+                  task.status == DriveTaskStatus.pending ||
+                  task.status == DriveTaskStatus.inProgress ||
+                  task.status == DriveTaskStatus.paused ||
+                  task.status == DriveTaskStatus.completed,
             )
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
@@ -67,7 +67,7 @@ class UploadOverlay extends HookConsumerWidget {
 }
 
 class _UploadOverlayContent extends HookConsumerWidget {
-  final List<UploadTask> activeTasks;
+  final List<DriveTask> activeTasks;
 
   const _UploadOverlayContent({required this.activeTasks});
 
@@ -290,46 +290,46 @@ class _UploadOverlayContent extends HookConsumerWidget {
     );
   }
 
-  double _getOverallProgress(List<UploadTask> tasks) {
+  double _getOverallProgress(List<DriveTask> tasks) {
     if (tasks.isEmpty) return 0.0;
     final totalProgress = tasks.fold<double>(
       0.0,
       (sum, task) =>
           sum +
-          (task.status == UploadTaskStatus.inProgress
+          (task.status == DriveTaskStatus.inProgress
               ? task.progress
-              : task.status == UploadTaskStatus.completed
+              : task.status == DriveTaskStatus.completed
               ? 1
               : 0),
     );
     return totalProgress / tasks.length;
   }
 
-  String _getOverallProgressText(List<UploadTask> tasks) {
+  String _getOverallProgressText(List<DriveTask> tasks) {
     final overallProgress = _getOverallProgress(tasks);
     return '${(overallProgress * 100).toStringAsFixed(0)}%';
   }
 
-  IconData _getOverallStatusIcon(List<UploadTask> tasks) {
+  IconData _getOverallStatusIcon(List<DriveTask> tasks) {
     if (tasks.isEmpty) return Symbols.upload;
 
     final hasInProgress = tasks.any(
-      (task) => task.status == UploadTaskStatus.inProgress,
+      (task) => task.status == DriveTaskStatus.inProgress,
     );
     final hasPending = tasks.any(
-      (task) => task.status == UploadTaskStatus.pending,
+      (task) => task.status == DriveTaskStatus.pending,
     );
     final hasPaused = tasks.any(
-      (task) => task.status == UploadTaskStatus.paused,
+      (task) => task.status == DriveTaskStatus.paused,
     );
     final hasFailed = tasks.any(
       (task) =>
-          task.status == UploadTaskStatus.failed ||
-          task.status == UploadTaskStatus.cancelled ||
-          task.status == UploadTaskStatus.expired,
+          task.status == DriveTaskStatus.failed ||
+          task.status == DriveTaskStatus.cancelled ||
+          task.status == DriveTaskStatus.expired,
     );
     final hasCompleted = tasks.any(
-      (task) => task.status == UploadTaskStatus.completed,
+      (task) => task.status == DriveTaskStatus.completed,
     );
 
     // Priority order: in progress > pending > paused > failed > completed
@@ -348,26 +348,26 @@ class _UploadOverlayContent extends HookConsumerWidget {
     }
   }
 
-  String _getOverallStatusText(List<UploadTask> tasks) {
+  String _getOverallStatusText(List<DriveTask> tasks) {
     if (tasks.isEmpty) return '0 tasks';
 
     final hasInProgress = tasks.any(
-      (task) => task.status == UploadTaskStatus.inProgress,
+      (task) => task.status == DriveTaskStatus.inProgress,
     );
     final hasPending = tasks.any(
-      (task) => task.status == UploadTaskStatus.pending,
+      (task) => task.status == DriveTaskStatus.pending,
     );
     final hasPaused = tasks.any(
-      (task) => task.status == UploadTaskStatus.paused,
+      (task) => task.status == DriveTaskStatus.paused,
     );
     final hasFailed = tasks.any(
       (task) =>
-          task.status == UploadTaskStatus.failed ||
-          task.status == UploadTaskStatus.cancelled ||
-          task.status == UploadTaskStatus.expired,
+          task.status == DriveTaskStatus.failed ||
+          task.status == DriveTaskStatus.cancelled ||
+          task.status == DriveTaskStatus.expired,
     );
     final hasCompleted = tasks.any(
-      (task) => task.status == UploadTaskStatus.completed,
+      (task) => task.status == DriveTaskStatus.completed,
     );
 
     // Priority order: in progress > pending > paused > failed > completed
@@ -386,19 +386,19 @@ class _UploadOverlayContent extends HookConsumerWidget {
     }
   }
 
-  bool _hasCompletedTasks(List<UploadTask> tasks) {
+  bool _hasCompletedTasks(List<DriveTask> tasks) {
     return tasks.any(
       (task) =>
-          task.status == UploadTaskStatus.completed ||
-          task.status == UploadTaskStatus.failed ||
-          task.status == UploadTaskStatus.cancelled ||
-          task.status == UploadTaskStatus.expired,
+          task.status == DriveTaskStatus.completed ||
+          task.status == DriveTaskStatus.failed ||
+          task.status == DriveTaskStatus.cancelled ||
+          task.status == DriveTaskStatus.expired,
     );
   }
 }
 
 class UploadTaskTile extends StatefulWidget {
-  final UploadTask task;
+  final DriveTask task;
 
   const UploadTaskTile({super.key, required this.task});
 
@@ -507,31 +507,31 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     Color color;
 
     switch (widget.task.status) {
-      case UploadTaskStatus.pending:
+      case DriveTaskStatus.pending:
         icon = Symbols.schedule;
         color = Theme.of(context).colorScheme.secondary;
         break;
-      case UploadTaskStatus.inProgress:
+      case DriveTaskStatus.inProgress:
         icon = Symbols.upload;
         color = Theme.of(context).colorScheme.primary;
         break;
-      case UploadTaskStatus.paused:
+      case DriveTaskStatus.paused:
         icon = Symbols.pause_circle;
         color = Theme.of(context).colorScheme.tertiary;
         break;
-      case UploadTaskStatus.completed:
+      case DriveTaskStatus.completed:
         icon = Symbols.check_circle;
         color = Colors.green;
         break;
-      case UploadTaskStatus.failed:
+      case DriveTaskStatus.failed:
         icon = Symbols.error;
         color = Theme.of(context).colorScheme.error;
         break;
-      case UploadTaskStatus.cancelled:
+      case DriveTaskStatus.cancelled:
         icon = Symbols.cancel;
         color = Theme.of(context).colorScheme.error;
         break;
-      case UploadTaskStatus.expired:
+      case DriveTaskStatus.expired:
         icon = Symbols.timer_off;
         color = Theme.of(context).colorScheme.error;
         break;
@@ -640,7 +640,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            if (widget.task.status == UploadTaskStatus.inProgress)
+            if (widget.task.status == DriveTaskStatus.inProgress)
               Text(
                 'ETA: ${_formatDuration(widget.task.estimatedTimeRemaining)}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -727,7 +727,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     }
   }
 
-  String _formatBytesPerSecond(UploadTask task) {
+  String _formatBytesPerSecond(DriveTask task) {
     if (task.uploadedBytes == 0) return '0 B/s';
 
     final elapsedSeconds = DateTime.now().difference(task.createdAt).inSeconds;

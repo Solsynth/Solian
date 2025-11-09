@@ -1,10 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
 
-part 'upload_task.freezed.dart';
-part 'upload_task.g.dart';
+part 'drive_task.freezed.dart';
+part 'drive_task.g.dart';
 
-enum UploadTaskStatus {
+enum DriveTaskStatus {
   pending,
   inProgress,
   paused,
@@ -15,10 +15,10 @@ enum UploadTaskStatus {
 }
 
 @freezed
-sealed class UploadTask with _$UploadTask {
-  const UploadTask._();
+sealed class DriveTask with _$DriveTask {
+  const DriveTask._();
 
-  const factory UploadTask({
+  const factory DriveTask({
     required String id,
     required String taskId,
     required String fileName,
@@ -27,7 +27,7 @@ sealed class UploadTask with _$UploadTask {
     required int uploadedBytes,
     required int totalChunks,
     required int uploadedChunks,
-    required UploadTaskStatus status,
+    required DriveTaskStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
     required String type, // Task type (e.g., 'FileUpload')
@@ -38,10 +38,10 @@ sealed class UploadTask with _$UploadTask {
     String? bundleId,
     String? encryptPassword,
     String? expiredAt,
-  }) = _UploadTask;
+  }) = _DriveTask;
 
-  factory UploadTask.fromJson(Map<String, dynamic> json) =>
-      _$UploadTaskFromJson(json);
+  factory DriveTask.fromJson(Map<String, dynamic> json) =>
+      _$DriveTaskFromJson(json);
 
   double get progress => totalChunks > 0 ? uploadedChunks / totalChunks : 0.0;
 

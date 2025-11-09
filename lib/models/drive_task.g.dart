@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'upload_task.dart';
+part of 'drive_task.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_UploadTask _$UploadTaskFromJson(Map<String, dynamic> json) => _UploadTask(
+_DriveTask _$DriveTaskFromJson(Map<String, dynamic> json) => _DriveTask(
   id: json['id'] as String,
   taskId: json['task_id'] as String,
   fileName: json['file_name'] as String,
@@ -15,7 +15,7 @@ _UploadTask _$UploadTaskFromJson(Map<String, dynamic> json) => _UploadTask(
   uploadedBytes: (json['uploaded_bytes'] as num).toInt(),
   totalChunks: (json['total_chunks'] as num).toInt(),
   uploadedChunks: (json['uploaded_chunks'] as num).toInt(),
-  status: $enumDecode(_$UploadTaskStatusEnumMap, json['status']),
+  status: $enumDecode(_$DriveTaskStatusEnumMap, json['status']),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   type: json['type'] as String,
@@ -31,7 +31,7 @@ _UploadTask _$UploadTaskFromJson(Map<String, dynamic> json) => _UploadTask(
   expiredAt: json['expired_at'] as String?,
 );
 
-Map<String, dynamic> _$UploadTaskToJson(_UploadTask instance) =>
+Map<String, dynamic> _$DriveTaskToJson(_DriveTask instance) =>
     <String, dynamic>{
       'id': instance.id,
       'task_id': instance.taskId,
@@ -41,7 +41,7 @@ Map<String, dynamic> _$UploadTaskToJson(_UploadTask instance) =>
       'uploaded_bytes': instance.uploadedBytes,
       'total_chunks': instance.totalChunks,
       'uploaded_chunks': instance.uploadedChunks,
-      'status': _$UploadTaskStatusEnumMap[instance.status]!,
+      'status': _$DriveTaskStatusEnumMap[instance.status]!,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'type': instance.type,
@@ -54,12 +54,12 @@ Map<String, dynamic> _$UploadTaskToJson(_UploadTask instance) =>
       'expired_at': instance.expiredAt,
     };
 
-const _$UploadTaskStatusEnumMap = {
-  UploadTaskStatus.pending: 'pending',
-  UploadTaskStatus.inProgress: 'inProgress',
-  UploadTaskStatus.paused: 'paused',
-  UploadTaskStatus.completed: 'completed',
-  UploadTaskStatus.failed: 'failed',
-  UploadTaskStatus.expired: 'expired',
-  UploadTaskStatus.cancelled: 'cancelled',
+const _$DriveTaskStatusEnumMap = {
+  DriveTaskStatus.pending: 'pending',
+  DriveTaskStatus.inProgress: 'inProgress',
+  DriveTaskStatus.paused: 'paused',
+  DriveTaskStatus.completed: 'completed',
+  DriveTaskStatus.failed: 'failed',
+  DriveTaskStatus.expired: 'expired',
+  DriveTaskStatus.cancelled: 'cancelled',
 };
