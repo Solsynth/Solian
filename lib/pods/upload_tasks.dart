@@ -92,20 +92,20 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
-        fileName: metadata['fileName'] as String,
-        contentType: metadata['contentType'] as String,
-        fileSize: metadata['fileSize'] as int,
+        fileName: metadata['file_name'] as String,
+        contentType: metadata['mime_type'] as String,
+        fileSize: metadata['file_size'] as int,
         uploadedBytes: 0,
-        totalChunks: metadata['totalChunks'] as int,
+        totalChunks: metadata['total_chunks'] as int,
         uploadedChunks: 0,
         status: DriveTaskStatus.pending,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         type: 'FileUpload',
-        poolId: metadata['poolId'] as String?,
+        poolId: metadata['pool_id'] as String?,
         bundleId: metadata['bundleId'] as String?,
-        encryptPassword: metadata['encryptPassword'] as String?,
-        expiredAt: metadata['expiredAt'] as String?,
+        encryptPassword: metadata['encrypt_password'] as String?,
+        expiredAt: metadata['expired_at'] as String?,
       );
 
       state = [...state, uploadTask];
@@ -117,19 +117,21 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
     } else {
       talker.info('[UploadTasks] No metadata found, creating minimal task');
       // Create minimal task if no metadata is stored
+      final params = data['parameters'];
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
-        fileName: data['name'] as String? ?? 'Unknown file',
-        contentType: 'application/octet-stream',
-        fileSize: 0,
-        uploadedBytes: 0,
-        totalChunks: 0,
-        uploadedChunks: 0,
+        fileName: params['file_name'] as String? ?? 'Unknown file',
+        contentType: params['content_type'],
+        fileSize: params['file_size'],
+        uploadedBytes:
+            (params['chunk_size'] as int) * (params['chunks_uploaded'] as int),
+        totalChunks: params['chunks_count'],
+        uploadedChunks: params['chunks_uploaded'],
         status: DriveTaskStatus.pending,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.tryParse(data['created_at']) ?? DateTime.now(),
         updatedAt: DateTime.now(),
-        type: 'FileUpload',
+        type: data['type'],
       );
 
       state = [...state, uploadTask];
@@ -147,6 +149,7 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
           if (task.taskId == taskId) {
             final uploadedBytes = (progress / 100.0 * task.fileSize).toInt();
             return task.copyWith(
+              statusMessage: data['status'],
               uploadedBytes: uploadedBytes,
               status: DriveTaskStatus.inProgress,
               updatedAt: DateTime.now(),
@@ -213,14 +216,14 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
     String? expiredAt,
   }) {
     _pendingUploads[taskId] = {
-      'fileName': fileName,
-      'contentType': contentType,
-      'fileSize': fileSize,
-      'totalChunks': totalChunks,
-      'poolId': poolId,
+      'file_name': fileName,
+      'mime_type': contentType,
+      'file_size': fileSize,
+      'total_chunks': totalChunks,
+      'pool_id': poolId,
       'bundleId': bundleId,
-      'encryptPassword': encryptPassword,
-      'expiredAt': expiredAt,
+      'encrypt_password': encryptPassword,
+      'expired_at': expiredAt,
     };
   }
 

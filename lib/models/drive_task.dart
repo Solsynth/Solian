@@ -33,6 +33,7 @@ sealed class DriveTask with _$DriveTask {
     required String type, // Task type (e.g., 'FileUpload')
     double? transmissionProgress, // Local file upload progress (0.0-1.0)
     String? errorMessage,
+    String? statusMessage,
     SnCloudFile? result,
     String? poolId,
     String? bundleId,
