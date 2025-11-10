@@ -66,7 +66,19 @@ class TabsScreen extends HookConsumerWidget {
         icon: Badge.count(
           count: notificationUnreadCount.value ?? 0,
           isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
-          child: const Icon(Symbols.person_rounded),
+          child: Consumer(
+            child: const Icon(Symbols.account_circle_rounded),
+            builder: (context, ref, fallbackChild) {
+              final userInfo = ref.watch(userInfoProvider);
+              if (userInfo.value?.profile.picture != null) {
+                return ProfilePictureWidget(
+                  file: userInfo.value!.profile.picture,
+                  radius: 12,
+                );
+              }
+              return fallbackChild!;
+            },
+          ),
         ),
       ),
       if (wideScreen)
