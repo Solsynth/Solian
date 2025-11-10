@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -12,6 +11,8 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
+import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -106,7 +107,23 @@ class FileListScreen extends HookConsumerWidget {
     }, [selectedPool.value, includeRecycled.value]);
 
     return AppScaffold(
-      appBar: AppBar(title: Text('Files'), leading: const PageBackButton()),
+      isNoBackground: false,
+      appBar: AppBar(
+        title: Text('Files'),
+        leading: const PageBackButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.bar_chart),
+            onPressed:
+                () => _showUsageSheet(
+                  context,
+                  usageAsync.value,
+                  quotaAsync.value,
+                ),
+          ),
+          const Gap(8),
+        ],
+      ),
       body: usageAsync.when(
         data:
             (usage) => quotaAsync.when(
@@ -137,86 +154,6 @@ class FileListScreen extends HookConsumerWidget {
     if (usage == null) return const SizedBox.shrink();
     return CustomScrollView(
       slivers: [
-        const SliverGap(8),
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'All Uploads',
-                      '${((usage['total_usage_bytes'] as num) / (1024 * 1024 * 1024)).toStringAsFixed(3)} GiB',
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildStatCard(
-                      'All Files',
-                      '${usage['total_file_count']}',
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'Quota',
-                      '${usage['total_quota']} MiB',
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildStatCard(
-                      'Used Quota',
-                      '${((usage['used_quota'] as num) / (usage['total_quota'] as num) * 100).toStringAsFixed(2)}%',
-                      progress:
-                          (usage['used_quota'] as num) /
-                          (usage['total_quota'] as num),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ).padding(horizontal: 8),
-        ),
-        SliverToBoxAdapter(
-          child: Row(
-            children: [
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        const Text('Pool Usage'),
-                        SizedBox(
-                          height: 200,
-                          child: PieChart(_buildPoolChartData(usage)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        const Text('Verbose Quota'),
-                        SizedBox(
-                          height: 200,
-                          child: PieChart(_buildQuotaChartData(quota)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ).padding(horizontal: 8),
-        ),
         const SliverGap(8),
         SliverToBoxAdapter(
           child: _buildFilters(ref, selectedPool, includeRecycled),
@@ -294,67 +231,6 @@ class FileListScreen extends HookConsumerWidget {
                   );
                 },
               ),
-        ),
-      ],
-    );
-  }
-
-  PieChartData _buildPoolChartData(Map<String, dynamic> usage) {
-    final pools = usage['pool_usages'] as List<dynamic>;
-    final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.red,
-      Colors.purple,
-    ];
-    return PieChartData(
-      sections:
-          pools.asMap().entries.map((entry) {
-            final pool = entry.value as Map<String, dynamic>;
-            final title = pool['pool_name'] as String;
-            final truncatedTitle =
-                title.length > 8 ? '${title.substring(0, 8)}...' : title;
-            return PieChartSectionData(
-              value: (pool['usage_bytes'] as num).toDouble(),
-              title: truncatedTitle,
-              color: colors[entry.key % colors.length],
-              radius: 60,
-              titleStyle: const TextStyle(
-                fontSize: 12,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          }).toList(),
-    );
-  }
-
-  PieChartData _buildQuotaChartData(Map<String, dynamic>? quota) {
-    if (quota == null) return PieChartData(sections: []);
-    return PieChartData(
-      sections: [
-        PieChartSectionData(
-          value: (quota['based_quota'] as num).toDouble(),
-          title: 'Base',
-          color: Colors.green,
-          radius: 60,
-          titleStyle: const TextStyle(
-            fontSize: 12,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        PieChartSectionData(
-          value: (quota['extra_quota'] as num).toDouble(),
-          title: 'Extra',
-          color: Colors.orange,
-          radius: 60,
-          titleStyle: const TextStyle(
-            fontSize: 12,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ],
     );
@@ -519,38 +395,19 @@ class FileListScreen extends HookConsumerWidget {
     }
   }
 
-  Widget _buildStatCard(String label, String value, {double? progress}) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 14)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (progress != null) ...[
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(value: progress),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
+  void _showUsageSheet(
+    BuildContext context,
+    Map<String, dynamic>? usage,
+    Map<String, dynamic>? quota,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder:
+          (context) => SheetScaffold(
+            titleText: 'Usage Overview',
+            child: UsageOverviewWidget(usage: usage, quota: quota),
+          ),
     );
   }
 }
