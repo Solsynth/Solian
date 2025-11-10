@@ -872,6 +872,7 @@
     "settingsCustomFontsHelper": "用逗号分隔。",
     "settingsBackgroundImageEnable": "显示背景图片",
     "settingsDataSavingMode": "流量节省模式",
+    "settingsAutoCompressFile": "自动压缩文件",
     "dataSavingHint": "流量节省模式",
     "postTypePost": "帖子",
     "searchDrafts": "搜索草稿……",
