@@ -9,6 +9,7 @@ import 'package:island/pods/upload_tasks.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class UploadOverlay extends HookConsumerWidget {
   const UploadOverlay({super.key});
@@ -55,12 +56,14 @@ class UploadOverlay extends HookConsumerWidget {
     final isDesktop = isWideScreen(context);
 
     return Positioned(
-      bottom: 16 + MediaQuery.of(context).padding.bottom,
+      bottom: 0,
       left: isDesktop ? null : 0,
       right: isDesktop ? 24 : 0,
       child: SlideTransition(
         position: slideAnimation,
-        child: _UploadOverlayContent(activeTasks: activeTasks),
+        child: _UploadOverlayContent(
+          activeTasks: activeTasks,
+        ).padding(bottom: 16 + MediaQuery.of(context).padding.bottom),
       ),
     );
   }
@@ -98,10 +101,12 @@ class _UploadOverlayContent extends HookConsumerWidget {
 
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Positioned(
-      bottom: isMobile ? 16 : 24,
-      left: isMobile ? 16 : null,
-      right: isMobile ? 16 : 24,
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: isMobile ? 16 : 24,
+        left: isMobile ? 16 : 0,
+        right: isMobile ? 16 : 24,
+      ),
       child: GestureDetector(
         onTap: () => isExpanded.value = !isExpanded.value,
         child: AnimatedBuilder(
@@ -562,7 +567,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
       children: [
         // Server Processing Progress
         Text(
-          'Server Processing',
+          widget.task.statusMessage ?? 'Processing',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.primary,

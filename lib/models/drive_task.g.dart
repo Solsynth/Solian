@@ -21,6 +21,7 @@ _DriveTask _$DriveTaskFromJson(Map<String, dynamic> json) => _DriveTask(
   type: json['type'] as String,
   transmissionProgress: (json['transmission_progress'] as num?)?.toDouble(),
   errorMessage: json['error_message'] as String?,
+  statusMessage: json['status_message'] as String?,
   result:
       json['result'] == null
           ? null
@@ -47,6 +48,7 @@ Map<String, dynamic> _$DriveTaskToJson(_DriveTask instance) =>
       'type': instance.type,
       'transmission_progress': instance.transmissionProgress,
       'error_message': instance.errorMessage,
+      'status_message': instance.statusMessage,
       'result': instance.result?.toJson(),
       'pool_id': instance.poolId,
       'bundle_id': instance.bundleId,
