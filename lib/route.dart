@@ -396,11 +396,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const WalletScreen(),
                   ),
                   GoRoute(
-                    name: 'files',
-                    path: '/account/files',
-                    builder: (context, state) => const FileListScreen(),
-                  ),
-                  GoRoute(
                     name: 'relationships',
                     path: '/account/relationships',
                     builder: (context, state) => const RelationshipScreen(),
@@ -444,6 +439,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return AccountProfileScreen(name: name);
                 },
               ),
+
+              // Files tab
+              GoRoute(
+                name: 'files',
+                path: '/files',
+                builder: (context, state) => const FileListScreen(),
+              ),
+
               // Creator hub tab
               GoRoute(
                 name: 'creatorHub',

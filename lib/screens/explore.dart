@@ -19,7 +19,6 @@ import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:island/widgets/post/compose_card.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -341,7 +340,6 @@ class ExploreScreen extends HookConsumerWidget {
                         margin: EdgeInsets.zero,
                       ),
                     PostFeaturedList(),
-                    const PostComposeCard(),
                   ],
                 ),
               ),

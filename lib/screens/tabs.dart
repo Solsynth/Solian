@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -21,6 +23,7 @@ const kTabRoutes = [
   '/chat',
   '/realms',
   '/account',
+  '/files',
   '/creators',
   '/developers',
 ];
@@ -82,15 +85,20 @@ class TabsScreen extends HookConsumerWidget {
         ),
       ),
       if (wideScreen)
-        NavigationDestination(
-          label: 'creatorHub'.tr(),
-          icon: const Icon(Symbols.design_services_rounded),
-        ),
-      if (wideScreen)
-        NavigationDestination(
-          label: 'developerHub'.tr(),
-          icon: const Icon(Symbols.data_object_rounded),
-        ),
+        ...([
+          NavigationDestination(
+            label: 'files'.tr(),
+            icon: const Icon(Symbols.folder_rounded),
+          ),
+          NavigationDestination(
+            label: 'creatorHub'.tr(),
+            icon: const Icon(Symbols.design_services_rounded),
+          ),
+          NavigationDestination(
+            label: 'developerHub'.tr(),
+            icon: const Icon(Symbols.data_object_rounded),
+          ),
+        ]),
     ];
 
     int getCurrentIndex() {
