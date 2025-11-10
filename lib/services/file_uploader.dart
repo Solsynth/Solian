@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:convert/convert.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/upload_tasks.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:path/path.dart' show extension;
+import 'package:video_compress/video_compress.dart';
 
 class FileUploader {
   final Dio _client;
@@ -63,6 +65,53 @@ class FileUploader {
     subscription.onDone(onDone);
 
     return completer.future;
+  }
+
+  /// Compresses image or video file if compression is enabled
+  static Future<dynamic> compressFileIfNeeded(
+    dynamic fileData,
+    String contentType,
+    WidgetRef ref,
+  ) async {
+    final settings = ref.read(appSettingsNotifierProvider);
+    if (!settings.autoCompressFile) {
+      return fileData;
+    }
+
+    if (contentType.startsWith('image/') && fileData is XFile) {
+      try {
+        final compressedBytes = await FlutterImageCompress.compressWithFile(
+          fileData.path,
+          quality: 80, // 80% quality
+          minWidth: 1920,
+          minHeight: 1080,
+        );
+        if (compressedBytes != null) {
+          return XFile.fromData(
+            compressedBytes,
+            name: fileData.name,
+            mimeType: contentType,
+          );
+        }
+      } catch (e) {
+        debugPrint('Image compression failed: $e');
+      }
+    } else if (contentType.startsWith('video/') && fileData is XFile) {
+      try {
+        final info = await VideoCompress.compressVideo(
+          fileData.path,
+          quality: VideoQuality.MediumQuality,
+          deleteOrigin: false,
+        );
+        if (info != null && info.file != null) {
+          return XFile(info.file!.path);
+        }
+      } catch (e) {
+        debugPrint('Video compression failed: $e');
+      }
+    }
+
+    return fileData;
   }
 
   /// Creates an upload task for the given file.
@@ -361,7 +410,10 @@ class FileUploader {
     String? poolId,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
-  }) {
+  }) async {
+    // Compress file if needed
+    dynamic compressedFileData = await compressFileIfNeeded(fileData, contentType, ref);
+
     // Use the enhanced uploader with task tracking
     final uploader = ref.read(enhancedFileUploaderProvider);
 
@@ -369,7 +421,7 @@ class FileUploader {
     onProgress?.call(null, Duration.zero);
     uploader
         .uploadFile(
-          fileData: fileData,
+          fileData: compressedFileData,
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,

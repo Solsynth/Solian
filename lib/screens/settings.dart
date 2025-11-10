@@ -842,6 +842,21 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
       ),
+
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text("settingsAutoCompressFile").tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.compress),
+        trailing: Switch(
+          value: settings.autoCompressFile,
+          onChanged: (value) {
+            ref
+                .read(appSettingsNotifierProvider.notifier)
+                .setAutoCompressFile(value);
+          },
+        ),
+      )
     ];
 
     // Desktop-specific settings

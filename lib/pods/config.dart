@@ -36,6 +36,8 @@ const kAppThemeMode = 'app_theme_mode';
 const kMaterialYouToggleStoreKey = 'app_theme_material_you';
 const kAppDisableAnimation = 'app_disable_animation';
 const kAppFabPosition = 'app_fab_position';
+const kAppAutoCompressFile = 'app_auto_compress_file';
+
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -100,6 +102,7 @@ sealed class AppSettings with _$AppSettings {
     required bool useMaterial3,
     required bool disableAnimation,
     required String fabPosition,
+    required bool autoCompressFile,
   }) = _AppSettings;
 }
 
@@ -128,6 +131,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       useMaterial3: prefs.getBool(kMaterialYouToggleStoreKey) ?? true,
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
       fabPosition: prefs.getString(kAppFabPosition) ?? 'center',
+      autoCompressFile: prefs.getBool(kAppAutoCompressFile) ?? false,
     );
   }
 
@@ -290,6 +294,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppFabPosition, value);
     state = state.copyWith(fabPosition: value);
+  }
+
+  void setAutoCompressFile(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppAutoCompressFile, value);
+    state = state.copyWith(autoCompressFile: value);
   }
 }
 
