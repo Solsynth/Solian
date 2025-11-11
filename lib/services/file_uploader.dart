@@ -67,48 +67,124 @@ class FileUploader {
     return completer.future;
   }
 
-  /// Compresses image or video file if compression is enabled
+  /// Compresses image or video file if compression is enabled and conditions are met
   static Future<dynamic> compressFileIfNeeded(
     dynamic fileData,
     String contentType,
     WidgetRef ref,
   ) async {
     final settings = ref.read(appSettingsNotifierProvider);
-    if (!settings.autoCompressFile) {
+    if (!settings.autoCompressFile || fileData is! XFile) {
       return fileData;
     }
 
-    if (contentType.startsWith('image/') && fileData is XFile) {
-      try {
-        final compressedBytes = await FlutterImageCompress.compressWithFile(
-          fileData.path,
-          quality: 80, // 80% quality
-          minWidth: 1920,
-          minHeight: 1080,
-        );
-        if (compressedBytes != null) {
-          return XFile.fromData(
-            compressedBytes,
-            name: fileData.name,
-            mimeType: contentType,
+    try {
+      final originalSize = await fileData.length();
+
+      // Check size thresholds
+      const int imageThreshold = 2 * 1024 * 1024; // 2MB for images
+      const int videoThreshold = 10 * 1024 * 1024; // 10MB for videos
+
+      if (contentType.startsWith('image/')) {
+        if (originalSize < imageThreshold) {
+          return fileData; // Skip compression for small images
+        }
+
+        // Try different compression methods based on platform
+        if (kIsWeb) {
+          // Web platform - use flutter_image_compress (has web support)
+          try {
+            final compressedBytes = await FlutterImageCompress.compressWithFile(
+              fileData.path,
+              quality: 80,
+              minWidth: 1920,
+              minHeight: 1080,
+            );
+            if (compressedBytes != null && compressedBytes.length < originalSize) {
+              return XFile.fromData(
+                compressedBytes,
+                name: fileData.name,
+                mimeType: contentType,
+              );
+            }
+          } catch (e) {
+            debugPrint('Web image compression failed: $e');
+          }
+        } else if (defaultTargetPlatform == TargetPlatform.windows ||
+                   defaultTargetPlatform == TargetPlatform.linux ||
+                   defaultTargetPlatform == TargetPlatform.macOS) {
+          // Desktop platforms - try flutter_image_compress first
+          try {
+            final compressedBytes = await FlutterImageCompress.compressWithFile(
+              fileData.path,
+              quality: 80,
+              minWidth: 1920,
+              minHeight: 1080,
+            );
+            if (compressedBytes != null && compressedBytes.length < originalSize) {
+              return XFile.fromData(
+                compressedBytes,
+                name: fileData.name,
+                mimeType: contentType,
+              );
+            }
+          } catch (e) {
+            debugPrint('Desktop image compression failed, trying alternative: $e');
+            // Could add alternative compression methods here in the future
+          }
+        } else {
+          // Mobile platforms (iOS/Android) - use flutter_image_compress
+          final compressedBytes = await FlutterImageCompress.compressWithFile(
+            fileData.path,
+            quality: 80,
+            minWidth: 1920,
+            minHeight: 1080,
           );
+
+          if (compressedBytes != null && compressedBytes.length < originalSize) {
+            return XFile.fromData(
+              compressedBytes,
+              name: fileData.name,
+              mimeType: contentType,
+            );
+          }
         }
-      } catch (e) {
-        debugPrint('Image compression failed: $e');
-      }
-    } else if (contentType.startsWith('video/') && fileData is XFile) {
-      try {
-        final info = await VideoCompress.compressVideo(
-          fileData.path,
-          quality: VideoQuality.MediumQuality,
-          deleteOrigin: false,
-        );
-        if (info != null && info.file != null) {
-          return XFile(info.file!.path);
+      } else if (contentType.startsWith('video/')) {
+        if (originalSize < videoThreshold) {
+          return fileData; // Skip compression for small videos
         }
-      } catch (e) {
-        debugPrint('Video compression failed: $e');
+
+        // Video compression - currently only supported on mobile platforms
+        if (!kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+             defaultTargetPlatform == TargetPlatform.android)) {
+          final info = await VideoCompress.compressVideo(
+            fileData.path,
+            quality: VideoQuality.MediumQuality,
+            deleteOrigin: false,
+          );
+
+          if (info != null && info.file != null) {
+            final compressedFile = XFile(info.file!.path);
+            final compressedSize = await compressedFile.length();
+
+            if (compressedSize < originalSize) {
+              return compressedFile;
+            } else {
+              // Compressed file is larger, clean up and use original
+              try {
+                await info.file!.delete();
+              } catch (e) {
+                debugPrint('Failed to delete compressed video file: $e');
+              }
+            }
+          }
+        }
+        // For desktop and web platforms, skip video compression for now
+        // Could add FFmpeg-based compression in the future
       }
+    } catch (e) {
+      debugPrint('File compression failed: $e');
     }
 
     return fileData;
@@ -345,13 +421,13 @@ class FileUploader {
   }
 
   // Helper method to process the upload with enhanced uploader
-  static Completer<SnCloudFile?> _processUpload(
+  static void _processUpload(
     UniversalFile fileData,
     WidgetRef ref,
     String? poolId,
     Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer,
-  ) {
+  ) async {
     String actualMimetype = getMimeType(fileData);
     String actualFilename = fileData.displayName ?? 'randomly_file';
     Uint8List? bytes;
@@ -360,8 +436,11 @@ class FileUploader {
     final data = fileData.data;
 
     if (data is XFile) {
+      // Compress file before upload if needed
+      dynamic processedFileData = await compressFileIfNeeded(data, actualMimetype, ref);
+
       _performUpload(
-        fileData: data,
+        fileData: processedFileData,
         fileName: fileData.displayName ?? data.name,
         contentType: actualMimetype,
         ref: ref,
@@ -369,21 +448,21 @@ class FileUploader {
         onProgress: onProgress,
         completer: completer,
       );
-      return completer;
+      return;
     } else if (data is List<int> || data is Uint8List) {
       bytes = data is List<int> ? Uint8List.fromList(data) : data;
       actualFilename = fileData.displayName ?? 'uploaded_file';
     } else if (data is SnCloudFile) {
       // If the file is already on the cloud, just return it
       completer.complete(data);
-      return completer;
+      return;
     } else {
       completer.completeError(
         ArgumentError(
           'Invalid fileData type. Expected data to be XFile, List<int>, Uint8List, or SnCloudFile.',
         ),
       );
-      return completer;
+      return;
     }
 
     if (bytes != null) {
@@ -397,8 +476,6 @@ class FileUploader {
         completer: completer,
       );
     }
-
-    return completer;
   }
 
   // Helper method to perform the actual upload with enhanced uploader
@@ -410,10 +487,7 @@ class FileUploader {
     String? poolId,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
-  }) async {
-    // Compress file if needed
-    dynamic compressedFileData = await compressFileIfNeeded(fileData, contentType, ref);
-
+  }) {
     // Use the enhanced uploader with task tracking
     final uploader = ref.read(enhancedFileUploaderProvider);
 
@@ -421,7 +495,7 @@ class FileUploader {
     onProgress?.call(null, Duration.zero);
     uploader
         .uploadFile(
-          fileData: compressedFileData,
+          fileData: fileData,
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,
