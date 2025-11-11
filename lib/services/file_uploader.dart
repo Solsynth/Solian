@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
@@ -108,11 +110,9 @@ class FileUploader {
               );
             }
           } catch (e) {
-            debugPrint('Web image compression failed: $e');
+            // Silently handle compression failure
           }
-        } else if (defaultTargetPlatform == TargetPlatform.windows ||
-                   defaultTargetPlatform == TargetPlatform.linux ||
-                   defaultTargetPlatform == TargetPlatform.macOS) {
+        } else if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
           // Desktop platforms - try flutter_image_compress first
           try {
             final compressedBytes = await FlutterImageCompress.compressWithFile(
@@ -129,10 +129,9 @@ class FileUploader {
               );
             }
           } catch (e) {
-            debugPrint('Desktop image compression failed, trying alternative: $e');
             // Could add alternative compression methods here in the future
           }
-        } else {
+        } else if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
           // Mobile platforms (iOS/Android) - use flutter_image_compress
           final compressedBytes = await FlutterImageCompress.compressWithFile(
             fileData.path,
@@ -155,9 +154,7 @@ class FileUploader {
         }
 
         // Video compression - currently only supported on mobile platforms
-        if (!kIsWeb &&
-            (defaultTargetPlatform == TargetPlatform.iOS ||
-             defaultTargetPlatform == TargetPlatform.android)) {
+        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
           final info = await VideoCompress.compressVideo(
             fileData.path,
             quality: VideoQuality.MediumQuality,
@@ -175,7 +172,7 @@ class FileUploader {
               try {
                 await info.file!.delete();
               } catch (e) {
-                debugPrint('Failed to delete compressed video file: $e');
+                // Silently handle cleanup failure
               }
             }
           }
@@ -184,7 +181,7 @@ class FileUploader {
         // Could add FFmpeg-based compression in the future
       }
     } catch (e) {
-      debugPrint('File compression failed: $e');
+      // Silently handle compression failure
     }
 
     return fileData;
@@ -380,8 +377,7 @@ class FileUploader {
       final data = fileData.data;
       if (data is XFile &&
           !kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.android)) {
+          (Platform.isIOS || Platform.isAndroid)) {
         Exif.fromPath(data.path)
             .then((exif) async {
               final gpsAttributes = {
@@ -402,7 +398,7 @@ class FileUploader {
                   _processUpload(fileData, ref, poolId, onProgress, completer),
             )
             .catchError((e) {
-              debugPrint('Error removing GPS EXIF data: $e');
+              // Silently handle EXIF processing failure
               return _processUpload(
                 fileData,
                 ref,
