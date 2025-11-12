@@ -349,6 +349,7 @@ class EnhancedFileUploader extends FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? customChunkSize,
+    String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     // Step 1: Create upload task
@@ -362,6 +363,7 @@ class EnhancedFileUploader extends FileUploader {
       encryptPassword: encryptPassword,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
+      path: path,
     );
 
     int totalSize;

@@ -1,11 +1,13 @@
+import 'package:cross_file/cross_file.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/file_pool.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -22,54 +24,35 @@ part 'file_list.g.dart';
 
 @riverpod
 class CloudFileListNotifier extends _$CloudFileListNotifier
-    with CursorPagingNotifierMixin<SnCloudFile> {
-  String? _poolId;
-  bool _includeRecycled = false;
+    with CursorPagingNotifierMixin<SnCloudFileIndex> {
+  String _currentPath = '/';
 
-  void setFilters(String? poolId, bool includeRecycled) {
-    _poolId = poolId;
-    _includeRecycled = includeRecycled;
+  void setPath(String path) {
+    _currentPath = path;
     ref.invalidateSelf();
   }
 
   @override
-  Future<CursorPagingData<SnCloudFile>> build() => fetch(cursor: null);
+  Future<CursorPagingData<SnCloudFileIndex>> build() => fetch(cursor: null);
 
   @override
-  Future<CursorPagingData<SnCloudFile>> fetch({required String? cursor}) async {
+  Future<CursorPagingData<SnCloudFileIndex>> fetch({
+    required String? cursor,
+  }) async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
-    final take = 20;
-
-    final queryParameters = <String, dynamic>{'offset': offset, 'take': take};
-
-    // Add filter parameters
-    if (_poolId != null) {
-      queryParameters['pool'] = _poolId!;
-    }
-    if (_includeRecycled) {
-      queryParameters['recycled'] = 'true';
-    }
 
     final response = await client.get(
-      '/drive/files/me',
-      queryParameters: queryParameters,
+      '/drive/index/browse',
+      queryParameters: {'path': _currentPath},
     );
 
-    final List<SnCloudFile> items =
-        (response.data as List)
-            .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+    final List<SnCloudFileIndex> items =
+        (response.data['files'] as List)
+            .map((e) => SnCloudFileIndex.fromJson(e as Map<String, dynamic>))
             .toList();
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
 
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    // The new API returns all files in the path, no pagination
+    return CursorPagingData(items: items, hasMore: false, nextCursor: null);
   }
 }
 
@@ -92,19 +75,18 @@ class FileListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Filter state
-    final selectedPool = useState<String?>(null);
-    final includeRecycled = useState(false);
+    // Path navigation state
+    final currentPath = useState<String>('/');
 
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
 
-    // Update notifier filters when state changes
+    // Update notifier path when state changes
     useEffect(() {
       final notifier = ref.read(cloudFileListNotifierProvider.notifier);
-      notifier.setFilters(selectedPool.value, includeRecycled.value);
+      notifier.setPath(currentPath.value);
       return null;
-    }, [selectedPool.value, includeRecycled.value]);
+    }, [currentPath.value]);
 
     return AppScaffold(
       isNoBackground: false,
@@ -112,6 +94,11 @@ class FileListScreen extends HookConsumerWidget {
         title: Text('Files'),
         leading: const PageBackButton(),
         actions: [
+          IconButton(
+            icon: const Icon(Symbols.upload_file),
+            onPressed: () => _pickAndUploadFile(ref, currentPath.value),
+            tooltip: 'Upload File',
+          ),
           IconButton(
             icon: const Icon(Symbols.bar_chart),
             onPressed:
@@ -127,14 +114,7 @@ class FileListScreen extends HookConsumerWidget {
       body: usageAsync.when(
         data:
             (usage) => quotaAsync.when(
-              data:
-                  (quota) => _buildQuotaUI(
-                    usage,
-                    quota,
-                    ref,
-                    selectedPool,
-                    includeRecycled,
-                  ),
+              data: (quota) => _buildQuotaUI(usage, quota, ref, currentPath),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error loading quota')),
             ),
@@ -148,16 +128,13 @@ class FileListScreen extends HookConsumerWidget {
     Map<String, dynamic>? usage,
     Map<String, dynamic>? quota,
     WidgetRef ref,
-    ValueNotifier<String?> selectedPool,
-    ValueNotifier<bool> includeRecycled,
+    ValueNotifier<String> currentPath,
   ) {
     if (usage == null) return const SizedBox.shrink();
     return CustomScrollView(
       slivers: [
         const SliverGap(8),
-        SliverToBoxAdapter(
-          child: _buildFilters(ref, selectedPool, includeRecycled),
-        ),
+        SliverToBoxAdapter(child: _buildPathNavigation(ref, currentPath)),
         const SliverGap(8),
         PagingHelperSliverView(
           provider: cloudFileListNotifierProvider,
@@ -172,7 +149,8 @@ class FileListScreen extends HookConsumerWidget {
                   }
 
                   final item = data.items[index];
-                  final itemType = item.mimeType?.split('/').firstOrNull;
+                  final file = item.file;
+                  final itemType = file.mimeType?.split('/').firstOrNull;
                   return ListTile(
                     leading: ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -180,7 +158,7 @@ class FileListScreen extends HookConsumerWidget {
                         height: 48,
                         width: 48,
                         child: switch (itemType) {
-                          'image' => CloudImageWidget(file: item),
+                          'image' => CloudImageWidget(file: file),
                           'audio' =>
                             const Icon(Symbols.audio_file, fill: 1).center(),
                           'video' =>
@@ -191,20 +169,20 @@ class FileListScreen extends HookConsumerWidget {
                       ),
                     ),
                     title:
-                        item.name.isEmpty
+                        file.name.isEmpty
                             ? Text('untitled').tr().italic()
                             : Text(
-                              item.name,
+                              file.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                    subtitle: Text(formatFileSize(item.size)),
+                    subtitle: Text(formatFileSize(file.size)),
                     onTap: () {
                       showModalBottomSheet(
                         useRootNavigator: true,
                         context: context,
                         isScrollControlled: true,
-                        builder: (context) => FileInfoSheet(item: item),
+                        builder: (context) => FileInfoSheet(item: file),
                       );
                     },
                     trailing: IconButton(
@@ -219,7 +197,7 @@ class FileListScreen extends HookConsumerWidget {
                         if (context.mounted) showLoadingModal(context);
                         try {
                           final client = ref.read(apiClientProvider);
-                          await client.delete('/drive/files/${item.id}');
+                          await client.delete('/drive/index/remove/${item.id}');
                           ref.invalidate(cloudFileListNotifierProvider);
                         } catch (e) {
                           showSnackBar('failedToDeleteFile'.tr());
@@ -236,138 +214,81 @@ class FileListScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildFilters(
+  Widget _buildPathNavigation(
     WidgetRef ref,
-    ValueNotifier<String?> selectedPool,
-    ValueNotifier<bool> includeRecycled,
+    ValueNotifier<String> currentPath,
   ) {
-    final poolsAsync = ref.watch(poolsProvider);
+    if (currentPath.value == '/') {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Symbols.folder),
+              const Gap(8),
+              Text(
+                'Root Directory',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ).padding(horizontal: 8);
+    }
+
+    final pathParts =
+        currentPath.value.split('/').where((part) => part.isNotEmpty).toList();
+    final breadcrumbs = <Widget>[];
+
+    // Add root
+    breadcrumbs.add(
+      InkWell(
+        onTap: () => currentPath.value = '/',
+        child: Text(
+          'Root',
+          style: TextStyle(color: Theme.of(ref.context).primaryColor),
+        ),
+      ),
+    );
+
+    // Add path parts
+    String currentPathBuilder = '';
+    for (int i = 0; i < pathParts.length; i++) {
+      currentPathBuilder += '/${pathParts[i]}';
+      final path = currentPathBuilder;
+
+      breadcrumbs.add(const Text(' / '));
+      if (i == pathParts.length - 1) {
+        // Current directory
+        breadcrumbs.add(
+          Text(pathParts[i], style: TextStyle(fontWeight: FontWeight.bold)),
+        );
+      } else {
+        // Clickable parent directory
+        breadcrumbs.add(
+          InkWell(
+            onTap: () => currentPath.value = path,
+            child: Text(
+              pathParts[i],
+              style: TextStyle(color: Theme.of(ref.context).primaryColor),
+            ),
+          ),
+        );
+      }
+    }
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              'filters'.tr(),
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Gap(16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 600;
-                return isWide
-                    ? Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: poolsAsync.when(
-                            data:
-                                (pools) => DropdownButtonFormField<String?>(
-                                  value: selectedPool.value,
-                                  decoration: InputDecoration(
-                                    labelText: 'Pool',
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  items: [
-                                    DropdownMenuItem<String?>(
-                                      value: null,
-                                      child: Text('allPools'.tr()),
-                                    ),
-                                    ...pools.map(
-                                      (pool) => DropdownMenuItem<String?>(
-                                        value: pool.id,
-                                        child: Text(pool.name),
-                                      ),
-                                    ),
-                                  ],
-                                  onChanged:
-                                      (value) => selectedPool.value = value,
-                                ),
-                            loading: () => const CircularProgressIndicator(),
-                            error: (e, _) => const Text('Error loading pools'),
-                          ),
-                        ),
-                        const Gap(8),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Text('includeRecycled'.tr()),
-                              const Gap(8),
-                              Switch(
-                                value: includeRecycled.value,
-                                onChanged:
-                                    (value) => includeRecycled.value = value,
-                                padding: EdgeInsets.zero,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Gap(16),
-                        IconButton(
-                          icon: const Icon(Symbols.delete_sweep),
-                          tooltip: 'deleteRecycledFiles'.tr(),
-                          onPressed:
-                              includeRecycled.value
-                                  ? () => _deleteRecycledFiles(ref)
-                                  : null,
-                        ),
-                      ],
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        poolsAsync.when(
-                          data:
-                              (pools) => DropdownButtonFormField<String?>(
-                                value: selectedPool.value,
-                                decoration: const InputDecoration(
-                                  labelText: 'Pool',
-                                  border: OutlineInputBorder(),
-                                ),
-                                items: [
-                                  DropdownMenuItem<String?>(
-                                    value: null,
-                                    child: Text('allPools'.tr()),
-                                  ),
-                                  ...pools.map(
-                                    (pool) => DropdownMenuItem<String?>(
-                                      value: pool.id,
-                                      child: Text(pool.name),
-                                    ),
-                                  ),
-                                ],
-                                onChanged:
-                                    (value) => selectedPool.value = value,
-                              ),
-                          loading: () => const CircularProgressIndicator(),
-                          error: (e, _) => const Text('Error loading pools'),
-                        ),
-                        const Gap(16),
-                        Row(
-                          children: [
-                            Text('includeRecycled'.tr()),
-                            const Gap(8),
-                            Switch(
-                              value: includeRecycled.value,
-                              onChanged:
-                                  (value) => includeRecycled.value = value,
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Symbols.delete_sweep),
-                              tooltip: 'deleteRecycledFiles'.tr(),
-                              onPressed:
-                                  includeRecycled.value
-                                      ? () => _deleteRecycledFiles(ref)
-                                      : null,
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-              },
+            const Icon(Symbols.folder),
+            const Gap(8),
+            Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: breadcrumbs,
+              ),
             ),
           ],
         ),
@@ -375,23 +296,52 @@ class FileListScreen extends HookConsumerWidget {
     ).padding(horizontal: 8);
   }
 
-  Future<void> _deleteRecycledFiles(WidgetRef ref) async {
-    final confirmed = await showConfirmAlert(
-      'confirmDeleteRecycledFiles'.tr(),
-      'deleteRecycledFiles'.tr(),
-    );
-    if (!confirmed) return;
-
-    if (ref.context.mounted) showLoadingModal(ref.context);
+  Future<void> _pickAndUploadFile(WidgetRef ref, String currentPath) async {
     try {
-      final client = ref.read(apiClientProvider);
-      await client.delete('/drive/files/recycled');
-      ref.invalidate(cloudFileListNotifierProvider);
-      showSnackBar('recycledFilesDeleted'.tr());
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        withData: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        for (final file in result.files) {
+          if (file.path != null) {
+            // Create UniversalFile from the picked file
+            final universalFile = UniversalFile(
+              data: XFile(file.path!),
+              type: UniversalFileType.file,
+              displayName: file.name,
+            );
+
+            // Upload the file with the current path
+            final completer = FileUploader.createCloudFile(
+              fileData: universalFile,
+              ref: ref,
+              path: currentPath,
+              onProgress: (progress, _) {
+                // Progress is handled by the upload tasks system
+                if (progress != null) {
+                  debugPrint('Upload progress: ${(progress * 100).toInt()}%');
+                }
+              },
+            );
+
+            completer.future
+                .then((uploadedFile) {
+                  if (uploadedFile != null) {
+                    // Refresh the file list after successful upload
+                    ref.invalidate(cloudFileListNotifierProvider);
+                    showSnackBar('File uploaded successfully');
+                  }
+                })
+                .catchError((error) {
+                  showSnackBar('Failed to upload file: $error');
+                });
+          }
+        }
+      }
     } catch (e) {
-      showSnackBar('failedToDeleteRecycledFiles'.tr());
-    } finally {
-      if (ref.context.mounted) hideLoadingModal(ref.context);
+      showSnackBar('Error picking file: $e');
     }
   }
 

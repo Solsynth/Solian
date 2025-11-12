@@ -622,4 +622,297 @@ $SnFilePoolCopyWith<$Res>? get pool {
 }
 }
 
+
+/// @nodoc
+mixin _$SnCloudFileIndex {
+
+ String get id; String get path; String get fileId; SnCloudFile get file; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnCloudFileIndexCopyWith<SnCloudFileIndex> get copyWith => _$SnCloudFileIndexCopyWithImpl<SnCloudFileIndex>(this as SnCloudFileIndex, _$identity);
+
+  /// Serializes this SnCloudFileIndex to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCloudFileIndex&&(identical(other.id, id) || other.id == id)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileId, fileId) || other.fileId == fileId)&&(identical(other.file, file) || other.file == file)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,path,fileId,file,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnCloudFileIndex(id: $id, path: $path, fileId: $fileId, file: $file, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnCloudFileIndexCopyWith<$Res>  {
+  factory $SnCloudFileIndexCopyWith(SnCloudFileIndex value, $Res Function(SnCloudFileIndex) _then) = _$SnCloudFileIndexCopyWithImpl;
+@useResult
+$Res call({
+ String id, String path, String fileId, SnCloudFile file, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnCloudFileCopyWith<$Res> get file;
+
+}
+/// @nodoc
+class _$SnCloudFileIndexCopyWithImpl<$Res>
+    implements $SnCloudFileIndexCopyWith<$Res> {
+  _$SnCloudFileIndexCopyWithImpl(this._self, this._then);
+
+  final SnCloudFileIndex _self;
+  final $Res Function(SnCloudFileIndex) _then;
+
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? path = null,Object? fileId = null,Object? file = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileId: null == fileId ? _self.fileId : fileId // ignore: cast_nullable_to_non_nullable
+as String,file: null == file ? _self.file : file // ignore: cast_nullable_to_non_nullable
+as SnCloudFile,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res> get file {
+  
+  return $SnCloudFileCopyWith<$Res>(_self.file, (value) {
+    return _then(_self.copyWith(file: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnCloudFileIndex].
+extension SnCloudFileIndexPatterns on SnCloudFileIndex {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnCloudFileIndex value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnCloudFileIndex() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnCloudFileIndex value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnCloudFileIndex():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnCloudFileIndex value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnCloudFileIndex() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String path,  String fileId,  SnCloudFile file,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnCloudFileIndex() when $default != null:
+return $default(_that.id,_that.path,_that.fileId,_that.file,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String path,  String fileId,  SnCloudFile file,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnCloudFileIndex():
+return $default(_that.id,_that.path,_that.fileId,_that.file,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String path,  String fileId,  SnCloudFile file,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnCloudFileIndex() when $default != null:
+return $default(_that.id,_that.path,_that.fileId,_that.file,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnCloudFileIndex implements SnCloudFileIndex {
+  const _SnCloudFileIndex({required this.id, required this.path, required this.fileId, required this.file, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnCloudFileIndex.fromJson(Map<String, dynamic> json) => _$SnCloudFileIndexFromJson(json);
+
+@override final  String id;
+@override final  String path;
+@override final  String fileId;
+@override final  SnCloudFile file;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnCloudFileIndexCopyWith<_SnCloudFileIndex> get copyWith => __$SnCloudFileIndexCopyWithImpl<_SnCloudFileIndex>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnCloudFileIndexToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCloudFileIndex&&(identical(other.id, id) || other.id == id)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileId, fileId) || other.fileId == fileId)&&(identical(other.file, file) || other.file == file)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,path,fileId,file,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnCloudFileIndex(id: $id, path: $path, fileId: $fileId, file: $file, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnCloudFileIndexCopyWith<$Res> implements $SnCloudFileIndexCopyWith<$Res> {
+  factory _$SnCloudFileIndexCopyWith(_SnCloudFileIndex value, $Res Function(_SnCloudFileIndex) _then) = __$SnCloudFileIndexCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String path, String fileId, SnCloudFile file, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnCloudFileCopyWith<$Res> get file;
+
+}
+/// @nodoc
+class __$SnCloudFileIndexCopyWithImpl<$Res>
+    implements _$SnCloudFileIndexCopyWith<$Res> {
+  __$SnCloudFileIndexCopyWithImpl(this._self, this._then);
+
+  final _SnCloudFileIndex _self;
+  final $Res Function(_SnCloudFileIndex) _then;
+
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? path = null,Object? fileId = null,Object? file = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnCloudFileIndex(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileId: null == fileId ? _self.fileId : fileId // ignore: cast_nullable_to_non_nullable
+as String,file: null == file ? _self.file : file // ignore: cast_nullable_to_non_nullable
+as SnCloudFile,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnCloudFileIndex
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res> get file {
+  
+  return $SnCloudFileCopyWith<$Res>(_self.file, (value) {
+    return _then(_self.copyWith(file: value));
+  });
+}
+}
+
 // dart format on

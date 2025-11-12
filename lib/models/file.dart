@@ -60,3 +60,19 @@ sealed class SnCloudFile with _$SnCloudFile {
   factory SnCloudFile.fromJson(Map<String, dynamic> json) =>
       _$SnCloudFileFromJson(json);
 }
+
+@freezed
+sealed class SnCloudFileIndex with _$SnCloudFileIndex {
+  const factory SnCloudFileIndex({
+    required String id,
+    required String path,
+    required String fileId,
+    required SnCloudFile file,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnCloudFileIndex;
+
+  factory SnCloudFileIndex.fromJson(Map<String, dynamic> json) =>
+      _$SnCloudFileIndexFromJson(json);
+}

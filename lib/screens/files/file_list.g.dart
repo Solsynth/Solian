@@ -45,13 +45,13 @@ final billingQuotaProvider =
 // ignore: unused_element
 typedef BillingQuotaRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
 String _$cloudFileListNotifierHash() =>
-    r'22c45a8ea23147a3835ba870ad2f0bb833f853ea';
+    r'a29adc14e3eede41be05de373785f13439cf9e60';
 
 /// See also [CloudFileListNotifier].
 @ProviderFor(CloudFileListNotifier)
 final cloudFileListNotifierProvider = AutoDisposeAsyncNotifierProvider<
   CloudFileListNotifier,
-  CursorPagingData<SnCloudFile>
+  CursorPagingData<SnCloudFileIndex>
 >.internal(
   CloudFileListNotifier.new,
   name: r'cloudFileListNotifierProvider',
@@ -64,6 +64,6 @@ final cloudFileListNotifierProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$CloudFileListNotifier =
-    AutoDisposeAsyncNotifier<CursorPagingData<SnCloudFile>>;
+    AutoDisposeAsyncNotifier<CursorPagingData<SnCloudFileIndex>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

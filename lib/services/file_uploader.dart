@@ -75,6 +75,7 @@ class FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? chunkSize,
+    String? path,
   }) async {
     String hash;
     int fileSize;
@@ -100,6 +101,7 @@ class FileUploader {
         'encrypt_password': encryptPassword,
         'expired_at': expiredAt,
         'chunk_size': chunkSize,
+        'path': path,
       },
     );
 
@@ -150,6 +152,7 @@ class FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? customChunkSize,
+    String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     // Step 1: Create upload task
@@ -163,6 +166,7 @@ class FileUploader {
       encryptPassword: encryptPassword,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
+      path: path,
     );
 
     if (createResponse['file_exists'] == true) {
@@ -238,6 +242,7 @@ class FileUploader {
     required UniversalFile fileData,
     required WidgetRef ref,
     String? poolId,
+    String? path,
     FileUploadMode? mode,
     Function(double? progress, Duration estimate)? onProgress,
   }) {
@@ -273,8 +278,14 @@ class FileUploader {
               await exif.writeAttributes(gpsAttributes);
             })
             .then(
-              (_) =>
-                  _processUpload(fileData, ref, poolId, onProgress, completer),
+              (_) => _processUpload(
+                fileData,
+                ref,
+                poolId,
+                path,
+                onProgress,
+                completer,
+              ),
             )
             .catchError((e) {
               debugPrint('Error removing GPS EXIF data: $e');
@@ -282,6 +293,7 @@ class FileUploader {
                 fileData,
                 ref,
                 poolId,
+                path,
                 onProgress,
                 completer,
               );
@@ -291,7 +303,7 @@ class FileUploader {
       }
     }
 
-    _processUpload(fileData, ref, poolId, onProgress, completer);
+    _processUpload(fileData, ref, poolId, path, onProgress, completer);
     return completer;
   }
 
@@ -300,6 +312,7 @@ class FileUploader {
     UniversalFile fileData,
     WidgetRef ref,
     String? poolId,
+    String? path,
     Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer,
   ) {
@@ -314,6 +327,7 @@ class FileUploader {
       _performUpload(
         fileData: data,
         fileName: fileData.displayName ?? data.name,
+        path: path,
         contentType: actualMimetype,
         ref: ref,
         poolId: poolId,
@@ -342,6 +356,7 @@ class FileUploader {
         fileData: bytes,
         fileName: actualFilename,
         contentType: actualMimetype,
+        path: path,
         ref: ref,
         poolId: poolId,
         onProgress: onProgress,
@@ -359,6 +374,7 @@ class FileUploader {
     required String contentType,
     required WidgetRef ref,
     String? poolId,
+    String? path,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
@@ -373,6 +389,7 @@ class FileUploader {
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,
+          path: path,
           onProgress: onProgress,
         )
         .then((result) {
