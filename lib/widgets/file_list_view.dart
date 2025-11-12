@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file_list_item.dart';
 import 'package:island/pods/file_list.dart';
@@ -9,7 +10,6 @@ import 'package:island/pods/network.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/file_info_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -105,12 +105,9 @@ class FileListView extends HookConsumerWidget {
                                         ),
                                 subtitle: Text(formatFileSize(file.size)),
                                 onTap: () {
-                                  showModalBottomSheet(
-                                    useRootNavigator: true,
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder:
-                                        (context) => FileInfoSheet(item: file),
+                                  context.push(
+                                    '/files/${fileItem.fileIndex.id}',
+                                    extra: file,
                                   );
                                 },
                                 trailing: IconButton(

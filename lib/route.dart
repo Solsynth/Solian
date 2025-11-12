@@ -12,7 +12,9 @@ import 'package:island/screens/developers/hub.dart';
 import 'package:island/screens/developers/edit_project.dart';
 import 'package:island/screens/developers/new_project.dart';
 import 'package:island/screens/discovery/articles.dart';
+import 'package:island/models/file.dart';
 import 'package:island/screens/files/file_list.dart';
+import 'package:island/screens/files/file_detail.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
@@ -445,6 +447,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: 'files',
                 path: '/files',
                 builder: (context, state) => const FileListScreen(),
+                routes: [
+                  GoRoute(
+                    name: 'fileDetail',
+                    path: ':id',
+                    builder: (context, state) {
+                      // For now, we'll need to pass the file object through extra
+                      // This will be updated when we modify the file list navigation
+                      final file = state.extra as SnCloudFile?;
+                      if (file != null) {
+                        return FileDetailScreen(item: file);
+                      }
+                      // Fallback - this shouldn't happen in normal flow
+                      Navigator.of(context).pop();
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
               ),
 
               // Creator hub tab
