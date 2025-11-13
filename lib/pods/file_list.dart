@@ -1,6 +1,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/file_list_item.dart';
+import 'package:island/models/folder.dart';
 import 'package:island/pods/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -31,8 +32,10 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
       queryParameters: {'path': _currentPath},
     );
 
-    final List<String> folders =
-        (response.data['folders'] as List).cast<String>();
+    final List<SnCloudFolder> folders =
+        (response.data['folders'] as List)
+            .map((e) => SnCloudFolder.fromJson(e as Map<String, dynamic>))
+            .toList();
     final List<SnCloudFileIndex> files =
         (response.data['files'] as List)
             .map((e) => SnCloudFileIndex.fromJson(e as Map<String, dynamic>))

@@ -13,8 +13,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 class FileInfoSheet extends StatelessWidget {
   final SnCloudFile item;
-
-  const FileInfoSheet({super.key, required this.item});
+  final VoidCallback? onClose;
+  const FileInfoSheet({super.key, required this.item, this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +22,7 @@ class FileInfoSheet extends StatelessWidget {
     final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
 
     return SheetScaffold(
+      onClose: onClose,
       titleText: 'fileInfoTitle'.tr(),
       child: SingleChildScrollView(
         child: Column(

@@ -8,6 +8,7 @@ class SheetScaffold extends StatelessWidget {
   final Widget child;
   final double heightFactor;
   final double? height;
+  final VoidCallback? onClose;
   const SheetScaffold({
     super.key,
     this.title,
@@ -16,6 +17,7 @@ class SheetScaffold extends StatelessWidget {
     this.actions = const [],
     this.heightFactor = 0.8,
     this.height,
+    this.onClose,
   });
 
   @override
@@ -50,7 +52,11 @@ class SheetScaffold extends StatelessWidget {
                 ...actions,
                 IconButton(
                   icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed:
+                      () =>
+                          onClose != null
+                              ? onClose?.call()
+                              : Navigator.pop(context),
                   style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
                 ),
               ],

@@ -119,11 +119,11 @@ return folder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( String name)?  folder,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( SnCloudFolder folder)?  folder,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.name);case _:
+return folder(_that.folder);case _:
   return orElse();
 
 }
@@ -141,11 +141,11 @@ return folder(_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( String name)  folder,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( SnCloudFolder folder)  folder,}) {final _that = this;
 switch (_that) {
 case FileItem():
 return file(_that.fileIndex);case FolderItem():
-return folder(_that.name);}
+return folder(_that.folder);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -159,11 +159,11 @@ return folder(_that.name);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( String name)?  folder,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( SnCloudFolder folder)?  folder,}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.name);case _:
+return folder(_that.folder);case _:
   return null;
 
 }
@@ -250,10 +250,10 @@ $SnCloudFileIndexCopyWith<$Res> get fileIndex {
 
 
 class FolderItem implements FileListItem {
-  const FolderItem(this.name);
+  const FolderItem(this.folder);
   
 
- final  String name;
+ final  SnCloudFolder folder;
 
 /// Create a copy of FileListItem
 /// with the given fields replaced by the non-null parameter values.
@@ -265,16 +265,16 @@ $FolderItemCopyWith<FolderItem> get copyWith => _$FolderItemCopyWithImpl<FolderI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FolderItem&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FolderItem&&(identical(other.folder, folder) || other.folder == folder));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name);
+int get hashCode => Object.hash(runtimeType,folder);
 
 @override
 String toString() {
-  return 'FileListItem.folder(name: $name)';
+  return 'FileListItem.folder(folder: $folder)';
 }
 
 
@@ -285,11 +285,11 @@ abstract mixin class $FolderItemCopyWith<$Res> implements $FileListItemCopyWith<
   factory $FolderItemCopyWith(FolderItem value, $Res Function(FolderItem) _then) = _$FolderItemCopyWithImpl;
 @useResult
 $Res call({
- String name
+ SnCloudFolder folder
 });
 
 
-
+$SnCloudFolderCopyWith<$Res> get folder;
 
 }
 /// @nodoc
@@ -302,14 +302,23 @@ class _$FolderItemCopyWithImpl<$Res>
 
 /// Create a copy of FileListItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? name = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? folder = null,}) {
   return _then(FolderItem(
-null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+null == folder ? _self.folder : folder // ignore: cast_nullable_to_non_nullable
+as SnCloudFolder,
   ));
 }
 
-
+/// Create a copy of FileListItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFolderCopyWith<$Res> get folder {
+  
+  return $SnCloudFolderCopyWith<$Res>(_self.folder, (value) {
+    return _then(_self.copyWith(folder: value));
+  });
+}
 }
 
 // dart format on

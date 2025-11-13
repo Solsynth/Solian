@@ -160,7 +160,7 @@ class FileListView extends HookConsumerWidget {
                                     ),
                                   ),
                                   title: Text(
-                                    folderItem.name,
+                                    folderItem.folder.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -169,8 +169,8 @@ class FileListView extends HookConsumerWidget {
                                     // Navigate to folder
                                     final newPath =
                                         currentPath.value == '/'
-                                            ? '/${folderItem.name}'
-                                            : '${currentPath.value}/${folderItem.name}';
+                                            ? '/${folderItem.folder.name}'
+                                            : '${currentPath.value}/${folderItem.folder.name}';
                                     currentPath.value = newPath;
                                   },
                                 ),

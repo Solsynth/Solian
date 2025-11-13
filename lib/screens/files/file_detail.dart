@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -34,15 +35,54 @@ class FileDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
+    final isWide = isWideScreen(context);
+
+    // Animation controller for the drawer
+    final animationController = useAnimationController(
+      duration: const Duration(milliseconds: 300),
+    );
+    final animation = useMemoized(
+      () => Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
+      ),
+      [animationController],
+    );
+
+    final showDrawer = useState(false);
 
     void showInfoSheet() {
-      showModalBottomSheet(
-        useRootNavigator: true,
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => FileInfoSheet(item: item),
-      );
+      if (isWide) {
+        // Show as animated right panel on wide screens
+        showDrawer.value = !showDrawer.value;
+        if (showDrawer.value) {
+          animationController.forward();
+        } else {
+          animationController.reverse();
+        }
+      } else {
+        // Show as bottom sheet on narrow screens
+        showModalBottomSheet(
+          useRootNavigator: true,
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => FileInfoSheet(item: item),
+        );
+      }
     }
+
+    // Listen to drawer state changes
+    useEffect(() {
+      void listener() {
+        if (!animationController.isAnimating) {
+          if (animationController.value == 0) {
+            showDrawer.value = false;
+          }
+        }
+      }
+
+      animationController.addListener(listener);
+      return () => animationController.removeListener(listener);
+    }, [animationController]);
 
     return AppScaffold(
       isNoBackground: true,
@@ -55,7 +95,29 @@ class FileDetailScreen extends HookConsumerWidget {
         title: Text(item.name.isEmpty ? 'File Details' : item.name),
         actions: _buildAppBarActions(context, ref, showInfoSheet),
       ),
-      body: _buildContent(context, ref, serverUrl),
+      body: AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) {
+          return Row(
+            children: [
+              // Main content area
+              Expanded(child: _buildContent(context, ref, serverUrl)),
+              // Animated drawer panel
+              if (isWide)
+                SizedBox(
+                  height: double.infinity,
+                  width: animation.value * 400, // Max width of 400px
+                  child: Container(
+                    child:
+                        animation.value > 0.1
+                            ? FileInfoSheet(item: item, onClose: showInfoSheet)
+                            : const SizedBox.shrink(),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -168,15 +230,9 @@ class FileDetailScreen extends HookConsumerWidget {
       'image' => _buildImageContent(context, ref, uri),
       'video' => _buildVideoContent(context, ref, uri),
       'audio' => _buildAudioContent(context, ref, uri),
-      _ when item.mimeType == 'application/pdf' => _buildPdfContent(
-        context,
-        ref,
-        uri,
-      ),
-      _ when item.mimeType?.startsWith('text/') == true => _buildTextContent(
-        context,
-        ref,
-        uri,
+      _ when item.mimeType == 'application/pdf' => _PdfContent(uri: uri),
+      _ when item.mimeType?.startsWith('text/') == true => _TextContent(
+        uri: uri,
       ),
       _ => _buildGenericContent(context, ref),
     };
@@ -327,41 +383,6 @@ class FileDetailScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildPdfContent(BuildContext context, WidgetRef ref, String uri) {
-    final pdfViewer = useMemoized(() => SfPdfViewer.network(uri), [uri]);
-    return pdfViewer;
-  }
-
-  Widget _buildTextContent(BuildContext context, WidgetRef ref, String uri) {
-    final textFuture = useMemoized(
-      () => ref
-          .read(apiClientProvider)
-          .get(uri)
-          .then((response) => response.data as String),
-      [uri],
-    );
-
-    return FutureBuilder<String>(
-      future: textFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error loading text: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          return SingleChildScrollView(
-            padding: EdgeInsets.all(20),
-            child: SelectableText(
-              snapshot.data!,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-            ),
-          );
-        }
-        return const Center(child: Text('No content'));
-      },
-    );
-  }
-
   Widget _buildGenericContent(BuildContext context, WidgetRef ref) {
     Future<void> downloadFile() async {
       try {
@@ -463,6 +484,55 @@ class FileDetailScreen extends HookConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PdfContent extends HookConsumerWidget {
+  final String uri;
+
+  const _PdfContent({required this.uri});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pdfViewer = useMemoized(() => SfPdfViewer.network(uri), [uri]);
+    return pdfViewer;
+  }
+}
+
+class _TextContent extends HookConsumerWidget {
+  final String uri;
+
+  const _TextContent({required this.uri});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textFuture = useMemoized(
+      () => ref
+          .read(apiClientProvider)
+          .get(uri)
+          .then((response) => response.data as String),
+      [uri],
+    );
+
+    return FutureBuilder<String>(
+      future: textFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error loading text: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: SelectableText(
+              snapshot.data!,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+            ),
+          );
+        }
+        return const Center(child: Text('No content'));
+      },
     );
   }
 }
