@@ -14,12 +14,15 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
+enum FileListMode { normal, unindexed }
+
 class FileListView extends HookConsumerWidget {
   final Map<String, dynamic>? usage;
   final Map<String, dynamic>? quota;
   final ValueNotifier<String> currentPath;
   final VoidCallback onPickAndUpload;
   final Function(BuildContext, ValueNotifier<String>) onShowCreateDirectory;
+  final ValueNotifier<FileListMode> mode;
 
   const FileListView({
     required this.usage,
@@ -27,47 +30,228 @@ class FileListView extends HookConsumerWidget {
     required this.currentPath,
     required this.onPickAndUpload,
     required this.onShowCreateDirectory,
+    required this.mode,
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
-      final notifier = ref.read(cloudFileListNotifierProvider.notifier);
-      notifier.setPath(currentPath.value);
+      if (mode.value == FileListMode.normal) {
+        final notifier = ref.read(cloudFileListNotifierProvider.notifier);
+        notifier.setPath(currentPath.value);
+      }
       return null;
-    }, [currentPath.value]);
+    }, [currentPath.value, mode.value]);
 
     if (usage == null) return const SizedBox.shrink();
-    return CustomScrollView(
-      slivers: [
-        const SliverGap(8),
-        SliverToBoxAdapter(child: _buildPathNavigation(ref, currentPath)),
-        const SliverGap(8),
-        PagingHelperSliverView(
-          provider: cloudFileListNotifierProvider,
-          futureRefreshable: cloudFileListNotifierProvider.future,
-          notifierRefreshable: cloudFileListNotifierProvider.notifier,
-          contentBuilder:
-              (data, widgetCount, endItemView) =>
-                  data.items.isEmpty
-                      ? SliverToBoxAdapter(
-                        child: _buildEmptyDirectoryHint(ref, currentPath),
-                      )
-                      : SliverList.builder(
-                        itemCount: widgetCount,
-                        itemBuilder: (context, index) {
-                          if (index == widgetCount - 1) {
-                            return endItemView;
-                          }
 
-                          final item = data.items[index];
-                          return item.map(
-                            file: (fileItem) {
-                              final file = fileItem.fileIndex.file;
-                              final itemType =
-                                  file.mimeType?.split('/').firstOrNull;
-                              return ListTile(
+    final bodyWidget = switch (mode.value) {
+      FileListMode.unindexed => PagingHelperSliverView(
+        provider: unindexedFileListNotifierProvider,
+        futureRefreshable: unindexedFileListNotifierProvider.future,
+        notifierRefreshable: unindexedFileListNotifierProvider.notifier,
+        contentBuilder:
+            (data, widgetCount, endItemView) =>
+                data.items.isEmpty
+                    ? SliverToBoxAdapter(
+                      child: _buildEmptyUnindexedFilesHint(ref),
+                    )
+                    : SliverList.builder(
+                      itemCount: widgetCount,
+                      itemBuilder: (context, index) {
+                        if (index == widgetCount - 1) {
+                          return endItemView;
+                        }
+
+                        final item = data.items[index];
+                        return item.map(
+                          file: (fileItem) {
+                            // This should not happen in unindexed mode
+                            return const SizedBox.shrink();
+                          },
+                          folder: (folderItem) {
+                            // This should not happen in unindexed mode
+                            return const SizedBox.shrink();
+                          },
+                          unindexedFile: (unindexedFileItem) {
+                            final file = unindexedFileItem.file;
+                            final itemType =
+                                file.mimeType?.split('/').firstOrNull;
+                            return ListTile(
+                              leading: ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                child: SizedBox(
+                                  height: 48,
+                                  width: 48,
+                                  child: switch (itemType) {
+                                    'image' => CloudImageWidget(file: file),
+                                    'audio' =>
+                                      const Icon(
+                                        Symbols.audio_file,
+                                        fill: 1,
+                                      ).center(),
+                                    'video' =>
+                                      const Icon(
+                                        Symbols.video_file,
+                                        fill: 1,
+                                      ).center(),
+                                    _ =>
+                                      const Icon(
+                                        Symbols.body_system,
+                                        fill: 1,
+                                      ).center(),
+                                  },
+                                ),
+                              ),
+                              title:
+                                  file.name.isEmpty
+                                      ? Text('untitled').tr().italic()
+                                      : Text(
+                                        file.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                              subtitle: Text(formatFileSize(file.size)),
+                              onTap: () {
+                                context.push('/files/${file.id}', extra: file);
+                              },
+                              trailing: IconButton(
+                                icon: const Icon(Symbols.delete),
+                                onPressed: () async {
+                                  final confirmed = await showConfirmAlert(
+                                    'confirmDeleteFile'.tr(),
+                                    'deleteFile'.tr(),
+                                  );
+                                  if (!confirmed) return;
+
+                                  if (context.mounted) {
+                                    showLoadingModal(context);
+                                  }
+                                  try {
+                                    final client = ref.read(apiClientProvider);
+                                    await client.delete(
+                                      '/drive/files/${file.id}',
+                                    );
+                                    ref.invalidate(
+                                      unindexedFileListNotifierProvider,
+                                    );
+                                  } catch (e) {
+                                    showSnackBar('failedToDeleteFile'.tr());
+                                  } finally {
+                                    if (context.mounted) {
+                                      hideLoadingModal(context);
+                                    }
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+      ),
+      _ => PagingHelperSliverView(
+        provider: cloudFileListNotifierProvider,
+        futureRefreshable: cloudFileListNotifierProvider.future,
+        notifierRefreshable: cloudFileListNotifierProvider.notifier,
+        contentBuilder:
+            (data, widgetCount, endItemView) =>
+                data.items.isEmpty
+                    ? SliverToBoxAdapter(
+                      child: _buildEmptyDirectoryHint(ref, currentPath),
+                    )
+                    : SliverList.builder(
+                      itemCount: widgetCount,
+                      itemBuilder: (context, index) {
+                        if (index == widgetCount - 1) {
+                          return endItemView;
+                        }
+
+                        final item = data.items[index];
+                        return item.map(
+                          file: (fileItem) {
+                            final file = fileItem.fileIndex.file;
+                            final itemType =
+                                file.mimeType?.split('/').firstOrNull;
+                            return ListTile(
+                              leading: ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                child: SizedBox(
+                                  height: 48,
+                                  width: 48,
+                                  child: switch (itemType) {
+                                    'image' => CloudImageWidget(file: file),
+                                    'audio' =>
+                                      const Icon(
+                                        Symbols.audio_file,
+                                        fill: 1,
+                                      ).center(),
+                                    'video' =>
+                                      const Icon(
+                                        Symbols.video_file,
+                                        fill: 1,
+                                      ).center(),
+                                    _ =>
+                                      const Icon(
+                                        Symbols.body_system,
+                                        fill: 1,
+                                      ).center(),
+                                  },
+                                ),
+                              ),
+                              title:
+                                  file.name.isEmpty
+                                      ? Text('untitled').tr().italic()
+                                      : Text(
+                                        file.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                              subtitle: Text(formatFileSize(file.size)),
+                              onTap: () {
+                                context.push(
+                                  '/files/${fileItem.fileIndex.id}',
+                                  extra: file,
+                                );
+                              },
+                              trailing: IconButton(
+                                icon: const Icon(Symbols.delete),
+                                onPressed: () async {
+                                  final confirmed = await showConfirmAlert(
+                                    'confirmDeleteFile'.tr(),
+                                    'deleteFile'.tr(),
+                                  );
+                                  if (!confirmed) return;
+
+                                  if (context.mounted) {
+                                    showLoadingModal(context);
+                                  }
+                                  try {
+                                    final client = ref.read(apiClientProvider);
+                                    await client.delete(
+                                      '/drive/index/remove/${fileItem.fileIndex.id}',
+                                    );
+                                    ref.invalidate(
+                                      cloudFileListNotifierProvider,
+                                    );
+                                  } catch (e) {
+                                    showSnackBar('failedToDeleteFile'.tr());
+                                  } finally {
+                                    if (context.mounted) {
+                                      hideLoadingModal(context);
+                                    }
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                          folder:
+                              (folderItem) => ListTile(
                                 leading: ClipRRect(
                                   borderRadius: const BorderRadius.all(
                                     Radius.circular(8),
@@ -75,108 +259,51 @@ class FileListView extends HookConsumerWidget {
                                   child: SizedBox(
                                     height: 48,
                                     width: 48,
-                                    child: switch (itemType) {
-                                      'image' => CloudImageWidget(file: file),
-                                      'audio' =>
+                                    child:
                                         const Icon(
-                                          Symbols.audio_file,
+                                          Symbols.folder,
                                           fill: 1,
                                         ).center(),
-                                      'video' =>
-                                        const Icon(
-                                          Symbols.video_file,
-                                          fill: 1,
-                                        ).center(),
-                                      _ =>
-                                        const Icon(
-                                          Symbols.body_system,
-                                          fill: 1,
-                                        ).center(),
-                                    },
                                   ),
                                 ),
-                                title:
-                                    file.name.isEmpty
-                                        ? Text('untitled').tr().italic()
-                                        : Text(
-                                          file.name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                subtitle: Text(formatFileSize(file.size)),
+                                title: Text(
+                                  folderItem.folder.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: const Text('Folder'),
                                 onTap: () {
-                                  context.push(
-                                    '/files/${fileItem.fileIndex.id}',
-                                    extra: file,
-                                  );
+                                  // Navigate to folder
+                                  final newPath =
+                                      currentPath.value == '/'
+                                          ? '/${folderItem.folder.name}'
+                                          : '${currentPath.value}/${folderItem.folder.name}';
+                                  currentPath.value = newPath;
                                 },
-                                trailing: IconButton(
-                                  icon: const Icon(Symbols.delete),
-                                  onPressed: () async {
-                                    final confirmed = await showConfirmAlert(
-                                      'confirmDeleteFile'.tr(),
-                                      'deleteFile'.tr(),
-                                    );
-                                    if (!confirmed) return;
+                              ),
+                          unindexedFile: (unindexedFileItem) {
+                            // This should not happen in normal mode
+                            return const SizedBox.shrink();
+                          },
+                        );
+                      },
+                    ),
+      ),
+    };
 
-                                    if (context.mounted) {
-                                      showLoadingModal(context);
-                                    }
-                                    try {
-                                      final client = ref.read(
-                                        apiClientProvider,
-                                      );
-                                      await client.delete(
-                                        '/drive/index/remove/${fileItem.fileIndex.id}',
-                                      );
-                                      ref.invalidate(
-                                        cloudFileListNotifierProvider,
-                                      );
-                                    } catch (e) {
-                                      showSnackBar('failedToDeleteFile'.tr());
-                                    } finally {
-                                      if (context.mounted) {
-                                        hideLoadingModal(context);
-                                      }
-                                    }
-                                  },
-                                ),
-                              );
-                            },
-                            folder:
-                                (folderItem) => ListTile(
-                                  leading: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(8),
-                                    ),
-                                    child: SizedBox(
-                                      height: 48,
-                                      width: 48,
-                                      child:
-                                          const Icon(
-                                            Symbols.folder,
-                                            fill: 1,
-                                          ).center(),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    folderItem.folder.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: const Text('Folder'),
-                                  onTap: () {
-                                    // Navigate to folder
-                                    final newPath =
-                                        currentPath.value == '/'
-                                            ? '/${folderItem.folder.name}'
-                                            : '${currentPath.value}/${folderItem.folder.name}';
-                                    currentPath.value = newPath;
-                                  },
-                                ),
-                          );
-                        },
-                      ),
+    return Column(
+      children: [
+        const Gap(8),
+        _buildPathNavigation(ref, currentPath),
+        const Gap(8),
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              bodyWidget,
+              if (mode.value == FileListMode.normal && currentPath.value == '/')
+                SliverToBoxAdapter(child: _buildUnindexedFilesEntry(ref)),
+            ],
+          ),
         ),
       ],
     );
@@ -187,7 +314,16 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
   ) {
     Widget pathContent;
-    if (currentPath.value == '/') {
+    if (mode.value == FileListMode.unindexed) {
+      pathContent = Row(
+        children: [
+          Text(
+            'Unindexed Files',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      );
+    } else if (currentPath.value == '/') {
       pathContent = Text(
         'Root Directory',
         style: TextStyle(fontWeight: FontWeight.bold),
@@ -234,28 +370,87 @@ class FileListView extends HookConsumerWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            const Icon(Symbols.folder),
-            const Gap(8),
-            Expanded(child: pathContent),
-            IconButton(
-              icon: const Icon(Symbols.create_new_folder),
-              onPressed: () => onShowCreateDirectory(ref.context, currentPath),
-              tooltip: 'Create Directory',
-            ),
-            IconButton(
-              icon: const Icon(Symbols.upload_file),
-              onPressed: onPickAndUpload,
-              tooltip: 'Upload File',
-            ),
-          ],
+    return SizedBox(
+      height: 64,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  mode.value == FileListMode.unindexed
+                      ? Symbols.inventory_2
+                      : Symbols.folder,
+                ),
+                onPressed: () {
+                  if (mode.value == FileListMode.unindexed) {
+                    mode.value = FileListMode.normal;
+                  }
+                  currentPath.value = '/';
+                },
+                visualDensity: const VisualDensity(
+                  horizontal: -4,
+                  vertical: -4,
+                ),
+              ),
+              const Gap(8),
+              Expanded(child: pathContent),
+              if (mode.value == FileListMode.normal) ...[
+                IconButton(
+                  icon: const Icon(Symbols.create_new_folder),
+                  onPressed:
+                      () => onShowCreateDirectory(ref.context, currentPath),
+                  tooltip: 'Create Directory',
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.upload_file),
+                  onPressed: onPickAndUpload,
+                  tooltip: 'Upload File',
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
+      ).padding(horizontal: 8),
+    );
+  }
+
+  Widget _buildUnindexedFilesEntry(WidgetRef ref) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(ref.context).colorScheme.outline),
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
-    ).padding(horizontal: 8);
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      child: InkWell(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Symbols.inventory_2).padding(horizontal: 8),
+              const Gap(8),
+              const Text('Unindexed Files').bold(),
+              const Spacer(),
+              const Icon(Symbols.chevron_right).padding(horizontal: 8),
+            ],
+          ),
+        ),
+        onTap: () {
+          mode.value = FileListMode.unindexed;
+          currentPath.value = '/';
+        },
+      ),
+    );
   }
 
   Widget _buildEmptyDirectoryHint(
@@ -263,7 +458,7 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
   ) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         child: Column(
@@ -307,6 +502,41 @@ class FileListView extends HookConsumerWidget {
                   label: const Text('Create Directory'),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyUnindexedFilesHint(WidgetRef ref) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.inventory_2, size: 64, color: Colors.grey),
+            const Gap(16),
+            Text(
+              'No unindexed files',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(ref.context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            const Gap(8),
+            Text(
+              'All files have been assigned to paths.\n'
+              'Files without paths will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(
+                  ref.context,
+                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              ),
             ),
           ],
         ),

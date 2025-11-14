@@ -45,7 +45,7 @@ final billingQuotaProvider =
 // ignore: unused_element
 typedef BillingQuotaRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
 String _$cloudFileListNotifierHash() =>
-    r'44c17a8ef959bbef5d07132603a722f76d39b9e9';
+    r'5b919f2212ce64c567b9f31912ed18fc4e4bc87d';
 
 /// See also [CloudFileListNotifier].
 @ProviderFor(CloudFileListNotifier)
@@ -64,6 +64,27 @@ final cloudFileListNotifierProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$CloudFileListNotifier =
+    AutoDisposeAsyncNotifier<CursorPagingData<FileListItem>>;
+String _$unindexedFileListNotifierHash() =>
+    r'48fc92432a50a562190da5fe8ed0920d171b07b6';
+
+/// See also [UnindexedFileListNotifier].
+@ProviderFor(UnindexedFileListNotifier)
+final unindexedFileListNotifierProvider = AutoDisposeAsyncNotifierProvider<
+  UnindexedFileListNotifier,
+  CursorPagingData<FileListItem>
+>.internal(
+  UnindexedFileListNotifier.new,
+  name: r'unindexedFileListNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$unindexedFileListNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$UnindexedFileListNotifier =
     AutoDisposeAsyncNotifier<CursorPagingData<FileListItem>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

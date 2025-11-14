@@ -442,7 +442,9 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.task.fileName,
+            widget.task.fileName.isEmpty
+                ? 'untitled'.tr()
+                : widget.task.fileName,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),

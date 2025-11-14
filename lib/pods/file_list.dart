@@ -59,6 +59,47 @@ Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
 }
 
 @riverpod
+class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
+    with CursorPagingNotifierMixin<FileListItem> {
+  @override
+  Future<CursorPagingData<FileListItem>> build() => fetch(cursor: null);
+
+  @override
+  Future<CursorPagingData<FileListItem>> fetch({
+    required String? cursor,
+  }) async {
+    final client = ref.read(apiClientProvider);
+
+    final offset = cursor != null ? int.tryParse(cursor) ?? 0 : 0;
+    const take = 50; // Default page size
+
+    final response = await client.get(
+      '/drive/index/unindexed',
+      queryParameters: {'take': take.toString(), 'offset': offset.toString()},
+    );
+
+    final total = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
+
+    final List<SnCloudFile> files =
+        (response.data as List)
+            .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+    final List<FileListItem> items =
+        files.map((file) => FileListItem.unindexedFile(file)).toList();
+
+    final hasMore = offset + take < total;
+    final nextCursor = hasMore ? (offset + take).toString() : null;
+
+    return CursorPagingData(
+      items: items,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
+}
+
+@riverpod
 Future<Map<String, dynamic>?> billingQuota(Ref ref) async {
   final client = ref.read(apiClientProvider);
   final response = await client.get('/drive/billing/quota');
