@@ -55,12 +55,13 @@ extension FileListItemPatterns on FileListItem {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( FileItem value)?  file,TResult Function( FolderItem value)?  folder,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( FileItem value)?  file,TResult Function( FolderItem value)?  folder,TResult Function( UnindexedFileItem value)?  unindexedFile,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that);case FolderItem() when folder != null:
-return folder(_that);case _:
+return folder(_that);case UnindexedFileItem() when unindexedFile != null:
+return unindexedFile(_that);case _:
   return orElse();
 
 }
@@ -78,12 +79,13 @@ return folder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( FileItem value)  file,required TResult Function( FolderItem value)  folder,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( FileItem value)  file,required TResult Function( FolderItem value)  folder,required TResult Function( UnindexedFileItem value)  unindexedFile,}){
 final _that = this;
 switch (_that) {
 case FileItem():
 return file(_that);case FolderItem():
-return folder(_that);}
+return folder(_that);case UnindexedFileItem():
+return unindexedFile(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -97,12 +99,13 @@ return folder(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( FileItem value)?  file,TResult? Function( FolderItem value)?  folder,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( FileItem value)?  file,TResult? Function( FolderItem value)?  folder,TResult? Function( UnindexedFileItem value)?  unindexedFile,}){
 final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that);case FolderItem() when folder != null:
-return folder(_that);case _:
+return folder(_that);case UnindexedFileItem() when unindexedFile != null:
+return unindexedFile(_that);case _:
   return null;
 
 }
@@ -119,11 +122,12 @@ return folder(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( SnCloudFolder folder)?  folder,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( SnCloudFolder folder)?  folder,TResult Function( SnCloudFile file)?  unindexedFile,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.folder);case _:
+return folder(_that.folder);case UnindexedFileItem() when unindexedFile != null:
+return unindexedFile(_that.file);case _:
   return orElse();
 
 }
@@ -141,11 +145,12 @@ return folder(_that.folder);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( SnCloudFolder folder)  folder,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( SnCloudFolder folder)  folder,required TResult Function( SnCloudFile file)  unindexedFile,}) {final _that = this;
 switch (_that) {
 case FileItem():
 return file(_that.fileIndex);case FolderItem():
-return folder(_that.folder);}
+return folder(_that.folder);case UnindexedFileItem():
+return unindexedFile(_that.file);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -159,11 +164,12 @@ return folder(_that.folder);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( SnCloudFolder folder)?  folder,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( SnCloudFolder folder)?  folder,TResult? Function( SnCloudFile file)?  unindexedFile,}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.folder);case _:
+return folder(_that.folder);case UnindexedFileItem() when unindexedFile != null:
+return unindexedFile(_that.file);case _:
   return null;
 
 }
@@ -317,6 +323,81 @@ $SnCloudFolderCopyWith<$Res> get folder {
   
   return $SnCloudFolderCopyWith<$Res>(_self.folder, (value) {
     return _then(_self.copyWith(folder: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class UnindexedFileItem implements FileListItem {
+  const UnindexedFileItem(this.file);
+  
+
+ final  SnCloudFile file;
+
+/// Create a copy of FileListItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UnindexedFileItemCopyWith<UnindexedFileItem> get copyWith => _$UnindexedFileItemCopyWithImpl<UnindexedFileItem>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnindexedFileItem&&(identical(other.file, file) || other.file == file));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,file);
+
+@override
+String toString() {
+  return 'FileListItem.unindexedFile(file: $file)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UnindexedFileItemCopyWith<$Res> implements $FileListItemCopyWith<$Res> {
+  factory $UnindexedFileItemCopyWith(UnindexedFileItem value, $Res Function(UnindexedFileItem) _then) = _$UnindexedFileItemCopyWithImpl;
+@useResult
+$Res call({
+ SnCloudFile file
+});
+
+
+$SnCloudFileCopyWith<$Res> get file;
+
+}
+/// @nodoc
+class _$UnindexedFileItemCopyWithImpl<$Res>
+    implements $UnindexedFileItemCopyWith<$Res> {
+  _$UnindexedFileItemCopyWithImpl(this._self, this._then);
+
+  final UnindexedFileItem _self;
+  final $Res Function(UnindexedFileItem) _then;
+
+/// Create a copy of FileListItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? file = null,}) {
+  return _then(UnindexedFileItem(
+null == file ? _self.file : file // ignore: cast_nullable_to_non_nullable
+as SnCloudFile,
+  ));
+}
+
+/// Create a copy of FileListItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res> get file {
+  
+  return $SnCloudFileCopyWith<$Res>(_self.file, (value) {
+    return _then(_self.copyWith(file: value));
   });
 }
 }

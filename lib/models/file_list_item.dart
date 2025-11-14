@@ -8,4 +8,6 @@ part 'file_list_item.freezed.dart';
 sealed class FileListItem with _$FileListItem {
   const factory FileListItem.file(SnCloudFileIndex fileIndex) = FileItem;
   const factory FileListItem.folder(SnCloudFolder folder) = FolderItem;
+  const factory FileListItem.unindexedFile(SnCloudFile file) =
+      UnindexedFileItem;
 }
