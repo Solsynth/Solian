@@ -267,7 +267,7 @@ class FileListView extends HookConsumerWidget {
                                   ),
                                 ),
                                 title: Text(
-                                  folderItem.folder.name,
+                                  folderItem.folderName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -276,8 +276,8 @@ class FileListView extends HookConsumerWidget {
                                   // Navigate to folder
                                   final newPath =
                                       currentPath.value == '/'
-                                          ? '/${folderItem.folder.name}'
-                                          : '${currentPath.value}/${folderItem.folder.name}';
+                                          ? '/${folderItem.folderName}'
+                                          : '${currentPath.value}/${folderItem.folderName}';
                                   currentPath.value = newPath;
                                 },
                               ),
@@ -300,6 +300,7 @@ class FileListView extends HookConsumerWidget {
           child: CustomScrollView(
             slivers: [
               bodyWidget,
+              const SliverGap(12),
               if (mode.value == FileListMode.normal && currentPath.value == '/')
                 SliverToBoxAdapter(child: _buildUnindexedFilesEntry(ref)),
             ],

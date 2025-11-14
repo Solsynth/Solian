@@ -122,11 +122,11 @@ return unindexedFile(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( SnCloudFolder folder)?  folder,TResult Function( SnCloudFile file)?  unindexedFile,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( SnCloudFileIndex fileIndex)?  file,TResult Function( String folderName)?  folder,TResult Function( SnCloudFile file)?  unindexedFile,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.folder);case UnindexedFileItem() when unindexedFile != null:
+return folder(_that.folderName);case UnindexedFileItem() when unindexedFile != null:
 return unindexedFile(_that.file);case _:
   return orElse();
 
@@ -145,11 +145,11 @@ return unindexedFile(_that.file);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( SnCloudFolder folder)  folder,required TResult Function( SnCloudFile file)  unindexedFile,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( SnCloudFileIndex fileIndex)  file,required TResult Function( String folderName)  folder,required TResult Function( SnCloudFile file)  unindexedFile,}) {final _that = this;
 switch (_that) {
 case FileItem():
 return file(_that.fileIndex);case FolderItem():
-return folder(_that.folder);case UnindexedFileItem():
+return folder(_that.folderName);case UnindexedFileItem():
 return unindexedFile(_that.file);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -164,11 +164,11 @@ return unindexedFile(_that.file);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( SnCloudFolder folder)?  folder,TResult? Function( SnCloudFile file)?  unindexedFile,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( SnCloudFileIndex fileIndex)?  file,TResult? Function( String folderName)?  folder,TResult? Function( SnCloudFile file)?  unindexedFile,}) {final _that = this;
 switch (_that) {
 case FileItem() when file != null:
 return file(_that.fileIndex);case FolderItem() when folder != null:
-return folder(_that.folder);case UnindexedFileItem() when unindexedFile != null:
+return folder(_that.folderName);case UnindexedFileItem() when unindexedFile != null:
 return unindexedFile(_that.file);case _:
   return null;
 
@@ -256,10 +256,10 @@ $SnCloudFileIndexCopyWith<$Res> get fileIndex {
 
 
 class FolderItem implements FileListItem {
-  const FolderItem(this.folder);
+  const FolderItem(this.folderName);
   
 
- final  SnCloudFolder folder;
+ final  String folderName;
 
 /// Create a copy of FileListItem
 /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +271,16 @@ $FolderItemCopyWith<FolderItem> get copyWith => _$FolderItemCopyWithImpl<FolderI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FolderItem&&(identical(other.folder, folder) || other.folder == folder));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FolderItem&&(identical(other.folderName, folderName) || other.folderName == folderName));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,folder);
+int get hashCode => Object.hash(runtimeType,folderName);
 
 @override
 String toString() {
-  return 'FileListItem.folder(folder: $folder)';
+  return 'FileListItem.folder(folderName: $folderName)';
 }
 
 
@@ -291,11 +291,11 @@ abstract mixin class $FolderItemCopyWith<$Res> implements $FileListItemCopyWith<
   factory $FolderItemCopyWith(FolderItem value, $Res Function(FolderItem) _then) = _$FolderItemCopyWithImpl;
 @useResult
 $Res call({
- SnCloudFolder folder
+ String folderName
 });
 
 
-$SnCloudFolderCopyWith<$Res> get folder;
+
 
 }
 /// @nodoc
@@ -308,23 +308,14 @@ class _$FolderItemCopyWithImpl<$Res>
 
 /// Create a copy of FileListItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? folder = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? folderName = null,}) {
   return _then(FolderItem(
-null == folder ? _self.folder : folder // ignore: cast_nullable_to_non_nullable
-as SnCloudFolder,
+null == folderName ? _self.folderName : folderName // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
-/// Create a copy of FileListItem
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnCloudFolderCopyWith<$Res> get folder {
-  
-  return $SnCloudFolderCopyWith<$Res>(_self.folder, (value) {
-    return _then(_self.copyWith(folder: value));
-  });
-}
+
 }
 
 /// @nodoc
