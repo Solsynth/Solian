@@ -71,6 +71,7 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
     @Default([]) List<String> accpetProposals,
     List<String>? attachedPosts,
     List<Map<String, dynamic>>? attachedMessages,
+    @JsonKey(name: 'service_id') String? serviceId,
   }) = _StreamThinkingRequest;
 
   factory StreamThinkingRequest.fromJson(Map<String, dynamic> json) =>
@@ -174,4 +175,27 @@ sealed class SnThinkingThought with _$SnThinkingThought {
 
   factory SnThinkingThought.fromJson(Map<String, dynamic> json) =>
       _$SnThinkingThoughtFromJson(json);
+}
+
+@freezed
+sealed class ThoughtService with _$ThoughtService {
+  const factory ThoughtService({
+    @JsonKey(name: 'service_id') required String serviceId,
+    required double billingMultiplier,
+    required int perkLevel,
+  }) = _ThoughtService;
+
+  factory ThoughtService.fromJson(Map<String, dynamic> json) =>
+      _$ThoughtServiceFromJson(json);
+}
+
+@freezed
+sealed class ThoughtServicesResponse with _$ThoughtServicesResponse {
+  const factory ThoughtServicesResponse({
+    @JsonKey(name: 'default_service') required String defaultService,
+    required List<ThoughtService> services,
+  }) = _ThoughtServicesResponse;
+
+  factory ThoughtServicesResponse.fromJson(Map<String, dynamic> json) =>
+      _$ThoughtServicesResponseFromJson(json);
 }

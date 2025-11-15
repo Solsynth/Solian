@@ -24,6 +24,7 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
       (json['attached_messages'] as List<dynamic>?)
           ?.map((e) => e as Map<String, dynamic>)
           .toList(),
+  serviceId: json['service_id'] as String?,
 );
 
 Map<String, dynamic> _$StreamThinkingRequestToJson(
@@ -34,6 +35,7 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'accpet_proposals': instance.accpetProposals,
   'attached_posts': instance.attachedPosts,
   'attached_messages': instance.attachedMessages,
+  'service_id': instance.serviceId,
 };
 
 _SnThinkingChunk _$SnThinkingChunkFromJson(Map<String, dynamic> json) =>
@@ -185,3 +187,34 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_ThoughtService _$ThoughtServiceFromJson(Map<String, dynamic> json) =>
+    _ThoughtService(
+      serviceId: json['service_id'] as String,
+      billingMultiplier: (json['billing_multiplier'] as num).toDouble(),
+      perkLevel: (json['perk_level'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$ThoughtServiceToJson(_ThoughtService instance) =>
+    <String, dynamic>{
+      'service_id': instance.serviceId,
+      'billing_multiplier': instance.billingMultiplier,
+      'perk_level': instance.perkLevel,
+    };
+
+_ThoughtServicesResponse _$ThoughtServicesResponseFromJson(
+  Map<String, dynamic> json,
+) => _ThoughtServicesResponse(
+  defaultService: json['default_service'] as String,
+  services:
+      (json['services'] as List<dynamic>)
+          .map((e) => ThoughtService.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$ThoughtServicesResponseToJson(
+  _ThoughtServicesResponse instance,
+) => <String, dynamic>{
+  'default_service': instance.defaultService,
+  'services': instance.services.map((e) => e.toJson()).toList(),
+};

@@ -36,6 +36,13 @@ Future<List<SnThinkingThought>> thoughtSequence(
       .toList();
 }
 
+@riverpod
+Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/insight/thought/services');
+  return ThoughtServicesResponse.fromJson(response.data);
+}
+
 class ThoughtScreen extends HookConsumerWidget {
   const ThoughtScreen({super.key});
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:dio/dio.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/thought.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/thought/think.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
@@ -40,6 +42,8 @@ class ThoughtChatState {
   final ValueNotifier<String?> sequenceId;
   final ValueNotifier<List<SnThinkingThought>> localThoughts;
   final ValueNotifier<String?> currentTopic;
+  final ValueNotifier<List<ThoughtService>> services;
+  final ValueNotifier<String> selectedServiceId;
   final TextEditingController messageController;
   final ScrollController scrollController;
   final ValueNotifier<bool> isStreaming;
@@ -52,6 +56,8 @@ class ThoughtChatState {
     required this.sequenceId,
     required this.localThoughts,
     required this.currentTopic,
+    required this.services,
+    required this.selectedServiceId,
     required this.messageController,
     required this.scrollController,
     required this.isStreaming,
@@ -76,6 +82,25 @@ ThoughtChatState useThoughtChat(
     initialThoughts ?? [],
   );
   final currentTopic = useState<String?>(initialTopic ?? 'aiThought'.tr());
+
+  // Watch the provider for services
+  final servicesAsync = ref.watch(thoughtServicesProvider);
+
+  // Initialize services and selected service from provider
+  final services = useState<List<ThoughtService>>([]);
+  final selectedServiceId = useState<String>('');
+
+  // Update state when provider data arrives
+  useEffect(() {
+    if (servicesAsync.hasValue) {
+      final response = servicesAsync.value!;
+      services.value = response.services;
+      if (selectedServiceId.value.isEmpty) {
+        selectedServiceId.value = response.defaultService;
+      }
+    }
+    return null;
+  }, [servicesAsync]);
 
   final messageController = useTextEditingController();
   final scrollController = useScrollController();
@@ -151,6 +176,8 @@ ThoughtChatState useThoughtChat(
       accpetProposals: ['post_create'],
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
+      serviceId:
+          selectedServiceId.value.isNotEmpty ? selectedServiceId.value : null,
     );
 
     try {
@@ -344,6 +371,8 @@ ThoughtChatState useThoughtChat(
     sequenceId: sequenceId,
     localThoughts: localThoughts,
     currentTopic: currentTopic,
+    services: services,
+    selectedServiceId: selectedServiceId,
     messageController: messageController,
     scrollController: scrollController,
     isStreaming: isStreaming,
@@ -469,6 +498,8 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 attachedMessages: attachedMessages,
                 attachedPosts: attachedPosts,
                 isDisabled: isDisabled,
+                services: chatState.services.value,
+                selectedServiceId: chatState.selectedServiceId,
               ),
             ),
           ),
@@ -513,6 +544,8 @@ class ThoughtInput extends HookWidget {
   final List<Map<String, dynamic>>? attachedMessages;
   final List<String>? attachedPosts;
   final bool isDisabled;
+  final List<ThoughtService> services;
+  final ValueNotifier<String> selectedServiceId;
 
   const ThoughtInput({
     super.key,
@@ -522,6 +555,8 @@ class ThoughtInput extends HookWidget {
     this.attachedMessages,
     this.attachedPosts,
     this.isDisabled = false,
+    required this.services,
+    required this.selectedServiceId,
   });
 
   @override
@@ -605,6 +640,7 @@ class ThoughtInput extends HookWidget {
                     ],
                   ),
                 ),
+
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -643,6 +679,110 @@ class ThoughtInput extends HookWidget {
                     onPressed: (!isStreaming && !isDisabled) ? onSend : null,
                   ),
                 ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                child: Row(
+                  children: [
+                    if (services.isNotEmpty)
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton2<String>(
+                          value:
+                              selectedServiceId.value.isEmpty
+                                  ? null
+                                  : selectedServiceId.value,
+                          customButton: Container(
+                            padding: EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              border: BoxBorder.all(
+                                color: Theme.of(context).colorScheme.outline,
+                                width: 1,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(16),
+                              ),
+                            ),
+                            child: Row(
+                              spacing: 8,
+                              children: [
+                                const Icon(
+                                  Symbols.network_intelligence,
+                                  size: 20,
+                                ),
+                                Text(selectedServiceId.value),
+                                const Icon(
+                                  Symbols.keyboard_arrow_down,
+                                  size: 14,
+                                ).padding(right: 4),
+                              ],
+                            ).padding(vertical: 2, horizontal: 6),
+                          ),
+                          items:
+                              services
+                                  .map(
+                                    (service) => DropdownMenuItem<String>(
+                                      value: service.serviceId,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            service.serviceId,
+                                            style: DefaultTextStyle.of(
+                                              context,
+                                            ).style.copyWith(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Rate: ${service.billingMultiplier}x, Level: P${service.perkLevel}',
+                                            style: DefaultTextStyle.of(
+                                              context,
+                                            ).style.copyWith(
+                                              fontSize: 12,
+                                              color:
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              !isStreaming && !isDisabled
+                                  ? (value) {
+                                    if (value != null) {
+                                      selectedServiceId.value = value;
+                                    }
+                                  }
+                                  : null,
+                          hint: const Text('Select Service'),
+                          isDense: true,
+                          buttonStyleData: ButtonStyleData(
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(16),
+                              ),
+                            ),
+                          ),
+                          menuItemStyleData: MenuItemStyleData(
+                            selectedMenuItemBuilder: (context, child) {
+                              return child;
+                            },
+                            height: 56,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),

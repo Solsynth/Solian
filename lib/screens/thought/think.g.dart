@@ -171,5 +171,25 @@ class _ThoughtSequenceProviderElement
   String get sequenceId => (origin as ThoughtSequenceProvider).sequenceId;
 }
 
+String _$thoughtServicesHash() => r'0ddeaec713ecfcdc9786c197f3d4cb41d36c26a5';
+
+/// See also [thoughtServices].
+@ProviderFor(thoughtServices)
+final thoughtServicesProvider =
+    AutoDisposeFutureProvider<ThoughtServicesResponse>.internal(
+      thoughtServices,
+      name: r'thoughtServicesProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$thoughtServicesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ThoughtServicesRef =
+    AutoDisposeFutureProviderRef<ThoughtServicesResponse>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
