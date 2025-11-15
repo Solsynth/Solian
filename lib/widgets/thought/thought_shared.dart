@@ -163,8 +163,8 @@ ThoughtChatState useThoughtChat(
         data: request.toJson(),
         options: Options(
           responseType: ResponseType.stream,
-          sendTimeout: Duration(minutes: 1),
-          receiveTimeout: Duration(minutes: 1),
+          sendTimeout: Duration(hours: 1),
+          receiveTimeout: Duration(hours: 1),
         ),
       );
 
