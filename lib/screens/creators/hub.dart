@@ -831,7 +831,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/publishers/$publisherUname/invites',
+          '/sphere/publishers/$publisherUname/invites',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh both providers
@@ -962,7 +962,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                                       apiClientProvider,
                                     );
                                     await apiClient.delete(
-                                      '/publishers/$publisherUname/members/${member.accountId}',
+                                      '/sphere/publishers/$publisherUname/members/${member.accountId}',
                                     );
                                     // Refresh both providers
                                     memberNotifier.reset();
@@ -1087,7 +1087,7 @@ class _PublisherMemberRoleSheet extends HookConsumerWidget {
 
                       final apiClient = ref.read(apiClientProvider);
                       await apiClient.patch(
-                        '/publishers/$publisherUname/members/${member.accountId}/role',
+                        '/sphere/publishers/$publisherUname/members/${member.accountId}/role',
                         data: newRole,
                       );
 
