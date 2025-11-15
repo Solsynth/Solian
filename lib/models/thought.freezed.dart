@@ -572,6 +572,846 @@ as Map<String, dynamic>?,
 
 
 /// @nodoc
+mixin _$SnFunctionCall {
+
+ String get id; String get name; String get arguments;
+/// Create a copy of SnFunctionCall
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnFunctionCallCopyWith<SnFunctionCall> get copyWith => _$SnFunctionCallCopyWithImpl<SnFunctionCall>(this as SnFunctionCall, _$identity);
+
+  /// Serializes this SnFunctionCall to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFunctionCall&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.arguments, arguments) || other.arguments == arguments));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,arguments);
+
+@override
+String toString() {
+  return 'SnFunctionCall(id: $id, name: $name, arguments: $arguments)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnFunctionCallCopyWith<$Res>  {
+  factory $SnFunctionCallCopyWith(SnFunctionCall value, $Res Function(SnFunctionCall) _then) = _$SnFunctionCallCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name, String arguments
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnFunctionCallCopyWithImpl<$Res>
+    implements $SnFunctionCallCopyWith<$Res> {
+  _$SnFunctionCallCopyWithImpl(this._self, this._then);
+
+  final SnFunctionCall _self;
+  final $Res Function(SnFunctionCall) _then;
+
+/// Create a copy of SnFunctionCall
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? arguments = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,arguments: null == arguments ? _self.arguments : arguments // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnFunctionCall].
+extension SnFunctionCallPatterns on SnFunctionCall {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnFunctionCall value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnFunctionCall() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnFunctionCall value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnFunctionCall():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnFunctionCall value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnFunctionCall() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String arguments)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnFunctionCall() when $default != null:
+return $default(_that.id,_that.name,_that.arguments);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String arguments)  $default,) {final _that = this;
+switch (_that) {
+case _SnFunctionCall():
+return $default(_that.id,_that.name,_that.arguments);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String arguments)?  $default,) {final _that = this;
+switch (_that) {
+case _SnFunctionCall() when $default != null:
+return $default(_that.id,_that.name,_that.arguments);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnFunctionCall implements SnFunctionCall {
+  const _SnFunctionCall({required this.id, required this.name, required this.arguments});
+  factory _SnFunctionCall.fromJson(Map<String, dynamic> json) => _$SnFunctionCallFromJson(json);
+
+@override final  String id;
+@override final  String name;
+@override final  String arguments;
+
+/// Create a copy of SnFunctionCall
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnFunctionCallCopyWith<_SnFunctionCall> get copyWith => __$SnFunctionCallCopyWithImpl<_SnFunctionCall>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnFunctionCallToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFunctionCall&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.arguments, arguments) || other.arguments == arguments));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,arguments);
+
+@override
+String toString() {
+  return 'SnFunctionCall(id: $id, name: $name, arguments: $arguments)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnFunctionCallCopyWith<$Res> implements $SnFunctionCallCopyWith<$Res> {
+  factory _$SnFunctionCallCopyWith(_SnFunctionCall value, $Res Function(_SnFunctionCall) _then) = __$SnFunctionCallCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name, String arguments
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnFunctionCallCopyWithImpl<$Res>
+    implements _$SnFunctionCallCopyWith<$Res> {
+  __$SnFunctionCallCopyWithImpl(this._self, this._then);
+
+  final _SnFunctionCall _self;
+  final $Res Function(_SnFunctionCall) _then;
+
+/// Create a copy of SnFunctionCall
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? arguments = null,}) {
+  return _then(_SnFunctionCall(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,arguments: null == arguments ? _self.arguments : arguments // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnFunctionResult {
+
+ String get callId; dynamic get result; bool get isError;
+/// Create a copy of SnFunctionResult
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnFunctionResultCopyWith<SnFunctionResult> get copyWith => _$SnFunctionResultCopyWithImpl<SnFunctionResult>(this as SnFunctionResult, _$identity);
+
+  /// Serializes this SnFunctionResult to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFunctionResult&&(identical(other.callId, callId) || other.callId == callId)&&const DeepCollectionEquality().equals(other.result, result)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,callId,const DeepCollectionEquality().hash(result),isError);
+
+@override
+String toString() {
+  return 'SnFunctionResult(callId: $callId, result: $result, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnFunctionResultCopyWith<$Res>  {
+  factory $SnFunctionResultCopyWith(SnFunctionResult value, $Res Function(SnFunctionResult) _then) = _$SnFunctionResultCopyWithImpl;
+@useResult
+$Res call({
+ String callId, dynamic result, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnFunctionResultCopyWithImpl<$Res>
+    implements $SnFunctionResultCopyWith<$Res> {
+  _$SnFunctionResultCopyWithImpl(this._self, this._then);
+
+  final SnFunctionResult _self;
+  final $Res Function(SnFunctionResult) _then;
+
+/// Create a copy of SnFunctionResult
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? callId = null,Object? result = freezed,Object? isError = null,}) {
+  return _then(_self.copyWith(
+callId: null == callId ? _self.callId : callId // ignore: cast_nullable_to_non_nullable
+as String,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as dynamic,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnFunctionResult].
+extension SnFunctionResultPatterns on SnFunctionResult {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnFunctionResult value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnFunctionResult() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnFunctionResult value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnFunctionResult():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnFunctionResult value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnFunctionResult() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String callId,  dynamic result,  bool isError)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnFunctionResult() when $default != null:
+return $default(_that.callId,_that.result,_that.isError);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String callId,  dynamic result,  bool isError)  $default,) {final _that = this;
+switch (_that) {
+case _SnFunctionResult():
+return $default(_that.callId,_that.result,_that.isError);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String callId,  dynamic result,  bool isError)?  $default,) {final _that = this;
+switch (_that) {
+case _SnFunctionResult() when $default != null:
+return $default(_that.callId,_that.result,_that.isError);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnFunctionResult implements SnFunctionResult {
+  const _SnFunctionResult({required this.callId, required this.result, required this.isError});
+  factory _SnFunctionResult.fromJson(Map<String, dynamic> json) => _$SnFunctionResultFromJson(json);
+
+@override final  String callId;
+@override final  dynamic result;
+@override final  bool isError;
+
+/// Create a copy of SnFunctionResult
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnFunctionResultCopyWith<_SnFunctionResult> get copyWith => __$SnFunctionResultCopyWithImpl<_SnFunctionResult>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnFunctionResultToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFunctionResult&&(identical(other.callId, callId) || other.callId == callId)&&const DeepCollectionEquality().equals(other.result, result)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,callId,const DeepCollectionEquality().hash(result),isError);
+
+@override
+String toString() {
+  return 'SnFunctionResult(callId: $callId, result: $result, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnFunctionResultCopyWith<$Res> implements $SnFunctionResultCopyWith<$Res> {
+  factory _$SnFunctionResultCopyWith(_SnFunctionResult value, $Res Function(_SnFunctionResult) _then) = __$SnFunctionResultCopyWithImpl;
+@override @useResult
+$Res call({
+ String callId, dynamic result, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnFunctionResultCopyWithImpl<$Res>
+    implements _$SnFunctionResultCopyWith<$Res> {
+  __$SnFunctionResultCopyWithImpl(this._self, this._then);
+
+  final _SnFunctionResult _self;
+  final $Res Function(_SnFunctionResult) _then;
+
+/// Create a copy of SnFunctionResult
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? callId = null,Object? result = freezed,Object? isError = null,}) {
+  return _then(_SnFunctionResult(
+callId: null == callId ? _self.callId : callId // ignore: cast_nullable_to_non_nullable
+as String,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as dynamic,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnThinkingMessagePart {
+
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnThinkingMessagePartCopyWith<SnThinkingMessagePart> get copyWith => _$SnThinkingMessagePartCopyWithImpl<SnThinkingMessagePart>(this as SnThinkingMessagePart, _$identity);
+
+  /// Serializes this SnThinkingMessagePart to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,text,functionCall,functionResult);
+
+@override
+String toString() {
+  return 'SnThinkingMessagePart(type: $type, text: $text, functionCall: $functionCall, functionResult: $functionResult)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnThinkingMessagePartCopyWith<$Res>  {
+  factory $SnThinkingMessagePartCopyWith(SnThinkingMessagePart value, $Res Function(SnThinkingMessagePart) _then) = _$SnThinkingMessagePartCopyWithImpl;
+@useResult
+$Res call({
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+});
+
+
+$SnFunctionCallCopyWith<$Res>? get functionCall;$SnFunctionResultCopyWith<$Res>? get functionResult;
+
+}
+/// @nodoc
+class _$SnThinkingMessagePartCopyWithImpl<$Res>
+    implements $SnThinkingMessagePartCopyWith<$Res> {
+  _$SnThinkingMessagePartCopyWithImpl(this._self, this._then);
+
+  final SnThinkingMessagePart _self;
+  final $Res Function(SnThinkingMessagePart) _then;
+
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? text = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
+as SnFunctionResult?,
+  ));
+}
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnFunctionCallCopyWith<$Res>? get functionCall {
+    if (_self.functionCall == null) {
+    return null;
+  }
+
+  return $SnFunctionCallCopyWith<$Res>(_self.functionCall!, (value) {
+    return _then(_self.copyWith(functionCall: value));
+  });
+}/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnFunctionResultCopyWith<$Res>? get functionResult {
+    if (_self.functionResult == null) {
+    return null;
+  }
+
+  return $SnFunctionResultCopyWith<$Res>(_self.functionResult!, (value) {
+    return _then(_self.copyWith(functionResult: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnThinkingMessagePart].
+extension SnThinkingMessagePartPatterns on SnThinkingMessagePart {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnThinkingMessagePart value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnThinkingMessagePart value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnThinkingMessagePart value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart() when $default != null:
+return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart():
+return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
+switch (_that) {
+case _SnThinkingMessagePart() when $default != null:
+return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnThinkingMessagePart implements SnThinkingMessagePart {
+  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, this.functionCall, this.functionResult});
+  factory _SnThinkingMessagePart.fromJson(Map<String, dynamic> json) => _$SnThinkingMessagePartFromJson(json);
+
+@override@ThinkingMessagePartTypeConverter() final  ThinkingMessagePartType type;
+@override final  String? text;
+@override final  SnFunctionCall? functionCall;
+@override final  SnFunctionResult? functionResult;
+
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnThinkingMessagePartCopyWith<_SnThinkingMessagePart> get copyWith => __$SnThinkingMessagePartCopyWithImpl<_SnThinkingMessagePart>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnThinkingMessagePartToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,text,functionCall,functionResult);
+
+@override
+String toString() {
+  return 'SnThinkingMessagePart(type: $type, text: $text, functionCall: $functionCall, functionResult: $functionResult)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnThinkingMessagePartCopyWith<$Res> implements $SnThinkingMessagePartCopyWith<$Res> {
+  factory _$SnThinkingMessagePartCopyWith(_SnThinkingMessagePart value, $Res Function(_SnThinkingMessagePart) _then) = __$SnThinkingMessagePartCopyWithImpl;
+@override @useResult
+$Res call({
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+});
+
+
+@override $SnFunctionCallCopyWith<$Res>? get functionCall;@override $SnFunctionResultCopyWith<$Res>? get functionResult;
+
+}
+/// @nodoc
+class __$SnThinkingMessagePartCopyWithImpl<$Res>
+    implements _$SnThinkingMessagePartCopyWith<$Res> {
+  __$SnThinkingMessagePartCopyWithImpl(this._self, this._then);
+
+  final _SnThinkingMessagePart _self;
+  final $Res Function(_SnThinkingMessagePart) _then;
+
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? text = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+  return _then(_SnThinkingMessagePart(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
+as SnFunctionResult?,
+  ));
+}
+
+/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnFunctionCallCopyWith<$Res>? get functionCall {
+    if (_self.functionCall == null) {
+    return null;
+  }
+
+  return $SnFunctionCallCopyWith<$Res>(_self.functionCall!, (value) {
+    return _then(_self.copyWith(functionCall: value));
+  });
+}/// Create a copy of SnThinkingMessagePart
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnFunctionResultCopyWith<$Res>? get functionResult {
+    if (_self.functionResult == null) {
+    return null;
+  }
+
+  return $SnFunctionResultCopyWith<$Res>(_self.functionResult!, (value) {
+    return _then(_self.copyWith(functionResult: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$SnThinkingSequence {
 
  String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
@@ -852,7 +1692,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnThinkingThought {
 
- String get id; String? get content; List<SnCloudFile> get files; List<SnThinkingChunk> get chunks;@ThinkingThoughtRoleConverter() ThinkingThoughtRole get role; int? get tokenCount; String? get modelName; String get sequenceId; SnThinkingSequence? get sequence; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; List<SnThinkingMessagePart> get parts; List<SnCloudFile> get files;@ThinkingThoughtRoleConverter() ThinkingThoughtRole get role; int? get tokenCount; String? get modelName; String get sequenceId; SnThinkingSequence? get sequence; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -865,16 +1705,16 @@ $SnThinkingThoughtCopyWith<SnThinkingThought> get copyWith => _$SnThinkingThough
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.files, files)&&const DeepCollectionEquality().equals(other.chunks, chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingThought&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.parts, parts)&&const DeepCollectionEquality().equals(other.files, files)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(files),const DeepCollectionEquality().hash(chunks),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(parts),const DeepCollectionEquality().hash(files),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingThought(id: $id, parts: $parts, files: $files, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -885,7 +1725,7 @@ abstract mixin class $SnThinkingThoughtCopyWith<$Res>  {
   factory $SnThinkingThoughtCopyWith(SnThinkingThought value, $Res Function(SnThinkingThought) _then) = _$SnThinkingThoughtCopyWithImpl;
 @useResult
 $Res call({
- String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, List<SnThinkingMessagePart> parts, List<SnCloudFile> files,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -902,13 +1742,12 @@ class _$SnThinkingThoughtCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? parts = null,Object? files = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String?,files: null == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,chunks: null == chunks ? _self.chunks : chunks // ignore: cast_nullable_to_non_nullable
-as List<SnThinkingChunk>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,parts: null == parts ? _self.parts : parts // ignore: cast_nullable_to_non_nullable
+as List<SnThinkingMessagePart>,files: null == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFile>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as ThinkingThoughtRole,tokenCount: freezed == tokenCount ? _self.tokenCount : tokenCount // ignore: cast_nullable_to_non_nullable
 as int?,modelName: freezed == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String?,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
@@ -1010,10 +1849,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<SnThinkingMessagePart> parts,  List<SnCloudFile> files, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingThought() when $default != null:
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.parts,_that.files,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1031,10 +1870,10 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<SnThinkingMessagePart> parts,  List<SnCloudFile> files, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingThought():
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.parts,_that.files,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1048,10 +1887,10 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<SnThinkingMessagePart> parts,  List<SnCloudFile> files, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingThought() when $default != null:
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.parts,_that.files,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1063,23 +1902,22 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 @JsonSerializable()
 
 class _SnThinkingThought implements SnThinkingThought {
-  const _SnThinkingThought({required this.id, this.content, final  List<SnCloudFile> files = const [], final  List<SnThinkingChunk> chunks = const [], @ThinkingThoughtRoleConverter() required this.role, this.tokenCount, this.modelName, required this.sequenceId, this.sequence, required this.createdAt, required this.updatedAt, this.deletedAt}): _files = files,_chunks = chunks;
+  const _SnThinkingThought({required this.id, final  List<SnThinkingMessagePart> parts = const [], final  List<SnCloudFile> files = const [], @ThinkingThoughtRoleConverter() required this.role, this.tokenCount, this.modelName, required this.sequenceId, this.sequence, required this.createdAt, required this.updatedAt, this.deletedAt}): _parts = parts,_files = files;
   factory _SnThinkingThought.fromJson(Map<String, dynamic> json) => _$SnThinkingThoughtFromJson(json);
 
 @override final  String id;
-@override final  String? content;
+ final  List<SnThinkingMessagePart> _parts;
+@override@JsonKey() List<SnThinkingMessagePart> get parts {
+  if (_parts is EqualUnmodifiableListView) return _parts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_parts);
+}
+
  final  List<SnCloudFile> _files;
 @override@JsonKey() List<SnCloudFile> get files {
   if (_files is EqualUnmodifiableListView) return _files;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_files);
-}
-
- final  List<SnThinkingChunk> _chunks;
-@override@JsonKey() List<SnThinkingChunk> get chunks {
-  if (_chunks is EqualUnmodifiableListView) return _chunks;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_chunks);
 }
 
 @override@ThinkingThoughtRoleConverter() final  ThinkingThoughtRole role;
@@ -1104,16 +1942,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._files, _files)&&const DeepCollectionEquality().equals(other._chunks, _chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingThought&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._parts, _parts)&&const DeepCollectionEquality().equals(other._files, _files)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(_files),const DeepCollectionEquality().hash(_chunks),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_parts),const DeepCollectionEquality().hash(_files),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingThought(id: $id, parts: $parts, files: $files, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1124,7 +1962,7 @@ abstract mixin class _$SnThinkingThoughtCopyWith<$Res> implements $SnThinkingTho
   factory _$SnThinkingThoughtCopyWith(_SnThinkingThought value, $Res Function(_SnThinkingThought) _then) = __$SnThinkingThoughtCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, List<SnThinkingMessagePart> parts, List<SnCloudFile> files,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1141,13 +1979,12 @@ class __$SnThinkingThoughtCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? parts = null,Object? files = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnThinkingThought(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String?,files: null == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,chunks: null == chunks ? _self._chunks : chunks // ignore: cast_nullable_to_non_nullable
-as List<SnThinkingChunk>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,parts: null == parts ? _self._parts : parts // ignore: cast_nullable_to_non_nullable
+as List<SnThinkingMessagePart>,files: null == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFile>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as ThinkingThoughtRole,tokenCount: freezed == tokenCount ? _self.tokenCount : tokenCount // ignore: cast_nullable_to_non_nullable
 as int?,modelName: freezed == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String?,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable

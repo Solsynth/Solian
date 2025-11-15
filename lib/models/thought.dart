@@ -38,6 +38,31 @@ class ThinkingChunkTypeConverter
   int toJson(ThinkingChunkType object) => object.value;
 }
 
+enum ThinkingMessagePartType {
+  text(0),
+  functionCall(1),
+  functionResult(2);
+
+  const ThinkingMessagePartType(this.value);
+  final int value;
+
+  static ThinkingMessagePartType fromValue(int value) {
+    return values.firstWhere((e) => e.value == value, orElse: () => text);
+  }
+}
+
+class ThinkingMessagePartTypeConverter
+    implements JsonConverter<ThinkingMessagePartType, int> {
+  const ThinkingMessagePartTypeConverter();
+
+  @override
+  ThinkingMessagePartType fromJson(int json) =>
+      ThinkingMessagePartType.fromValue(json);
+
+  @override
+  int toJson(ThinkingMessagePartType object) => object.value;
+}
+
 @freezed
 sealed class StreamThinkingRequest with _$StreamThinkingRequest {
   const factory StreamThinkingRequest({
@@ -78,6 +103,43 @@ sealed class SnThinkingChunk with _$SnThinkingChunk {
 }
 
 @freezed
+sealed class SnFunctionCall with _$SnFunctionCall {
+  const factory SnFunctionCall({
+    required String id,
+    required String name,
+    required String arguments,
+  }) = _SnFunctionCall;
+
+  factory SnFunctionCall.fromJson(Map<String, dynamic> json) =>
+      _$SnFunctionCallFromJson(json);
+}
+
+@freezed
+sealed class SnFunctionResult with _$SnFunctionResult {
+  const factory SnFunctionResult({
+    required String callId,
+    required dynamic result,
+    required bool isError,
+  }) = _SnFunctionResult;
+
+  factory SnFunctionResult.fromJson(Map<String, dynamic> json) =>
+      _$SnFunctionResultFromJson(json);
+}
+
+@freezed
+sealed class SnThinkingMessagePart with _$SnThinkingMessagePart {
+  const factory SnThinkingMessagePart({
+    @ThinkingMessagePartTypeConverter() required ThinkingMessagePartType type,
+    String? text,
+    SnFunctionCall? functionCall,
+    SnFunctionResult? functionResult,
+  }) = _SnThinkingMessagePart;
+
+  factory SnThinkingMessagePart.fromJson(Map<String, dynamic> json) =>
+      _$SnThinkingMessagePartFromJson(json);
+}
+
+@freezed
 sealed class SnThinkingSequence with _$SnThinkingSequence {
   const factory SnThinkingSequence({
     required String id,
@@ -98,9 +160,8 @@ sealed class SnThinkingSequence with _$SnThinkingSequence {
 sealed class SnThinkingThought with _$SnThinkingThought {
   const factory SnThinkingThought({
     required String id,
-    String? content,
+    @Default([]) List<SnThinkingMessagePart> parts,
     @Default([]) List<SnCloudFile> files,
-    @Default([]) List<SnThinkingChunk> chunks,
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
     int? tokenCount,
     String? modelName,

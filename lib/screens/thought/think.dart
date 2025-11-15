@@ -10,7 +10,6 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/thought.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/userinfo.dart";
-import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/response.dart";
 import "package:island/widgets/thought/thought_sequence_list.dart";
@@ -52,8 +51,7 @@ class ThoughtScreen extends HookConsumerWidget {
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
     final isStreaming = useState(false);
-    final streamingText = useState<String>('');
-    final functionCalls = useState<List<String>>([]);
+    final streamingParts = useState<List<SnThinkingMessagePart>>([]);
     final reasoningChunks = useState<List<String>>([]);
 
     final listController = useMemoized(() => ListController(), []);
@@ -114,7 +112,12 @@ class ThoughtScreen extends HookConsumerWidget {
       final now = DateTime.now();
       final userThought = SnThinkingThought(
         id: 'user-${DateTime.now().millisecondsSinceEpoch}',
-        content: userMessage,
+        parts: [
+          SnThinkingMessagePart(
+            type: ThinkingMessagePartType.text,
+            text: userMessage,
+          ),
+        ],
         files: [],
         role: ThinkingThoughtRole.user,
         sequenceId: selectedSequenceId.value ?? '',
@@ -148,8 +151,7 @@ class ThoughtScreen extends HookConsumerWidget {
 
       try {
         isStreaming.value = true;
-        streamingText.value = '';
-        functionCalls.value = [];
+        streamingParts.value = [];
         reasoningChunks.value = [];
 
         final apiClient = ref.read(apiClientProvider);
@@ -183,11 +185,39 @@ class ThoughtScreen extends HookConsumerWidget {
                   final type = event['type'];
                   final eventData = event['data'];
                   if (type == 'text') {
-                    streamingText.value += eventData;
+                    if (streamingParts.value.isNotEmpty &&
+                        streamingParts.value.last.type ==
+                            ThinkingMessagePartType.text) {
+                      final last = streamingParts.value.last;
+                      final newParts = [...streamingParts.value];
+                      newParts[newParts.length - 1] = last.copyWith(
+                        text: (last.text ?? '') + eventData,
+                      );
+                      streamingParts.value = newParts;
+                    } else {
+                      streamingParts.value = [
+                        ...streamingParts.value,
+                        SnThinkingMessagePart(
+                          type: ThinkingMessagePartType.text,
+                          text: eventData,
+                        ),
+                      ];
+                    }
                   } else if (type == 'function_call') {
-                    functionCalls.value = [
-                      ...functionCalls.value,
-                      JsonEncoder.withIndent('  ').convert(eventData),
+                    streamingParts.value = [
+                      ...streamingParts.value,
+                      SnThinkingMessagePart(
+                        type: ThinkingMessagePartType.functionCall,
+                        functionCall: SnFunctionCall.fromJson(eventData),
+                      ),
+                    ];
+                  } else if (type == 'function_result') {
+                    streamingParts.value = [
+                      ...streamingParts.value,
+                      SnThinkingMessagePart(
+                        type: ThinkingMessagePartType.functionResult,
+                        functionResult: SnFunctionResult.fromJson(eventData),
+                      ),
                     ];
                   } else if (type == 'reasoning') {
                     reasoningChunks.value = [
@@ -218,16 +248,61 @@ class ThoughtScreen extends HookConsumerWidget {
           onDone: () {
             if (isStreaming.value) {
               isStreaming.value = false;
-              showErrorAlert('thoughtParseError'.tr());
+              // Add error thought to the list for incomplete response
+              final now = DateTime.now();
+              final errorThought = SnThinkingThought(
+                id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+                parts: [
+                  SnThinkingMessagePart(
+                    type: ThinkingMessagePartType.text,
+                    text: 'Error: ${'thoughtParseError'.tr()}',
+                  ),
+                ],
+                files: [],
+                role: ThinkingThoughtRole.assistant,
+                sequenceId: selectedSequenceId.value ?? '',
+                createdAt: now,
+                updatedAt: now,
+                sequence: SnThinkingSequence(
+                  id: selectedSequenceId.value ?? '',
+                  accountId: '',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              );
+              localThoughts.value = [errorThought, ...localThoughts.value];
             }
           },
           onError: (error) {
             isStreaming.value = false;
-            if (error is DioException && error.response?.data is ResponseBody) {
-              showErrorAlert('toughtParseError'.tr());
-            } else {
-              showErrorAlert(error);
-            }
+
+            // Add error thought to the list
+            final now = DateTime.now();
+            final errorMessage =
+                error is DioException && error.response?.data is ResponseBody
+                    ? 'toughtParseError'.tr()
+                    : error.toString();
+            final errorThought = SnThinkingThought(
+              id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+              parts: [
+                SnThinkingMessagePart(
+                  type: ThinkingMessagePartType.text,
+                  text: 'Error: $errorMessage',
+                ),
+              ],
+              files: [],
+              role: ThinkingThoughtRole.assistant,
+              sequenceId: selectedSequenceId.value ?? '',
+              createdAt: now,
+              updatedAt: now,
+              sequence: SnThinkingSequence(
+                id: selectedSequenceId.value ?? '',
+                accountId: '',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+            localThoughts.value = [errorThought, ...localThoughts.value];
           },
         );
 
@@ -235,7 +310,32 @@ class ThoughtScreen extends HookConsumerWidget {
         FocusManager.instance.primaryFocus?.unfocus();
       } catch (error) {
         isStreaming.value = false;
-        showErrorAlert(error);
+
+        // Add error thought to the list for initial request errors
+        final now = DateTime.now();
+        final userInfo = ref.read(userInfoProvider);
+        final errorMessage = error.toString();
+        final errorThought = SnThinkingThought(
+          id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+          parts: [
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.text,
+              text: 'Error: $errorMessage',
+            ),
+          ],
+          files: [],
+          role: ThinkingThoughtRole.assistant,
+          sequenceId: selectedSequenceId.value ?? '',
+          createdAt: now,
+          updatedAt: now,
+          sequence: SnThinkingSequence(
+            id: selectedSequenceId.value ?? '',
+            accountId: userInfo.value!.id,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        localThoughts.value = [errorThought, ...localThoughts.value];
       }
     }
 
@@ -302,11 +402,36 @@ class ThoughtScreen extends HookConsumerWidget {
                                 (isStreaming.value ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (isStreaming.value && index == 0) {
+                                final streamingText = streamingParts.value
+                                    .where(
+                                      (p) =>
+                                          p.type ==
+                                          ThinkingMessagePartType.text,
+                                    )
+                                    .map((p) => p.text ?? '')
+                                    .join('');
+                                final streamingFunctionCalls =
+                                    streamingParts.value
+                                        .where(
+                                          (p) =>
+                                              p.type ==
+                                              ThinkingMessagePartType
+                                                  .functionCall,
+                                        )
+                                        .map(
+                                          (p) => JsonEncoder.withIndent(
+                                            '  ',
+                                          ).convert(
+                                            p.functionCall?.toJson() ?? {},
+                                          ),
+                                        )
+                                        .toList();
                                 return ThoughtItem(
                                   isStreaming: true,
-                                  streamingText: streamingText.value,
+                                  streamingText: streamingText,
                                   reasoningChunks: reasoningChunks.value,
-                                  streamingFunctionCalls: functionCalls.value,
+                                  streamingFunctionCalls:
+                                      streamingFunctionCalls,
                                 );
                               }
                               final thoughtIndex =

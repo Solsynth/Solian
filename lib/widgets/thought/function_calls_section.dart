@@ -30,9 +30,9 @@ class _FunctionCallsSectionState extends State<FunctionCallsSection> {
     if (widget.isStreaming) {
       return widget.streamingFunctionCalls.isNotEmpty;
     } else {
-      return widget.thought!.chunks.isNotEmpty &&
-          widget.thought!.chunks.any(
-            (chunk) => chunk.type == ThinkingChunkType.functionCall,
+      return widget.thought!.parts.isNotEmpty &&
+          widget.thought!.parts.any(
+            (part) => part.type == ThinkingMessagePartType.functionCall,
           );
     }
   }
@@ -115,13 +115,14 @@ class _FunctionCallsSectionState extends State<FunctionCallsSection> {
                         ),
                       ),
                     ] else ...[
-                      ...widget.thought!.chunks
+                      ...widget.thought!.parts
                           .where(
-                            (chunk) =>
-                                chunk.type == ThinkingChunkType.functionCall,
+                            (part) =>
+                                part.type ==
+                                ThinkingMessagePartType.functionCall,
                           )
                           .map(
-                            (chunk) => Container(
+                            (part) => Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(8),
                               margin: const EdgeInsets.only(bottom: 4),
@@ -138,7 +139,7 @@ class _FunctionCallsSectionState extends State<FunctionCallsSection> {
                               child: SelectableText(
                                 JsonEncoder.withIndent(
                                   '  ',
-                                ).convert(chunk.data),
+                                ).convert(part.functionCall?.toJson() ?? {}),
                                 style: GoogleFonts.robotoMono(
                                   fontSize: 11,
                                   color:

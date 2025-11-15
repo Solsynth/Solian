@@ -211,8 +211,13 @@ class ThoughtItem extends StatelessWidget {
         (!isStreaming && thought!.role == ThinkingThoughtRole.assistant);
 
     final List<Map<String, String>> proposals =
-        !isStreaming && thought!.content != null
-            ? _extractProposals(thought!.content!)
+        !isStreaming
+            ? _extractProposals(
+              thought!.parts
+                  .where((p) => p.type == ThinkingMessagePartType.text)
+                  .map((p) => p.text ?? '')
+                  .join(''),
+            )
             : [];
 
     return Container(
@@ -251,10 +256,10 @@ class ThoughtItem extends StatelessWidget {
 
                 // Function calls
                 if (streamingFunctionCalls.isNotEmpty ||
-                    (thought?.chunks.isNotEmpty ?? false) &&
-                        thought!.chunks.any(
-                          (chunk) =>
-                              chunk.type == ThinkingChunkType.functionCall,
+                    (thought?.parts.isNotEmpty ?? false) &&
+                        thought!.parts.any(
+                          (part) =>
+                              part.type == ThinkingMessagePartType.functionCall,
                         ))
                   FunctionCallsSection(
                     isStreaming: isStreaming,

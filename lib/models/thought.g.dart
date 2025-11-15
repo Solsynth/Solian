@@ -50,6 +50,64 @@ Map<String, dynamic> _$SnThinkingChunkToJson(_SnThinkingChunk instance) =>
       'data': instance.data,
     };
 
+_SnFunctionCall _$SnFunctionCallFromJson(Map<String, dynamic> json) =>
+    _SnFunctionCall(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      arguments: json['arguments'] as String,
+    );
+
+Map<String, dynamic> _$SnFunctionCallToJson(_SnFunctionCall instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'arguments': instance.arguments,
+    };
+
+_SnFunctionResult _$SnFunctionResultFromJson(Map<String, dynamic> json) =>
+    _SnFunctionResult(
+      callId: json['call_id'] as String,
+      result: json['result'],
+      isError: json['is_error'] as bool,
+    );
+
+Map<String, dynamic> _$SnFunctionResultToJson(_SnFunctionResult instance) =>
+    <String, dynamic>{
+      'call_id': instance.callId,
+      'result': instance.result,
+      'is_error': instance.isError,
+    };
+
+_SnThinkingMessagePart _$SnThinkingMessagePartFromJson(
+  Map<String, dynamic> json,
+) => _SnThinkingMessagePart(
+  type: const ThinkingMessagePartTypeConverter().fromJson(
+    (json['type'] as num).toInt(),
+  ),
+  text: json['text'] as String?,
+  functionCall:
+      json['function_call'] == null
+          ? null
+          : SnFunctionCall.fromJson(
+            json['function_call'] as Map<String, dynamic>,
+          ),
+  functionResult:
+      json['function_result'] == null
+          ? null
+          : SnFunctionResult.fromJson(
+            json['function_result'] as Map<String, dynamic>,
+          ),
+);
+
+Map<String, dynamic> _$SnThinkingMessagePartToJson(
+  _SnThinkingMessagePart instance,
+) => <String, dynamic>{
+  'type': const ThinkingMessagePartTypeConverter().toJson(instance.type),
+  'text': instance.text,
+  'function_call': instance.functionCall?.toJson(),
+  'function_result': instance.functionResult?.toJson(),
+};
+
 _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
     _SnThinkingSequence(
       id: json['id'] as String,
@@ -80,15 +138,17 @@ Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
 _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
     _SnThinkingThought(
       id: json['id'] as String,
-      content: json['content'] as String?,
+      parts:
+          (json['parts'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    SnThinkingMessagePart.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
       files:
           (json['files'] as List<dynamic>?)
               ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      chunks:
-          (json['chunks'] as List<dynamic>?)
-              ?.map((e) => SnThinkingChunk.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       role: const ThinkingThoughtRoleConverter().fromJson(
@@ -114,9 +174,8 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'content': instance.content,
+      'parts': instance.parts.map((e) => e.toJson()).toList(),
       'files': instance.files.map((e) => e.toJson()).toList(),
-      'chunks': instance.chunks.map((e) => e.toJson()).toList(),
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
       'token_count': instance.tokenCount,
       'model_name': instance.modelName,
