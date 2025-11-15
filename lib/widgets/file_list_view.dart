@@ -10,9 +10,9 @@ import 'package:island/models/file.dart';
 import 'package:island/pods/file_list.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file_uploader.dart';
+import 'package:island/utils/file_icon_utils.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -81,8 +81,6 @@ class FileListView extends HookConsumerWidget {
                           },
                           unindexedFile: (unindexedFileItem) {
                             final file = unindexedFileItem.file;
-                            final itemType =
-                                file.mimeType?.split('/').firstOrNull;
                             return ListTile(
                               leading: ClipRRect(
                                 borderRadius: const BorderRadius.all(
@@ -91,24 +89,7 @@ class FileListView extends HookConsumerWidget {
                                 child: SizedBox(
                                   height: 48,
                                   width: 48,
-                                  child: switch (itemType) {
-                                    'image' => CloudImageWidget(file: file),
-                                    'audio' =>
-                                      const Icon(
-                                        Symbols.audio_file,
-                                        fill: 1,
-                                      ).center(),
-                                    'video' =>
-                                      const Icon(
-                                        Symbols.video_file,
-                                        fill: 1,
-                                      ).center(),
-                                    _ =>
-                                      const Icon(
-                                        Symbols.body_system,
-                                        fill: 1,
-                                      ).center(),
-                                  },
+                                  child: getFileIcon(file, size: 24),
                                 ),
                               ),
                               title:
@@ -179,8 +160,6 @@ class FileListView extends HookConsumerWidget {
                         return item.map(
                           file: (fileItem) {
                             final file = fileItem.fileIndex.file;
-                            final itemType =
-                                file.mimeType?.split('/').firstOrNull;
                             return ListTile(
                               leading: ClipRRect(
                                 borderRadius: const BorderRadius.all(
@@ -189,24 +168,7 @@ class FileListView extends HookConsumerWidget {
                                 child: SizedBox(
                                   height: 48,
                                   width: 48,
-                                  child: switch (itemType) {
-                                    'image' => CloudImageWidget(file: file),
-                                    'audio' =>
-                                      const Icon(
-                                        Symbols.audio_file,
-                                        fill: 1,
-                                      ).center(),
-                                    'video' =>
-                                      const Icon(
-                                        Symbols.video_file,
-                                        fill: 1,
-                                      ).center(),
-                                    _ =>
-                                      const Icon(
-                                        Symbols.body_system,
-                                        fill: 1,
-                                      ).center(),
-                                  },
+                                  child: getFileIcon(file, size: 24),
                                 ),
                               ),
                               title:
