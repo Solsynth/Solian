@@ -11,6 +11,7 @@ import 'package:island/models/file.dart';
 import 'package:island/pods/file_list.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file_uploader.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/utils/file_icon_utils.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
@@ -218,15 +219,14 @@ class FileListView extends HookConsumerWidget {
             const Gap(8),
             _buildPathNavigation(ref, currentPath),
             const Gap(8),
+            if (mode.value == FileListMode.normal && currentPath.value == '/')
+              _buildUnindexedFilesEntry(ref).padding(bottom: 12),
             Expanded(
               child: CustomScrollView(
-                slivers: [
-                  bodyWidget,
-                  const SliverGap(12),
-                  if (mode.value == FileListMode.normal &&
-                      currentPath.value == '/')
-                    SliverToBoxAdapter(child: _buildUnindexedFilesEntry(ref)),
-                ],
+                slivers: [bodyWidget, const SliverGap(12)],
+              ).padding(
+                horizontal:
+                    viewMode.value == FileListViewMode.waterfall ? 12 : null,
               ),
             ),
           ],
@@ -244,16 +244,32 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
     ValueNotifier<FileListViewMode> currentViewMode,
   ) {
-    return switch (currentViewMode.value) {
+    // Check if all files are images
+    final fileItems = items.whereType<FileItem>();
+    final allFilesAreImages =
+        fileItems.isNotEmpty &&
+        fileItems.every(
+          (fileItem) =>
+              fileItem.fileIndex.file.mimeType?.startsWith('image/') == true,
+        );
+
+    return switch (allFilesAreImages
+        ? FileListViewMode.waterfall
+        : currentViewMode.value) {
+      // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
-        gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: isWideScreen(context) ? 340 : 240,
         ),
-        mainAxisSpacing: 8,
         crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
         delegate: SliverChildBuilderDelegate((context, index) {
           if (index == widgetCount - 1) {
             return endItemView;
+          }
+
+          if (index >= items.length) {
+            return const SizedBox.shrink();
           }
 
           final item = items[index];
@@ -267,8 +283,9 @@ class FileListView extends HookConsumerWidget {
               return const SizedBox.shrink();
             },
           );
-        }),
+        }, childCount: widgetCount),
       ),
+      // ListView mode
       _ => SliverList.builder(
         itemCount: widgetCount,
         itemBuilder: (context, index) {
@@ -721,6 +738,7 @@ class FileListView extends HookConsumerWidget {
     BuildContext context,
   ) {
     return InkWell(
+      borderRadius: BorderRadius.circular(8),
       onTap: () {
         final newPath =
             currentPath.value == '/'
@@ -731,32 +749,35 @@ class FileListView extends HookConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Symbols.folder,
-              fill: 1,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const Gap(8),
-            Text(
-              folderItem.folderName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ],
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Symbols.folder,
+                fill: 1,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const Gap(8),
+              Text(
+                folderItem.folderName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
         ),
       ),
     );
