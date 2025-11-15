@@ -26,6 +26,8 @@ class FileListScreen extends HookConsumerWidget {
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
 
+    final viewMode = useState(FileListViewMode.list);
+
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
@@ -56,6 +58,7 @@ class FileListScreen extends HookConsumerWidget {
                         () => _pickAndUploadFile(ref, currentPath.value),
                     onShowCreateDirectory: _showCreateDirectoryDialog,
                     mode: mode,
+                    viewMode: viewMode,
                   ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error loading quota')),
