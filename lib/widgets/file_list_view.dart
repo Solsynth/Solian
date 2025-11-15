@@ -70,81 +70,13 @@ class FileListView extends HookConsumerWidget {
                     ? SliverToBoxAdapter(
                       child: _buildEmptyUnindexedFilesHint(ref),
                     )
-                    : SliverList.builder(
-                      itemCount: widgetCount,
-                      itemBuilder: (context, index) {
-                        if (index == widgetCount - 1) {
-                          return endItemView;
-                        }
-
-                        final item = data.items[index];
-                        return item.map(
-                          file: (fileItem) {
-                            // This should not happen in unindexed mode
-                            return const SizedBox.shrink();
-                          },
-                          folder: (folderItem) {
-                            // This should not happen in unindexed mode
-                            return const SizedBox.shrink();
-                          },
-                          unindexedFile: (unindexedFileItem) {
-                            final file = unindexedFileItem.file;
-                            return ListTile(
-                              leading: ClipRRect(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(8),
-                                ),
-                                child: SizedBox(
-                                  height: 48,
-                                  width: 48,
-                                  child: getFileIcon(file, size: 24),
-                                ),
-                              ),
-                              title:
-                                  file.name.isEmpty
-                                      ? Text('untitled').tr().italic()
-                                      : Text(
-                                        file.name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                              subtitle: Text(formatFileSize(file.size)),
-                              onTap: () {
-                                context.push('/files/${file.id}', extra: file);
-                              },
-                              trailing: IconButton(
-                                icon: const Icon(Symbols.delete),
-                                onPressed: () async {
-                                  final confirmed = await showConfirmAlert(
-                                    'confirmDeleteFile'.tr(),
-                                    'deleteFile'.tr(),
-                                  );
-                                  if (!confirmed) return;
-
-                                  if (context.mounted) {
-                                    showLoadingModal(context);
-                                  }
-                                  try {
-                                    final client = ref.read(apiClientProvider);
-                                    await client.delete(
-                                      '/drive/files/${file.id}',
-                                    );
-                                    ref.invalidate(
-                                      unindexedFileListNotifierProvider,
-                                    );
-                                  } catch (e) {
-                                    showSnackBar('failedToDeleteFile'.tr());
-                                  } finally {
-                                    if (context.mounted) {
-                                      hideLoadingModal(context);
-                                    }
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        );
-                      },
+                    : _buildUnindexedFileListContent(
+                      data.items,
+                      widgetCount,
+                      endItemView,
+                      ref,
+                      context,
+                      viewMode,
                     ),
       ),
       _ => PagingHelperSliverView(
@@ -468,28 +400,28 @@ class FileListView extends HookConsumerWidget {
               ),
               const Gap(8),
               Expanded(child: pathContent),
-              if (mode.value == FileListMode.normal) ...[
-                IconButton(
-                  icon: Icon(
-                    viewMode.value == FileListViewMode.list
-                        ? Symbols.view_module
-                        : Symbols.list,
-                  ),
-                  onPressed:
-                      () =>
-                          viewMode.value =
-                              viewMode.value == FileListViewMode.list
-                                  ? FileListViewMode.waterfall
-                                  : FileListViewMode.list,
-                  tooltip:
-                      viewMode.value == FileListViewMode.list
-                          ? 'Switch to Waterfall View'
-                          : 'Switch to List View',
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
-                  ),
+              IconButton(
+                icon: Icon(
+                  viewMode.value == FileListViewMode.list
+                      ? Symbols.view_module
+                      : Symbols.list,
                 ),
+                onPressed:
+                    () =>
+                        viewMode.value =
+                            viewMode.value == FileListViewMode.list
+                                ? FileListViewMode.waterfall
+                                : FileListViewMode.list,
+                tooltip:
+                    viewMode.value == FileListViewMode.list
+                        ? 'Switch to Waterfall View'
+                        : 'Switch to List View',
+                visualDensity: const VisualDensity(
+                  horizontal: -4,
+                  vertical: -4,
+                ),
+              ),
+              if (mode.value == FileListMode.normal) ...[
                 IconButton(
                   icon: const Icon(Symbols.create_new_folder),
                   onPressed:
@@ -612,7 +544,6 @@ class FileListView extends HookConsumerWidget {
     final ratio =
         meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     final itemType = file.mimeType?.split('/').first;
-    final tileRatio = itemType == 'image' ? ratio : 1.0;
     final uri =
         '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${fileItem.fileIndex.id}';
 
@@ -669,65 +600,86 @@ class FileListView extends HookConsumerWidget {
     }
 
     return InkWell(
+      borderRadius: BorderRadius.circular(8),
       onTap: () {
         context.push('/files/${fileItem.fileIndex.id}', extra: file);
       },
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AspectRatio(
-                aspectRatio: tileRatio,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+              child: AspectRatio(
+                aspectRatio: ratio,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(4),
                   child: Container(color: Colors.white, child: previewWidget),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  file.name.isEmpty ? 'untitled'.tr() : file.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: IconButton(
-              icon: const Icon(Symbols.delete, color: Colors.white),
-              onPressed: () async {
-                final confirmed = await showConfirmAlert(
-                  'confirmDeleteFile'.tr(),
-                  'deleteFile'.tr(),
-                );
-                if (!confirmed) return;
-
-                if (context.mounted) {
-                  showLoadingModal(context);
-                }
-                try {
-                  final client = ref.read(apiClientProvider);
-                  await client.delete(
-                    '/drive/index/remove/${fileItem.fileIndex.id}',
-                  );
-                  ref.invalidate(cloudFileListNotifierProvider);
-                } catch (e) {
-                  showSnackBar('failedToDeleteFile'.tr());
-                } finally {
-                  if (context.mounted) {
-                    hideLoadingModal(context);
-                  }
-                }
-              },
             ),
-          ),
-        ],
+            Row(
+              children: [
+                getFileIcon(file, size: 24),
+                const Gap(16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        file.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        formatFileSize(file.size),
+                        maxLines: 1,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall!.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.delete),
+                  onPressed: () async {
+                    final confirmed = await showConfirmAlert(
+                      'confirmDeleteFile'.tr(),
+                      'deleteFile'.tr(),
+                    );
+                    if (!confirmed) return;
+
+                    if (context.mounted) {
+                      showLoadingModal(context);
+                    }
+                    try {
+                      final client = ref.read(apiClientProvider);
+                      await client.delete(
+                        '/drive/index/remove/${fileItem.fileIndex.id}',
+                      );
+                      ref.invalidate(cloudFileListNotifierProvider);
+                    } catch (e) {
+                      showSnackBar('failedToDeleteFile'.tr());
+                    } finally {
+                      if (context.mounted) {
+                        hideLoadingModal(context);
+                      }
+                    }
+                  },
+                ),
+              ],
+            ).padding(horizontal: 16, vertical: 4),
+          ],
+        ),
       ),
     );
   }
@@ -754,31 +706,287 @@ class FileListView extends HookConsumerWidget {
             color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
           ),
         ),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Symbols.folder,
-                fill: 1,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const Gap(8),
-              Text(
-                folderItem.folderName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.folder,
+              fill: 1,
+              size: 24,
+              color: Theme.of(context).colorScheme.primaryFixedDim,
+            ),
+            const Gap(16),
+            Text(
+              folderItem.folderName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildUnindexedFileListContent(
+    List<FileListItem> items,
+    int widgetCount,
+    Widget endItemView,
+    WidgetRef ref,
+    BuildContext context,
+    ValueNotifier<FileListViewMode> currentViewMode,
+  ) {
+    // Check if all unindexed files are images
+    final unindexedFiles = items.whereType<UnindexedFileItem>();
+    final allFilesAreImages =
+        unindexedFiles.isNotEmpty &&
+        unindexedFiles.every(
+          (unindexedFileItem) =>
+              unindexedFileItem.file.mimeType?.startsWith('image/') == true,
+        );
+
+    return switch (allFilesAreImages
+        ? FileListViewMode.waterfall
+        : currentViewMode.value) {
+      // Waterfall mode
+      FileListViewMode.waterfall => SliverMasonryGrid(
+        gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: isWideScreen(context) ? 340 : 240,
+        ),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        delegate: SliverChildBuilderDelegate((context, index) {
+          if (index == widgetCount - 1) {
+            return endItemView;
+          }
+
+          if (index >= items.length) {
+            return const SizedBox.shrink();
+          }
+
+          final item = items[index];
+          return item.map(
+            file: (fileItem) {
+              // Should not happen in unindexed mode
+              return const SizedBox.shrink();
+            },
+            folder: (folderItem) {
+              // Should not happen in unindexed mode
+              return const SizedBox.shrink();
+            },
+            unindexedFile:
+                (unindexedFileItem) => _buildWaterfallUnindexedFileTile(
+                  unindexedFileItem,
+                  ref,
+                  context,
+                ),
+          );
+        }, childCount: widgetCount),
+      ),
+      // ListView mode
+      _ => SliverList.builder(
+        itemCount: widgetCount,
+        itemBuilder: (context, index) {
+          if (index == widgetCount - 1) {
+            return endItemView;
+          }
+
+          final item = items[index];
+          return item.map(
+            file: (fileItem) {
+              // Should not happen in unindexed mode
+              return const SizedBox.shrink();
+            },
+            folder: (folderItem) {
+              // Should not happen in unindexed mode
+              return const SizedBox.shrink();
+            },
+            unindexedFile:
+                (unindexedFileItem) => _buildListUnindexedFileTile(
+                  unindexedFileItem,
+                  ref,
+                  context,
+                ),
+          );
+        },
+      ),
+    };
+  }
+
+  Widget _buildWaterfallUnindexedFileTile(
+    UnindexedFileItem unindexedFileItem,
+    WidgetRef ref,
+    BuildContext context,
+  ) {
+    final file = unindexedFileItem.file;
+    final meta = file.fileMeta is Map ? (file.fileMeta as Map) : const {};
+    final ratio =
+        meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
+    final itemType = file.mimeType?.split('/').first;
+    final tileRatio = itemType == 'image' ? ratio : 1.0;
+    final uri =
+        '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${file.id}';
+
+    Widget previewWidget;
+    switch (itemType) {
+      case 'image':
+        previewWidget = CloudImageWidget(
+          file: file,
+          aspectRatio: ratio,
+          fit: BoxFit.cover,
+        );
+        break;
+      case 'video':
+        previewWidget = CloudVideoWidget(item: file);
+        break;
+      case 'audio':
+        previewWidget = getFileIcon(file, size: 48);
+        break;
+      case 'text':
+        previewWidget = FutureBuilder<String>(
+          future: ref
+              .read(apiClientProvider)
+              .get(uri)
+              .then((response) => response.data as String),
+          builder:
+              (context, snapshot) =>
+                  snapshot.hasData
+                      ? SingleChildScrollView(
+                        child: Text(
+                          snapshot.data!,
+                          style: const TextStyle(
+                            fontSize: 8,
+                            fontFamily: 'monospace',
+                          ),
+                          maxLines: 20,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                      : const Center(child: CircularProgressIndicator()),
+        );
+        break;
+      case 'application' when file.mimeType == 'application/pdf':
+        previewWidget = SfPdfViewer.network(
+          uri,
+          canShowScrollStatus: false,
+          canShowScrollHead: false,
+          enableDoubleTapZooming: false,
+          pageSpacing: 0,
+        );
+        break;
+      default:
+        previewWidget = getFileIcon(file, size: 48);
+        break;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () {
+        context.push('/files/${file.id}', extra: file);
+      },
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              ),
+            ),
+            child: AspectRatio(
+              aspectRatio: tileRatio,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Container(color: Colors.white, child: previewWidget),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: IconButton(
+              icon: const Icon(Symbols.delete, color: Colors.white),
+              onPressed: () async {
+                final confirmed = await showConfirmAlert(
+                  'confirmDeleteFile'.tr(),
+                  'deleteFile'.tr(),
+                );
+                if (!confirmed) return;
+
+                if (context.mounted) {
+                  showLoadingModal(context);
+                }
+                try {
+                  final client = ref.read(apiClientProvider);
+                  await client.delete('/drive/files/${file.id}');
+                  ref.invalidate(unindexedFileListNotifierProvider);
+                } catch (e) {
+                  showSnackBar('failedToDeleteFile'.tr());
+                } finally {
+                  if (context.mounted) {
+                    hideLoadingModal(context);
+                  }
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListUnindexedFileTile(
+    UnindexedFileItem unindexedFileItem,
+    WidgetRef ref,
+    BuildContext context,
+  ) {
+    final file = unindexedFileItem.file;
+    return ListTile(
+      leading: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: SizedBox(
+          height: 48,
+          width: 48,
+          child: getFileIcon(file, size: 24),
+        ),
+      ),
+      title:
+          file.name.isEmpty
+              ? Text('untitled').tr().italic()
+              : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(formatFileSize(file.size)),
+      onTap: () {
+        context.push('/files/${file.id}', extra: file);
+      },
+      trailing: IconButton(
+        icon: const Icon(Symbols.delete),
+        onPressed: () async {
+          final confirmed = await showConfirmAlert(
+            'confirmDeleteFile'.tr(),
+            'deleteFile'.tr(),
+          );
+          if (!confirmed) return;
+
+          if (context.mounted) {
+            showLoadingModal(context);
+          }
+          try {
+            final client = ref.read(apiClientProvider);
+            await client.delete('/drive/files/${file.id}');
+            ref.invalidate(unindexedFileListNotifierProvider);
+          } catch (e) {
+            showSnackBar('failedToDeleteFile'.tr());
+          } finally {
+            if (context.mounted) {
+              hideLoadingModal(context);
+            }
+          }
+        },
       ),
     );
   }
