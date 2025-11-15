@@ -51,6 +51,7 @@ class ThoughtScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
+        leading: const PageBackButton(),
         actions: [
           IconButton(
             icon: const Icon(Symbols.history),

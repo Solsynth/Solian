@@ -24,6 +24,7 @@ const kTabRoutes = [
   '/realms',
   '/account',
   '/files',
+  '/thought',
   '/creators',
   '/developers',
 ];
@@ -89,6 +90,10 @@ class TabsScreen extends HookConsumerWidget {
           NavigationDestination(
             label: 'files'.tr(),
             icon: const Icon(Symbols.folder_rounded),
+          ),
+          NavigationDestination(
+            label: 'aiThought'.tr(),
+            icon: const Icon(Symbols.bubble_chart),
           ),
           NavigationDestination(
             label: 'creatorHub'.tr(),

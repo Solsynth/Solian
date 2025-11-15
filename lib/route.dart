@@ -128,11 +128,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
-            name: 'thought',
-            path: '/thought',
-            builder: (context, state) => const ThoughtScreen(),
-          ),
-          GoRoute(
             name: 'logs',
             path: '/logs',
             builder: (context, state) => TalkerScreen(talker: talker),
@@ -464,6 +459,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+
+              // SN-chan tab
+              GoRoute(
+                name: 'thought',
+                path: '/thought',
+                builder: (context, state) => const ThoughtScreen(),
               ),
 
               // Creator hub tab

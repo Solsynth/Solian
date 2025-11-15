@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
@@ -51,15 +52,16 @@ class FabMenu extends HookConsumerWidget {
     late final Widget menuContent;
 
     final commonEntires = <Widget>[
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-        leading: const Icon(Symbols.bubble_chart),
-        title: Text('aiThoughtTitle').tr(),
-        onTap: () async {
-          Navigator.of(context).pop();
-          context.pushNamed('thought');
-        },
-      ),
+      if (!isWideScreen(context))
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.bubble_chart),
+          title: Text('aiThoughtTitle').tr(),
+          onTap: () async {
+            Navigator.of(context).pop();
+            context.goNamed('thought');
+          },
+        ),
       Consumer(
         builder: (context, ref, _) {
           final notificationCount = ref.watch(
