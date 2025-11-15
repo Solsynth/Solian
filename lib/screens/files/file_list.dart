@@ -99,9 +99,7 @@ class FileListScreen extends HookConsumerWidget {
             completer.future
                 .then((uploadedFile) {
                   if (uploadedFile != null) {
-                    // Refresh the file list after successful upload
                     ref.invalidate(cloudFileListNotifierProvider);
-                    showSnackBar('File uploaded successfully');
                   }
                 })
                 .catchError((error) {

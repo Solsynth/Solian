@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   dart_ipc
+  desktop_drop
   file_saver
   file_selector_windows
   firebase_core

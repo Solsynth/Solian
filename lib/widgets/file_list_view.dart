@@ -1,3 +1,4 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -5,8 +6,10 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file_list_item.dart';
+import 'package:island/models/file.dart';
 import 'package:island/pods/file_list.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -36,6 +39,8 @@ class FileListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dragging = useState(false);
+
     useEffect(() {
       if (mode.value == FileListMode.normal) {
         final notifier = ref.read(cloudFileListNotifierProvider.notifier);
@@ -291,22 +296,70 @@ class FileListView extends HookConsumerWidget {
       ),
     };
 
-    return Column(
-      children: [
-        const Gap(8),
-        _buildPathNavigation(ref, currentPath),
-        const Gap(8),
-        Expanded(
-          child: CustomScrollView(
-            slivers: [
-              bodyWidget,
-              const SliverGap(12),
-              if (mode.value == FileListMode.normal && currentPath.value == '/')
-                SliverToBoxAdapter(child: _buildUnindexedFilesEntry(ref)),
-            ],
-          ),
+    return DropTarget(
+      onDragDone: (details) async {
+        dragging.value = false;
+        // Handle file upload
+        for (final file in details.files) {
+          final universalFile = UniversalFile(
+            data: file,
+            type: UniversalFileType.file,
+            displayName: file.name,
+          );
+
+          final completer = FileUploader.createCloudFile(
+            fileData: universalFile,
+            ref: ref,
+            path: currentPath.value,
+            onProgress: (progress, _) {
+              // Progress is handled by the upload tasks system
+              if (progress != null) {
+                debugPrint('Upload progress: ${(progress * 100).toInt()}%');
+              }
+            },
+          );
+
+          completer.future
+              .then((uploadedFile) {
+                if (uploadedFile != null) {
+                  ref.invalidate(cloudFileListNotifierProvider);
+                }
+              })
+              .catchError((error) {
+                showSnackBar('Failed to upload file: $error');
+              });
+        }
+      },
+      onDragEntered: (details) {
+        dragging.value = true;
+      },
+      onDragExited: (details) {
+        dragging.value = false;
+      },
+      child: Container(
+        color:
+            dragging.value
+                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                : null,
+        child: Column(
+          children: [
+            const Gap(8),
+            _buildPathNavigation(ref, currentPath),
+            const Gap(8),
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  bodyWidget,
+                  const SliverGap(12),
+                  if (mode.value == FileListMode.normal &&
+                      currentPath.value == '/')
+                    SliverToBoxAdapter(child: _buildUnindexedFilesEntry(ref)),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
