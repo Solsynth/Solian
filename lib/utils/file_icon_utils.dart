@@ -6,18 +6,23 @@ import '../models/file.dart';
 import '../widgets/content/cloud_files.dart';
 
 /// Returns an appropriate icon widget for the given file based on its MIME type
-Widget getFileIcon(SnCloudFile file, {required double size}) {
+Widget getFileIcon(
+  SnCloudFile file, {
+  required double size,
+  bool tinyPreview = true,
+}) {
   final itemType = file.mimeType?.split('/').firstOrNull;
   final mimeType = file.mimeType ?? '';
   final extension = file.name.split('.').lastOrNull?.toLowerCase() ?? '';
 
   // For images, show the actual image thumbnail
-  if (itemType == 'image') {
+  if (itemType == 'image' && tinyPreview) {
     return CloudImageWidget(file: file);
   }
 
   // Return icon based on MIME type or file extension
   final icon = switch ((itemType, mimeType, extension)) {
+    ('image', _, _) => Symbols.image,
     ('audio', _, _) => Symbols.audio_file,
     ('video', _, _) => Symbols.video_file,
     ('application', 'application/pdf', _) => Symbols.picture_as_pdf,

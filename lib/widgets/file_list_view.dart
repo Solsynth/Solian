@@ -176,18 +176,7 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
     ValueNotifier<FileListViewMode> currentViewMode,
   ) {
-    // Check if all files are images
-    final fileItems = items.whereType<FileItem>();
-    final allFilesAreImages =
-        fileItems.isNotEmpty &&
-        fileItems.every(
-          (fileItem) =>
-              fileItem.fileIndex.file.mimeType?.startsWith('image/') == true,
-        );
-
-    return switch (allFilesAreImages
-        ? FileListViewMode.waterfall
-        : currentViewMode.value) {
+    return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
         gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(
@@ -539,13 +528,56 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) {
-    final file = fileItem.fileIndex.file;
+    return _buildWaterfallFileTileBase(
+      fileItem.fileIndex.file,
+      () => '/files/${fileItem.fileIndex.id}',
+      ref,
+      context,
+      [
+        IconButton(
+          icon: const Icon(Symbols.delete),
+          onPressed: () async {
+            final confirmed = await showConfirmAlert(
+              'confirmDeleteFile'.tr(),
+              'deleteFile'.tr(),
+            );
+            if (!confirmed) return;
+
+            if (context.mounted) {
+              showLoadingModal(context);
+            }
+            try {
+              final client = ref.read(apiClientProvider);
+              await client.delete(
+                '/drive/index/remove/${fileItem.fileIndex.id}',
+              );
+              ref.invalidate(cloudFileListNotifierProvider);
+            } catch (e) {
+              showSnackBar('failedToDeleteFile'.tr());
+            } finally {
+              if (context.mounted) {
+                hideLoadingModal(context);
+              }
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaterfallFileTileBase(
+    SnCloudFile file,
+    String Function() getRoutePath,
+    WidgetRef ref,
+    BuildContext context,
+    List<Widget>? actions,
+  ) {
     final meta = file.fileMeta is Map ? (file.fileMeta as Map) : const {};
     final ratio =
         meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     final itemType = file.mimeType?.split('/').first;
     final uri =
-        '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${fileItem.fileIndex.id}';
+        '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${file.id}';
 
     Widget previewWidget;
     switch (itemType) {
@@ -602,7 +634,7 @@ class FileListView extends HookConsumerWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () {
-        context.push('/files/${fileItem.fileIndex.id}', extra: file);
+        context.push(getRoutePath(), extra: file);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -628,7 +660,7 @@ class FileListView extends HookConsumerWidget {
             ),
             Row(
               children: [
-                getFileIcon(file, size: 24),
+                getFileIcon(file, size: 24, tinyPreview: false),
                 const Gap(16),
                 Expanded(
                   child: Column(
@@ -649,33 +681,7 @@ class FileListView extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Symbols.delete),
-                  onPressed: () async {
-                    final confirmed = await showConfirmAlert(
-                      'confirmDeleteFile'.tr(),
-                      'deleteFile'.tr(),
-                    );
-                    if (!confirmed) return;
-
-                    if (context.mounted) {
-                      showLoadingModal(context);
-                    }
-                    try {
-                      final client = ref.read(apiClientProvider);
-                      await client.delete(
-                        '/drive/index/remove/${fileItem.fileIndex.id}',
-                      );
-                      ref.invalidate(cloudFileListNotifierProvider);
-                    } catch (e) {
-                      showSnackBar('failedToDeleteFile'.tr());
-                    } finally {
-                      if (context.mounted) {
-                        hideLoadingModal(context);
-                      }
-                    }
-                  },
-                ),
+                if (actions != null) ...actions,
               ],
             ).padding(horizontal: 16, vertical: 4),
           ],
@@ -740,18 +746,7 @@ class FileListView extends HookConsumerWidget {
     BuildContext context,
     ValueNotifier<FileListViewMode> currentViewMode,
   ) {
-    // Check if all unindexed files are images
-    final unindexedFiles = items.whereType<UnindexedFileItem>();
-    final allFilesAreImages =
-        unindexedFiles.isNotEmpty &&
-        unindexedFiles.every(
-          (unindexedFileItem) =>
-              unindexedFileItem.file.mimeType?.startsWith('image/') == true,
-        );
-
-    return switch (allFilesAreImages
-        ? FileListViewMode.waterfall
-        : currentViewMode.value) {
+    return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
         gridDelegate: SliverSimpleGridDelegateWithMaxCrossAxisExtent(
@@ -822,121 +817,38 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) {
-    final file = unindexedFileItem.file;
-    final meta = file.fileMeta is Map ? (file.fileMeta as Map) : const {};
-    final ratio =
-        meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
-    final itemType = file.mimeType?.split('/').first;
-    final tileRatio = itemType == 'image' ? ratio : 1.0;
-    final uri =
-        '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${file.id}';
+    return _buildWaterfallFileTileBase(
+      unindexedFileItem.file,
+      () => '/files/${unindexedFileItem.file.id}',
+      ref,
+      context,
+      [
+        IconButton(
+          icon: const Icon(Symbols.delete),
+          onPressed: () async {
+            final confirmed = await showConfirmAlert(
+              'confirmDeleteFile'.tr(),
+              'deleteFile'.tr(),
+            );
+            if (!confirmed) return;
 
-    Widget previewWidget;
-    switch (itemType) {
-      case 'image':
-        previewWidget = CloudImageWidget(
-          file: file,
-          aspectRatio: ratio,
-          fit: BoxFit.cover,
-        );
-        break;
-      case 'video':
-        previewWidget = CloudVideoWidget(item: file);
-        break;
-      case 'audio':
-        previewWidget = getFileIcon(file, size: 48);
-        break;
-      case 'text':
-        previewWidget = FutureBuilder<String>(
-          future: ref
-              .read(apiClientProvider)
-              .get(uri)
-              .then((response) => response.data as String),
-          builder:
-              (context, snapshot) =>
-                  snapshot.hasData
-                      ? SingleChildScrollView(
-                        child: Text(
-                          snapshot.data!,
-                          style: const TextStyle(
-                            fontSize: 8,
-                            fontFamily: 'monospace',
-                          ),
-                          maxLines: 20,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                      : const Center(child: CircularProgressIndicator()),
-        );
-        break;
-      case 'application' when file.mimeType == 'application/pdf':
-        previewWidget = SfPdfViewer.network(
-          uri,
-          canShowScrollStatus: false,
-          canShowScrollHead: false,
-          enableDoubleTapZooming: false,
-          pageSpacing: 0,
-        );
-        break;
-      default:
-        previewWidget = getFileIcon(file, size: 48);
-        break;
-    }
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () {
-        context.push('/files/${file.id}', extra: file);
-      },
-      child: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-              ),
-            ),
-            child: AspectRatio(
-              aspectRatio: tileRatio,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: Container(color: Colors.white, child: previewWidget),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 6,
-            right: 6,
-            child: IconButton(
-              icon: const Icon(Symbols.delete, color: Colors.white),
-              onPressed: () async {
-                final confirmed = await showConfirmAlert(
-                  'confirmDeleteFile'.tr(),
-                  'deleteFile'.tr(),
-                );
-                if (!confirmed) return;
-
-                if (context.mounted) {
-                  showLoadingModal(context);
-                }
-                try {
-                  final client = ref.read(apiClientProvider);
-                  await client.delete('/drive/files/${file.id}');
-                  ref.invalidate(unindexedFileListNotifierProvider);
-                } catch (e) {
-                  showSnackBar('failedToDeleteFile'.tr());
-                } finally {
-                  if (context.mounted) {
-                    hideLoadingModal(context);
-                  }
-                }
-              },
-            ),
-          ),
-        ],
-      ),
+            if (context.mounted) {
+              showLoadingModal(context);
+            }
+            try {
+              final client = ref.read(apiClientProvider);
+              await client.delete('/drive/files/${unindexedFileItem.file.id}');
+              ref.invalidate(unindexedFileListNotifierProvider);
+            } catch (e) {
+              showSnackBar('failedToDeleteFile'.tr());
+            } finally {
+              if (context.mounted) {
+                hideLoadingModal(context);
+              }
+            }
+          },
+        ),
+      ],
     );
   }
 
