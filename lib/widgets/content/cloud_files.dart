@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,15 +13,14 @@ import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:island/widgets/data_saving_gate.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 
+import 'file_viewer_contents.dart';
 import 'image.dart';
 import 'video.dart';
 
@@ -68,8 +66,6 @@ class CloudFileWidget extends HookConsumerWidget {
     );
 
     if (item.mimeType == 'application/pdf') {
-      final pdfViewer = useMemoized(() => SfPdfViewer.network(uri), [uri]);
-
       Future<void> downloadFile() async {
         try {
           showSnackBar('Downloading file...');
@@ -109,7 +105,7 @@ class CloudFileWidget extends HookConsumerWidget {
         ),
         child: Stack(
           children: [
-            pdfViewer,
+            PdfFileContent(uri: uri),
             Positioned(
               top: 8,
               left: 8,
@@ -205,14 +201,6 @@ class CloudFileWidget extends HookConsumerWidget {
     }
 
     if (item.mimeType?.startsWith('text/') == true) {
-      final textFuture = useMemoized(
-        () => ref
-            .read(apiClientProvider)
-            .get(uri)
-            .then((response) => response.data as String),
-        [uri],
-      );
-
       Future<void> downloadFile() async {
         try {
           showSnackBar('Downloading file...');
@@ -252,29 +240,9 @@ class CloudFileWidget extends HookConsumerWidget {
         ),
         child: Stack(
           children: [
-            FutureBuilder<String>(
-              future: textFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error loading text: ${snapshot.error}'),
-                  );
-                } else if (snapshot.hasData) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 20 + 48, 20, 20),
-                    child: SelectableText(
-                      snapshot.data!,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-                return const Center(child: Text('No content'));
-              },
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 68, 20, 20),
+              child: TextFileContent(uri: uri),
             ),
             Positioned(
               top: 8,
@@ -393,14 +361,7 @@ class CloudFileWidget extends HookConsumerWidget {
                 ? dataPlaceHolder(Symbols.play_arrow)
                 : cloudVideo(),
       ),
-      'audio' => Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
-          ),
-          child: UniversalAudio(uri: uri, filename: item.name),
-        ),
-      ),
+      'audio' => AudioFileContent(item: item, uri: uri),
       _ => Builder(
         builder: (context) {
           Future<void> downloadFile() async {
