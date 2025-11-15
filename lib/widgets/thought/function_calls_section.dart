@@ -35,7 +35,7 @@ class FunctionCallsSection extends HookWidget {
     }
     if (functionCallName.isEmpty) functionCallName = 'unknown'.tr();
 
-    final showSpinner = !(isStreaming && !isFinish);
+    final showSpinner = isStreaming && !isFinish;
 
     final isExpanded = useState(false);
 
