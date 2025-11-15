@@ -21,6 +21,12 @@ import 'package:island/widgets/thought/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
+class StreamItem {
+  const StreamItem(this.type, this.data);
+  final String type;
+  final dynamic data;
+}
+
 class ThoughtChatState {
   final ValueNotifier<String?> sequenceId;
   final ValueNotifier<List<SnThinkingThought>> localThoughts;
@@ -28,8 +34,7 @@ class ThoughtChatState {
   final TextEditingController messageController;
   final ScrollController scrollController;
   final ValueNotifier<bool> isStreaming;
-  final ValueNotifier<List<SnThinkingMessagePart>> streamingParts;
-  final ValueNotifier<List<String>> reasoningChunks;
+  final ValueNotifier<List<StreamItem>> streamingItems;
   final ListController listController;
   final ValueNotifier<ValueNotifier<double>> bottomGradientNotifier;
   final Future<void> Function() sendMessage;
@@ -41,8 +46,7 @@ class ThoughtChatState {
     required this.messageController,
     required this.scrollController,
     required this.isStreaming,
-    required this.streamingParts,
-    required this.reasoningChunks,
+    required this.streamingItems,
     required this.listController,
     required this.bottomGradientNotifier,
     required this.sendMessage,
@@ -67,8 +71,7 @@ ThoughtChatState useThoughtChat(
   final messageController = useTextEditingController();
   final scrollController = useScrollController();
   final isStreaming = useState(false);
-  final streamingParts = useState<List<SnThinkingMessagePart>>([]);
-  final reasoningChunks = useState<List<String>>([]);
+  final streamingItems = useState<List<StreamItem>>([]);
 
   final listController = useMemoized(() => ListController(), []);
 
@@ -143,8 +146,7 @@ ThoughtChatState useThoughtChat(
 
     try {
       isStreaming.value = true;
-      streamingParts.value = [];
-      reasoningChunks.value = [];
+      streamingItems.value = [];
 
       final apiClient = ref.read(apiClientProvider);
       final response = await apiClient.post(
@@ -177,42 +179,31 @@ ThoughtChatState useThoughtChat(
                 final type = event['type'];
                 final eventData = event['data'];
                 if (type == 'text') {
-                  if (streamingParts.value.isNotEmpty &&
-                      streamingParts.value.last.type ==
-                          ThinkingMessagePartType.text) {
-                    final last = streamingParts.value.last;
-                    final newParts = [...streamingParts.value];
-                    newParts[newParts.length - 1] = last.copyWith(
-                      text: (last.text ?? '') + eventData,
-                    );
-                    streamingParts.value = newParts;
-                  } else {
-                    streamingParts.value = [
-                      ...streamingParts.value,
-                      SnThinkingMessagePart(
-                        type: ThinkingMessagePartType.text,
-                        text: eventData,
-                      ),
-                    ];
-                  }
+                  streamingItems.value = [
+                    ...streamingItems.value,
+                    StreamItem('text', eventData),
+                  ];
                 } else if (type == 'function_call') {
-                  streamingParts.value = [
-                    ...streamingParts.value,
-                    SnThinkingMessagePart(
-                      type: ThinkingMessagePartType.functionCall,
-                      functionCall: SnFunctionCall.fromJson(eventData),
+                  streamingItems.value = [
+                    ...streamingItems.value,
+                    StreamItem(
+                      'function_call',
+                      SnFunctionCall.fromJson(eventData),
                     ),
                   ];
                 } else if (type == 'function_result') {
-                  streamingParts.value = [
-                    ...streamingParts.value,
-                    SnThinkingMessagePart(
-                      type: ThinkingMessagePartType.functionResult,
-                      functionResult: SnFunctionResult.fromJson(eventData),
+                  streamingItems.value = [
+                    ...streamingItems.value,
+                    StreamItem(
+                      'function_result',
+                      SnFunctionResult.fromJson(eventData),
                     ),
                   ];
                 } else if (type == 'reasoning') {
-                  reasoningChunks.value = [...reasoningChunks.value, eventData];
+                  streamingItems.value = [
+                    ...streamingItems.value,
+                    StreamItem('reasoning', eventData),
+                  ];
                 }
               } else if (line.startsWith('topic: ')) {
                 final jsonStr = line.substring(7);
@@ -336,8 +327,7 @@ ThoughtChatState useThoughtChat(
     messageController: messageController,
     scrollController: scrollController,
     isStreaming: isStreaming,
-    streamingParts: streamingParts,
-    reasoningChunks: reasoningChunks,
+    streamingItems: streamingItems,
     listController: listController,
     bottomGradientNotifier: bottomGradientNotifier,
     sendMessage: sendMessage,
@@ -392,40 +382,16 @@ class ThoughtChatInterface extends HookConsumerWidget {
                         (chatState.isStreaming.value ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (chatState.isStreaming.value && index == 0) {
-                        final streamingText = chatState.streamingParts.value
-                            .where(
-                              (p) => p.type == ThinkingMessagePartType.text,
-                            )
-                            .map((p) => p.text ?? '')
-                            .join('');
-                        final streamingFunctionCalls =
-                            chatState.streamingParts.value
-                                .where(
-                                  (p) =>
-                                      p.type ==
-                                      ThinkingMessagePartType.functionCall,
-                                )
-                                .map(
-                                  (p) => JsonEncoder.withIndent(
-                                    '  ',
-                                  ).convert(p.functionCall?.toJson() ?? {}),
-                                )
-                                .toList();
                         return ThoughtItem(
                           isStreaming: true,
-                          streamingText: streamingText,
-                          reasoningChunks: chatState.reasoningChunks.value,
-                          streamingFunctionCalls: streamingFunctionCalls,
+                          streamingItems: chatState.streamingItems.value,
                         );
                       }
                       final thoughtIndex =
                           chatState.isStreaming.value ? index - 1 : index;
                       final thought =
                           chatState.localThoughts.value[thoughtIndex];
-                      return ThoughtItem(
-                        thought: thought,
-                        thoughtIndex: thoughtIndex,
-                      );
+                      return ThoughtItem(thought: thought);
                     },
                   ),
                 ),
@@ -661,39 +627,21 @@ class ThoughtItem extends StatelessWidget {
   const ThoughtItem({
     super.key,
     this.thought,
-    this.thoughtIndex,
     this.isStreaming = false,
-    this.streamingText = '',
-    this.reasoningChunks = const [],
-    this.streamingFunctionCalls = const [],
+    this.streamingItems,
   }) : assert(
-         (thought != null && !isStreaming) || (thought == null && isStreaming),
-         'Either thought or streaming parameters must be provided',
+         (streamingItems != null && isStreaming) ||
+             (thought != null && !isStreaming),
+         'Either streamingItems or thought must be provided',
        );
 
   final SnThinkingThought? thought;
-  final int? thoughtIndex;
   final bool isStreaming;
-  final String streamingText;
-  final List<String> reasoningChunks;
-  final List<String> streamingFunctionCalls;
+  final List<StreamItem>? streamingItems;
 
   @override
   Widget build(BuildContext context) {
     final isUser = !isStreaming && thought!.role == ThinkingThoughtRole.user;
-    final isAI =
-        isStreaming ||
-        (!isStreaming && thought!.role == ThinkingThoughtRole.assistant);
-
-    final List<Map<String, String>> proposals =
-        !isStreaming
-            ? _extractProposals(
-              thought!.parts
-                  .where((p) => p.type == ThinkingMessagePartType.text)
-                  .map((p) => p.text ?? '')
-                  .join(''),
-            )
-            : [];
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -717,66 +665,134 @@ class ThoughtItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
-              children: [
-                // Main content
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: ThoughtContent(
-                        isStreaming: isStreaming,
-                        streamingText: streamingText,
-                        thought: thought,
-                      ),
-                    ),
-                    if (isStreaming && isAI)
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          padding: const EdgeInsets.all(4),
-                        ),
-                      ),
-                  ],
-                ),
-
-                // Reasoning chunks (streaming only)
-                if (reasoningChunks.isNotEmpty)
-                  ReasoningSection(reasoningChunks: reasoningChunks),
-
-                // Function calls
-                if (streamingFunctionCalls.isNotEmpty ||
-                    (thought?.parts.isNotEmpty ?? false) &&
-                        thought!.parts.any(
-                          (part) =>
-                              part.type == ThinkingMessagePartType.functionCall,
-                        ))
-                  FunctionCallsSection(
-                    isStreaming: isStreaming,
-                    streamingFunctionCalls: streamingFunctionCalls,
-                    thought: thought,
-                  ),
-
-                // Token count and model name (for completed AI thoughts only)
-                if (!isStreaming &&
-                    isAI &&
-                    thought != null &&
-                    !thought!.id.startsWith('error-'))
-                  TokenInfo(thought: thought!),
-
-                // Proposals (for completed AI thoughts only)
-                if (!isStreaming && proposals.isNotEmpty && isAI)
-                  ProposalsSection(
-                    proposals: proposals,
-                    onProposalAction: _handleProposalAction,
-                  ),
-              ],
+              children: buildWidgetsList(),
             ),
           ),
         ],
       ),
     );
+  }
+
+  List<Widget> buildWidgetsList() {
+    final List<StreamItem> items =
+        isStreaming
+            ? (streamingItems ?? [])
+            : thought!.parts.map((p) {
+              String type;
+              switch (p.type) {
+                case ThinkingMessagePartType.text:
+                  type = 'text';
+                  break;
+                case ThinkingMessagePartType.functionCall:
+                  type = 'function_call';
+                  break;
+                case ThinkingMessagePartType.functionResult:
+                  type = 'function_result';
+                  break;
+              }
+              return StreamItem(
+                type,
+                p.type == ThinkingMessagePartType.text
+                    ? p.text ?? ''
+                    : p.functionCall ?? p.functionResult,
+              );
+            }).toList();
+
+    final isAI =
+        isStreaming ||
+        (!isStreaming && thought!.role == ThinkingThoughtRole.assistant);
+    final List<Map<String, String>> proposals =
+        !isStreaming
+            ? _extractProposals(
+              thought!.parts
+                  .where((p) => p.type == ThinkingMessagePartType.text)
+                  .map((p) => p.text ?? '')
+                  .join(),
+            )
+            : [];
+
+    final List<Widget> widgets = [];
+    String currentText = '';
+    bool hasOpenText = false;
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      if (item.type == 'text') {
+        currentText += item.data as String;
+        hasOpenText = true;
+      } else {
+        if (hasOpenText) {
+          bool isLastTextBlock =
+              !items.sublist(i).any((it) => it.type == 'text');
+          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          currentText = '';
+          hasOpenText = false;
+        }
+        widgets.add(buildItemWidget(item));
+      }
+    }
+    if (hasOpenText) {
+      widgets.add(buildTextRow(currentText, true));
+    }
+
+    // The proposals and token info at the end
+    if (!isStreaming && proposals.isNotEmpty && isAI) {
+      widgets.add(
+        ProposalsSection(
+          proposals: proposals,
+          onProposalAction: _handleProposalAction,
+        ),
+      );
+    }
+    if (!isStreaming &&
+        isAI &&
+        thought != null &&
+        !thought!.id.startsWith('error-')) {
+      widgets.add(TokenInfo(thought: thought!));
+    }
+    return widgets;
+  }
+
+  Row buildTextRow(String text, bool hasSpinner) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Flexible(
+          child: ThoughtContent(
+            isStreaming: isStreaming && hasSpinner,
+            streamingText: text,
+            thought: thought,
+          ),
+        ),
+        if (isStreaming && hasSpinner)
+          const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              padding: EdgeInsets.all(4),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget buildItemWidget(StreamItem item) {
+    switch (item.type) {
+      case 'reasoning':
+        return ReasoningSection(reasoningChunks: [item.data]);
+      case 'function_call':
+      case 'function_result':
+        final jsonStr = JsonEncoder.withIndent(
+          '  ',
+        ).convert(item.data.toJson());
+        return FunctionCallsSection(
+          isFinish: item.type == 'function_result',
+          isStreaming: isStreaming,
+          functionCallData: jsonStr,
+        );
+      default:
+        throw 'unknown item type ${item.type}';
+    }
   }
 }
