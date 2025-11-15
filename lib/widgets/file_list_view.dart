@@ -374,13 +374,26 @@ class FileListView extends HookConsumerWidget {
                 icon: Icon(
                   mode.value == FileListMode.unindexed
                       ? Symbols.inventory_2
+                      : currentPath.value != '/'
+                      ? Symbols.arrow_back
                       : Symbols.folder,
                 ),
                 onPressed: () {
                   if (mode.value == FileListMode.unindexed) {
                     mode.value = FileListMode.normal;
+                    currentPath.value = '/';
+                  } else {
+                    final pathParts =
+                        currentPath.value
+                            .split('/')
+                            .where((part) => part.isNotEmpty)
+                            .toList();
+                    if (pathParts.isNotEmpty) {
+                      pathParts.removeLast();
+                      currentPath.value =
+                          pathParts.isEmpty ? '/' : '/${pathParts.join('/')}';
+                    }
                   }
-                  currentPath.value = '/';
                 },
                 visualDensity: const VisualDensity(
                   horizontal: -4,
