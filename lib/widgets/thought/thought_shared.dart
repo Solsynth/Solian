@@ -27,6 +27,13 @@ class StreamItem {
   final dynamic data;
 }
 
+class FunctionCallPair {
+  const FunctionCallPair(this.call, [this.result]);
+
+  final StreamItem? call;
+  final StreamItem? result;
+}
+
 class ThoughtChatState {
   final ValueNotifier<String?> sequenceId;
   final ValueNotifier<List<SnThinkingThought>> localThoughts;
@@ -714,12 +721,59 @@ class ThoughtItem extends StatelessWidget {
     final List<Widget> widgets = [];
     String currentText = '';
     bool hasOpenText = false;
-    for (int i = 0; i < items.length; i++) {
+    int i = 0;
+    while (i < items.length) {
       final item = items[i];
       if (item.type == 'text') {
         currentText += item.data as String;
         hasOpenText = true;
-      } else {
+      } else if (item.type == 'function_call') {
+        if (hasOpenText) {
+          bool isLastTextBlock =
+              !items.sublist(i).any((it) => it.type == 'text');
+          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          currentText = '';
+          hasOpenText = false;
+        }
+        // check next for result
+        StreamItem? result;
+        if (i + 1 < items.length &&
+            items[i + 1].type == 'function_result' &&
+            items[i + 1].data.callId == item.data.id) {
+          result = items[i + 1];
+          i++; // skip it
+        }
+        widgets.add(
+          FunctionCallsSection(
+            isFinish: result != null,
+            isStreaming: isStreaming,
+            callData: JsonEncoder.withIndent('  ').convert(item.data.toJson()),
+            resultData:
+                result != null
+                    ? JsonEncoder.withIndent('  ').convert(result.data.toJson())
+                    : null,
+          ),
+        );
+      } else if (item.type == 'function_result') {
+        if (hasOpenText) {
+          bool isLastTextBlock =
+              !items.sublist(i).any((it) => it.type == 'text');
+          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          currentText = '';
+          hasOpenText = false;
+        }
+        // orphan result, treat as finished with call
+        widgets.add(
+          FunctionCallsSection(
+            isFinish: true,
+            isStreaming: isStreaming,
+            callData: null,
+            resultData: JsonEncoder.withIndent(
+              '  ',
+            ).convert(item.data.toJson()),
+          ),
+        );
+      } else if (item.type == 'reasoning') {
         if (hasOpenText) {
           bool isLastTextBlock =
               !items.sublist(i).any((it) => it.type == 'text');
@@ -728,7 +782,11 @@ class ThoughtItem extends StatelessWidget {
           hasOpenText = false;
         }
         widgets.add(buildItemWidget(item));
+      } else {
+        // ignore or throw
+        print('unknown item type ${item.type}');
       }
+      i++;
     }
     if (hasOpenText) {
       widgets.add(buildTextRow(currentText, true));
@@ -781,16 +839,6 @@ class ThoughtItem extends StatelessWidget {
     switch (item.type) {
       case 'reasoning':
         return ReasoningSection(reasoningChunks: [item.data]);
-      case 'function_call':
-      case 'function_result':
-        final jsonStr = JsonEncoder.withIndent(
-          '  ',
-        ).convert(item.data.toJson());
-        return FunctionCallsSection(
-          isFinish: item.type == 'function_result',
-          isStreaming: isStreaming,
-          functionCallData: jsonStr,
-        );
       default:
         throw 'unknown item type ${item.type}';
     }
