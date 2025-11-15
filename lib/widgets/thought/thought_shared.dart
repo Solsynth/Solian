@@ -719,10 +719,27 @@ class ThoughtItem extends StatelessWidget {
               spacing: 8,
               children: [
                 // Main content
-                ThoughtContent(
-                  isStreaming: isStreaming,
-                  streamingText: streamingText,
-                  thought: thought,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: ThoughtContent(
+                        isStreaming: isStreaming,
+                        streamingText: streamingText,
+                        thought: thought,
+                      ),
+                    ),
+                    if (isStreaming && isAI)
+                      SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          padding: const EdgeInsets.all(4),
+                        ),
+                      ),
+                  ],
                 ),
 
                 // Reasoning chunks (streaming only)
@@ -743,7 +760,10 @@ class ThoughtItem extends StatelessWidget {
                   ),
 
                 // Token count and model name (for completed AI thoughts only)
-                if (!isStreaming && isAI && thought != null)
+                if (!isStreaming &&
+                    isAI &&
+                    thought != null &&
+                    !thought!.id.startsWith('error-'))
                   TokenInfo(thought: thought!),
 
                 // Proposals (for completed AI thoughts only)
@@ -752,8 +772,6 @@ class ThoughtItem extends StatelessWidget {
                     proposals: proposals,
                     onProposalAction: _handleProposalAction,
                   ),
-
-                if (isStreaming && isAI) LinearProgressIndicator(),
               ],
             ),
           ),

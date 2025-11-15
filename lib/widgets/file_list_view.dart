@@ -608,26 +608,30 @@ class FileListView extends HookConsumerWidget {
         previewWidget = getFileIcon(file, size: 48);
         break;
       case 'text':
-        previewWidget = FutureBuilder<String>(
-          future: ref
-              .read(apiClientProvider)
-              .get(uri)
-              .then((response) => response.data as String),
-          builder:
-              (context, snapshot) =>
-                  snapshot.hasData
-                      ? SingleChildScrollView(
-                        child: Text(
-                          snapshot.data!,
-                          style: const TextStyle(
-                            fontSize: 8,
-                            fontFamily: 'monospace',
+        previewWidget = Container(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          child: FutureBuilder<String>(
+            future: ref
+                .read(apiClientProvider)
+                .get(uri)
+                .then((response) => response.data as String),
+            builder:
+                (context, snapshot) =>
+                    snapshot.hasData
+                        ? SingleChildScrollView(
+                          padding: EdgeInsets.all(24),
+                          child: Text(
+                            snapshot.data!,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontFamily: 'monospace',
+                            ),
+                            maxLines: 20,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 20,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                      : const Center(child: CircularProgressIndicator()),
+                        )
+                        : const Center(child: CircularProgressIndicator()),
+          ),
         );
         break;
       case 'application' when file.mimeType == 'application/pdf':
