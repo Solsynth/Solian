@@ -359,6 +359,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
   final String? initialTopic;
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
+  final bool isDisabled;
 
   const ThoughtChatInterface({
     super.key,
@@ -366,6 +367,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
     this.initialTopic,
     this.attachedMessages = const [],
     this.attachedPosts = const [],
+    this.isDisabled = false,
   });
 
   @override
@@ -466,6 +468,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 onSend: chatState.sendMessage,
                 attachedMessages: attachedMessages,
                 attachedPosts: attachedPosts,
+                isDisabled: isDisabled,
               ),
             ),
           ),
@@ -509,6 +512,7 @@ class ThoughtInput extends HookWidget {
   final VoidCallback onSend;
   final List<Map<String, dynamic>>? attachedMessages;
   final List<String>? attachedPosts;
+  final bool isDisabled;
 
   const ThoughtInput({
     super.key,
@@ -517,6 +521,7 @@ class ThoughtInput extends HookWidget {
     required this.onSend,
     this.attachedMessages,
     this.attachedPosts,
+    this.isDisabled = false,
   });
 
   @override
@@ -607,11 +612,13 @@ class ThoughtInput extends HookWidget {
                     child: TextField(
                       controller: messageController,
                       keyboardType: TextInputType.multiline,
-                      enabled: !isStreaming,
+                      enabled: !isStreaming && !isDisabled,
                       decoration: InputDecoration(
                         hintText:
                             (isStreaming
                                     ? 'thoughtStreamingHint'
+                                    : isDisabled
+                                    ? 'thoughtUnpaidHint'.tr()
                                     : 'thoughtInputHint')
                                 .tr(),
                         border: InputBorder.none,
@@ -624,13 +631,16 @@ class ThoughtInput extends HookWidget {
                       maxLines: 5,
                       minLines: 1,
                       textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => onSend(),
+                      onSubmitted:
+                          (!isStreaming && !isDisabled)
+                              ? (_) => onSend()
+                              : null,
                     ),
                   ),
                   IconButton(
                     icon: Icon(isStreaming ? Symbols.stop : Icons.send),
                     color: Theme.of(context).colorScheme.primary,
-                    onPressed: onSend,
+                    onPressed: (!isStreaming && !isDisabled) ? onSend : null,
                   ),
                 ],
               ),
