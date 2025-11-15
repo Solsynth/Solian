@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,7 +35,7 @@ class FunctionCallsSection extends HookWidget {
     }
     if (functionCallName.isEmpty) functionCallName = 'unknown'.tr();
 
-    final showSpinner = isStreaming && !isFinish;
+    final showSpinner = !(isStreaming && !isFinish);
 
     final isExpanded = useState(false);
 
@@ -51,11 +52,6 @@ class FunctionCallsSection extends HookWidget {
           collapsedShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          leading: Icon(
-            Symbols.hardware,
-            size: 16,
-            color: Theme.of(context).colorScheme.tertiary,
-          ),
           trailing: SizedBox(
             width: 30, // Specify desired width
             height: 30, // Specify desired height
@@ -70,8 +66,15 @@ class FunctionCallsSection extends HookWidget {
                       : Theme.of(context).colorScheme.tertiaryFixedDim,
             ),
           ),
+          showTrailingIcon: !showSpinner,
           title: Row(
+            spacing: 8,
             children: [
+              Icon(
+                Symbols.hardware,
+                size: 16,
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
               Expanded(
                 child: Text(
                   'thoughtFunctionCall'.tr(args: [functionCallName]),
@@ -81,12 +84,29 @@ class FunctionCallsSection extends HookWidget {
                   ),
                 ),
               ),
-              if (showSpinner)
+              if (showSpinner) ...[
+                AnimateWidgetExtensions(
+                      Text(
+                        'Calling',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    )
+                    .animate(
+                      autoPlay: true,
+                      onPlay: (c) => c.repeat(reverse: true),
+                    )
+                    .fade(duration: 1000.ms, begin: 0, end: 1),
                 const SizedBox(
-                  height: 14,
-                  width: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    padding: EdgeInsets.all(3),
+                  ),
+                ).padding(right: 8),
+              ],
             ],
           ),
           childrenPadding: const EdgeInsets.symmetric(
@@ -137,34 +157,38 @@ class FunctionCallsSection extends HookWidget {
         ),
         const Gap(4),
         if (isResult)
-          Row(
-            spacing: 8,
-            children: [
-              Icon(Symbols.update, size: 16),
-              Expanded(
-                child: Text(
-                  'Generated ${utf8.encode(data).length} bytes',
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface,
+          Opacity(
+            opacity: 0.8,
+            child: Row(
+              spacing: 8,
+              children: [
+                Icon(Symbols.update, size: 16),
+                Expanded(
+                  child: Text(
+                    'Generated ${utf8.encode(data).length} bytes',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 16,
-                child: IconButton(
-                  iconSize: 16,
-                  icon: const Icon(Symbols.content_copy),
-                  onPressed: () => Clipboard.setData(ClipboardData(text: data)),
-                  tooltip: 'Copy response',
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
+                SizedBox(
+                  height: 16,
+                  child: IconButton(
+                    iconSize: 16,
+                    icon: const Icon(Symbols.content_copy),
+                    onPressed:
+                        () => Clipboard.setData(ClipboardData(text: data)),
+                    tooltip: 'Copy response',
+                    visualDensity: const VisualDensity(
+                      horizontal: -4,
+                      vertical: -4,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ).opacity(0.8)
+              ],
+            ),
+          )
         else
           Container(
             width: double.infinity,
