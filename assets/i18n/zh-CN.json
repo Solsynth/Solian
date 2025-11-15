@@ -1090,5 +1090,6 @@
     "thoughtNewConversation": "开始新对话",
     "thoughtParseError": "解析 AI 响应失败",
     "aiThought": "寻思",
-    "aiThoughtTitle": "让 SN 酱寻思寻思"
+    "aiThoughtTitle": "让 SN 酱寻思寻思",
+    "thoughtUnpaidHint": "寻思因为有未支付的订单而被禁用"
 }

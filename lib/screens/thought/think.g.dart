@@ -6,6 +6,25 @@ part of 'think.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$thoughtAvailableStausHash() =>
+    r'720e04e56bff8c4d4ca6854ce997da4e7926c84c';
+
+/// See also [thoughtAvailableStaus].
+@ProviderFor(thoughtAvailableStaus)
+final thoughtAvailableStausProvider = AutoDisposeFutureProvider<bool>.internal(
+  thoughtAvailableStaus,
+  name: r'thoughtAvailableStausProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$thoughtAvailableStausHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ThoughtAvailableStausRef = AutoDisposeFutureProviderRef<bool>;
 String _$thoughtSequenceHash() => r'2a93c0a04f9a720ba474c02a36502940fb7f3ed7';
 
 /// Copied from Dart SDK

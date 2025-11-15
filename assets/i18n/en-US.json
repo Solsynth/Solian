@@ -1323,5 +1323,6 @@
     "popularity": "Popularity",
     "descendingOrder": "Descending Order",
     "selectDate": "Select Date",
-    "pinnedPosts": "Pinned Posts"
+    "pinnedPosts": "Pinned Posts",
+    "thoughtUnpaidHint": "Thinking unavaiable due to unpaid orders"
 }

@@ -1,8 +1,13 @@
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:island/pods/network.dart";
+import "package:island/screens/thought/think.dart";
+import "package:island/widgets/alert.dart";
 import "package:island/widgets/content/sheet.dart";
 import "package:island/widgets/thought/thought_shared.dart";
+import "package:material_symbols_icons/material_symbols_icons.dart";
 
 class ThoughtSheet extends HookConsumerWidget {
   final List<Map<String, dynamic>> attachedMessages;
@@ -39,11 +44,62 @@ class ThoughtSheet extends HookConsumerWidget {
       attachedPosts: attachedPosts,
     );
 
+    final statusAsync = ref.watch(thoughtAvailableStausProvider);
+
     return SheetScaffold(
       titleText: chatState.currentTopic.value ?? 'aiThought'.tr(),
-      child: ThoughtChatInterface(
-        attachedMessages: attachedMessages,
-        attachedPosts: attachedPosts,
+      child: statusAsync.maybeWhen(
+        data: (status) {
+          final retry = useMemoized(
+            () => () async {
+              showLoadingModal(context);
+              try {
+                await ref
+                    .read(apiClientProvider)
+                    .post('/insight/billing/retry');
+                showSnackBar('Retried billing process');
+                ref.invalidate(thoughtAvailableStausProvider);
+              } catch (e) {
+                showSnackBar('Failed to retry billing');
+              }
+              hideLoadingModal(context);
+            },
+            [context, ref],
+          );
+
+          final chatInterface = ThoughtChatInterface(
+            attachedMessages: attachedMessages,
+            attachedPosts: attachedPosts,
+            isDisabled: !status,
+          );
+          return status
+              ? chatInterface
+              : Column(
+                children: [
+                  MaterialBanner(
+                    leading: const Icon(Symbols.error),
+                    content: const Text(
+                      'You have unpaid orders. Please settle your payment to continue using the service.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          retry();
+                        },
+                        child: Text('retry'.tr()),
+                      ),
+                    ],
+                  ),
+                  Expanded(child: chatInterface),
+                ],
+              );
+        },
+        orElse:
+            () => ThoughtChatInterface(
+              attachedMessages: attachedMessages,
+              attachedPosts: attachedPosts,
+            ),
       ),
     );
   }
