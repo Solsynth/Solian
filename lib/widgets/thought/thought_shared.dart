@@ -10,6 +10,7 @@ import 'package:island/models/thought.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/thought/function_calls_section.dart';
@@ -19,6 +20,7 @@ import 'package:island/widgets/thought/thought_content.dart';
 import 'package:island/widgets/thought/thought_header.dart';
 import 'package:island/widgets/thought/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class StreamItem {
@@ -185,32 +187,43 @@ ThoughtChatState useThoughtChat(
                 final event = jsonDecode(jsonStr);
                 final type = event['type'];
                 final eventData = event['data'];
-                if (type == 'text') {
-                  streamingItems.value = [
-                    ...streamingItems.value,
-                    StreamItem('text', eventData),
-                  ];
-                } else if (type == 'function_call') {
-                  streamingItems.value = [
-                    ...streamingItems.value,
-                    StreamItem(
-                      'function_call',
-                      SnFunctionCall.fromJson(eventData),
-                    ),
-                  ];
-                } else if (type == 'function_result') {
-                  streamingItems.value = [
-                    ...streamingItems.value,
-                    StreamItem(
-                      'function_result',
-                      SnFunctionResult.fromJson(eventData),
-                    ),
-                  ];
-                } else if (type == 'reasoning') {
-                  streamingItems.value = [
-                    ...streamingItems.value,
-                    StreamItem('reasoning', eventData),
-                  ];
+                if (type != 'text') {
+                  talker.info('[Thought] Received event: $type');
+                }
+                switch (type) {
+                  case 'text':
+                    streamingItems.value = [
+                      ...streamingItems.value,
+                      StreamItem('text', eventData),
+                    ];
+                    break;
+                  case 'function_call':
+                    streamingItems.value = [
+                      ...streamingItems.value,
+                      StreamItem(
+                        'function_call',
+                        SnFunctionCall.fromJson(eventData),
+                      ),
+                    ];
+                    break;
+                  case 'function_result':
+                    streamingItems.value = [
+                      ...streamingItems.value,
+                      StreamItem(
+                        'function_result',
+                        SnFunctionResult.fromJson(eventData),
+                      ),
+                    ];
+                    break;
+                  case 'reasoning':
+                    streamingItems.value = [
+                      ...streamingItems.value,
+                      StreamItem('reasoning', eventData),
+                    ];
+                    break;
+                  default:
+                    // ignore unknown types
+                    break;
                 }
               } else if (line.startsWith('topic: ')) {
                 final jsonStr = line.substring(7);
@@ -729,17 +742,13 @@ class ThoughtItem extends StatelessWidget {
         hasOpenText = true;
       } else if (item.type == 'function_call') {
         if (hasOpenText) {
-          bool isLastTextBlock =
-              !items.sublist(i).any((it) => it.type == 'text');
-          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          widgets.add(buildTextRow(currentText));
           currentText = '';
           hasOpenText = false;
         }
         // check next for result
         StreamItem? result;
-        if (i + 1 < items.length &&
-            items[i + 1].type == 'function_result' &&
-            items[i + 1].data.callId == item.data.id) {
+        if (i + 1 < items.length && items[i + 1].type == 'function_result') {
           result = items[i + 1];
           i++; // skip it
         }
@@ -756,9 +765,7 @@ class ThoughtItem extends StatelessWidget {
         );
       } else if (item.type == 'function_result') {
         if (hasOpenText) {
-          bool isLastTextBlock =
-              !items.sublist(i).any((it) => it.type == 'text');
-          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          widgets.add(buildTextRow(currentText));
           currentText = '';
           hasOpenText = false;
         }
@@ -775,21 +782,34 @@ class ThoughtItem extends StatelessWidget {
         );
       } else if (item.type == 'reasoning') {
         if (hasOpenText) {
-          bool isLastTextBlock =
-              !items.sublist(i).any((it) => it.type == 'text');
-          widgets.add(buildTextRow(currentText, isLastTextBlock));
+          widgets.add(buildTextRow(currentText));
           currentText = '';
           hasOpenText = false;
         }
         widgets.add(buildItemWidget(item));
       } else {
-        // ignore or throw
-        print('unknown item type ${item.type}');
+        // ignore
       }
       i++;
     }
     if (hasOpenText) {
-      widgets.add(buildTextRow(currentText, true));
+      widgets.add(buildTextRow(currentText));
+    }
+
+    // Add spinner at the end if streaming
+    if (isStreaming) {
+      widgets.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ).padding(left: 8),
+          ],
+        ),
+      );
     }
 
     // The proposals and token info at the end
@@ -810,27 +830,18 @@ class ThoughtItem extends StatelessWidget {
     return widgets;
   }
 
-  Row buildTextRow(String text, bool hasSpinner) {
+  Widget buildTextRow(String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Flexible(
           child: ThoughtContent(
-            isStreaming: isStreaming && hasSpinner,
+            isStreaming: isStreaming,
             streamingText: text,
             thought: thought,
           ),
         ),
-        if (isStreaming && hasSpinner)
-          const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              padding: EdgeInsets.all(4),
-            ),
-          ),
       ],
     );
   }

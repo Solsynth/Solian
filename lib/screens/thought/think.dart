@@ -68,7 +68,6 @@ class ThoughtScreen extends HookConsumerWidget {
               );
             },
           ),
-          // TODO: Need to access chat state for actions
           const Gap(8),
         ],
       ),
