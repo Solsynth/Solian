@@ -168,6 +168,7 @@ dependencies:
   event_bus: ^2.0.1
   convert: ^3.1.2
   desktop_drop: ^0.7.0
+  flutter_animate: ^4.5.0
 
 dev_dependencies:
   flutter_test:
