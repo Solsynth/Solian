@@ -55,6 +55,7 @@ class CreateFundSheet extends StatefulWidget {
 
 class _CreateFundSheetState extends State<CreateFundSheet> {
   final amountController = TextEditingController();
+  final splitsController = TextEditingController(text: '1');
   final messageController = TextEditingController();
   String selectedCurrency = 'golds';
   int selectedSplitType = 0; // 0: even, 1: random
@@ -64,6 +65,7 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
   void dispose() {
     amountController.dispose();
     messageController.dispose();
+    splitsController.dispose();
     super.dispose();
   }
 
@@ -153,6 +155,44 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => selectedCurrency = value);
+                      }
+                    },
+                  ),
+
+                  const Gap(16),
+
+                  // Amount of Splits Section
+                  Text(
+                    'amountOfSplits'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: splitsController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: 'enterNumberOfSplits'.tr(),
+                      hintText:
+                          selectedRecipients.isNotEmpty
+                              ? selectedRecipients.length.toString()
+                              : '1',
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
+                    ),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onChanged: (value) {
+                      if (value.isEmpty && selectedRecipients.isNotEmpty) {
+                        splitsController.text =
+                            selectedRecipients.length.toString();
                       }
                     },
                   ),
@@ -496,9 +536,15 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
 
   Future<void> _createFund() async {
     final amount = double.tryParse(amountController.text);
+    final splits = int.tryParse(splitsController.text);
 
     if (amount == null || amount <= 0) {
       showErrorAlert('invalidAmount'.tr());
+      return;
+    }
+
+    if (splits == null || splits <= 0) {
+      showErrorAlert('invalidNumberOfSplits'.tr());
       return;
     }
 
@@ -506,6 +552,7 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
       'currency': selectedCurrency,
       'total_amount': amount,
       'split_type': selectedSplitType,
+      'amount_of_splits': splits,
       'recipient_account_ids': selectedRecipients.map((r) => r.id).toList(),
       'message':
           messageController.text.trim().isEmpty

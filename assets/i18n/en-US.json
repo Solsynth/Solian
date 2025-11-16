@@ -1333,5 +1333,7 @@
     "fund": "Fund",
     "fundsRecent": "Recent Funds",
     "fundCreateNew": "Create New",
-    "fundCreateNewHint": "Create a new fund for your message. Select recipients and amount."
+    "fundCreateNewHint": "Create a new fund for your message. Select recipients and amount.",
+    "amountOfSplits": "Amount of Splits",
+    "enterNumberOfSplits": "Enter Splits Amount"
 }

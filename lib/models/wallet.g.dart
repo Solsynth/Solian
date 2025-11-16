@@ -336,6 +336,8 @@ _SnWalletFund _$SnWalletFundFromJson(
   id: json['id'] as String,
   currency: json['currency'] as String,
   totalAmount: (json['total_amount'] as num).toDouble(),
+  remainingAmount: (json['remaining_amount'] as num).toDouble(),
+  amountOfSplits: (json['amount_of_splits'] as num).toInt(),
   splitType: (json['split_type'] as num).toInt(),
   status: (json['status'] as num).toInt(),
   message: json['message'] as String?,
@@ -349,6 +351,7 @@ _SnWalletFund _$SnWalletFundFromJson(
       (json['recipients'] as List<dynamic>)
           .map((e) => SnWalletFundRecipient.fromJson(e as Map<String, dynamic>))
           .toList(),
+  isOpen: json['is_open'] as bool,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   deletedAt:
@@ -362,6 +365,8 @@ Map<String, dynamic> _$SnWalletFundToJson(_SnWalletFund instance) =>
       'id': instance.id,
       'currency': instance.currency,
       'total_amount': instance.totalAmount,
+      'remaining_amount': instance.remainingAmount,
+      'amount_of_splits': instance.amountOfSplits,
       'split_type': instance.splitType,
       'status': instance.status,
       'message': instance.message,
@@ -369,6 +374,7 @@ Map<String, dynamic> _$SnWalletFundToJson(_SnWalletFund instance) =>
       'creator_account': instance.creatorAccount?.toJson(),
       'expired_at': instance.expiredAt.toIso8601String(),
       'recipients': instance.recipients.map((e) => e.toJson()).toList(),
+      'is_open': instance.isOpen,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

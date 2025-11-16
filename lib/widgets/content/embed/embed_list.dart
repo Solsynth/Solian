@@ -3,8 +3,8 @@ import 'package:island/models/embed.dart';
 import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/poll/poll_submit.dart';
+import 'package:island/widgets/wallet/fund_envelope.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 class EmbedListWidget extends StatelessWidget {
   final List<dynamic> embeds;
@@ -96,16 +96,32 @@ class EmbedListWidget extends StatelessWidget {
                 horizontal: renderingPadding.horizontal,
                 vertical: 8,
               ),
-              child:
-                  embedData['id'] == null
-                      ? const Text('Poll was unavailable...')
-                      : PollSubmit(
-                        pollId: embedData['id'],
-                        onSubmit: (_) {},
-                        isReadonly: !isInteractive,
-                        isInitiallyExpanded: isFullPost,
-                      ).padding(horizontal: 16, vertical: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child:
+                    embedData['id'] == null
+                        ? const Text('Poll was unavailable...')
+                        : PollSubmit(
+                          pollId: embedData['id'],
+                          onSubmit: (_) {},
+                          isReadonly: !isInteractive,
+                          isInitiallyExpanded: isFullPost,
+                        ),
+              ),
             ),
+            'fund' =>
+              embedData['id'] == null
+                  ? const Text('Fund envelope was unavailable...')
+                  : FundEnvelopeWidget(
+                    fundId: embedData['id'],
+                    margin: EdgeInsets.symmetric(
+                      horizontal: renderingPadding.horizontal,
+                      vertical: 8,
+                    ),
+                  ),
             _ => Text('Unable show embed: ${embedData['type']}'),
           },
         ),

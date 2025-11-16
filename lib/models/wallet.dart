@@ -176,6 +176,8 @@ sealed class SnWalletFund with _$SnWalletFund {
     required String id,
     required String currency,
     required double totalAmount,
+    required double remainingAmount,
+    required int amountOfSplits,
     required int splitType, // 0: even, 1: random
     required int
     status, // 0: created, 1: partially claimed, 2: fully claimed, 3: expired
@@ -184,6 +186,7 @@ sealed class SnWalletFund with _$SnWalletFund {
     required SnAccount? creatorAccount,
     required DateTime expiredAt,
     required List<SnWalletFundRecipient> recipients,
+    required bool isOpen,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
