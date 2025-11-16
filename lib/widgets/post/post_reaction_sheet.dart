@@ -11,6 +11,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -111,74 +112,54 @@ class PostReactionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 16,
-              left: 20,
-              right: 16,
-              bottom: 12,
+      child: SheetScaffold(
+        heightFactor: 0.75,
+        titleText: 'reactions'.plural(
+          reactionsCount.isNotEmpty
+              ? reactionsCount.values.reduce((a, b) => a + b)
+              : 0,
+        ),
+        child: Column(
+          children: [
+            TabBar(
+              tabs: [Tab(text: 'overview'.tr()), Tab(text: 'custom'.tr())],
             ),
-            child: Row(
-              children: [
-                Text(
-                  'reactions'.plural(
-                    reactionsCount.isNotEmpty
-                        ? reactionsCount.values.reduce((a, b) => a + b)
-                        : 0,
+            Expanded(
+              child: TabBarView(
+                children: [
+                  ListView(
+                    children: [
+                      _buildCustomReactionSection(context),
+                      _buildReactionSection(
+                        context,
+                        Symbols.mood,
+                        'reactionPositive'.tr(),
+                        0,
+                      ),
+                      _buildReactionSection(
+                        context,
+                        Symbols.sentiment_neutral,
+                        'reactionNeutral'.tr(),
+                        1,
+                      ),
+                      _buildReactionSection(
+                        context,
+                        Symbols.mood_bad,
+                        'reactionNegative'.tr(),
+                        2,
+                      ),
+                      const Gap(8),
+                    ],
                   ),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
+                  CustomReactionForm(
+                    postId: postId,
+                    onReact: (s, a) => onReact(s.replaceAll(':', ''), a),
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 1),
-          TabBar(tabs: [Tab(text: 'overview'.tr()), Tab(text: 'custom'.tr())]),
-          Expanded(
-            child: TabBarView(
-              children: [
-                ListView(
-                  children: [
-                    _buildCustomReactionSection(context),
-                    _buildReactionSection(
-                      context,
-                      Symbols.mood,
-                      'reactionPositive'.tr(),
-                      0,
-                    ),
-                    _buildReactionSection(
-                      context,
-                      Symbols.sentiment_neutral,
-                      'reactionNeutral'.tr(),
-                      1,
-                    ),
-                    _buildReactionSection(
-                      context,
-                      Symbols.mood_bad,
-                      'reactionNegative'.tr(),
-                      2,
-                    ),
-                    const Gap(8),
-                  ],
-                ),
-                CustomReactionForm(
-                  postId: postId,
-                  onReact: (s, a) => onReact(s.replaceAll(':', ''), a),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -598,6 +579,48 @@ class CustomReactionForm extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.info,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const Gap(8),
+                    Text(
+                      'customReaction'.tr(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(8),
+                Text(
+                  'customReactionHint'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(16),
           TextField(
             readOnly: true,
             decoration: InputDecoration(

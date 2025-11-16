@@ -604,6 +604,7 @@ class PostItem extends HookConsumerWidget {
                         showModalBottomSheet(
                           context: context,
                           useRootNavigator: true,
+                          isScrollControlled: true,
                           builder: (BuildContext context) {
                             return PostReactionSheet(
                               reactionsCount: item.reactionsCount,
@@ -712,6 +713,7 @@ class PostReactionList extends HookConsumerWidget {
                         : () {
                           showModalBottomSheet(
                             context: context,
+                            isScrollControlled: true,
                             builder: (BuildContext context) {
                               return PostReactionSheet(
                                 reactionsCount: reactions,

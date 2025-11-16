@@ -136,6 +136,7 @@
     "reactionNegative": "Negative",
     "reactionNeutral": "Neutral",
     "customReaction": "Custom Reaction",
+    "customReactionHint": "Custom Reaction allow you to use user uploaded stickers as the symbol of the reaction for the post. Exclusive for Stellar Program members.",
     "customReactions": "Custom Reactions",
     "stickerPlaceholder": "Sticker Placeholder",
     "reactionAttitude": "Reaction Attitude",
