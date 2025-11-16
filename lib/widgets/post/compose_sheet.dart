@@ -8,10 +8,8 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_card.dart';
-import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/compose_state_utils.dart';
-import 'package:island/widgets/post/compose_submit_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 /// A dialog that wraps PostComposeCard for easy use in dialogs.
@@ -106,16 +104,11 @@ class PostComposeSheet extends HookConsumerWidget {
 
     // Helper methods for actions
     void showSettingsSheet() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (context) => ComposeSettingsSheet(state: state),
-      );
+      ComposeLogic.showSettingsSheet(context, state);
     }
 
     Future<void> performSubmit() async {
-      await ComposeSubmitUtils.performSubmit(
+      await ComposeLogic.performSubmit(
         ref,
         state,
         context,
