@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -73,10 +73,14 @@ class CreatorPollListScreen extends HookConsumerWidget {
   final String pubName;
 
   Future<void> _createPoll(BuildContext context) async {
-    final result = await GoRouter.of(
-      context,
-    ).pushNamed('creatorPollNew', pathParameters: {'name': pubName});
-    if (result is SnPollWithStats && context.mounted) {
+    final result = await showModalBottomSheet<SnPollWithStats>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) => PollEditorScreen(initialPublisher: pubName),
+    );
+    if (result != null && context.mounted) {
       Navigator.of(context).maybePop(result);
     }
   }
@@ -176,11 +180,20 @@ class _CreatorPollItem extends HookConsumerWidget {
                       Text('edit').tr(),
                     ],
                   ),
-                  onTap: () {
-                    GoRouter.of(context).pushNamed(
-                      'creatorPollEdit',
-                      pathParameters: {'name': pubName, 'id': pollWithStats.id},
+                  onTap: () async {
+                    final result = await showModalBottomSheet<SnPoll>(
+                      context: context,
+                      isScrollControlled: true,
+                      isDismissible: false,
+                      builder:
+                          (context) => PollEditorScreen(
+                            initialPublisher: pubName,
+                            initialPollId: pollWithStats.id,
+                          ),
                     );
+                    if (result != null && context.mounted) {
+                      ref.invalidate(pollListNotifierProvider(pubName));
+                    }
                   },
                 ),
                 PopupMenuItem(

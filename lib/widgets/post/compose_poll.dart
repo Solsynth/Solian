@@ -2,11 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
+import 'package:island/screens/poll/poll_editor.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -15,14 +16,13 @@ import 'package:island/widgets/post/publishers_modal.dart';
 
 /// Bottom sheet for selecting or creating a poll. Returns SnPoll via Navigator.pop.
 class ComposePollSheet extends HookConsumerWidget {
-  /// Optional publisher name to filter polls and prefill creation.
-  final String? pubName;
+  final SnPublisher? pub;
 
-  const ComposePollSheet({super.key, this.pubName});
+  const ComposePollSheet({super.key, this.pub});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedPublisher = useState<String?>(pubName);
+    final selectedPublisher = useState<SnPublisher?>(pub);
     final isPushing = useState(false);
     final errorText = useState<String?>(null);
 
@@ -46,10 +46,11 @@ class ComposePollSheet extends HookConsumerWidget {
                 children: [
                   // Link/Select existing poll list
                   PagingHelperView(
-                    provider: pollListNotifierProvider(pubName),
-                    futureRefreshable: pollListNotifierProvider(pubName).future,
+                    provider: pollListNotifierProvider(pub?.name),
+                    futureRefreshable:
+                        pollListNotifierProvider(pub?.name).future,
                     notifierRefreshable:
-                        pollListNotifierProvider(pubName).notifier,
+                        pollListNotifierProvider(pub?.name).notifier,
                     contentBuilder:
                         (data, widgetCount, endItemView) => ListView.builder(
                           padding: EdgeInsets.zero,
@@ -81,38 +82,48 @@ class ComposePollSheet extends HookConsumerWidget {
                         Text(
                           'pollCreateNewHint',
                         ).tr().fontSize(13).opacity(0.85).padding(bottom: 8),
-                        ListTile(
-                          title: Text(
-                            selectedPublisher.value == null
-                                ? 'publisher'.tr()
-                                : '@${selectedPublisher.value}',
-                          ),
-                          subtitle: Text(
-                            selectedPublisher.value == null
-                                ? 'publisherHint'.tr()
-                                : 'selected'.tr(),
-                          ),
-                          leading: const Icon(Symbols.account_circle),
-                          trailing: const Icon(Symbols.chevron_right),
-                          onTap: () async {
-                            final picked =
-                                await showModalBottomSheet<SnPublisher>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => const PublisherModal(),
-                                );
-                            if (picked != null) {
-                              try {
-                                final name = picked.name;
-                                if (name.isNotEmpty) {
-                                  selectedPublisher.value = name;
+                        Card(
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                            ),
+                            title: Text(
+                              selectedPublisher.value == null
+                                  ? 'publisher'.tr()
+                                  : selectedPublisher.value!.nick,
+                            ),
+                            subtitle: Text(
+                              selectedPublisher.value == null
+                                  ? 'publisherHint'.tr()
+                                  : '@${selectedPublisher.value?.name}',
+                            ),
+                            leading:
+                                selectedPublisher.value == null
+                                    ? const Icon(Symbols.account_circle)
+                                    : ProfilePictureWidget(
+                                      file: selectedPublisher.value?.picture,
+                                    ),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () async {
+                              final picked =
+                                  await showModalBottomSheet<SnPublisher>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder:
+                                        (context) => const PublisherModal(),
+                                  );
+                              if (picked != null) {
+                                try {
+                                  selectedPublisher.value = picked;
                                   errorText.value = null;
+                                } catch (_) {
+                                  // ignore
                                 }
-                              } catch (_) {
-                                // ignore
                               }
-                            }
-                          },
+                            },
+                          ),
                         ),
                         if (errorText.value != null)
                           Padding(
@@ -146,8 +157,7 @@ class ComposePollSheet extends HookConsumerWidget {
                                 isPushing.value
                                     ? null
                                     : () async {
-                                      final pub = selectedPublisher.value ?? '';
-                                      if (pub.isEmpty) {
+                                      if (pub == null) {
                                         errorText.value =
                                             'publisherCannotBeEmpty'.tr();
                                         return;
@@ -155,12 +165,18 @@ class ComposePollSheet extends HookConsumerWidget {
                                       errorText.value = null;
 
                                       isPushing.value = true;
-                                      // Push to creatorPollNew route and await result
-                                      final result = await GoRouter.of(
-                                        context,
-                                      ).push<SnPoll>(
-                                        '/creators/$pub/polls/new',
-                                      );
+                                      // Show modal bottom sheet with poll editor and await result
+                                      final result =
+                                          await showModalBottomSheet<SnPoll>(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            isDismissible: false,
+                                            enableDrag: false,
+                                            builder:
+                                                (context) => PollEditorScreen(
+                                                  initialPublisher: pub?.name,
+                                                ),
+                                          );
 
                                       if (result == null) {
                                         isPushing.value = false;

@@ -8,7 +8,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/models/poll.dart';
-import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -393,7 +393,7 @@ class PollEditorScreen extends ConsumerWidget {
       showSnackBar(isUpdate ? 'pollUpdated'.tr() : 'pollCreated'.tr());
 
       if (!context.mounted) return;
-      Navigator.of(context).maybePop(res.data);
+      Navigator.of(context).maybePop(SnPoll.fromJson(res.data));
     } catch (e) {
       showErrorAlert(e);
     }
@@ -415,23 +415,46 @@ class PollEditorScreen extends ConsumerWidget {
       });
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        title: Text(model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr()),
-        actions: [
-          if (kDebugMode)
-            IconButton(
-              tooltip: 'pollPreviewJsonDebug'.tr(),
-              onPressed: () {
-                _showDebugPreview(context, model);
-              },
-              icon: const Icon(Icons.visibility_outlined),
-            ),
-          const Gap(8),
-        ],
-      ),
-      body: Column(
+    return SheetScaffold(
+      titleText: model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr(),
+      actions: [
+        if (kDebugMode)
+          IconButton(
+            tooltip: 'pollPreviewJsonDebug'.tr(),
+            onPressed: () {
+              _showDebugPreview(context, model);
+            },
+            icon: const Icon(Icons.visibility_outlined),
+          ),
+      ],
+      heightFactor: 0.9,
+      onClose: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder:
+              (ctx) => AlertDialog(
+                title: Text('confirm'.tr()),
+                content: Text('pollConfirmDiscard'.tr()),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: Text('cancel'.tr()),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(ctx).colorScheme.error,
+                    ),
+                    child: Text('discard'.tr()),
+                  ),
+                ],
+              ),
+        );
+        if (confirmed == true) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Column(
         children: [
           Expanded(
             child: ConstrainedBox(

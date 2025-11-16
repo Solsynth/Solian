@@ -1327,5 +1327,7 @@
     "pinnedPosts": "Pinned Posts",
     "thoughtUnpaidHint": "Thinking unavaiable due to unpaid orders",
     "more": "More",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "pollConfirmDiscard": "Are you sure you want to leave? All the poll data you're editing will not be saved.",
+    "discard": "Discard"
 }

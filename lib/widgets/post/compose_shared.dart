@@ -611,7 +611,7 @@ class ComposeLogic {
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      builder: (context) => const ComposePollSheet(),
+      builder: (context) => ComposePollSheet(pub: state.currentPublisher.value),
     );
 
     if (poll == null) return;

@@ -44,7 +44,6 @@ import 'package:island/screens/discovery/feeds/feed_marketplace.dart';
 import 'package:island/screens/discovery/feeds/feed_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
-import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/compose_article.dart';
 import 'package:island/screens/posts/post_detail.dart';
@@ -486,28 +485,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                       return CreatorPollListScreen(pubName: name);
                     },
                   ),
-                  // Poll routes
-                  GoRoute(
-                    name: 'creatorPollNew',
-                    path: ':name/polls/new',
-                    builder: (context, state) {
-                      final name = state.pathParameters['name']!;
-                      // initialPollId left null for create; initialPublisher prefilled
-                      return PollEditorScreen(initialPublisher: name);
-                    },
-                  ),
-                  GoRoute(
-                    name: 'creatorPollEdit',
-                    path: ':name/polls/:id/edit',
-                    builder: (context, state) {
-                      final name = state.pathParameters['name']!;
-                      final id = state.pathParameters['id']!;
-                      return PollEditorScreen(
-                        initialPollId: id,
-                        initialPublisher: name,
-                      );
-                    },
-                  ),
+
                   GoRoute(
                     name: 'creatorStickers',
                     path: ':name/stickers',
