@@ -10,6 +10,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
+import 'package:island/screens/chat/chat_form.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 enum FabMenuType { main, compose, chat, realm }
@@ -135,8 +136,12 @@ class FabMenu extends HookConsumerWidget {
               leading: const Icon(Symbols.add),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () {
-                Navigator.pop(context);
-                context.pushNamed('chatNew').then((value) {
+                showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  builder: (context) => const EditChatScreen(),
+                ).then((value) {
                   if (value != null) {
                     eventBus.fire(const ChatRoomsRefreshEvent());
                   }
@@ -148,7 +153,6 @@ class FabMenu extends HookConsumerWidget {
               leading: const Icon(Symbols.person),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () {
-                Navigator.pop(context);
                 _createDirectMessage(context, ref);
               },
             ),
