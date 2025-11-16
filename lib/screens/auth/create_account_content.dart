@@ -15,6 +15,7 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/screens/account/me/profile_update.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/notify.dart';
+import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -180,7 +181,7 @@ class CreateAccountContent extends HookConsumerWidget {
           } else {
             // Existing user, switch to login
             showSnackBar('Account already exists. Redirecting to login.');
-            context.goNamed('login');
+            if (context.mounted) context.goNamed('login');
           }
         } catch (err) {
           showErrorAlert(err);
@@ -192,10 +193,15 @@ class CreateAccountContent extends HookConsumerWidget {
     Future<void> withOidc(String provider) async {
       waitingForOidc.value = true;
       final serverUrl = ref.watch(serverUrlProvider);
+      final deviceId = await getUdid();
       final url =
           Uri.parse('$serverUrl/pass/auth/login/${provider.toLowerCase()}')
               .replace(
-                queryParameters: {'redirect_uri': 'solian://auth/callback'},
+                queryParameters: {
+                  'returnUrl': 'solian://auth/callback',
+                  'deviceId': deviceId,
+                  'flow': 'login',
+                },
               )
               .toString();
       final isLaunched = await launchUrlString(

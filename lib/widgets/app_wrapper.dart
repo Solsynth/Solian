@@ -116,8 +116,10 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
   }
 
   void _handleDeepLink(Uri uri, WidgetRef ref) {
+    String path = '/${uri.host}${uri.path}';
+
     // Special handling for OIDC auth callback
-    if (uri.path == '/auth/callback' &&
+    if (path == '/auth/callback' &&
         uri.queryParameters.containsKey('challenge')) {
       final challenge = uri.queryParameters['challenge']!;
       eventBus.fire(OidcAuthCallbackEvent(challenge));
@@ -129,7 +131,6 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     }
 
     final router = ref.read(routerProvider);
-    String path = '/${uri.host}${uri.path}';
     if (uri.queryParameters.isNotEmpty) {
       path =
           Uri.parse(

@@ -653,8 +653,9 @@ class _LoginLookupScreen extends HookConsumerWidget {
       final token = ref.watch(tokenProvider);
       final deviceId = await getUdid();
       final queryParams = <String, String>{
-        'redirect_uri': 'solian://auth/callback',
-        'device_id': deviceId,
+        'returnUrl': 'solian://auth/callback',
+        'deviceId': deviceId,
+        'flow': 'login',
       };
       if (token?.token != null) {
         queryParams['token'] = token!.token;
