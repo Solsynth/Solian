@@ -4,6 +4,9 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/auth/create_account_modal.dart';
+import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
@@ -52,7 +55,36 @@ class FabMenu extends HookConsumerWidget {
     late final bool useRootNavigator;
     late final Widget menuContent;
 
-    final commonEntires = <Widget>[
+    final unauthorizedEntires = <Widget>[
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        leading: const Icon(Symbols.login),
+        title: Text('login').tr(),
+        onTap: () async {
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true,
+            isScrollControlled: true,
+            builder: (context) => LoginModal(),
+          );
+        },
+      ),
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        leading: const Icon(Symbols.person_add),
+        title: Text('createAccount').tr(),
+        onTap: () async {
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true,
+            isScrollControlled: true,
+            builder: (context) => CreateAccountModal(),
+          );
+        },
+      ),
+    ];
+
+    final authorizedEntires = <Widget>[
       if (!isWideScreen(context))
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -90,6 +122,10 @@ class FabMenu extends HookConsumerWidget {
       ),
     ];
 
+    final userInfo = ref.watch(userInfoProvider);
+    final authorized = userInfo.value != null;
+    final commonEntires = authorized ? authorizedEntires : unauthorizedEntires;
+
     switch (fabType) {
       case FabMenuType.compose:
         icon = Symbols.create;
@@ -98,25 +134,28 @@ class FabMenu extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Gap(24),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Symbols.post_add_rounded),
-              title: Text('postCompose').tr(),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await PostComposeSheet.show(context);
-              },
-            ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Symbols.article),
-              title: Text('articleCompose').tr(),
-              onTap: () async {
-                Navigator.of(context).pop();
-                GoRouter.of(context).pushNamed('articleCompose');
-              },
-            ),
-            const Divider(),
+            if (authorized)
+              ...([
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: const Icon(Symbols.post_add_rounded),
+                  title: Text('postCompose').tr(),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await PostComposeSheet.show(context);
+                  },
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: const Icon(Symbols.article),
+                  title: Text('articleCompose').tr(),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    GoRouter.of(context).pushNamed('articleCompose');
+                  },
+                ),
+                const Divider(),
+              ]),
             ...commonEntires,
             Gap(MediaQuery.of(context).padding.bottom + 16),
           ],
@@ -131,32 +170,35 @@ class FabMenu extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Gap(24),
-            ListTile(
-              title: const Text('createChatRoom').tr(),
-              leading: const Icon(Symbols.add),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  builder: (context) => const EditChatScreen(),
-                ).then((value) {
-                  if (value != null) {
-                    eventBus.fire(const ChatRoomsRefreshEvent());
-                  }
-                });
-              },
-            ),
-            ListTile(
-              title: const Text('createDirectMessage').tr(),
-              leading: const Icon(Symbols.person),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: () {
-                _createDirectMessage(context, ref);
-              },
-            ),
-            const Divider(),
+            if (authorized)
+              ...([
+                ListTile(
+                  title: const Text('createChatRoom').tr(),
+                  leading: const Icon(Symbols.add),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      useRootNavigator: true,
+                      isScrollControlled: true,
+                      builder: (context) => const EditChatScreen(),
+                    ).then((value) {
+                      if (value != null) {
+                        eventBus.fire(const ChatRoomsRefreshEvent());
+                      }
+                    });
+                  },
+                ),
+                ListTile(
+                  title: const Text('createDirectMessage').tr(),
+                  leading: const Icon(Symbols.person),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  onTap: () {
+                    _createDirectMessage(context, ref);
+                  },
+                ),
+                const Divider(),
+              ]),
             ...commonEntires,
             Gap(MediaQuery.of(context).padding.bottom + 16),
           ],
@@ -170,21 +212,24 @@ class FabMenu extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Gap(24),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Symbols.group_add),
-              title: Text('createRealm').tr(),
-              onTap: () {
-                Navigator.of(context).pop();
-                context.pushNamed('realmNew').then((value) {
-                  if (value != null) {
-                    // Fire realm refresh event if needed
-                    // eventBus.fire(const RealmsRefreshEvent());
-                  }
-                });
-              },
-            ),
-            const Divider(),
+            if (authorized)
+              ...([
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: const Icon(Symbols.group_add),
+                  title: Text('createRealm').tr(),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.pushNamed('realmNew').then((value) {
+                      if (value != null) {
+                        // Fire realm refresh event if needed
+                        // eventBus.fire(const RealmsRefreshEvent());
+                      }
+                    });
+                  },
+                ),
+                const Divider(),
+              ]),
             ...commonEntires,
             Gap(MediaQuery.of(context).padding.bottom + 16),
           ],
