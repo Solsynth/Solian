@@ -54,6 +54,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickPoll(ref, state, context);
     }
 
+    void pickFund() {
+      ComposeLogic.pickFund(ref, state, context);
+    }
+
     void showEmbedSheet() {
       showModalBottomSheet(
         context: context,
@@ -136,6 +140,29 @@ class ComposeToolbar extends HookConsumerWidget {
                               style: ButtonStyle(
                                 backgroundColor: WidgetStatePropertyAll(
                                   state.pollId.value != null
+                                      ? colorScheme.primary.withOpacity(0.15)
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        // Fund button with visual state when a fund is linked
+                        ListenableBuilder(
+                          listenable: state.fundId,
+                          builder: (context, _) {
+                            return IconButton(
+                              onPressed: pickFund,
+                              icon: const Icon(Symbols.account_balance_wallet),
+                              tooltip: 'fund'.tr(),
+                              color: colorScheme.primary,
+                              visualDensity: const VisualDensity(
+                                horizontal: -4,
+                                vertical: -2,
+                              ),
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
+                                  state.fundId.value != null
                                       ? colorScheme.primary.withOpacity(0.15)
                                       : null,
                                 ),
@@ -245,6 +272,25 @@ class ComposeToolbar extends HookConsumerWidget {
                             style: ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
                                 state.pollId.value != null
+                                    ? colorScheme.primary.withOpacity(0.15)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      // Fund button with visual state when a fund is linked
+                      ListenableBuilder(
+                        listenable: state.fundId,
+                        builder: (context, _) {
+                          return IconButton(
+                            onPressed: pickFund,
+                            icon: const Icon(Symbols.account_balance_wallet),
+                            tooltip: 'fund'.tr(),
+                            color: colorScheme.primary,
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                state.fundId.value != null
                                     ? colorScheme.primary.withOpacity(0.15)
                                     : null,
                               ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -21,6 +22,7 @@ import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
+import 'package:island/widgets/post/compose_fund.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:island/pods/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
@@ -44,6 +46,8 @@ class ComposeState {
   int postType;
   // Linked poll id for this compose session (nullable)
   final ValueNotifier<String?> pollId;
+  // Linked fund id for this compose session (nullable)
+  final ValueNotifier<String?> fundId;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -63,7 +67,9 @@ class ComposeState {
     required this.draftId,
     this.postType = 0,
     String? pollId,
-  }) : pollId = ValueNotifier<String?>(pollId);
+    String? fundId,
+  }) : pollId = ValueNotifier<String?>(pollId),
+       fundId = ValueNotifier<String?>(fundId);
 
   void startAutoSave(WidgetRef ref) {
     _autoSaveTimer?.cancel();
@@ -133,6 +139,8 @@ class ComposeLogic {
       postType: postType,
       // initialize without poll by default
       pollId: null,
+      // initialize without fund by default
+      fundId: null,
     );
   }
 
@@ -158,6 +166,8 @@ class ComposeLogic {
       draftId: draft.id,
       postType: postType,
       pollId: null,
+      // initialize without fund by default
+      fundId: null,
     );
   }
 
@@ -618,15 +628,40 @@ class ComposeLogic {
     state.pollId.value = poll.id;
   }
 
-  static Future<void> performAction(
+  static Future<void> pickFund(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.fundId.value != null) {
+      state.fundId.value = null;
+      return;
+    }
+
+    final fund = await showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposeFundSheet(),
+    );
+
+    if (fund == null) return;
+    state.fundId.value = fund.id;
+  }
+
+  /// Unified submit method that returns the created/updated post.
+  static Future<SnPost> performSubmit(
     WidgetRef ref,
     ComposeState state,
     BuildContext context, {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
+    required Function() onSuccess,
   }) async {
-    if (state.submitting.value) return;
+    if (state.submitting.value) {
+      throw Exception('Already submitting');
+    }
 
     // Don't submit empty posts (no content and no attachments)
     final hasContent =
@@ -636,25 +671,31 @@ class ComposeLogic {
     final hasAttachments = state.attachments.value.isNotEmpty;
 
     if (!hasContent && !hasAttachments) {
+      // Show error message if context is mounted
       if (context.mounted) {
-        showSnackBar('postContentEmpty'.tr());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('postContentEmpty')));
       }
-      return; // Don't submit empty posts
+      throw Exception('Post content is empty'); // Don't submit empty posts
     }
 
     try {
       state.submitting.value = true;
 
-      // pload any local attachments first
+      // Upload any local attachments first
       await Future.wait(
         state.attachments.value
             .asMap()
             .entries
             .where((entry) => entry.value.isOnDevice)
-            .map((entry) => uploadAttachment(ref, state, entry.key)),
+            .map(
+              (entry) => ComposeLogic.uploadAttachment(ref, state, entry.key),
+            ),
       );
+
       // Prepare API request
-      final client = ref.watch(apiClientProvider);
+      final client = ref.read(apiClientProvider);
       final isNewPost = originalPost == null;
       final endpoint =
           '/sphere${isNewPost ? '/posts' : '/posts/${originalPost.id}'}';
@@ -679,41 +720,83 @@ class ComposeLogic {
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
+        if (state.fundId.value != null) 'fund_id': state.fundId.value,
         if (state.embedView.value != null)
           'embed_view': state.embedView.value!.toJson(),
       };
 
       // Send request
-      await client.request(
+      final response = await client.request(
         endpoint,
         queryParameters: {'pub': state.currentPublisher.value?.name},
         data: payload,
         options: Options(method: isNewPost ? 'POST' : 'PATCH'),
       );
 
-      // Delete draft after successful submission
-      if (state.postType == 1) {
-        // Delete article draft
-        await ref
-            .read(composeStorageNotifierProvider.notifier)
-            .deleteDraft(state.draftId);
-      } else {
-        // Delete regular post draft
-        await ref
-            .read(composeStorageNotifierProvider.notifier)
-            .deleteDraft(state.draftId);
-      }
+      // Parse the response into a SnPost
+      final post = SnPost.fromJson(response.data);
 
-      if (context.mounted) {
-        Navigator.of(context).maybePop(true);
-      }
-
+      // Call the success callback
+      onSuccess();
       eventBus.fire(PostCreatedEvent());
+
+      return post;
     } catch (err) {
-      showErrorAlert(err);
+      // Show error message if context is mounted
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $err')));
+      }
+      rethrow;
     } finally {
       state.submitting.value = false;
     }
+  }
+
+  static Future<void> performAction(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context, {
+    SnPost? originalPost,
+    SnPost? repliedPost,
+    SnPost? forwardedPost,
+  }) async {
+    await ComposeLogic.performSubmit(
+      ref,
+      state,
+      context,
+      originalPost: originalPost,
+      repliedPost: repliedPost,
+      forwardedPost: forwardedPost,
+      onSuccess: () async {
+        // Delete draft after successful submission
+        if (state.postType == 1) {
+          // Delete article draft
+          await ref
+              .read(composeStorageNotifierProvider.notifier)
+              .deleteDraft(state.draftId);
+        } else {
+          // Delete regular post draft
+          await ref
+              .read(composeStorageNotifierProvider.notifier)
+              .deleteDraft(state.draftId);
+        }
+
+        if (context.mounted) {
+          Navigator.of(context).maybePop(true);
+        }
+      },
+    );
+  }
+
+  /// Shows the settings sheet modal.
+  static void showSettingsSheet(BuildContext context, ComposeState state) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => ComposeSettingsSheet(state: state),
+    );
   }
 
   static Future<void> handlePaste(ComposeState state) async {
@@ -778,5 +861,6 @@ class ComposeLogic {
     state.realm.dispose();
     state.embedView.dispose();
     state.pollId.dispose();
+    state.fundId.dispose();
   }
 }
