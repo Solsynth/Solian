@@ -24,7 +24,14 @@ Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
 }
 
 class FriendsOverviewWidget extends HookConsumerWidget {
-  const FriendsOverviewWidget({super.key});
+  final bool hideWhenEmpty;
+  final EdgeInsetsGeometry? padding;
+
+  const FriendsOverviewWidget({
+    super.key,
+    this.hideWhenEmpty = false,
+    this.padding,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,11 +52,11 @@ class FriendsOverviewWidget extends HookConsumerWidget {
         final onlineFriends =
             friends.where((friend) => friend.status.isOnline).toList();
 
-        if (onlineFriends.isEmpty) {
-          return const SizedBox.shrink(); // Hide if no online friends
+        if (onlineFriends.isEmpty && hideWhenEmpty) {
+          return const SizedBox.shrink();
         }
 
-        return Card(
+        final card = Card(
           margin: EdgeInsets.zero,
           child: Column(
             children: [
@@ -57,24 +64,42 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                 spacing: 8,
                 children: [const Icon(Symbols.group), Text('Friends Online')],
               ).padding(horizontal: 16).height(48),
-              SizedBox(
-                height: 80,
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: onlineFriends.length,
-                  itemBuilder: (context, index) {
-                    final friend = onlineFriends[index];
-                    return AccountPfcGestureDetector(
-                      uname: friend.account.name,
-                      child: _FriendTile(friend: friend),
-                    );
-                  },
+              if (onlineFriends.isEmpty)
+                Container(
+                  height: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const Center(
+                    child: Text(
+                      'No friends online',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: onlineFriends.length,
+                    itemBuilder: (context, index) {
+                      final friend = onlineFriends[index];
+                      return AccountPfcGestureDetector(
+                        uname: friend.account.name,
+                        child: _FriendTile(friend: friend),
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
           ),
         );
+
+        Widget result = card;
+        if (padding != null) {
+          result = Padding(padding: padding!, child: result);
+        }
+        return result;
       },
       loading:
           () => const SizedBox(

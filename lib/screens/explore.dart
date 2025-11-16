@@ -542,6 +542,11 @@ class ExploreScreen extends HookConsumerWidget {
                   child: PostFeaturedList(),
                 ),
               ),
+              SliverToBoxAdapter(
+                child: FriendsOverviewWidget(
+                  padding: const EdgeInsets.only(bottom: 8),
+                ),
+              ),
               if (notificationCount.value != null &&
                   notificationCount.value! > 0)
                 SliverToBoxAdapter(
