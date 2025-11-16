@@ -1,11 +1,9 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:island/models/embed.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/poll/poll_submit.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class EmbedListWidget extends StatelessWidget {
@@ -26,46 +24,92 @@ class EmbedListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedEmbeds =
+        embeds
+            .map((e) => convertMapKeysToSnakeCase(e as Map<String, dynamic>))
+            .toList();
+    final linkEmbeds =
+        normalizedEmbeds.where((e) => e['type'] == 'link').toList();
+    final otherEmbeds =
+        normalizedEmbeds.where((e) => e['type'] != 'link').toList();
+
     return Column(
-      children:
-          embeds
-              .map((embedData) => convertMapKeysToSnakeCase(embedData))
-              .map(
-                (embedData) => switch (embedData['type']) {
-                  'link' => EmbedLinkWidget(
-                    link: SnScrappedLink.fromJson(embedData),
-                    maxWidth:
-                        maxWidth ??
-                        math.min(
-                          MediaQuery.of(context).size.width,
-                          kWideScreenWidth,
-                        ),
-                    margin: EdgeInsets.only(
-                      top: 4,
-                      bottom: 4,
-                      left: renderingPadding.horizontal,
-                      right: renderingPadding.horizontal,
-                    ),
-                  ),
-                  'poll' => Card(
-                    margin: EdgeInsets.symmetric(
-                      horizontal: renderingPadding.horizontal,
-                      vertical: 8,
-                    ),
+      children: [
+        if (linkEmbeds.isNotEmpty)
+          Container(
+            margin: EdgeInsets.only(
+              top: 8,
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                initiallyExpanded: true,
+                dense: true,
+                leading: const Icon(Symbols.link),
+                title: Text('${linkEmbeds.length} links'),
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
                     child:
-                        embedData['id'] == null
-                            ? const Text('Poll was unavailable...')
-                            : PollSubmit(
-                              pollId: embedData['id'],
-                              onSubmit: (_) {},
-                              isReadonly: !isInteractive,
-                              isInitiallyExpanded: isFullPost,
-                            ).padding(horizontal: 16, vertical: 12),
+                        linkEmbeds.length == 1
+                            ? EmbedLinkWidget(
+                              link: SnScrappedLink.fromJson(linkEmbeds.first),
+                            )
+                            : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    linkEmbeds
+                                        .map(
+                                          (embedData) => EmbedLinkWidget(
+                                            link: SnScrappedLink.fromJson(
+                                              embedData,
+                                            ),
+                                            maxWidth:
+                                                200, // Fixed width for horizontal scroll
+                                            margin: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
+                            ),
                   ),
-                  _ => Text('Unable show embed: ${embedData['type']}'),
-                },
-              )
-              .toList(),
+                ],
+              ),
+            ),
+          ),
+        ...otherEmbeds.map(
+          (embedData) => switch (embedData['type']) {
+            'poll' => Card(
+              margin: EdgeInsets.symmetric(
+                horizontal: renderingPadding.horizontal,
+                vertical: 8,
+              ),
+              child:
+                  embedData['id'] == null
+                      ? const Text('Poll was unavailable...')
+                      : PollSubmit(
+                        pollId: embedData['id'],
+                        onSubmit: (_) {},
+                        isReadonly: !isInteractive,
+                        isInitiallyExpanded: isFullPost,
+                      ).padding(horizontal: 16, vertical: 12),
+            ),
+            _ => Text('Unable show embed: ${embedData['type']}'),
+          },
+        ),
+      ],
     );
   }
 }
