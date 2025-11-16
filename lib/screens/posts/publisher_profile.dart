@@ -73,10 +73,33 @@ class _PublisherBasisWidget extends StatelessWidget {
                     Positioned(
                       bottom: -24,
                       left: 16,
-                      child: ProfilePictureWidget(
-                        file: data.picture,
-                        radius: 32,
-                        borderRadius: data.type == 0 ? null : 12,
+                      child: GestureDetector(
+                        child: Badge(
+                          isLabelVisible: data.type == 0,
+                          padding: EdgeInsets.all(3),
+                          label: Icon(
+                            Symbols.launch,
+                            size: 12,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          offset: Offset(0, 48),
+                          child: ProfilePictureWidget(
+                            file: data.picture,
+                            radius: 32,
+                            borderRadius: data.type == 0 ? null : 12,
+                          ),
+                        ),
+                        onTap: () {
+                          if (data.account?.name != null) {
+                            Navigator.pop(context, true);
+                            context.pushNamed(
+                              'accountProfile',
+                              pathParameters: {'name': data.account!.name},
+                            );
+                          }
+                        },
                       ),
                     ),
                   ],
