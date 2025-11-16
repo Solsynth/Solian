@@ -1863,6 +1863,6 @@ class WalletScreen extends HookConsumerWidget {
 }
 
 const Map<String, IconData> kCurrencyIconData = {
-  'points': Symbols.toll,
-  'golds': Symbols.attach_money,
+  'points': Symbols.bolt,
+  'golds': Symbols.diamond,
 };

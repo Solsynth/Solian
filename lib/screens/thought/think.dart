@@ -54,6 +54,17 @@ class ThoughtScreen extends HookConsumerWidget {
             ? ref.watch(thoughtSequenceProvider(selectedSequenceId.value!))
             : const AsyncValue<List<SnThinkingThought>>.data([]);
 
+    // Extract sequence ID from loaded thoughts for the chat interface
+    final sequenceIdFromThoughts = thoughts.maybeWhen(
+      data: (thoughts) {
+        if (thoughts.isNotEmpty && thoughts.first.sequenceId.isNotEmpty) {
+          return thoughts.first.sequenceId;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
+
     // Get initial thoughts and topic from provider
     final initialThoughts = thoughts.valueOrNull;
     final initialTopic =
@@ -111,6 +122,7 @@ class ThoughtScreen extends HookConsumerWidget {
             data:
                 (thoughtList) => ThoughtChatInterface(
                   initialThoughts: thoughtList,
+                  initialSequenceId: sequenceIdFromThoughts,
                   initialTopic: initialTopic,
                   isDisabled: !status,
                 ),

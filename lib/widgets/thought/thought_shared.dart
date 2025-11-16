@@ -386,6 +386,7 @@ ThoughtChatState useThoughtChat(
 
 class ThoughtChatInterface extends HookConsumerWidget {
   final List<SnThinkingThought>? initialThoughts;
+  final String? initialSequenceId;
   final String? initialTopic;
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
@@ -394,6 +395,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
   const ThoughtChatInterface({
     super.key,
     this.initialThoughts,
+    this.initialSequenceId,
     this.initialTopic,
     this.attachedMessages = const [],
     this.attachedPosts = const [],
@@ -407,6 +409,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
 
     final chatState = useThoughtChat(
       ref,
+      initialSequenceId: initialSequenceId,
       initialThoughts: initialThoughts,
       initialTopic: initialTopic,
       attachedMessages: attachedMessages,
