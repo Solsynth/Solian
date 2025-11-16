@@ -104,6 +104,22 @@ class ComposeLogic {
     // Initialize categories from original post
     final categories = originalPost?.categories ?? <SnPostCategory>[];
 
+    // Extract poll and fund IDs from embeds
+    String? pollId;
+    String? fundId;
+    if (originalPost?.meta?['embeds'] is List) {
+      final embeds =
+          (originalPost!.meta!['embeds'] as List).cast<Map<String, dynamic>>();
+      try {
+        final pollEmbed = embeds.firstWhere((e) => e['type'] == 'poll');
+        pollId = pollEmbed['id'];
+      } catch (_) {}
+      try {
+        final fundEmbed = embeds.firstWhere((e) => e['type'] == 'fund');
+        fundId = fundEmbed['id'];
+      } catch (_) {}
+    }
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -137,10 +153,8 @@ class ComposeLogic {
       embedView: ValueNotifier<SnPostEmbedView?>(originalPost?.embedView),
       draftId: id,
       postType: postType,
-      // initialize without poll by default
-      pollId: null,
-      // initialize without fund by default
-      fundId: null,
+      pollId: pollId,
+      fundId: fundId,
     );
   }
 
