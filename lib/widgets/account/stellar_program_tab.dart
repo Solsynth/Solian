@@ -240,7 +240,11 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                       labelText: 'personalMessage'.tr(),
                       hintText: 'addPersonalMessageForRecipient'.tr(),
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           color: Theme.of(
@@ -925,7 +929,9 @@ class StellarProgramTab extends HookConsumerWidget {
             decoration: InputDecoration(
               isDense: true,
               hintText: 'enterGiftCode'.tr(),
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+              ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: Theme.of(context).colorScheme.outline.withOpacity(0.2),

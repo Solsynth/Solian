@@ -28,7 +28,9 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
           controller: controller,
           decoration: const InputDecoration(
             hintText: 'Enter access token',
-            border: OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+            ),
           ),
           autofocus: true,
         ),
@@ -96,7 +98,7 @@ class DebugSheet extends HookConsumerWidget {
                     'Unable to check for updates',
                   );
                 }
-              }
+              },
             ),
             const Divider(height: 8),
             ListTile(

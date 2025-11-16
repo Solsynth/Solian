@@ -144,7 +144,11 @@ class ChatLinkAttachment extends HookConsumerWidget {
                             helperText: 'fileIdHint'.tr(),
                             helperMaxLines: 3,
                             errorText: errorMessage.value,
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
                           ),
                           onTapOutside:
                               (_) =>

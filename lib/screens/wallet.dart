@@ -103,17 +103,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                       labelText: 'enterAmount'.tr(),
                       hintText: '0.00',
                       prefixIcon: Icon(kCurrencyIconData[selectedCurrency]),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),
@@ -136,17 +128,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                   DropdownButtonFormField<String>(
                     value: selectedCurrency,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),
@@ -370,17 +354,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                       labelText: 'personalMessage'.tr(),
                       hintText: 'addPersonalMessageForRecipients'.tr(),
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),
@@ -526,11 +502,6 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
       return;
     }
 
-    if (selectedRecipients.isEmpty) {
-      showErrorAlert('noRecipientsSelected'.tr());
-      return;
-    }
-
     final data = {
       'currency': selectedCurrency,
       'total_amount': amount,
@@ -610,17 +581,9 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                       labelText: 'enterAmount'.tr(),
                       hintText: '0.00',
                       prefixIcon: Icon(kCurrencyIconData[selectedCurrency]),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),
@@ -643,17 +606,9 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                   DropdownButtonFormField<String>(
                     value: selectedCurrency,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),
@@ -817,17 +772,9 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                       labelText: 'transferRemark'.tr(),
                       hintText: 'addRemarkForTransfer'.tr(),
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                      border: OutlineInputBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
                         ),
                       ),
                     ),

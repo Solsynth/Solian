@@ -455,7 +455,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     return TextField(
       controller: _textController,
       maxLines: 6,
-      decoration: const InputDecoration(border: OutlineInputBorder()),
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        ),
+      ),
     );
   }
 

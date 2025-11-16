@@ -237,7 +237,9 @@ class PostSearchScreen extends HookConsumerWidget {
                 controller: pubNameController,
                 decoration: InputDecoration(
                   labelText: 'pubName'.tr(),
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  ),
                 ),
                 onChanged:
                     (value) => onSearchWithFilters(searchController.text),
@@ -247,7 +249,9 @@ class PostSearchScreen extends HookConsumerWidget {
                 controller: realmController,
                 decoration: InputDecoration(
                   labelText: 'realm'.tr(),
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  ),
                 ),
                 onChanged:
                     (value) => onSearchWithFilters(searchController.text),

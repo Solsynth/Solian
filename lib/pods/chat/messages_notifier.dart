@@ -9,6 +9,7 @@ import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/models/poll.dart";
+import "package:island/models/wallet.dart";
 import "package:island/pods/database.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/network.dart";
@@ -439,6 +440,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     String content,
     List<UniversalFile> attachments, {
     SnPoll? poll,
+    SnWalletFund? fund,
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
@@ -501,6 +503,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           'replied_message_id': replyingTo?.id,
           'forwarded_message_id': forwardingTo?.id,
           'poll_id': poll?.id,
+          'fund_id': fund?.id,
           'meta': {},
           'nonce': nonce,
         },

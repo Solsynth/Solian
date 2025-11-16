@@ -13,6 +13,7 @@ import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/models/poll.dart";
 import "package:island/models/publisher.dart";
+import "package:island/models/wallet.dart";
 import "package:island/models/realm.dart";
 import "package:island/models/sticker.dart";
 import "package:island/pods/config.dart";
@@ -28,6 +29,7 @@ import "package:material_symbols_icons/symbols.dart";
 import "package:island/widgets/stickers/sticker_picker.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/widgets/post/compose_poll.dart";
+import "package:island/widgets/post/compose_fund.dart";
 
 void _insertPlaceholder(TextEditingController controller, String placeholder) {
   final text = controller.text;
@@ -47,11 +49,15 @@ class _ExpandedSection extends StatelessWidget {
   final TextEditingController messageController;
   final SnPoll? selectedPoll;
   final Function(SnPoll?) onPollSelected;
+  final SnWalletFund? selectedFund;
+  final Function(SnWalletFund?) onFundSelected;
 
   const _ExpandedSection({
     required this.messageController,
     this.selectedPoll,
     required this.onPollSelected,
+    this.selectedFund,
+    required this.onFundSelected,
   });
 
   @override
@@ -132,7 +138,18 @@ class _ExpandedSection extends StatelessWidget {
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
                             ),
-                            onTap: () {},
+                            onTap: () async {
+                              final fund =
+                                  await showModalBottomSheet<SnWalletFund>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder:
+                                        (context) => const ComposeFundSheet(),
+                                  );
+                              if (fund != null) {
+                                onFundSelected(fund);
+                              }
+                            },
                             child: Card(
                               margin: EdgeInsets.zero,
                               color:
@@ -145,7 +162,7 @@ class _ExpandedSection extends StatelessWidget {
                                   Icon(Symbols.currency_exchange),
                                   const Gap(4),
                                   Text(
-                                    'Fund',
+                                    'fund'.tr(),
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
                                   ),
@@ -195,6 +212,8 @@ class ChatInput extends HookConsumerWidget {
   final Map<String, Map<int, double?>> attachmentProgress;
   final SnPoll? selectedPoll;
   final Function(SnPoll?) onPollSelected;
+  final SnWalletFund? selectedFund;
+  final Function(SnWalletFund?) onFundSelected;
 
   const ChatInput({
     super.key,
@@ -217,6 +236,8 @@ class ChatInput extends HookConsumerWidget {
     required this.attachmentProgress,
     this.selectedPoll,
     required this.onPollSelected,
+    this.selectedFund,
+    required this.onFundSelected,
   });
 
   @override
@@ -513,6 +534,114 @@ class ChatInput extends HookConsumerWidget {
                         )
                         : const SizedBox.shrink(
                           key: ValueKey('no-selected-poll'),
+                        ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -0.25),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child:
+                    selectedFund != null
+                        ? Container(
+                          key: const ValueKey('selected-fund'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          margin: const EdgeInsets.only(
+                            left: 8,
+                            right: 8,
+                            top: 8,
+                            bottom: 8,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.currency_exchange,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Expanded(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall!.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (selectedFund!.message != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Text(
+                                          selectedFund!.message!,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall!.copyWith(
+                                            fontSize: 10,
+                                            color:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(Icons.close, size: 18),
+                                  onPressed: () => onFundSelected(null),
+                                  tooltip: 'clear'.tr(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : const SizedBox.shrink(
+                          key: ValueKey('no-selected-fund'),
                         ),
               ),
               AnimatedSwitcher(
@@ -904,6 +1033,8 @@ class ChatInput extends HookConsumerWidget {
                           messageController: messageController,
                           selectedPoll: selectedPoll,
                           onPollSelected: onPollSelected,
+                          selectedFund: selectedFund,
+                          onFundSelected: onFundSelected,
                         )
                         : const SizedBox.shrink(key: ValueKey('collapsed')),
               ),

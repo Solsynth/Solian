@@ -1329,5 +1329,9 @@
     "more": "More",
     "collapse": "Collapse",
     "pollConfirmDiscard": "Are you sure you want to leave? All the poll data you're editing will not be saved.",
-    "discard": "Discard"
+    "discard": "Discard",
+    "fund": "Fund",
+    "fundsRecent": "Recent Funds",
+    "fundCreateNew": "Create New",
+    "fundCreateNewHint": "Create a new fund for your message. Select recipients and amount."
 }
