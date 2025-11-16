@@ -126,21 +126,39 @@ class _FriendTile extends ConsumerWidget {
                         )
                         : null,
               ),
-              // Online indicator
+              // Online indicator - show play arrow if user has activities, otherwise green dot
               Positioned(
                 bottom: 0,
                 right: 0,
                 child: Container(
-                  width: 12,
-                  height: 12,
+                  width: 16,
+                  height: 16,
                   decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
+                    color:
+                        friend.activities.isNotEmpty
+                            ? Colors.blue.withOpacity(0.8)
+                            : Colors.green,
+                    shape:
+                        friend.activities.isNotEmpty
+                            ? BoxShape.rectangle
+                            : BoxShape.circle,
+                    borderRadius:
+                        friend.activities.isNotEmpty
+                            ? BorderRadius.circular(4)
+                            : null,
                     border: Border.all(
                       color: theme.colorScheme.surface,
                       width: 2,
                     ),
                   ),
+                  child:
+                      friend.activities.isNotEmpty
+                          ? Icon(
+                            Symbols.play_arrow,
+                            size: 10,
+                            color: Colors.white,
+                          )
+                          : null,
                 ),
               ),
             ],
