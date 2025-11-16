@@ -144,7 +144,6 @@ class PostReactionSheet extends StatelessWidget {
           ),
           const Divider(height: 1),
           TabBar(tabs: [Tab(text: 'overview'.tr()), Tab(text: 'custom'.tr())]),
-          const Divider(height: 1),
           Expanded(
             child: TabBarView(
               children: [
@@ -599,12 +598,8 @@ class CustomReactionForm extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'customReaction'.tr(),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const Gap(24),
           TextField(
+            readOnly: true,
             decoration: InputDecoration(
               labelText: 'stickerPlaceholder'.tr(),
               hintText: 'prefix+slug',
@@ -615,7 +610,10 @@ class CustomReactionForm extends HookConsumerWidget {
                 onTapDown: (details) async {
                   await showStickerPickerPopover(
                     context,
-                    details.globalPosition.translate(-300, -280),
+                    Offset(
+                      (MediaQuery.sizeOf(context).width - 500) / 2,
+                      MediaQuery.sizeOf(context).height - 500,
+                    ),
                     alignment: Alignment.topLeft,
                     onPick: (placeholder) {
                       // Remove the surrounding : from the placeholder
