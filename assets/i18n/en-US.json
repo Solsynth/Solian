@@ -1335,5 +1335,6 @@
     "fundCreateNew": "Create New",
     "fundCreateNewHint": "Create a new fund for your message. Select recipients and amount.",
     "amountOfSplits": "Amount of Splits",
-    "enterNumberOfSplits": "Enter Splits Amount"
+    "enterNumberOfSplits": "Enter Splits Amount",
+    "orCreateWith": "Or\ncreate with"
 }
