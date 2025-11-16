@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:dio/dio.dart';
@@ -412,15 +413,19 @@ class ThoughtChatInterface extends HookConsumerWidget {
       attachedPosts: attachedPosts,
     );
 
+    // Periodic height measurement for dynamic sizing
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
         final renderBox =
             inputKey.currentContext?.findRenderObject() as RenderBox?;
         if (renderBox != null) {
-          inputHeight.value = renderBox.size.height;
+          final newHeight = renderBox.size.height;
+          if (newHeight != inputHeight.value) {
+            inputHeight.value = newHeight;
+          }
         }
       });
-      return null;
+      return timer.cancel;
     }, []);
 
     return Stack(

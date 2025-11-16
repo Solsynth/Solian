@@ -619,6 +619,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         top: 16,
         bottom:
             MediaQuery.of(context).padding.bottom +
+            8 +
             inputHeight.value, // Leave space for chat input
       ),
       controller: scrollController,
