@@ -407,6 +407,9 @@ class ThoughtChatInterface extends HookConsumerWidget {
     final inputKey = useMemoized(() => GlobalKey());
     final inputHeight = useState<double>(80.0);
 
+    // Track previous height for smooth animations
+    final previousInputHeight = usePrevious<double>(inputHeight.value);
+
     final chatState = useThoughtChat(
       ref,
       initialSequenceId: initialSequenceId,
@@ -440,34 +443,86 @@ class ThoughtChatInterface extends HookConsumerWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: SuperListView.builder(
-                    listController: chatState.listController,
-                    controller: chatState.scrollController,
-                    padding: EdgeInsets.only(
-                      top: 16,
-                      bottom:
-                          MediaQuery.of(context).padding.bottom +
-                          8 +
-                          inputHeight.value, // Leave space for thought input
-                    ),
-                    reverse: true,
-                    itemCount:
-                        chatState.localThoughts.value.length +
-                        (chatState.isStreaming.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (chatState.isStreaming.value && index == 0) {
-                        return ThoughtItem(
-                          isStreaming: true,
-                          streamingItems: chatState.streamingItems.value,
-                        );
-                      }
-                      final thoughtIndex =
-                          chatState.isStreaming.value ? index - 1 : index;
-                      final thought =
-                          chatState.localThoughts.value[thoughtIndex];
-                      return ThoughtItem(thought: thought);
-                    },
-                  ),
+                  child:
+                      previousInputHeight != null &&
+                              previousInputHeight != inputHeight.value
+                          ? TweenAnimationBuilder<double>(
+                            tween: Tween<double>(
+                              begin: previousInputHeight,
+                              end: inputHeight.value,
+                            ),
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOut,
+                            builder:
+                                (context, height, child) =>
+                                    SuperListView.builder(
+                                      listController: chatState.listController,
+                                      controller: chatState.scrollController,
+                                      padding: EdgeInsets.only(
+                                        top: 16,
+                                        bottom:
+                                            MediaQuery.of(
+                                              context,
+                                            ).padding.bottom +
+                                            8 +
+                                            height,
+                                      ),
+                                      reverse: true,
+                                      itemCount:
+                                          chatState.localThoughts.value.length +
+                                          (chatState.isStreaming.value ? 1 : 0),
+                                      itemBuilder: (context, index) {
+                                        if (chatState.isStreaming.value &&
+                                            index == 0) {
+                                          return ThoughtItem(
+                                            isStreaming: true,
+                                            streamingItems:
+                                                chatState.streamingItems.value,
+                                          );
+                                        }
+                                        final thoughtIndex =
+                                            chatState.isStreaming.value
+                                                ? index - 1
+                                                : index;
+                                        final thought =
+                                            chatState
+                                                .localThoughts
+                                                .value[thoughtIndex];
+                                        return ThoughtItem(thought: thought);
+                                      },
+                                    ),
+                          )
+                          : SuperListView.builder(
+                            listController: chatState.listController,
+                            controller: chatState.scrollController,
+                            padding: EdgeInsets.only(
+                              top: 16,
+                              bottom:
+                                  MediaQuery.of(context).padding.bottom +
+                                  8 +
+                                  inputHeight.value,
+                            ),
+                            reverse: true,
+                            itemCount:
+                                chatState.localThoughts.value.length +
+                                (chatState.isStreaming.value ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (chatState.isStreaming.value && index == 0) {
+                                return ThoughtItem(
+                                  isStreaming: true,
+                                  streamingItems:
+                                      chatState.streamingItems.value,
+                                );
+                              }
+                              final thoughtIndex =
+                                  chatState.isStreaming.value
+                                      ? index - 1
+                                      : index;
+                              final thought =
+                                  chatState.localThoughts.value[thoughtIndex];
+                              return ThoughtItem(thought: thought);
+                            },
+                          ),
                 ),
               ],
             ),
