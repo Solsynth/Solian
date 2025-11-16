@@ -11,6 +11,7 @@ import 'package:island/models/realm.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -348,21 +349,39 @@ class ExploreScreen extends HookConsumerWidget {
         else
           Flexible(
             flex: 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome to\nthe Solar Network',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ).bold(),
-                const Gap(2),
-                Text(
-                  'Login to explore more!',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ],
-            ).padding(horizontal: 36, vertical: 16),
+            child:
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(Symbols.emoji_people_rounded, size: 40),
+                    const Gap(8),
+                    Text(
+                      'Welcome to\nthe Solar Network',
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ).bold(),
+                    const Gap(2),
+                    Text(
+                      'Login to explore more!',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(4),
+                    TextButton.icon(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useRootNavigator: true,
+                          isScrollControlled: true,
+                          builder: (context) => LoginModal(),
+                        );
+                      },
+                      icon: const Icon(Symbols.login),
+                      label: Text('login').tr(),
+                    ),
+                  ],
+                ).padding(horizontal: 36, vertical: 16).center(),
           ),
       ],
     ).padding(horizontal: 12);
