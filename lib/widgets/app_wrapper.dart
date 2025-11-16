@@ -8,6 +8,7 @@ import 'package:island/pods/activity/activity_rpc.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/screens/tray_manager.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
 import 'package:island/services/update_service.dart';
@@ -115,6 +116,18 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
   }
 
   void _handleDeepLink(Uri uri, WidgetRef ref) {
+    // Special handling for OIDC auth callback
+    if (uri.path == '/auth/callback' &&
+        uri.queryParameters.containsKey('challenge')) {
+      final challenge = uri.queryParameters['challenge']!;
+      eventBus.fire(OidcAuthCallbackEvent(challenge));
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
     final router = ref.read(routerProvider);
     String path = '/${uri.host}${uri.path}';
     if (uri.queryParameters.isNotEmpty) {

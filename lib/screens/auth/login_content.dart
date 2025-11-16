@@ -15,7 +15,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/screens/account/me/settings_connections.dart';
-import 'package:island/screens/auth/oidc.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
@@ -503,11 +503,41 @@ class _LoginLookupScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
     final usernameController = useTextEditingController();
+    final waitingForOidc = useState(false);
 
     useEffect(() {
       onBusy.call(isBusy.value);
       return null;
     }, [isBusy]);
+
+    useEffect(() {
+      final subscription = eventBus.on<OidcAuthCallbackEvent>().listen((
+        event,
+      ) async {
+        if (!waitingForOidc.value || !context.mounted) return;
+        waitingForOidc.value = false;
+        final client = ref.watch(apiClientProvider);
+        try {
+          final resp = await client.get(
+            '/pass/auth/challenge/${event.challengeId}',
+          );
+          final challenge = SnAuthChallenge.fromJson(resp.data);
+          onChallenge(challenge);
+          final factorResp = await client.get(
+            '/pass/auth/challenge/${challenge.id}/factors',
+          );
+          onFactor(
+            List<SnAuthFactor>.from(
+              factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
+            ),
+          );
+          onNext();
+        } catch (err) {
+          showErrorAlert(err);
+        }
+      });
+      return subscription.cancel;
+    }, [waitingForOidc.value, context.mounted]);
 
     Future<void> requestResetPassword() async {
       final uname = usernameController.value.text;
@@ -618,28 +648,33 @@ class _LoginLookupScreen extends HookConsumerWidget {
     }
 
     Future<void> withOidc(String provider) async {
-      final challengeId = await Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          builder: (context) => OidcScreen(provider: provider.toLowerCase()),
-        ),
+      waitingForOidc.value = true;
+      final serverUrl = ref.watch(serverUrlProvider);
+      final token = ref.watch(tokenProvider);
+      final deviceId = await getUdid();
+      final queryParams = <String, String>{
+        'redirect_uri': 'solian://auth/callback',
+        'device_id': deviceId,
+      };
+      if (token?.token != null) {
+        queryParams['token'] = token!.token;
+      }
+      final url =
+          Uri.parse(
+            '$serverUrl/pass/auth/login/${provider.toLowerCase()}',
+          ).replace(queryParameters: queryParams).toString();
+      final isLaunched = await launchUrlString(
+        url,
+        mode:
+            kIsWeb
+                ? LaunchMode.platformDefault
+                : LaunchMode.externalApplication,
+        webOnlyWindowName:
+            token?.token != null ? 'auth-${token!.token}' : 'auth',
       );
-
-      final client = ref.watch(apiClientProvider);
-      try {
-        final resp = await client.get('/pass/auth/challenge/$challengeId');
-        final challenge = SnAuthChallenge.fromJson(resp.data);
-        onChallenge(challenge);
-        final factorResp = await client.get(
-          '/pass/auth/challenge/${challenge.id}/factors',
-        );
-        onFactor(
-          List<SnAuthFactor>.from(
-            factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
-          ),
-        );
-        onNext();
-      } catch (err) {
-        showErrorAlert(err);
+      if (!isLaunched) {
+        waitingForOidc.value = false;
+        showErrorAlert('failedToLaunchBrowser'.tr());
       }
     }
 

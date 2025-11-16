@@ -16,3 +16,10 @@ class PostCreatedEvent {
 class ChatRoomsRefreshEvent {
   const ChatRoomsRefreshEvent();
 }
+
+/// Event fired when OIDC auth callback is received
+class OidcAuthCallbackEvent {
+  final String challengeId;
+
+  const OidcAuthCallbackEvent(this.challengeId);
+}
