@@ -30,7 +30,6 @@ import 'package:island/screens/account/me/profile_update.dart';
 import 'package:island/screens/account/leveling.dart';
 import 'package:island/screens/account/me/account_settings.dart';
 import 'package:island/screens/chat/chat.dart';
-import 'package:island/screens/chat/chat_form.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
 import 'package:island/screens/chat/call.dart';
@@ -266,24 +265,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const ChatListScreen(),
                   ),
                   GoRoute(
-                    name: 'chatNew',
-                    path: '/chat/new',
-                    builder: (context, state) => const NewChatScreen(),
-                  ),
-                  GoRoute(
                     name: 'chatRoom',
                     path: '/chat/:id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return ChatRoomScreen(id: id);
-                    },
-                  ),
-                  GoRoute(
-                    name: 'chatEdit',
-                    path: '/chat/:id/edit',
-                    builder: (context, state) {
-                      final id = state.pathParameters['id']!;
-                      return EditChatScreen(id: id);
                     },
                   ),
                   GoRoute(

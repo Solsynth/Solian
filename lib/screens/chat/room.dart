@@ -142,6 +142,25 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
 
+    // Input height measurement for dynamic padding
+    final inputKey = useMemoized(() => GlobalKey());
+    final inputHeight = useState<double>(80.0);
+
+    // Periodic height measurement for dynamic sizing
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+        final renderBox =
+            inputKey.currentContext?.findRenderObject() as RenderBox?;
+        if (renderBox != null) {
+          final newHeight = renderBox.size.height;
+          if (newHeight != inputHeight.value) {
+            inputHeight.value = newHeight;
+          }
+        }
+      });
+      return timer.cancel;
+    }, []);
+
     // Scroll animation notifiers
     final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
 
@@ -600,7 +619,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         top: 16,
         bottom:
             MediaQuery.of(context).padding.bottom +
-            80, // Leave space for chat input
+            inputHeight.value, // Leave space for chat input
       ),
       controller: scrollController,
       reverse: true, // Show newest messages at the bottom
@@ -964,6 +983,7 @@ class ChatRoomScreen extends HookConsumerWidget {
               child: chatRoom.when(
                 data:
                     (room) => Column(
+                      key: inputKey,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ChatInput(

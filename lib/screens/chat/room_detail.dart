@@ -16,6 +16,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/screens/chat/chat_form.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -447,10 +448,17 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
             if ((chatIdentity.value?.role ?? 0) >= 50)
               PopupMenuItem(
                 onTap: () {
-                  context.pushReplacementNamed(
-                    'chatEdit',
-                    pathParameters: {'id': id},
-                  );
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => EditChatScreen(id: id),
+                  ).then((value) {
+                    if (value != null) {
+                      // Invalidate to refresh room data after edit
+                      ref.invalidate(chatroomProvider(id));
+                    }
+                  });
                 },
                 child: Row(
                   children: [

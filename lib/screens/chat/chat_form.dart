@@ -16,10 +16,10 @@ import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/content/sheet.dart';
 
 class NewChatScreen extends StatelessWidget {
   const NewChatScreen({super.key});
@@ -151,12 +151,10 @@ class EditChatScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      appBar: AppBar(
-        title: Text(id == null ? 'createChatRoom' : 'editChatRoom').tr(),
-        leading: const PageBackButton(),
-      ),
-      body: SingleChildScrollView(
+    return SheetScaffold(
+      titleText: (id == null ? 'createChatRoom' : 'editChatRoom').tr(),
+      onClose: () => context.pop(),
+      child: SingleChildScrollView(
         child: Column(
           children: [
             AspectRatio(
@@ -204,16 +202,24 @@ class EditChatScreen extends HookConsumerWidget {
                 children: [
                   TextFormField(
                     controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Name'),
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onTapOutside:
                         (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: descriptionController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Description',
                       alignLabelWithHint: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     minLines: 3,
                     maxLines: null,
@@ -223,7 +229,12 @@ class EditChatScreen extends HookConsumerWidget {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<SnRealm>(
                     value: currentRealm.value,
-                    decoration: InputDecoration(labelText: 'realm'.tr()),
+                    decoration: InputDecoration(
+                      labelText: 'realm'.tr(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     items: [
                       DropdownMenuItem<SnRealm>(
                         value: null,
