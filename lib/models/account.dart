@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/models/activity.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/wallet.dart';
@@ -262,4 +263,16 @@ sealed class SnSocialCreditRecord with _$SnSocialCreditRecord {
 
   factory SnSocialCreditRecord.fromJson(Map<String, dynamic> json) =>
       _$SnSocialCreditRecordFromJson(json);
+}
+
+@freezed
+sealed class SnFriendOverviewItem with _$SnFriendOverviewItem {
+  const factory SnFriendOverviewItem({
+    required SnAccount account,
+    required SnAccountStatus status,
+    required List<SnPresenceActivity> activities,
+  }) = _SnFriendOverviewItem;
+
+  factory SnFriendOverviewItem.fromJson(Map<String, dynamic> json) =>
+      _$SnFriendOverviewItemFromJson(json);
 }

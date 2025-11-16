@@ -14,6 +14,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
@@ -341,6 +342,7 @@ class ExploreScreen extends HookConsumerWidget {
                         margin: EdgeInsets.zero,
                       ),
                     PostFeaturedList(),
+                    FriendsOverviewWidget(),
                   ],
                 ),
               ),

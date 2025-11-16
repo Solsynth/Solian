@@ -449,3 +449,22 @@ Map<String, dynamic> _$SnSocialCreditRecordToJson(
   'updated_at': instance.updatedAt.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };
+
+_SnFriendOverviewItem _$SnFriendOverviewItemFromJson(
+  Map<String, dynamic> json,
+) => _SnFriendOverviewItem(
+  account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  status: SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
+  activities:
+      (json['activities'] as List<dynamic>)
+          .map((e) => SnPresenceActivity.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$SnFriendOverviewItemToJson(
+  _SnFriendOverviewItem instance,
+) => <String, dynamic>{
+  'account': instance.account.toJson(),
+  'status': instance.status.toJson(),
+  'activities': instance.activities.map((e) => e.toJson()).toList(),
+};

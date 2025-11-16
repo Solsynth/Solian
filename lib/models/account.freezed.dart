@@ -3912,4 +3912,309 @@ as DateTime?,
 
 }
 
+
+/// @nodoc
+mixin _$SnFriendOverviewItem {
+
+ SnAccount get account; SnAccountStatus get status; List<SnPresenceActivity> get activities;
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnFriendOverviewItemCopyWith<SnFriendOverviewItem> get copyWith => _$SnFriendOverviewItemCopyWithImpl<SnFriendOverviewItem>(this as SnFriendOverviewItem, _$identity);
+
+  /// Serializes this SnFriendOverviewItem to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFriendOverviewItem&&(identical(other.account, account) || other.account == account)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.activities, activities));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,account,status,const DeepCollectionEquality().hash(activities));
+
+@override
+String toString() {
+  return 'SnFriendOverviewItem(account: $account, status: $status, activities: $activities)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnFriendOverviewItemCopyWith<$Res>  {
+  factory $SnFriendOverviewItemCopyWith(SnFriendOverviewItem value, $Res Function(SnFriendOverviewItem) _then) = _$SnFriendOverviewItemCopyWithImpl;
+@useResult
+$Res call({
+ SnAccount account, SnAccountStatus status, List<SnPresenceActivity> activities
+});
+
+
+$SnAccountCopyWith<$Res> get account;$SnAccountStatusCopyWith<$Res> get status;
+
+}
+/// @nodoc
+class _$SnFriendOverviewItemCopyWithImpl<$Res>
+    implements $SnFriendOverviewItemCopyWith<$Res> {
+  _$SnFriendOverviewItemCopyWithImpl(this._self, this._then);
+
+  final SnFriendOverviewItem _self;
+  final $Res Function(SnFriendOverviewItem) _then;
+
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? status = null,Object? activities = null,}) {
+  return _then(_self.copyWith(
+account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus,activities: null == activities ? _self.activities : activities // ignore: cast_nullable_to_non_nullable
+as List<SnPresenceActivity>,
+  ));
+}
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res> get account {
+  
+  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res> get status {
+  
+  return $SnAccountStatusCopyWith<$Res>(_self.status, (value) {
+    return _then(_self.copyWith(status: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnFriendOverviewItem].
+extension SnFriendOverviewItemPatterns on SnFriendOverviewItem {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnFriendOverviewItem value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnFriendOverviewItem value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnFriendOverviewItem value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnAccount account,  SnAccountStatus status,  List<SnPresenceActivity> activities)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem() when $default != null:
+return $default(_that.account,_that.status,_that.activities);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnAccount account,  SnAccountStatus status,  List<SnPresenceActivity> activities)  $default,) {final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem():
+return $default(_that.account,_that.status,_that.activities);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnAccount account,  SnAccountStatus status,  List<SnPresenceActivity> activities)?  $default,) {final _that = this;
+switch (_that) {
+case _SnFriendOverviewItem() when $default != null:
+return $default(_that.account,_that.status,_that.activities);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnFriendOverviewItem implements SnFriendOverviewItem {
+  const _SnFriendOverviewItem({required this.account, required this.status, required final  List<SnPresenceActivity> activities}): _activities = activities;
+  factory _SnFriendOverviewItem.fromJson(Map<String, dynamic> json) => _$SnFriendOverviewItemFromJson(json);
+
+@override final  SnAccount account;
+@override final  SnAccountStatus status;
+ final  List<SnPresenceActivity> _activities;
+@override List<SnPresenceActivity> get activities {
+  if (_activities is EqualUnmodifiableListView) return _activities;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_activities);
+}
+
+
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnFriendOverviewItemCopyWith<_SnFriendOverviewItem> get copyWith => __$SnFriendOverviewItemCopyWithImpl<_SnFriendOverviewItem>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnFriendOverviewItemToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFriendOverviewItem&&(identical(other.account, account) || other.account == account)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._activities, _activities));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,account,status,const DeepCollectionEquality().hash(_activities));
+
+@override
+String toString() {
+  return 'SnFriendOverviewItem(account: $account, status: $status, activities: $activities)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnFriendOverviewItemCopyWith<$Res> implements $SnFriendOverviewItemCopyWith<$Res> {
+  factory _$SnFriendOverviewItemCopyWith(_SnFriendOverviewItem value, $Res Function(_SnFriendOverviewItem) _then) = __$SnFriendOverviewItemCopyWithImpl;
+@override @useResult
+$Res call({
+ SnAccount account, SnAccountStatus status, List<SnPresenceActivity> activities
+});
+
+
+@override $SnAccountCopyWith<$Res> get account;@override $SnAccountStatusCopyWith<$Res> get status;
+
+}
+/// @nodoc
+class __$SnFriendOverviewItemCopyWithImpl<$Res>
+    implements _$SnFriendOverviewItemCopyWith<$Res> {
+  __$SnFriendOverviewItemCopyWithImpl(this._self, this._then);
+
+  final _SnFriendOverviewItem _self;
+  final $Res Function(_SnFriendOverviewItem) _then;
+
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? account = null,Object? status = null,Object? activities = null,}) {
+  return _then(_SnFriendOverviewItem(
+account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus,activities: null == activities ? _self._activities : activities // ignore: cast_nullable_to_non_nullable
+as List<SnPresenceActivity>,
+  ));
+}
+
+/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res> get account {
+  
+  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnFriendOverviewItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res> get status {
+  
+  return $SnAccountStatusCopyWith<$Res>(_self.status, (value) {
+    return _then(_self.copyWith(status: value));
+  });
+}
+}
+
 // dart format on
