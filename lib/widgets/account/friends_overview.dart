@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -20,11 +23,20 @@ Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
       .toList();
 }
 
-class FriendsOverviewWidget extends ConsumerWidget {
+class FriendsOverviewWidget extends HookConsumerWidget {
   const FriendsOverviewWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Set up periodic refresh every minute
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(minutes: 1), (_) {
+        ref.invalidate(friendsOverviewProvider);
+      });
+
+      return () => timer.cancel(); // Cleanup when widget is disposed
+    }, const []);
+
     final friendsOverviewAsync = ref.watch(friendsOverviewProvider);
 
     return friendsOverviewAsync.when(
@@ -53,7 +65,10 @@ class FriendsOverviewWidget extends ConsumerWidget {
                   itemCount: onlineFriends.length,
                   itemBuilder: (context, index) {
                     final friend = onlineFriends[index];
-                    return _FriendTile(friend: friend);
+                    return AccountPfcGestureDetector(
+                      uname: friend.account.name,
+                      child: _FriendTile(friend: friend),
+                    );
                   },
                 ),
               ),

@@ -444,7 +444,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
                       top: 16,
                       bottom:
                           MediaQuery.of(context).padding.bottom +
-                          56 +
+                          8 +
                           inputHeight.value, // Leave space for thought input
                     ),
                     reverse: true,

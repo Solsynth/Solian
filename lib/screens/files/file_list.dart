@@ -13,6 +13,7 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/file_list_view.dart';
 import 'package:island/widgets/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class FileListScreen extends HookConsumerWidget {
   const FileListScreen({super.key});
@@ -196,7 +197,10 @@ class FileListScreen extends HookConsumerWidget {
       builder:
           (context) => SheetScaffold(
             titleText: 'Usage Overview',
-            child: UsageOverviewWidget(usage: usage, quota: quota),
+            child: UsageOverviewWidget(
+              usage: usage,
+              quota: quota,
+            ).padding(horizontal: 8, vertical: 16),
           ),
     );
   }

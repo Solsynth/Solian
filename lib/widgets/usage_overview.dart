@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:island/utils/format.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class UsageOverviewWidget extends StatelessWidget {
@@ -26,7 +27,7 @@ class UsageOverviewWidget extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     'All Uploads',
-                    '${((nonNullUsage['total_usage_bytes'] as num) / (1024 * 1024 * 1024)).toStringAsFixed(3)} GiB',
+                    formatFileSize(nonNullUsage['total_usage_bytes'] as int),
                   ),
                 ),
                 Expanded(
@@ -42,7 +43,9 @@ class UsageOverviewWidget extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     'Quota',
-                    '${nonNullUsage['total_quota']} MiB',
+                    formatFileSize(
+                      (nonNullUsage['total_quota'] as int) * 1024 * 1024,
+                    ),
                   ),
                 ),
                 Expanded(
