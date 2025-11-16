@@ -62,9 +62,19 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   bool? _yesNoSelected;
   int? _ratingSelected; // 1..5
 
+  /// Flag to track if user has edited the current question to prevent provider rebuilds from resetting state
+  bool _userHasEdited = false;
+
+  /// Listener for text controller to mark as edited when user types
+  late final VoidCallback _controllerListener;
+
   @override
   void initState() {
     super.initState();
+    _controllerListener = () {
+      _userHasEdited = true;
+    };
+    _textController.addListener(_controllerListener);
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
     // Set initial collapse state based on the parameter
     _isCollapsed = !widget.isInitiallyExpanded;
@@ -74,6 +84,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       if (widget.initialAnswers != null && widget.initialAnswers!.isNotEmpty) {
         _isModifying = false;
       }
+    }
+    // Load initial answers into local state
+    if (_questions != null) {
+      _loadCurrentIntoLocalState();
+      _userHasEdited = false;
     }
   }
 
@@ -101,6 +116,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   @override
   void dispose() {
+    _textController.removeListener(_controllerListener);
     _textController.dispose();
     super.dispose();
   }
@@ -111,30 +127,35 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     final q = _current;
     final saved = _answers[q.id];
 
-    _singleChoiceSelected = null;
-    _multiChoiceSelected.clear();
-    _yesNoSelected = null;
-    _ratingSelected = null;
-    _textController.text = '';
+    if (!_userHasEdited) {
+      _singleChoiceSelected = null;
+      _multiChoiceSelected.clear();
+      _yesNoSelected = null;
+      _ratingSelected = null;
 
-    switch (q.type) {
-      case SnPollQuestionType.singleChoice:
-        if (saved is String) _singleChoiceSelected = saved;
-        break;
-      case SnPollQuestionType.multipleChoice:
-        if (saved is List) {
-          _multiChoiceSelected.addAll(saved.whereType<String>());
-        }
-        break;
-      case SnPollQuestionType.yesNo:
-        if (saved is bool) _yesNoSelected = saved;
-        break;
-      case SnPollQuestionType.rating:
-        if (saved is int) _ratingSelected = saved;
-        break;
-      case SnPollQuestionType.freeText:
-        if (saved is String) _textController.text = saved;
-        break;
+      switch (q.type) {
+        case SnPollQuestionType.singleChoice:
+          if (saved is String) _singleChoiceSelected = saved;
+          break;
+        case SnPollQuestionType.multipleChoice:
+          if (saved is List) {
+            _multiChoiceSelected.addAll(saved.whereType<String>());
+          }
+          break;
+        case SnPollQuestionType.yesNo:
+          if (saved is bool) _yesNoSelected = saved;
+          break;
+        case SnPollQuestionType.rating:
+          if (saved is int) _ratingSelected = saved;
+          break;
+        case SnPollQuestionType.freeText:
+          if (saved is String) {
+            _textController.removeListener(_controllerListener);
+            _textController.text = saved;
+            _textController.addListener(_controllerListener);
+          }
+          break;
+      }
     }
   }
 
@@ -214,6 +235,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         data: {'answer': _answers},
       );
 
+      // Refresh poll data to show submitted answer
+      ref.invalidate(pollWithStatsProvider(widget.pollId));
+
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
 
@@ -236,6 +260,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     if (_index < _questions!.length - 1) {
       setState(() {
         _index++;
+        _userHasEdited = false;
         _loadCurrentIntoLocalState();
       });
     } else {
@@ -250,6 +275,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     if (_index > 0) {
       setState(() {
         _index--;
+        _userHasEdited = false;
         _loadCurrentIntoLocalState();
       });
     } else {
@@ -342,7 +368,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           RadioListTile<String>(
             value: opt.id,
             groupValue: _singleChoiceSelected,
-            onChanged: (val) => setState(() => _singleChoiceSelected = val),
+            onChanged:
+                (val) => setState(() {
+                  _singleChoiceSelected = val;
+                  _userHasEdited = true;
+                }),
             title: Text(opt.label),
             subtitle: opt.description != null ? Text(opt.description!) : null,
           ),
@@ -364,6 +394,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 } else {
                   _multiChoiceSelected.remove(opt.id);
                 }
+                _userHasEdited = true;
               });
             },
             title: Text(opt.label),
@@ -386,6 +417,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
             onSelectionChanged: (sel) {
               setState(() {
                 _yesNoSelected = sel.isEmpty ? null : sel.first;
+                _userHasEdited = true;
               });
             },
             multiSelectionEnabled: false,
@@ -411,6 +443,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           onPressed: () {
             setState(() {
               _ratingSelected = value;
+              _userHasEdited = true;
             });
           },
         );
@@ -441,6 +474,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           setState(() {
             _isModifying = true;
             _index = 0; // Reset to first question for modification
+            _userHasEdited = false;
             _loadCurrentIntoLocalState();
           });
         },
@@ -487,32 +521,6 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (poll.title != null || poll.description != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (poll.title?.isNotEmpty ?? false)
-                  Text(
-                    poll.title!,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                if (poll.description?.isNotEmpty ?? false)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      poll.description!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         for (final q in _questions!)
           Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
