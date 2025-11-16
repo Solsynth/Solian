@@ -146,6 +146,9 @@ class ChatRoomScreen extends HookConsumerWidget {
     final inputKey = useMemoized(() => GlobalKey());
     final inputHeight = useState<double>(80.0);
 
+    // Track previous height for smooth animations
+    final previousInputHeight = usePrevious<double>(inputHeight.value);
+
     // Periodic height measurement for dynamic sizing
     useEffect(() {
       final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
@@ -611,184 +614,428 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
     }
 
-    Widget chatMessageListWidget(
-      List<LocalChatMessage> messageList,
-    ) => SuperListView.builder(
-      listController: listController,
-      padding: EdgeInsets.only(
-        top: 16,
-        bottom:
-            MediaQuery.of(context).padding.bottom +
-            8 +
-            inputHeight.value, // Leave space for chat input
-      ),
-      controller: scrollController,
-      reverse: true, // Show newest messages at the bottom
-      itemCount: messageList.length,
-      findChildIndexCallback: (key) {
-        if (key is! ValueKey<String>) return null;
-        final messageId = key.value.substring(messageKeyPrefix.length);
-        final index = messageList.indexWhere(
-          (m) => (m.nonce ?? m.id) == messageId,
-        );
-        // Return null for invalid indices to let SuperListView handle it properly
-        return index >= 0 ? index : null;
-      },
-      extentEstimation: (_, _) => 40,
-      itemBuilder: (context, index) {
-        final message = messageList[index];
-        final nextMessage =
-            index < messageList.length - 1 ? messageList[index + 1] : null;
-        final isLastInGroup =
-            nextMessage == null ||
-            nextMessage.senderId != message.senderId ||
-            nextMessage.createdAt
-                    .difference(message.createdAt)
-                    .inMinutes
-                    .abs() >
-                3;
+    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
+        previousInputHeight != null && previousInputHeight != inputHeight.value
+            ? TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: previousInputHeight,
+                end: inputHeight.value,
+              ),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              builder:
+                  (context, height, child) => SuperListView.builder(
+                    listController: listController,
+                    padding: EdgeInsets.only(
+                      top: 16,
+                      bottom:
+                          MediaQuery.of(context).padding.bottom + 8 + height,
+                    ),
+                    controller: scrollController,
+                    reverse: true, // Show newest messages at the bottom
+                    itemCount: messageList.length,
+                    findChildIndexCallback: (key) {
+                      if (key is! ValueKey<String>) return null;
+                      final messageId = key.value.substring(
+                        messageKeyPrefix.length,
+                      );
+                      final index = messageList.indexWhere(
+                        (m) => (m.nonce ?? m.id) == messageId,
+                      );
+                      // Return null for invalid indices to let SuperListView handle it properly
+                      return index >= 0 ? index : null;
+                    },
+                    extentEstimation: (_, _) => 40,
+                    itemBuilder: (context, index) {
+                      final message = messageList[index];
+                      final nextMessage =
+                          index < messageList.length - 1
+                              ? messageList[index + 1]
+                              : null;
+                      final isLastInGroup =
+                          nextMessage == null ||
+                          nextMessage.senderId != message.senderId ||
+                          nextMessage.createdAt
+                                  .difference(message.createdAt)
+                                  .inMinutes
+                                  .abs() >
+                              3;
 
-        // Use a stable animation key that doesn't change during message lifecycle
-        final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
+                      // Use a stable animation key that doesn't change during message lifecycle
+                      final key = Key(
+                        '$messageKeyPrefix${message.nonce ?? message.id}',
+                      );
 
-        final messageWidget = chatIdentity.when(
-          skipError: true,
-          data:
-              (identity) => GestureDetector(
-                onLongPress: () {
-                  if (!isSelectionMode.value) {
-                    toggleSelectionMode();
-                    toggleMessageSelection(message.id);
-                  }
-                },
-                onTap: () {
-                  if (isSelectionMode.value) {
-                    toggleMessageSelection(message.id);
-                  }
-                },
-                child: Container(
-                  color:
-                      selectedMessages.value.contains(message.id)
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primaryContainer.withOpacity(0.3)
-                          : null,
-                  child: Stack(
-                    children: [
-                      MessageItem(
-                        key: settings.disableAnimation ? key : null,
-                        message: message,
-                        isCurrentUser: identity?.id == message.senderId,
-                        onAction:
-                            isSelectionMode.value
-                                ? null
-                                : (action) {
-                                  switch (action) {
-                                    case MessageItemAction.delete:
-                                      messagesNotifier.deleteMessage(
-                                        message.id,
-                                      );
-                                    case MessageItemAction.edit:
-                                      messageEditingTo.value =
-                                          message.toRemoteMessage();
-                                      messageController.text =
-                                          messageEditingTo.value?.content ?? '';
-                                      attachments.value =
-                                          messageEditingTo.value!.attachments
-                                              .map(
-                                                (e) =>
-                                                    UniversalFile.fromAttachment(
-                                                      e,
-                                                    ),
-                                              )
-                                              .toList();
-                                    case MessageItemAction.forward:
-                                      messageForwardingTo.value =
-                                          message.toRemoteMessage();
-                                    case MessageItemAction.reply:
-                                      messageReplyingTo.value =
-                                          message.toRemoteMessage();
-                                    case MessageItemAction.resend:
-                                      messagesNotifier.retryMessage(message.id);
-                                  }
-                                },
-                        onJump: (messageId) {
-                          scrollToMessage(
-                            messageId: messageId,
-                            messageList: messageList,
-                            messagesNotifier: messagesNotifier,
-                            listController: listController,
-                            scrollController: scrollController,
-                            ref: ref,
+                      final messageWidget = chatIdentity.when(
+                        skipError: true,
+                        data:
+                            (identity) => GestureDetector(
+                              onLongPress: () {
+                                if (!isSelectionMode.value) {
+                                  toggleSelectionMode();
+                                  toggleMessageSelection(message.id);
+                                }
+                              },
+                              onTap: () {
+                                if (isSelectionMode.value) {
+                                  toggleMessageSelection(message.id);
+                                }
+                              },
+                              child: Container(
+                                color:
+                                    selectedMessages.value.contains(message.id)
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withOpacity(0.3)
+                                        : null,
+                                child: Stack(
+                                  children: [
+                                    MessageItem(
+                                      key:
+                                          settings.disableAnimation
+                                              ? key
+                                              : null,
+                                      message: message,
+                                      isCurrentUser:
+                                          identity?.id == message.senderId,
+                                      onAction:
+                                          isSelectionMode.value
+                                              ? null
+                                              : (action) {
+                                                switch (action) {
+                                                  case MessageItemAction.delete:
+                                                    messagesNotifier
+                                                        .deleteMessage(
+                                                          message.id,
+                                                        );
+                                                  case MessageItemAction.edit:
+                                                    messageEditingTo.value =
+                                                        message
+                                                            .toRemoteMessage();
+                                                    messageController.text =
+                                                        messageEditingTo
+                                                            .value
+                                                            ?.content ??
+                                                        '';
+                                                    attachments.value =
+                                                        messageEditingTo
+                                                            .value!
+                                                            .attachments
+                                                            .map(
+                                                              (e) =>
+                                                                  UniversalFile.fromAttachment(
+                                                                    e,
+                                                                  ),
+                                                            )
+                                                            .toList();
+                                                  case MessageItemAction
+                                                      .forward:
+                                                    messageForwardingTo.value =
+                                                        message
+                                                            .toRemoteMessage();
+                                                  case MessageItemAction.reply:
+                                                    messageReplyingTo.value =
+                                                        message
+                                                            .toRemoteMessage();
+                                                  case MessageItemAction.resend:
+                                                    messagesNotifier
+                                                        .retryMessage(
+                                                          message.id,
+                                                        );
+                                                }
+                                              },
+                                      onJump: (messageId) {
+                                        scrollToMessage(
+                                          messageId: messageId,
+                                          messageList: messageList,
+                                          messagesNotifier: messagesNotifier,
+                                          listController: listController,
+                                          scrollController: scrollController,
+                                          ref: ref,
+                                        );
+                                      },
+                                      progress:
+                                          attachmentProgress.value[message.id],
+                                      showAvatar: isLastInGroup,
+                                      isSelectionMode: isSelectionMode.value,
+                                      isSelected: selectedMessages.value
+                                          .contains(message.id),
+                                      onToggleSelection: toggleMessageSelection,
+                                      onEnterSelectionMode: () {
+                                        if (!isSelectionMode.value) {
+                                          toggleSelectionMode();
+                                        }
+                                      },
+                                    ),
+                                    if (selectedMessages.value.contains(
+                                      message.id,
+                                    ))
+                                      ...([
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: Container(
+                                            width: 16,
+                                            height: 16,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.check,
+                                              size: 12,
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ]),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        loading:
+                            () => MessageItem(
+                              message: message,
+                              isCurrentUser: false,
+                              onAction: null,
+                              progress: null,
+                              showAvatar: false,
+                              onJump: (_) {},
+                            ),
+                        error: (_, _) => const SizedBox.shrink(),
+                      );
+
+                      return settings.disableAnimation
+                          ? messageWidget
+                          : TweenAnimationBuilder<double>(
+                            key: key,
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            duration: Duration(
+                              milliseconds: 400 + (index % 5) * 50,
+                            ), // Staggered delay
+                            curve: Curves.easeOutCubic,
+                            builder: (context, animationValue, child) {
+                              return Transform.translate(
+                                offset: Offset(
+                                  0,
+                                  20 * (1 - animationValue),
+                                ), // Slide up from bottom
+                                child: Opacity(
+                                  opacity: animationValue,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: messageWidget,
                           );
-                        },
-                        progress: attachmentProgress.value[message.id],
-                        showAvatar: isLastInGroup,
-                        isSelectionMode: isSelectionMode.value,
-                        isSelected: selectedMessages.value.contains(message.id),
-                        onToggleSelection: toggleMessageSelection,
-                        onEnterSelectionMode: () {
+                    },
+                  ),
+            )
+            : SuperListView.builder(
+              listController: listController,
+              padding: EdgeInsets.only(
+                top: 16,
+                bottom:
+                    MediaQuery.of(context).padding.bottom +
+                    8 +
+                    inputHeight.value,
+              ),
+              controller: scrollController,
+              reverse: true, // Show newest messages at the bottom
+              itemCount: messageList.length,
+              findChildIndexCallback: (key) {
+                if (key is! ValueKey<String>) return null;
+                final messageId = key.value.substring(messageKeyPrefix.length);
+                final index = messageList.indexWhere(
+                  (m) => (m.nonce ?? m.id) == messageId,
+                );
+                // Return null for invalid indices to let SuperListView handle it properly
+                return index >= 0 ? index : null;
+              },
+              extentEstimation: (_, _) => 40,
+              itemBuilder: (context, index) {
+                final message = messageList[index];
+                final nextMessage =
+                    index < messageList.length - 1
+                        ? messageList[index + 1]
+                        : null;
+                final isLastInGroup =
+                    nextMessage == null ||
+                    nextMessage.senderId != message.senderId ||
+                    nextMessage.createdAt
+                            .difference(message.createdAt)
+                            .inMinutes
+                            .abs() >
+                        3;
+
+                // Use a stable animation key that doesn't change during message lifecycle
+                final key = Key(
+                  '$messageKeyPrefix${message.nonce ?? message.id}',
+                );
+
+                final messageWidget = chatIdentity.when(
+                  skipError: true,
+                  data:
+                      (identity) => GestureDetector(
+                        onLongPress: () {
                           if (!isSelectionMode.value) {
                             toggleSelectionMode();
+                            toggleMessageSelection(message.id);
                           }
                         },
-                      ),
-                      if (selectedMessages.value.contains(message.id))
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.check,
-                              size: 12,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            ),
+                        onTap: () {
+                          if (isSelectionMode.value) {
+                            toggleMessageSelection(message.id);
+                          }
+                        },
+                        child: Container(
+                          color:
+                              selectedMessages.value.contains(message.id)
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                      .withOpacity(0.3)
+                                  : null,
+                          child: Stack(
+                            children: [
+                              MessageItem(
+                                key: settings.disableAnimation ? key : null,
+                                message: message,
+                                isCurrentUser: identity?.id == message.senderId,
+                                onAction:
+                                    isSelectionMode.value
+                                        ? null
+                                        : (action) {
+                                          switch (action) {
+                                            case MessageItemAction.delete:
+                                              messagesNotifier.deleteMessage(
+                                                message.id,
+                                              );
+                                            case MessageItemAction.edit:
+                                              messageEditingTo.value =
+                                                  message.toRemoteMessage();
+                                              messageController.text =
+                                                  messageEditingTo
+                                                      .value
+                                                      ?.content ??
+                                                  '';
+                                              attachments.value =
+                                                  messageEditingTo
+                                                      .value!
+                                                      .attachments
+                                                      .map(
+                                                        (e) =>
+                                                            UniversalFile.fromAttachment(
+                                                              e,
+                                                            ),
+                                                      )
+                                                      .toList();
+                                            case MessageItemAction.forward:
+                                              messageForwardingTo.value =
+                                                  message.toRemoteMessage();
+                                            case MessageItemAction.reply:
+                                              messageReplyingTo.value =
+                                                  message.toRemoteMessage();
+                                            case MessageItemAction.resend:
+                                              messagesNotifier.retryMessage(
+                                                message.id,
+                                              );
+                                          }
+                                        },
+                                onJump: (messageId) {
+                                  scrollToMessage(
+                                    messageId: messageId,
+                                    messageList: messageList,
+                                    messagesNotifier: messagesNotifier,
+                                    listController: listController,
+                                    scrollController: scrollController,
+                                    ref: ref,
+                                  );
+                                },
+                                progress: attachmentProgress.value[message.id],
+                                showAvatar: isLastInGroup,
+                                isSelectionMode: isSelectionMode.value,
+                                isSelected: selectedMessages.value.contains(
+                                  message.id,
+                                ),
+                                onToggleSelection: toggleMessageSelection,
+                                onEnterSelectionMode: () {
+                                  if (!isSelectionMode.value) {
+                                    toggleSelectionMode();
+                                  }
+                                },
+                              ),
+                              if (selectedMessages.value.contains(message.id))
+                                ...([
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.check,
+                                        size: 12,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                            ],
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
-          loading:
-              () => MessageItem(
-                message: message,
-                isCurrentUser: false,
-                onAction: null,
-                progress: null,
-                showAvatar: false,
-                onJump: (_) {},
-              ),
-          error: (_, _) => const SizedBox.shrink(),
-        );
-
-        return settings.disableAnimation
-            ? messageWidget
-            : TweenAnimationBuilder<double>(
-              key: key,
-              tween: Tween<double>(begin: 0.0, end: 1.0),
-              duration: Duration(
-                milliseconds: 400 + (index % 5) * 50,
-              ), // Staggered delay
-              curve: Curves.easeOutCubic,
-              builder: (context, animationValue, child) {
-                return Transform.translate(
-                  offset: Offset(
-                    0,
-                    20 * (1 - animationValue),
-                  ), // Slide up from bottom
-                  child: Opacity(opacity: animationValue, child: child),
+                      ),
+                  loading:
+                      () => MessageItem(
+                        message: message,
+                        isCurrentUser: false,
+                        onAction: null,
+                        progress: null,
+                        showAvatar: false,
+                        onJump: (_) {},
+                      ),
+                  error: (_, _) => const SizedBox.shrink(),
                 );
+
+                return settings.disableAnimation
+                    ? messageWidget
+                    : TweenAnimationBuilder<double>(
+                      key: key,
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: Duration(
+                        milliseconds: 400 + (index % 5) * 50,
+                      ), // Staggered delay
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animationValue, child) {
+                        return Transform.translate(
+                          offset: Offset(
+                            0,
+                            20 * (1 - animationValue),
+                          ), // Slide up from bottom
+                          child: Opacity(opacity: animationValue, child: child),
+                        );
+                      },
+                      child: messageWidget,
+                    );
               },
-              child: messageWidget,
             );
-      },
-    );
 
     return AppScaffold(
       appBar: AppBar(
