@@ -27,6 +27,85 @@ import "package:material_symbols_icons/symbols.dart";
 import "package:island/widgets/stickers/sticker_picker.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
 
+void _insertPlaceholder(TextEditingController controller, String placeholder) {
+  final text = controller.text;
+  final selection = controller.selection;
+  final start = selection.start >= 0 ? selection.start : text.length;
+  final end = selection.end >= 0 ? selection.end : text.length;
+  final newText = text.replaceRange(start, end, placeholder);
+  controller.value = TextEditingValue(
+    text: newText,
+    selection: TextSelection.collapsed(offset: start + placeholder.length),
+  );
+}
+
+const kInputDrawerExpandedHeight = 180.0;
+
+class _ExpandedSection extends StatelessWidget {
+  final TextEditingController messageController;
+
+  const _ExpandedSection({required this.messageController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('expanded'),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: Theme.of(context).dividerColor),
+        borderRadius: const BorderRadius.all(Radius.circular(32)),
+      ),
+      margin: const EdgeInsets.only(top: 8, bottom: 3),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(32)),
+        child: DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              TabBar(
+                splashBorderRadius: const BorderRadius.all(Radius.circular(40)),
+                tabs: [Tab(text: 'Features'), Tab(text: 'Stickers')],
+              ),
+              SizedBox(
+                height: kInputDrawerExpandedHeight,
+                child: TabBarView(
+                  children: [
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Symbols.poll),
+                            tooltip: 'Poll',
+                            onPressed: () {},
+                          ),
+                          const Gap(16),
+                          IconButton(
+                            icon: Icon(Symbols.currency_exchange),
+                            tooltip: 'Fund',
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    StickerPickerEmbedded(
+                      height: kInputDrawerExpandedHeight,
+                      onPick:
+                          (placeholder) => _insertPlaceholder(
+                            messageController,
+                            placeholder,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ChatInput extends HookConsumerWidget {
   final TextEditingController messageController;
   final SnChatRoom chatRoom;
@@ -71,6 +150,7 @@ class ChatInput extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inputFocusNode = useFocusNode();
     final chatSubscribe = ref.watch(chatSubscribeNotifierProvider(chatRoom.id));
+    final isExpanded = useState(false);
 
     void send() {
       inputFocusNode.requestFocus();
@@ -426,43 +506,28 @@ class ChatInput extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        tooltip: 'stickers'.tr(),
-                        icon: const Icon(Symbols.add_reaction),
+                        tooltip:
+                            isExpanded.value ? 'collapse'.tr() : 'more'.tr(),
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          transitionBuilder:
+                              (child, animation) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                          child:
+                              isExpanded.value
+                                  ? const Icon(
+                                    Symbols.close,
+                                    key: ValueKey('close'),
+                                  )
+                                  : const Icon(
+                                    Symbols.add,
+                                    key: ValueKey('add'),
+                                  ),
+                        ),
                         onPressed: () {
-                          final size = MediaQuery.of(context).size;
-                          showStickerPickerPopover(
-                            context,
-                            Offset(
-                              20,
-                              size.height -
-                                  480 -
-                                  MediaQuery.of(context).padding.bottom,
-                            ),
-                            onPick: (placeholder) {
-                              // Insert placeholder at current cursor position
-                              final text = messageController.text;
-                              final selection = messageController.selection;
-                              final start =
-                                  selection.start >= 0
-                                      ? selection.start
-                                      : text.length;
-                              final end =
-                                  selection.end >= 0
-                                      ? selection.end
-                                      : text.length;
-                              final newText = text.replaceRange(
-                                start,
-                                end,
-                                placeholder,
-                              );
-                              messageController.value = TextEditingValue(
-                                text: newText,
-                                selection: TextSelection.collapsed(
-                                  offset: start + placeholder.length,
-                                ),
-                              );
-                            },
-                          );
+                          isExpanded.value = !isExpanded.value;
                         },
                       ),
                       UploadMenu(
@@ -658,6 +723,31 @@ class ChatInput extends HookConsumerWidget {
                     onPressed: send,
                   ),
                 ],
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.1),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child:
+                    isExpanded.value
+                        ? _ExpandedSection(messageController: messageController)
+                        : const SizedBox.shrink(key: ValueKey('collapsed')),
               ),
             ],
           ),
