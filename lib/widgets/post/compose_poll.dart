@@ -67,7 +67,9 @@ class ComposePollSheet extends HookConsumerWidget {
                               title: Text(poll.title ?? 'untitled'.tr()),
                               subtitle: _buildPollSubtitle(poll),
                               onTap: () {
-                                Navigator.of(context).pop(poll);
+                                Navigator.of(
+                                  context,
+                                ).pop(SnPoll.fromPollWithStats(poll));
                               },
                             );
                           },

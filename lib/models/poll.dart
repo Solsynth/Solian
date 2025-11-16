@@ -46,6 +46,18 @@ sealed class SnPoll with _$SnPoll {
   }) = _SnPoll;
 
   factory SnPoll.fromJson(Map<String, dynamic> json) => _$SnPollFromJson(json);
+
+  factory SnPoll.fromPollWithStats(SnPollWithStats pollWithStats) => SnPoll(
+    id: pollWithStats.id,
+    questions: pollWithStats.questions,
+    title: pollWithStats.title,
+    description: pollWithStats.description,
+    endedAt: pollWithStats.endedAt,
+    publisherId: pollWithStats.publisherId,
+    createdAt: pollWithStats.createdAt,
+    updatedAt: pollWithStats.updatedAt,
+    deletedAt: pollWithStats.deletedAt,
+  );
 }
 
 @freezed

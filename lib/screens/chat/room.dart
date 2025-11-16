@@ -11,6 +11,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
+import "package:island/models/poll.dart";
 import "package:island/pods/chat/chat_rooms.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/chat/messages_notifier.dart";
@@ -170,6 +171,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageReplyingTo = useState<SnChatMessage?>(null);
     final messageForwardingTo = useState<SnChatMessage?>(null);
     final messageEditingTo = useState<SnChatMessage?>(null);
+    final selectedPoll = useState<SnPoll?>(null);
     final attachments = useState<List<UniversalFile>>([]);
     final attachmentProgress = useState<Map<String, Map<int, double?>>>({});
 
@@ -285,11 +287,13 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     void sendMessage() {
       if (messageController.text.trim().isNotEmpty ||
-          attachments.value.isNotEmpty) {
+          attachments.value.isNotEmpty ||
+          selectedPoll.value != null) {
         messagesNotifier.sendMessage(
           ref,
           messageController.text.trim(),
           attachments.value,
+          poll: selectedPoll.value,
           editingTo: messageEditingTo.value,
           forwardingTo: messageForwardingTo.value,
           replyingTo: messageReplyingTo.value,
@@ -304,6 +308,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         messageEditingTo.value = null;
         messageReplyingTo.value = null;
         messageForwardingTo.value = null;
+        selectedPoll.value = null;
         attachments.value = [];
       }
     }
@@ -1246,10 +1251,13 @@ class ChatRoomScreen extends HookConsumerWidget {
                             messageEditingTo.value = null;
                             messageReplyingTo.value = null;
                             messageForwardingTo.value = null;
+                            selectedPoll.value = null;
                           },
                           messageEditingTo: messageEditingTo.value,
                           messageReplyingTo: messageReplyingTo.value,
                           messageForwardingTo: messageForwardingTo.value,
+                          selectedPoll: selectedPoll.value,
+                          onPollSelected: (poll) => selectedPoll.value = poll,
                           onPickFile: (bool isPhoto) {
                             if (isPhoto) {
                               pickPhotoMedia();

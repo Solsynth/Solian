@@ -11,6 +11,7 @@ import "package:island/models/account.dart";
 import "package:island/models/autocomplete_response.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
+import "package:island/models/poll.dart";
 import "package:island/models/publisher.dart";
 import "package:island/models/realm.dart";
 import "package:island/models/sticker.dart";
@@ -26,6 +27,7 @@ import "package:styled_widget/styled_widget.dart";
 import "package:material_symbols_icons/symbols.dart";
 import "package:island/widgets/stickers/sticker_picker.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
+import "package:island/widgets/post/compose_poll.dart";
 
 void _insertPlaceholder(TextEditingController controller, String placeholder) {
   final text = controller.text;
@@ -43,8 +45,14 @@ const kInputDrawerExpandedHeight = 180.0;
 
 class _ExpandedSection extends StatelessWidget {
   final TextEditingController messageController;
+  final SnPoll? selectedPoll;
+  final Function(SnPoll?) onPollSelected;
 
-  const _ExpandedSection({required this.messageController});
+  const _ExpandedSection({
+    required this.messageController,
+    this.selectedPoll,
+    required this.onPollSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +98,16 @@ class _ExpandedSection extends StatelessWidget {
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
                             ),
-                            onTap: () {},
+                            onTap: () async {
+                              final poll = await showModalBottomSheet<SnPoll>(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => const ComposePollSheet(),
+                              );
+                              if (poll != null) {
+                                onPollSelected(poll);
+                              }
+                            },
                             child: Card(
                               margin: EdgeInsets.zero,
                               color:
@@ -176,6 +193,8 @@ class ChatInput extends HookConsumerWidget {
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
+  final SnPoll? selectedPoll;
+  final Function(SnPoll?) onPollSelected;
 
   const ChatInput({
     super.key,
@@ -196,6 +215,8 @@ class ChatInput extends HookConsumerWidget {
     required this.onMoveAttachment,
     required this.onAttachmentsChanged,
     required this.attachmentProgress,
+    this.selectedPoll,
+    required this.onPollSelected,
   });
 
   @override
@@ -411,6 +432,87 @@ class ChatInput extends HookConsumerWidget {
                         ).padding(vertical: 12)
                         : const SizedBox.shrink(
                           key: ValueKey('no-attachments'),
+                        ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -0.25),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child:
+                    selectedPoll != null
+                        ? Container(
+                          key: const ValueKey('selected-poll'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          margin: const EdgeInsets.only(
+                            left: 8,
+                            right: 8,
+                            top: 8,
+                            bottom: 8,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.how_to_vote,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Expanded(
+                                child: Text(
+                                  selectedPoll!.title ?? 'Poll',
+                                  style: Theme.of(context).textTheme.bodySmall!
+                                      .copyWith(fontWeight: FontWeight.w500),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(Icons.close, size: 18),
+                                  onPressed: () => onPollSelected(null),
+                                  tooltip: 'clear'.tr(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : const SizedBox.shrink(
+                          key: ValueKey('no-selected-poll'),
                         ),
               ),
               AnimatedSwitcher(
@@ -798,7 +900,11 @@ class ChatInput extends HookConsumerWidget {
                 },
                 child:
                     isExpanded.value
-                        ? _ExpandedSection(messageController: messageController)
+                        ? _ExpandedSection(
+                          messageController: messageController,
+                          selectedPoll: selectedPoll,
+                          onPollSelected: onPollSelected,
+                        )
                         : const SizedBox.shrink(key: ValueKey('collapsed')),
               ),
             ],
