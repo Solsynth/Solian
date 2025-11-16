@@ -401,6 +401,9 @@ class ThoughtChatInterface extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final inputKey = useMemoized(() => GlobalKey());
+    final inputHeight = useState<double>(80.0);
+
     final chatState = useThoughtChat(
       ref,
       initialThoughts: initialThoughts,
@@ -408,6 +411,17 @@ class ThoughtChatInterface extends HookConsumerWidget {
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
+
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final renderBox =
+            inputKey.currentContext?.findRenderObject() as RenderBox?;
+        if (renderBox != null) {
+          inputHeight.value = renderBox.size.height;
+        }
+      });
+      return null;
+    }, []);
 
     return Stack(
       children: [
@@ -425,7 +439,8 @@ class ThoughtChatInterface extends HookConsumerWidget {
                       top: 16,
                       bottom:
                           MediaQuery.of(context).padding.bottom +
-                          80, // Leave space for thought input
+                          56 +
+                          inputHeight.value, // Leave space for thought input
                     ),
                     reverse: true,
                     itemCount:
@@ -492,6 +507,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
             child: Container(
               constraints: BoxConstraints(maxWidth: 640),
               child: ThoughtInput(
+                key: inputKey,
                 messageController: chatState.messageController,
                 isStreaming: chatState.isStreaming.value,
                 onSend: chatState.sendMessage,

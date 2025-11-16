@@ -62,7 +62,7 @@ class ThoughtSheet extends HookConsumerWidget {
               } catch (e) {
                 showSnackBar('Failed to retry billing');
               }
-              hideLoadingModal(context);
+              if (context.mounted) hideLoadingModal(context);
             },
             [context, ref],
           );
