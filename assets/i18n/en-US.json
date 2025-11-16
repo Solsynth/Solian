@@ -1325,5 +1325,7 @@
     "descendingOrder": "Descending Order",
     "selectDate": "Select Date",
     "pinnedPosts": "Pinned Posts",
-    "thoughtUnpaidHint": "Thinking unavaiable due to unpaid orders"
+    "thoughtUnpaidHint": "Thinking unavaiable due to unpaid orders",
+    "more": "More",
+    "collapse": "Collapse"
 }

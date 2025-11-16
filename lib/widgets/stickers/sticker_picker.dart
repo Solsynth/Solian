@@ -240,9 +240,9 @@ class _StickersGrid extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 96,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        maxCrossAxisExtent: 56,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
       ),
       itemCount: stickers.length,
       itemBuilder: (context, index) {
@@ -272,6 +272,138 @@ class _StickersGrid extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Embedded Sticker Picker variant
+/// No background card, no title header, suitable for embedding in other UI
+class StickerPickerEmbedded extends HookConsumerWidget {
+  final double? height;
+  final void Function(String placeholder) onPick;
+
+  const StickerPickerEmbedded({super.key, required this.onPick, this.height});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final packsAsync = ref.watch(myStickerPacksProvider);
+
+    return packsAsync.when(
+      data: (packs) {
+        if (packs.isEmpty) {
+          return _EmptyState(
+            onRefresh: () async {
+              ref.invalidate(myStickerPacksProvider);
+            },
+          );
+        }
+
+        return _EmbeddedPackSwitcher(
+          packs: packs,
+          onPick: (pack, sticker) {
+            final placeholder = ':${pack.prefix}+${sticker.slug}:';
+            HapticFeedback.selectionClick();
+            onPick(placeholder);
+          },
+          onRefresh: () async {
+            ref.invalidate(myStickerPacksProvider);
+          },
+        );
+      },
+      loading:
+          () => SizedBox(
+            width: 320,
+            height: height ?? 320,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (err, _) => SizedBox(
+            width: 360,
+            height: height ?? 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Symbols.error, size: 28),
+                const Gap(8),
+                Text('Error: $err', textAlign: TextAlign.center),
+                const Gap(12),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(myStickerPacksProvider),
+                  icon: const Icon(Symbols.refresh),
+                  label: Text('retry').tr(),
+                ),
+              ],
+            ).padding(all: 16),
+          ),
+    );
+  }
+}
+
+class _EmbeddedPackSwitcher extends StatefulWidget {
+  final List<SnStickerPack> packs;
+  final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final Future<void> Function() onRefresh;
+
+  const _EmbeddedPackSwitcher({
+    required this.packs,
+    required this.onPick,
+    required this.onRefresh,
+  });
+
+  @override
+  State<_EmbeddedPackSwitcher> createState() => _EmbeddedPackSwitcherState();
+}
+
+class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final packs = widget.packs;
+    _index = _index.clamp(0, packs.length - 1);
+
+    final selectedPack = packs[_index];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Gap(12),
+        // Vertical, scrollable packs rail like common emoji pickers
+        SizedBox(
+          height: 32,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            scrollDirection: Axis.horizontal,
+            itemCount: packs.length,
+            separatorBuilder: (_, _) => const Gap(4),
+            itemBuilder: (context, i) {
+              final selected = _index == i;
+              return Tooltip(
+                message: packs[i].name,
+                child: FilterChip(
+                  label: Text(packs[i].name, overflow: TextOverflow.ellipsis),
+                  selected: selected,
+                  onSelected: (_) {
+                    setState(() => _index = i);
+                    HapticFeedback.selectionClick();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Content
+        Expanded(
+          child: ExtendedRefreshIndicator(
+            onRefresh: widget.onRefresh,
+            child: _StickersGrid(
+              pack: selectedPack,
+              onPick: (sticker) => widget.onPick(selectedPack, sticker),
+            ).padding(horizontal: 2),
+          ),
+        ),
+      ],
     );
   }
 }
