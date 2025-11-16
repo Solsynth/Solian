@@ -685,12 +685,7 @@ class ComposeLogic {
     final hasAttachments = state.attachments.value.isNotEmpty;
 
     if (!hasContent && !hasAttachments) {
-      // Show error message if context is mounted
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('postContentEmpty')));
-      }
+      showErrorAlert('postContentEmpty'.tr());
       throw Exception('Post content is empty'); // Don't submit empty posts
     }
 

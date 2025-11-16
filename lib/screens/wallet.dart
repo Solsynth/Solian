@@ -197,49 +197,46 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                     },
                   ),
 
-                  // Split Type Section (only show when there are 2+ recipients)
-                  if (selectedRecipients.length >= 2) ...[
-                    const Gap(16),
-                    Text(
-                      'splitType'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
+                  const Gap(16),
+                  Text(
+                    'splitType'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<int>(
+                          title: Text('evenSplit'.tr()),
+                          subtitle: Text('equalAmountEach'.tr()),
+                          value: 0,
+                          groupValue: selectedSplitType,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => selectedSplitType = value);
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                    const Gap(8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: Text('evenSplit'.tr()),
-                            subtitle: Text('equalAmountEach'.tr()),
-                            value: 0,
-                            groupValue: selectedSplitType,
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => selectedSplitType = value);
-                              }
-                            },
-                          ),
+                      Expanded(
+                        child: RadioListTile<int>(
+                          title: Text('randomSplit'.tr()),
+                          subtitle: Text('randomAmountEach'.tr()),
+                          value: 1,
+                          groupValue: selectedSplitType,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => selectedSplitType = value);
+                            }
+                          },
                         ),
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: Text('randomSplit'.tr()),
-                            subtitle: Text('randomAmountEach'.tr()),
-                            value: 1,
-                            groupValue: selectedSplitType,
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => selectedSplitType = value);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
 
                   const Gap(16),
 
