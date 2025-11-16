@@ -69,20 +69,72 @@ class _ExpandedSection extends StatelessWidget {
                 height: kInputDrawerExpandedHeight,
                 child: TabBarView(
                   children: [
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    SizedBox(
+                      height:
+                          kInputDrawerExpandedHeight -
+                          48, // subtract tab bar height approx
+                      child: GridView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 120,
+                              childAspectRatio: 1, // 1:1 aspect ratio
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                            ),
                         children: [
-                          IconButton(
-                            icon: Icon(Symbols.poll),
-                            tooltip: 'Poll',
-                            onPressed: () {},
+                          InkWell(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            onTap: () {},
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainer,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Symbols.poll),
+                                  const Gap(4),
+                                  Text(
+                                    'Poll',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const Gap(16),
-                          IconButton(
-                            icon: Icon(Symbols.currency_exchange),
-                            tooltip: 'Fund',
-                            onPressed: () {},
+                          InkWell(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            onTap: () {},
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainer,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Symbols.currency_exchange),
+                                  const Gap(4),
+                                  Text(
+                                    'Fund',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
