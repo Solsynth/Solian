@@ -226,7 +226,7 @@ class AccountName extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            account.nick,
+            textOverride ?? account.nick,
             style: nameStyle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
