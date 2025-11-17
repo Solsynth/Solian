@@ -408,6 +408,8 @@ class FileListView extends HookConsumerWidget {
                 ),
               ),
             ).padding(horizontal: 8),
+            if (mode.value == FileListMode.unindexed && recycled.value)
+              _buildClearRecycledButton(ref).padding(horizontal: 8),
             if (isRefreshing)
               const LinearProgressIndicator(
                 minHeight: 4,
@@ -1064,6 +1066,61 @@ class FileListView extends HookConsumerWidget {
                   ref.context,
                 ).textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearRecycledButton(WidgetRef ref) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          spacing: 16,
+          children: [
+            const Icon(Symbols.recycling).padding(horizontal: 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Clear All Recycled Files').bold(),
+                  const Text(
+                    'Permanently delete all marked recycled files to free up space.',
+                  ).fontSize(13),
+                ],
+              ),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Symbols.delete_forever),
+              label: const Text('Clear'),
+              onPressed: () async {
+                final confirmed = await showConfirmAlert(
+                  'Are you sure you want to clear all recycled files?',
+                  'Clear Recycled Files',
+                );
+                if (!confirmed) return;
+
+                if (ref.context.mounted) {
+                  showLoadingModal(ref.context);
+                }
+                try {
+                  final client = ref.read(apiClientProvider);
+                  final response = await client.delete(
+                    '/drive/files/me/recycle',
+                  );
+                  final count = response.data['count'] as int? ?? 0;
+                  showSnackBar('Cleared $count recycled files.');
+                  ref.invalidate(unindexedFileListNotifierProvider);
+                } catch (e) {
+                  showSnackBar('Failed to clear recycled files.');
+                } finally {
+                  if (ref.context.mounted) {
+                    hideLoadingModal(ref.context);
+                  }
+                }
+              },
             ),
           ],
         ),
