@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/file_pool.dart';
 import 'package:island/pods/file_list.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
@@ -24,6 +25,7 @@ class FileListScreen extends HookConsumerWidget {
     // Path navigation state
     final currentPath = useState<String>('/');
     final mode = useState<FileListMode>(FileListMode.normal);
+    final selectedPool = useState<SnFilePool?>(null);
 
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
@@ -56,8 +58,13 @@ class FileListScreen extends HookConsumerWidget {
                     usage: usage,
                     quota: quota,
                     currentPath: currentPath,
+                    selectedPool: selectedPool,
                     onPickAndUpload:
-                        () => _pickAndUploadFile(ref, currentPath.value),
+                        () => _pickAndUploadFile(
+                          ref,
+                          currentPath.value,
+                          selectedPool.value?.id,
+                        ),
                     onShowCreateDirectory: _showCreateDirectoryDialog,
                     mode: mode,
                     viewMode: viewMode,
@@ -71,7 +78,11 @@ class FileListScreen extends HookConsumerWidget {
     );
   }
 
-  Future<void> _pickAndUploadFile(WidgetRef ref, String currentPath) async {
+  Future<void> _pickAndUploadFile(
+    WidgetRef ref,
+    String currentPath,
+    String? poolId,
+  ) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
@@ -93,6 +104,7 @@ class FileListScreen extends HookConsumerWidget {
               fileData: universalFile,
               ref: ref,
               path: currentPath,
+              poolId: poolId,
               onProgress: (progress, _) {
                 // Progress is handled by the upload tasks system
                 if (progress != null) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -29,7 +30,11 @@ class UploadOverlay extends HookConsumerWidget {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
 
     final isVisibleOverride = useState<bool?>(null);
-    final isVisible = isVisibleOverride.value ?? activeTasks.isNotEmpty;
+    final pendingHide = useState(false);
+    final hideTimer = useState<Timer?>(null);
+    final isVisible =
+        (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
+        !pendingHide.value;
     final slideController = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
@@ -47,6 +52,24 @@ class UploadOverlay extends HookConsumerWidget {
       }
       return null;
     }, [isVisible]);
+
+    // Handle hide delay when tasks complete
+    useEffect(() {
+      if (activeTasks.isEmpty && (isVisibleOverride.value ?? false) == false) {
+        // No active tasks and not manually visible (not expanded)
+        hideTimer.value = Timer(const Duration(seconds: 2), () {
+          pendingHide.value = true;
+        });
+      } else {
+        // Cancel any pending hide and reset
+        hideTimer.value?.cancel();
+        hideTimer.value = null;
+        pendingHide.value = false;
+      }
+      return () {
+        hideTimer.value?.cancel();
+      };
+    }, [activeTasks.length, isVisibleOverride.value]);
 
     if (!isVisible && slideController.status == AnimationStatus.dismissed) {
       // If not visible and animation is complete (back to start), don't show anything
