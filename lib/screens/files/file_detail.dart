@@ -76,7 +76,7 @@ class FileDetailScreen extends HookConsumerWidget {
     }, [animationController]);
 
     return AppScaffold(
-      isNoBackground: true,
+      isNoBackground: false,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
@@ -86,26 +86,47 @@ class FileDetailScreen extends HookConsumerWidget {
         title: Text(item.name.isEmpty ? 'File Details' : item.name),
         actions: _buildAppBarActions(context, ref, showInfoSheet),
       ),
-      body: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          return Row(
-            children: [
-              // Main content area
-              Expanded(child: _buildContent(context, ref, serverUrl)),
-              // Animated drawer panel
-              if (isWide)
-                SizedBox(
-                  height: double.infinity,
-                  width: animation.value * 400, // Max width of 400px
-                  child: Container(
-                    child:
-                        animation.value > 0.1
-                            ? FileInfoSheet(item: item, onClose: showInfoSheet)
-                            : const SizedBox.shrink(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  // Main content area - resizes with animation
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: constraints.maxWidth - animation.value * 400,
+                    child: _buildContent(context, ref, serverUrl),
                   ),
-                ),
-            ],
+                  // Animated drawer panel - overlays
+                  if (isWide)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 400,
+                      child: Transform.translate(
+                        offset: Offset((1 - animation.value) * 400, 0),
+                        child: SizedBox(
+                          width: 400,
+                          child: Material(
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            elevation: 8,
+                            child: FileInfoSheet(
+                              item: item,
+                              onClose: showInfoSheet,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           );
         },
       ),

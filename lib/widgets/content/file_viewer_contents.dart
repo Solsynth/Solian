@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -266,68 +266,57 @@ class GenericFileContent extends HookConsumerWidget {
     }
 
     return Center(
-      child: Container(
-        margin: const EdgeInsets.all(32),
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline,
-            width: 1,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.insert_drive_file,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Symbols.insert_drive_file,
-              size: 64,
+          const Gap(16),
+          Text(
+            item.name,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const Gap(8),
+          Text(
+            formatFileSize(item.size),
+            style: TextStyle(
+              fontSize: 16,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const Gap(16),
-            Text(
-              item.name,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+          ),
+          const Gap(24),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FilledButton.icon(
+                onPressed: downloadFile,
+                icon: const Icon(Symbols.download),
+                label: Text('download').tr(),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            Text(
-              formatFileSize(item.size),
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              const Gap(16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    useRootNavigator: true,
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => FileInfoSheet(item: item),
+                  );
+                },
+                icon: const Icon(Symbols.info),
+                label: Text('info').tr(),
               ),
-            ),
-            const Gap(24),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FilledButton.icon(
-                  onPressed: downloadFile,
-                  icon: const Icon(Symbols.download),
-                  label: Text('download'),
-                ),
-                const Gap(16),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      useRootNavigator: true,
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => FileInfoSheet(item: item),
-                    );
-                  },
-                  icon: const Icon(Symbols.info),
-                  label: Text('info'),
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
