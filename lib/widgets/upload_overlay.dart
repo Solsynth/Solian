@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -29,7 +28,8 @@ class UploadOverlay extends HookConsumerWidget {
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
 
-    final isVisible = activeTasks.isNotEmpty;
+    final isVisibleOverride = useState<bool?>(null);
+    final isVisible = isVisibleOverride.value ?? activeTasks.isNotEmpty;
     final slideController = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
@@ -63,6 +63,7 @@ class UploadOverlay extends HookConsumerWidget {
         position: slideAnimation,
         child: _UploadOverlayContent(
           activeTasks: activeTasks,
+          onVisibilityChanged: (bool? v) => isVisibleOverride.value = v,
         ).padding(bottom: 16 + MediaQuery.of(context).padding.bottom),
       ),
     );
@@ -71,12 +72,15 @@ class UploadOverlay extends HookConsumerWidget {
 
 class _UploadOverlayContent extends HookConsumerWidget {
   final List<DriveTask> activeTasks;
+  final void Function(bool?) onVisibilityChanged;
 
-  const _UploadOverlayContent({required this.activeTasks});
+  const _UploadOverlayContent({
+    required this.activeTasks,
+    required this.onVisibilityChanged,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isExpanded = useState(false);
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 200),
       initialValue: 0.0,
@@ -90,12 +94,15 @@ class _UploadOverlayContent extends HookConsumerWidget {
       CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
     );
 
+    final isExpanded = useState(false);
+
     useEffect(() {
       if (isExpanded.value) {
         animationController.forward();
       } else {
         animationController.reverse();
       }
+      onVisibilityChanged.call(isExpanded.value);
       return null;
     }, [isExpanded.value]);
 
@@ -256,6 +263,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                         ref
                                             .read(uploadTasksProvider.notifier)
                                             .clearCompletedTasks();
+                                        isExpanded.value = false;
                                       },
                                       tileColor:
                                           Theme.of(
