@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -31,7 +30,6 @@ class UploadOverlay extends HookConsumerWidget {
 
     final isVisibleOverride = useState<bool?>(null);
     final pendingHide = useState(false);
-    final hideTimer = useState<Timer?>(null);
     final isVisible =
         (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
         !pendingHide.value;
@@ -53,24 +51,6 @@ class UploadOverlay extends HookConsumerWidget {
       return null;
     }, [isVisible]);
 
-    // Handle hide delay when tasks complete
-    useEffect(() {
-      if (activeTasks.isEmpty && (isVisibleOverride.value ?? false) == false) {
-        // No active tasks and not manually visible (not expanded)
-        hideTimer.value = Timer(const Duration(seconds: 2), () {
-          pendingHide.value = true;
-        });
-      } else {
-        // Cancel any pending hide and reset
-        hideTimer.value?.cancel();
-        hideTimer.value = null;
-        pendingHide.value = false;
-      }
-      return () {
-        hideTimer.value?.cancel();
-      };
-    }, [activeTasks.length, isVisibleOverride.value]);
-
     if (!isVisible && slideController.status == AnimationStatus.dismissed) {
       // If not visible and animation is complete (back to start), don't show anything
       return const SizedBox.shrink();
@@ -86,7 +66,6 @@ class UploadOverlay extends HookConsumerWidget {
         position: slideAnimation,
         child: _UploadOverlayContent(
           activeTasks: activeTasks,
-          onVisibilityChanged: (bool? v) => isVisibleOverride.value = v,
         ).padding(bottom: 16 + MediaQuery.of(context).padding.bottom),
       ),
     );
@@ -95,15 +74,12 @@ class UploadOverlay extends HookConsumerWidget {
 
 class _UploadOverlayContent extends HookConsumerWidget {
   final List<DriveTask> activeTasks;
-  final void Function(bool?) onVisibilityChanged;
 
-  const _UploadOverlayContent({
-    required this.activeTasks,
-    required this.onVisibilityChanged,
-  });
+  const _UploadOverlayContent({required this.activeTasks});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = useState(false);
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 200),
       initialValue: 0.0,
@@ -117,15 +93,12 @@ class _UploadOverlayContent extends HookConsumerWidget {
       CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
     );
 
-    final isExpanded = useState(false);
-
     useEffect(() {
       if (isExpanded.value) {
         animationController.forward();
       } else {
         animationController.reverse();
       }
-      onVisibilityChanged.call(isExpanded.value);
       return null;
     }, [isExpanded.value]);
 
@@ -349,6 +322,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
   IconData _getOverallStatusIcon(List<DriveTask> tasks) {
     if (tasks.isEmpty) return Symbols.upload;
 
+    final hasDownload = tasks.any((task) => task.type == 'FileDownload');
     final hasInProgress = tasks.any(
       (task) => task.status == DriveTaskStatus.inProgress,
     );
@@ -370,6 +344,9 @@ class _UploadOverlayContent extends HookConsumerWidget {
 
     // Priority order: in progress > pending > paused > failed > completed
     if (hasInProgress) {
+      if (hasDownload) {
+        return Symbols.download;
+      }
       return Symbols.upload;
     } else if (hasPending) {
       return Symbols.schedule;
@@ -387,6 +364,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
   String _getOverallStatusText(List<DriveTask> tasks) {
     if (tasks.isEmpty) return '0 tasks';
 
+    final hasDownload = tasks.any((task) => task.type == 'FileDownload');
     final hasInProgress = tasks.any(
       (task) => task.status == DriveTaskStatus.inProgress,
     );
@@ -408,7 +386,11 @@ class _UploadOverlayContent extends HookConsumerWidget {
 
     // Priority order: in progress > pending > paused > failed > completed
     if (hasInProgress) {
-      return '${tasks.length} ${'uploading'.tr()}';
+      if (hasDownload) {
+        return '${tasks.length} ${'downloading'.tr()}';
+      } else {
+        return '${tasks.length} ${'uploading'.tr()}';
+      }
     } else if (hasPending) {
       return '${tasks.length} ${'pending'.tr()}';
     } else if (hasPaused) {
@@ -550,7 +532,10 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         color = Theme.of(context).colorScheme.secondary;
         break;
       case DriveTaskStatus.inProgress:
-        icon = Symbols.upload;
+        icon =
+            widget.task.type == 'FileDownload'
+                ? Symbols.download
+                : Symbols.upload;
         color = Theme.of(context).colorScheme.primary;
         break;
       case DriveTaskStatus.paused:

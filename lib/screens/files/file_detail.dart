@@ -10,6 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/upload_tasks.dart';
+import 'package:island/models/drive_task.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -208,6 +210,9 @@ class FileDetailScreen extends HookConsumerWidget {
   }
 
   Future<void> _downloadFile(WidgetRef ref) async {
+    final taskId = ref
+        .read(uploadTasksProvider.notifier)
+        .addLocalDownloadTask(item);
     try {
       showSnackBar('Downloading file...');
 
@@ -223,14 +228,34 @@ class FileDetailScreen extends HookConsumerWidget {
         '/drive/files/${item.id}',
         filePath,
         queryParameters: {'original': true},
+        onReceiveProgress: (count, total) {
+          if (total > 0) {
+            ref
+                .read(uploadTasksProvider.notifier)
+                .updateDownloadProgress(taskId, count, total);
+            ref
+                .read(uploadTasksProvider.notifier)
+                .updateTransmissionProgress(taskId, count / total);
+          }
+        },
       );
 
       await FileSaver.instance.saveFile(
         name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
         file: File(filePath),
       );
+      ref
+          .read(uploadTasksProvider.notifier)
+          .updateTaskStatus(taskId, DriveTaskStatus.completed);
       showSnackBar('File saved to downloads');
     } catch (e) {
+      ref
+          .read(uploadTasksProvider.notifier)
+          .updateTaskStatus(
+            taskId,
+            DriveTaskStatus.failed,
+            errorMessage: e.toString(),
+          );
       showErrorAlert(e);
     }
   }

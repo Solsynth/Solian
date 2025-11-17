@@ -258,6 +258,24 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
         }).toList();
   }
 
+  void updateDownloadProgress(
+    String taskId,
+    int downloadedBytes,
+    int totalBytes,
+  ) {
+    state =
+        state.map((task) {
+          if (task.taskId == taskId) {
+            return task.copyWith(
+              fileSize: totalBytes,
+              uploadedBytes: downloadedBytes,
+              updatedAt: DateTime.now(),
+            );
+          }
+          return task;
+        }).toList();
+  }
+
   void removeTask(String taskId) {
     state = state.where((task) => task.taskId != taskId).toList();
   }
@@ -289,6 +307,27 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
               task.status == DriveTaskStatus.completed,
         )
         .toList();
+  }
+
+  String addLocalDownloadTask(SnCloudFile item) {
+    final taskId =
+        'download-${item.id}-${DateTime.now().millisecondsSinceEpoch}';
+    final task = DriveTask(
+      id: taskId,
+      taskId: taskId,
+      fileName: item.name,
+      contentType: item.mimeType ?? '',
+      fileSize: 0,
+      uploadedBytes: 0,
+      totalChunks: 1,
+      uploadedChunks: 0,
+      status: DriveTaskStatus.inProgress,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      type: 'FileDownload',
+    );
+    state = [...state, task];
+    return taskId;
   }
 
   @override
