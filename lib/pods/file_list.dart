@@ -11,9 +11,15 @@ part 'file_list.g.dart';
 class CloudFileListNotifier extends _$CloudFileListNotifier
     with CursorPagingNotifierMixin<FileListItem> {
   String _currentPath = '/';
+  String? _poolId;
 
   void setPath(String path) {
     _currentPath = path;
+    ref.invalidateSelf();
+  }
+
+  void setPool(String? poolId) {
+    _poolId = poolId;
     ref.invalidateSelf();
   }
 
@@ -26,9 +32,15 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
   }) async {
     final client = ref.read(apiClientProvider);
 
+    final queryParameters = <String, String>{'path': _currentPath};
+
+    if (_poolId != null) {
+      queryParameters['pool'] = _poolId!;
+    }
+
     final response = await client.get(
       '/drive/index/browse',
-      queryParameters: {'path': _currentPath},
+      queryParameters: queryParameters,
     );
 
     final List<String> folders =

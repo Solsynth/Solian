@@ -32,6 +32,7 @@ class FileListView extends HookConsumerWidget {
   final Map<String, dynamic>? usage;
   final Map<String, dynamic>? quota;
   final ValueNotifier<String> currentPath;
+  final ValueNotifier<SnFilePool?> selectedPool;
   final VoidCallback onPickAndUpload;
   final Function(BuildContext, ValueNotifier<String>) onShowCreateDirectory;
   final ValueNotifier<FileListMode> mode;
@@ -41,6 +42,7 @@ class FileListView extends HookConsumerWidget {
     required this.usage,
     required this.quota,
     required this.currentPath,
+    required this.selectedPool,
     required this.onPickAndUpload,
     required this.onShowCreateDirectory,
     required this.mode,
@@ -115,84 +117,95 @@ class FileListView extends HookConsumerWidget {
     final unindexedNotifier = ref.read(
       unindexedFileListNotifierProvider.notifier,
     );
-    final selectedPool = useState<SnFilePool?>(null);
+    final cloudNotifier = ref.read(cloudFileListNotifierProvider.notifier);
     final recycled = useState<bool>(false);
     final poolsAsync = ref.watch(poolsProvider);
 
-    late Widget pathContent;
-    if (mode.value == FileListMode.unindexed) {
-      final unindexedItems = poolsAsync.when(
-        data:
-            (pools) => [
-              const DropdownMenuItem<SnFilePool>(
-                value: null,
-                child: Text('All Pools', style: TextStyle(fontSize: 14)),
+    useEffect(() {
+      // Sync pool when mode or selectedPool changes
+      if (mode.value == FileListMode.unindexed) {
+        unindexedNotifier.setPool(selectedPool.value?.id);
+      } else {
+        cloudNotifier.setPool(selectedPool.value?.id);
+      }
+      return null;
+    }, [selectedPool.value, mode.value]);
+
+    final poolDropdownItems = poolsAsync.when(
+      data:
+          (pools) => [
+            const DropdownMenuItem<SnFilePool>(
+              value: null,
+              child: Text('All Pools', style: TextStyle(fontSize: 14)),
+            ),
+            ...pools.map(
+              (p) => DropdownMenuItem<SnFilePool>(
+                value: p,
+                child: Text(p.name, style: const TextStyle(fontSize: 14)),
               ),
-              ...pools.map(
-                (p) => DropdownMenuItem<SnFilePool>(
-                  value: p,
-                  child: Text(p.name, style: const TextStyle(fontSize: 14)),
-                ),
+            ),
+          ],
+      loading: () => const <DropdownMenuItem<SnFilePool>>[],
+      error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
+    );
+
+    final poolDropdown = DropdownButtonHideUnderline(
+      child: DropdownButton2<SnFilePool>(
+        value: selectedPool.value,
+        items: poolDropdownItems,
+        onChanged:
+            isRefreshing
+                ? null
+                : (value) {
+                  selectedPool.value = value;
+                  if (mode.value == FileListMode.unindexed) {
+                    unindexedNotifier.setPool(value?.id);
+                  } else {
+                    cloudNotifier.setPool(value?.id);
+                  }
+                },
+        customButton: Container(
+          height: 28,
+          width: 200,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(ref.context).colorScheme.outline,
+            ),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 6,
+            children: [
+              const Icon(Symbols.pool, size: 16),
+              Flexible(
+                child: Text(
+                  selectedPool.value?.name ?? 'All files',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ).fontSize(12),
               ),
             ],
-        loading: () => const <DropdownMenuItem<SnFilePool>>[],
-        error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
-      );
-      pathContent = Row(
-        children: [
-          const Text(
-            'Unindexed Files',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          ).height(24),
+        ),
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+          height: 28,
+          width: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
-          const Gap(8),
-          DropdownButtonHideUnderline(
-            child: DropdownButton2<SnFilePool>(
-              value: selectedPool.value,
-              items: unindexedItems,
-              onChanged:
-                  isRefreshing
-                      ? null
-                      : (value) {
-                        selectedPool.value = value;
-                        unindexedNotifier.setPool(value?.id);
-                      },
-              customButton: Container(
-                height: 28,
-                width: 160,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(ref.context).colorScheme.outline,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 6,
-                  children: [
-                    const Icon(Symbols.pool, size: 16),
-                    Flexible(
-                      child: Text(
-                        selectedPool.value?.name ?? 'All files',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ).fontSize(12),
-                    ),
-                  ],
-                ).height(24),
-              ),
-              buttonStyleData: const ButtonStyleData(
-                padding: EdgeInsets.zero,
-                height: 28,
-                width: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-              ),
-              dropdownStyleData: const DropdownStyleData(maxHeight: 200),
-            ),
-          ),
-        ],
+        ),
+        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
+      ),
+    );
+
+    late Widget pathContent;
+    if (mode.value == FileListMode.unindexed) {
+      pathContent = const Text(
+        'Unindexed Files',
+        style: TextStyle(fontWeight: FontWeight.bold),
       );
     } else if (currentPath.value == '/') {
       pathContent = const Text(
@@ -262,6 +275,7 @@ class FileListView extends HookConsumerWidget {
             fileData: universalFile,
             ref: ref,
             path: mode.value == FileListMode.normal ? currentPath.value : null,
+            poolId: selectedPool.value?.id,
             onProgress: (progress, _) {
               // Progress is handled by the upload tasks system
               if (progress != null) {
@@ -293,8 +307,11 @@ class FileListView extends HookConsumerWidget {
                 ? Theme.of(context).primaryColor.withOpacity(0.1)
                 : null,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Gap(8),
+            const Gap(12),
+            poolDropdown.padding(horizontal: 16),
+            const Gap(6),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
