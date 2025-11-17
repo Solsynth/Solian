@@ -1040,7 +1040,10 @@ class FileListView extends HookConsumerWidget {
 
   Widget _buildEmptyUnindexedFilesHint(WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      margin:
+          viewMode.value == FileListViewMode.waterfall
+              ? EdgeInsets.zero
+              : const EdgeInsets.fromLTRB(12, 0, 12, 0),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         child: Column(
