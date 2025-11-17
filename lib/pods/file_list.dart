@@ -58,6 +58,19 @@ Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
 @riverpod
 class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     with CursorPagingNotifierMixin<FileListItem> {
+  String? _poolId;
+  bool _recycled = false;
+
+  void setPool(String? poolId) {
+    _poolId = poolId;
+    ref.invalidateSelf();
+  }
+
+  void setRecycled(bool recycled) {
+    _recycled = recycled;
+    ref.invalidateSelf();
+  }
+
   @override
   Future<CursorPagingData<FileListItem>> build() => fetch(cursor: null);
 
@@ -70,9 +83,22 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     final offset = cursor != null ? int.tryParse(cursor) ?? 0 : 0;
     const take = 50; // Default page size
 
+    final queryParameters = <String, String>{
+      'take': take.toString(),
+      'offset': offset.toString(),
+    };
+
+    if (_poolId != null) {
+      queryParameters['pool'] = _poolId!;
+    }
+
+    if (_recycled) {
+      queryParameters['recycled'] = _recycled.toString();
+    }
+
     final response = await client.get(
       '/drive/index/unindexed',
-      queryParameters: {'take': take.toString(), 'offset': offset.toString()},
+      queryParameters: queryParameters,
     );
 
     final total = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;

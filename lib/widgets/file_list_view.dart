@@ -1,4 +1,5 @@
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -8,7 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file_list_item.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/file_pool.dart';
 import 'package:island/pods/file_list.dart';
+import 'package:island/pods/file_pool.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/services/responsive.dart';
@@ -101,6 +104,138 @@ class FileListView extends HookConsumerWidget {
       ),
     };
 
+    final unindexedNotifier = ref.read(
+      unindexedFileListNotifierProvider.notifier,
+    );
+    final selectedPool = useState<SnFilePool?>(null);
+    final recycled = useState<bool>(false);
+    final poolsAsync = ref.watch(poolsProvider);
+
+    late Widget pathContent;
+    if (mode.value == FileListMode.unindexed) {
+      final unindexedItems = poolsAsync.when(
+        data:
+            (pools) => [
+              const DropdownMenuItem<SnFilePool>(
+                value: null,
+                child: Text('All Pools', style: TextStyle(fontSize: 14)),
+              ),
+              ...pools.map(
+                (p) => DropdownMenuItem<SnFilePool>(
+                  value: p,
+                  child: Text(p.name, style: const TextStyle(fontSize: 14)),
+                ),
+              ),
+            ],
+        loading: () => const <DropdownMenuItem<SnFilePool>>[],
+        error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
+      );
+      pathContent = Row(
+        children: [
+          const Text(
+            'Unindexed Files',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const Gap(8),
+          DropdownButtonHideUnderline(
+            child: DropdownButton2<SnFilePool>(
+              value: selectedPool.value,
+              items: unindexedItems,
+              onChanged: (value) {
+                selectedPool.value = value;
+                unindexedNotifier.setPool(value?.id);
+              },
+              customButton: Container(
+                height: 28,
+                width: 160,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(ref.context).colorScheme.outline,
+                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 6,
+                  children: [
+                    const Icon(Symbols.pool, size: 16),
+                    Flexible(
+                      child: Text(
+                        selectedPool.value?.name ?? 'All files',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).fontSize(12),
+                    ),
+                  ],
+                ).height(24),
+              ),
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.zero,
+                height: 28,
+                width: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+              ),
+              dropdownStyleData: const DropdownStyleData(maxHeight: 200),
+            ),
+          ),
+        ],
+      );
+    } else if (currentPath.value == '/') {
+      pathContent = const Text(
+        'Root Directory',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      );
+    } else {
+      final pathParts =
+          currentPath.value
+              .split('/')
+              .where((part) => part.isNotEmpty)
+              .toList();
+      final breadcrumbs = <Widget>[];
+
+      // Add root
+      breadcrumbs.add(
+        InkWell(
+          onTap: () => currentPath.value = '/',
+          child: const Text('Root'),
+        ),
+      );
+
+      // Add path parts
+      String currentPathBuilder = '';
+      for (int i = 0; i < pathParts.length; i++) {
+        currentPathBuilder += '/${pathParts[i]}';
+        final path = currentPathBuilder;
+
+        breadcrumbs.add(const Text(' / '));
+        if (i == pathParts.length - 1) {
+          // Current directory
+          breadcrumbs.add(
+            Text(
+              pathParts[i],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          );
+        } else {
+          // Clickable parent directory
+          breadcrumbs.add(
+            InkWell(
+              onTap: () => currentPath.value = path,
+              child: Text(pathParts[i]),
+            ),
+          );
+        }
+      }
+
+      pathContent = Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: breadcrumbs,
+      );
+    }
+
     return DropTarget(
       onDragDone: (details) async {
         dragging.value = false;
@@ -115,7 +250,7 @@ class FileListView extends HookConsumerWidget {
           final completer = FileUploader.createCloudFile(
             fileData: universalFile,
             ref: ref,
-            path: currentPath.value,
+            path: mode.value == FileListMode.normal ? currentPath.value : null,
             onProgress: (progress, _) {
               // Progress is handled by the upload tasks system
               if (progress != null) {
@@ -149,7 +284,116 @@ class FileListView extends HookConsumerWidget {
         child: Column(
           children: [
             const Gap(8),
-            _buildPathNavigation(ref, currentPath),
+            SizedBox(
+              height: 64,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          mode.value == FileListMode.unindexed
+                              ? Symbols.inventory_2
+                              : currentPath.value != '/'
+                              ? Symbols.arrow_back
+                              : Symbols.folder,
+                        ),
+                        onPressed: () {
+                          if (mode.value == FileListMode.unindexed) {
+                            mode.value = FileListMode.normal;
+                            currentPath.value = '/';
+                          } else {
+                            final pathParts =
+                                currentPath.value
+                                    .split('/')
+                                    .where((part) => part.isNotEmpty)
+                                    .toList();
+                            if (pathParts.isNotEmpty) {
+                              pathParts.removeLast();
+                              currentPath.value =
+                                  pathParts.isEmpty
+                                      ? '/'
+                                      : '/${pathParts.join('/')}';
+                            }
+                          }
+                        },
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(child: pathContent),
+                      IconButton(
+                        icon: Icon(
+                          viewMode.value == FileListViewMode.list
+                              ? Symbols.view_module
+                              : Symbols.list,
+                        ),
+                        onPressed:
+                            () =>
+                                viewMode.value =
+                                    viewMode.value == FileListViewMode.list
+                                        ? FileListViewMode.waterfall
+                                        : FileListViewMode.list,
+                        tooltip:
+                            viewMode.value == FileListViewMode.list
+                                ? 'Switch to Waterfall View'
+                                : 'Switch to List View',
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
+                      ),
+                      if (mode.value == FileListMode.normal)
+                        IconButton(
+                          icon: const Icon(Symbols.create_new_folder),
+                          onPressed:
+                              () => onShowCreateDirectory(
+                                ref.context,
+                                currentPath,
+                              ),
+                          tooltip: 'Create Directory',
+                          visualDensity: const VisualDensity(
+                            horizontal: -4,
+                            vertical: -4,
+                          ),
+                        ),
+                      if (mode.value == FileListMode.unindexed)
+                        IconButton(
+                          icon: Icon(
+                            recycled.value
+                                ? Symbols.delete_forever
+                                : Symbols.restore_from_trash,
+                          ),
+                          onPressed: () {
+                            recycled.value = !recycled.value;
+                            unindexedNotifier.setRecycled(recycled.value);
+                          },
+                          tooltip:
+                              recycled.value
+                                  ? 'Show Active Files'
+                                  : 'Show Recycle Bin',
+                          visualDensity: const VisualDensity(
+                            horizontal: -4,
+                            vertical: -4,
+                          ),
+                        ),
+                      IconButton(
+                        icon: const Icon(Symbols.upload_file),
+                        onPressed: onPickAndUpload,
+                        tooltip: 'Upload File',
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ).padding(horizontal: 8),
+            ),
             const Gap(8),
             if (mode.value == FileListMode.normal && currentPath.value == '/')
               _buildUnindexedFilesEntry(ref).padding(bottom: 12),
@@ -300,155 +544,6 @@ class FileListView extends HookConsumerWidget {
         },
       ),
     };
-  }
-
-  Widget _buildPathNavigation(
-    WidgetRef ref,
-    ValueNotifier<String> currentPath,
-  ) {
-    Widget pathContent;
-    if (mode.value == FileListMode.unindexed) {
-      pathContent = Row(
-        children: [
-          Text(
-            'Unindexed Files',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
-      );
-    } else if (currentPath.value == '/') {
-      pathContent = Text(
-        'Root Directory',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      );
-    } else {
-      final pathParts =
-          currentPath.value
-              .split('/')
-              .where((part) => part.isNotEmpty)
-              .toList();
-      final breadcrumbs = <Widget>[];
-
-      // Add root
-      breadcrumbs.add(
-        InkWell(onTap: () => currentPath.value = '/', child: Text('Root')),
-      );
-
-      // Add path parts
-      String currentPathBuilder = '';
-      for (int i = 0; i < pathParts.length; i++) {
-        currentPathBuilder += '/${pathParts[i]}';
-        final path = currentPathBuilder;
-
-        breadcrumbs.add(const Text(' / '));
-        if (i == pathParts.length - 1) {
-          // Current directory
-          breadcrumbs.add(
-            Text(pathParts[i], style: TextStyle(fontWeight: FontWeight.bold)),
-          );
-        } else {
-          // Clickable parent directory
-          breadcrumbs.add(
-            InkWell(
-              onTap: () => currentPath.value = path,
-              child: Text(pathParts[i]),
-            ),
-          );
-        }
-      }
-
-      pathContent = Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: breadcrumbs,
-      );
-    }
-
-    return SizedBox(
-      height: 64,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  mode.value == FileListMode.unindexed
-                      ? Symbols.inventory_2
-                      : currentPath.value != '/'
-                      ? Symbols.arrow_back
-                      : Symbols.folder,
-                ),
-                onPressed: () {
-                  if (mode.value == FileListMode.unindexed) {
-                    mode.value = FileListMode.normal;
-                    currentPath.value = '/';
-                  } else {
-                    final pathParts =
-                        currentPath.value
-                            .split('/')
-                            .where((part) => part.isNotEmpty)
-                            .toList();
-                    if (pathParts.isNotEmpty) {
-                      pathParts.removeLast();
-                      currentPath.value =
-                          pathParts.isEmpty ? '/' : '/${pathParts.join('/')}';
-                    }
-                  }
-                },
-                visualDensity: const VisualDensity(
-                  horizontal: -4,
-                  vertical: -4,
-                ),
-              ),
-              const Gap(8),
-              Expanded(child: pathContent),
-              IconButton(
-                icon: Icon(
-                  viewMode.value == FileListViewMode.list
-                      ? Symbols.view_module
-                      : Symbols.list,
-                ),
-                onPressed:
-                    () =>
-                        viewMode.value =
-                            viewMode.value == FileListViewMode.list
-                                ? FileListViewMode.waterfall
-                                : FileListViewMode.list,
-                tooltip:
-                    viewMode.value == FileListViewMode.list
-                        ? 'Switch to Waterfall View'
-                        : 'Switch to List View',
-                visualDensity: const VisualDensity(
-                  horizontal: -4,
-                  vertical: -4,
-                ),
-              ),
-              if (mode.value == FileListMode.normal) ...[
-                IconButton(
-                  icon: const Icon(Symbols.create_new_folder),
-                  onPressed:
-                      () => onShowCreateDirectory(ref.context, currentPath),
-                  tooltip: 'Create Directory',
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.upload_file),
-                  onPressed: onPickAndUpload,
-                  tooltip: 'Upload File',
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ).padding(horizontal: 8),
-    );
   }
 
   Widget _buildUnindexedFilesEntry(WidgetRef ref) {
