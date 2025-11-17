@@ -62,6 +62,14 @@ class FileListView extends HookConsumerWidget {
 
     if (usage == null) return const SizedBox.shrink();
 
+    final isRefreshing = ref.watch(
+      mode.value == FileListMode.normal
+          ? cloudFileListNotifierProvider.select((value) => value.isLoading)
+          : unindexedFileListNotifierProvider.select(
+            (value) => value.isLoading,
+          ),
+    );
+
     final bodyWidget = switch (mode.value) {
       FileListMode.unindexed => PagingHelperSliverView(
         provider: unindexedFileListNotifierProvider,
@@ -141,10 +149,13 @@ class FileListView extends HookConsumerWidget {
             child: DropdownButton2<SnFilePool>(
               value: selectedPool.value,
               items: unindexedItems,
-              onChanged: (value) {
-                selectedPool.value = value;
-                unindexedNotifier.setPool(value?.id);
-              },
+              onChanged:
+                  isRefreshing
+                      ? null
+                      : (value) {
+                        selectedPool.value = value;
+                        unindexedNotifier.setPool(value?.id);
+                      },
               customButton: Container(
                 height: 28,
                 width: 160,
@@ -284,116 +295,123 @@ class FileListView extends HookConsumerWidget {
         child: Column(
           children: [
             const Gap(8),
-            SizedBox(
-              height: 64,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          mode.value == FileListMode.unindexed
-                              ? Symbols.inventory_2
-                              : currentPath.value != '/'
-                              ? Symbols.arrow_back
-                              : Symbols.folder,
-                        ),
-                        onPressed: () {
-                          if (mode.value == FileListMode.unindexed) {
-                            mode.value = FileListMode.normal;
-                            currentPath.value = '/';
-                          } else {
-                            final pathParts =
-                                currentPath.value
-                                    .split('/')
-                                    .where((part) => part.isNotEmpty)
-                                    .toList();
-                            if (pathParts.isNotEmpty) {
-                              pathParts.removeLast();
-                              currentPath.value =
-                                  pathParts.isEmpty
-                                      ? '/'
-                                      : '/${pathParts.join('/')}';
-                            }
-                          }
-                        },
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        mode.value == FileListMode.unindexed
+                            ? Symbols.inventory_2
+                            : currentPath.value != '/'
+                            ? Symbols.arrow_back
+                            : Symbols.folder,
                       ),
-                      const Gap(8),
-                      Expanded(child: pathContent),
-                      IconButton(
-                        icon: Icon(
+                      onPressed:
+                          isRefreshing
+                              ? null
+                              : () {
+                                if (mode.value == FileListMode.unindexed) {
+                                  mode.value = FileListMode.normal;
+                                  currentPath.value = '/';
+                                } else {
+                                  final pathParts =
+                                      currentPath.value
+                                          .split('/')
+                                          .where((part) => part.isNotEmpty)
+                                          .toList();
+                                  if (pathParts.isNotEmpty) {
+                                    pathParts.removeLast();
+                                    currentPath.value =
+                                        pathParts.isEmpty
+                                            ? '/'
+                                            : '/${pathParts.join('/')}';
+                                  }
+                                }
+                              },
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                    ),
+                    const Gap(8),
+                    Expanded(
+                      child: AbsorbPointer(
+                        absorbing: isRefreshing,
+                        child: pathContent,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        viewMode.value == FileListViewMode.list
+                            ? Symbols.view_module
+                            : Symbols.list,
+                      ),
+                      onPressed:
+                          () =>
+                              viewMode.value =
+                                  viewMode.value == FileListViewMode.list
+                                      ? FileListViewMode.waterfall
+                                      : FileListViewMode.list,
+                      tooltip:
                           viewMode.value == FileListViewMode.list
-                              ? Symbols.view_module
-                              : Symbols.list,
-                        ),
+                              ? 'Switch to Waterfall View'
+                              : 'Switch to List View',
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                    ),
+                    if (mode.value == FileListMode.normal)
+                      IconButton(
+                        icon: const Icon(Symbols.create_new_folder),
                         onPressed:
                             () =>
-                                viewMode.value =
-                                    viewMode.value == FileListViewMode.list
-                                        ? FileListViewMode.waterfall
-                                        : FileListViewMode.list,
-                        tooltip:
-                            viewMode.value == FileListViewMode.list
-                                ? 'Switch to Waterfall View'
-                                : 'Switch to List View',
+                                onShowCreateDirectory(ref.context, currentPath),
+                        tooltip: 'Create Directory',
                         visualDensity: const VisualDensity(
                           horizontal: -4,
                           vertical: -4,
                         ),
                       ),
-                      if (mode.value == FileListMode.normal)
-                        IconButton(
-                          icon: const Icon(Symbols.create_new_folder),
-                          onPressed:
-                              () => onShowCreateDirectory(
-                                ref.context,
-                                currentPath,
-                              ),
-                          tooltip: 'Create Directory',
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -4,
-                          ),
-                        ),
-                      if (mode.value == FileListMode.unindexed)
-                        IconButton(
-                          icon: Icon(
-                            recycled.value
-                                ? Symbols.delete_forever
-                                : Symbols.restore_from_trash,
-                          ),
-                          onPressed: () {
-                            recycled.value = !recycled.value;
-                            unindexedNotifier.setRecycled(recycled.value);
-                          },
-                          tooltip:
-                              recycled.value
-                                  ? 'Show Active Files'
-                                  : 'Show Recycle Bin',
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -4,
-                          ),
-                        ),
+                    if (mode.value == FileListMode.unindexed)
                       IconButton(
-                        icon: const Icon(Symbols.upload_file),
-                        onPressed: onPickAndUpload,
-                        tooltip: 'Upload File',
+                        icon: Icon(
+                          recycled.value
+                              ? Symbols.delete_forever
+                              : Symbols.restore_from_trash,
+                        ),
+                        onPressed: () {
+                          recycled.value = !recycled.value;
+                          unindexedNotifier.setRecycled(recycled.value);
+                        },
+                        tooltip:
+                            recycled.value
+                                ? 'Show Active Files'
+                                : 'Show Recycle Bin',
                         visualDensity: const VisualDensity(
                           horizontal: -4,
                           vertical: -4,
                         ),
                       ),
-                    ],
-                  ),
+                    IconButton(
+                      icon: const Icon(Symbols.upload_file),
+                      onPressed: onPickAndUpload,
+                      tooltip: 'Upload File',
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                    ),
+                  ],
                 ),
-              ).padding(horizontal: 8),
-            ),
+              ),
+            ).padding(horizontal: 8),
+            if (isRefreshing)
+              const LinearProgressIndicator(
+                minHeight: 4,
+              ).padding(horizontal: 16, top: 6, bottom: 4),
             const Gap(8),
             if (mode.value == FileListMode.normal && currentPath.value == '/')
               _buildUnindexedFilesEntry(ref).padding(bottom: 12),
