@@ -485,7 +485,10 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
   ) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+      margin:
+          viewMode.value == FileListViewMode.waterfall
+              ? const EdgeInsets.fromLTRB(0, 0, 0, 16)
+              : const EdgeInsets.fromLTRB(12, 0, 12, 16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         child: Column(

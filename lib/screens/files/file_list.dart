@@ -1,4 +1,5 @@
 import 'package:cross_file/cross_file.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -32,7 +33,7 @@ class FileListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        title: Text('Files'),
+        title: Text('files').tr(),
         leading: const PageBackButton(),
         actions: [
           IconButton(
