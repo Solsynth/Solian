@@ -12,6 +12,7 @@ class CaptchaScreen extends ConsumerStatefulWidget {
   static Future<String?> show(BuildContext context) {
     return showModalBottomSheet<String>(
       context: context,
+      isDismissible: false,
       isScrollControlled: true,
       builder: (context) => const CaptchaScreen(),
     );
