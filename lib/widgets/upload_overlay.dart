@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -6,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/drive_task.dart';
 import 'package:island/pods/upload_tasks.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/talker.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -30,6 +32,44 @@ class UploadOverlay extends HookConsumerWidget {
 
     final isVisibleOverride = useState<bool?>(null);
     final pendingHide = useState(false);
+    final isExpandedLocal = useState(false);
+    final autoHideTimer = useState<Timer?>(null);
+
+    final allFinished = activeTasks.every(
+      (task) =>
+          task.status == DriveTaskStatus.completed ||
+          task.status == DriveTaskStatus.failed ||
+          task.status == DriveTaskStatus.cancelled ||
+          task.status == DriveTaskStatus.expired,
+    );
+
+    // Auto-hide timer effect
+    useEffect(
+      () {
+        autoHideTimer.value?.cancel();
+        if (allFinished &&
+            activeTasks.isNotEmpty &&
+            !isExpandedLocal.value &&
+            !pendingHide.value) {
+          talker.info('[UploadOverlay] Setting auto hide timer...');
+          autoHideTimer.value = Timer(const Duration(seconds: 3), () {
+            talker.info('[UploadOverlay] Ready to hide!');
+            pendingHide.value = true;
+          });
+        } else {
+          talker.info('[UploadOverlay] Remove auto hide timer...');
+          autoHideTimer.value?.cancel();
+          autoHideTimer.value = null;
+        }
+        return null;
+      },
+      [
+        allFinished,
+        activeTasks.length,
+        isExpandedLocal.value,
+        pendingHide.value,
+      ],
+    );
     final isVisible =
         (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
         !pendingHide.value;
@@ -66,6 +106,8 @@ class UploadOverlay extends HookConsumerWidget {
         position: slideAnimation,
         child: _UploadOverlayContent(
           activeTasks: activeTasks,
+          isExpanded: isExpandedLocal.value,
+          onExpansionChanged: (expanded) => isExpandedLocal.value = expanded,
         ).padding(bottom: 16 + MediaQuery.of(context).padding.bottom),
       ),
     );
@@ -74,12 +116,17 @@ class UploadOverlay extends HookConsumerWidget {
 
 class _UploadOverlayContent extends HookConsumerWidget {
   final List<DriveTask> activeTasks;
+  final bool isExpanded;
+  final Function(bool)? onExpansionChanged;
 
-  const _UploadOverlayContent({required this.activeTasks});
+  const _UploadOverlayContent({
+    required this.activeTasks,
+    required this.isExpanded,
+    this.onExpansionChanged,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isExpanded = useState(false);
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 200),
       initialValue: 0.0,
@@ -94,13 +141,13 @@ class _UploadOverlayContent extends HookConsumerWidget {
     );
 
     useEffect(() {
-      if (isExpanded.value) {
+      if (isExpanded) {
         animationController.forward();
       } else {
         animationController.reverse();
       }
       return null;
-    }, [isExpanded.value]);
+    }, [isExpanded]);
 
     final isMobile = !isWideScreen(context);
 
@@ -113,7 +160,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
         right: isMobile ? 16 : 24,
       ),
       child: GestureDetector(
-        onTap: () => isExpanded.value = !isExpanded.value,
+        onTap: () => onExpansionChanged?.call(!isExpanded),
         child: AnimatedBuilder(
           animation: animationController,
           builder: (context, child) {
@@ -147,8 +194,8 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                 );
                               },
                               child: Icon(
-                                key: ValueKey(isExpanded.value),
-                                isExpanded.value
+                                key: ValueKey(isExpanded),
+                                isExpanded
                                     ? Symbols.list_rounded
                                     : _getOverallStatusIcon(activeTasks),
                                 size: 24,
@@ -164,7 +211,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isExpanded.value
+                                    isExpanded
                                         ? 'uploadTasks'.tr()
                                         : _getOverallStatusText(activeTasks),
                                     style: Theme.of(context)
@@ -174,8 +221,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  if (!isExpanded.value &&
-                                      activeTasks.isNotEmpty)
+                                  if (!isExpanded && activeTasks.isNotEmpty)
                                     Text(
                                       _getOverallProgressText(activeTasks),
                                       style: Theme.of(
@@ -192,7 +238,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                             ),
 
                             // Progress indicator (collapsed)
-                            if (!isExpanded.value)
+                            if (!isExpanded)
                               SizedBox(
                                 width: 32,
                                 height: 32,
@@ -212,14 +258,14 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                 turns: opacityAnimation * 0.5,
                                 duration: const Duration(milliseconds: 200),
                                 child: Icon(
-                                  isExpanded.value
+                                  isExpanded
                                       ? Symbols.expand_more
                                       : Symbols.chevron_right,
                                   size: 20,
                                 ),
                               ),
                               onPressed:
-                                  () => isExpanded.value = !isExpanded.value,
+                                  () => onExpansionChanged?.call(!isExpanded),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -228,7 +274,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                       ),
 
                       // Expanded content
-                      if (isExpanded.value)
+                      if (isExpanded)
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
@@ -259,7 +305,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                       ),
                                       onTap: () {
                                         taskNotifier.clearCompletedTasks();
-                                        isExpanded.value = false;
+                                        onExpansionChanged?.call(false);
                                       },
 
                                       tileColor:
@@ -286,7 +332,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                       ),
                                       onTap: () {
                                         taskNotifier.clearAllTasks();
-                                        isExpanded.value = false;
+                                        onExpansionChanged?.call(false);
                                       },
                                       tileColor:
                                           Theme.of(
