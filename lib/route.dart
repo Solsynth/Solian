@@ -170,6 +170,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AboutScreen(),
           ),
 
+          GoRoute(
+            name: 'fileDetail',
+            path: '/files/:id',
+            builder: (context, state) {
+              // For now, we'll need to pass the file object through extra
+              // This will be updated when we modify the file list navigation
+              final file = state.extra as SnCloudFile?;
+              if (file != null) {
+                return FileDetailScreen(item: file);
+              }
+              // Fallback - this shouldn't happen in normal flow
+              Navigator.of(context).pop();
+              return const SizedBox.shrink();
+            },
+          ),
+
           // Main tabs with TabsScreen shell
           ShellRoute(
             navigatorKey: _tabsShellKey,
@@ -427,23 +443,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: 'files',
                 path: '/files',
                 builder: (context, state) => const FileListScreen(),
-                routes: [
-                  GoRoute(
-                    name: 'fileDetail',
-                    path: ':id',
-                    builder: (context, state) {
-                      // For now, we'll need to pass the file object through extra
-                      // This will be updated when we modify the file list navigation
-                      final file = state.extra as SnCloudFile?;
-                      if (file != null) {
-                        return FileDetailScreen(item: file);
-                      }
-                      // Fallback - this shouldn't happen in normal flow
-                      Navigator.of(context).pop();
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ],
               ),
 
               // SN-chan tab
