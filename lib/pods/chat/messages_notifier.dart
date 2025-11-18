@@ -140,8 +140,11 @@ class MessagesNotifier extends _$MessagesNotifier {
         offset: offset,
         limit: take,
       );
-      dbMessages =
-          chatMessagesFromDb.map(_database.companionToMessage).toList();
+      dbMessages = await Future.wait(
+        chatMessagesFromDb
+            .map((msg) => _database.companionToMessage(msg))
+            .toList(),
+      );
     }
 
     List<LocalChatMessage> filteredMessages = dbMessages;
@@ -202,8 +205,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       offset: offset,
       limit: take,
     );
-    final dbMessages =
-        chatMessagesFromDb.map(_database.companionToMessage).toList();
+    final dbMessages = await Future.wait(
+      chatMessagesFromDb
+          .map((msg) => _database.companionToMessage(msg))
+          .toList(),
+    );
 
     // Always ensure unique messages to prevent duplicate keys
     final uniqueMessages = <LocalChatMessage>[];
@@ -300,7 +306,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final lastMessage =
           dbMessages.isEmpty
               ? null
-              : _database.companionToMessage(dbMessages.first);
+              : await _database.companionToMessage(dbMessages.first);
 
       if (lastMessage == null) {
         talker.log('No local messages, fetching from network');

@@ -2,17 +2,19 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:island/database/message.dart';
 import 'package:island/database/draft.dart';
+import 'package:island/models/account.dart';
+import 'package:island/models/chat.dart';
 import 'package:island/models/post.dart';
 
 part 'drift_db.g.dart';
 
 // Define the database
-@DriftDatabase(tables: [ChatMessages, PostDrafts])
+@DriftDatabase(tables: [ChatRooms, ChatMembers, ChatMessages, PostDrafts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,6 +56,11 @@ class AppDatabase extends _$AppDatabase {
             // Column already exists, skip
           }
         }
+      }
+      if (from < 8) {
+        // Add new tables for separate sender and room data
+        await m.createTable(chatRooms);
+        await m.createTable(chatMembers);
       }
     },
   );
@@ -178,7 +185,9 @@ class AppDatabase extends _$AppDatabase {
         await (selectStatement
               ..orderBy([(m) => OrderingTerm.desc(m.createdAt)]))
             .get();
-    return messages.map((msg) => companionToMessage(msg)).toList();
+    final messageFutures =
+        messages.map((msg) => companionToMessage(msg)).toList();
+    return await Future.wait(messageFutures);
   }
 
   // Convert between Drift and model objects
@@ -206,12 +215,45 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  LocalChatMessage companionToMessage(ChatMessage dbMessage) {
+  Future<LocalChatMessage> companionToMessage(ChatMessage dbMessage) async {
     final data = jsonDecode(dbMessage.data);
+    SnChatMember? sender;
+    try {
+      final senderRow =
+          await (select(chatMembers)
+            ..where((m) => m.id.equals(dbMessage.senderId))).getSingle();
+      final senderAccount = SnAccount.fromJson(senderRow.account);
+      SnAccountStatus? senderStatus;
+      if (senderRow.status != null) {
+        senderStatus = SnAccountStatus.fromJson(jsonDecode(senderRow.status!));
+      }
+      sender = SnChatMember(
+        id: senderRow.id,
+        chatRoomId: senderRow.chatRoomId,
+        accountId: senderRow.accountId,
+        account: senderAccount,
+        nick: senderRow.nick,
+        role: senderRow.role,
+        notify: senderRow.notify,
+        joinedAt: senderRow.joinedAt,
+        breakUntil: senderRow.breakUntil,
+        timeoutUntil: senderRow.timeoutUntil,
+        isBot: senderRow.isBot,
+        status: senderStatus,
+        lastTyped: senderRow.lastTyped,
+        createdAt: senderRow.createdAt,
+        updatedAt: senderRow.updatedAt,
+        deletedAt: senderRow.deletedAt,
+        chatRoom: null,
+      );
+    } catch (_) {
+      sender = null;
+    }
     return LocalChatMessage(
       id: dbMessage.id,
       roomId: dbMessage.roomId,
       senderId: dbMessage.senderId,
+      sender: sender,
       data: data,
       createdAt: dbMessage.createdAt,
       status: dbMessage.status,

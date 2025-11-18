@@ -36,10 +36,52 @@ class ListMapConverter
   String toSql(List<Map<String, dynamic>> value) => json.encode(value);
 }
 
+class ChatRooms extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text().nullable()();
+  TextColumn get description => text().nullable()();
+  IntColumn get type => integer()();
+  BoolColumn get isPublic =>
+      boolean().nullable().withDefault(const Constant(false))();
+  BoolColumn get isCommunity =>
+      boolean().nullable().withDefault(const Constant(false))();
+  TextColumn get picture => text().map(const MapConverter()).nullable()();
+  TextColumn get background => text().map(const MapConverter()).nullable()();
+  TextColumn get realmId => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class ChatMembers extends Table {
+  TextColumn get id => text()();
+  TextColumn get chatRoomId => text().references(ChatRooms, #id)();
+  TextColumn get accountId => text()();
+  TextColumn get account => text().map(const MapConverter())();
+  TextColumn get nick => text().nullable()();
+  IntColumn get role => integer()();
+  IntColumn get notify => integer()();
+  DateTimeColumn get joinedAt => dateTime().nullable()();
+  DateTimeColumn get breakUntil => dateTime().nullable()();
+  DateTimeColumn get timeoutUntil => dateTime().nullable()();
+  BoolColumn get isBot => boolean()();
+  TextColumn get status => text().nullable()();
+  DateTimeColumn get lastTyped => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class ChatMessages extends Table {
   TextColumn get id => text()();
-  TextColumn get roomId => text()();
-  TextColumn get senderId => text()();
+  TextColumn get roomId => text().references(ChatRooms, #id)();
+  TextColumn get senderId => text().references(ChatMembers, #id)();
   TextColumn get content => text().nullable()();
   TextColumn get nonce => text().nullable()();
   TextColumn get data => text()();
@@ -72,6 +114,7 @@ class LocalChatMessage {
   final String id;
   final String roomId;
   final String senderId;
+  final SnChatMember? sender;
   final Map<String, dynamic> data;
   final DateTime createdAt;
   MessageStatus status;
@@ -94,6 +137,7 @@ class LocalChatMessage {
     required this.id,
     required this.roomId,
     required this.senderId,
+    required this.sender,
     required this.data,
     required this.createdAt,
     required this.nonce,
@@ -114,7 +158,11 @@ class LocalChatMessage {
   });
 
   SnChatMessage toRemoteMessage() {
-    return SnChatMessage.fromJson(data);
+    final msgData = Map<String, dynamic>.from(data);
+    if (sender != null) {
+      msgData['sender'] = sender!.toJson();
+    }
+    return SnChatMessage.fromJson(msgData);
   }
 
   static LocalChatMessage fromRemoteMessage(
@@ -122,11 +170,14 @@ class LocalChatMessage {
     MessageStatus status, {
     String? nonce,
   }) {
+    final msgData = Map<String, dynamic>.from(message.toJson())
+      ..remove('sender');
     return LocalChatMessage(
       id: message.id,
       roomId: message.chatRoomId,
       senderId: message.senderId,
-      data: message.toJson(),
+      sender: message.sender,
+      data: msgData,
       createdAt: message.createdAt,
       status: status,
       nonce: nonce ?? message.nonce,
