@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/models/file.dart';
+import 'package:island/models/account.dart';
+import 'package:island/pods/database.dart';
 import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
@@ -121,6 +126,17 @@ class ChatRoomListTile extends HookConsumerWidget {
       );
     }
 
+    String titleText;
+    if (isDirect && room.name == null) {
+      if (room.members?.isNotEmpty ?? false) {
+        titleText = room.members!.map((e) => e.account.nick).join(', ');
+      } else {
+        titleText = 'Direct Message';
+      }
+    } else {
+      titleText = room.name ?? '';
+    }
+
     return ListTile(
       leading: Badge(
         isLabelVisible: summary.when(
@@ -140,11 +156,7 @@ class ChatRoomListTile extends HookConsumerWidget {
                 ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
                 : ProfilePictureWidget(fileId: room.picture?.id),
       ),
-      title: Text(
-        (isDirect && room.name == null)
-            ? room.members!.map((e) => e.account.nick).join(', ')
-            : room.name ?? '',
-      ),
+      title: Text(titleText),
       subtitle: buildSubtitle(),
       trailing: trailing, // Add this line
       onTap: () async {
@@ -162,12 +174,92 @@ class ChatRoomListTile extends HookConsumerWidget {
 
 @riverpod
 Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
+  final db = ref.watch(databaseProvider);
+
+  try {
+    final localRoomsData = await db.select(db.chatRooms).get();
+    if (localRoomsData.isNotEmpty) {
+      final localRooms = await Future.wait(
+        localRoomsData.map((row) async {
+          final membersRows =
+              await (db.select(db.chatMembers)
+                ..where((m) => m.chatRoomId.equals(row.id))).get();
+          final members =
+              membersRows.map((mRow) {
+                final account = SnAccount.fromJson(mRow.account);
+                SnAccountStatus? status;
+                if (mRow.status != null) {
+                  status = SnAccountStatus.fromJson(jsonDecode(mRow.status!));
+                }
+                return SnChatMember(
+                  id: mRow.id,
+                  chatRoomId: mRow.chatRoomId,
+                  accountId: mRow.accountId,
+                  account: account,
+                  nick: mRow.nick,
+                  role: mRow.role,
+                  notify: mRow.notify,
+                  joinedAt: mRow.joinedAt,
+                  breakUntil: mRow.breakUntil,
+                  timeoutUntil: mRow.timeoutUntil,
+                  isBot: mRow.isBot,
+                  status: status,
+                  lastTyped: mRow.lastTyped,
+                  createdAt: mRow.createdAt,
+                  updatedAt: mRow.updatedAt,
+                  deletedAt: mRow.deletedAt,
+                  chatRoom: null,
+                );
+              }).toList();
+          return SnChatRoom(
+            id: row.id,
+            name: row.name,
+            description: row.description,
+            type: row.type,
+            isPublic: row.isPublic!,
+            isCommunity: row.isCommunity!,
+            picture:
+                row.picture != null ? SnCloudFile.fromJson(row.picture!) : null,
+            background:
+                row.background != null
+                    ? SnCloudFile.fromJson(row.background!)
+                    : null,
+            realmId: row.realmId,
+            realm: null,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+            deletedAt: row.deletedAt,
+            members: members,
+          );
+        }),
+      );
+
+      // Background sync
+      Future(() async {
+        try {
+          final client = ref.read(apiClientProvider);
+          final resp = await client.get('/sphere/chat');
+          final remoteRooms =
+              resp.data
+                  .map((e) => SnChatRoom.fromJson(e))
+                  .cast<SnChatRoom>()
+                  .toList();
+          await db.saveChatRooms(remoteRooms);
+          ref.invalidateSelf();
+        } catch (_) {}
+      }).ignore();
+
+      return localRooms;
+    }
+  } catch (_) {}
+
+  // Fallback to API
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/sphere/chat');
-  return resp.data
-      .map((e) => SnChatRoom.fromJson(e))
-      .cast<SnChatRoom>()
-      .toList();
+  final rooms =
+      resp.data.map((e) => SnChatRoom.fromJson(e)).cast<SnChatRoom>().toList();
+  await db.saveChatRooms(rooms);
+  return rooms;
 }
 
 class ChatListBodyWidget extends HookConsumerWidget {

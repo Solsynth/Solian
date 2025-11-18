@@ -273,6 +273,65 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  ChatRoomsCompanion companionFromRoom(SnChatRoom room) {
+    return ChatRoomsCompanion(
+      id: Value(room.id),
+      name: Value(room.name),
+      description: Value(room.description),
+      type: Value(room.type),
+      isPublic: Value(room.isPublic),
+      isCommunity: Value(room.isCommunity),
+      picture: Value(room.picture?.toJson()),
+      background: Value(room.background?.toJson()),
+      realmId: Value(room.realmId),
+      createdAt: Value(room.createdAt),
+      updatedAt: Value(room.updatedAt),
+      deletedAt: Value(room.deletedAt),
+    );
+  }
+
+  ChatMembersCompanion companionFromMember(SnChatMember member) {
+    return ChatMembersCompanion(
+      id: Value(member.id),
+      chatRoomId: Value(member.chatRoomId),
+      accountId: Value(member.accountId),
+      account: Value(member.account.toJson()),
+      nick: Value(member.nick),
+      role: Value(member.role),
+      notify: Value(member.notify),
+      joinedAt: Value(member.joinedAt),
+      breakUntil: Value(member.breakUntil),
+      timeoutUntil: Value(member.timeoutUntil),
+      isBot: Value(member.isBot),
+      status: Value(
+        member.status == null ? null : jsonEncode(member.status!.toJson()),
+      ),
+      lastTyped: Value(member.lastTyped),
+      createdAt: Value(member.createdAt),
+      updatedAt: Value(member.updatedAt),
+      deletedAt: Value(member.deletedAt),
+    );
+  }
+
+  Future<void> saveChatRooms(List<SnChatRoom> rooms) async {
+    await batch((batch) {
+      for (final room in rooms) {
+        batch.insert(
+          chatRooms,
+          companionFromRoom(room),
+          mode: InsertMode.insertOrReplace,
+        );
+        for (final member in room.members ?? []) {
+          batch.insert(
+            chatMembers,
+            companionFromMember(member),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      }
+    });
+  }
+
   // Methods for post drafts
   Future<List<SnPost>> getAllPostDrafts() async {
     final drafts = await select(postDrafts).get();
