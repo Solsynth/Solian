@@ -3,6 +3,1668 @@
 part of 'drift_db.dart';
 
 // ignore_for_file: type=lint
+class $ChatRoomsTable extends ChatRooms
+    with TableInfo<$ChatRoomsTable, ChatRoom> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatRoomsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isPublicMeta = const VerificationMeta(
+    'isPublic',
+  );
+  @override
+  late final GeneratedColumn<bool> isPublic = GeneratedColumn<bool>(
+    'is_public',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_public" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isCommunityMeta = const VerificationMeta(
+    'isCommunity',
+  );
+  @override
+  late final GeneratedColumn<bool> isCommunity = GeneratedColumn<bool>(
+    'is_community',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_community" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  picture = GeneratedColumn<String>(
+    'picture',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Map<String, dynamic>?>($ChatRoomsTable.$converterpicturen);
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  background = GeneratedColumn<String>(
+    'background',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Map<String, dynamic>?>($ChatRoomsTable.$converterbackgroundn);
+  static const VerificationMeta _realmIdMeta = const VerificationMeta(
+    'realmId',
+  );
+  @override
+  late final GeneratedColumn<String> realmId = GeneratedColumn<String>(
+    'realm_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    type,
+    isPublic,
+    isCommunity,
+    picture,
+    background,
+    realmId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_rooms';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatRoom> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('is_public')) {
+      context.handle(
+        _isPublicMeta,
+        isPublic.isAcceptableOrUnknown(data['is_public']!, _isPublicMeta),
+      );
+    }
+    if (data.containsKey('is_community')) {
+      context.handle(
+        _isCommunityMeta,
+        isCommunity.isAcceptableOrUnknown(
+          data['is_community']!,
+          _isCommunityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('realm_id')) {
+      context.handle(
+        _realmIdMeta,
+        realmId.isAcceptableOrUnknown(data['realm_id']!, _realmIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatRoom map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatRoom(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      type:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}type'],
+          )!,
+      isPublic: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_public'],
+      ),
+      isCommunity: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_community'],
+      ),
+      picture: $ChatRoomsTable.$converterpicturen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}picture'],
+        ),
+      ),
+      background: $ChatRoomsTable.$converterbackgroundn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}background'],
+        ),
+      ),
+      realmId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}realm_id'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $ChatRoomsTable createAlias(String alias) {
+    return $ChatRoomsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Map<String, dynamic>, String> $converterpicture =
+      const MapConverter();
+  static TypeConverter<Map<String, dynamic>?, String?> $converterpicturen =
+      NullAwareTypeConverter.wrap($converterpicture);
+  static TypeConverter<Map<String, dynamic>, String> $converterbackground =
+      const MapConverter();
+  static TypeConverter<Map<String, dynamic>?, String?> $converterbackgroundn =
+      NullAwareTypeConverter.wrap($converterbackground);
+}
+
+class ChatRoom extends DataClass implements Insertable<ChatRoom> {
+  final String id;
+  final String? name;
+  final String? description;
+  final int type;
+  final bool? isPublic;
+  final bool? isCommunity;
+  final Map<String, dynamic>? picture;
+  final Map<String, dynamic>? background;
+  final String? realmId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const ChatRoom({
+    required this.id,
+    this.name,
+    this.description,
+    required this.type,
+    this.isPublic,
+    this.isCommunity,
+    this.picture,
+    this.background,
+    this.realmId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['type'] = Variable<int>(type);
+    if (!nullToAbsent || isPublic != null) {
+      map['is_public'] = Variable<bool>(isPublic);
+    }
+    if (!nullToAbsent || isCommunity != null) {
+      map['is_community'] = Variable<bool>(isCommunity);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(
+        $ChatRoomsTable.$converterpicturen.toSql(picture),
+      );
+    }
+    if (!nullToAbsent || background != null) {
+      map['background'] = Variable<String>(
+        $ChatRoomsTable.$converterbackgroundn.toSql(background),
+      );
+    }
+    if (!nullToAbsent || realmId != null) {
+      map['realm_id'] = Variable<String>(realmId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  ChatRoomsCompanion toCompanion(bool nullToAbsent) {
+    return ChatRoomsCompanion(
+      id: Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      description:
+          description == null && nullToAbsent
+              ? const Value.absent()
+              : Value(description),
+      type: Value(type),
+      isPublic:
+          isPublic == null && nullToAbsent
+              ? const Value.absent()
+              : Value(isPublic),
+      isCommunity:
+          isCommunity == null && nullToAbsent
+              ? const Value.absent()
+              : Value(isCommunity),
+      picture:
+          picture == null && nullToAbsent
+              ? const Value.absent()
+              : Value(picture),
+      background:
+          background == null && nullToAbsent
+              ? const Value.absent()
+              : Value(background),
+      realmId:
+          realmId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(realmId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt:
+          deletedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(deletedAt),
+    );
+  }
+
+  factory ChatRoom.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatRoom(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String?>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      type: serializer.fromJson<int>(json['type']),
+      isPublic: serializer.fromJson<bool?>(json['isPublic']),
+      isCommunity: serializer.fromJson<bool?>(json['isCommunity']),
+      picture: serializer.fromJson<Map<String, dynamic>?>(json['picture']),
+      background: serializer.fromJson<Map<String, dynamic>?>(
+        json['background'],
+      ),
+      realmId: serializer.fromJson<String?>(json['realmId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String?>(name),
+      'description': serializer.toJson<String?>(description),
+      'type': serializer.toJson<int>(type),
+      'isPublic': serializer.toJson<bool?>(isPublic),
+      'isCommunity': serializer.toJson<bool?>(isCommunity),
+      'picture': serializer.toJson<Map<String, dynamic>?>(picture),
+      'background': serializer.toJson<Map<String, dynamic>?>(background),
+      'realmId': serializer.toJson<String?>(realmId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  ChatRoom copyWith({
+    String? id,
+    Value<String?> name = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    int? type,
+    Value<bool?> isPublic = const Value.absent(),
+    Value<bool?> isCommunity = const Value.absent(),
+    Value<Map<String, dynamic>?> picture = const Value.absent(),
+    Value<Map<String, dynamic>?> background = const Value.absent(),
+    Value<String?> realmId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => ChatRoom(
+    id: id ?? this.id,
+    name: name.present ? name.value : this.name,
+    description: description.present ? description.value : this.description,
+    type: type ?? this.type,
+    isPublic: isPublic.present ? isPublic.value : this.isPublic,
+    isCommunity: isCommunity.present ? isCommunity.value : this.isCommunity,
+    picture: picture.present ? picture.value : this.picture,
+    background: background.present ? background.value : this.background,
+    realmId: realmId.present ? realmId.value : this.realmId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  ChatRoom copyWithCompanion(ChatRoomsCompanion data) {
+    return ChatRoom(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      type: data.type.present ? data.type.value : this.type,
+      isPublic: data.isPublic.present ? data.isPublic.value : this.isPublic,
+      isCommunity:
+          data.isCommunity.present ? data.isCommunity.value : this.isCommunity,
+      picture: data.picture.present ? data.picture.value : this.picture,
+      background:
+          data.background.present ? data.background.value : this.background,
+      realmId: data.realmId.present ? data.realmId.value : this.realmId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatRoom(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('type: $type, ')
+          ..write('isPublic: $isPublic, ')
+          ..write('isCommunity: $isCommunity, ')
+          ..write('picture: $picture, ')
+          ..write('background: $background, ')
+          ..write('realmId: $realmId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    type,
+    isPublic,
+    isCommunity,
+    picture,
+    background,
+    realmId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatRoom &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.type == this.type &&
+          other.isPublic == this.isPublic &&
+          other.isCommunity == this.isCommunity &&
+          other.picture == this.picture &&
+          other.background == this.background &&
+          other.realmId == this.realmId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
+  final Value<String> id;
+  final Value<String?> name;
+  final Value<String?> description;
+  final Value<int> type;
+  final Value<bool?> isPublic;
+  final Value<bool?> isCommunity;
+  final Value<Map<String, dynamic>?> picture;
+  final Value<Map<String, dynamic>?> background;
+  final Value<String?> realmId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const ChatRoomsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.type = const Value.absent(),
+    this.isPublic = const Value.absent(),
+    this.isCommunity = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.background = const Value.absent(),
+    this.realmId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatRoomsCompanion.insert({
+    required String id,
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    required int type,
+    this.isPublic = const Value.absent(),
+    this.isCommunity = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.background = const Value.absent(),
+    this.realmId = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<ChatRoom> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<int>? type,
+    Expression<bool>? isPublic,
+    Expression<bool>? isCommunity,
+    Expression<String>? picture,
+    Expression<String>? background,
+    Expression<String>? realmId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (type != null) 'type': type,
+      if (isPublic != null) 'is_public': isPublic,
+      if (isCommunity != null) 'is_community': isCommunity,
+      if (picture != null) 'picture': picture,
+      if (background != null) 'background': background,
+      if (realmId != null) 'realm_id': realmId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatRoomsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? name,
+    Value<String?>? description,
+    Value<int>? type,
+    Value<bool?>? isPublic,
+    Value<bool?>? isCommunity,
+    Value<Map<String, dynamic>?>? picture,
+    Value<Map<String, dynamic>?>? background,
+    Value<String?>? realmId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return ChatRoomsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      isPublic: isPublic ?? this.isPublic,
+      isCommunity: isCommunity ?? this.isCommunity,
+      picture: picture ?? this.picture,
+      background: background ?? this.background,
+      realmId: realmId ?? this.realmId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (isPublic.present) {
+      map['is_public'] = Variable<bool>(isPublic.value);
+    }
+    if (isCommunity.present) {
+      map['is_community'] = Variable<bool>(isCommunity.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(
+        $ChatRoomsTable.$converterpicturen.toSql(picture.value),
+      );
+    }
+    if (background.present) {
+      map['background'] = Variable<String>(
+        $ChatRoomsTable.$converterbackgroundn.toSql(background.value),
+      );
+    }
+    if (realmId.present) {
+      map['realm_id'] = Variable<String>(realmId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatRoomsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('type: $type, ')
+          ..write('isPublic: $isPublic, ')
+          ..write('isCommunity: $isCommunity, ')
+          ..write('picture: $picture, ')
+          ..write('background: $background, ')
+          ..write('realmId: $realmId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatMembersTable extends ChatMembers
+    with TableInfo<$ChatMembersTable, ChatMember> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMembersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chatRoomIdMeta = const VerificationMeta(
+    'chatRoomId',
+  );
+  @override
+  late final GeneratedColumn<String> chatRoomId = GeneratedColumn<String>(
+    'chat_room_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES chat_rooms (id)',
+    ),
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
+  account = GeneratedColumn<String>(
+    'account',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<Map<String, dynamic>>($ChatMembersTable.$converteraccount);
+  static const VerificationMeta _nickMeta = const VerificationMeta('nick');
+  @override
+  late final GeneratedColumn<String> nick = GeneratedColumn<String>(
+    'nick',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<int> role = GeneratedColumn<int>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notifyMeta = const VerificationMeta('notify');
+  @override
+  late final GeneratedColumn<int> notify = GeneratedColumn<int>(
+    'notify',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _joinedAtMeta = const VerificationMeta(
+    'joinedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> joinedAt = GeneratedColumn<DateTime>(
+    'joined_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _breakUntilMeta = const VerificationMeta(
+    'breakUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> breakUntil = GeneratedColumn<DateTime>(
+    'break_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timeoutUntilMeta = const VerificationMeta(
+    'timeoutUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> timeoutUntil = GeneratedColumn<DateTime>(
+    'timeout_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isBotMeta = const VerificationMeta('isBot');
+  @override
+  late final GeneratedColumn<bool> isBot = GeneratedColumn<bool>(
+    'is_bot',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_bot" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastTypedMeta = const VerificationMeta(
+    'lastTyped',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastTyped = GeneratedColumn<DateTime>(
+    'last_typed',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    chatRoomId,
+    accountId,
+    account,
+    nick,
+    role,
+    notify,
+    joinedAt,
+    breakUntil,
+    timeoutUntil,
+    isBot,
+    status,
+    lastTyped,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_members';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatMember> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('chat_room_id')) {
+      context.handle(
+        _chatRoomIdMeta,
+        chatRoomId.isAcceptableOrUnknown(
+          data['chat_room_id']!,
+          _chatRoomIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_chatRoomIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('nick')) {
+      context.handle(
+        _nickMeta,
+        nick.isAcceptableOrUnknown(data['nick']!, _nickMeta),
+      );
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('notify')) {
+      context.handle(
+        _notifyMeta,
+        notify.isAcceptableOrUnknown(data['notify']!, _notifyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_notifyMeta);
+    }
+    if (data.containsKey('joined_at')) {
+      context.handle(
+        _joinedAtMeta,
+        joinedAt.isAcceptableOrUnknown(data['joined_at']!, _joinedAtMeta),
+      );
+    }
+    if (data.containsKey('break_until')) {
+      context.handle(
+        _breakUntilMeta,
+        breakUntil.isAcceptableOrUnknown(data['break_until']!, _breakUntilMeta),
+      );
+    }
+    if (data.containsKey('timeout_until')) {
+      context.handle(
+        _timeoutUntilMeta,
+        timeoutUntil.isAcceptableOrUnknown(
+          data['timeout_until']!,
+          _timeoutUntilMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_bot')) {
+      context.handle(
+        _isBotMeta,
+        isBot.isAcceptableOrUnknown(data['is_bot']!, _isBotMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isBotMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('last_typed')) {
+      context.handle(
+        _lastTypedMeta,
+        lastTyped.isAcceptableOrUnknown(data['last_typed']!, _lastTypedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatMember map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMember(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      chatRoomId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}chat_room_id'],
+          )!,
+      accountId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}account_id'],
+          )!,
+      account: $ChatMembersTable.$converteraccount.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}account'],
+        )!,
+      ),
+      nick: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nick'],
+      ),
+      role:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}role'],
+          )!,
+      notify:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}notify'],
+          )!,
+      joinedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}joined_at'],
+      ),
+      breakUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}break_until'],
+      ),
+      timeoutUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}timeout_until'],
+      ),
+      isBot:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_bot'],
+          )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      ),
+      lastTyped: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_typed'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $ChatMembersTable createAlias(String alias) {
+    return $ChatMembersTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Map<String, dynamic>, String> $converteraccount =
+      const MapConverter();
+}
+
+class ChatMember extends DataClass implements Insertable<ChatMember> {
+  final String id;
+  final String chatRoomId;
+  final String accountId;
+  final Map<String, dynamic> account;
+  final String? nick;
+  final int role;
+  final int notify;
+  final DateTime? joinedAt;
+  final DateTime? breakUntil;
+  final DateTime? timeoutUntil;
+  final bool isBot;
+  final String? status;
+  final DateTime? lastTyped;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const ChatMember({
+    required this.id,
+    required this.chatRoomId,
+    required this.accountId,
+    required this.account,
+    this.nick,
+    required this.role,
+    required this.notify,
+    this.joinedAt,
+    this.breakUntil,
+    this.timeoutUntil,
+    required this.isBot,
+    this.status,
+    this.lastTyped,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['chat_room_id'] = Variable<String>(chatRoomId);
+    map['account_id'] = Variable<String>(accountId);
+    {
+      map['account'] = Variable<String>(
+        $ChatMembersTable.$converteraccount.toSql(account),
+      );
+    }
+    if (!nullToAbsent || nick != null) {
+      map['nick'] = Variable<String>(nick);
+    }
+    map['role'] = Variable<int>(role);
+    map['notify'] = Variable<int>(notify);
+    if (!nullToAbsent || joinedAt != null) {
+      map['joined_at'] = Variable<DateTime>(joinedAt);
+    }
+    if (!nullToAbsent || breakUntil != null) {
+      map['break_until'] = Variable<DateTime>(breakUntil);
+    }
+    if (!nullToAbsent || timeoutUntil != null) {
+      map['timeout_until'] = Variable<DateTime>(timeoutUntil);
+    }
+    map['is_bot'] = Variable<bool>(isBot);
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    if (!nullToAbsent || lastTyped != null) {
+      map['last_typed'] = Variable<DateTime>(lastTyped);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  ChatMembersCompanion toCompanion(bool nullToAbsent) {
+    return ChatMembersCompanion(
+      id: Value(id),
+      chatRoomId: Value(chatRoomId),
+      accountId: Value(accountId),
+      account: Value(account),
+      nick: nick == null && nullToAbsent ? const Value.absent() : Value(nick),
+      role: Value(role),
+      notify: Value(notify),
+      joinedAt:
+          joinedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(joinedAt),
+      breakUntil:
+          breakUntil == null && nullToAbsent
+              ? const Value.absent()
+              : Value(breakUntil),
+      timeoutUntil:
+          timeoutUntil == null && nullToAbsent
+              ? const Value.absent()
+              : Value(timeoutUntil),
+      isBot: Value(isBot),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      lastTyped:
+          lastTyped == null && nullToAbsent
+              ? const Value.absent()
+              : Value(lastTyped),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt:
+          deletedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(deletedAt),
+    );
+  }
+
+  factory ChatMember.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMember(
+      id: serializer.fromJson<String>(json['id']),
+      chatRoomId: serializer.fromJson<String>(json['chatRoomId']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      account: serializer.fromJson<Map<String, dynamic>>(json['account']),
+      nick: serializer.fromJson<String?>(json['nick']),
+      role: serializer.fromJson<int>(json['role']),
+      notify: serializer.fromJson<int>(json['notify']),
+      joinedAt: serializer.fromJson<DateTime?>(json['joinedAt']),
+      breakUntil: serializer.fromJson<DateTime?>(json['breakUntil']),
+      timeoutUntil: serializer.fromJson<DateTime?>(json['timeoutUntil']),
+      isBot: serializer.fromJson<bool>(json['isBot']),
+      status: serializer.fromJson<String?>(json['status']),
+      lastTyped: serializer.fromJson<DateTime?>(json['lastTyped']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'chatRoomId': serializer.toJson<String>(chatRoomId),
+      'accountId': serializer.toJson<String>(accountId),
+      'account': serializer.toJson<Map<String, dynamic>>(account),
+      'nick': serializer.toJson<String?>(nick),
+      'role': serializer.toJson<int>(role),
+      'notify': serializer.toJson<int>(notify),
+      'joinedAt': serializer.toJson<DateTime?>(joinedAt),
+      'breakUntil': serializer.toJson<DateTime?>(breakUntil),
+      'timeoutUntil': serializer.toJson<DateTime?>(timeoutUntil),
+      'isBot': serializer.toJson<bool>(isBot),
+      'status': serializer.toJson<String?>(status),
+      'lastTyped': serializer.toJson<DateTime?>(lastTyped),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  ChatMember copyWith({
+    String? id,
+    String? chatRoomId,
+    String? accountId,
+    Map<String, dynamic>? account,
+    Value<String?> nick = const Value.absent(),
+    int? role,
+    int? notify,
+    Value<DateTime?> joinedAt = const Value.absent(),
+    Value<DateTime?> breakUntil = const Value.absent(),
+    Value<DateTime?> timeoutUntil = const Value.absent(),
+    bool? isBot,
+    Value<String?> status = const Value.absent(),
+    Value<DateTime?> lastTyped = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => ChatMember(
+    id: id ?? this.id,
+    chatRoomId: chatRoomId ?? this.chatRoomId,
+    accountId: accountId ?? this.accountId,
+    account: account ?? this.account,
+    nick: nick.present ? nick.value : this.nick,
+    role: role ?? this.role,
+    notify: notify ?? this.notify,
+    joinedAt: joinedAt.present ? joinedAt.value : this.joinedAt,
+    breakUntil: breakUntil.present ? breakUntil.value : this.breakUntil,
+    timeoutUntil: timeoutUntil.present ? timeoutUntil.value : this.timeoutUntil,
+    isBot: isBot ?? this.isBot,
+    status: status.present ? status.value : this.status,
+    lastTyped: lastTyped.present ? lastTyped.value : this.lastTyped,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  ChatMember copyWithCompanion(ChatMembersCompanion data) {
+    return ChatMember(
+      id: data.id.present ? data.id.value : this.id,
+      chatRoomId:
+          data.chatRoomId.present ? data.chatRoomId.value : this.chatRoomId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      account: data.account.present ? data.account.value : this.account,
+      nick: data.nick.present ? data.nick.value : this.nick,
+      role: data.role.present ? data.role.value : this.role,
+      notify: data.notify.present ? data.notify.value : this.notify,
+      joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
+      breakUntil:
+          data.breakUntil.present ? data.breakUntil.value : this.breakUntil,
+      timeoutUntil:
+          data.timeoutUntil.present
+              ? data.timeoutUntil.value
+              : this.timeoutUntil,
+      isBot: data.isBot.present ? data.isBot.value : this.isBot,
+      status: data.status.present ? data.status.value : this.status,
+      lastTyped: data.lastTyped.present ? data.lastTyped.value : this.lastTyped,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMember(')
+          ..write('id: $id, ')
+          ..write('chatRoomId: $chatRoomId, ')
+          ..write('accountId: $accountId, ')
+          ..write('account: $account, ')
+          ..write('nick: $nick, ')
+          ..write('role: $role, ')
+          ..write('notify: $notify, ')
+          ..write('joinedAt: $joinedAt, ')
+          ..write('breakUntil: $breakUntil, ')
+          ..write('timeoutUntil: $timeoutUntil, ')
+          ..write('isBot: $isBot, ')
+          ..write('status: $status, ')
+          ..write('lastTyped: $lastTyped, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    chatRoomId,
+    accountId,
+    account,
+    nick,
+    role,
+    notify,
+    joinedAt,
+    breakUntil,
+    timeoutUntil,
+    isBot,
+    status,
+    lastTyped,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMember &&
+          other.id == this.id &&
+          other.chatRoomId == this.chatRoomId &&
+          other.accountId == this.accountId &&
+          other.account == this.account &&
+          other.nick == this.nick &&
+          other.role == this.role &&
+          other.notify == this.notify &&
+          other.joinedAt == this.joinedAt &&
+          other.breakUntil == this.breakUntil &&
+          other.timeoutUntil == this.timeoutUntil &&
+          other.isBot == this.isBot &&
+          other.status == this.status &&
+          other.lastTyped == this.lastTyped &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
+  final Value<String> id;
+  final Value<String> chatRoomId;
+  final Value<String> accountId;
+  final Value<Map<String, dynamic>> account;
+  final Value<String?> nick;
+  final Value<int> role;
+  final Value<int> notify;
+  final Value<DateTime?> joinedAt;
+  final Value<DateTime?> breakUntil;
+  final Value<DateTime?> timeoutUntil;
+  final Value<bool> isBot;
+  final Value<String?> status;
+  final Value<DateTime?> lastTyped;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const ChatMembersCompanion({
+    this.id = const Value.absent(),
+    this.chatRoomId = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.account = const Value.absent(),
+    this.nick = const Value.absent(),
+    this.role = const Value.absent(),
+    this.notify = const Value.absent(),
+    this.joinedAt = const Value.absent(),
+    this.breakUntil = const Value.absent(),
+    this.timeoutUntil = const Value.absent(),
+    this.isBot = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastTyped = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatMembersCompanion.insert({
+    required String id,
+    required String chatRoomId,
+    required String accountId,
+    required Map<String, dynamic> account,
+    this.nick = const Value.absent(),
+    required int role,
+    required int notify,
+    this.joinedAt = const Value.absent(),
+    this.breakUntil = const Value.absent(),
+    this.timeoutUntil = const Value.absent(),
+    required bool isBot,
+    this.status = const Value.absent(),
+    this.lastTyped = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       chatRoomId = Value(chatRoomId),
+       accountId = Value(accountId),
+       account = Value(account),
+       role = Value(role),
+       notify = Value(notify),
+       isBot = Value(isBot),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<ChatMember> custom({
+    Expression<String>? id,
+    Expression<String>? chatRoomId,
+    Expression<String>? accountId,
+    Expression<String>? account,
+    Expression<String>? nick,
+    Expression<int>? role,
+    Expression<int>? notify,
+    Expression<DateTime>? joinedAt,
+    Expression<DateTime>? breakUntil,
+    Expression<DateTime>? timeoutUntil,
+    Expression<bool>? isBot,
+    Expression<String>? status,
+    Expression<DateTime>? lastTyped,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (chatRoomId != null) 'chat_room_id': chatRoomId,
+      if (accountId != null) 'account_id': accountId,
+      if (account != null) 'account': account,
+      if (nick != null) 'nick': nick,
+      if (role != null) 'role': role,
+      if (notify != null) 'notify': notify,
+      if (joinedAt != null) 'joined_at': joinedAt,
+      if (breakUntil != null) 'break_until': breakUntil,
+      if (timeoutUntil != null) 'timeout_until': timeoutUntil,
+      if (isBot != null) 'is_bot': isBot,
+      if (status != null) 'status': status,
+      if (lastTyped != null) 'last_typed': lastTyped,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatMembersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? chatRoomId,
+    Value<String>? accountId,
+    Value<Map<String, dynamic>>? account,
+    Value<String?>? nick,
+    Value<int>? role,
+    Value<int>? notify,
+    Value<DateTime?>? joinedAt,
+    Value<DateTime?>? breakUntil,
+    Value<DateTime?>? timeoutUntil,
+    Value<bool>? isBot,
+    Value<String?>? status,
+    Value<DateTime?>? lastTyped,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return ChatMembersCompanion(
+      id: id ?? this.id,
+      chatRoomId: chatRoomId ?? this.chatRoomId,
+      accountId: accountId ?? this.accountId,
+      account: account ?? this.account,
+      nick: nick ?? this.nick,
+      role: role ?? this.role,
+      notify: notify ?? this.notify,
+      joinedAt: joinedAt ?? this.joinedAt,
+      breakUntil: breakUntil ?? this.breakUntil,
+      timeoutUntil: timeoutUntil ?? this.timeoutUntil,
+      isBot: isBot ?? this.isBot,
+      status: status ?? this.status,
+      lastTyped: lastTyped ?? this.lastTyped,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (chatRoomId.present) {
+      map['chat_room_id'] = Variable<String>(chatRoomId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (account.present) {
+      map['account'] = Variable<String>(
+        $ChatMembersTable.$converteraccount.toSql(account.value),
+      );
+    }
+    if (nick.present) {
+      map['nick'] = Variable<String>(nick.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<int>(role.value);
+    }
+    if (notify.present) {
+      map['notify'] = Variable<int>(notify.value);
+    }
+    if (joinedAt.present) {
+      map['joined_at'] = Variable<DateTime>(joinedAt.value);
+    }
+    if (breakUntil.present) {
+      map['break_until'] = Variable<DateTime>(breakUntil.value);
+    }
+    if (timeoutUntil.present) {
+      map['timeout_until'] = Variable<DateTime>(timeoutUntil.value);
+    }
+    if (isBot.present) {
+      map['is_bot'] = Variable<bool>(isBot.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (lastTyped.present) {
+      map['last_typed'] = Variable<DateTime>(lastTyped.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMembersCompanion(')
+          ..write('id: $id, ')
+          ..write('chatRoomId: $chatRoomId, ')
+          ..write('accountId: $accountId, ')
+          ..write('account: $account, ')
+          ..write('nick: $nick, ')
+          ..write('role: $role, ')
+          ..write('notify: $notify, ')
+          ..write('joinedAt: $joinedAt, ')
+          ..write('breakUntil: $breakUntil, ')
+          ..write('timeoutUntil: $timeoutUntil, ')
+          ..write('isBot: $isBot, ')
+          ..write('status: $status, ')
+          ..write('lastTyped: $lastTyped, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ChatMessagesTable extends ChatMessages
     with TableInfo<$ChatMessagesTable, ChatMessage> {
   @override
@@ -26,6 +1688,9 @@ class $ChatMessagesTable extends ChatMessages
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES chat_rooms (id)',
+    ),
   );
   static const VerificationMeta _senderIdMeta = const VerificationMeta(
     'senderId',
@@ -37,6 +1702,9 @@ class $ChatMessagesTable extends ChatMessages
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES chat_members (id)',
+    ),
   );
   static const VerificationMeta _contentMeta = const VerificationMeta(
     'content',
@@ -1632,6 +3300,8 @@ class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $ChatRoomsTable chatRooms = $ChatRoomsTable(this);
+  late final $ChatMembersTable chatMembers = $ChatMembersTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final $PostDraftsTable postDrafts = $PostDraftsTable(this);
   @override
@@ -1639,11 +3309,1201 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    chatRooms,
+    chatMembers,
     chatMessages,
     postDrafts,
   ];
 }
 
+typedef $$ChatRoomsTableCreateCompanionBuilder =
+    ChatRoomsCompanion Function({
+      required String id,
+      Value<String?> name,
+      Value<String?> description,
+      required int type,
+      Value<bool?> isPublic,
+      Value<bool?> isCommunity,
+      Value<Map<String, dynamic>?> picture,
+      Value<Map<String, dynamic>?> background,
+      Value<String?> realmId,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$ChatRoomsTableUpdateCompanionBuilder =
+    ChatRoomsCompanion Function({
+      Value<String> id,
+      Value<String?> name,
+      Value<String?> description,
+      Value<int> type,
+      Value<bool?> isPublic,
+      Value<bool?> isCommunity,
+      Value<Map<String, dynamic>?> picture,
+      Value<Map<String, dynamic>?> background,
+      Value<String?> realmId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$ChatRoomsTableReferences
+    extends BaseReferences<_$AppDatabase, $ChatRoomsTable, ChatRoom> {
+  $$ChatRoomsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ChatMembersTable, List<ChatMember>>
+  _chatMembersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.chatMembers,
+    aliasName: $_aliasNameGenerator(db.chatRooms.id, db.chatMembers.chatRoomId),
+  );
+
+  $$ChatMembersTableProcessedTableManager get chatMembersRefs {
+    final manager = $$ChatMembersTableTableManager(
+      $_db,
+      $_db.chatMembers,
+    ).filter((f) => f.chatRoomId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_chatMembersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ChatMessagesTable, List<ChatMessage>>
+  _chatMessagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.chatMessages,
+    aliasName: $_aliasNameGenerator(db.chatRooms.id, db.chatMessages.roomId),
+  );
+
+  $$ChatMessagesTableProcessedTableManager get chatMessagesRefs {
+    final manager = $$ChatMessagesTableTableManager(
+      $_db,
+      $_db.chatMessages,
+    ).filter((f) => f.roomId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_chatMessagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ChatRoomsTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatRoomsTable> {
+  $$ChatRoomsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPublic => $composableBuilder(
+    column: $table.isPublic,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>?,
+    Map<String, dynamic>,
+    String
+  >
+  get picture => $composableBuilder(
+    column: $table.picture,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>?,
+    Map<String, dynamic>,
+    String
+  >
+  get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get realmId => $composableBuilder(
+    column: $table.realmId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> chatMembersRefs(
+    Expression<bool> Function($$ChatMembersTableFilterComposer f) f,
+  ) {
+    final $$ChatMembersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMembers,
+      getReferencedColumn: (t) => t.chatRoomId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMembersTableFilterComposer(
+            $db: $db,
+            $table: $db.chatMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> chatMessagesRefs(
+    Expression<bool> Function($$ChatMessagesTableFilterComposer f) f,
+  ) {
+    final $$ChatMessagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMessages,
+      getReferencedColumn: (t) => t.roomId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMessagesTableFilterComposer(
+            $db: $db,
+            $table: $db.chatMessages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChatRoomsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatRoomsTable> {
+  $$ChatRoomsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPublic => $composableBuilder(
+    column: $table.isPublic,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get picture => $composableBuilder(
+    column: $table.picture,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get realmId => $composableBuilder(
+    column: $table.realmId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatRoomsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatRoomsTable> {
+  $$ChatRoomsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPublic =>
+      $composableBuilder(column: $table.isPublic, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String> get picture =>
+      $composableBuilder(column: $table.picture, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get realmId =>
+      $composableBuilder(column: $table.realmId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> chatMembersRefs<T extends Object>(
+    Expression<T> Function($$ChatMembersTableAnnotationComposer a) f,
+  ) {
+    final $$ChatMembersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMembers,
+      getReferencedColumn: (t) => t.chatRoomId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMembersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> chatMessagesRefs<T extends Object>(
+    Expression<T> Function($$ChatMessagesTableAnnotationComposer a) f,
+  ) {
+    final $$ChatMessagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMessages,
+      getReferencedColumn: (t) => t.roomId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMessagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatMessages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChatRoomsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatRoomsTable,
+          ChatRoom,
+          $$ChatRoomsTableFilterComposer,
+          $$ChatRoomsTableOrderingComposer,
+          $$ChatRoomsTableAnnotationComposer,
+          $$ChatRoomsTableCreateCompanionBuilder,
+          $$ChatRoomsTableUpdateCompanionBuilder,
+          (ChatRoom, $$ChatRoomsTableReferences),
+          ChatRoom,
+          PrefetchHooks Function({bool chatMembersRefs, bool chatMessagesRefs})
+        > {
+  $$ChatRoomsTableTableManager(_$AppDatabase db, $ChatRoomsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$ChatRoomsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$ChatRoomsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$ChatRoomsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<bool?> isPublic = const Value.absent(),
+                Value<bool?> isCommunity = const Value.absent(),
+                Value<Map<String, dynamic>?> picture = const Value.absent(),
+                Value<Map<String, dynamic>?> background = const Value.absent(),
+                Value<String?> realmId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatRoomsCompanion(
+                id: id,
+                name: name,
+                description: description,
+                type: type,
+                isPublic: isPublic,
+                isCommunity: isCommunity,
+                picture: picture,
+                background: background,
+                realmId: realmId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                required int type,
+                Value<bool?> isPublic = const Value.absent(),
+                Value<bool?> isCommunity = const Value.absent(),
+                Value<Map<String, dynamic>?> picture = const Value.absent(),
+                Value<Map<String, dynamic>?> background = const Value.absent(),
+                Value<String?> realmId = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatRoomsCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                type: type,
+                isPublic: isPublic,
+                isCommunity: isCommunity,
+                picture: picture,
+                background: background,
+                realmId: realmId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          $$ChatRoomsTableReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: ({
+            chatMembersRefs = false,
+            chatMessagesRefs = false,
+          }) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (chatMembersRefs) db.chatMembers,
+                if (chatMessagesRefs) db.chatMessages,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (chatMembersRefs)
+                    await $_getPrefetchedData<
+                      ChatRoom,
+                      $ChatRoomsTable,
+                      ChatMember
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ChatRoomsTableReferences
+                          ._chatMembersRefsTable(db),
+                      managerFromTypedResult:
+                          (p0) =>
+                              $$ChatRoomsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).chatMembersRefs,
+                      referencedItemsForCurrentItem:
+                          (item, referencedItems) => referencedItems.where(
+                            (e) => e.chatRoomId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                  if (chatMessagesRefs)
+                    await $_getPrefetchedData<
+                      ChatRoom,
+                      $ChatRoomsTable,
+                      ChatMessage
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ChatRoomsTableReferences
+                          ._chatMessagesRefsTable(db),
+                      managerFromTypedResult:
+                          (p0) =>
+                              $$ChatRoomsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).chatMessagesRefs,
+                      referencedItemsForCurrentItem:
+                          (item, referencedItems) =>
+                              referencedItems.where((e) => e.roomId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ChatRoomsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatRoomsTable,
+      ChatRoom,
+      $$ChatRoomsTableFilterComposer,
+      $$ChatRoomsTableOrderingComposer,
+      $$ChatRoomsTableAnnotationComposer,
+      $$ChatRoomsTableCreateCompanionBuilder,
+      $$ChatRoomsTableUpdateCompanionBuilder,
+      (ChatRoom, $$ChatRoomsTableReferences),
+      ChatRoom,
+      PrefetchHooks Function({bool chatMembersRefs, bool chatMessagesRefs})
+    >;
+typedef $$ChatMembersTableCreateCompanionBuilder =
+    ChatMembersCompanion Function({
+      required String id,
+      required String chatRoomId,
+      required String accountId,
+      required Map<String, dynamic> account,
+      Value<String?> nick,
+      required int role,
+      required int notify,
+      Value<DateTime?> joinedAt,
+      Value<DateTime?> breakUntil,
+      Value<DateTime?> timeoutUntil,
+      required bool isBot,
+      Value<String?> status,
+      Value<DateTime?> lastTyped,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$ChatMembersTableUpdateCompanionBuilder =
+    ChatMembersCompanion Function({
+      Value<String> id,
+      Value<String> chatRoomId,
+      Value<String> accountId,
+      Value<Map<String, dynamic>> account,
+      Value<String?> nick,
+      Value<int> role,
+      Value<int> notify,
+      Value<DateTime?> joinedAt,
+      Value<DateTime?> breakUntil,
+      Value<DateTime?> timeoutUntil,
+      Value<bool> isBot,
+      Value<String?> status,
+      Value<DateTime?> lastTyped,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$ChatMembersTableReferences
+    extends BaseReferences<_$AppDatabase, $ChatMembersTable, ChatMember> {
+  $$ChatMembersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ChatRoomsTable _chatRoomIdTable(_$AppDatabase db) =>
+      db.chatRooms.createAlias(
+        $_aliasNameGenerator(db.chatMembers.chatRoomId, db.chatRooms.id),
+      );
+
+  $$ChatRoomsTableProcessedTableManager get chatRoomId {
+    final $_column = $_itemColumn<String>('chat_room_id')!;
+
+    final manager = $$ChatRoomsTableTableManager(
+      $_db,
+      $_db.chatRooms,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_chatRoomIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ChatMessagesTable, List<ChatMessage>>
+  _chatMessagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.chatMessages,
+    aliasName: $_aliasNameGenerator(
+      db.chatMembers.id,
+      db.chatMessages.senderId,
+    ),
+  );
+
+  $$ChatMessagesTableProcessedTableManager get chatMessagesRefs {
+    final manager = $$ChatMessagesTableTableManager(
+      $_db,
+      $_db.chatMessages,
+    ).filter((f) => f.senderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_chatMessagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ChatMembersTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMembersTable> {
+  $$ChatMembersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+    column: $table.accountId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>,
+    Map<String, dynamic>,
+    String
+  >
+  get account => $composableBuilder(
+    column: $table.account,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get nick => $composableBuilder(
+    column: $table.nick,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get notify => $composableBuilder(
+    column: $table.notify,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get joinedAt => $composableBuilder(
+    column: $table.joinedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get breakUntil => $composableBuilder(
+    column: $table.breakUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get timeoutUntil => $composableBuilder(
+    column: $table.timeoutUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isBot => $composableBuilder(
+    column: $table.isBot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastTyped => $composableBuilder(
+    column: $table.lastTyped,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ChatRoomsTableFilterComposer get chatRoomId {
+    final $$ChatRoomsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.chatRoomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableFilterComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> chatMessagesRefs(
+    Expression<bool> Function($$ChatMessagesTableFilterComposer f) f,
+  ) {
+    final $$ChatMessagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMessages,
+      getReferencedColumn: (t) => t.senderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMessagesTableFilterComposer(
+            $db: $db,
+            $table: $db.chatMessages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChatMembersTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMembersTable> {
+  $$ChatMembersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accountId => $composableBuilder(
+    column: $table.accountId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get account => $composableBuilder(
+    column: $table.account,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nick => $composableBuilder(
+    column: $table.nick,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get notify => $composableBuilder(
+    column: $table.notify,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get joinedAt => $composableBuilder(
+    column: $table.joinedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get breakUntil => $composableBuilder(
+    column: $table.breakUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get timeoutUntil => $composableBuilder(
+    column: $table.timeoutUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isBot => $composableBuilder(
+    column: $table.isBot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastTyped => $composableBuilder(
+    column: $table.lastTyped,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ChatRoomsTableOrderingComposer get chatRoomId {
+    final $$ChatRoomsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.chatRoomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableOrderingComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ChatMembersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMembersTable> {
+  $$ChatMembersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>, String> get account =>
+      $composableBuilder(column: $table.account, builder: (column) => column);
+
+  GeneratedColumn<String> get nick =>
+      $composableBuilder(column: $table.nick, builder: (column) => column);
+
+  GeneratedColumn<int> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<int> get notify =>
+      $composableBuilder(column: $table.notify, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get joinedAt =>
+      $composableBuilder(column: $table.joinedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get breakUntil => $composableBuilder(
+    column: $table.breakUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get timeoutUntil => $composableBuilder(
+    column: $table.timeoutUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isBot =>
+      $composableBuilder(column: $table.isBot, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastTyped =>
+      $composableBuilder(column: $table.lastTyped, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$ChatRoomsTableAnnotationComposer get chatRoomId {
+    final $$ChatRoomsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.chatRoomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> chatMessagesRefs<T extends Object>(
+    Expression<T> Function($$ChatMessagesTableAnnotationComposer a) f,
+  ) {
+    final $$ChatMessagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatMessages,
+      getReferencedColumn: (t) => t.senderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMessagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatMessages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChatMembersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatMembersTable,
+          ChatMember,
+          $$ChatMembersTableFilterComposer,
+          $$ChatMembersTableOrderingComposer,
+          $$ChatMembersTableAnnotationComposer,
+          $$ChatMembersTableCreateCompanionBuilder,
+          $$ChatMembersTableUpdateCompanionBuilder,
+          (ChatMember, $$ChatMembersTableReferences),
+          ChatMember,
+          PrefetchHooks Function({bool chatRoomId, bool chatMessagesRefs})
+        > {
+  $$ChatMembersTableTableManager(_$AppDatabase db, $ChatMembersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$ChatMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$ChatMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () =>
+                  $$ChatMembersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> chatRoomId = const Value.absent(),
+                Value<String> accountId = const Value.absent(),
+                Value<Map<String, dynamic>> account = const Value.absent(),
+                Value<String?> nick = const Value.absent(),
+                Value<int> role = const Value.absent(),
+                Value<int> notify = const Value.absent(),
+                Value<DateTime?> joinedAt = const Value.absent(),
+                Value<DateTime?> breakUntil = const Value.absent(),
+                Value<DateTime?> timeoutUntil = const Value.absent(),
+                Value<bool> isBot = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<DateTime?> lastTyped = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMembersCompanion(
+                id: id,
+                chatRoomId: chatRoomId,
+                accountId: accountId,
+                account: account,
+                nick: nick,
+                role: role,
+                notify: notify,
+                joinedAt: joinedAt,
+                breakUntil: breakUntil,
+                timeoutUntil: timeoutUntil,
+                isBot: isBot,
+                status: status,
+                lastTyped: lastTyped,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String chatRoomId,
+                required String accountId,
+                required Map<String, dynamic> account,
+                Value<String?> nick = const Value.absent(),
+                required int role,
+                required int notify,
+                Value<DateTime?> joinedAt = const Value.absent(),
+                Value<DateTime?> breakUntil = const Value.absent(),
+                Value<DateTime?> timeoutUntil = const Value.absent(),
+                required bool isBot,
+                Value<String?> status = const Value.absent(),
+                Value<DateTime?> lastTyped = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMembersCompanion.insert(
+                id: id,
+                chatRoomId: chatRoomId,
+                accountId: accountId,
+                account: account,
+                nick: nick,
+                role: role,
+                notify: notify,
+                joinedAt: joinedAt,
+                breakUntil: breakUntil,
+                timeoutUntil: timeoutUntil,
+                isBot: isBot,
+                status: status,
+                lastTyped: lastTyped,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          $$ChatMembersTableReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: ({
+            chatRoomId = false,
+            chatMessagesRefs = false,
+          }) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (chatMessagesRefs) db.chatMessages],
+              addJoins: <
+                T extends TableManagerState<
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic
+                >
+              >(state) {
+                if (chatRoomId) {
+                  state =
+                      state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.chatRoomId,
+                            referencedTable: $$ChatMembersTableReferences
+                                ._chatRoomIdTable(db),
+                            referencedColumn:
+                                $$ChatMembersTableReferences
+                                    ._chatRoomIdTable(db)
+                                    .id,
+                          )
+                          as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (chatMessagesRefs)
+                    await $_getPrefetchedData<
+                      ChatMember,
+                      $ChatMembersTable,
+                      ChatMessage
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ChatMembersTableReferences
+                          ._chatMessagesRefsTable(db),
+                      managerFromTypedResult:
+                          (p0) =>
+                              $$ChatMembersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).chatMessagesRefs,
+                      referencedItemsForCurrentItem:
+                          (item, referencedItems) => referencedItems.where(
+                            (e) => e.senderId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ChatMembersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatMembersTable,
+      ChatMember,
+      $$ChatMembersTableFilterComposer,
+      $$ChatMembersTableOrderingComposer,
+      $$ChatMembersTableAnnotationComposer,
+      $$ChatMembersTableCreateCompanionBuilder,
+      $$ChatMembersTableUpdateCompanionBuilder,
+      (ChatMember, $$ChatMembersTableReferences),
+      ChatMember,
+      PrefetchHooks Function({bool chatRoomId, bool chatMessagesRefs})
+    >;
 typedef $$ChatMessagesTableCreateCompanionBuilder =
     ChatMessagesCompanion Function({
       required String id,
@@ -1691,6 +4551,49 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$ChatMessagesTableReferences
+    extends BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage> {
+  $$ChatMessagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ChatRoomsTable _roomIdTable(_$AppDatabase db) =>
+      db.chatRooms.createAlias(
+        $_aliasNameGenerator(db.chatMessages.roomId, db.chatRooms.id),
+      );
+
+  $$ChatRoomsTableProcessedTableManager get roomId {
+    final $_column = $_itemColumn<String>('room_id')!;
+
+    final manager = $$ChatRoomsTableTableManager(
+      $_db,
+      $_db.chatRooms,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_roomIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ChatMembersTable _senderIdTable(_$AppDatabase db) =>
+      db.chatMembers.createAlias(
+        $_aliasNameGenerator(db.chatMessages.senderId, db.chatMembers.id),
+      );
+
+  $$ChatMembersTableProcessedTableManager get senderId {
+    final $_column = $_itemColumn<String>('sender_id')!;
+
+    final manager = $$ChatMembersTableTableManager(
+      $_db,
+      $_db.chatMembers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_senderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$ChatMessagesTableFilterComposer
     extends Composer<_$AppDatabase, $ChatMessagesTable> {
   $$ChatMessagesTableFilterComposer({
@@ -1702,16 +4605,6 @@ class $$ChatMessagesTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get roomId => $composableBuilder(
-    column: $table.roomId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get senderId => $composableBuilder(
-    column: $table.senderId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1811,6 +4704,52 @@ class $$ChatMessagesTableFilterComposer
     column: $table.forwardedMessageId,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ChatRoomsTableFilterComposer get roomId {
+    final $$ChatRoomsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.roomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableFilterComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ChatMembersTableFilterComposer get senderId {
+    final $$ChatMembersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.senderId,
+      referencedTable: $db.chatMembers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMembersTableFilterComposer(
+            $db: $db,
+            $table: $db.chatMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ChatMessagesTableOrderingComposer
@@ -1824,16 +4763,6 @@ class $$ChatMessagesTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get roomId => $composableBuilder(
-    column: $table.roomId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get senderId => $composableBuilder(
-    column: $table.senderId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1916,6 +4845,52 @@ class $$ChatMessagesTableOrderingComposer
     column: $table.forwardedMessageId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ChatRoomsTableOrderingComposer get roomId {
+    final $$ChatRoomsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.roomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableOrderingComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ChatMembersTableOrderingComposer get senderId {
+    final $$ChatMembersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.senderId,
+      referencedTable: $db.chatMembers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMembersTableOrderingComposer(
+            $db: $db,
+            $table: $db.chatMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ChatMessagesTableAnnotationComposer
@@ -1929,12 +4904,6 @@ class $$ChatMessagesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get roomId =>
-      $composableBuilder(column: $table.roomId, builder: (column) => column);
-
-  GeneratedColumn<String> get senderId =>
-      $composableBuilder(column: $table.senderId, builder: (column) => column);
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
@@ -1994,6 +4963,52 @@ class $$ChatMessagesTableAnnotationComposer
     column: $table.forwardedMessageId,
     builder: (column) => column,
   );
+
+  $$ChatRoomsTableAnnotationComposer get roomId {
+    final $$ChatRoomsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.roomId,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ChatMembersTableAnnotationComposer get senderId {
+    final $$ChatMembersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.senderId,
+      referencedTable: $db.chatMembers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatMembersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ChatMessagesTableTableManager
@@ -2007,12 +5022,9 @@ class $$ChatMessagesTableTableManager
           $$ChatMessagesTableAnnotationComposer,
           $$ChatMessagesTableCreateCompanionBuilder,
           $$ChatMessagesTableUpdateCompanionBuilder,
-          (
-            ChatMessage,
-            BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>,
-          ),
+          (ChatMessage, $$ChatMessagesTableReferences),
           ChatMessage,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool roomId, bool senderId})
         > {
   $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
     : super(
@@ -2124,11 +5136,65 @@ class $$ChatMessagesTableTableManager
                       .map(
                         (e) => (
                           e.readTable(table),
-                          BaseReferences(db, table, e),
+                          $$ChatMessagesTableReferences(db, table, e),
                         ),
                       )
                       .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({roomId = false, senderId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                T extends TableManagerState<
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic,
+                  dynamic
+                >
+              >(state) {
+                if (roomId) {
+                  state =
+                      state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.roomId,
+                            referencedTable: $$ChatMessagesTableReferences
+                                ._roomIdTable(db),
+                            referencedColumn:
+                                $$ChatMessagesTableReferences
+                                    ._roomIdTable(db)
+                                    .id,
+                          )
+                          as T;
+                }
+                if (senderId) {
+                  state =
+                      state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.senderId,
+                            referencedTable: $$ChatMessagesTableReferences
+                                ._senderIdTable(db),
+                            referencedColumn:
+                                $$ChatMessagesTableReferences
+                                    ._senderIdTable(db)
+                                    .id,
+                          )
+                          as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -2143,12 +5209,9 @@ typedef $$ChatMessagesTableProcessedTableManager =
       $$ChatMessagesTableAnnotationComposer,
       $$ChatMessagesTableCreateCompanionBuilder,
       $$ChatMessagesTableUpdateCompanionBuilder,
-      (
-        ChatMessage,
-        BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>,
-      ),
+      (ChatMessage, $$ChatMessagesTableReferences),
       ChatMessage,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool roomId, bool senderId})
     >;
 typedef $$PostDraftsTableCreateCompanionBuilder =
     PostDraftsCompanion Function({
@@ -2421,6 +5484,10 @@ typedef $$PostDraftsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$ChatRoomsTableTableManager get chatRooms =>
+      $$ChatRoomsTableTableManager(_db, _db.chatRooms);
+  $$ChatMembersTableTableManager get chatMembers =>
+      $$ChatMembersTableTableManager(_db, _db.chatMembers);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
   $$PostDraftsTableTableManager get postDrafts =>
