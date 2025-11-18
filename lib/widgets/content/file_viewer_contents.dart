@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,8 +30,24 @@ class PdfFileContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pdfViewer = useMemoized(() => SfPdfViewer.network(uri), [uri]);
-    return pdfViewer;
+    final fileFuture = useMemoized(
+      () => DefaultCacheManager().getSingleFile(uri),
+      [uri],
+    );
+
+    return FutureBuilder<File>(
+      future: fileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error loading PDF: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          return SfPdfViewer.file(snapshot.data!);
+        }
+        return const Center(child: Text('No PDF data'));
+      },
+    );
   }
 }
 
