@@ -457,7 +457,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       maxLines: 6,
       decoration: const InputDecoration(
         border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
     );
