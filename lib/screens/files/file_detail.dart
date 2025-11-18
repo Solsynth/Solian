@@ -6,19 +6,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gal/gal.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/file_references.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/upload_tasks.dart';
 import 'package:island/models/drive_task.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 import 'package:island/widgets/content/file_viewer_contents.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class FileDetailScreen extends HookConsumerWidget {
   final SnCloudFile item;
@@ -167,6 +172,24 @@ class FileDetailScreen extends HookConsumerWidget {
         break;
     }
 
+    // Add references button
+    actions.add(
+      IconButton(
+        icon: Icon(Icons.link),
+        onPressed:
+            () => showModalBottomSheet(
+              useRootNavigator: true,
+              context: context,
+              isScrollControlled: true,
+              builder:
+                  (context) => SheetScaffold(
+                    titleText: 'File References',
+                    child: ReferencesList(fileId: item.id),
+                  ),
+            ),
+      ),
+    );
+
     // Always add info button
     actions.add(
       IconButton(icon: Icon(Icons.info_outline), onPressed: showInfoSheet),
@@ -273,5 +296,56 @@ class FileDetailScreen extends HookConsumerWidget {
       ),
       _ => GenericFileContent(item: item),
     };
+  }
+}
+
+class ReferencesList extends ConsumerWidget {
+  const ReferencesList({super.key, required this.fileId});
+
+  final String fileId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncReferences = ref.watch(fileReferencesProvider(fileId));
+
+    return asyncReferences.when(
+      data:
+          (references) => ListView.builder(
+            itemCount: references.length,
+            itemBuilder: (context, index) {
+              final reference = references[index];
+              return ListTile(
+                leading: const Icon(Icons.link),
+                title: Row(
+                  spacing: 6,
+                  children: [
+                    Text(
+                      reference.usage,
+                      style: GoogleFonts.robotoMono(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      reference.id,
+                      style: GoogleFonts.robotoMono(fontSize: 13),
+                    ),
+                  ],
+                ),
+                subtitle: Row(
+                  spacing: 8,
+                  children: [
+                    Text(reference.createdAt.formatRelative(context)),
+                    const VerticalDivider(width: 1, thickness: 1).height(12),
+                    Text(reference.createdAt.formatSystem()),
+                  ],
+                ),
+              );
+            },
+          ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error:
+          (error, _) => Center(child: Text('Error loading references: $error')),
+    );
   }
 }

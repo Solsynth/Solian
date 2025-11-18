@@ -45,7 +45,7 @@ final billingQuotaProvider =
 // ignore: unused_element
 typedef BillingQuotaRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
 String _$cloudFileListNotifierHash() =>
-    r'5f2f80357cb31ac6473df5ac2101f9a462004f81';
+    r'533dfa86f920b60cf7491fb4aeb95ece19e428af';
 
 /// See also [CloudFileListNotifier].
 @ProviderFor(CloudFileListNotifier)
@@ -66,7 +66,7 @@ final cloudFileListNotifierProvider = AutoDisposeAsyncNotifierProvider<
 typedef _$CloudFileListNotifier =
     AutoDisposeAsyncNotifier<CursorPagingData<FileListItem>>;
 String _$unindexedFileListNotifierHash() =>
-    r'48fc92432a50a562190da5fe8ed0920d171b07b6';
+    r'afa487d7b956b71b21ca1b073a01364a34ede1d5';
 
 /// See also [UnindexedFileListNotifier].
 @ProviderFor(UnindexedFileListNotifier)
