@@ -75,6 +75,7 @@ class FileListView extends HookConsumerWidget {
     final poolsAsync = ref.watch(poolsProvider);
     final isSelectionMode = useState<bool>(false);
     final selectedFileIds = useState<Set<String>>({});
+    final currentVisibleItems = useState<List<FileListItem>>([]);
     final query = useState<String?>(null);
     final order = useState<String?>('date');
     final orderDesc = useState<bool>(true);
@@ -140,6 +141,7 @@ class FileListView extends HookConsumerWidget {
                       viewMode,
                       isSelectionMode,
                       selectedFileIds,
+                      currentVisibleItems,
                     ),
       ),
       _ => PagingHelperSliverView(
@@ -162,6 +164,7 @@ class FileListView extends HookConsumerWidget {
                       viewMode,
                       isSelectionMode,
                       selectedFileIds,
+                      currentVisibleItems,
                     ),
       ),
     };
@@ -455,6 +458,48 @@ class FileListView extends HookConsumerWidget {
                         },
                         child: const Text('Cancel'),
                       ),
+                      const Gap(12),
+                      OutlinedButton(
+                        onPressed: () {
+                          final allIds =
+                              currentVisibleItems.value
+                                  .expand(
+                                    (item) => item.maybeMap(
+                                      file: (f) => [f.fileIndex.id],
+                                      unindexedFile: (u) => [u.file.id],
+                                      orElse: () => <String>[],
+                                    ),
+                                  )
+                                  .toSet();
+
+                          if (allIds
+                              .difference(selectedFileIds.value)
+                              .isEmpty) {
+                            // All items are selected, deselect all
+                            selectedFileIds.value.clear();
+                          } else {
+                            // Select all visible items
+                            selectedFileIds.value = allIds;
+                          }
+                        },
+                        child: Text(
+                          currentVisibleItems.value.isEmpty
+                              ? 'Select All'
+                              : currentVisibleItems.value
+                                  .expand(
+                                    (item) => item.maybeMap(
+                                      file: (f) => [f.fileIndex.id],
+                                      unindexedFile: (u) => [u.file.id],
+                                      orElse: () => <String>[],
+                                    ),
+                                  )
+                                  .toSet()
+                                  .difference(selectedFileIds.value)
+                                  .isEmpty
+                              ? 'Deselect All'
+                              : 'Select All',
+                        ),
+                      ),
                       const Spacer(),
                       Text('${selectedFileIds.value.length} selected'),
                       const Spacer(),
@@ -522,7 +567,9 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<FileListViewMode> currentViewMode,
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<List<FileListItem>> currentVisibleItems,
   ) {
+    currentVisibleItems.value = items;
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
@@ -965,7 +1012,9 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<FileListViewMode> currentViewMode,
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<List<FileListItem>> currentVisibleItems,
   ) {
+    currentVisibleItems.value = items;
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
