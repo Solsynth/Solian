@@ -9,6 +9,7 @@ class CaptchaScreen extends ConsumerWidget {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
       builder: (context) => const CaptchaScreen(),
     );
   }
