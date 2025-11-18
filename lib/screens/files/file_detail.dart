@@ -233,9 +233,8 @@ class FileDetailScreen extends HookConsumerWidget {
   }
 
   Future<void> _downloadFile(WidgetRef ref) async {
-    final taskId = ref
-        .read(uploadTasksProvider.notifier)
-        .addLocalDownloadTask(item);
+    final taskNotifier = ref.read(uploadTasksProvider.notifier);
+    final taskId = taskNotifier.addLocalDownloadTask(item);
     try {
       showSnackBar('Downloading file...');
 
@@ -253,12 +252,8 @@ class FileDetailScreen extends HookConsumerWidget {
         queryParameters: {'original': true},
         onReceiveProgress: (count, total) {
           if (total > 0) {
-            ref
-                .read(uploadTasksProvider.notifier)
-                .updateDownloadProgress(taskId, count, total);
-            ref
-                .read(uploadTasksProvider.notifier)
-                .updateTransmissionProgress(taskId, count / total);
+            taskNotifier.updateDownloadProgress(taskId, count, total);
+            taskNotifier.updateTransmissionProgress(taskId, count / total);
           }
         },
       );
@@ -267,18 +262,14 @@ class FileDetailScreen extends HookConsumerWidget {
         name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
         file: File(filePath),
       );
-      ref
-          .read(uploadTasksProvider.notifier)
-          .updateTaskStatus(taskId, DriveTaskStatus.completed);
+      taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
       showSnackBar('File saved to downloads');
     } catch (e) {
-      ref
-          .read(uploadTasksProvider.notifier)
-          .updateTaskStatus(
-            taskId,
-            DriveTaskStatus.failed,
-            errorMessage: e.toString(),
-          );
+      taskNotifier.updateTaskStatus(
+        taskId,
+        DriveTaskStatus.failed,
+        errorMessage: e.toString(),
+      );
       showErrorAlert(e);
     }
   }

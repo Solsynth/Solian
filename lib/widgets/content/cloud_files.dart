@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -10,16 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/utils/format.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:path/path.dart' show extension;
-import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/data_saving_gate.dart';
-import 'package:island/widgets/content/file_info_sheet.dart';
 
 import 'file_viewer_contents.dart';
 import 'image.dart';
@@ -281,41 +273,13 @@ class CloudFileWidget extends HookConsumerWidget {
       'audio' => AudioFileContent(item: item, uri: uri),
       _ => Builder(
         builder: (context) {
-          Future<void> downloadFile() async {
-            try {
-              showSnackBar('Downloading file...');
-
-              final client = ref.read(apiClientProvider);
-              final tempDir = await getTemporaryDirectory();
-              var extName = extension(item.name).trim();
-              if (extName.isEmpty) {
-                extName = item.mimeType?.split('/').lastOrNull ?? 'bin';
-              }
-              final filePath = '${tempDir.path}/${item.id}.$extName';
-
-              await client.download(
-                '/drive/files/${item.id}',
-                filePath,
-                queryParameters: {'original': true},
-              );
-
-              await FileSaver.instance.saveFile(
-                name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-                file: File(filePath),
-              );
-              showSnackBar('File saved to downloads');
-            } catch (e) {
-              showErrorAlert(e);
-            }
-          }
-
           return Container(
             decoration: BoxDecoration(
               border: Border.all(
                 color: Theme.of(context).colorScheme.outline,
                 width: 1,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -348,18 +312,11 @@ class CloudFileWidget extends HookConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextButton.icon(
-                      onPressed: downloadFile,
-                      icon: const Icon(Symbols.download),
-                      label: Text('download').tr(),
-                    ),
-                    const Gap(8),
-                    TextButton.icon(
                       onPressed: () {
-                        showModalBottomSheet(
-                          useRootNavigator: true,
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => FileInfoSheet(item: item),
+                        context.pushNamed(
+                          'fileDetail',
+                          pathParameters: {'id': item.id},
+                          extra: item,
                         );
                       },
                       icon: const Icon(Symbols.info),

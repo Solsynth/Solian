@@ -1338,5 +1338,6 @@
     "enterNumberOfSplits": "Enter Splits Amount",
     "orCreateWith": "Or\ncreate with",
     "unindexedFiles": "Unindexed files",
-    "folder": "Folder"
+    "folder": "Folder",
+    "clearCompleted": "Clear Completed"
 }

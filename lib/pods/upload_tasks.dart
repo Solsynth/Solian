@@ -293,6 +293,10 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
             .toList();
   }
 
+  void clearAllTasks() {
+    state = [];
+  }
+
   DriveTask? getTask(String taskId) {
     return state.where((task) => task.taskId == taskId).firstOrNull;
   }

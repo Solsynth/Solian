@@ -102,7 +102,9 @@ class _UploadOverlayContent extends HookConsumerWidget {
       return null;
     }, [isExpanded.value]);
 
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = !isWideScreen(context);
+
+    final taskNotifier = ref.read(uploadTasksProvider.notifier);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -246,7 +248,7 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                   SliverToBoxAdapter(
                                     child: ListTile(
                                       dense: true,
-                                      title: const Text('Clear Completed'),
+                                      title: const Text('clearCompleted').tr(),
                                       leading: Icon(
                                         Symbols.clear_all,
                                         size: 18,
@@ -256,9 +258,34 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                             ).colorScheme.onSurfaceVariant,
                                       ),
                                       onTap: () {
-                                        ref
-                                            .read(uploadTasksProvider.notifier)
-                                            .clearCompletedTasks();
+                                        taskNotifier.clearCompletedTasks();
+                                        isExpanded.value = false;
+                                      },
+
+                                      tileColor:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.surfaceContainerHighest,
+                                    ),
+                                  ),
+
+                                // Clear all tasks button
+                                if (activeTasks.any(
+                                  (task) =>
+                                      task.status != DriveTaskStatus.completed,
+                                ))
+                                  SliverToBoxAdapter(
+                                    child: ListTile(
+                                      dense: true,
+                                      title: const Text('Clear All'),
+                                      leading: Icon(
+                                        Symbols.clear_all,
+                                        size: 18,
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                      onTap: () {
+                                        taskNotifier.clearAllTasks();
                                         isExpanded.value = false;
                                       },
                                       tileColor:
