@@ -67,6 +67,51 @@ class FileListView extends HookConsumerWidget {
 
     if (usage == null) return const SizedBox.shrink();
 
+    final unindexedNotifier = ref.read(
+      unindexedFileListNotifierProvider.notifier,
+    );
+    final cloudNotifier = ref.read(cloudFileListNotifierProvider.notifier);
+    final recycled = useState<bool>(false);
+    final poolsAsync = ref.watch(poolsProvider);
+    final isSelectionMode = useState<bool>(false);
+    final selectedFileIds = useState<Set<String>>({});
+    final query = useState<String?>(null);
+    final order = useState<String?>('date');
+    final orderDesc = useState<bool>(true);
+    final queryDebounceTimer = useRef<Timer?>(null);
+
+    useEffect(() {
+      if (mode.value == FileListMode.unindexed) {
+        isSelectionMode.value = false;
+        selectedFileIds.value.clear();
+      }
+      return null;
+    }, [mode.value]);
+
+    useEffect(() {
+      // Sync pool when mode or selectedPool changes
+      if (mode.value == FileListMode.unindexed) {
+        unindexedNotifier.setPool(selectedPool.value?.id);
+      } else {
+        cloudNotifier.setPool(selectedPool.value?.id);
+      }
+      return null;
+    }, [selectedPool.value, mode.value]);
+
+    useEffect(() {
+      // Sync query, order, and orderDesc filters
+      if (mode.value == FileListMode.unindexed) {
+        unindexedNotifier.setQuery(query.value);
+        unindexedNotifier.setOrder(order.value);
+        unindexedNotifier.setOrderDesc(orderDesc.value);
+      } else {
+        cloudNotifier.setQuery(query.value);
+        cloudNotifier.setOrder(order.value);
+        cloudNotifier.setOrderDesc(orderDesc.value);
+      }
+      return null;
+    }, [query.value, order.value, orderDesc.value, mode.value]);
+
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal
           ? cloudFileListNotifierProvider.select((value) => value.isLoading)
@@ -93,6 +138,8 @@ class FileListView extends HookConsumerWidget {
                       ref,
                       context,
                       viewMode,
+                      isSelectionMode,
+                      selectedFileIds,
                     ),
       ),
       _ => PagingHelperSliverView(
@@ -113,44 +160,11 @@ class FileListView extends HookConsumerWidget {
                       context,
                       currentPath,
                       viewMode,
+                      isSelectionMode,
+                      selectedFileIds,
                     ),
       ),
     };
-
-    final unindexedNotifier = ref.read(
-      unindexedFileListNotifierProvider.notifier,
-    );
-    final cloudNotifier = ref.read(cloudFileListNotifierProvider.notifier);
-    final recycled = useState<bool>(false);
-    final poolsAsync = ref.watch(poolsProvider);
-    final query = useState<String?>(null);
-    final order = useState<String?>('date');
-    final orderDesc = useState<bool>(true);
-    final queryDebounceTimer = useRef<Timer?>(null);
-
-    useEffect(() {
-      // Sync pool when mode or selectedPool changes
-      if (mode.value == FileListMode.unindexed) {
-        unindexedNotifier.setPool(selectedPool.value?.id);
-      } else {
-        cloudNotifier.setPool(selectedPool.value?.id);
-      }
-      return null;
-    }, [selectedPool.value, mode.value]);
-
-    useEffect(() {
-      // Sync query, order, and orderDesc filters
-      if (mode.value == FileListMode.unindexed) {
-        unindexedNotifier.setQuery(query.value);
-        unindexedNotifier.setOrder(order.value);
-        unindexedNotifier.setOrderDesc(orderDesc.value);
-      } else {
-        cloudNotifier.setQuery(query.value);
-        cloudNotifier.setOrder(order.value);
-        cloudNotifier.setOrderDesc(orderDesc.value);
-      }
-      return null;
-    }, [query.value, order.value, orderDesc.value, mode.value]);
 
     late Widget pathContent;
     if (mode.value == FileListMode.unindexed) {
@@ -344,6 +358,23 @@ class FileListView extends HookConsumerWidget {
                         vertical: -4,
                       ),
                     ),
+                    IconButton(
+                      icon: Icon(
+                        isSelectionMode.value
+                            ? Symbols.close
+                            : Symbols.select_check_box,
+                      ),
+                      onPressed:
+                          () => isSelectionMode.value = !isSelectionMode.value,
+                      tooltip:
+                          isSelectionMode.value
+                              ? 'Exit Selection Mode'
+                              : 'Enter Selection Mode',
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                    ),
                     if (mode.value == FileListMode.normal)
                       IconButton(
                         icon: const Icon(Symbols.create_new_folder),
@@ -406,6 +437,75 @@ class FileListView extends HookConsumerWidget {
                     viewMode.value == FileListViewMode.waterfall ? 12 : null,
               ),
             ),
+            if (isSelectionMode.value)
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                elevation: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          isSelectionMode.value = false;
+                          selectedFileIds.value.clear();
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      const Spacer(),
+                      Text('${selectedFileIds.value.length} selected'),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        icon: const Icon(Symbols.delete),
+                        label: const Text('Delete'),
+                        onPressed:
+                            selectedFileIds.value.isNotEmpty
+                                ? () async {
+                                  final confirmed = await showConfirmAlert(
+                                    'Are you sure you want to delete the selected files?',
+                                    'Delete Selected Files',
+                                  );
+                                  if (!confirmed) return;
+                                  if (context.mounted) {
+                                    showLoadingModal(context);
+                                  }
+                                  try {
+                                    final client = ref.read(apiClientProvider);
+                                    final resp = await client.post(
+                                      '/drive/files/batches/delete',
+                                      data: {
+                                        'file_ids':
+                                            selectedFileIds.value.toList(),
+                                      },
+                                    );
+                                    final count = resp.data['count'] as int;
+                                    selectedFileIds.value.clear();
+                                    isSelectionMode.value = false;
+                                    ref.invalidate(
+                                      mode.value == FileListMode.normal
+                                          ? cloudFileListNotifierProvider
+                                          : unindexedFileListNotifierProvider,
+                                    );
+                                    showSnackBar('Deleted $count files.');
+                                  } catch (e) {
+                                    showSnackBar(
+                                      'Failed to delete selected files.',
+                                    );
+                                  } finally {
+                                    if (context.mounted) {
+                                      hideLoadingModal(context);
+                                    }
+                                  }
+                                }
+                                : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -420,6 +520,8 @@ class FileListView extends HookConsumerWidget {
     BuildContext context,
     ValueNotifier<String> currentPath,
     ValueNotifier<FileListViewMode> currentViewMode,
+    ValueNotifier<bool> isSelectionMode,
+    ValueNotifier<Set<String>> selectedFileIds,
   ) {
     return switch (currentViewMode.value) {
       // Waterfall mode
@@ -440,7 +542,23 @@ class FileListView extends HookConsumerWidget {
 
           final item = items[index];
           return item.map(
-            file: (fileItem) => _buildWaterfallFileTile(fileItem, ref, context),
+            file:
+                (fileItem) => _buildWaterfallFileTile(
+                  fileItem,
+                  ref,
+                  context,
+                  isSelectionMode.value,
+                  selectedFileIds.value.contains(fileItem.fileIndex.id),
+                  () {
+                    if (selectedFileIds.value.contains(fileItem.fileIndex.id)) {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..remove(fileItem.fileIndex.id);
+                    } else {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..add(fileItem.fileIndex.id);
+                    }
+                  },
+                ),
             folder:
                 (folderItem) =>
                     _buildWaterfallFolderTile(folderItem, currentPath, context),
@@ -461,58 +579,23 @@ class FileListView extends HookConsumerWidget {
 
           final item = items[index];
           return item.map(
-            file: (fileItem) {
-              final file = fileItem.fileIndex.file;
-              return ListTile(
-                leading: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child: SizedBox(
-                    height: 48,
-                    width: 48,
-                    child: getFileIcon(file, size: 24),
-                  ),
-                ),
-                title:
-                    file.name.isEmpty
-                        ? Text('untitled').tr().italic()
-                        : Text(
-                          file.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                subtitle: Text(formatFileSize(file.size)),
-                onTap: () {
-                  context.push('/files/${fileItem.fileIndex.id}', extra: file);
-                },
-                trailing: IconButton(
-                  icon: const Icon(Symbols.delete),
-                  onPressed: () async {
-                    final confirmed = await showConfirmAlert(
-                      'confirmDeleteFile'.tr(),
-                      'deleteFile'.tr(),
-                    );
-                    if (!confirmed) return;
-
-                    if (context.mounted) {
-                      showLoadingModal(context);
-                    }
-                    try {
-                      final client = ref.read(apiClientProvider);
-                      await client.delete(
-                        '/drive/index/remove/${fileItem.fileIndex.id}',
-                      );
-                      ref.invalidate(cloudFileListNotifierProvider);
-                    } catch (e) {
-                      showSnackBar('failedToDeleteFile'.tr());
-                    } finally {
-                      if (context.mounted) {
-                        hideLoadingModal(context);
-                      }
+            file:
+                (fileItem) => _buildIndexedListTile(
+                  fileItem,
+                  ref,
+                  context,
+                  isSelectionMode.value,
+                  selectedFileIds.value.contains(fileItem.fileIndex.id),
+                  () {
+                    if (selectedFileIds.value.contains(fileItem.fileIndex.id)) {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..remove(fileItem.fileIndex.id);
+                    } else {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..add(fileItem.fileIndex.id);
                     }
                   },
                 ),
-              );
-            },
             folder:
                 (folderItem) => ListTile(
                   leading: ClipRRect(
@@ -528,7 +611,7 @@ class FileListView extends HookConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  subtitle: const Text('Folder'),
+                  subtitle: const Text('folder').tr(),
                   onTap: () {
                     final newPath =
                         currentPath.value == '/'
@@ -639,6 +722,9 @@ class FileListView extends HookConsumerWidget {
     FileItem fileItem,
     WidgetRef ref,
     BuildContext context,
+    bool isSelectionMode,
+    bool isSelected,
+    VoidCallback? toggleSelection,
   ) {
     return _buildWaterfallFileTileBase(
       fileItem.fileIndex.file,
@@ -674,6 +760,9 @@ class FileListView extends HookConsumerWidget {
           },
         ),
       ],
+      isSelectionMode,
+      isSelected,
+      toggleSelection,
     );
   }
 
@@ -683,6 +772,9 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
     List<Widget>? actions,
+    bool isSelectionMode,
+    bool isSelected,
+    VoidCallback? toggleSelection,
   ) {
     final meta = file.fileMeta is Map ? (file.fileMeta as Map) : const {};
     final ratio =
@@ -750,7 +842,11 @@ class FileListView extends HookConsumerWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () {
-        context.push(getRoutePath(), extra: file);
+        if (isSelectionMode && toggleSelection != null) {
+          toggleSelection();
+        } else {
+          context.push(getRoutePath(), extra: file);
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -776,7 +872,13 @@ class FileListView extends HookConsumerWidget {
             ),
             Row(
               children: [
-                getFileIcon(file, size: 24, tinyPreview: false),
+                if (isSelectionMode)
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (value) => toggleSelection?.call(),
+                  )
+                else
+                  getFileIcon(file, size: 24, tinyPreview: false),
                 const Gap(16),
                 Expanded(
                   child: Column(
@@ -861,6 +963,8 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
     ValueNotifier<FileListViewMode> currentViewMode,
+    ValueNotifier<bool> isSelectionMode,
+    ValueNotifier<Set<String>> selectedFileIds,
   ) {
     return switch (currentViewMode.value) {
       // Waterfall mode
@@ -894,6 +998,19 @@ class FileListView extends HookConsumerWidget {
                   unindexedFileItem,
                   ref,
                   context,
+                  isSelectionMode.value,
+                  selectedFileIds.value.contains(unindexedFileItem.file.id),
+                  () {
+                    if (selectedFileIds.value.contains(
+                      unindexedFileItem.file.id,
+                    )) {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..remove(unindexedFileItem.file.id);
+                    } else {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..add(unindexedFileItem.file.id);
+                    }
+                  },
                 ),
           );
         }, childCount: widgetCount),
@@ -917,10 +1034,23 @@ class FileListView extends HookConsumerWidget {
               return const SizedBox.shrink();
             },
             unindexedFile:
-                (unindexedFileItem) => _buildListUnindexedFileTile(
+                (unindexedFileItem) => _buildUnindexedListTile(
                   unindexedFileItem,
                   ref,
                   context,
+                  isSelectionMode.value,
+                  selectedFileIds.value.contains(unindexedFileItem.file.id),
+                  () {
+                    if (selectedFileIds.value.contains(
+                      unindexedFileItem.file.id,
+                    )) {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..remove(unindexedFileItem.file.id);
+                    } else {
+                      selectedFileIds.value = Set.from(selectedFileIds.value)
+                        ..add(unindexedFileItem.file.id);
+                    }
+                  },
                 ),
           );
         },
@@ -928,10 +1058,149 @@ class FileListView extends HookConsumerWidget {
     };
   }
 
+  Widget _buildIndexedListTile(
+    FileItem fileItem,
+    WidgetRef ref,
+    BuildContext context,
+    bool isSelectionMode,
+    bool isSelected,
+    VoidCallback toggleSelection,
+  ) {
+    final file = fileItem.fileIndex.file;
+    return ListTile(
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isSelectionMode)
+            Checkbox(
+              value: isSelected,
+              onChanged: (value) => toggleSelection(),
+            ),
+          ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: SizedBox(
+              height: 48,
+              width: 48,
+              child: getFileIcon(file, size: 24),
+            ),
+          ),
+        ],
+      ),
+      title:
+          file.name.isEmpty
+              ? Text('untitled').tr().italic()
+              : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(formatFileSize(file.size)),
+      onTap: () {
+        if (isSelectionMode) {
+          toggleSelection();
+        } else {
+          context.push('/files/${fileItem.fileIndex.id}', extra: file);
+        }
+      },
+      trailing: IconButton(
+        icon: const Icon(Symbols.delete),
+        onPressed: () async {
+          final confirmed = await showConfirmAlert(
+            'confirmDeleteFile'.tr(),
+            'deleteFile'.tr(),
+          );
+          if (!confirmed) return;
+
+          if (context.mounted) {
+            showLoadingModal(context);
+          }
+          try {
+            final client = ref.read(apiClientProvider);
+            await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
+            ref.invalidate(cloudFileListNotifierProvider);
+          } catch (e) {
+            showSnackBar('failedToDeleteFile'.tr());
+          } finally {
+            if (context.mounted) {
+              hideLoadingModal(context);
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildUnindexedListTile(
+    UnindexedFileItem unindexedFileItem,
+    WidgetRef ref,
+    BuildContext context,
+    bool isSelectionMode,
+    bool isSelected,
+    VoidCallback toggleSelection,
+  ) {
+    final file = unindexedFileItem.file;
+    return ListTile(
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isSelectionMode)
+            Checkbox(
+              value: isSelected,
+              onChanged: (value) => toggleSelection(),
+            ),
+          ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: SizedBox(
+              height: 48,
+              width: 48,
+              child: getFileIcon(file, size: 24),
+            ),
+          ),
+        ],
+      ),
+      title:
+          file.name.isEmpty
+              ? Text('untitled').tr().italic()
+              : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(formatFileSize(file.size)),
+      onTap: () {
+        if (isSelectionMode) {
+          toggleSelection();
+        } else {
+          context.push('/files/${file.id}', extra: file);
+        }
+      },
+      trailing: IconButton(
+        icon: const Icon(Symbols.delete),
+        onPressed: () async {
+          final confirmed = await showConfirmAlert(
+            'confirmDeleteFile'.tr(),
+            'deleteFile'.tr(),
+          );
+          if (!confirmed) return;
+
+          if (context.mounted) {
+            showLoadingModal(context);
+          }
+          try {
+            final client = ref.read(apiClientProvider);
+            await client.delete('/drive/files/${file.id}');
+            ref.invalidate(unindexedFileListNotifierProvider);
+          } catch (e) {
+            showSnackBar('failedToDeleteFile'.tr());
+          } finally {
+            if (context.mounted) {
+              hideLoadingModal(context);
+            }
+          }
+        },
+      ),
+    );
+  }
+
   Widget _buildWaterfallUnindexedFileTile(
     UnindexedFileItem unindexedFileItem,
     WidgetRef ref,
     BuildContext context,
+    bool isSelectionMode,
+    bool isSelected,
+    VoidCallback? toggleSelection,
   ) {
     return _buildWaterfallFileTileBase(
       unindexedFileItem.file,
@@ -965,57 +1234,9 @@ class FileListView extends HookConsumerWidget {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildListUnindexedFileTile(
-    UnindexedFileItem unindexedFileItem,
-    WidgetRef ref,
-    BuildContext context,
-  ) {
-    final file = unindexedFileItem.file;
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: SizedBox(
-          height: 48,
-          width: 48,
-          child: getFileIcon(file, size: 24),
-        ),
-      ),
-      title:
-          file.name.isEmpty
-              ? Text('untitled').tr().italic()
-              : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(formatFileSize(file.size)),
-      onTap: () {
-        context.push('/files/${file.id}', extra: file);
-      },
-      trailing: IconButton(
-        icon: const Icon(Symbols.delete),
-        onPressed: () async {
-          final confirmed = await showConfirmAlert(
-            'confirmDeleteFile'.tr(),
-            'deleteFile'.tr(),
-          );
-          if (!confirmed) return;
-
-          if (context.mounted) {
-            showLoadingModal(context);
-          }
-          try {
-            final client = ref.read(apiClientProvider);
-            await client.delete('/drive/files/${file.id}');
-            ref.invalidate(unindexedFileListNotifierProvider);
-          } catch (e) {
-            showSnackBar('failedToDeleteFile'.tr());
-          } finally {
-            if (context.mounted) {
-              hideLoadingModal(context);
-            }
-          }
-        },
-      ),
+      isSelectionMode,
+      isSelected,
+      toggleSelection,
     );
   }
 

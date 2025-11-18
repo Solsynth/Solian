@@ -281,8 +281,8 @@ class ComposeFundSheet extends HookConsumerWidget {
                                           // Return the fund that was just created (but not yet paid)
                                           if (context.mounted) {
                                             hideLoadingModal(context);
+                                            Navigator.of(context).pop(fund);
                                           }
-                                          Navigator.of(context).pop(fund);
                                           return;
                                         }
 
@@ -327,10 +327,10 @@ class ComposeFundSheet extends HookConsumerWidget {
 
                                           if (context.mounted) {
                                             hideLoadingModal(context);
+                                            Navigator.of(
+                                              context,
+                                            ).pop(updatedFund);
                                           }
-                                          Navigator.of(
-                                            context,
-                                          ).pop(updatedFund);
                                         } else {
                                           isPushing.value = false;
                                         }

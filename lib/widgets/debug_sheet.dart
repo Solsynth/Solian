@@ -29,7 +29,7 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
           decoration: const InputDecoration(
             hintText: 'Enter access token',
             border: OutlineInputBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
           autofocus: true,

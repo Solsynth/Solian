@@ -451,7 +451,7 @@ class PollEditorScreen extends ConsumerWidget {
               ),
         );
         if (confirmed == true) {
-          Navigator.of(context).pop();
+          if (context.mounted) Navigator.of(context).pop();
         }
       },
       child: Column(

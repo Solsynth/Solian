@@ -1336,5 +1336,7 @@
     "fundCreateNewHint": "Create a new fund for your message. Select recipients and amount.",
     "amountOfSplits": "Amount of Splits",
     "enterNumberOfSplits": "Enter Splits Amount",
-    "orCreateWith": "Or\ncreate with"
+    "orCreateWith": "Or\ncreate with",
+    "unindexedFiles": "Unindexed files",
+    "folder": "Folder"
 }

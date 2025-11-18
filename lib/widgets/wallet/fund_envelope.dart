@@ -458,7 +458,7 @@ class FundClaimDialog extends HookConsumerWidget {
 
             // Remaining amount
             Text(
-              '${fund.remainingAmount.toStringAsFixed(2)} ${fund.currency} / ${remainingSplits} splits',
+              '${fund.remainingAmount.toStringAsFixed(2)} ${fund.currency} / $remainingSplits splits',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.secondary,
                 fontWeight: FontWeight.w500,
