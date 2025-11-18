@@ -6,6 +6,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
@@ -66,34 +67,6 @@ class CloudFileWidget extends HookConsumerWidget {
     );
 
     if (item.mimeType == 'application/pdf') {
-      Future<void> downloadFile() async {
-        try {
-          showSnackBar('Downloading file...');
-
-          final client = ref.read(apiClientProvider);
-          final tempDir = await getTemporaryDirectory();
-          var extName = extension(item.name).trim();
-          if (extName.isEmpty) {
-            extName = item.mimeType?.split('/').lastOrNull ?? 'pdf';
-          }
-          final filePath = '${tempDir.path}/${item.id}.$extName';
-
-          await client.download(
-            '/drive/files/${item.id}',
-            filePath,
-            queryParameters: {'original': true},
-          );
-
-          await FileSaver.instance.saveFile(
-            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-            file: File(filePath),
-          );
-          showSnackBar('File saved to downloads');
-        } catch (e) {
-          showErrorAlert(e);
-        }
-      }
-
       return Container(
         height: 400,
         decoration: BoxDecoration(
@@ -166,30 +139,20 @@ class CloudFileWidget extends HookConsumerWidget {
                   children: [
                     IconButton(
                       icon: const Icon(
-                        Symbols.download,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      onPressed: downloadFile,
-                      padding: EdgeInsets.all(4),
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Symbols.info,
+                        Symbols.more_horiz,
                         color: Colors.white,
                         size: 16,
                       ),
                       onPressed: () {
-                        showModalBottomSheet(
-                          useRootNavigator: true,
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => FileInfoSheet(item: item),
+                        context.pushNamed(
+                          'fileDetail',
+                          pathParameters: {'id': item.id},
+                          extra: item,
                         );
                       },
                       padding: EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
                     ),
                   ],
                 ),
@@ -201,34 +164,6 @@ class CloudFileWidget extends HookConsumerWidget {
     }
 
     if (item.mimeType?.startsWith('text/') == true) {
-      Future<void> downloadFile() async {
-        try {
-          showSnackBar('Downloading file...');
-
-          final client = ref.read(apiClientProvider);
-          final tempDir = await getTemporaryDirectory();
-          var extName = extension(item.name).trim();
-          if (extName.isEmpty) {
-            extName = item.mimeType?.split('/').lastOrNull ?? 'txt';
-          }
-          final filePath = '${tempDir.path}/${item.id}.$extName';
-
-          await client.download(
-            '/drive/files/${item.id}',
-            filePath,
-            queryParameters: {'original': true},
-          );
-
-          await FileSaver.instance.saveFile(
-            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-            file: File(filePath),
-          );
-          showSnackBar('File saved to downloads');
-        } catch (e) {
-          showErrorAlert(e);
-        }
-      }
-
       return Container(
         height: 400,
         decoration: BoxDecoration(
@@ -304,30 +239,20 @@ class CloudFileWidget extends HookConsumerWidget {
                   children: [
                     IconButton(
                       icon: const Icon(
-                        Symbols.download,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      onPressed: downloadFile,
-                      padding: EdgeInsets.all(4),
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Symbols.info,
+                        Symbols.more_horiz,
                         color: Colors.white,
                         size: 16,
                       ),
                       onPressed: () {
-                        showModalBottomSheet(
-                          useRootNavigator: true,
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => FileInfoSheet(item: item),
+                        context.pushNamed(
+                          'fileDetail',
+                          pathParameters: {'id': item.id},
+                          extra: item,
                         );
                       },
                       padding: EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
                     ),
                   ],
                 ),
