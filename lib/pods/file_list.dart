@@ -12,6 +12,9 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
     with CursorPagingNotifierMixin<FileListItem> {
   String _currentPath = '/';
   String? _poolId;
+  String? _query;
+  String? _order;
+  bool _orderDesc = false;
 
   void setPath(String path) {
     _currentPath = path;
@@ -20,6 +23,21 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
 
   void setPool(String? poolId) {
     _poolId = poolId;
+    ref.invalidateSelf();
+  }
+
+  void setQuery(String? query) {
+    _query = query;
+    ref.invalidateSelf();
+  }
+
+  void setOrder(String? order) {
+    _order = order;
+    ref.invalidateSelf();
+  }
+
+  void setOrderDesc(bool orderDesc) {
+    _orderDesc = orderDesc;
     ref.invalidateSelf();
   }
 
@@ -37,6 +55,16 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
     if (_poolId != null) {
       queryParameters['pool'] = _poolId!;
     }
+
+    if (_query != null) {
+      queryParameters['query'] = _query!;
+    }
+
+    if (_order != null) {
+      queryParameters['order'] = _order!;
+    }
+
+    queryParameters['orderDesc'] = _orderDesc.toString();
 
     final response = await client.get(
       '/drive/index/browse',
@@ -72,6 +100,9 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     with CursorPagingNotifierMixin<FileListItem> {
   String? _poolId;
   bool _recycled = false;
+  String? _query;
+  String? _order;
+  bool _orderDesc = false;
 
   void setPool(String? poolId) {
     _poolId = poolId;
@@ -80,6 +111,21 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
 
   void setRecycled(bool recycled) {
     _recycled = recycled;
+    ref.invalidateSelf();
+  }
+
+  void setQuery(String? query) {
+    _query = query;
+    ref.invalidateSelf();
+  }
+
+  void setOrder(String? order) {
+    _order = order;
+    ref.invalidateSelf();
+  }
+
+  void setOrderDesc(bool orderDesc) {
+    _orderDesc = orderDesc;
     ref.invalidateSelf();
   }
 
@@ -107,6 +153,16 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     if (_recycled) {
       queryParameters['recycled'] = _recycled.toString();
     }
+
+    if (_query != null) {
+      queryParameters['query'] = _query!;
+    }
+
+    if (_order != null) {
+      queryParameters['order'] = _order!;
+    }
+
+    queryParameters['orderDesc'] = _orderDesc.toString();
 
     final response = await client.get(
       '/drive/index/unindexed',

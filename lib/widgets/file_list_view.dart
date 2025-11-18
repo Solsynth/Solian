@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -17,6 +19,7 @@ import 'package:island/services/file_uploader.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/utils/file_icon_utils.dart';
 import 'package:island/utils/format.dart';
+import 'package:island/utils/text.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
@@ -120,6 +123,10 @@ class FileListView extends HookConsumerWidget {
     final cloudNotifier = ref.read(cloudFileListNotifierProvider.notifier);
     final recycled = useState<bool>(false);
     final poolsAsync = ref.watch(poolsProvider);
+    final query = useState<String?>(null);
+    final order = useState<String?>('date');
+    final orderDesc = useState<bool>(true);
+    final queryDebounceTimer = useRef<Timer?>(null);
 
     useEffect(() {
       // Sync pool when mode or selectedPool changes
@@ -131,75 +138,19 @@ class FileListView extends HookConsumerWidget {
       return null;
     }, [selectedPool.value, mode.value]);
 
-    final poolDropdownItems = poolsAsync.when(
-      data:
-          (pools) => [
-            const DropdownMenuItem<SnFilePool>(
-              value: null,
-              child: Text('All Pools', style: TextStyle(fontSize: 14)),
-            ),
-            ...pools.map(
-              (p) => DropdownMenuItem<SnFilePool>(
-                value: p,
-                child: Text(p.name, style: const TextStyle(fontSize: 14)),
-              ),
-            ),
-          ],
-      loading: () => const <DropdownMenuItem<SnFilePool>>[],
-      error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
-    );
-
-    final poolDropdown = DropdownButtonHideUnderline(
-      child: DropdownButton2<SnFilePool>(
-        value: selectedPool.value,
-        items: poolDropdownItems,
-        onChanged:
-            isRefreshing
-                ? null
-                : (value) {
-                  selectedPool.value = value;
-                  if (mode.value == FileListMode.unindexed) {
-                    unindexedNotifier.setPool(value?.id);
-                  } else {
-                    cloudNotifier.setPool(value?.id);
-                  }
-                },
-        customButton: Container(
-          height: 28,
-          width: 200,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(ref.context).colorScheme.outline,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 6,
-            children: [
-              const Icon(Symbols.pool, size: 16),
-              Flexible(
-                child: Text(
-                  selectedPool.value?.name ?? 'All files',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ).fontSize(12),
-              ),
-            ],
-          ).height(24),
-        ),
-        buttonStyleData: const ButtonStyleData(
-          padding: EdgeInsets.zero,
-          height: 28,
-          width: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
-        ),
-        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
-      ),
-    );
+    useEffect(() {
+      // Sync query, order, and orderDesc filters
+      if (mode.value == FileListMode.unindexed) {
+        unindexedNotifier.setQuery(query.value);
+        unindexedNotifier.setOrder(order.value);
+        unindexedNotifier.setOrderDesc(orderDesc.value);
+      } else {
+        cloudNotifier.setQuery(query.value);
+        cloudNotifier.setOrder(order.value);
+        cloudNotifier.setOrderDesc(orderDesc.value);
+      }
+      return null;
+    }, [query.value, order.value, orderDesc.value, mode.value]);
 
     late Widget pathContent;
     if (mode.value == FileListMode.unindexed) {
@@ -310,7 +261,20 @@ class FileListView extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Gap(12),
-            poolDropdown.padding(horizontal: 16),
+            _buildGlobalFilters(
+              ref,
+              poolsAsync,
+              selectedPool,
+              mode,
+              currentPath,
+              isRefreshing,
+              unindexedNotifier,
+              cloudNotifier,
+              query,
+              order,
+              orderDesc,
+              queryDebounceTimer,
+            ),
             const Gap(6),
             Card(
               child: Padding(
@@ -1146,5 +1110,208 @@ class FileListView extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildGlobalFilters(
+    WidgetRef ref,
+    AsyncValue<List<SnFilePool>> poolsAsync,
+    ValueNotifier<SnFilePool?> selectedPool,
+    ValueNotifier<FileListMode> mode,
+    ValueNotifier<String> currentPath,
+    bool isRefreshing,
+    dynamic unindexedNotifier,
+    dynamic cloudNotifier,
+    ValueNotifier<String?> query,
+    ValueNotifier<String?> order,
+    ValueNotifier<bool> orderDesc,
+    ObjectRef<Timer?> queryDebounceTimer,
+  ) {
+    final poolDropdownItems = poolsAsync.when(
+      data:
+          (pools) => [
+            const DropdownMenuItem<SnFilePool>(
+              value: null,
+              child: Text('All Pools', style: TextStyle(fontSize: 14)),
+            ),
+            ...pools.map(
+              (p) => DropdownMenuItem<SnFilePool>(
+                value: p,
+                child: Text(p.name, style: const TextStyle(fontSize: 14)),
+              ),
+            ),
+          ],
+      loading: () => const <DropdownMenuItem<SnFilePool>>[],
+      error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
+    );
+
+    final poolDropdown = DropdownButtonHideUnderline(
+      child: DropdownButton2<SnFilePool>(
+        value: selectedPool.value,
+        items: poolDropdownItems,
+        onChanged:
+            isRefreshing
+                ? null
+                : (value) {
+                  selectedPool.value = value;
+                  if (mode.value == FileListMode.unindexed) {
+                    unindexedNotifier.setPool(value?.id);
+                  } else {
+                    cloudNotifier.setPool(value?.id);
+                  }
+                },
+        customButton: Container(
+          height: 28,
+          width: 200,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(ref.context).colorScheme.outline,
+            ),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 6,
+            children: [
+              const Icon(Symbols.pool, size: 16),
+              Flexible(
+                child: Text(
+                  selectedPool.value?.name ?? 'All files',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ).fontSize(12),
+              ),
+            ],
+          ).height(24),
+        ),
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+          height: 28,
+          width: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+        ),
+        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
+      ),
+    );
+
+    final queryField = SizedBox(
+      width: 200,
+      height: 28,
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'fileName'.tr(),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 6,
+          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        style: const TextStyle(fontSize: 13, height: 1),
+        onChanged: (value) {
+          queryDebounceTimer.value?.cancel();
+          queryDebounceTimer.value = Timer(
+            const Duration(milliseconds: 300),
+            () {
+              query.value = value.isEmpty ? null : value;
+            },
+          );
+        },
+      ),
+    );
+
+    final orderDropdown = DropdownButtonHideUnderline(
+      child: DropdownButton2<String>(
+        value: order.value,
+        items:
+            ['date', 'size', 'name']
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child:
+                        Text(
+                          e == 'date' ? e : 'file${e.capitalizeEachWord()}',
+                          style: const TextStyle(fontSize: 14),
+                        ).tr(),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) => order.value = value,
+        customButton: Container(
+          height: 28,
+          width: 80,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(ref.context).colorScheme.outline,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child:
+                Text(
+                  (order.value ?? 'date') == 'date'
+                      ? (order.value ?? 'date')
+                      : 'file${order.value?.capitalizeEachWord()}',
+                  style: const TextStyle(fontSize: 12),
+                ).tr(),
+          ),
+        ),
+        buttonStyleData: const ButtonStyleData(
+          height: 28,
+          width: 80,
+          padding: EdgeInsets.zero,
+        ),
+        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
+      ),
+    );
+
+    final orderDescToggle = IconButton(
+      icon: Icon(
+        orderDesc.value ? Symbols.arrow_upward : Symbols.arrow_downward,
+      ),
+      onPressed: () {
+        final newValue = !orderDesc.value;
+        orderDesc.value = newValue;
+        if (mode.value == FileListMode.unindexed) {
+          unindexedNotifier.setOrderDesc(newValue);
+        } else {
+          cloudNotifier.setOrderDesc(newValue);
+        }
+      },
+      tooltip: orderDesc.value ? 'descendingOrder'.tr() : 'ascendingOrder'.tr(),
+      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+    );
+
+    final refreshButton = IconButton(
+      icon: const Icon(Symbols.refresh),
+      onPressed: () {
+        if (mode.value == FileListMode.unindexed) {
+          ref.invalidate(unindexedFileListNotifierProvider);
+        } else {
+          cloudNotifier.setPath(currentPath.value);
+        }
+      },
+      tooltip: 'Refresh',
+      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+    );
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: 12,
+          children: [
+            poolDropdown,
+            queryField,
+            orderDropdown,
+            orderDescToggle,
+            refreshButton,
+          ],
+        ).padding(horizontal: 20, vertical: 8),
+      ),
+    ).padding(horizontal: 12);
   }
 }
