@@ -35,6 +35,12 @@ class PdfFileContent extends HookConsumerWidget {
       [uri],
     );
 
+    final pdfController = useMemoized(() => PdfViewerController(), []);
+
+    final shadow = [
+      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
+    ];
+
     return FutureBuilder<File>(
       future: fileFuture,
       builder: (context, snapshot) {
@@ -43,7 +49,41 @@ class PdfFileContent extends HookConsumerWidget {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error loading PDF: ${snapshot.error}'));
         } else if (snapshot.hasData) {
-          return SfPdfViewer.file(snapshot.data!);
+          return Stack(
+            children: [
+              SfPdfViewer.file(snapshot.data!, controller: pdfController),
+              // Controls overlay
+              Positioned(
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                left: 16,
+                right: 16,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.remove,
+                        color: Colors.white,
+                        shadows: shadow,
+                      ),
+                      onPressed: () {
+                        pdfController.zoomLevel = pdfController.zoomLevel * 0.9;
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        shadows: shadow,
+                      ),
+                      onPressed: () {
+                        pdfController.zoomLevel = pdfController.zoomLevel * 1.1;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
         }
         return const Center(child: Text('No PDF data'));
       },
