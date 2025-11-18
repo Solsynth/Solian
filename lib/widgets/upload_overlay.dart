@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/drive_task.dart';
 import 'package:island/pods/upload_tasks.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/talker.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -44,32 +43,32 @@ class UploadOverlay extends HookConsumerWidget {
     );
 
     // Auto-hide timer effect
-    useEffect(
-      () {
+    useEffect(() {
+      // Reset pendingHide if there are unfinished tasks
+      final hasUnfinishedTasks = activeTasks.any(
+        (task) =>
+            task.status == DriveTaskStatus.pending ||
+            task.status == DriveTaskStatus.inProgress ||
+            task.status == DriveTaskStatus.paused,
+      );
+      if (hasUnfinishedTasks && pendingHide.value) {
+        pendingHide.value = false;
+      }
+
+      autoHideTimer.value?.cancel();
+      if (allFinished &&
+          activeTasks.isNotEmpty &&
+          !isExpandedLocal.value &&
+          !pendingHide.value) {
+        autoHideTimer.value = Timer(const Duration(seconds: 3), () {
+          pendingHide.value = true;
+        });
+      } else {
         autoHideTimer.value?.cancel();
-        if (allFinished &&
-            activeTasks.isNotEmpty &&
-            !isExpandedLocal.value &&
-            !pendingHide.value) {
-          talker.info('[UploadOverlay] Setting auto hide timer...');
-          autoHideTimer.value = Timer(const Duration(seconds: 3), () {
-            talker.info('[UploadOverlay] Ready to hide!');
-            pendingHide.value = true;
-          });
-        } else {
-          talker.info('[UploadOverlay] Remove auto hide timer...');
-          autoHideTimer.value?.cancel();
-          autoHideTimer.value = null;
-        }
-        return null;
-      },
-      [
-        allFinished,
-        activeTasks.length,
-        isExpandedLocal.value,
-        pendingHide.value,
-      ],
-    );
+        autoHideTimer.value = null;
+      }
+      return null;
+    }, [allFinished, activeTasks, isExpandedLocal.value, pendingHide.value]);
     final isVisible =
         (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
         !pendingHide.value;
