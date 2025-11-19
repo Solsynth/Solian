@@ -215,6 +215,7 @@ class CloudFileList extends HookConsumerWidget {
     }
     if (files.length == 1) {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
+      final ratio = files.first.fileMeta?['ratio'] as num?;
       final widgetItem = ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: _CloudFileListEntry(
@@ -242,7 +243,13 @@ class CloudFileList extends HookConsumerWidget {
           minWidth: minWidth ?? 0,
           maxWidth: files.length == 1 ? maxWidth : double.infinity,
         ),
-        child: IntrinsicWidth(child: IntrinsicHeight(child: widgetItem)),
+        child:
+            (ratio == null && isImage)
+                ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
+                : AspectRatio(
+                  aspectRatio: ratio?.toDouble() ?? 1,
+                  child: widgetItem,
+                ),
       );
     }
 
@@ -408,8 +415,6 @@ class _CloudFileListEntry extends HookConsumerWidget {
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
     final meta = file.fileMeta is Map ? file.fileMeta as Map : const {};
 
-    final ratio = meta['ratio'] as num?;
-
     final fit = BoxFit.cover;
 
     Widget bg = const SizedBox.shrink();
@@ -448,9 +453,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
                   fit: fit,
                   useInternalGate: false,
                 ))
-            : IntrinsicWidth(
-              child: IntrinsicHeight(child: const SizedBox.shrink()),
-            );
+            : const SizedBox.shrink();
 
     Widget overlays;
     if (lockedByDS) {
@@ -481,7 +484,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
           onTap?.call();
         }
       },
-      child: AspectRatio(aspectRatio: ratio?.toDouble() ?? 1, child: content),
+      child: content,
     );
   }
 }
