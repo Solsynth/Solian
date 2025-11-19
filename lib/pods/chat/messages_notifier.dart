@@ -6,6 +6,7 @@ import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/drift_db.dart";
 import "package:island/database/message.dart";
+import "package:island/models/account.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/models/poll.dart";
@@ -20,6 +21,7 @@ import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/screens/chat/chat.dart";
 import "package:island/pods/chat/chat_rooms.dart";
+import "package:island/screens/account/profile.dart";
 
 part 'messages_notifier.g.dart';
 
@@ -45,6 +47,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isUpdatingState = false;
   DateTime? _lastPauseTime;
 
+  late final Future<SnAccount?> Function(String) _fetchAccount;
+
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _roomId = roomId;
@@ -52,6 +56,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     _database = ref.watch(databaseProvider);
     final room = await ref.watch(chatroomProvider(roomId).future);
     final identity = await ref.watch(chatroomIdentityProvider(roomId).future);
+
+    // Initialize fetch account method for corrupted data recovery
+    _fetchAccount = (String accountId) async {
+      try {
+        return await ref.watch(accountProvider(accountId).future);
+      } catch (_) {
+        return null;
+      }
+    };
 
     if (room == null) {
       throw Exception('Room not found');
@@ -133,6 +146,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         _roomId,
         searchQuery,
         withAttachments: withAttachments,
+        fetchAccount: _fetchAccount,
       );
     } else {
       final chatMessagesFromDb = await _database.getMessagesForRoom(
@@ -142,7 +156,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       dbMessages = await Future.wait(
         chatMessagesFromDb
-            .map((msg) => _database.companionToMessage(msg))
+            .map(
+              (msg) => _database.companionToMessage(
+                msg,
+                fetchAccount: _fetchAccount,
+              ),
+            )
             .toList(),
       );
     }
@@ -207,7 +226,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
     final dbMessages = await Future.wait(
       chatMessagesFromDb
-          .map((msg) => _database.companionToMessage(msg))
+          .map(
+            (msg) =>
+                _database.companionToMessage(msg, fetchAccount: _fetchAccount),
+          )
           .toList(),
     );
 
@@ -278,6 +300,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     for (final message in messages) {
       await _database.saveMessage(_database.messageToCompanion(message));
+      if (message.sender != null) {
+        await _database.saveMember(message.sender!); // Save/update member data
+      }
       if (message.nonce != null) {
         _pendingMessages.removeWhere(
           (_, pendingMsg) => pendingMsg.nonce == message.nonce,
@@ -306,7 +331,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       final lastMessage =
           dbMessages.isEmpty
               ? null
-              : await _database.companionToMessage(dbMessages.first);
+              : await _database.companionToMessage(
+                dbMessages.first,
+                fetchAccount: _fetchAccount,
+              );
 
       if (lastMessage == null) {
         talker.log('No local messages, fetching from network');
@@ -474,6 +502,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _pendingMessages[localMessage.id] = localMessage;
     _fileUploadProgress[localMessage.id] = {};
     await _database.saveMessage(_database.messageToCompanion(localMessage));
+    await _database.saveMember(mockMessage.sender);
 
     final currentMessages = state.value ?? [];
     state = AsyncValue.data([localMessage, ...currentMessages]);
@@ -894,7 +923,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           await (_database.select(_database.chatMessages)
             ..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
       if (localMessage != null) {
-        return _database.companionToMessage(localMessage);
+        return _database.companionToMessage(
+          localMessage,
+          fetchAccount: _fetchAccount,
+        );
       }
 
       final response = await _apiClient.get(
