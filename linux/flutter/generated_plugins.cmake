@@ -23,7 +23,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   syncfusion_pdfviewer_linux
   tray_manager
   url_launcher_linux
-  volume_controller
   window_manager
 )
 

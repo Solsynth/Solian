@@ -31,7 +31,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   syncfusion_pdfviewer_windows
   tray_manager
   url_launcher_windows
-  volume_controller
   window_manager
   windows_notification
 )

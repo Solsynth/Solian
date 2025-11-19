@@ -57,7 +57,7 @@ PODS:
   - firebase_core (4.2.1):
     - Firebase/CoreOnly (= 12.4.0)
     - Flutter
-  - firebase_crashlytics (5.0.4):
+  - firebase_crashlytics (5.0.5):
     - Firebase/Crashlytics (= 12.4.0)
     - firebase_core
     - Flutter
@@ -148,7 +148,7 @@ PODS:
     - Flutter
   - flutter_udid (0.0.1):
     - Flutter
-    - SAMKeychain
+    - KeychainAccess
   - flutter_webrtc (1.2.0):
     - Flutter
     - WebRTC-SDK (= 137.7151.04)
@@ -216,7 +216,8 @@ PODS:
     - Flutter
   - irondash_engine_context (0.0.1):
     - Flutter
-  - Kingfisher (8.6.1)
+  - KeychainAccess (4.2.2)
+  - Kingfisher (8.6.2)
   - KingfisherWebP (1.7.2):
     - Kingfisher (~> 8.0)
     - libwebp (>= 1.1.0)
@@ -269,7 +270,6 @@ PODS:
     - Flutter
   - record_ios (1.1.0):
     - Flutter
-  - SAMKeychain (1.5.3)
   - SDWebImage (5.21.3):
     - SDWebImage/Core (= 5.21.3)
   - SDWebImage/Core (5.21.3)
@@ -314,8 +314,6 @@ PODS:
   - syncfusion_flutter_pdfviewer (0.0.1):
     - Flutter
   - url_launcher_ios (0.0.1):
-    - Flutter
-  - volume_controller (0.0.1):
     - Flutter
   - wakelock_plus (0.0.1):
     - Flutter
@@ -368,7 +366,6 @@ DEPENDENCIES:
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
   - syncfusion_flutter_pdfviewer (from `.symlinks/plugins/syncfusion_flutter_pdfviewer/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-  - volume_controller (from `.symlinks/plugins/volume_controller/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
 
 SPEC REPOS:
@@ -390,6 +387,7 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - KeychainAccess
     - Kingfisher
     - KingfisherWebP
     - libwebp
@@ -397,7 +395,6 @@ SPEC REPOS:
     - OrderedSet
     - PromisesObjC
     - PromisesSwift
-    - SAMKeychain
     - SDWebImage
     - sqlite3
     - SwiftyGif
@@ -490,8 +487,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/syncfusion_flutter_pdfviewer/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
-  volume_controller:
-    :path: ".symlinks/plugins/volume_controller/ios"
   wakelock_plus:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
@@ -507,7 +502,7 @@ SPEC CHECKSUMS:
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
   firebase_analytics: 67fbdd9f3c04e55048024f3da21cfc36f05e56cf
   firebase_core: f1aafb21c14f497e5498f7ffc4dc63cbb52b2594
-  firebase_crashlytics: 83c7467d7534975a4d779af43bd226d0a4616464
+  firebase_crashlytics: c039028126cb45e32f4c217aa392408b0963d081
   firebase_messaging: c17a29984eafce4b2997fe078bb0a9e0b06f5dde
   FirebaseAnalytics: 0fc2b20091f0ddd21bf73397cf8f0eb5346dc24f
   FirebaseCore: bb595f3114953664e3c1dc032f008a244147cfd3
@@ -527,7 +522,7 @@ SPEC CHECKSUMS:
   flutter_platform_alert: bf3b5fcd4ac14bd637e20527e9c471633071afd3
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
-  flutter_udid: f7c3884e6ec2951efe4f9de082257fc77c4d15e9
+  flutter_udid: 92a5d31fe0526b7b6002a2318df702e12e7eb300
   flutter_webrtc: c3e21fc0dcd9d8eb246ae4d5256fcbeb2f5ecd22
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   GoogleAdsOnDeviceConversion: e03a386840803ea7eef3fd22a061930142c039c1
@@ -536,7 +531,8 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
-  Kingfisher: 7ac7a7288653787a54206b11a3c74f49ab650f1f
+  KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
+  Kingfisher: 23d18f54677d973b713e54ce6a8f5eef6e7056ba
   KingfisherWebP: 38b9721821947f547afb78f933f75f4f9e0ae402
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: 86c8af579274e4b7a215185a8080db2d4e176f40
@@ -555,7 +551,6 @@ SPEC CHECKSUMS:
   protocol_handler_ios: 59f23ee71f3ec602d67902ca7f669a80957888d5
   receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
-  SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
@@ -567,7 +562,6 @@ SPEC CHECKSUMS:
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   syncfusion_flutter_pdfviewer: 90dc48305d2e33d4aa20681d1e98ddeda891bc14
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
-  volume_controller: 3657a1f65bedb98fa41ff7dc5793537919f31b12
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 

@@ -28,7 +28,7 @@ PODS:
   - firebase_core (4.2.1):
     - Firebase/CoreOnly (~> 12.4.0)
     - FlutterMacOS
-  - firebase_crashlytics (5.0.4):
+  - firebase_crashlytics (5.0.5):
     - Firebase/CoreOnly (~> 12.4.0)
     - Firebase/Crashlytics (~> 12.4.0)
     - firebase_core
@@ -110,7 +110,7 @@ PODS:
     - FlutterMacOS
   - flutter_udid (0.0.1):
     - FlutterMacOS
-    - SAMKeychain
+    - KeychainAccess
   - flutter_webrtc (1.2.0):
     - FlutterMacOS
     - WebRTC-SDK (= 137.7151.04)
@@ -172,6 +172,7 @@ PODS:
     - GoogleUtilities/Privacy
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
+  - KeychainAccess (4.2.2)
   - livekit_client (2.5.3):
     - flutter_webrtc
     - FlutterMacOS
@@ -203,7 +204,6 @@ PODS:
     - FlutterMacOS
   - record_macos (1.1.0):
     - FlutterMacOS
-  - SAMKeychain (1.5.3)
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - share_plus (0.0.1):
@@ -248,8 +248,6 @@ PODS:
   - tray_manager (0.0.1):
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
-    - FlutterMacOS
-  - volume_controller (0.0.1):
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
@@ -298,7 +296,6 @@ DEPENDENCIES:
   - syncfusion_pdfviewer_macos (from `Flutter/ephemeral/.symlinks/plugins/syncfusion_pdfviewer_macos/macos`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
-  - volume_controller (from `Flutter/ephemeral/.symlinks/plugins/volume_controller/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
@@ -317,11 +314,11 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - KeychainAccess
     - nanopb
     - OrderedSet
     - PromisesObjC
     - PromisesSwift
-    - SAMKeychain
     - sqlite3
     - WebRTC-SDK
 
@@ -406,8 +403,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/tray_manager/macos
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
-  volume_controller:
-    :path: Flutter/ephemeral/.symlinks/plugins/volume_controller/macos
   wakelock_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
   window_manager:
@@ -424,7 +419,7 @@ SPEC CHECKSUMS:
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
   firebase_analytics: 09241c4796c1c42a02349ef8bf30025f5b640f0e
   firebase_core: e054894ab56033ef9bcbe2d9eac9395e5306e2fc
-  firebase_crashlytics: c2438b5f5bdcacf59d0eaee5852c6b0ab09dab77
+  firebase_crashlytics: add6934cf4413d6c1307ca5251dbdbfe580e4caf
   firebase_messaging: 373ac3a56e5aa37bb9aff4127f700aa5973c1168
   FirebaseAnalytics: 0fc2b20091f0ddd21bf73397cf8f0eb5346dc24f
   FirebaseCore: bb595f3114953664e3c1dc032f008a244147cfd3
@@ -440,7 +435,7 @@ SPEC CHECKSUMS:
   flutter_platform_alert: 8fa7a7c21f95b26d08b4a3891936ca27e375f284
   flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
   flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
-  flutter_udid: d26e455e8c06174e6aff476e147defc6cae38495
+  flutter_udid: 00c09e022fd527fd39fef97670b220f2ae8190e7
   flutter_webrtc: 718eae22a371cd94e5d56aa4f301443ebc5bb737
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: baecd024ebfd13c441269ca7404792a7152fde89
@@ -448,6 +443,7 @@ SPEC CHECKSUMS:
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
+  KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
   livekit_client: a6d5ae8aaeebf3e52235da866fea00f43156c72b
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
@@ -461,7 +457,6 @@ SPEC CHECKSUMS:
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   record_macos: 43194b6c06ca6f8fa132e2acea72b202b92a0f5b
-  SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
@@ -473,7 +468,6 @@ SPEC CHECKSUMS:
   syncfusion_pdfviewer_macos: b3b110c68039178ca4105dd03ef38761eca3b36b
   tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
-  volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
