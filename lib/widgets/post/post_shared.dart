@@ -554,6 +554,7 @@ class PostHeader extends StatelessWidget {
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
   final bool isCompact;
+  final bool hideOverlay;
 
   const PostHeader({
     super.key,
@@ -564,6 +565,7 @@ class PostHeader extends StatelessWidget {
     this.renderingPadding = EdgeInsets.zero,
     this.isRelativeTime = true,
     this.isCompact = false,
+    this.hideOverlay = false,
   });
 
   @override
@@ -606,6 +608,7 @@ class PostHeader extends StatelessWidget {
                             (item.publisher.account != null &&
                                     item.publisher.type == 0)
                                 ? AccountName(
+                                  hideOverlay: hideOverlay,
                                   account: item.publisher.account!,
                                   textOverride: item.publisher.nick,
                                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -618,7 +621,10 @@ class PostHeader extends StatelessWidget {
                                 ).bold(),
                       ),
                       if (item.publisher.verification != null)
-                        VerificationMark(mark: item.publisher.verification!),
+                        VerificationMark(
+                          mark: item.publisher.verification!,
+                          hideOverlay: hideOverlay,
+                        ),
                       if (item.realm == null)
                         Flexible(
                           child:
@@ -690,6 +696,7 @@ class PostBody extends ConsumerWidget {
   final bool isInteractive;
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
+  final bool hideOverlay;
 
   const PostBody({
     super.key,
@@ -700,6 +707,7 @@ class PostBody extends ConsumerWidget {
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
     this.isRelativeTime = true,
+    this.hideOverlay = false,
   });
 
   @override
@@ -771,27 +779,31 @@ class PostBody extends ConsumerWidget {
       );
     }
     if (item.editedAt != null) {
+      final text = Text(
+        'editedAt'.tr(
+          args: [
+            !isFullPost && isRelativeTime
+                ? item.editedAt!.formatRelative(context)
+                : item.editedAt!.formatSystem(),
+          ],
+        ),
+      ).fontSize(13);
+
       metadataChildren.add(
         Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Icon(Symbols.edit, size: 16),
-            Tooltip(
-              message:
-                  !isFullPost && isRelativeTime
-                      ? item.editedAt!.formatSystem()
-                      : item.editedAt!.formatRelative(context),
-              child: Text(
-                'editedAt'.tr(
-                  args: [
-                    !isFullPost && isRelativeTime
-                        ? item.editedAt!.formatRelative(context)
-                        : item.editedAt!.formatSystem(),
-                  ],
+            hideOverlay
+                ? text
+                : Tooltip(
+                  message:
+                      !isFullPost && isRelativeTime
+                          ? item.editedAt!.formatSystem()
+                          : item.editedAt!.formatRelative(context),
+                  child: text,
                 ),
-              ).fontSize(13),
-            ),
           ],
         ),
       );

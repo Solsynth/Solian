@@ -39,6 +39,7 @@ class AccountName extends StatelessWidget {
   final String? textOverride;
   final bool ignorePermissions;
   final bool hideVerificationMark;
+  final bool hideOverlay;
   const AccountName({
     super.key,
     required this.account,
@@ -46,6 +47,7 @@ class AccountName extends StatelessWidget {
     this.textOverride,
     this.ignorePermissions = false,
     this.hideVerificationMark = false,
+    this.hideOverlay = false,
   });
 
   Alignment _parseGradientDirection(String direction) {
@@ -189,20 +191,33 @@ class AccountName extends StatelessWidget {
                   ),
                 ),
                 if (account.perkSubscription != null)
-                  StellarMembershipMark(membership: account.perkSubscription!),
+                  StellarMembershipMark(
+                    membership: account.perkSubscription!,
+                    hideOverlay: hideOverlay,
+                  ),
                 if (account.profile.verification != null &&
                     !hideVerificationMark)
-                  VerificationMark(mark: account.profile.verification!),
-                if (account.automatedId != null)
-                  Tooltip(
-                    message: 'accountAutomated'.tr(),
-                    child: Icon(
-                      Symbols.smart_toy,
-                      size: 16,
-                      color: nameStyle.color,
-                      fill: 1,
-                    ),
+                  VerificationMark(
+                    mark: account.profile.verification!,
+                    hideOverlay: hideOverlay,
                   ),
+                if (account.automatedId != null)
+                  hideOverlay
+                      ? Icon(
+                        Symbols.smart_toy,
+                        size: 16,
+                        color: nameStyle.color,
+                        fill: 1,
+                      )
+                      : Tooltip(
+                        message: 'accountAutomated'.tr(),
+                        child: Icon(
+                          Symbols.smart_toy,
+                          size: 16,
+                          color: nameStyle.color,
+                          fill: 1,
+                        ),
+                      ),
               ],
             );
           }
@@ -233,19 +248,32 @@ class AccountName extends StatelessWidget {
           ),
         ),
         if (account.perkSubscription != null)
-          StellarMembershipMark(membership: account.perkSubscription!),
-        if (account.profile.verification != null)
-          VerificationMark(mark: account.profile.verification!),
-        if (account.automatedId != null)
-          Tooltip(
-            message: 'accountAutomated'.tr(),
-            child: Icon(
-              Symbols.smart_toy,
-              size: 16,
-              color: nameStyle.color,
-              fill: 1,
-            ),
+          StellarMembershipMark(
+            membership: account.perkSubscription!,
+            hideOverlay: hideOverlay,
           ),
+        if (account.profile.verification != null)
+          VerificationMark(
+            mark: account.profile.verification!,
+            hideOverlay: hideOverlay,
+          ),
+        if (account.automatedId != null)
+          hideOverlay
+              ? Icon(
+                Symbols.smart_toy,
+                size: 16,
+                color: nameStyle.color,
+                fill: 1,
+              )
+              : Tooltip(
+                message: 'accountAutomated'.tr(),
+                child: Icon(
+                  Symbols.smart_toy,
+                  size: 16,
+                  color: nameStyle.color,
+                  fill: 1,
+                ),
+              ),
       ],
     );
   }
@@ -253,39 +281,53 @@ class AccountName extends StatelessWidget {
 
 class VerificationMark extends StatelessWidget {
   final SnVerificationMark mark;
-  const VerificationMark({super.key, required this.mark});
+  final bool hideOverlay;
+  const VerificationMark({
+    super.key,
+    required this.mark,
+    this.hideOverlay = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      richMessage: TextSpan(
-        text: mark.title ?? 'No title',
-        children: [
-          TextSpan(text: '\n'),
-          TextSpan(
-            text: mark.description ?? 'descriptionNone'.tr(),
-            style: TextStyle(fontWeight: FontWeight.normal),
-          ),
-        ],
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      child: Icon(
-        mark.type == 4
-            ? Symbols.play_circle
-            : mark.type == 0
-            ? Symbols.build_circle
-            : Symbols.verified,
-        size: 16,
-        color: kVerificationMarkColors[mark.type],
-        fill: 1,
-      ),
+    final icon = Icon(
+      mark.type == 4
+          ? Symbols.play_circle
+          : mark.type == 0
+          ? Symbols.build_circle
+          : Symbols.verified,
+      size: 16,
+      color: kVerificationMarkColors[mark.type],
+      fill: 1,
     );
+
+    return hideOverlay
+        ? icon
+        : Tooltip(
+          richMessage: TextSpan(
+            text: mark.title ?? 'No title',
+            children: [
+              TextSpan(text: '\n'),
+              TextSpan(
+                text: mark.description ?? 'descriptionNone'.tr(),
+                style: TextStyle(fontWeight: FontWeight.normal),
+              ),
+            ],
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          child: icon,
+        );
   }
 }
 
 class StellarMembershipMark extends StatelessWidget {
   final SnWalletSubscriptionRef membership;
-  const StellarMembershipMark({super.key, required this.membership});
+  final bool hideOverlay;
+  const StellarMembershipMark({
+    super.key,
+    required this.membership,
+    this.hideOverlay = false,
+  });
 
   String _getMembershipTierName(String identifier) {
     switch (identifier) {
@@ -321,20 +363,24 @@ class StellarMembershipMark extends StatelessWidget {
     final tierColor = _getMembershipTierColor(membership.identifier);
     final tierIcon = Symbols.kid_star;
 
-    return Tooltip(
-      richMessage: TextSpan(
-        text: 'stellarMembership'.tr(),
-        children: [
-          TextSpan(text: '\n'),
-          TextSpan(
-            text: 'currentMembershipMember'.tr(args: [tierName]),
-            style: TextStyle(fontWeight: FontWeight.normal),
+    final icon = Icon(tierIcon, size: 16, color: tierColor, fill: 1);
+
+    return hideOverlay
+        ? icon
+        : Tooltip(
+          richMessage: TextSpan(
+            text: 'stellarMembership'.tr(),
+            children: [
+              TextSpan(text: '\n'),
+              TextSpan(
+                text: 'currentMembershipMember'.tr(args: [tierName]),
+                style: TextStyle(fontWeight: FontWeight.normal),
+              ),
+            ],
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-        ],
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      child: Icon(tierIcon, size: 16, color: tierColor, fill: 1),
-    );
+          child: icon,
+        );
   }
 }
 

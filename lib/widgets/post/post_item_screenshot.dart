@@ -45,6 +45,7 @@ class PostItemScreenshot extends ConsumerWidget {
         children: [
           Gap(renderingPadding.vertical),
           PostHeader(
+            hideOverlay: true,
             item: item,
             isFullPost: isFullPost,
             isInteractive: false,
@@ -73,6 +74,7 @@ class PostItemScreenshot extends ConsumerWidget {
             isFullPost: isFullPost,
             isTextSelectable: false,
             isInteractive: false,
+            hideOverlay: true,
           ),
           if (isShowReference)
             ReferencedPostWidget(
