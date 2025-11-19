@@ -14,6 +14,7 @@ import 'package:island/pods/database.dart';
 import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
@@ -52,6 +53,17 @@ class ChatRoomListTile extends HookConsumerWidget {
         .watch(chatSummaryProvider)
         .whenData((summaries) => summaries[room.id]);
 
+    var validMembers = room.members ?? [];
+    if (validMembers.isNotEmpty) {
+      final userInfo = ref.watch(userInfoProvider);
+      if (userInfo.value != null) {
+        validMembers =
+            validMembers
+                .where((e) => e.accountId != userInfo.value!.id)
+                .toList();
+      }
+    }
+
     Widget buildSubtitle() {
       if (subtitle != null) return subtitle!;
 
@@ -60,7 +72,7 @@ class ChatRoomListTile extends HookConsumerWidget {
           if (data == null) {
             return isDirect && room.description == null
                 ? Text(
-                  room.members!.map((e) => '@${e.account.name}').join(', '),
+                  validMembers.map((e) => '@${e.account.name}').join(', '),
                   maxLines: 1,
                 )
                 : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1);
@@ -116,7 +128,7 @@ class ChatRoomListTile extends HookConsumerWidget {
             (_, _) =>
                 isDirect && room.description == null
                     ? Text(
-                      room.members!.map((e) => '@${e.account.name}').join(', '),
+                      validMembers.map((e) => '@${e.account.name}').join(', '),
                       maxLines: 1,
                     )
                     : Text(
@@ -129,7 +141,7 @@ class ChatRoomListTile extends HookConsumerWidget {
     String titleText;
     if (isDirect && room.name == null) {
       if (room.members?.isNotEmpty ?? false) {
-        titleText = room.members!.map((e) => e.account.nick).join(', ');
+        titleText = validMembers.map((e) => e.account.nick).join(', ');
       } else {
         titleText = 'Direct Message';
       }
@@ -148,7 +160,7 @@ class ChatRoomListTile extends HookConsumerWidget {
             (isDirect && room.picture?.id == null)
                 ? SplitAvatarWidget(
                   filesId:
-                      room.members!
+                      validMembers
                           .map((e) => e.account.profile.picture?.id)
                           .toList(),
                 )
