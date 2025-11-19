@@ -160,6 +160,7 @@ class AppDatabase extends _$AppDatabase {
     String roomId,
     String query, {
     bool? withAttachments,
+    Future<SnAccount?> Function(String accountId)? fetchAccount,
   }) async {
     var selectStatement = select(chatMessages)
       ..where((m) => m.roomId.equals(roomId));
@@ -186,7 +187,9 @@ class AppDatabase extends _$AppDatabase {
               ..orderBy([(m) => OrderingTerm.desc(m.createdAt)]))
             .get();
     final messageFutures =
-        messages.map((msg) => companionToMessage(msg)).toList();
+        messages
+            .map((msg) => companionToMessage(msg, fetchAccount: fetchAccount))
+            .toList();
     return await Future.wait(messageFutures);
   }
 
@@ -215,18 +218,19 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  Future<LocalChatMessage> companionToMessage(ChatMessage dbMessage) async {
+  Future<LocalChatMessage> companionToMessage(
+    ChatMessage dbMessage, {
+    Future<SnAccount?> Function(String accountId)? fetchAccount,
+  }) async {
     final data = jsonDecode(dbMessage.data);
     SnChatMember? sender;
     try {
       final senderRow =
           await (select(chatMembers)
             ..where((m) => m.id.equals(dbMessage.senderId))).getSingle();
-      final senderAccount = SnAccount.fromJson(senderRow.account);
-      SnAccountStatus? senderStatus;
-      if (senderRow.status != null) {
-        senderStatus = SnAccountStatus.fromJson(jsonDecode(senderRow.status!));
-      }
+      SnAccount senderAccount;
+      senderAccount = SnAccount.fromJson(senderRow.account);
+
       sender = SnChatMember(
         id: senderRow.id,
         chatRoomId: senderRow.chatRoomId,
@@ -239,15 +243,57 @@ class AppDatabase extends _$AppDatabase {
         breakUntil: senderRow.breakUntil,
         timeoutUntil: senderRow.timeoutUntil,
         isBot: senderRow.isBot,
-        status: senderStatus,
+        status: null,
         lastTyped: senderRow.lastTyped,
         createdAt: senderRow.createdAt,
         updatedAt: senderRow.updatedAt,
         deletedAt: senderRow.deletedAt,
         chatRoom: null,
       );
-    } catch (_) {
-      sender = null;
+    } catch (err) {
+      // Fallback to dummy sender with senderId as display name
+      sender = SnChatMember(
+        id: 'unknown',
+        chatRoomId: dbMessage.roomId,
+        accountId: dbMessage.senderId,
+        account: SnAccount(
+          id: 'unknown',
+          name: 'unknown',
+          nick: dbMessage.senderId, // Show the ID instead of Unknown
+          profile: SnAccountProfile(
+            picture: null,
+            id: 'unknown',
+            experience: 0,
+            level: 1,
+            levelingProgress: 0.0,
+            background: null,
+            verification: null,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            deletedAt: null,
+          ),
+          language: '',
+          isSuperuser: false,
+          automatedId: null,
+          perkSubscription: null,
+          deletedAt: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        nick: dbMessage.senderId, // Show the senderId as fallback
+        role: 0,
+        notify: 0,
+        joinedAt: null,
+        breakUntil: null,
+        timeoutUntil: null,
+        isBot: false,
+        status: null,
+        lastTyped: null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        deletedAt: null,
+        chatRoom: null,
+      );
     }
     return LocalChatMessage(
       id: dbMessage.id,
@@ -376,5 +422,11 @@ class AppDatabase extends _$AppDatabase {
   Future<PostDraft?> getPostDraftById(String id) async {
     return await (select(postDrafts)
       ..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<void> saveMember(SnChatMember member) async {
+    await into(
+      chatMembers,
+    ).insert(companionFromMember(member), mode: InsertMode.insertOrReplace);
   }
 }

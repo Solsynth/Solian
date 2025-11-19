@@ -158,10 +158,11 @@ class LocalChatMessage {
   });
 
   SnChatMessage toRemoteMessage() {
-    final msgData = Map<String, dynamic>.from(data);
-    if (sender != null) {
-      msgData['sender'] = sender!.toJson();
+    if (sender == null) {
+      throw Exception('Cannot create remote message without sender');
     }
+    final msgData = Map<String, dynamic>.from(data);
+    msgData['sender'] = sender!.toJson();
     return SnChatMessage.fromJson(msgData);
   }
 
@@ -170,8 +171,20 @@ class LocalChatMessage {
     MessageStatus status, {
     String? nonce,
   }) {
-    final msgData = Map<String, dynamic>.from(message.toJson())
-      ..remove('sender');
+    final jsonData = message.toJson();
+    jsonData.remove('sender');
+    // Ensure proper defaults for collections to prevent type cast errors
+    if (jsonData['meta'] == null) jsonData['meta'] = <String, dynamic>{};
+    if (jsonData['members_mentioned'] == null) {
+      jsonData['members_mentioned'] = <String>[];
+    }
+    if (jsonData['attachments'] == null) {
+      jsonData['attachments'] = <Map<String, dynamic>>[];
+    }
+    if (jsonData['reactions'] == null) {
+      jsonData['reactions'] = <Map<String, dynamic>>[];
+    }
+    final msgData = Map<String, dynamic>.from(jsonData);
     return LocalChatMessage(
       id: message.id,
       roomId: message.chatRoomId,
