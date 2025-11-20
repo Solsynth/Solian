@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/creators/sites/site_detail.dart';
 import 'package:island/screens/creators/sites/site_list.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -13,9 +13,128 @@ import 'package:styled_widget/styled_widget.dart';
 
 class SiteForm extends HookConsumerWidget {
   final String pubName;
-  final String? siteId;
+  final String? siteSlug;
 
-  const SiteForm({super.key, required this.pubName, this.siteId});
+  const SiteForm({super.key, required this.pubName, this.siteSlug});
+
+  Widget _buildForm(
+    GlobalKey<FormState> formKey,
+    TextEditingController slugController,
+    TextEditingController nameController,
+    TextEditingController descriptionController,
+    ValueNotifier<int> modeController,
+    Function() saveSite,
+    Function() deleteSite,
+    String siteSlug,
+  ) {
+    final formFields = Column(
+      children: [
+        TextFormField(
+          controller: slugController,
+          decoration: const InputDecoration(
+            labelText: 'Slug',
+            hintText: 'my-site',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a slug';
+            }
+            final slugRegex = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
+            if (!slugRegex.hasMatch(value)) {
+              return 'Slug can only contain lowercase letters, numbers, and dashes';
+            }
+            return null;
+          },
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Site Name',
+            hintText: 'My Publication Site',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a site name';
+            }
+            return null;
+          },
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: descriptionController,
+          decoration: const InputDecoration(
+            labelText: 'Description',
+            alignLabelWithHint: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          maxLines: 3,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<int>(
+          value: modeController.value,
+          decoration: const InputDecoration(
+            labelText: 'Mode',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          items: const [
+            DropdownMenuItem(value: 0, child: Text('Fully Managed')),
+            DropdownMenuItem(value: 1, child: Text('Self-Managed')),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              modeController.value = value;
+            }
+          },
+        ),
+      ],
+    ).padding(all: 20);
+
+    return SheetScaffold(
+      titleText: 'Edit Publication Site',
+      child: Builder(
+        builder:
+            (context) => SingleChildScrollView(
+              child: Column(
+                children: [
+                  Form(key: formKey, child: formFields),
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: deleteSite,
+                        icon: const Icon(Symbols.delete_forever),
+                        label: const Text('Delete Publication Site'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                      ).alignment(Alignment.centerRight),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: saveSite,
+                        icon: const Icon(Symbols.save),
+                        label: Text('saveChanges').tr(),
+                      ),
+                    ],
+                  ).padding(horizontal: 20, vertical: 12),
+                ],
+              ),
+            ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,8 +161,8 @@ class SiteForm extends HookConsumerWidget {
             'description': descriptionController.text,
         };
 
-        if (siteId != null) {
-          await client.patch('$url/$siteId', data: payload);
+        if (siteSlug != null) {
+          await client.patch('$url/$siteSlug', data: payload);
         } else {
           await client.post(url, data: payload);
         }
@@ -60,9 +179,11 @@ class SiteForm extends HookConsumerWidget {
       } finally {
         isLoading.value = false;
       }
-    }, [pubName, siteId, context]);
+    }, [pubName, siteSlug, context]);
 
     final deleteSite = useCallback(() async {
+      if (siteSlug == null) return; // Shouldn't happen for editing
+
       final confirmed = await showConfirmAlert(
         'Are you sure you want to delete this publication site? This action cannot be undone.',
         'Delete Publication Site',
@@ -73,7 +194,7 @@ class SiteForm extends HookConsumerWidget {
 
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/zone/sites/${siteId!}');
+        await client.delete('/zone/sites/$pubName/$siteSlug');
 
         ref.invalidate(siteListNotifierProvider(pubName));
 
@@ -86,82 +207,62 @@ class SiteForm extends HookConsumerWidget {
       } finally {
         isLoading.value = false;
       }
-    }, [pubName, siteId, context]);
+    }, [pubName, siteSlug, context]);
 
-    // Handle loading and error states for editing
-    final isFetchLoading = useState(siteId != null);
-    final site = useState<SnPublicationSite?>(null);
-    final errorMessage = useState<String?>(null);
+    // Use Riverpod provider for loading and error states for editing
+    if (siteSlug != null) {
+      final editingSiteSlug =
+          siteSlug!; // Assert non-null since we checked above
+      final siteAsync = ref.watch(
+        publicationSiteDetailProvider(pubName, editingSiteSlug),
+      );
 
-    useEffect(() {
-      if (siteId == null) return;
-
-      Future<void> fetchSite() async {
-        try {
-          final client = ref.read(apiClientProvider);
-          final response = await client.get('/zone/sites/$siteId');
-          final fetchedSite = SnPublicationSite.fromJson(response.data);
-          site.value = fetchedSite;
-
-          // Initialize form fields if they're empty and we have a site
-          if (nameController.text.isEmpty) {
-            slugController.text = fetchedSite.slug;
-            nameController.text = fetchedSite.name;
-            descriptionController.text = fetchedSite.description ?? '';
-            modeController.value = fetchedSite.mode ?? 0;
-          }
-        } catch (e) {
-          errorMessage.value = e.toString();
-        } finally {
-          isFetchLoading.value = false;
+      // Initialize form fields when site data is loaded
+      useEffect(() {
+        if (siteAsync.value != null && nameController.text.isEmpty) {
+          final site = siteAsync.value!;
+          slugController.text = site.slug;
+          nameController.text = site.name;
+          descriptionController.text = site.description ?? '';
+          modeController.value = site.mode ?? 0;
         }
-      }
+        return null;
+      }, [siteAsync]);
 
-      fetchSite();
-      return null;
-    }, [siteId]);
-
-    if (siteId != null && isFetchLoading.value) {
-      return const SheetScaffold(
-        titleText: 'Edit Publication Site',
-        child: Center(child: CircularProgressIndicator()),
+      // Handle loading and error states for editing using AsyncValue
+      return siteAsync.when(
+        data:
+            (_) => _buildForm(
+              formKey,
+              slugController,
+              nameController,
+              descriptionController,
+              modeController,
+              saveSite,
+              deleteSite,
+              editingSiteSlug,
+            ),
+        loading:
+            () => const SheetScaffold(
+              titleText: 'Edit Publication Site',
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        error:
+            (error, _) => SheetScaffold(
+              titleText: 'Edit Publication Site',
+              child: ResponseErrorWidget(
+                error: error.toString(),
+                onRetry: () {
+                  ref.invalidate(
+                    publicationSiteDetailProvider(pubName, editingSiteSlug),
+                  );
+                },
+              ),
+            ),
       );
     }
 
-    if (siteId != null && errorMessage.value != null) {
-      return SheetScaffold(
-        titleText: 'Edit Publication Site',
-        child: ResponseErrorWidget(
-          error: errorMessage.value!,
-          onRetry: () {
-            isFetchLoading.value = true;
-            errorMessage.value = null;
-            // Refetch
-            useEffect(() {
-              Future<void> fetchSite() async {
-                try {
-                  final client = ref.read(apiClientProvider);
-                  final response = await client.get('/zone/sites/$siteId');
-                  final fetchedSite = SnPublicationSite.fromJson(response.data);
-                  site.value = fetchedSite;
-                  slugController.text = fetchedSite.slug;
-                  nameController.text = fetchedSite.name;
-                  descriptionController.text = fetchedSite.description ?? '';
-                  modeController.value = fetchedSite.mode ?? 0;
-                } catch (e) {
-                  errorMessage.value = e.toString();
-                } finally {
-                  isFetchLoading.value = false;
-                }
-              }
-
-              fetchSite();
-              return null;
-            }, ['$siteId-${DateTime.now().millisecondsSinceEpoch}']);
-          },
-        ),
-      );
-    }
+    // For new sites, directly show the form
 
     final formFields = Column(
       children: [
@@ -247,14 +348,14 @@ class SiteForm extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText:
-          siteId == null ? 'New Publication Site' : 'Edit Publication Site',
+          siteSlug == null ? 'New Publication Site' : 'Edit Publication Site',
       child: SingleChildScrollView(
         child: Column(
           children: [
             Form(key: formKey, child: formFields),
             Row(
               children: [
-                if (siteId != null) ...[
+                if (siteSlug != null) ...[
                   TextButton.icon(
                     onPressed: isLoading.value ? null : deleteSite,
                     icon: const Icon(Symbols.delete_forever),

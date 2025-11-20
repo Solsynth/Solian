@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
@@ -159,7 +160,7 @@ class _CreatorSiteItem extends HookConsumerWidget {
                       isScrollControlled: true,
                       builder:
                           (context) =>
-                              SiteForm(pubName: pubName, siteId: site.id),
+                              SiteForm(pubName: pubName, siteSlug: site.slug),
                     );
                   },
                 ),
@@ -219,10 +220,11 @@ class _CreatorSiteItem extends HookConsumerWidget {
               ],
         ),
         onTap: () {
-          // Open site details or pages
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Site details coming soon')));
+          // Navigate to site detail screen
+          context.pushNamed(
+            'creatorSiteDetail',
+            pathParameters: {'name': pubName, 'siteSlug': site.slug},
+          );
         },
       ),
     );
