@@ -6,7 +6,7 @@ part of 'file_references.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fileReferencesHash() => r'464562fbdc9452d8a5ffbd2d9d9343cdb43f1876';
+String _$fileReferencesHash() => r'd66c678c221f61978bdb242b98e6dbe31d0c204b';
 
 /// Copied from Dart SDK
 class _SystemHash {
