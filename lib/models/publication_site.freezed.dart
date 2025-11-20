@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublicationSite {
 
- String get id; String get slug; String get name; String? get description; String get publisherId; String get accountId; DateTime get createdAt; DateTime get updatedAt; List<SnPublicationPage> get pages;
+ String get id; String get slug; String get name; String? get description; int? get mode; String get publisherId; String get accountId; DateTime get createdAt; DateTime get updatedAt; List<SnPublicationPage> get pages;
 /// Create a copy of SnPublicationSite
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPublicationSiteCopyWith<SnPublicationSite> get copyWith => _$SnPublicationSit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.pages, pages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.pages, pages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(pages));
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(pages));
 
 @override
 String toString() {
-  return 'SnPublicationSite(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, pages: $pages)';
+  return 'SnPublicationSite(id: $id, slug: $slug, name: $name, description: $description, mode: $mode, publisherId: $publisherId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, pages: $pages)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPublicationSiteCopyWith<$Res>  {
   factory $SnPublicationSiteCopyWith(SnPublicationSite value, $Res Function(SnPublicationSite) _then) = _$SnPublicationSiteCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String? description, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages
+ String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages
 });
 
 
@@ -65,13 +65,14 @@ class _$SnPublicationSiteCopyWithImpl<$Res>
 
 /// Create a copy of SnPublicationSite
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? publisherId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? pages = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? mode = freezed,Object? publisherId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? pages = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String?,mode: freezed == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as int?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublicationSite() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublicationSite():
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);}
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -196,10 +197,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublicationSite() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages);case _:
   return null;
 
 }
@@ -211,13 +212,14 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 @JsonSerializable()
 
 class _SnPublicationSite implements SnPublicationSite {
-  const _SnPublicationSite({required this.id, required this.slug, required this.name, this.description, required this.publisherId, required this.accountId, required this.createdAt, required this.updatedAt, required final  List<SnPublicationPage> pages}): _pages = pages;
+  const _SnPublicationSite({required this.id, required this.slug, required this.name, this.description, this.mode, required this.publisherId, required this.accountId, required this.createdAt, required this.updatedAt, required final  List<SnPublicationPage> pages}): _pages = pages;
   factory _SnPublicationSite.fromJson(Map<String, dynamic> json) => _$SnPublicationSiteFromJson(json);
 
 @override final  String id;
 @override final  String slug;
 @override final  String name;
 @override final  String? description;
+@override final  int? mode;
 @override final  String publisherId;
 @override final  String accountId;
 @override final  DateTime createdAt;
@@ -243,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._pages, _pages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._pages, _pages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(_pages));
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(_pages));
 
 @override
 String toString() {
-  return 'SnPublicationSite(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, pages: $pages)';
+  return 'SnPublicationSite(id: $id, slug: $slug, name: $name, description: $description, mode: $mode, publisherId: $publisherId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, pages: $pages)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$SnPublicationSiteCopyWith<$Res> implements $SnPublication
   factory _$SnPublicationSiteCopyWith(_SnPublicationSite value, $Res Function(_SnPublicationSite) _then) = __$SnPublicationSiteCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String? description, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages
+ String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages
 });
 
 
@@ -280,13 +282,14 @@ class __$SnPublicationSiteCopyWithImpl<$Res>
 
 /// Create a copy of SnPublicationSite
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? publisherId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? pages = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? mode = freezed,Object? publisherId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? pages = null,}) {
   return _then(_SnPublicationSite(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String?,mode: freezed == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as int?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

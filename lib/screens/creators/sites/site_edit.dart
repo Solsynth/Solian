@@ -23,6 +23,7 @@ class SiteForm extends HookConsumerWidget {
     final slugController = useTextEditingController();
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
+    final modeController = useState<int>(0); // Default to fully managed (0)
     final isLoading = useState(false);
 
     final saveSite = useCallback(() async {
@@ -36,6 +37,7 @@ class SiteForm extends HookConsumerWidget {
         final payload = <String, dynamic>{
           'slug': slugController.text,
           'name': nameController.text,
+          'mode': modeController.value,
           if (descriptionController.text.isNotEmpty)
             'description': descriptionController.text,
         };
@@ -106,6 +108,7 @@ class SiteForm extends HookConsumerWidget {
             slugController.text = fetchedSite.slug;
             nameController.text = fetchedSite.name;
             descriptionController.text = fetchedSite.description ?? '';
+            modeController.value = fetchedSite.mode ?? 0;
           }
         } catch (e) {
           errorMessage.value = e.toString();
@@ -144,6 +147,7 @@ class SiteForm extends HookConsumerWidget {
                   slugController.text = fetchedSite.slug;
                   nameController.text = fetchedSite.name;
                   descriptionController.text = fetchedSite.description ?? '';
+                  modeController.value = fetchedSite.mode ?? 0;
                 } catch (e) {
                   errorMessage.value = e.toString();
                 } finally {
@@ -212,6 +216,25 @@ class SiteForm extends HookConsumerWidget {
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           maxLines: 3,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<int>(
+          value: modeController.value,
+          decoration: const InputDecoration(
+            labelText: 'Mode',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          items: const [
+            DropdownMenuItem(value: 0, child: Text('Fully Managed')),
+            DropdownMenuItem(value: 1, child: Text('Self-Managed')),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              modeController.value = value;
+            }
+          },
         ),
       ],
     ).padding(all: 20);

@@ -10,6 +10,7 @@ sealed class SnPublicationSite with _$SnPublicationSite {
     required String slug,
     required String name,
     String? description,
+    int? mode,
     required String publisherId,
     required String accountId,
     required DateTime createdAt,

@@ -6,7 +6,7 @@ part of 'site_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$siteListNotifierHash() => r'5cd2d75f13b6e7d4910dc66a24bbd6508fc4175d';
+String _$siteListNotifierHash() => r'1670cadcc0c7ccbd98bc33bbf5b4af21e9cb166c';
 
 /// Copied from Dart SDK
 class _SystemHash {
