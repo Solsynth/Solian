@@ -10,6 +10,13 @@ import 'package:island/widgets/sites/site_detail_content.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:island/widgets/sites/info_row.dart';
+import 'package:island/widgets/sites/pages_section.dart';
+import 'package:island/widgets/sites/file_management_section.dart';
+import 'package:island/services/responsive.dart';
+import 'package:island/services/time.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 part 'site_detail.g.dart';
 
@@ -56,7 +63,103 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
         ],
       ),
       body: siteAsync.when(
-        data: (site) => SiteDetailContent(site: site, pubName: pubName),
+        data: (site) {
+          final theme = Theme.of(context);
+          if (isWideScreen(context)) {
+            return ExtendedRefreshIndicator(
+              onRefresh:
+                  () async => ref.invalidate(
+                    publicationSiteDetailProvider(pubName, site.slug),
+                  ),
+              child: Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PagesSection(site: site, pubName: pubName),
+                          FileManagementSection(site: site, pubName: pubName),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Site Information',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Gap(16),
+                              InfoRow(
+                                label: 'Name',
+                                value: site.name,
+                                icon: Symbols.title,
+                              ),
+                              const Gap(8),
+                              InfoRow(
+                                label: 'Slug',
+                                value: site.slug,
+                                icon: Symbols.tag,
+                                monospace: true,
+                              ),
+                              const Gap(8),
+                              InfoRow(
+                                label: 'Mode',
+                                value:
+                                    site.mode == 0
+                                        ? 'Fully Managed'
+                                        : 'Self-Managed',
+                                icon: Symbols.settings,
+                              ),
+                              if (site.description != null &&
+                                  site.description!.isNotEmpty) ...[
+                                const Gap(8),
+                                InfoRow(
+                                  label: 'Description',
+                                  value: site.description!,
+                                  icon: Symbols.description,
+                                ),
+                              ],
+                              const Gap(8),
+                              InfoRow(
+                                label: 'Created',
+                                value: site.createdAt.formatSystem(),
+                                icon: Symbols.calendar_add_on,
+                              ),
+                              const Gap(8),
+                              InfoRow(
+                                label: 'Updated',
+                                value: site.updatedAt.formatSystem(),
+                                icon: Symbols.update,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 12),
+            );
+          } else {
+            return SiteDetailContent(site: site, pubName: pubName);
+          }
+        },
         error:
             (error, stack) => Center(
               child: Column(
