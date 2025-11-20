@@ -51,7 +51,10 @@ class SheetScaffold extends StatelessWidget {
                 const Spacer(),
                 ...actions,
                 IconButton(
-                  icon: const Icon(Symbols.close),
+                  icon: Icon(
+                    Symbols.close,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                   onPressed:
                       () =>
                           onClose != null
