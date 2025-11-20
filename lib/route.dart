@@ -43,6 +43,7 @@ import 'package:island/screens/stickers/pack_detail.dart';
 import 'package:island/screens/discovery/feeds/feed_marketplace.dart';
 import 'package:island/screens/discovery/feeds/feed_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
+import 'package:island/screens/creators/sites/site_list.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/compose_article.dart';
@@ -482,6 +483,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
                       return CreatorPollListScreen(pubName: name);
+                    },
+                  ),
+                  // Site list route
+                  GoRoute(
+                    name: 'creatorSites',
+                    path: ':name/sites',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return CreatorSiteListScreen(pubName: name);
                     },
                   ),
 

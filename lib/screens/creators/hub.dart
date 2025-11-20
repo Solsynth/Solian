@@ -408,6 +408,21 @@ class CreatorHubScreen extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
+          title: Text('publicationSites').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.web),
+          onTap: () {
+            context.pushNamed(
+              'creatorSites',
+              pathParameters: {'name': currentPublisher.value!.name},
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
           title: const Text('webFeeds').tr(),
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.rss_feed),
@@ -585,7 +600,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                                     ).padding(horizontal: 12),
                                   buildNavigationWidget(true),
                                 ],
-                              )
+                              ).padding(vertical: 24)
                               : Column(
                                 spacing: 12,
                                 children: [
