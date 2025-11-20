@@ -169,6 +169,7 @@ dependencies:
   convert: ^3.1.2
   desktop_drop: ^0.7.0
   flutter_animate: ^4.5.2
+  http_parser: ^4.1.2
 
 dev_dependencies:
   flutter_test:
