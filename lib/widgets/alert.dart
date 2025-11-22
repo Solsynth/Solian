@@ -39,36 +39,51 @@ OverlayEntry? _loadingOverlay;
 GlobalKey<_FadeOverlayState> _loadingOverlayKey = GlobalKey();
 
 class _FadeOverlay extends StatefulWidget {
-  const _FadeOverlay({super.key, required this.child});
-  final Widget child;
+  const _FadeOverlay({
+    super.key,
+    this.child,
+    this.builder,
+    this.duration = const Duration(milliseconds: 200),
+    this.curve = Curves.linear,
+  }) : assert(child != null || builder != null);
+
+  final Widget? child;
+  final Widget Function(BuildContext, Animation<double>)? builder;
+  final Duration duration;
+  final Curve curve;
 
   @override
   State<_FadeOverlay> createState() => _FadeOverlayState();
 }
 
-class _FadeOverlayState extends State<_FadeOverlay> {
-  bool _visible = false;
+class _FadeOverlayState extends State<_FadeOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() => _visible = true);
-    });
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> animateOut() async {
-    setState(() => _visible = false);
-    await Future.delayed(const Duration(milliseconds: 200));
+    await _controller.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: _visible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: widget.child,
-    );
+    final animation = CurvedAnimation(parent: _controller, curve: widget.curve);
+    if (widget.builder != null) {
+      return widget.builder!(context, animation);
+    }
+    return FadeTransition(opacity: animation, child: widget.child);
   }
 }
 
@@ -166,18 +181,36 @@ Future<T?> showOverlayDialog<T>({
     builder:
         (context) => _FadeOverlay(
           key: key,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: barrierDismissible ? () => close(null) : null,
-                  behavior: HitTestBehavior.opaque,
-                  child: const ColoredBox(color: Colors.black54),
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          builder: (context, animation) {
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: GestureDetector(
+                      onTap: barrierDismissible ? () => close(null) : null,
+                      behavior: HitTestBehavior.opaque,
+                      child: const ColoredBox(color: Colors.black54),
+                    ),
+                  ),
                 ),
-              ),
-              Center(child: builder(context, close)),
-            ],
-          ),
+                Center(
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.05),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: builder(context, close),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
   );
 
