@@ -62,7 +62,7 @@ class SitePagesNotifier
       final newPage = SnPublicationPage.fromJson(resp.data);
 
       // Refresh the pages list
-      ref.invalidateSelf();
+      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
 
       return newPage;
     } catch (error, stackTrace) {
@@ -85,7 +85,7 @@ class SitePagesNotifier
       final updatedPage = SnPublicationPage.fromJson(resp.data);
 
       // Refresh the pages list
-      ref.invalidateSelf();
+      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
 
       return updatedPage;
     } catch (error, stackTrace) {
@@ -101,7 +101,7 @@ class SitePagesNotifier
       await apiClient.delete('/zone/sites/pages/$pageId');
 
       // Refresh the pages list
-      ref.invalidateSelf();
+      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;

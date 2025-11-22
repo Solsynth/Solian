@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/site_pages.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/sites/page_form.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -104,19 +105,9 @@ class PageItem extends HookConsumerWidget {
                           )).notifier,
                         )
                         .deletePage(page.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Page deleted successfully'),
-                        ),
-                      );
-                    }
+                    showSnackBar('Page deleted successfully');
                   } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to delete page')),
-                      );
-                    }
+                    showErrorAlert(e);
                   }
                 }
                 break;

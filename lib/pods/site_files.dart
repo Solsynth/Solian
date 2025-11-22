@@ -87,7 +87,7 @@ class SiteFilesNotifier
       );
 
       // Refresh the files list
-      ref.invalidateSelf();
+      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -104,7 +104,7 @@ class SiteFilesNotifier
       );
 
       // Refresh the files list
-      ref.invalidateSelf();
+      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -120,7 +120,7 @@ class SiteFilesNotifier
       );
 
       // Refresh the files list
-      ref.invalidateSelf();
+      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -131,7 +131,7 @@ class SiteFilesNotifier
     // For directories, we upload a dummy file first then delete it or create through upload
     // Actually, according to API docs, directories are created when uploading files to them
     // So we'll just invalidate to refresh the list
-    ref.invalidateSelf();
+    ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
   }
 }
 

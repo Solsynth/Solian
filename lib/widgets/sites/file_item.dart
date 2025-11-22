@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/site_file.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/site_files.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -116,19 +117,9 @@ class FileItem extends HookConsumerWidget {
                           )).notifier,
                         )
                         .deleteFile(file.relativePath);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('File deleted successfully'),
-                        ),
-                      );
-                    }
+                    showSnackBar('File deleted successfully');
                   } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to delete file')),
-                      );
-                    }
+                    showErrorAlert(e);
                   }
                 }
                 break;
