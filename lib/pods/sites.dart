@@ -45,7 +45,7 @@ class SiteNotifier
       final response =
           site.id.isEmpty
               ? await client.post(url, data: site.toJson())
-              : await client.patch('${url}/${site.id}', data: site.toJson());
+              : await client.patch('$url/${site.id}', data: site.toJson());
 
       state = AsyncValue.data(SnPublicationSite.fromJson(response.data));
     } catch (error, stackTrace) {

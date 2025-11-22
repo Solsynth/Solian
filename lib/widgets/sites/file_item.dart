@@ -11,8 +11,14 @@ import 'package:styled_widget/styled_widget.dart';
 class FileItem extends HookConsumerWidget {
   final SnSiteFileEntry file;
   final SnPublicationSite site;
+  final void Function(String path)? onNavigateDirectory;
 
-  const FileItem({super.key, required this.file, required this.site});
+  const FileItem({
+    super.key,
+    required this.file,
+    required this.site,
+    this.onNavigateDirectory,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -128,12 +134,7 @@ class FileItem extends HookConsumerWidget {
         ),
         onTap: () {
           if (file.isDirectory) {
-            // TODO: Navigate into directory
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Opening directory: ${file.relativePath}'),
-              ),
-            );
+            onNavigateDirectory?.call(file.relativePath);
           } else {
             // TODO: Open file preview/editor
             ScaffoldMessenger.of(context).showSnackBar(
