@@ -12,12 +12,14 @@ class FileUploadDialog extends HookConsumerWidget {
   final List<File> selectedFiles;
   final SnPublicationSite site;
   final VoidCallback onUploadComplete;
+  final List<String>? relativePaths;
 
   const FileUploadDialog({
     super.key,
     required this.selectedFiles,
     required this.site,
     required this.onUploadComplete,
+    this.relativePaths,
   });
 
   @override
@@ -29,7 +31,9 @@ class FileUploadDialog extends HookConsumerWidget {
       selectedFiles
           .map(
             (file) => {
-              'fileName': file.path.split('/').last,
+              'fileName':
+                  relativePaths?[selectedFiles.indexOf(file)] ??
+                  file.path.split('/').last,
               'progress': 0.0,
               'status':
                   'pending', // 'pending', 'uploading', 'completed', 'error'
@@ -38,6 +42,26 @@ class FileUploadDialog extends HookConsumerWidget {
           )
           .toList(),
     );
+
+    // Calculate overall progress
+    final overallProgress =
+        progressStates.value.isNotEmpty
+            ? progressStates.value
+                    .map((e) => e['progress'] as double)
+                    .reduce((a, b) => a + b) /
+                progressStates.value.length
+            : 0.0;
+
+    final overallStatus =
+        progressStates.value.isEmpty
+            ? 'pending'
+            : progressStates.value.every((e) => e['status'] == 'completed')
+            ? 'completed'
+            : progressStates.value.any((e) => e['status'] == 'error')
+            ? 'error'
+            : progressStates.value.any((e) => e['status'] == 'uploading')
+            ? 'uploading'
+            : 'pending';
 
     final uploadFile = useCallback((
       String basePath,
@@ -52,7 +76,7 @@ class FileUploadDialog extends HookConsumerWidget {
           siteFilesNotifierProvider((siteId: site.id, path: null)).notifier,
         );
 
-        final fileName = file.path.split('/').last;
+        final fileName = relativePaths?[index] ?? file.path.split('/').last;
         final uploadPath =
             basePath.endsWith('/')
                 ? '$basePath$fileName'
@@ -91,7 +115,6 @@ class FileUploadDialog extends HookConsumerWidget {
         }
 
         isUploading.value = false;
-        onUploadComplete();
 
         // Close dialog if all uploads completed successfully
         if (progressStates.value.every(
@@ -101,6 +124,7 @@ class FileUploadDialog extends HookConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('All files uploaded successfully')),
             );
+            onUploadComplete();
             Navigator.of(context).pop();
           }
         }
@@ -154,133 +178,57 @@ class FileUploadDialog extends HookConsumerWidget {
                 onTapOutside:
                     (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
-              const Gap(20),
-              Text(
-                'Ready to upload ${selectedFiles.length} file${selectedFiles.length == 1 ? '' : 's'}:',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
               const Gap(16),
-              ...selectedFiles.map((file) {
-                final index = selectedFiles.indexOf(file);
-                final progressState = progressStates.value[index];
-                final fileName = file.path.split('/').last;
-                final fileSize = file.lengthSync();
-                final fileSizeText =
-                    fileSize < 1024 * 1024
-                        ? '${(fileSize / 1024).toStringAsFixed(1)} KB'
-                        : '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Symbols.description,
-                              size: 20,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const Gap(8),
-                            Expanded(
-                              child: Text(
-                                fileName,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              fileSizeText,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (progressState['status'] == 'uploading') ...[
-                          const Gap(8),
-                          LinearProgressIndicator(
-                            value: progressState['progress'],
-                            backgroundColor:
-                                Theme.of(context).colorScheme.surfaceVariant,
-                          ),
-                          const Gap(4),
+              Card(
+                child: Column(
+                  children: [
+                    // Overall progress
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Uploading... ${(progressState['progress'] * 100).toStringAsFixed(0)}%',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            '${(overallProgress * 100).toStringAsFixed(0)}% completed',
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
-                        ] else if (progressState['status'] == 'completed') ...[
                           const Gap(8),
-                          Row(
-                            children: [
-                              Icon(
-                                Symbols.check_circle,
-                                color: Colors.green,
-                                size: 16,
-                              ),
-                              const Gap(4),
-                              Text(
-                                'Completed',
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else if (progressState['status'] == 'error') ...[
-                          const Gap(8),
-                          Row(
-                            children: [
-                              Icon(Symbols.error, color: Colors.red, size: 16),
-                              const Gap(4),
-                              Expanded(
-                                child: Text(
-                                  progressState['error'] ?? 'Upload failed',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        // Show the final upload path when not uploading
-                        if (!isUploading.value &&
-                            progressState['status'] != 'uploading') ...[
+                          LinearProgressIndicator(value: overallProgress),
                           const Gap(8),
                           Text(
-                            'Will upload to: ${pathController.text.endsWith('/') ? pathController.text : '${pathController.text}/'}$fileName',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                            ),
+                            _getOverallStatusText(overallStatus),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                    // Divider
+                    const Divider(height: 0),
+                    // File list in expansion
+                    ExpansionTile(
+                      title: Text('${selectedFiles.length} files to upload'),
+                      initiallyExpanded: selectedFiles.length <= 10,
+                      children:
+                          selectedFiles.map((file) {
+                            final index = selectedFiles.indexOf(file);
+                            final progressState = progressStates.value[index];
+                            final displayName =
+                                progressState['fileName'] as String;
+                            return ListTile(
+                              leading: _getStatusIcon(
+                                progressState['status'] as String,
+                              ),
+                              title: Text(displayName),
+                              subtitle: Text(
+                                'Size: ${(file.lengthSync() / 1024).toStringAsFixed(1)} KB',
+                              ),
+                              dense: true,
+                            );
+                          }).toList(),
+                    ),
+                  ],
+                ),
+              ),
               const Gap(24),
               Row(
                 children: [
@@ -311,5 +259,31 @@ class FileUploadDialog extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Icon _getStatusIcon(String status) {
+    switch (status) {
+      case 'completed':
+        return const Icon(Symbols.check_circle, color: Colors.green);
+      case 'uploading':
+        return const Icon(Symbols.sync);
+      case 'error':
+        return const Icon(Symbols.error, color: Colors.red);
+      default:
+        return const Icon(Symbols.pending);
+    }
+  }
+
+  String _getOverallStatusText(String status) {
+    switch (status) {
+      case 'completed':
+        return 'All uploads completed';
+      case 'error':
+        return 'Some uploads failed';
+      case 'uploading':
+        return 'Uploading in progress';
+      default:
+        return 'Ready to upload';
+    }
   }
 }
