@@ -6,6 +6,7 @@ import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/sites/site_detail.dart';
 import 'package:island/screens/creators/sites/site_edit.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -85,18 +86,11 @@ class SiteActionMenu extends HookConsumerWidget {
                 final client = ref.read(apiClientProvider);
                 await client.delete('/zone/sites/${site.id}');
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Site deleted successfully')),
-                  );
-                  // Navigate back to list
+                  showSnackBar('Site deleted successfully');
                   Navigator.of(context).pop();
                 }
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to delete site')),
-                  );
-                }
+                showErrorAlert(e);
               }
             }
             break;

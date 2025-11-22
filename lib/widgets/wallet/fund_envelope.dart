@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -244,20 +245,10 @@ class FundEnvelopeWidget extends HookConsumerWidget {
 
                 if (dialogContext.mounted) {
                   Navigator.of(dialogContext).pop();
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(content: Text('Fund claimed successfully!'.tr())),
-                  );
+                  showSnackBar('Fund claimed successfully!');
                 }
               } catch (e) {
-                if (dialogContext.mounted) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to claim fund: $e'),
-                      backgroundColor:
-                          Theme.of(dialogContext).colorScheme.error,
-                    ),
-                  );
-                }
+                showErrorAlert(e);
               }
             },
           ),

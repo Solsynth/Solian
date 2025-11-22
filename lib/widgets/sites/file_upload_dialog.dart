@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/site_files.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -121,9 +122,7 @@ class FileUploadDialog extends HookConsumerWidget {
           (state) => state['status'] == 'completed',
         )) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('All files uploaded successfully')),
-            );
+            showSnackBar('All files uploaded successfully');
             onUploadComplete();
             Navigator.of(context).pop();
           }

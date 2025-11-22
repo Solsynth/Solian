@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/site_pages.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -127,23 +128,15 @@ class PageForm extends HookConsumerWidget {
         }
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                page == null
-                    ? 'Page created successfully'
-                    : 'Page updated successfully',
-              ),
-            ),
+          showSnackBar(
+            page == null
+                ? 'Page created successfully'
+                : 'Page updated successfully',
           );
           Navigator.pop(context);
         }
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save page: ${e.toString()}')),
-          );
-        }
+        showErrorAlert(e);
       } finally {
         isLoading.value = false;
       }
@@ -185,17 +178,11 @@ class PageForm extends HookConsumerWidget {
         await pagesNotifier.deletePage(page!.id);
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Page deleted successfully')),
-          );
+          showSnackBar('Page deleted successfully');
           Navigator.pop(context);
         }
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to delete page')),
-          );
-        }
+        showErrorAlert(e);
       } finally {
         isLoading.value = false;
       }

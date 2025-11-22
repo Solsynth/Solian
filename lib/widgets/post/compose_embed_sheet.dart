@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -56,9 +57,7 @@ class ComposeEmbedSheet extends HookConsumerWidget {
     void saveEmbedView() {
       final uri = uriController.text.trim();
       if (uri.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('embedUriRequired'.tr())));
+        showSnackBar('embedUriRequired'.tr());
         return;
       }
 

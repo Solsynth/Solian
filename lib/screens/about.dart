@@ -384,9 +384,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
               icon: const Icon(Symbols.content_copy, size: 16),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: value));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('copiedToClipboard'.tr())),
-                );
+                showSnackBar('copiedToClipboard'.tr());
               },
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
