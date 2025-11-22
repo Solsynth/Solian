@@ -631,12 +631,33 @@ class CustomReactionForm extends HookConsumerWidget {
               ),
               suffixIcon: InkWell(
                 onTapDown: (details) async {
+                  final screenSize = MediaQuery.sizeOf(context);
+                  const popoverWidth = 500.0;
+                  const popoverHeight = 500.0;
+                  const padding = 20.0;
+
+                  // Calculate safe horizontal position (centered, but within bounds)
+                  final maxHorizontalOffset = math.max(
+                    padding,
+                    screenSize.width - popoverWidth - padding,
+                  );
+                  final horizontalOffset = ((screenSize.width - popoverWidth) /
+                          2)
+                      .clamp(padding, maxHorizontalOffset);
+
+                  // Calculate safe vertical position (bottom-aligned, but within bounds)
+                  final maxVerticalOffset = math.max(
+                    padding,
+                    screenSize.height - popoverHeight - padding,
+                  );
+                  final verticalOffset = (screenSize.height -
+                          popoverHeight -
+                          padding)
+                      .clamp(padding, maxVerticalOffset);
+
                   await showStickerPickerPopover(
                     context,
-                    Offset(
-                      (MediaQuery.sizeOf(context).width - 500) / 2,
-                      MediaQuery.sizeOf(context).height - 500,
-                    ),
+                    Offset(horizontalOffset, verticalOffset),
                     alignment: Alignment.topLeft,
                     onPick: (placeholder) {
                       // Remove the surrounding : from the placeholder
