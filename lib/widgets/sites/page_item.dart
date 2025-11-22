@@ -8,6 +8,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/sites/page_form.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class PageItem extends HookConsumerWidget {
   final SnPublicationPage page;
@@ -115,10 +116,7 @@ class PageItem extends HookConsumerWidget {
           },
         ),
         onTap: () {
-          // TODO: Open page preview or edit
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Opening page: ${page.path ?? '/'}')),
-          );
+          launchUrlString('https://${site.slug}.solian.page${page.path ?? ''}');
         },
       ),
     );
