@@ -67,7 +67,9 @@ class CallContent extends HookConsumerWidget {
     if (mainSpeakers.isEmpty && participants.isNotEmpty) {
       mainSpeakers.add(participants.first);
     }
-    return Column(
+    return Wrap(
+      alignment: WrapAlignment.center,
+      runAlignment: WrapAlignment.center,
       children: [
         for (final speaker in mainSpeakers)
           Expanded(child: CallParticipantTile(live: speaker)),
