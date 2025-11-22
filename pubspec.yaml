@@ -73,10 +73,10 @@ dependencies:
     git: https://github.com/LittleSheep2Code/tus_client.git
   cross_file: ^0.3.5+1
   image_picker: ^1.2.1
-  file_picker: ^10.3.6
+  file_picker: ^10.3.7
   riverpod_annotation: ^2.6.1
   image_picker_platform_interface: ^2.11.1
-  image_picker_android: ^0.8.13+9
+  image_picker_android: ^0.8.13+10
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
   firebase_messaging: ^16.0.4
@@ -117,7 +117,7 @@ dependencies:
   flutter_timezone: ^5.0.1
   fl_chart: ^1.1.1
   sign_in_with_apple: ^7.0.1
-  flutter_svg: ^2.2.2
+  flutter_svg: ^2.2.3
   native_exif: ^0.6.2
   local_auth: ^3.0.0
   flutter_secure_storage: ^9.2.4
@@ -155,10 +155,10 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  talker: ^5.0.2
-  talker_flutter: ^5.0.2
-  talker_logger: ^5.0.2
-  talker_dio_logger: ^5.0.2
+  talker: ^5.1.0
+  talker_flutter: ^5.1.0
+  talker_logger: ^5.1.0
+  talker_dio_logger: ^5.1.0
   talker_riverpod_logger: ^5.0.1
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
