@@ -13,6 +13,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/widgets/sites/info_row.dart';
 import 'package:island/widgets/sites/pages_section.dart';
 import 'package:island/widgets/sites/file_management_section.dart';
+import 'package:island/widgets/sites/file_management_action_section.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
@@ -94,76 +95,86 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                     flex: 2,
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Site Information',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Site Information',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const Gap(16),
+                                  InfoRow(
+                                    label: 'Name',
+                                    value: site.name,
+                                    icon: Symbols.title,
+                                  ),
+                                  const Gap(8),
+                                  InfoRow(
+                                    label: 'Slug',
+                                    value: site.slug,
+                                    icon: Symbols.tag,
+                                    monospace: true,
+                                  ),
+                                  const Gap(8),
+                                  InfoRow(
+                                    label: 'Domain',
+                                    value: '${site.slug}.solian.page',
+                                    icon: Symbols.globe,
+                                    monospace: true,
+                                    onTap: () {
+                                      final url =
+                                          'https://${site.slug}.solian.page';
+                                      launchUrlString(url);
+                                    },
+                                  ),
+                                  const Gap(8),
+                                  InfoRow(
+                                    label: 'Mode',
+                                    value:
+                                        site.mode == 0
+                                            ? 'Fully Managed'
+                                            : 'Self-Managed',
+                                    icon: Symbols.settings,
+                                  ),
+                                  if (site.description != null &&
+                                      site.description!.isNotEmpty) ...[
+                                    const Gap(8),
+                                    InfoRow(
+                                      label: 'Description',
+                                      value: site.description!,
+                                      icon: Symbols.description,
+                                    ),
+                                  ],
+                                  const Gap(8),
+                                  InfoRow(
+                                    label: 'Created',
+                                    value: site.createdAt.formatSystem(),
+                                    icon: Symbols.calendar_add_on,
+                                  ),
+                                  const Gap(8),
+                                  InfoRow(
+                                    label: 'Updated',
+                                    value: site.updatedAt.formatSystem(),
+                                    icon: Symbols.update,
+                                  ),
+                                ],
                               ),
-                              const Gap(16),
-                              InfoRow(
-                                label: 'Name',
-                                value: site.name,
-                                icon: Symbols.title,
-                              ),
-                              const Gap(8),
-                              InfoRow(
-                                label: 'Slug',
-                                value: site.slug,
-                                icon: Symbols.tag,
-                                monospace: true,
-                              ),
-                              const Gap(8),
-                              InfoRow(
-                                label: 'Domain',
-                                value: '${site.slug}.solian.page',
-                                icon: Symbols.globe,
-                                monospace: true,
-                                onTap: () {
-                                  final url =
-                                      'https://${site.slug}.solian.page';
-                                  launchUrlString(url);
-                                },
-                              ),
-                              const Gap(8),
-                              InfoRow(
-                                label: 'Mode',
-                                value:
-                                    site.mode == 0
-                                        ? 'Fully Managed'
-                                        : 'Self-Managed',
-                                icon: Symbols.settings,
-                              ),
-                              if (site.description != null &&
-                                  site.description!.isNotEmpty) ...[
-                                const Gap(8),
-                                InfoRow(
-                                  label: 'Description',
-                                  value: site.description!,
-                                  icon: Symbols.description,
-                                ),
-                              ],
-                              const Gap(8),
-                              InfoRow(
-                                label: 'Created',
-                                value: site.createdAt.formatSystem(),
-                                icon: Symbols.calendar_add_on,
-                              ),
-                              const Gap(8),
-                              InfoRow(
-                                label: 'Updated',
-                                value: site.updatedAt.formatSystem(),
-                                icon: Symbols.update,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                          const Gap(8),
+                          if (site.mode == 1) // Self-Managed only
+                            FileManagementActionSection(
+                              site: site,
+                              pubName: pubName,
+                            ),
+                        ],
                       ),
                     ),
                   ),
