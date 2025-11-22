@@ -846,7 +846,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/sphere/publishers/$publisherUname/invites',
+          '/sphere/publishers/invites/$publisherUname',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh both providers
@@ -1134,7 +1134,7 @@ class _PublisherInviteSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/publishers/invites/${invite.publisher!.name}/accept',
+          '/sphere/publishers/invites/${invite.publisher!.name}/accept',
         );
         ref.invalidate(publisherInvitesProvider);
         ref.invalidate(publishersManagedProvider);
@@ -1147,7 +1147,7 @@ class _PublisherInviteSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/publishers/invites/${invite.publisher!.name}/decline',
+          '/sphere/publishers/invites/${invite.publisher!.name}/decline',
         );
         ref.invalidate(publisherInvitesProvider);
       } catch (err) {

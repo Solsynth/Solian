@@ -206,7 +206,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
                               },
                               child: Container(
                                 height: 12,
-                                margin: const EdgeInsets.all(0.5),
+                                margin: const EdgeInsets.all(1),
                                 decoration: BoxDecoration(
                                   color: getActivityColor(value),
                                   borderRadius: BorderRadius.circular(2),

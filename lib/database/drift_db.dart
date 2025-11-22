@@ -360,21 +360,41 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> saveChatRooms(List<SnChatRoom> rooms) async {
-    await batch((batch) {
-      for (final room in rooms) {
-        batch.insert(
-          chatRooms,
-          companionFromRoom(room),
-          mode: InsertMode.insertOrReplace,
-        );
-        for (final member in room.members ?? []) {
+    await transaction(() async {
+      // 1. Identify rooms to remove
+      final remoteRoomIds = rooms.map((r) => r.id).toSet();
+      final currentRooms = await select(chatRooms).get();
+      final currentRoomIds = currentRooms.map((r) => r.id).toSet();
+      final idsToRemove = currentRoomIds.difference(remoteRoomIds);
+
+      if (idsToRemove.isNotEmpty) {
+        final idsList = idsToRemove.toList();
+        // Remove messages
+        await (delete(chatMessages)..where((t) => t.roomId.isIn(idsList))).go();
+        // Remove members
+        await (delete(chatMembers)
+          ..where((t) => t.chatRoomId.isIn(idsList))).go();
+        // Remove rooms
+        await (delete(chatRooms)..where((t) => t.id.isIn(idsList))).go();
+      }
+
+      // 2. Upsert remote rooms
+      await batch((batch) {
+        for (final room in rooms) {
           batch.insert(
-            chatMembers,
-            companionFromMember(member),
+            chatRooms,
+            companionFromRoom(room),
             mode: InsertMode.insertOrReplace,
           );
+          for (final member in room.members ?? []) {
+            batch.insert(
+              chatMembers,
+              companionFromMember(member),
+              mode: InsertMode.insertOrReplace,
+            );
+          }
         }
-      }
+      });
     });
   }
 
