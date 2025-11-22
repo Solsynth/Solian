@@ -130,6 +130,17 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       return;
     }
 
+    // Special handling for share intent deep links
+    // Share intents are handled by SharingIntentService showing a modal,
+    // not by routing to a page
+    if (path == '/share') {
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
     final router = ref.read(routerProvider);
     if (uri.queryParameters.isNotEmpty) {
       path =
