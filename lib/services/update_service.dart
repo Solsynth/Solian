@@ -82,12 +82,32 @@ class _ParsedVersion implements Comparable<_ParsedVersion> {
     return _ParsedVersion(major, minor, patch, build);
   }
 
+  /// Normalize Android build numbers by removing architecture-based offsets
+  /// Android adds 1000 for x86, 2000 for ARMv7, 4000 for ARMv8
+  int get normalizedBuild {
+    // Check if build number has an architecture offset
+    // We detect this by checking if the build % 1000 is the base build
+    if (build >= 4000) {
+      // Likely ARMv8 (arm64-v8a) with +4000 offset
+      return build % 4000;
+    } else if (build >= 2000) {
+      // Likely ARMv7 (armeabi-v7a) with +2000 offset
+      return build % 2000;
+    } else if (build >= 1000) {
+      // Likely x86/x86_64 with +1000 offset
+      return build % 1000;
+    }
+    // No offset, return as-is
+    return build;
+  }
+
   @override
   int compareTo(_ParsedVersion other) {
     if (major != other.major) return major.compareTo(other.major);
     if (minor != other.minor) return minor.compareTo(other.minor);
     if (patch != other.patch) return patch.compareTo(other.patch);
-    return build.compareTo(other.build);
+    // Use normalized build numbers for comparison to handle Android arch offsets
+    return normalizedBuild.compareTo(other.normalizedBuild);
   }
 
   @override
@@ -244,13 +264,14 @@ class UpdateService {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _WindowsUpdateDialog(
-        updateUrl: url,
-        onComplete: () {
-          // Close the update sheet
-          Navigator.of(context).pop();
-        },
-      ),
+      builder:
+          (context) => _WindowsUpdateDialog(
+            updateUrl: url,
+            onComplete: () {
+              // Close the update sheet
+              Navigator.of(context).pop();
+            },
+          ),
     );
   }
 
@@ -321,7 +342,9 @@ class _WindowsUpdateDialog extends StatefulWidget {
 
 class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
   final ValueNotifier<double?> progressNotifier = ValueNotifier<double?>(null);
-  final ValueNotifier<String> messageNotifier = ValueNotifier<String>('Downloading installer...');
+  final ValueNotifier<String> messageNotifier = ValueNotifier<String>(
+    'Downloading installer...',
+  );
 
   @override
   void initState() {
@@ -392,16 +415,17 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
     Navigator.of(context).pop();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Failed'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Update Failed'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -458,7 +482,9 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       );
 
       if (response.statusCode == 200) {
-        talker.info('[Update] Windows installer downloaded successfully to: $filePath');
+        talker.info(
+          '[Update] Windows installer downloaded successfully to: $filePath',
+        );
         return filePath;
       } else {
         talker.error(
@@ -500,7 +526,9 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
         }
       }
 
-      talker.info('[Update] Windows installer extracted successfully to: $extractDir');
+      talker.info(
+        '[Update] Windows installer extracted successfully to: $extractDir',
+      );
       return extractDir;
     } catch (e) {
       talker.error('[Update] Error extracting Windows installer: $e');
@@ -514,10 +542,11 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       talker.info('[Update] Running Windows installer from: $extractDir');
 
       final dir = Directory(extractDir);
-      final exeFiles = dir
-          .listSync()
-          .where((f) => f is File && f.path.endsWith('.exe'))
-          .toList();
+      final exeFiles =
+          dir
+              .listSync()
+              .where((f) => f is File && f.path.endsWith('.exe'))
+              .toList();
 
       if (exeFiles.isEmpty) {
         talker.info('[Update] No .exe file found in extracted directory');
