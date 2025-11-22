@@ -217,7 +217,9 @@ class CallNotifier extends _$CallNotifier {
 
   Future<void> joinRoom(SnChatRoom room) async {
     var roomId = room.id;
-    if (_roomId == roomId && _room != null) {
+    if (_roomId == roomId &&
+        _room != null &&
+        _room?.connectionState == lk.ConnectionState.connected) {
       talker.info('[Call] Call skipped. Already has data');
       return;
     } else if (_room != null) {
