@@ -1,11 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/site_file.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/site_files.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class FileItem extends HookConsumerWidget {
@@ -19,6 +26,85 @@ class FileItem extends HookConsumerWidget {
     required this.site,
     this.onNavigateDirectory,
   });
+
+  Future<void> _downloadFile(BuildContext context, WidgetRef ref) async {
+    try {
+      final apiClient = ref.read(apiClientProvider);
+
+      // Get downloads directory
+      Directory? directory;
+      if (Platform.isAndroid) {
+        directory = await getExternalStorageDirectory();
+        if (directory != null) {
+          directory = Directory('${directory.path}/Download');
+        }
+      } else {
+        directory = await getDownloadsDirectory();
+      }
+
+      if (directory == null) {
+        throw Exception('Unable to access downloads directory');
+      }
+
+      // Create directory if it doesn't exist
+      await directory.create(recursive: true);
+
+      // Generate file path
+      final fileName = file.relativePath.split('/').last;
+      final filePath = '${directory.path}/$fileName';
+
+      // Use Dio's download method to directly stream from server to file
+      await apiClient.download(
+        '/zone/sites/${site.id}/files/content/${file.relativePath}',
+        filePath,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Downloaded to $filePath')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to download file: $e')));
+      }
+    }
+  }
+
+  Future<void> _showEditSheet(BuildContext context, WidgetRef ref) async {
+    try {
+      final fileContent = await ref.read(
+        siteFileContentProvider(
+          siteId: site.id,
+          relativePath: file.relativePath,
+        ).future,
+      );
+
+      if (context.mounted) {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: false,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height,
+          ),
+          barrierColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          builder: (BuildContext context) {
+            return FileEditorSheet(
+              file: file,
+              site: site,
+              initialContent: fileContent.content,
+            );
+          },
+        );
+      }
+    } catch (e) {
+      showErrorAlert(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -80,16 +166,10 @@ class FileItem extends HookConsumerWidget {
           onSelected: (value) async {
             switch (value) {
               case 'download':
-                // TODO: Implement file download
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Downloading ${file.relativePath}')),
-                );
+                await _downloadFile(context, ref);
                 break;
               case 'edit':
-                // TODO: Implement file editing
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Editing ${file.relativePath}')),
-                );
+                await _showEditSheet(context, ref);
                 break;
               case 'delete':
                 final confirmed = await showDialog<bool>(
@@ -136,12 +216,88 @@ class FileItem extends HookConsumerWidget {
           if (file.isDirectory) {
             onNavigateDirectory?.call(file.relativePath);
           } else {
-            // TODO: Open file preview/editor
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Opening file: ${file.relativePath}')),
-            );
+            _showEditSheet(context, ref);
           }
         },
+      ),
+    );
+  }
+}
+
+class FileEditorSheet extends HookConsumerWidget {
+  final SnSiteFileEntry file;
+  final SnPublicationSite site;
+  final String initialContent;
+
+  const FileEditorSheet({
+    super.key,
+    required this.file,
+    required this.site,
+    required this.initialContent,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final codeController = useMemoized(
+      () => CodeController(
+        text: initialContent,
+        language: null, // Let the editor auto-detect or use plain text
+      ),
+    );
+    final isSaving = useState(false);
+
+    final saveFile = useCallback(() async {
+      if (codeController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Content cannot be empty')),
+        );
+        return;
+      }
+
+      isSaving.value = true;
+      try {
+        await ref
+            .read(
+              siteFilesNotifierProvider((siteId: site.id, path: null)).notifier,
+            )
+            .updateFileContent(file.relativePath, codeController.text);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File saved successfully')),
+          );
+          Navigator.of(context).pop();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to save file: $e')));
+        }
+      } finally {
+        isSaving.value = false;
+      }
+    }, [codeController, ref, site.id, file.relativePath, context, isSaving]);
+
+    return SheetScaffold(
+      heightFactor: 1,
+      titleText: 'Edit ${file.relativePath}',
+      actions: [
+        FilledButton(
+          onPressed: isSaving.value ? null : saveFile,
+          child: Text(isSaving.value ? 'Saving...' : 'Save'),
+        ),
+      ],
+      child: SingleChildScrollView(
+        padding: EdgeInsets.zero,
+        child: CodeTheme(
+          data: CodeThemeData(styles: monokaiSublimeTheme),
+          child: CodeField(
+            controller: codeController,
+            minLines: 20,
+            maxLines: null,
+          ),
+        ),
       ),
     );
   }

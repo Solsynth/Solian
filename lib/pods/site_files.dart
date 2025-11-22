@@ -35,7 +35,24 @@ Future<SnFileContent> siteFileContent(
   final resp = await apiClient.get(
     '/zone/sites/$siteId/files/content/$relativePath',
   );
-  return SnFileContent.fromJson(resp.data);
+  final content =
+      resp.data is String
+          ? resp.data
+          : SnFileContent.fromJson(resp.data).content;
+  return SnFileContent(content: content);
+}
+
+@riverpod
+Future<String> siteFileContentRaw(
+  Ref ref, {
+  required String siteId,
+  required String relativePath,
+}) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get(
+    '/zone/sites/$siteId/files/content/$relativePath',
+  );
+  return resp.data is String ? resp.data : resp.data['content'] as String;
 }
 
 class SiteFilesNotifier
