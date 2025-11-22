@@ -17,6 +17,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 part 'site_detail.g.dart';
 
@@ -83,7 +84,8 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           PagesSection(site: site, pubName: pubName),
-                          FileManagementSection(site: site, pubName: pubName),
+                          if (site.mode == 1) // Self-Managed only
+                            FileManagementSection(site: site, pubName: pubName),
                         ],
                       ),
                     ),
@@ -116,6 +118,18 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                                 value: site.slug,
                                 icon: Symbols.tag,
                                 monospace: true,
+                              ),
+                              const Gap(8),
+                              InfoRow(
+                                label: 'Domain',
+                                value: '${site.slug}.solian.page',
+                                icon: Symbols.globe,
+                                monospace: true,
+                                onTap: () {
+                                  final url =
+                                      'https://${site.slug}.solian.page';
+                                  launchUrlString(url);
+                                },
                               ),
                               const Gap(8),
                               InfoRow(

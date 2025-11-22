@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
@@ -81,6 +82,7 @@ class CreatorSiteListScreen extends HookConsumerWidget {
         onRefresh: () => ref.refresh(siteListNotifierProvider(pubName).future),
         child: CustomScrollView(
           slivers: [
+            const SliverGap(8),
             PagingHelperSliverView(
               provider: siteListNotifierProvider(pubName),
               futureRefreshable: siteListNotifierProvider(pubName).future,
@@ -115,110 +117,10 @@ class _CreatorSiteItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        title: Text(site.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (site.description != null && site.description!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  site.description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Slug: ${site.slug} · Pages: ${site.pages.length}',
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.edit),
-                      const Gap(16),
-                      Text('edit').tr(),
-                    ],
-                  ),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder:
-                          (context) =>
-                              SiteForm(pubName: pubName, siteSlug: site.slug),
-                    );
-                  },
-                ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.delete, color: Colors.red),
-                      const Gap(16),
-                      Text('delete').tr().textColor(Colors.red),
-                    ],
-                  ),
-                  onTap: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text('Delete Site'),
-                            content: Text(
-                              'Are you sure you want to delete this site?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(false),
-                                child: Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text('Delete'),
-                              ),
-                            ],
-                          ),
-                    );
-                    if (confirmed == true) {
-                      try {
-                        final client = ref.read(apiClientProvider);
-                        await client.delete('/zone/sites/${site.id}');
-                        ref.invalidate(siteListNotifierProvider(pubName));
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Site deleted successfully'),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete site')),
-                          );
-                        }
-                      }
-                    }
-                  },
-                ),
-              ],
-        ),
+      child: InkWell(
         onTap: () {
           // Navigate to site detail screen
           context.pushNamed(
@@ -226,6 +128,126 @@ class _CreatorSiteItem extends HookConsumerWidget {
             pathParameters: {'name': pubName, 'siteSlug': site.slug},
           );
         },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  spacing: 2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Symbols.globe,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const Gap(6),
+                        Text(site.name).bold(),
+                      ],
+                    ),
+                    if (site.description != null &&
+                        site.description!.isNotEmpty)
+                      Text(
+                        site.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const Divider(height: 8),
+                    Text(
+                      '${site.slug}.solian.page',
+                      style: GoogleFonts.robotoMono(fontSize: 11),
+                    ).opacity(0.8),
+                  ],
+                ),
+              ),
+              PopupMenuButton<String>(
+                itemBuilder:
+                    (context) => [
+                      PopupMenuItem(
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.edit),
+                            const Gap(16),
+                            Text('edit').tr(),
+                          ],
+                        ),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder:
+                                (context) => SiteForm(
+                                  pubName: pubName,
+                                  siteSlug: site.slug,
+                                ),
+                          );
+                        },
+                      ),
+                      PopupMenuItem(
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.delete, color: Colors.red),
+                            const Gap(16),
+                            Text('delete').tr().textColor(Colors.red),
+                          ],
+                        ),
+                        onTap: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('Delete Site'),
+                                  content: Text(
+                                    'Are you sure you want to delete this site?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(context).pop(false),
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.of(context).pop(true),
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          if (confirmed == true) {
+                            try {
+                              final client = ref.read(apiClientProvider);
+                              await client.delete('/zone/sites/${site.id}');
+                              ref.invalidate(siteListNotifierProvider(pubName));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Site deleted successfully'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to delete site'),
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

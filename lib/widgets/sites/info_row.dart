@@ -7,6 +7,7 @@ class InfoRow extends StatelessWidget {
   final String value;
   final IconData icon;
   final bool monospace;
+  final VoidCallback? onTap;
 
   const InfoRow({
     super.key,
@@ -14,10 +15,22 @@ class InfoRow extends StatelessWidget {
     required this.value,
     required this.icon,
     this.monospace = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget valueWidget = Text(
+      value,
+      style:
+          monospace
+              ? GoogleFonts.robotoMono(fontSize: 14)
+              : Theme.of(context).textTheme.bodyMedium,
+      textAlign: TextAlign.end,
+    );
+
+    if (onTap != null) valueWidget = InkWell(onTap: onTap, child: valueWidget);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,17 +46,7 @@ class InfoRow extends StatelessWidget {
           ),
         ),
         const Gap(12),
-        Expanded(
-          flex: 3,
-          child: Text(
-            value,
-            style:
-                monospace
-                    ? GoogleFonts.robotoMono(fontSize: 14)
-                    : Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.end,
-          ),
-        ),
+        Expanded(flex: 3, child: valueWidget),
       ],
     );
   }
