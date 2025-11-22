@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/widgets/sites/file_management_section.dart';
+import 'package:island/widgets/sites/file_management_action_section.dart';
 import 'package:island/widgets/sites/info_row.dart';
 import 'package:island/widgets/sites/pages_section.dart';
 import 'package:island/services/time.dart';
@@ -90,6 +91,9 @@ class SiteDetailContent extends HookConsumerWidget {
                 ),
               ),
             ),
+            const Gap(8),
+            if (site.mode == 1) // Self-Managed only
+              FileManagementActionSection(site: site, pubName: pubName),
             // Pages Section
             PagesSection(site: site, pubName: pubName),
             FileManagementSection(site: site, pubName: pubName),
