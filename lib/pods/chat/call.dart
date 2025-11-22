@@ -362,6 +362,7 @@ class CallNotifier extends _$CallNotifier {
               sourceId: source.id,
               maxFrameRate: 30.0,
               captureScreenAudio: true,
+              useiOSBroadcastExtension: true,
             ),
           );
           await _localParticipant!.publishVideoTrack(track);

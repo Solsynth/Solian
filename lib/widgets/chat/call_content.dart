@@ -55,25 +55,26 @@ class CallContent extends HookConsumerWidget {
       );
     }
 
-    // Stage view: show main speaker(s) large, others in row
-    final mainSpeakers =
-        participants
-            .where(
-              (p) => p.remoteParticipant.trackPublications.values.any(
-                (pub) => pub.track != null && pub.kind == TrackType.VIDEO,
+    // Show all participants in a responsive grid
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate width for responsive 2-column layout
+        final itemWidth = (constraints.maxWidth / 2) - 16;
+
+        return Wrap(
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final participant in participants)
+              SizedBox(
+                width: itemWidth,
+                child: CallParticipantTile(live: participant),
               ),
-            )
-            .toList();
-    if (mainSpeakers.isEmpty && participants.isNotEmpty) {
-      mainSpeakers.add(participants.first);
-    }
-    return Wrap(
-      alignment: WrapAlignment.center,
-      runAlignment: WrapAlignment.center,
-      children: [
-        for (final speaker in mainSpeakers)
-          Expanded(child: CallParticipantTile(live: speaker)),
-      ],
+          ],
+        );
+      },
     );
   }
 }
