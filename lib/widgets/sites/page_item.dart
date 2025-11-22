@@ -16,6 +16,7 @@ class PageItem extends HookConsumerWidget {
   final String pubName;
 
   const PageItem({
+    super.key,
     required this.page,
     required this.site,
     required this.pubName,

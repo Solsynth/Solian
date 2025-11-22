@@ -1,11 +1,24 @@
-import 'package:easy_localization/easy_localization.dart';
-import 'package:fl_heatmap/fl_heatmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/heatmap.dart';
-import '../services/responsive.dart';
+import 'package:island/services/responsive.dart';
+
+/// Custom data class for selected heatmap item
+class SelectedHeatmapItem {
+  final double value;
+  final String unit;
+  final String dateString;
+  final String dayLabel;
+
+  SelectedHeatmapItem({
+    required this.value,
+    required this.unit,
+    required this.dateString,
+    required this.dayLabel,
+  });
+}
 
 /// A reusable heatmap widget for displaying activity data in GitHub-style layout.
 /// Shows exactly 365 days (wide screen) or 90 days (non-wide screen) of data ending at the current date.
@@ -21,7 +34,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedItem = useState<HeatmapItem?>(null);
+    final selectedItem = useState<SelectedHeatmapItem?>(null);
 
     final now = DateTime.now();
 
@@ -101,48 +114,18 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
       }
     }
 
-    final heatmapData = HeatmapData(
-      rows: [
-        'Mon',
-        'Tue',
-        'Wed',
-        'Thu',
-        'Fri',
-        'Sat',
-        'Sun',
-      ], // Days of week vertically
-      columns:
-          weeks
-              .map(
-                (w) =>
-                    '${w.year}-${w.month.toString().padLeft(2, '0')}-${w.day.toString().padLeft(2, '0')}',
-              )
-              .toList(), // Weeks horizontally
-      items: [
-        for (int day = 0; day < 7; day++) // For each day of week (Mon-Sun)
-          for (final week in weeks) // For each week
-            HeatmapItem(
-              value: dataMap[week.add(Duration(days: day))] ?? 0.0,
-              unit: heatmap.unit,
-              xAxisLabel:
-                  '${week.year}-${week.month.toString().padLeft(2, '0')}-${week.day.toString().padLeft(2, '0')}',
-              yAxisLabel:
-                  day == 0
-                      ? 'Mon'
-                      : day == 1
-                      ? 'Tue'
-                      : day == 2
-                      ? 'Wed'
-                      : day == 3
-                      ? 'Thu'
-                      : day == 4
-                      ? 'Fri'
-                      : day == 5
-                      ? 'Sat'
-                      : 'Sun',
-            ),
-      ],
-    );
+    // Find maximum value for color scaling
+    final maxValue =
+        dataMap.values.isNotEmpty
+            ? dataMap.values.reduce((a, b) => a > b ? a : b)
+            : 1.0;
+
+    // Helper function to get color based on activity level
+    Color getActivityColor(double value) {
+      if (value == 0) return Colors.grey.withOpacity(0.1);
+      final intensity = value / maxValue;
+      return Colors.green.withOpacity(0.2 + (intensity * 0.8));
+    }
 
     return Card(
       margin: EdgeInsets.zero,
@@ -151,39 +134,103 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'activityHeatmap',
-              style: Theme.of(context).textTheme.titleMedium,
-            ).tr(),
-            const Gap(8),
-            // Month labels row
+            // Month labels row - aligned with month start positions
             Row(
               children: [
                 const SizedBox(width: 30), // Space for day labels
-                ...monthLabels.asMap().entries.map((entry) {
-                  final month = entry.value;
+                ...List.generate(weeks.length, (weekIndex) {
+                  // Check if this week is the start of a month
+                  final monthIndex = monthPositions.indexOf(weekIndex);
+                  final monthText =
+                      monthIndex != -1 ? monthLabels[monthIndex] : null;
 
-                  return Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Text(
-                        month,
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
+                  return monthText != null
+                      ? Expanded(
+                        child: Text(
+                          monthText,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                      : SizedBox.shrink();
                 }),
               ],
             ),
             const Gap(4),
-            Heatmap(
-              heatmapData: heatmapData,
-              rowsVisible: 7,
-              showXAxisLabels: false,
-              onItemSelectedListener: (item) {
-                selectedItem.value = item;
-              },
+            // Custom heatmap grid
+            Column(
+              children: List.generate(7, (dayIndex) {
+                final dayLabels = [
+                  'Mon',
+                  'Tue',
+                  'Wed',
+                  'Thu',
+                  'Fri',
+                  'Sat',
+                  'Sun',
+                ];
+                final dayLabel = dayLabels[dayIndex];
+
+                return Row(
+                  children: [
+                    // Day label
+                    SizedBox(
+                      width: 30,
+                      child: Text(
+                        dayLabel,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    // Activity squares for each week - evenly distributed
+                    Expanded(
+                      child: Row(
+                        children: List.generate(weeks.length, (weekIndex) {
+                          final week = weeks[weekIndex];
+                          final date = week.add(Duration(days: dayIndex));
+                          final value = dataMap[date] ?? 0.0;
+                          final dateString =
+                              '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                selectedItem.value = SelectedHeatmapItem(
+                                  value: value,
+                                  unit: heatmap.unit,
+                                  dateString: dateString,
+                                  dayLabel: dayLabel,
+                                );
+                              },
+                              child: Container(
+                                height: 12,
+                                margin: const EdgeInsets.all(0.5),
+                                decoration: BoxDecoration(
+                                  color: getActivityColor(value),
+                                  borderRadius: BorderRadius.circular(2),
+                                  border:
+                                      selectedItem.value != null &&
+                                              selectedItem.value!.dateString ==
+                                                  dateString &&
+                                              selectedItem.value!.dayLabel ==
+                                                  dayLabel
+                                          ? Border.all(
+                                            color: Colors.blue,
+                                            width: 1,
+                                          )
+                                          : null,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                );
+              }),
             ),
             const Gap(8),
             // Legend
@@ -203,9 +250,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         TextSpan(
-                          text: _formatDate(
-                            selectedItem.value!.xAxisLabel ?? '',
-                          ),
+                          text: _formatDate(selectedItem.value!.dateString),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
