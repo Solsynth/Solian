@@ -61,7 +61,7 @@ dependencies:
   media_kit_video: ^2.0.0
   media_kit_libs_video: ^1.0.7
   flutter_cache_manager: ^3.4.1
-  flutter_platform_alert: ^0.8.0
+
   email_validator: ^3.0.0
   easy_localization: ^3.0.8
   flutter_inappwebview: ^6.1.5

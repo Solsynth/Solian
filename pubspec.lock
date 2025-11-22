@@ -1019,14 +1019,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1+1"
-  flutter_platform_alert:
-    dependency: "direct main"
-    description:
-      name: flutter_platform_alert
-      sha256: "70f4979a617388cd890ec32e9acc1a6a425bcdf3d8b444eb976be1834e79dc0c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.8.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:

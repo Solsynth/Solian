@@ -5,7 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_platform_alert/flutter_platform_alert.dart';
+import 'package:flutter/material.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
@@ -36,41 +37,65 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
     } catch (error, stackTrace) {
       if (!kIsWeb) {
         if (error is DioException) {
-          FlutterPlatformAlert.showCustomAlert(
-            windowTitle: 'failedToLoadUserInfo'.tr(),
-            text: [
-              (error.response?.statusCode == 401
-                      ? 'failedToLoadUserInfoUnauthorized'
-                      : 'failedToLoadUserInfoNetwork')
-                  .tr()
-                  .trim(),
-              '',
-              '${error.response?.statusCode ?? 'Network Error'}',
-              if (error.response?.headers != null) error.response?.headers,
-              if (error.response?.data != null)
-                jsonEncode(error.response?.data),
-            ].join('\n'),
-            iconStyle: IconStyle.error,
-            neutralButtonTitle: 'retry'.tr(),
-            negativeButtonTitle: 'okay'.tr(),
+          showOverlayDialog<bool>(
+            builder:
+                (context, close) => AlertDialog(
+                  title: Text('failedToLoadUserInfo'.tr()),
+                  content: Text(
+                    [
+                      (error.response?.statusCode == 401
+                              ? 'failedToLoadUserInfoUnauthorized'
+                              : 'failedToLoadUserInfoNetwork')
+                          .tr()
+                          .trim(),
+                      '',
+                      '${error.response?.statusCode ?? 'Network Error'}',
+                      if (error.response?.headers != null)
+                        error.response?.headers,
+                      if (error.response?.data != null)
+                        jsonEncode(error.response?.data),
+                    ].join('\n'),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => close(false),
+                      child: Text('okay'.tr()),
+                    ),
+                    TextButton(
+                      onPressed: () => close(true),
+                      child: Text('retry'.tr()),
+                    ),
+                  ],
+                ),
           ).then((value) {
-            if (value == CustomButton.neutralButton) {
+            if (value == true) {
               fetchUser();
             }
           });
         }
-        FlutterPlatformAlert.showCustomAlert(
-          windowTitle: 'failedToLoadUserInfo'.tr(),
-          text:
-              [
-                'failedToLoadUserInfoNetwork'.tr(),
-                error.toString(),
-              ].join('\n\n').trim(),
-          iconStyle: IconStyle.error,
-          neutralButtonTitle: 'retry'.tr(),
-          negativeButtonTitle: 'okay'.tr(),
+        showOverlayDialog<bool>(
+          builder:
+              (context, close) => AlertDialog(
+                title: Text('failedToLoadUserInfo'.tr()),
+                content: Text(
+                  [
+                    'failedToLoadUserInfoNetwork'.tr(),
+                    error.toString(),
+                  ].join('\n\n').trim(),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => close(false),
+                    child: Text('okay'.tr()),
+                  ),
+                  TextButton(
+                    onPressed: () => close(true),
+                    child: Text('retry'.tr()),
+                  ),
+                ],
+              ),
         ).then((value) {
-          if (value == CustomButton.neutralButton) {
+          if (value == true) {
             fetchUser();
           }
         });
