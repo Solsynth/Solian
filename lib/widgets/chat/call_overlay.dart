@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -319,29 +320,46 @@ class CallOverlayBar extends HookConsumerWidget {
     // Default to true (preview mode) so user sees video immediately after joining
     final isExpanded = useState(true);
 
-    // If connected, show active call UI
+    Widget child;
     if (callState.isConnected) {
-      return _buildActiveCallOverlay(
+      child = _buildActiveCallOverlay(
         context,
         ref,
         callState,
         callNotifier,
         isExpanded,
       );
+    } else if (ongoingCall.value != null) {
+      child = _buildJoinPrompt(context, ref);
+    } else {
+      child = const SizedBox.shrink(key: ValueKey('empty'));
     }
 
-    // If not connected but there is an ongoing call, show join prompt
-    if (ongoingCall.value != null) {
-      return _buildJoinPrompt(context, ref);
-    }
-
-    return const SizedBox.shrink();
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeInOut,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        layoutBuilder: (currentChild, previousChildren) {
+          return Stack(
+            alignment: Alignment.topCenter,
+            children: <Widget>[
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
+        child: child,
+      ),
+    );
   }
 
   Widget _buildJoinPrompt(BuildContext context, WidgetRef ref) {
     final isLoading = useState(false);
 
     return Card(
+      key: const ValueKey('join_prompt'),
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Row(
@@ -441,13 +459,16 @@ class CallOverlayBar extends HookConsumerWidget {
                           : value,
                 );
 
-    if (lastSpeaker == null) return const SizedBox.shrink();
+    if (lastSpeaker == null) {
+      return const SizedBox.shrink(key: ValueKey('active_waiting'));
+    }
 
     final userInfo = ref.watch(userInfoProvider).value!;
 
     // Preview Mode (Expanded)
     if (isExpanded.value) {
       return Card(
+        key: const ValueKey('active_expanded'),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -461,20 +482,22 @@ class CallOverlayBar extends HookConsumerWidget {
                 const Gap(4),
                 Text(formatDuration(callState.duration)).bold(),
                 const Spacer(),
-                IconButton(
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
-                  ),
-                  icon: const Icon(Icons.fullscreen),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => CallScreen(room: room),
+                OpenContainer(
+                  closedElevation: 0,
+                  closedColor: Colors.transparent,
+                  openColor: Theme.of(context).scaffoldBackgroundColor,
+                  middleColor: Theme.of(context).scaffoldBackgroundColor,
+                  openBuilder: (context, action) => CallScreen(room: room),
+                  closedBuilder:
+                      (context, openContainer) => IconButton(
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
+                        icon: const Icon(Icons.fullscreen),
+                        onPressed: openContainer,
+                        tooltip: 'Full Screen',
                       ),
-                    );
-                  },
-                  tooltip: 'Full Screen',
                 ),
                 IconButton(
                   visualDensity: const VisualDensity(
@@ -504,6 +527,7 @@ class CallOverlayBar extends HookConsumerWidget {
 
     // Compact Mode
     return GestureDetector(
+      key: const ValueKey('active_collapsed'),
       onTap: () => isExpanded.value = true,
       child: Card(
         margin: EdgeInsets.zero,
