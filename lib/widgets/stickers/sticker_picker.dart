@@ -381,6 +381,10 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
               return Tooltip(
                 message: packs[i].name,
                 child: FilterChip(
+                  visualDensity: const VisualDensity(
+                    horizontal: 0,
+                    vertical: -4,
+                  ),
                   label: Text(packs[i].name, overflow: TextOverflow.ellipsis),
                   selected: selected,
                   onSelected: (_) {

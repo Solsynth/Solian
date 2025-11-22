@@ -45,6 +45,8 @@ void _insertPlaceholder(TextEditingController controller, String placeholder) {
 
 const kInputDrawerExpandedHeight = 180.0;
 
+const kExpandedSectionTabHeight = 32.0;
+
 class _ExpandedSection extends StatelessWidget {
   final TextEditingController messageController;
   final SnPoll? selectedPoll;
@@ -75,9 +77,23 @@ class _ExpandedSection extends StatelessWidget {
           length: 2,
           child: Column(
             children: [
-              TabBar(
-                splashBorderRadius: const BorderRadius.all(Radius.circular(40)),
-                tabs: [Tab(text: 'Features'), Tab(text: 'Stickers')],
+              PreferredSize(
+                preferredSize: const Size.fromHeight(kExpandedSectionTabHeight),
+                child: TabBar(
+                  splashBorderRadius: const BorderRadius.all(
+                    Radius.circular(40),
+                  ),
+                  tabs: [
+                    Tab(
+                      text: 'features'.tr(),
+                      height: kExpandedSectionTabHeight,
+                    ),
+                    Tab(
+                      text: 'stickers'.tr(),
+                      height: kExpandedSectionTabHeight,
+                    ),
+                  ],
+                ),
               ),
               SizedBox(
                 height: kInputDrawerExpandedHeight,
@@ -248,6 +264,7 @@ class ChatInput extends HookConsumerWidget {
 
     void send() {
       inputFocusNode.requestFocus();
+      if (isExpanded.value) isExpanded.value = false;
       onSend.call();
     }
 
