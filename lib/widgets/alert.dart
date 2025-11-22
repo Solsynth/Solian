@@ -1,12 +1,13 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/main.dart';
+import 'package:island/talker.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
-
-export 'content/alert.native.dart'
-    if (dart.library.html) 'content/alert.web.dart';
 
 void showSnackBar(String message, {SnackBarAction? action}) {
   final context = globalOverlay.currentState!.context;
@@ -54,6 +55,11 @@ class _FadeOverlayState extends State<_FadeOverlay> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() => _visible = true);
     });
+  }
+
+  Future<void> animateOut() async {
+    setState(() => _visible = false);
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 
   @override
@@ -106,10 +112,138 @@ void hideLoadingModal(BuildContext context) async {
   final state = entry.mounted ? _loadingOverlayKey.currentState : null;
 
   if (state != null) {
-    // ignore: invalid_use_of_protected_member
-    state.setState(() => state._visible = false);
-    await Future.delayed(const Duration(milliseconds: 200));
+    await state.animateOut();
   }
 
   entry.remove();
+}
+
+String _parseRemoteError(DioException err) {
+  String? message;
+  if (err.response?.data is String) {
+    message = err.response?.data;
+  } else if (err.response?.data?['message'] != null) {
+    message = <String?>[
+      err.response?.data?['message']?.toString(),
+      err.response?.data?['detail']?.toString(),
+    ].where((e) => e != null).cast<String>().map((e) => e.trim()).join('\n');
+  } else if (err.response?.data?['errors'] != null) {
+    final errors = err.response?.data['errors'] as Map<String, dynamic>;
+    message = errors.values
+        .map(
+          (ele) =>
+              (ele as List<dynamic>).map((ele) => ele.toString()).join('\n'),
+        )
+        .join('\n');
+  }
+  if (message == null || message.isEmpty) message = err.response?.statusMessage;
+  message ??= err.message;
+  return message ?? err.toString();
+}
+
+Future<T?> showOverlayDialog<T>({
+  required Widget Function(BuildContext context, void Function(T? result) close)
+  builder,
+  bool barrierDismissible = true,
+}) {
+  final completer = Completer<T?>();
+  final key = GlobalKey<_FadeOverlayState>();
+  late OverlayEntry entry;
+
+  void close(T? result) async {
+    if (completer.isCompleted) return;
+
+    final state = key.currentState;
+    if (state != null) {
+      await state.animateOut();
+    }
+
+    entry.remove();
+    completer.complete(result);
+  }
+
+  entry = OverlayEntry(
+    builder:
+        (context) => _FadeOverlay(
+          key: key,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: barrierDismissible ? () => close(null) : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: const ColoredBox(color: Colors.black54),
+                ),
+              ),
+              Center(child: builder(context, close)),
+            ],
+          ),
+        ),
+  );
+
+  globalOverlay.currentState!.insert(entry);
+  return completer.future;
+}
+
+void showErrorAlert(dynamic err) {
+  if (err is Error) {
+    talker.error('Something went wrong...', err, err.stackTrace);
+  }
+  final text = switch (err) {
+    String _ => err,
+    DioException _ => _parseRemoteError(err),
+    Exception _ => err.toString(),
+    _ => err.toString(),
+  };
+
+  showOverlayDialog<void>(
+    builder:
+        (context, close) => AlertDialog(
+          title: Text('somethingWentWrong'.tr()),
+          content: Text(text),
+          actions: [
+            TextButton(
+              onPressed: () => close(null),
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+  );
+}
+
+void showInfoAlert(String message, String title) {
+  showOverlayDialog<void>(
+    builder:
+        (context, close) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => close(null),
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+  );
+}
+
+Future<bool> showConfirmAlert(String message, String title) async {
+  final result = await showOverlayDialog<bool>(
+    builder:
+        (context, close) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => close(false),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () => close(true),
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+  );
+  return result ?? false;
 }
