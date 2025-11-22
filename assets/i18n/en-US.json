@@ -1340,5 +1340,6 @@
     "orCreateWith": "Or\ncreate with",
     "unindexedFiles": "Unindexed files",
     "folder": "Folder",
-    "clearCompleted": "Clear Completed"
+    "clearCompleted": "Clear Completed",
+    "contentCantEmpty": "Content cannot be empty"
 }

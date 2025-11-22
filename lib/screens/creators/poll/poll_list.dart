@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/poll/poll_editor.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -234,19 +235,9 @@ class _CreatorPollItem extends HookConsumerWidget {
                           '/sphere/polls/${pollWithStats.id}',
                         );
                         ref.invalidate(pollListNotifierProvider(pubName));
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Poll deleted successfully'),
-                            ),
-                          );
-                        }
+                        showSnackBar('Poll deleted successfully');
                       } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete poll')),
-                          );
-                        }
+                        showErrorAlert(e);
                       }
                     }
                   },

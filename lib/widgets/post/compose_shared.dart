@@ -751,12 +751,7 @@ class ComposeLogic {
 
       return post;
     } catch (err) {
-      // Show error message if context is mounted
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $err')));
-      }
+      showErrorAlert(err);
       rethrow;
     } finally {
       state.submitting.value = false;

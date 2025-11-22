@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/sites/site_edit.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -224,21 +225,9 @@ class _CreatorSiteItem extends HookConsumerWidget {
                               final client = ref.read(apiClientProvider);
                               await client.delete('/zone/sites/${site.id}');
                               ref.invalidate(siteListNotifierProvider(pubName));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Site deleted successfully'),
-                                  ),
-                                );
-                              }
+                              showSnackBar('Site deleted successfully');
                             } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to delete site'),
-                                  ),
-                                );
-                              }
+                              showErrorAlert(e);
                             }
                           }
                         },

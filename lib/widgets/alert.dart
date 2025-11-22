@@ -29,12 +29,9 @@ void showSnackBar(String message, {SnackBarAction? action}) {
         ),
       ),
     ),
+    curve: Curves.easeInOut,
     snackBarPosition: SnackBarPosition.bottom,
   );
-}
-
-void clearSnackBar(BuildContext context) {
-  ScaffoldMessenger.of(context).clearSnackBars();
 }
 
 OverlayEntry? _loadingOverlay;

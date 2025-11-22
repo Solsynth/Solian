@@ -166,7 +166,6 @@ class MarkdownTextContent extends HookConsumerWidget {
                     label: 'copyToClipboard'.tr(),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: href));
-                      clearSnackBar(context);
                     },
                   ),
                 );

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
@@ -59,17 +60,9 @@ class FileItem extends HookConsumerWidget {
         filePath,
       );
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Downloaded to $filePath')));
-      }
+      showSnackBar('Downloaded to $filePath');
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to download file: $e')));
-      }
+      showErrorAlert(e);
     }
   }
 
@@ -248,9 +241,7 @@ class FileEditorSheet extends HookConsumerWidget {
 
     final saveFile = useCallback(() async {
       if (codeController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Content cannot be empty')),
-        );
+        showSnackBar('contentCantEmpty'.tr());
         return;
       }
 
@@ -263,17 +254,11 @@ class FileEditorSheet extends HookConsumerWidget {
             .updateFileContent(file.relativePath, codeController.text);
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File saved successfully')),
-          );
+          showSnackBar('File saved successfully');
           Navigator.of(context).pop();
         }
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to save file: $e')));
-        }
+        showErrorAlert(e);
       } finally {
         isSaving.value = false;
       }
