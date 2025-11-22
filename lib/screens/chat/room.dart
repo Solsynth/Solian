@@ -39,6 +39,7 @@ import "package:island/widgets/chat/chat_input.dart";
 import "package:island/widgets/chat/chat_link_attachments.dart";
 import "package:island/widgets/chat/public_room_preview.dart";
 import "package:island/screens/thought/think_sheet.dart";
+import "package:island/screens/chat/widgets/message_item_wrapper.dart";
 
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
@@ -177,6 +178,38 @@ class ChatRoomScreen extends HookConsumerWidget {
     // Selection mode state
     final isSelectionMode = useState<bool>(false);
     final selectedMessages = useState<Set<String>>({});
+
+    final roomOpenTime = useMemoized(() => DateTime.now());
+
+    final onMessageAction = useCallback(
+      (String action, LocalChatMessage message) {
+        switch (action) {
+          case MessageItemAction.delete:
+            messagesNotifier.deleteMessage(message.id);
+          case MessageItemAction.edit:
+            messageEditingTo.value = message.toRemoteMessage();
+            messageController.text = messageEditingTo.value?.content ?? '';
+            attachments.value =
+                messageEditingTo.value!.attachments
+                    .map((e) => UniversalFile.fromAttachment(e))
+                    .toList();
+          case MessageItemAction.forward:
+            messageForwardingTo.value = message.toRemoteMessage();
+          case MessageItemAction.reply:
+            messageReplyingTo.value = message.toRemoteMessage();
+          case MessageItemAction.resend:
+            messagesNotifier.retryMessage(message.id);
+        }
+      },
+      [
+        messagesNotifier,
+        messageEditingTo,
+        messageController,
+        attachments,
+        messageForwardingTo,
+        messageReplyingTo,
+      ],
+    );
 
     var isLoading = false;
     var isScrollingToMessage = false; // Flag to prevent scroll conflicts
@@ -627,7 +660,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       padding: EdgeInsets.only(
-        top: 16,
         bottom: MediaQuery.of(context).padding.bottom + 8 + inputHeight.value,
       ),
       child: SuperListView.builder(
@@ -659,138 +691,30 @@ class ChatRoomScreen extends HookConsumerWidget {
 
           final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
 
-          final messageWidget = chatIdentity.when(
-            skipError: true,
-            data:
-                (identity) => GestureDetector(
-                  onLongPress: () {
-                    if (!isSelectionMode.value) {
-                      toggleSelectionMode();
-                      toggleMessageSelection(message.id);
-                    }
-                  },
-                  onTap: () {
-                    if (isSelectionMode.value) {
-                      toggleMessageSelection(message.id);
-                    }
-                  },
-                  child: Container(
-                    color:
-                        selectedMessages.value.contains(message.id)
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer.withOpacity(0.3)
-                            : null,
-                    child: Stack(
-                      children: [
-                        MessageItem(
-                          key: settings.disableAnimation ? key : null,
-                          message: message,
-                          isCurrentUser: identity?.id == message.senderId,
-                          onAction:
-                              isSelectionMode.value
-                                  ? null
-                                  : (action) {
-                                    switch (action) {
-                                      case MessageItemAction.delete:
-                                        messagesNotifier.deleteMessage(
-                                          message.id,
-                                        );
-                                      case MessageItemAction.edit:
-                                        messageEditingTo.value =
-                                            message.toRemoteMessage();
-                                        messageController.text =
-                                            messageEditingTo.value?.content ??
-                                            '';
-                                        attachments.value =
-                                            messageEditingTo.value!.attachments
-                                                .map(
-                                                  (e) =>
-                                                      UniversalFile.fromAttachment(
-                                                        e,
-                                                      ),
-                                                )
-                                                .toList();
-                                      case MessageItemAction.forward:
-                                        messageForwardingTo.value =
-                                            message.toRemoteMessage();
-                                      case MessageItemAction.reply:
-                                        messageReplyingTo.value =
-                                            message.toRemoteMessage();
-                                      case MessageItemAction.resend:
-                                        messagesNotifier.retryMessage(
-                                          message.id,
-                                        );
-                                    }
-                                  },
-                          onJump:
-                              (messageId) => scrollToMessage(
-                                messageId: messageId,
-                                messageList: messageList,
-                                messagesNotifier: messagesNotifier,
-                                listController: listController,
-                                scrollController: scrollController,
-                                ref: ref,
-                              ),
-                          progress: attachmentProgress.value[message.id],
-                          showAvatar: isLastInGroup,
-                          isSelectionMode: isSelectionMode.value,
-                          isSelected: selectedMessages.value.contains(
-                            message.id,
-                          ),
-                          onToggleSelection: toggleMessageSelection,
-                          onEnterSelectionMode: () {
-                            if (!isSelectionMode.value) toggleSelectionMode();
-                          },
-                        ),
-                        if (selectedMessages.value.contains(message.id))
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.check,
-                                size: 12,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+          return MessageItemWrapper(
+            key: key,
+            message: message,
+            index: index,
+            isLastInGroup: isLastInGroup,
+            isSelectionMode: isSelectionMode.value,
+            selectedMessages: selectedMessages.value,
+            chatIdentity: chatIdentity,
+            toggleSelectionMode: toggleSelectionMode,
+            toggleMessageSelection: toggleMessageSelection,
+            onMessageAction: onMessageAction,
+            onJump:
+                (messageId) => scrollToMessage(
+                  messageId: messageId,
+                  messageList: messageList,
+                  messagesNotifier: messagesNotifier,
+                  listController: listController,
+                  scrollController: scrollController,
+                  ref: ref,
                 ),
-            loading:
-                () => MessageItem(
-                  message: message,
-                  isCurrentUser: false,
-                  onAction: null,
-                  progress: null,
-                  showAvatar: false,
-                  onJump: (_) {},
-                ),
-            error: (_, _) => const SizedBox.shrink(),
+            attachmentProgress: attachmentProgress.value,
+            disableAnimation: settings.disableAnimation,
+            roomOpenTime: roomOpenTime,
           );
-
-          return settings.disableAnimation
-              ? messageWidget
-              : TweenAnimationBuilder<double>(
-                key: key,
-                tween: Tween<double>(begin: 0.0, end: 1.0),
-                duration: Duration(milliseconds: 400 + (index % 5) * 50),
-                curve: Curves.easeOutCubic,
-                builder:
-                    (context, animationValue, child) => Transform.translate(
-                      offset: Offset(0, 20 * (1 - animationValue)),
-                      child: Opacity(opacity: animationValue, child: child),
-                    ),
-                child: messageWidget,
-              );
         },
       ),
     );
