@@ -41,16 +41,40 @@ class FileManagementSection extends HookConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: () async {
-                    // Open file upload dialog
-                    final selectedFiles = await FilePicker.platform.pickFiles(
-                      allowMultiple: true,
-                      type: FileType.any,
-                    );
-
-                    if (selectedFiles == null || selectedFiles.files.isEmpty) {
-                      return; // User canceled
+                PopupMenuButton<String>(
+                  icon: const Icon(Symbols.upload),
+                  onSelected: (String choice) async {
+                    List<File> files = [];
+                    List<Map<String, dynamic>>? results;
+                    if (choice == 'files') {
+                      final selectedFiles = await FilePicker.platform.pickFiles(
+                        allowMultiple: true,
+                        type: FileType.any,
+                      );
+                      if (selectedFiles == null ||
+                          selectedFiles.files.isEmpty) {
+                        return; // User canceled
+                      }
+                      files =
+                          selectedFiles.files
+                              .map((f) => File(f.path!))
+                              .toList();
+                    } else if (choice == 'folder') {
+                      final dirPath =
+                          await FilePicker.platform.getDirectoryPath();
+                      if (dirPath == null) return;
+                      results = await _getFilesRecursive(dirPath);
+                      files = results.map((m) => m['file'] as File).toList();
+                      if (files.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No files found in the selected folder',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                     }
 
                     if (!context.mounted) return;
@@ -61,11 +85,12 @@ class FileManagementSection extends HookConsumerWidget {
                       isScrollControlled: true,
                       builder:
                           (context) => FileUploadDialog(
-                            selectedFiles:
-                                selectedFiles.files
-                                    .map((f) => File(f.path!))
-                                    .toList(),
+                            selectedFiles: files,
                             site: site,
+                            relativePaths:
+                                results
+                                    ?.map((m) => m['relativePath'] as String)
+                                    .toList(),
                             onUploadComplete: () {
                               // Refresh file list
                               ref.invalidate(
@@ -75,10 +100,34 @@ class FileManagementSection extends HookConsumerWidget {
                           ),
                     );
                   },
-                  icon: const Icon(Symbols.upload),
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
+                  itemBuilder:
+                      (BuildContext context) => [
+                        const PopupMenuItem<String>(
+                          value: 'files',
+                          child: Row(
+                            children: [
+                              Icon(Symbols.file_copy),
+                              Gap(12),
+                              Text('Files'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'folder',
+                          child: Row(
+                            children: [
+                              Icon(Symbols.folder),
+                              Gap(12),
+                              Text('Folder'),
+                            ],
+                          ),
+                        ),
+                      ],
+                  style: ButtonStyle(
+                    visualDensity: const VisualDensity(
+                      horizontal: -4,
+                      vertical: -4,
+                    ),
                   ),
                 ),
               ],
@@ -145,5 +194,27 @@ class FileManagementSection extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _getFilesRecursive(String dirPath) async {
+    final List<Map<String, dynamic>> results = [];
+    try {
+      await for (final entity in Directory(dirPath).list(recursive: true)) {
+        if (entity is File) {
+          String relativePath = entity.path.substring(dirPath.length);
+          if (relativePath.startsWith('/')) {
+            relativePath = relativePath.substring(1);
+          }
+          if (relativePath.isEmpty) continue;
+          results.add({
+            'file': File(entity.path),
+            'relativePath': relativePath,
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error if needed
+    }
+    return results;
   }
 }
