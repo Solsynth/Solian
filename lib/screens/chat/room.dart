@@ -738,7 +738,11 @@ class ChatRoomScreen extends HookConsumerWidget {
               ),
         ),
         actions: [
-          AudioCallButton(roomId: id),
+          chatRoom.when(
+            data: (data) => AudioCallButton(room: data!),
+            error: (err, _) => const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () async {
@@ -839,7 +843,14 @@ class ChatRoomScreen extends HookConsumerWidget {
             left: 0,
             right: 0,
             top: 0,
-            child: CallOverlayBar().padding(horizontal: 8, top: 12),
+            child: chatRoom.when(
+              data:
+                  (data) => CallOverlayBar(
+                    room: data!,
+                  ).padding(horizontal: 8, top: 12),
+              error: (_, _) => const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
+            ),
           ),
           if (isSyncing)
             Positioned(

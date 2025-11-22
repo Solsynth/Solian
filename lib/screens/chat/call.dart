@@ -3,30 +3,31 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/chat.dart';
 import 'package:island/pods/chat/call.dart';
 import 'package:island/talker.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/call_button.dart';
+import 'package:island/widgets/chat/call_content.dart';
 import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 class CallScreen extends HookConsumerWidget {
-  final String roomId;
-  const CallScreen({super.key, required this.roomId});
+  final SnChatRoom room;
+  const CallScreen({super.key, required this.room});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ongoingCall = ref.watch(ongoingCallProvider(roomId));
+    final ongoingCall = ref.watch(ongoingCallProvider(room.id));
     final callState = ref.watch(callNotifierProvider);
     final callNotifier = ref.watch(callNotifierProvider.notifier);
 
     useEffect(() {
       talker.info('[Call] Joining the call...');
-      callNotifier.joinRoom(roomId).catchError((_) {
+      callNotifier.joinRoom(room).catchError((_) {
         showConfirmAlert(
           'Seems there already has a call connected, do you want override it?',
           'Call already connected',
@@ -35,7 +36,7 @@ class CallScreen extends HookConsumerWidget {
           talker.info('[Call] Joining the call... with overrides');
           callNotifier.disconnect();
           callNotifier.dispose();
-          callNotifier.joinRoom(roomId);
+          callNotifier.joinRoom(room);
         });
       });
       return null;
@@ -110,7 +111,7 @@ class CallScreen extends HookConsumerWidget {
                         onPressed: () {
                           callNotifier.disconnect();
                           callNotifier.dispose();
-                          callNotifier.joinRoom(roomId);
+                          callNotifier.joinRoom(room);
                         },
                         child: Text('retry').tr(),
                       ),
@@ -120,72 +121,7 @@ class CallScreen extends HookConsumerWidget {
               )
               : Column(
                 children: [
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        if (!callState.isConnected) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (callNotifier.participants.isEmpty) {
-                          return const Center(
-                            child: Text('No participants in call'),
-                          );
-                        }
-
-                        final participants = callNotifier.participants;
-                        if (allAudioOnly) {
-                          // Audio-only: show avatars in a compact row
-                          return Center(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                alignment: WrapAlignment.center,
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  for (final live in participants)
-                                    SpeakingRippleAvatar(
-                                      live: live,
-                                      size: 72,
-                                    ).padding(horizontal: 4),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        // Stage view: show main speaker(s) large, others in row
-                        final mainSpeakers =
-                            participants
-                                .where(
-                                  (p) => p
-                                      .remoteParticipant
-                                      .trackPublications
-                                      .values
-                                      .any(
-                                        (pub) =>
-                                            pub.track != null &&
-                                            pub.kind == TrackType.VIDEO,
-                                      ),
-                                )
-                                .toList();
-                        if (mainSpeakers.isEmpty && participants.isNotEmpty) {
-                          mainSpeakers.add(participants.first);
-                        }
-                        return Column(
-                          children: [
-                            for (final speaker in mainSpeakers)
-                              Expanded(
-                                child: CallParticipantTile(live: speaker),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                  Expanded(child: CallContent()),
                   CallControlsBar(),
                   Gap(MediaQuery.of(context).padding.bottom + 16),
                 ],

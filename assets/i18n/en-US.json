@@ -1342,5 +1342,6 @@
     "folder": "Folder",
     "clearCompleted": "Clear Completed",
     "contentCantEmpty": "Content cannot be empty",
-    "features": "Features"
+    "features": "Features",
+    "unnamed": "Unnamed"
 }

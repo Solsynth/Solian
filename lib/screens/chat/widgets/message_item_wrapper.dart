@@ -57,7 +57,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       skipError: true,
       data: (identity) => _buildContent(context, identity),
       loading: () => _buildLoading(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
 
     if (!shouldAnimate) {

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
@@ -28,12 +28,12 @@ Future<SnRealtimeCall?> ongoingCall(Ref ref, String roomId) async {
 }
 
 class AudioCallButton extends HookConsumerWidget {
-  final String roomId;
-  const AudioCallButton({super.key, required this.roomId});
+  final SnChatRoom room;
+  const AudioCallButton({super.key, required this.room});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ongoingCall = ref.watch(ongoingCallProvider(roomId));
+    final ongoingCall = ref.watch(ongoingCallProvider(room.id));
     final callState = ref.watch(callNotifierProvider);
     final callNotifier = ref.read(callNotifierProvider.notifier);
     final isLoading = useState(false);
@@ -42,10 +42,9 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        await apiClient.post('/sphere/chat/realtime/$roomId');
-        if (context.mounted) {
-          context.pushNamed('chatCall', pathParameters: {'id': roomId});
-        }
+        await apiClient.post('/sphere/chat/realtime/${room.id}');
+        // Just join the room, the overlay will handle the UI
+        await callNotifier.joinRoom(room);
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -56,7 +55,7 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleEnd() async {
       isLoading.value = true;
       try {
-        await apiClient.delete('/sphere/chat/realtime/$roomId');
+        await apiClient.delete('/sphere/chat/realtime/${room.id}');
         callNotifier.dispose(); // Clean up call resources
       } catch (e) {
         showErrorAlert(e);
@@ -94,9 +93,14 @@ class AudioCallButton extends HookConsumerWidget {
       return IconButton(
         icon: const Icon(Icons.call),
         tooltip: 'Join Ongoing Call',
-        onPressed: () {
-          if (context.mounted) {
-            context.pushNamed('chatCall', pathParameters: {'id': roomId});
+        onPressed: () async {
+          isLoading.value = true;
+          try {
+            await callNotifier.joinRoom(room);
+          } catch (e) {
+            showErrorAlert(e);
+          } finally {
+            isLoading.value = false;
           }
         },
       );
@@ -105,7 +109,7 @@ class AudioCallButton extends HookConsumerWidget {
     // Show join/start call button
     return IconButton(
       icon: const Icon(Icons.call),
-      tooltip: 'Start/Join Call',
+      tooltip: 'Start Call',
       onPressed: handleJoin,
     );
   }

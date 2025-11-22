@@ -212,7 +212,11 @@ class CallNotifier extends _$CallNotifier {
   String? _roomId;
   String? get roomId => _roomId;
 
-  Future<void> joinRoom(String roomId) async {
+  SnChatRoom? _chatRoom;
+  SnChatRoom? get chatRoom => _chatRoom;
+
+  Future<void> joinRoom(SnChatRoom room) async {
+    var roomId = room.id;
     if (_roomId == roomId && _room != null) {
       talker.info('[Call] Call skipped. Already has data');
       return;
@@ -223,6 +227,7 @@ class CallNotifier extends _$CallNotifier {
       }
     }
     _roomId = roomId;
+    _chatRoom = room;
     if (_room != null) {
       await _room!.disconnect();
       await _room!.dispose();

@@ -32,7 +32,6 @@ import 'package:island/screens/account/me/account_settings.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
-import 'package:island/screens/chat/call.dart';
 import 'package:island/screens/chat/search_messages.dart';
 import 'package:island/screens/thought/think.dart';
 import 'package:island/screens/creators/hub.dart';
@@ -117,14 +116,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               return ArticleEditScreen(id: id);
-            },
-          ),
-          GoRoute(
-            name: 'chatCall',
-            path: '/chat/:id/call',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return CallScreen(roomId: id);
             },
           ),
           GoRoute(
