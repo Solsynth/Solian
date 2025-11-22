@@ -545,6 +545,7 @@ class ExploreScreen extends HookConsumerWidget {
               SliverToBoxAdapter(
                 child: FriendsOverviewWidget(
                   padding: const EdgeInsets.only(bottom: 8),
+                  hideWhenEmpty: true,
                 ),
               ),
               if (notificationCount.value != null &&
