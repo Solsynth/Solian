@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -42,7 +43,7 @@ class FileManagementSection extends HookConsumerWidget {
                     Icon(Symbols.folder, size: 20),
                     const Gap(8),
                     Text(
-                      'File Management',
+                      'fileManagement'.tr(),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -75,9 +76,7 @@ class FileManagementSection extends HookConsumerWidget {
                           files =
                               results.map((m) => m['file'] as File).toList();
                           if (files.isEmpty) {
-                            showSnackBar(
-                              'No files found in the selected folder',
-                            );
+                            showSnackBar('noFilesFoundInFolder'.tr());
                             return;
                           }
                         }
@@ -112,23 +111,23 @@ class FileManagementSection extends HookConsumerWidget {
                       },
                       itemBuilder:
                           (BuildContext context) => [
-                            const PopupMenuItem<String>(
+                            PopupMenuItem<String>(
                               value: 'files',
                               child: Row(
                                 children: [
                                   Icon(Symbols.file_copy),
                                   Gap(12),
-                                  Text('Files'),
+                                  Text('siteFiles'.tr()),
                                 ],
                               ),
                             ),
-                            const PopupMenuItem<String>(
+                            PopupMenuItem<String>(
                               value: 'folder',
                               child: Row(
                                 children: [
                                   Icon(Symbols.folder),
                                   Gap(12),
-                                  Text('Folder'),
+                                  Text('siteFolder'.tr()),
                                 ],
                               ),
                             ),
@@ -182,7 +181,7 @@ class FileManagementSection extends HookConsumerWidget {
                             children: [
                               InkWell(
                                 onTap: () => currentPath.value = null,
-                                child: const Text('Root'),
+                                child: Text('siteRoot'.tr()),
                               ),
                               ...() {
                                 final parts =
@@ -230,12 +229,12 @@ class FileManagementSection extends HookConsumerWidget {
                               ),
                               const Gap(16),
                               Text(
-                                'No files uploaded yet',
+                                'noFilesUploadedYet'.tr(),
                                 style: theme.textTheme.bodyLarge,
                               ),
                               const Gap(8),
                               Text(
-                                'Upload your first file to get started',
+                                'uploadFirstFile'.tr(),
                                 style: theme.textTheme.bodySmall,
                               ),
                             ],
@@ -265,7 +264,7 @@ class FileManagementSection extends HookConsumerWidget {
                       (error, stack) => Center(
                         child: Column(
                           children: [
-                            Text('Failed to load files'),
+                            Text('failedToLoadFiles'.tr()),
                             const Gap(8),
                             ElevatedButton(
                               onPressed:
@@ -275,7 +274,7 @@ class FileManagementSection extends HookConsumerWidget {
                                       path: currentPath.value,
                                     ),
                                   ),
-                              child: const Text('Retry'),
+                              child: Text('retry'.tr()),
                             ),
                           ],
                         ),

@@ -534,7 +534,7 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
                   ),
                   const Gap(4),
                   Text(
-                    'The last selected number will be your special number.',
+                    'lotteryLastNumberSpecial'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.secondary,
                       fontWeight: FontWeight.w500,
@@ -738,11 +738,11 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter a multiplier';
+          return 'lotteryMultiplierRequired'.tr();
         }
         final parsed = int.tryParse(value);
         if (parsed == null || parsed < 1 || parsed > 10) {
-          return 'Multiplier must be between 1 and 10';
+          return 'lotteryMultiplierRange'.tr();
         }
         return null;
       },

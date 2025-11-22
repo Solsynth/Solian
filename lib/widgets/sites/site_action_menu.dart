@@ -64,18 +64,16 @@ class SiteActionMenu extends HookConsumerWidget {
               context: context,
               builder:
                   (context) => AlertDialog(
-                    title: const Text('Delete Site'),
-                    content: const Text(
-                      'Are you sure you want to delete this publication site? This action cannot be undone.',
-                    ),
+                    title: Text('deleteSite'.tr()),
+                    content: Text('publicationSiteDeleteConfirm'.tr()),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
+                        child: Text('cancel'.tr()),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Delete'),
+                        child: Text('delete'.tr()),
                       ),
                     ],
                   ),
@@ -86,7 +84,7 @@ class SiteActionMenu extends HookConsumerWidget {
                 final client = ref.read(apiClientProvider);
                 await client.delete('/zone/sites/${site.id}');
                 if (context.mounted) {
-                  showSnackBar('Site deleted successfully');
+                  showSnackBar('siteDeletedSuccess'.tr());
                   Navigator.of(context).pop();
                 }
               } catch (e) {

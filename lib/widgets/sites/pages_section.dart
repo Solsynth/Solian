@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,7 +30,7 @@ class PagesSection extends HookConsumerWidget {
                 const Icon(Symbols.article, size: 20),
                 const Gap(8),
                 Text(
-                  'Pages',
+                  'sitePages'.tr(),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -72,12 +73,12 @@ class PagesSection extends HookConsumerWidget {
                           ),
                           const Gap(16),
                           Text(
-                            'No pages yet',
+                            'noPagesYet'.tr(),
                             style: theme.textTheme.bodyLarge,
                           ),
                           const Gap(8),
                           Text(
-                            'Create your first page to get started',
+                            'createFirstPage'.tr(),
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
@@ -101,14 +102,14 @@ class PagesSection extends HookConsumerWidget {
                   (error, stack) => Center(
                     child: Column(
                       children: [
-                        Text('Failed to load pages'),
+                        Text('failedToLoadPages'.tr()),
                         const Gap(8),
                         ElevatedButton(
                           onPressed:
                               () => ref.invalidate(
                                 sitePagesProvider(pubName, site.slug),
                               ),
-                          child: const Text('Retry'),
+                          child: Text('retry'.tr()),
                         ),
                       ],
                     ),

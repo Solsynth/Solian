@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -54,7 +55,7 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: siteAsync.maybeWhen(
           data: (site) => Text(site.name),
-          orElse: () => const Text('Site Details'),
+          orElse: () => Text('siteDetails'.tr()),
         ),
         actions: [
           siteAsync.maybeWhen(
@@ -105,26 +106,26 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Site Information',
+                                    'siteInformation'.tr(),
                                     style: theme.textTheme.titleMedium
                                         ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   const Gap(16),
                                   InfoRow(
-                                    label: 'Name',
+                                    label: 'name'.tr(),
                                     value: site.name,
                                     icon: Symbols.title,
                                   ),
                                   const Gap(8),
                                   InfoRow(
-                                    label: 'Slug',
+                                    label: 'slug'.tr(),
                                     value: site.slug,
                                     icon: Symbols.tag,
                                     monospace: true,
                                   ),
                                   const Gap(8),
                                   InfoRow(
-                                    label: 'Domain',
+                                    label: 'siteDomain'.tr(),
                                     value: '${site.slug}.solian.page',
                                     icon: Symbols.globe,
                                     monospace: true,
@@ -136,31 +137,31 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                                   ),
                                   const Gap(8),
                                   InfoRow(
-                                    label: 'Mode',
+                                    label: 'siteMode'.tr(),
                                     value:
                                         site.mode == 0
-                                            ? 'Fully Managed'
-                                            : 'Self-Managed',
+                                            ? 'siteModeFullyManaged'.tr()
+                                            : 'siteModeSelfManaged'.tr(),
                                     icon: Symbols.settings,
                                   ),
                                   if (site.description != null &&
                                       site.description!.isNotEmpty) ...[
                                     const Gap(8),
                                     InfoRow(
-                                      label: 'Description',
+                                      label: 'description'.tr(),
                                       value: site.description!,
                                       icon: Symbols.description,
                                     ),
                                   ],
                                   const Gap(8),
                                   InfoRow(
-                                    label: 'Created',
+                                    label: 'siteCreated'.tr(),
                                     value: site.createdAt.formatSystem(),
                                     icon: Symbols.calendar_add_on,
                                   ),
                                   const Gap(8),
                                   InfoRow(
-                                    label: 'Updated',
+                                    label: 'siteUpdated'.tr(),
                                     value: site.updatedAt.formatSystem(),
                                     icon: Symbols.update,
                                   ),
@@ -191,7 +192,7 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Failed to load site',
+                    'failedToLoadSite'.tr(),
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const Gap(16),
@@ -202,7 +203,7 @@ class PublicationSiteDetailScreen extends HookConsumerWidget {
                         () => ref.invalidate(
                           publicationSiteDetailProvider(pubName, siteSlug),
                         ),
-                    child: const Text('Retry'),
+                    child: Text('retry'.tr()),
                   ),
                 ],
               ),

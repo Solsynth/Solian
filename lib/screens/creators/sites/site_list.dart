@@ -74,7 +74,7 @@ class CreatorSiteListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('Publication Sites')),
+      appBar: AppBar(title: Text('publicationSites'.tr())),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createSite(context),
         child: Icon(Icons.add),
@@ -201,21 +201,19 @@ class _CreatorSiteItem extends HookConsumerWidget {
                             context: context,
                             builder:
                                 (context) => AlertDialog(
-                                  title: Text('Delete Site'),
-                                  content: Text(
-                                    'Are you sure you want to delete this site?',
-                                  ),
+                                  title: Text('deleteSite'.tr()),
+                                  content: Text('deleteSiteConfirm'.tr()),
                                   actions: [
                                     TextButton(
                                       onPressed:
                                           () =>
                                               Navigator.of(context).pop(false),
-                                      child: Text('Cancel'),
+                                      child: Text('cancel'.tr()),
                                     ),
                                     TextButton(
                                       onPressed:
                                           () => Navigator.of(context).pop(true),
-                                      child: Text('Delete'),
+                                      child: Text('delete'.tr()),
                                     ),
                                   ],
                                 ),
@@ -225,7 +223,7 @@ class _CreatorSiteItem extends HookConsumerWidget {
                               final client = ref.read(apiClientProvider);
                               await client.delete('/zone/sites/${site.id}');
                               ref.invalidate(siteListNotifierProvider(pubName));
-                              showSnackBar('Site deleted successfully');
+                              showSnackBar('siteDeletedSuccess'.tr());
                             } catch (e) {
                               showErrorAlert(e);
                             }

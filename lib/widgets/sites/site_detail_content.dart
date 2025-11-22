@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,20 +43,20 @@ class SiteDetailContent extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Site Information',
+                      'siteInformation'.tr(),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const Gap(16),
                     InfoRow(
-                      label: 'Name',
+                      label: 'name'.tr(),
                       value: site.name,
                       icon: Symbols.title,
                     ),
                     const Gap(8),
                     InfoRow(
-                      label: 'Slug',
+                      label: 'slug'.tr(),
                       value: site.slug,
                       icon: Symbols.tag,
                       monospace: true,
@@ -63,27 +64,30 @@ class SiteDetailContent extends HookConsumerWidget {
                     const Gap(8),
                     InfoRow(
                       label: 'Mode',
-                      value: site.mode == 0 ? 'Fully Managed' : 'Self-Managed',
+                      value:
+                          site.mode == 0
+                              ? 'siteModeFullyManaged'.tr()
+                              : 'siteModeSelfManaged'.tr(),
                       icon: Symbols.settings,
                     ),
                     if (site.description != null &&
                         site.description!.isNotEmpty) ...[
                       const Gap(8),
                       InfoRow(
-                        label: 'Description',
+                        label: 'description'.tr(),
                         value: site.description!,
                         icon: Symbols.description,
                       ),
                     ],
                     const Gap(8),
                     InfoRow(
-                      label: 'Created',
+                      label: 'siteCreated'.tr(),
                       value: site.createdAt.formatSystem(),
                       icon: Symbols.calendar_add_on,
                     ),
                     const Gap(8),
                     InfoRow(
-                      label: 'Updated',
+                      label: 'siteUpdated'.tr(),
                       value: site.updatedAt.formatSystem(),
                       icon: Symbols.update,
                     ),

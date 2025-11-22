@@ -31,20 +31,20 @@ class SiteForm extends HookConsumerWidget {
       children: [
         TextFormField(
           controller: slugController,
-          decoration: const InputDecoration(
-            labelText: 'Slug',
-            hintText: 'my-site',
+          decoration: InputDecoration(
+            labelText: 'siteSlug'.tr(),
+            hintText: 'siteSlugHint'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter a slug';
+              return 'siteSlugRequired'.tr();
             }
             final slugRegex = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
             if (!slugRegex.hasMatch(value)) {
-              return 'Slug can only contain lowercase letters, numbers, and dashes';
+              return 'siteSlugInvalid'.tr();
             }
             return null;
           },
@@ -53,16 +53,16 @@ class SiteForm extends HookConsumerWidget {
         const SizedBox(height: 16),
         TextFormField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Site Name',
-            hintText: 'My Publication Site',
+          decoration: InputDecoration(
+            labelText: 'siteName'.tr(),
+            hintText: 'siteNameHint'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter a site name';
+              return 'siteNameRequired'.tr();
             }
             return null;
           },
@@ -71,8 +71,8 @@ class SiteForm extends HookConsumerWidget {
         const SizedBox(height: 16),
         TextFormField(
           controller: descriptionController,
-          decoration: const InputDecoration(
-            labelText: 'Description',
+          decoration: InputDecoration(
+            labelText: 'description'.tr(),
             alignLabelWithHint: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -84,15 +84,18 @@ class SiteForm extends HookConsumerWidget {
         const SizedBox(height: 16),
         DropdownButtonFormField<int>(
           value: modeController.value,
-          decoration: const InputDecoration(
-            labelText: 'Mode',
+          decoration: InputDecoration(
+            labelText: 'siteMode'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
-          items: const [
-            DropdownMenuItem(value: 0, child: Text('Fully Managed')),
-            DropdownMenuItem(value: 1, child: Text('Self-Managed')),
+          items: [
+            DropdownMenuItem(
+              value: 0,
+              child: Text('siteModeFullyManaged'.tr()),
+            ),
+            DropdownMenuItem(value: 1, child: Text('siteModeSelfManaged'.tr())),
           ],
           onChanged: (value) {
             if (value != null) {
@@ -104,7 +107,7 @@ class SiteForm extends HookConsumerWidget {
     ).padding(all: 20);
 
     return SheetScaffold(
-      titleText: 'Edit Publication Site',
+      titleText: 'editPublicationSite'.tr(),
       child: Builder(
         builder:
             (context) => SingleChildScrollView(
@@ -116,7 +119,7 @@ class SiteForm extends HookConsumerWidget {
                       TextButton.icon(
                         onPressed: deleteSite,
                         icon: const Icon(Symbols.delete_forever),
-                        label: const Text('Delete Publication Site'),
+                        label: Text('deletePublicationSite'.tr()),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
                         ),
@@ -171,7 +174,7 @@ class SiteForm extends HookConsumerWidget {
         ref.invalidate(siteListNotifierProvider(pubName));
 
         if (context.mounted) {
-          showSnackBar('Publication site saved successfully');
+          showSnackBar('publicationSiteSavedSuccess'.tr());
           Navigator.pop(context);
         }
       } catch (e) {
@@ -185,8 +188,8 @@ class SiteForm extends HookConsumerWidget {
       if (siteSlug == null) return; // Shouldn't happen for editing
 
       final confirmed = await showConfirmAlert(
-        'Are you sure you want to delete this publication site? This action cannot be undone.',
-        'Delete Publication Site',
+        'publicationSiteDeleteConfirm'.tr(),
+        'deletePublicationSite'.tr(),
       );
       if (confirmed != true) return;
 
@@ -199,7 +202,7 @@ class SiteForm extends HookConsumerWidget {
         ref.invalidate(siteListNotifierProvider(pubName));
 
         if (context.mounted) {
-          showSnackBar('Publication site deleted successfully');
+          showSnackBar('publicationSiteDeletedSuccess'.tr());
           Navigator.pop(context);
         }
       } catch (e) {
@@ -243,13 +246,13 @@ class SiteForm extends HookConsumerWidget {
               editingSiteSlug,
             ),
         loading:
-            () => const SheetScaffold(
-              titleText: 'Edit Publication Site',
+            () => SheetScaffold(
+              titleText: 'editPublicationSite'.tr(),
               child: Center(child: CircularProgressIndicator()),
             ),
         error:
             (error, _) => SheetScaffold(
-              titleText: 'Edit Publication Site',
+              titleText: 'editPublicationSite'.tr(),
               child: ResponseErrorWidget(
                 error: error.toString(),
                 onRetry: () {
@@ -327,9 +330,12 @@ class SiteForm extends HookConsumerWidget {
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
-          items: const [
-            DropdownMenuItem(value: 0, child: Text('Fully Managed')),
-            DropdownMenuItem(value: 1, child: Text('Self-Managed')),
+          items: [
+            DropdownMenuItem(
+              value: 0,
+              child: Text('siteModeFullyManaged'.tr()),
+            ),
+            DropdownMenuItem(value: 1, child: Text('siteModeSelfManaged'.tr())),
           ],
           onChanged: (value) {
             if (value != null) {
@@ -348,7 +354,9 @@ class SiteForm extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText:
-          siteSlug == null ? 'New Publication Site' : 'Edit Publication Site',
+          siteSlug == null
+              ? 'newPublicationSite'.tr()
+              : 'editPublicationSite'.tr(),
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -359,7 +367,7 @@ class SiteForm extends HookConsumerWidget {
                   TextButton.icon(
                     onPressed: isLoading.value ? null : deleteSite,
                     icon: const Icon(Symbols.delete_forever),
-                    label: const Text('Delete Publication Site'),
+                    label: Text('deletePublicationSite'.tr()),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
                   ).alignment(Alignment.centerRight),
                   const SizedBox(height: 16),

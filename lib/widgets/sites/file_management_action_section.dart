@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -33,7 +34,7 @@ class FileManagementActionSection extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'File Actions',
+                'fileActions'.tr(),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -45,10 +46,8 @@ class FileManagementActionSection extends HookConsumerWidget {
                       Symbols.delete_forever,
                       color: theme.colorScheme.error,
                     ),
-                    title: const Text('Purge Files'),
-                    subtitle: const Text(
-                      'Remove all uploaded files from the site',
-                    ),
+                    title: Text('purgeFiles'.tr()),
+                    subtitle: Text('purgeFilesDescription'.tr()),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                     onTap: () => _purgeFiles(context, ref),
                   ),
@@ -58,10 +57,8 @@ class FileManagementActionSection extends HookConsumerWidget {
                       Symbols.upload,
                       color: theme.colorScheme.primary,
                     ),
-                    title: const Text('Deploy Site'),
-                    subtitle: const Text(
-                      'Upload and deploy a new version from ZIP archive',
-                    ),
+                    title: Text('deploySite'.tr()),
+                    subtitle: Text('deploySiteDescription'.tr()),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                     onTap: () => _deploySite(context, ref),
                   ),
@@ -79,21 +76,19 @@ class FileManagementActionSection extends HookConsumerWidget {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Confirm Purge'),
-            content: const Text(
-              'This will permanently delete all files uploaded to this site. This action cannot be undone. Are you sure you want to continue?',
-            ),
+            title: Text('confirmPurge'.tr()),
+            content: Text('purgeFilesConfirm'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text('cancel'.tr()),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Purge All Files'),
+                child: Text('purgeAllFiles'.tr()),
               ),
             ],
           ),
@@ -105,13 +100,13 @@ class FileManagementActionSection extends HookConsumerWidget {
       final apiClient = ref.read(apiClientProvider);
       await apiClient.delete('/zone/sites/${site.id}/files/purge');
       if (context.mounted) {
-        showSnackBar('All files purged successfully');
+        showSnackBar('allFilesPurgedSuccess'.tr());
         // Refresh the file management section
         ref.invalidate(siteFilesProvider(siteId: site.id));
       }
     } catch (e) {
       if (context.mounted) {
-        showSnackBar('Failed to purge files: $e');
+        showSnackBar('failedToPurgeFiles'.tr(args: [e.toString()]));
       }
     }
   }
@@ -147,13 +142,13 @@ class FileManagementActionSection extends HookConsumerWidget {
       );
 
       if (context.mounted) {
-        showSnackBar('Site deployed successfully');
+        showSnackBar('siteDeployedSuccess'.tr());
         // Refresh the file management section
         ref.invalidate(siteFilesProvider(siteId: site.id));
       }
     } catch (e) {
       if (context.mounted) {
-        showSnackBar('Failed to deploy site: $e');
+        showSnackBar('failedToDeploySite'.tr(args: [e.toString()]));
       }
     }
   }

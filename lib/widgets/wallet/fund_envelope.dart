@@ -57,7 +57,7 @@ class FundEnvelopeWidget extends HookConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Failed to load fund envelope',
+                      'fundEnvelopeLoadFailed'.tr(),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -88,7 +88,7 @@ class FundEnvelopeWidget extends HookConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Fund Envelope',
+                              'fundEnvelope'.tr(),
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
@@ -116,7 +116,12 @@ class FundEnvelopeWidget extends HookConsumerWidget {
                               const SizedBox(height: 4),
                               if (fund.remainingAmount != fund.totalAmount)
                                 Text(
-                                  'Remaining: ${fund.remainingAmount.toStringAsFixed(2)} ${fund.currency}',
+                                  'fundEnvelopeRemaining'.tr(
+                                    args: [
+                                      fund.remainingAmount.toStringAsFixed(2),
+                                      fund.currency,
+                                    ],
+                                  ),
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodySmall?.copyWith(
@@ -126,7 +131,13 @@ class FundEnvelopeWidget extends HookConsumerWidget {
                                   ),
                                 ),
                               Text(
-                                'Split: ${fund.splitType == 0 ? 'Evenly' : 'Randomly'}',
+                                'fundEnvelopeSplit'.tr(
+                                  args: [
+                                    fund.splitType == 0
+                                        ? 'fundEnvelopeSplitEvenly'.tr()
+                                        : 'fundEnvelopeSplitRandomly'.tr(),
+                                  ],
+                                ),
                                 style: Theme.of(
                                   context,
                                 ).textTheme.bodySmall?.copyWith(
@@ -245,7 +256,7 @@ class FundEnvelopeWidget extends HookConsumerWidget {
 
                 if (dialogContext.mounted) {
                   Navigator.of(dialogContext).pop();
-                  showSnackBar('Fund claimed successfully!');
+                  showSnackBar('fundEnvelopeClaimSuccess'.tr());
                 }
               } catch (e) {
                 showErrorAlert(e);
@@ -261,23 +272,23 @@ class FundEnvelopeWidget extends HookConsumerWidget {
 
     switch (status) {
       case 0:
-        text = 'Created';
+        text = 'fundEnvelopeStatusCreated'.tr();
         color = Colors.blue;
         break;
       case 1:
-        text = 'Partially Claimed';
+        text = 'fundEnvelopeStatusPartial'.tr();
         color = Colors.orange;
         break;
       case 2:
-        text = 'Fully Claimed';
+        text = 'fundEnvelopeStatusCompleted'.tr();
         color = Colors.green;
         break;
       case 3:
-        text = 'Expired';
+        text = 'fundEnvelopeStatusExpired'.tr();
         color = Colors.red;
         break;
       default:
-        text = 'Unknown';
+        text = 'fundEnvelopeStatusUnknown'.tr();
         color = Colors.grey;
     }
 
@@ -339,7 +350,9 @@ class FundEnvelopeWidget extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recipients ($claimedCount/$totalCount claimed)',
+          'fundEnvelopeRecipients'.tr(
+            args: [claimedCount.toString(), totalCount.toString()],
+          ),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -362,15 +375,26 @@ class FundEnvelopeWidget extends HookConsumerWidget {
       final difference = date.difference(now);
 
       if (difference.isNegative) {
-        return 'Expired ${difference.inDays.abs()} days ago';
+        final days = difference.inDays.abs();
+        return 'fundEnvelopeExpiredDaysAgo'.plural(
+          days,
+          args: [days.toString()],
+        );
       } else if (difference.inDays == 0) {
         final hours = difference.inHours;
         if (hours == 0) {
-          return 'Expires soon';
+          return 'fundEnvelopeExpiresSoon'.tr();
         }
-        return 'Expires in $hours hour${hours == 1 ? '' : 's'}';
+        return 'fundEnvelopeExpiresInHours'.plural(
+          hours,
+          args: [hours.toString()],
+        );
       } else if (difference.inDays < 7) {
-        return 'Expires in ${difference.inDays} day${difference.inDays == 1 ? '' : 's'}';
+        final days = difference.inDays;
+        return 'fundEnvelopeExpiresInDays'.plural(
+          days,
+          args: [days.toString()],
+        );
       } else {
         return '${date.day}/${date.month}/${date.year}';
       }
@@ -449,7 +473,13 @@ class FundClaimDialog extends HookConsumerWidget {
 
             // Remaining amount
             Text(
-              '${fund.remainingAmount.toStringAsFixed(2)} ${fund.currency} / $remainingSplits splits',
+              'fundEnvelopeRemainingWithSplits'.tr(
+                args: [
+                  fund.remainingAmount.toStringAsFixed(2),
+                  fund.currency,
+                  remainingSplits.toString(),
+                ],
+              ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.secondary,
                 fontWeight: FontWeight.w500,
@@ -503,7 +533,8 @@ class FundClaimDialog extends HookConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          recipient.recipientAccount?.nick ?? 'Unknown User',
+                          recipient.recipientAccount?.nick ??
+                              'fundEnvelopeUnknownUser'.tr(),
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
@@ -551,7 +582,8 @@ class FundClaimDialog extends HookConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          recipient.recipientAccount?.nick ?? 'Unknown User',
+                          recipient.recipientAccount?.nick ??
+                              'fundEnvelopeUnknownUser'.tr(),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
