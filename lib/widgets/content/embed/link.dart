@@ -55,14 +55,18 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
       stream.removeListener(listener);
 
       final aspectRatio = info.image.width / info.image.height;
-      setState(() {
-        _isSquare = aspectRatio >= 0.9 && aspectRatio <= 1.1;
-      });
+      if (mounted) {
+        setState(() {
+          _isSquare = aspectRatio >= 0.9 && aspectRatio <= 1.1;
+        });
+      }
     } catch (e) {
       // If error, assume not square
-      setState(() {
-        _isSquare = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSquare = false;
+        });
+      }
     }
   }
 
