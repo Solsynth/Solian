@@ -1,5 +1,3 @@
-// ignore_for_file: invalid_runtime_check_with_js_interop_types
-
 import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
@@ -10,11 +8,12 @@ import 'package:flutter/material.dart';
 
 class CaptchaScreen extends ConsumerStatefulWidget {
   static Future<String?> show(BuildContext context) {
-    return showModalBottomSheet<String>(
-      context: context,
-      isDismissible: false,
-      isScrollControlled: true,
-      builder: (context) => const CaptchaScreen(),
+    return Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CaptchaScreen(),
+        fullscreenDialog: true,
+      ),
     );
   }
 
@@ -29,7 +28,9 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
 
   void _setupWebListener(String serverUrl) async {
     web.window.onMessage.listen((event) {
+      // ignore: invalid_runtime_check_with_js_interop_types
       if (event.data != null && event.data is String) {
+        // ignore: invalid_runtime_check_with_js_interop_types
         final message = event.data as String;
         if (message.startsWith("captcha_tk=")) {
           String token = message.replaceFirst("captcha_tk=", "");

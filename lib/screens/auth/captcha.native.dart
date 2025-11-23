@@ -6,11 +6,12 @@ import 'package:island/widgets/content/sheet.dart';
 
 class CaptchaScreen extends ConsumerWidget {
   static Future<String?> show(BuildContext context) {
-    return showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      builder: (context) => const CaptchaScreen(),
+    return Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CaptchaScreen(),
+        fullscreenDialog: true,
+      ),
     );
   }
 
