@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
@@ -5,6 +7,58 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/pods/chat/chat_subscribe.dart';
 
 part 'chat_summary.g.dart';
+
+@riverpod
+class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
+  StreamSubscription<WebSocketPacket>? _subscription;
+
+  @override
+  Future<int> build() async {
+    // Subscribe to websocket events when this provider is built
+    _subscribeToWebSocket();
+
+    // Dispose the subscription when this provider is disposed
+    ref.onDispose(() {
+      _subscription?.cancel();
+    });
+
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get('/sphere/chat/unread');
+      return (response.data as num).toInt();
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  void _subscribeToWebSocket() {
+    final webSocketService = ref.read(websocketProvider);
+    _subscription = webSocketService.dataStream.listen((packet) {
+      if (packet.type == 'messages.new' && packet.data != null) {
+        final message = SnChatMessage.fromJson(packet.data!);
+        final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
+        // Only increment if the message is not from the currently subscribed chat
+        if (message.chatRoomId != currentSubscribed) {
+          _incrementCounter();
+        }
+      }
+    });
+  }
+
+  Future<void> _incrementCounter() async {
+    final current = await future;
+    state = AsyncData(current + 1);
+  }
+
+  Future<void> decrement(int count) async {
+    final current = await future;
+    state = AsyncData(math.max(current - count, 0));
+  }
+
+  void clear() async {
+    state = AsyncData(0);
+  }
+}
 
 @riverpod
 class ChatSummary extends _$ChatSummary {
@@ -41,6 +95,14 @@ class ChatSummary extends _$ChatSummary {
     state.whenData((summaries) {
       final summary = summaries[chatId];
       if (summary != null) {
+        // Decrement global unread count
+        final unreadToDecrement = summary.unreadCount;
+        if (unreadToDecrement > 0) {
+          ref
+              .read(chatUnreadCountNotifierProvider.notifier)
+              .decrement(unreadToDecrement);
+        }
+
         state = AsyncData({
           ...summaries,
           chatId: SnChatSummary(

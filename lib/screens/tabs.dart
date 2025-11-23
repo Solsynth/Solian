@@ -14,6 +14,7 @@ import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/chat/chat_summary.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
 
@@ -50,6 +51,8 @@ class TabsScreen extends HookConsumerWidget {
       notificationUnreadCountNotifierProvider,
     );
 
+    final chatUnreadCount = ref.watch(chatUnreadCountNotifierProvider);
+
     final wideScreen = isWideScreen(context);
 
     final destinations = [
@@ -59,7 +62,11 @@ class TabsScreen extends HookConsumerWidget {
       ),
       NavigationDestination(
         label: 'chat'.tr(),
-        icon: const Icon(Symbols.forum_rounded),
+        icon: Badge.count(
+          count: chatUnreadCount.value ?? 0,
+          isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
+          child: const Icon(Symbols.forum_rounded),
+        ),
       ),
       NavigationDestination(
         label: 'realms'.tr(),

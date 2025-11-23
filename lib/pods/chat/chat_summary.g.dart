@@ -6,6 +6,24 @@ part of 'chat_summary.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$chatUnreadCountNotifierHash() =>
+    r'b8d93589dc37f772d4c3a07d9afd81c37026e57d';
+
+/// See also [ChatUnreadCountNotifier].
+@ProviderFor(ChatUnreadCountNotifier)
+final chatUnreadCountNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<ChatUnreadCountNotifier, int>.internal(
+      ChatUnreadCountNotifier.new,
+      name: r'chatUnreadCountNotifierProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$chatUnreadCountNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ChatUnreadCountNotifier = AutoDisposeAsyncNotifier<int>;
 String _$chatSummaryHash() => r'33815a3bd81d20902b7063e8194fe336930df9b4';
 
 /// See also [ChatSummary].
