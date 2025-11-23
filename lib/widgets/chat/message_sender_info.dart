@@ -77,27 +77,12 @@ class MessageSenderInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    AccountName(
-                      account: sender.account,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Badge(
-                      label:
-                          Text(
-                            sender.role >= 100
-                                ? 'permissionOwner'
-                                : sender.role >= 50
-                                ? 'permissionModerator'
-                                : 'permissionMember',
-                          ).tr(),
-                    ),
-                  ],
+                AccountName(
+                  account: sender.account,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 Text(
                   timestamp,
