@@ -45,6 +45,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isSyncing = false;
   bool _isJumping = false;
   bool _isUpdatingState = false;
+  bool _allRemoteMessagesFetched = false;
   DateTime? _lastPauseTime;
 
   late final Future<SnAccount?> Function(String) _fetchAccount;
@@ -278,6 +279,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     if (offset >= _totalCount!) {
+      _allRemoteMessagesFetched = true;
       return [];
     }
 
@@ -307,6 +309,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     }
 
+    // Check if we've fetched all remote messages
+    if (offset + messages.length >= _totalCount!) {
+      _allRemoteMessagesFetched = true;
+    }
+
     return messages;
   }
 
@@ -316,6 +323,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
     _isSyncing = true;
+    _allRemoteMessagesFetched = false;
 
     talker.log('Starting message sync');
     Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
@@ -423,14 +431,35 @@ class MessagesNotifier extends _$MessagesNotifier {
         withAttachments: _withAttachments,
       );
 
-      if (localMessages.isNotEmpty) {
+      // If we have local messages AND we've fetched all remote messages, return local
+      if (localMessages.isNotEmpty && _allRemoteMessagesFetched) {
         return localMessages;
       }
 
+      // If we haven't fetched all remote messages, check remote even if we have local
+      // OR if we have no local messages at all
       if (_searchQuery == null || _searchQuery!.isEmpty) {
-        return await _fetchAndCacheMessages(offset: offset, take: take);
+        final remoteMessages = await _fetchAndCacheMessages(
+          offset: offset,
+          take: take,
+        );
+
+        // If we got remote messages, re-fetch from cache to get merged result
+        if (remoteMessages.isNotEmpty) {
+          return await _getCachedMessages(
+            offset: offset,
+            take: take,
+            searchQuery: _searchQuery,
+            withLinks: _withLinks,
+            withAttachments: _withAttachments,
+          );
+        }
+
+        // No remote messages, return local (if any)
+        return localMessages;
       } else {
-        return []; // If searching, and no local messages, don't fetch from network
+        // For search queries, return local only
+        return localMessages;
       }
     } catch (e) {
       final localMessages = await _getCachedMessages(
@@ -450,6 +479,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> loadInitial() async {
     talker.log('Loading initial messages');
+    _allRemoteMessagesFetched = false;
     if (_searchQuery == null || _searchQuery!.isEmpty) {
       syncMessages();
     }
@@ -471,6 +501,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_hasMore || state is AsyncLoading) return;
     talker.log('Loading more messages');
 
+    Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
     try {
       final currentMessages = state.value ?? [];
       final offset = currentMessages.length;
@@ -492,6 +523,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         stackTrace: stackTrace,
       );
       showErrorAlert(err);
+    } finally {
+      Future.microtask(
+        () => ref.read(isSyncingProvider.notifier).state = false,
+      );
     }
   }
 
@@ -938,6 +973,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _searchQuery = null;
     _withLinks = null;
     _withAttachments = null;
+    _allRemoteMessagesFetched = false;
     loadInitial();
   }
 
