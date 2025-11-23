@@ -25,12 +25,24 @@ const Map<String, Color> kUsernamePlainColors = {
   'white': Colors.white,
 };
 
-const kVerificationMarkColors = [
+const List<IconData> kVerificationMarkIcons = [
+  Symbols.build_circle,
+  Symbols.verified,
+  Symbols.verified,
+  Symbols.account_balance,
+  Symbols.palette,
+  Symbols.code,
+  Symbols.masks,
+];
+
+const List<Color> kVerificationMarkColors = [
   Colors.teal,
-  Colors.blue,
-  Colors.amber,
-  Colors.blueGrey,
   Colors.lightBlue,
+  Colors.indigo,
+  Colors.red,
+  Colors.orange,
+  Colors.blue,
+  Colors.blueAccent,
 ];
 
 class AccountName extends StatelessWidget {
@@ -291,13 +303,14 @@ class VerificationMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = Icon(
-      mark.type == 4
-          ? Symbols.play_circle
-          : mark.type == 0
-          ? Symbols.build_circle
+      (kVerificationMarkIcons.length > mark.type && mark.type >= 0)
+          ? kVerificationMarkIcons[mark.type]
           : Symbols.verified,
       size: 16,
-      color: kVerificationMarkColors[mark.type],
+      color:
+          (kVerificationMarkColors.length > mark.type && mark.type >= 0)
+              ? kVerificationMarkColors[mark.type]
+              : Colors.blue,
       fill: 1,
     );
 
@@ -394,13 +407,14 @@ class VerificationStatusCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Icon(
-          mark.type == 4
-              ? Symbols.play_circle
-              : mark.type == 0
-              ? Symbols.build_circle
+          (kVerificationMarkIcons.length > mark.type && mark.type >= 0)
+              ? kVerificationMarkIcons[mark.type]
               : Symbols.verified,
           size: 32,
-          color: kVerificationMarkColors[mark.type],
+          color:
+              (kVerificationMarkColors.length > mark.type && mark.type >= 0)
+                  ? kVerificationMarkColors[mark.type]
+                  : Colors.blue,
           fill: 1,
         ).alignment(Alignment.centerLeft),
         const Gap(8),
