@@ -343,19 +343,48 @@ class MessagesNotifier extends _$MessagesNotifier {
         return;
       }
 
-      final resp = await _apiClient.post(
-        '/sphere/chat/${_room.id}/sync',
-        data: {
-          'last_sync_timestamp':
-              lastMessage.toRemoteMessage().updatedAt.millisecondsSinceEpoch,
-        },
-      );
+      // Sync with pagination support using timestamp-based cursor
+      int? totalMessages;
+      int syncedCount = 0;
+      int lastSyncTimestamp =
+          lastMessage.toRemoteMessage().updatedAt.millisecondsSinceEpoch;
 
-      final response = MessageSyncResponse.fromJson(resp.data);
-      talker.log('Sync response: ${response.messages.length} changes');
-      for (final message in response.messages) {
-        await receiveMessage(message);
-      }
+      do {
+        final resp = await _apiClient.post(
+          '/sphere/chat/${_room.id}/sync',
+          data: {'last_sync_timestamp': lastSyncTimestamp},
+        );
+
+        // Read total count from header on first request
+        if (totalMessages == null) {
+          totalMessages = int.parse(
+            resp.headers['x-total']?.firstOrNull ?? '0',
+          );
+          talker.log('Total messages to sync: $totalMessages');
+        }
+
+        final response = MessageSyncResponse.fromJson(resp.data);
+        final messagesCount = response.messages.length;
+        talker.log(
+          'Sync page: synced=$syncedCount/$totalMessages, count=$messagesCount',
+        );
+
+        for (final message in response.messages) {
+          await receiveMessage(message);
+        }
+
+        syncedCount += messagesCount;
+
+        // Update cursor to the last message's createdAt for next page
+        if (response.messages.isNotEmpty) {
+          lastSyncTimestamp =
+              response.messages.last.createdAt.millisecondsSinceEpoch;
+        }
+
+        // Continue if there are more messages to fetch
+      } while (syncedCount < totalMessages);
+
+      talker.log('Sync complete: synced $syncedCount messages');
     } catch (err, stackTrace) {
       talker.log(
         'Error syncing messages',
