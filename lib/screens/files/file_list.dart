@@ -36,7 +36,7 @@ class FileListScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text('files').tr(),
-        leading: const PageBackButton(),
+        leading: const PageBackButton(backTo: '/account'),
         actions: [
           IconButton(
             icon: const Icon(Symbols.bar_chart),
