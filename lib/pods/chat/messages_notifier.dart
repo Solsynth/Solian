@@ -299,10 +299,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         }).toList();
 
     for (final message in messages) {
-      await _database.saveMessage(_database.messageToCompanion(message));
-      if (message.sender != null) {
-        await _database.saveMember(message.sender!); // Save/update member data
-      }
+      await _database.saveMessageWithSender(message);
       if (message.nonce != null) {
         _pendingMessages.removeWhere(
           (_, pendingMsg) => pendingMsg.nonce == message.nonce,
@@ -501,8 +498,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     _pendingMessages[localMessage.id] = localMessage;
     _fileUploadProgress[localMessage.id] = {};
-    await _database.saveMessage(_database.messageToCompanion(localMessage));
-    await _database.saveMember(mockMessage.sender);
+    await _database.saveMessageWithSender(localMessage);
 
     final currentMessages = state.value ?? [];
     state = AsyncValue.data([localMessage, ...currentMessages]);
@@ -553,7 +549,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       _pendingMessages.remove(localMessage.id);
       await _database.deleteMessage(localMessage.id);
-      await _database.saveMessage(_database.messageToCompanion(updatedMessage));
+      await _database.saveMessageWithSender(updatedMessage);
 
       final currentMessages = state.value ?? [];
       if (editingTo != null) {
@@ -635,7 +631,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       _pendingMessages.remove(pendingMessageId);
       await _database.deleteMessage(pendingMessageId);
-      await _database.saveMessage(_database.messageToCompanion(updatedMessage));
+      await _database.saveMessageWithSender(updatedMessage);
 
       final newMessages =
           (state.value ?? []).map((m) {
@@ -692,7 +688,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
     }
 
-    await _database.saveMessage(_database.messageToCompanion(localMessage));
+    await _database.saveMessageWithSender(localMessage);
 
     final currentMessages = state.value ?? [];
     final existingIndex = currentMessages.indexWhere(
@@ -789,7 +785,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       messageToUpdate.status,
     );
 
-    await _database.saveMessage(_database.messageToCompanion(deletedMessage));
+    await _database.saveMessageWithSender(deletedMessage);
 
     if (messageIndex != -1) {
       final newList = [...currentMessages];
@@ -938,7 +934,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         MessageStatus.sent,
       );
 
-      await _database.saveMessage(_database.messageToCompanion(message));
+      await _database.saveMessageWithSender(message);
       return message;
     } catch (e) {
       if (e is DioException) return null;

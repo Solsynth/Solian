@@ -449,4 +449,13 @@ class AppDatabase extends _$AppDatabase {
       chatMembers,
     ).insert(companionFromMember(member), mode: InsertMode.insertOrReplace);
   }
+
+  Future<int> saveMessageWithSender(LocalChatMessage message) async {
+    // First save the sender if it exists
+    if (message.sender != null) {
+      await saveMember(message.sender!);
+    }
+    // Then save the message
+    return await saveMessage(messageToCompanion(message));
+  }
 }
