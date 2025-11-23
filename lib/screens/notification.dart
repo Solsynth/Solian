@@ -10,6 +10,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -125,6 +126,31 @@ class NotificationListNotifier extends _$NotificationListNotifier
 class NotificationSheet extends HookConsumerWidget {
   const NotificationSheet({super.key});
 
+  IconData _getNotificationIcon(String topic) {
+    switch (topic) {
+      case 'post.replies':
+        return Symbols.reply;
+      case 'wallet.transactions':
+        return Symbols.account_balance_wallet;
+      case 'relationships.friends.request':
+        return Symbols.person_add;
+      case 'invites.chat':
+        return Symbols.chat;
+      case 'invites.realm':
+        return Symbols.domain;
+      case 'auth.login':
+        return Symbols.login;
+      case 'posts.new':
+        return Symbols.post_add;
+      case 'wallet.orders.paid':
+        return Symbols.shopping_bag;
+      case 'posts.reactions.new':
+        return Symbols.add_reaction;
+      default:
+        return Symbols.notifications;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Refresh unread count when sheet opens to sync across devices
@@ -162,12 +188,30 @@ class NotificationSheet extends HookConsumerWidget {
                 }
 
                 final notification = data.items[index];
+                final pfp = notification.meta['pfp'] as String?;
+                final images = notification.meta['images'] as List?;
+                final imageIds = images?.cast<String>() ?? [];
+
                 return ListTile(
                   isThreeLine: true,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
+                  leading:
+                      pfp != null
+                          ? ProfilePictureWidget(fileId: pfp, radius: 20)
+                          : CircleAvatar(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primaryContainer,
+                            child: Icon(
+                              _getNotificationIcon(notification.topic),
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                   title: Text(notification.title),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -200,6 +244,29 @@ class NotificationSheet extends HookConsumerWidget {
                           ).colorScheme.onSurface.withOpacity(0.8),
                         ),
                       ),
+                      if (imageIds.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children:
+                                imageIds.map((imageId) {
+                                  return SizedBox(
+                                    width: 80,
+                                    height: 80,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CloudImageWidget(
+                                        fileId: imageId,
+                                        aspectRatio: 1,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
                     ],
                   ),
                   trailing:
