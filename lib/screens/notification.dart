@@ -68,6 +68,16 @@ class NotificationUnreadCountNotifier
   void clear() async {
     state = AsyncData(0);
   }
+
+  Future<void> refresh() async {
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get('/ring/notifications/count');
+      state = AsyncData((response.data as num).toInt());
+    } catch (_) {
+      // Keep the current state if refresh fails
+    }
+  }
 }
 
 @riverpod
@@ -117,6 +127,9 @@ class NotificationSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Refresh unread count when sheet opens to sync across devices
+    ref.read(notificationUnreadCountNotifierProvider.notifier).refresh();
+
     Future<void> markAllRead() async {
       showLoadingModal(context);
       final apiClient = ref.watch(apiClientProvider);
