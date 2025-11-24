@@ -742,22 +742,25 @@ class FileListView extends HookConsumerWidget {
               ),
             ),
             const Gap(16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: onPickAndUpload,
-                  icon: const Icon(Symbols.upload_file),
-                  label: const Text('Upload Files'),
-                ),
-                const Gap(12),
-                OutlinedButton.icon(
-                  onPressed:
-                      () => onShowCreateDirectory(ref.context, currentPath),
-                  icon: const Icon(Symbols.create_new_folder),
-                  label: const Text('Create Directory'),
-                ),
-              ],
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: onPickAndUpload,
+                    icon: const Icon(Symbols.upload_file),
+                    label: const Text('Upload Files'),
+                  ),
+                  const Gap(12),
+                  OutlinedButton.icon(
+                    onPressed:
+                        () => onShowCreateDirectory(ref.context, currentPath),
+                    icon: const Icon(Symbols.create_new_folder),
+                    label: const Text('Create Directory'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
