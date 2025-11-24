@@ -285,23 +285,10 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         );
 
         // Show navigation prompt
-        final shouldNavigate = await showDialog<bool>(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: Text('shareSuccess'.tr()),
-                content: Text('wouldYouLikeToGoToChat'.tr()),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('no'.tr()),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('yes'.tr()),
-                  ),
-                ],
-              ),
+        final shouldNavigate = await showConfirmAlert(
+          'wouldYouLikeToGoToChat'.tr(),
+          'shareSuccess'.tr(),
+          icon: Symbols.check_circle,
         );
 
         // Close the share sheet
@@ -360,6 +347,92 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       }
     } catch (e) {
       showErrorAlert(e);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _uploadFiles() async {
+    if (widget.content.files == null || widget.content.files!.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final universalFiles =
+          widget.content.files!.map((file) {
+            UniversalFileType fileType;
+            if (file.mimeType?.startsWith('image/') == true) {
+              fileType = UniversalFileType.image;
+            } else if (file.mimeType?.startsWith('video/') == true) {
+              fileType = UniversalFileType.video;
+            } else if (file.mimeType?.startsWith('audio/') == true) {
+              fileType = UniversalFileType.audio;
+            } else {
+              fileType = UniversalFileType.file;
+            }
+            return UniversalFile(data: file, type: fileType);
+          }).toList();
+
+      // Initialize progress tracking
+      final messageId = DateTime.now().millisecondsSinceEpoch.toString();
+      _fileUploadProgress[messageId] = List.filled(universalFiles.length, 0.0);
+
+      List<SnCloudFile> uploadedFiles = [];
+
+      // Upload each file
+      for (var idx = 0; idx < universalFiles.length; idx++) {
+        final file = universalFiles[idx];
+        final cloudFile =
+            await FileUploader.createCloudFile(
+              ref: ref,
+              fileData: file,
+              onProgress: (progress, _) {
+                if (mounted) {
+                  setState(() {
+                    _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
+                  });
+                }
+              },
+            ).future;
+
+        if (cloudFile == null) {
+          throw Exception('Failed to upload file: ${file.data.name}');
+        }
+        uploadedFiles.add(cloudFile);
+      }
+
+      if (mounted) {
+        // Show success message
+        showSnackBar('uploadSuccess'.tr());
+
+        // If single file, ask to view details
+        if (uploadedFiles.length == 1) {
+          final shouldView = await showConfirmAlert(
+            'wouldYouLikeToViewFile'.tr(),
+            'uploadSuccess'.tr(),
+            icon: Symbols.check_circle,
+          );
+
+          if (mounted) {
+            Navigator.of(context).pop(); // Close share sheet
+            if (shouldView == true) {
+              context.pushNamed(
+                'fileDetail',
+                pathParameters: {'id': uploadedFiles.first.id},
+                extra: uploadedFiles.first,
+              );
+            }
+          }
+        } else {
+          // Just close for multiple files
+          Navigator.of(context).pop();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorAlert(e);
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -456,6 +529,15 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                                 onTap: _isLoading ? null : _shareToPost,
                               ),
                               const SizedBox(width: 12),
+                              if (widget.content.type ==
+                                  ShareContentType.file) ...[
+                                _CompactShareOption(
+                                  icon: Symbols.cloud_upload,
+                                  title: 'upload'.tr(),
+                                  onTap: _isLoading ? null : _uploadFiles,
+                                ),
+                                const SizedBox(width: 12),
+                              ],
                               _CompactShareOption(
                                 icon: Symbols.content_copy,
                                 title: 'copy'.tr(),
