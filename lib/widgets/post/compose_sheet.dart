@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_card.dart';
@@ -50,19 +51,33 @@ class PostComposeSheet extends HookConsumerWidget {
     final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
 
-    final repliedPost = initialState?.replyingTo ?? originalPost?.repliedPost;
+    // Fetch full post data if we're editing a post
+    final fullPostData =
+        originalPost != null
+            ? ref.watch(postProvider(originalPost!.id))
+            : const AsyncValue.data(null);
+
+    // Use the full post data if available, otherwise fall back to originalPost
+    final effectiveOriginalPost = fullPostData.when(
+      data: (fullPost) => fullPost ?? originalPost,
+      loading: () => originalPost,
+      error: (_, _) => originalPost,
+    );
+
+    final repliedPost =
+        initialState?.replyingTo ?? effectiveOriginalPost?.repliedPost;
     final forwardedPost =
-        initialState?.forwardingTo ?? originalPost?.forwardedPost;
+        initialState?.forwardingTo ?? effectiveOriginalPost?.forwardedPost;
 
     // Create compose state
     final ComposeState state = useMemoized(
       () => ComposeLogic.createState(
-        originalPost: originalPost,
+        originalPost: effectiveOriginalPost,
         forwardedPost: forwardedPost,
         repliedPost: repliedPost,
         postType: 0,
       ),
-      [originalPost, forwardedPost, repliedPost],
+      [effectiveOriginalPost, forwardedPost, repliedPost],
     );
 
     // Add a listener to the entire state to trigger rebuilds
@@ -112,7 +127,7 @@ class PostComposeSheet extends HookConsumerWidget {
         ref,
         state,
         context,
-        originalPost: originalPost,
+        originalPost: effectiveOriginalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
         onSuccess: () {
@@ -139,8 +154,13 @@ class PostComposeSheet extends HookConsumerWidget {
                   height: 24,
                   child: const CircularProgressIndicator(strokeWidth: 2),
                 )
-                : Icon(originalPost != null ? Symbols.edit : Symbols.upload),
-        tooltip: originalPost != null ? 'postUpdate'.tr() : 'postPublish'.tr(),
+                : Icon(
+                  effectiveOriginalPost != null ? Symbols.edit : Symbols.upload,
+                ),
+        tooltip:
+            effectiveOriginalPost != null
+                ? 'postUpdate'.tr()
+                : 'postPublish'.tr(),
       ),
     ];
 
@@ -148,7 +168,7 @@ class PostComposeSheet extends HookConsumerWidget {
       titleText: 'postCompose'.tr(),
       actions: actions,
       child: PostComposeCard(
-        originalPost: originalPost,
+        originalPost: effectiveOriginalPost,
         initialState: restoredInitialState.value ?? initialState,
         onCancel: () => Navigator.of(context).pop(),
         onSubmit: () {
