@@ -11,7 +11,6 @@ import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/database.dart';
-import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -28,6 +27,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 
 part 'chat.g.dart';
 
@@ -289,7 +289,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chats = ref.watch(chatroomsJoinedProvider);
-    final callState = ref.watch(callNotifierProvider);
 
     Widget bodyWidget = Column(
       children: [
@@ -314,10 +313,8 @@ class ChatListBodyWidget extends HookConsumerWidget {
                       () => Future.sync(() {
                         ref.invalidate(chatroomsJoinedProvider);
                       }),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(
-                      bottom: callState.isConnected ? 96 : 0,
-                    ),
+                  child: SuperListView.builder(
+                    padding: EdgeInsets.only(bottom: 96),
                     itemCount:
                         items
                             .where(

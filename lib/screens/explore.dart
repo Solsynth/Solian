@@ -31,6 +31,7 @@ import 'package:island/widgets/web_article_card.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 
 part 'explore.g.dart';
 
@@ -582,7 +583,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
     final height = type == 'post' ? 280.0 : 180.0;
 
     final contentWidget = switch (type) {
-      'post' => ListView.separated(
+      'post' => SuperListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
         separatorBuilder: (context, index) => const Gap(12),
