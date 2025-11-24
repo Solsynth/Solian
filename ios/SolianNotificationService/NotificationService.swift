@@ -140,21 +140,29 @@ class NotificationService: UNNotificationServiceExtension {
 
         guard !attachmentUrls.isEmpty else {
             print("Invalid URLs for attachments: \(attachmentUrls)")
+            self.contentHandler?(content)
             return
         }
 
         let targetSize = 512
         let scaleProcessor = ResizingImageProcessor(referenceSize: CGSize(width: targetSize, height: targetSize), mode: .aspectFit)
+        
+        let dispatchGroup = DispatchGroup()
+        var attachments: [UNNotificationAttachment] = []
+        let lock = NSLock() // To synchronize access to the attachments array
 
         for attachmentUrl in attachmentUrls {
             guard let remoteUrl = URL(string: attachmentUrl) else {
                 print("Invalid URL for attachment: \(attachmentUrl)")
-                continue // Skip this URL and move to the next one
+                continue
             }
+            
+            dispatchGroup.enter()
 
             KingfisherManager.shared.retrieveImage(with: remoteUrl, options: scaleDown ? [
                 .processor(scaleProcessor)
             ] : nil) { [weak self] result in
+                defer { dispatchGroup.leave() }
                 guard let self = self else { return }
 
                 switch result {
@@ -166,48 +174,33 @@ class NotificationService: UNNotificationServiceExtension {
                     do {
                         // Write the image data to a temporary file for UNNotificationAttachment
                         try retrievalResult.image.pngData()?.write(to: cachedFileUrl)
-                        self.attachLocalMedia(to: content, fileType: type?.identifier, from: cachedFileUrl, withIdentifier: attachmentUrl)
+                        
+                        if let attachment = try? UNNotificationAttachment(identifier: attachmentUrl, url: cachedFileUrl, options: [
+                            UNNotificationAttachmentOptionsTypeHintKey: type?.identifier as Any,
+                            UNNotificationAttachmentOptionsThumbnailHiddenKey: 0,
+                        ]) {
+                            lock.lock()
+                            attachments.append(attachment)
+                            lock.unlock()
+                        }
                     } catch {
                         print("Failed to write media to temporary file: \(error.localizedDescription)")
-                        self.contentHandler?(content)
                     }
 
                 case .failure(let error):
                     print("Failed to retrieve image: \(error.localizedDescription)")
-                    self.contentHandler?(content)
-                }
-            }
-        }
-    }
-    
-    private func attachLocalMedia(to content: UNMutableNotificationContent, fileType type: String?, from localUrl: URL, withIdentifier identifier: String) {
-        do {
-            let attachment = try UNNotificationAttachment(identifier: identifier, url: localUrl, options: [
-                UNNotificationAttachmentOptionsTypeHintKey: type as Any,
-                UNNotificationAttachmentOptionsThumbnailHiddenKey: 0,
-            ])
-            content.attachments = [attachment]
-        } catch let error as NSError {
-            // Log detailed error information
-            print("Failed to create attachment from file at \(localUrl.path)")
-            print("Error: \(error.localizedDescription)")
-            
-            // Check specific error codes if needed
-            if error.domain == NSCocoaErrorDomain {
-                switch error.code {
-                case NSFileReadNoSuchFileError:
-                    print("File does not exist at \(localUrl.path)")
-                case NSFileReadNoPermissionError:
-                    print("No permission to read file at \(localUrl.path)")
-                default:
-                    print("Unhandled file error: \(error.code)")
                 }
             }
         }
         
-        // Call content handler regardless of success or failure
-        self.contentHandler?(content)
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            content.attachments = attachments
+            self.contentHandler?(content)
+        }
     }
+    
+
     
     private func createMessageIntent(with sender: INPerson, meta: [AnyHashable: Any], body: String) -> INSendMessageIntent {
         INSendMessageIntent(
