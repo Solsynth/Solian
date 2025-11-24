@@ -221,7 +221,9 @@ class _CreatorSiteItem extends HookConsumerWidget {
                           if (confirmed == true) {
                             try {
                               final client = ref.read(apiClientProvider);
-                              await client.delete('/zone/sites/${site.id}');
+                              await client.delete(
+                                '/zone/sites/$pubName/${site.slug}',
+                              );
                               ref.invalidate(siteListNotifierProvider(pubName));
                               showSnackBar('siteDeletedSuccess'.tr());
                             } catch (e) {

@@ -82,7 +82,7 @@ class SiteActionMenu extends HookConsumerWidget {
             if (confirmed == true) {
               try {
                 final client = ref.read(apiClientProvider);
-                await client.delete('/zone/sites/${site.id}');
+                await client.delete('/zone/sites/$pubName/${site.slug}');
                 if (context.mounted) {
                   showSnackBar('siteDeletedSuccess'.tr());
                   Navigator.of(context).pop();
