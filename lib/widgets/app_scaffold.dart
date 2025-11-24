@@ -13,6 +13,7 @@ import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/upload_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -364,6 +365,12 @@ class PopAction extends Action<PopIntent> {
 
   @override
   void invoke(PopIntent intent) {
+    // First, try to close any overlay dialogs
+    if (closeTopmostOverlayDialog()) {
+      return;
+    }
+
+    // If no overlay to close, pop the route
     if (ref.watch(routerProvider).canPop()) {
       ref.read(routerProvider).pop();
     }

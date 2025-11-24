@@ -157,6 +157,9 @@ String _parseRemoteError(DioException err) {
   return message ?? err.toString();
 }
 
+// Track active overlay dialogs for dismissal
+final List<void Function()> _activeOverlayDialogs = [];
+
 Future<T?> showOverlayDialog<T>({
   required Widget Function(BuildContext context, void Function(T? result) close)
   builder,
@@ -175,6 +178,7 @@ Future<T?> showOverlayDialog<T>({
     }
 
     entry.remove();
+    _activeOverlayDialogs.remove(close);
     completer.complete(result);
   }
 
@@ -215,8 +219,19 @@ Future<T?> showOverlayDialog<T>({
         ),
   );
 
+  _activeOverlayDialogs.add(() => close(null));
   globalOverlay.currentState!.insert(entry);
   return completer.future;
+}
+
+// Close the topmost overlay dialog if any exists
+bool closeTopmostOverlayDialog() {
+  if (_activeOverlayDialogs.isNotEmpty) {
+    final closeFunc = _activeOverlayDialogs.last;
+    closeFunc();
+    return true;
+  }
+  return false;
 }
 
 const kDialogMaxWidth = 480.0;
