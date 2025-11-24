@@ -15,6 +15,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
     final wsState = ref.watch(websocketStateProvider);
 
     return SheetScaffold(
+      heightFactor: 0.4,
       titleText:
           wsState == WebSocketState.connected()
               ? 'Connection Status'
