@@ -256,21 +256,25 @@ class ArticleComposeScreen extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ComposeFormFields(
-                state: state,
-                showPublisherAvatar: false,
-                onPublisherTap: () {
-                  showModalBottomSheet(
-                    isScrollControlled: true,
-                    context: context,
-                    builder: (context) => const PublisherModal(),
-                  ).then((value) {
-                    if (value != null) {
-                      state.currentPublisher.value = value;
-                    }
-                  });
-                },
-              ).padding(top: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: ComposeFormFields(
+                    state: state,
+                    showPublisherAvatar: false,
+                    onPublisherTap: () {
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) => const PublisherModal(),
+                      ).then((value) {
+                        if (value != null) {
+                          state.currentPublisher.value = value;
+                        }
+                      });
+                    },
+                  ).padding(top: 16),
+                ),
+              ),
 
               // Attachments preview
               ValueListenableBuilder<List<UniversalFile>>(
