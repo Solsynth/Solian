@@ -196,7 +196,7 @@ class PostReplyPreview extends HookConsumerWidget {
             : (featuredReply!).map(
               data:
                   (data) => Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 8,
                     children: [
                       ProfilePictureWidget(
