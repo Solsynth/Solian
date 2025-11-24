@@ -70,6 +70,7 @@ class WebfeedForm extends HookConsumerWidget {
       final confirmed = await showConfirmAlert(
         'Are you sure you want to delete this web feed? This action cannot be undone.',
         'Delete Web Feed',
+        isDanger: true,
       );
       if (confirmed != true) return;
 

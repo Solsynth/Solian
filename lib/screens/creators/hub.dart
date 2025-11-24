@@ -304,16 +304,18 @@ class CreatorHubScreen extends HookConsumerWidget {
     }
 
     void deletePublisher() {
-      showConfirmAlert('deletePublisherHint'.tr(), 'deletePublisher'.tr()).then(
-        (confirm) {
-          if (confirm) {
-            final client = ref.watch(apiClientProvider);
-            client.delete('/sphere/publishers/${currentPublisher.value!.name}');
-            ref.invalidate(publishersManagedProvider);
-            currentPublisher.value = null;
-          }
-        },
-      );
+      showConfirmAlert(
+        'deletePublisherHint'.tr(),
+        'deletePublisher'.tr(),
+        isDanger: true,
+      ).then((confirm) {
+        if (confirm) {
+          final client = ref.watch(apiClientProvider);
+          client.delete('/sphere/publishers/${currentPublisher.value!.name}');
+          ref.invalidate(publishersManagedProvider);
+          currentPublisher.value = null;
+        }
+      });
     }
 
     final List<DropdownMenuItem<SnPublisher>> publishersMenu = publishers.when(

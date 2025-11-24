@@ -487,6 +487,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   showConfirmAlert(
                     'deleteChatRoomHint'.tr(),
                     'deleteChatRoom'.tr(),
+                    isDanger: true,
                   ).then((confirm) async {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);

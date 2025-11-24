@@ -288,6 +288,7 @@ class StickerPackActionMenu extends HookConsumerWidget {
                 showConfirmAlert(
                   'deleteStickerPackHint'.tr(),
                   'deleteStickerPack'.tr(),
+                  isDanger: true,
                 ).then((confirm) {
                   if (confirm) {
                     final client = ref.watch(apiClientProvider);

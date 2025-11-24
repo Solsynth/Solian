@@ -159,9 +159,11 @@ class BotKeysScreen extends HookConsumerWidget {
     }
 
     void revokeKey(String keyId) {
-      showConfirmAlert('revokeBotKeyHint'.tr(), 'revokeBotKey'.tr()).then((
-        confirm,
-      ) {
+      showConfirmAlert(
+        'revokeBotKeyHint'.tr(),
+        'revokeBotKey'.tr(),
+        isDanger: true,
+      ).then((confirm) {
         if (confirm) {
           final client = ref.read(apiClientProvider);
           client

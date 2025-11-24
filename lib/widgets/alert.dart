@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/main.dart';
 import 'package:island/talker.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -220,7 +221,7 @@ Future<T?> showOverlayDialog<T>({
 
 const kDialogMaxWidth = 480.0;
 
-void showErrorAlert(dynamic err) {
+void showErrorAlert(dynamic err, {IconData? icon}) {
   if (err is Error) {
     talker.error('Something went wrong...', err, err.stackTrace);
   }
@@ -236,8 +237,27 @@ void showErrorAlert(dynamic err) {
         (context, close) => ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
           child: AlertDialog(
-            title: Text('somethingWentWrong'.tr()),
-            content: Text(text),
+            title: null,
+            titlePadding: EdgeInsets.zero,
+            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Icons.error_outline_rounded,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const Gap(16),
+                Text(
+                  'somethingWentWrong'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const Gap(8),
+                Text(text),
+              ],
+            ),
             actions: [
               TextButton(
                 onPressed: () => close(null),
@@ -249,14 +269,32 @@ void showErrorAlert(dynamic err) {
   );
 }
 
-void showInfoAlert(String message, String title) {
+void showInfoAlert(String message, String title, {IconData? icon}) {
   showOverlayDialog<void>(
     builder:
         (context, close) => ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
           child: AlertDialog(
-            title: Text(title),
-            content: Text(message),
+            title: null,
+            titlePadding: EdgeInsets.zero,
+            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Symbols.info_rounded,
+                  fill: 1,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(16),
+                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                const Gap(8),
+                Text(message),
+                const Gap(8),
+              ],
+            ),
             actions: [
               TextButton(
                 onPressed: () => close(null),
@@ -268,14 +306,37 @@ void showInfoAlert(String message, String title) {
   );
 }
 
-Future<bool> showConfirmAlert(String message, String title) async {
+Future<bool> showConfirmAlert(
+  String message,
+  String title, {
+  IconData? icon,
+  bool isDanger = false,
+}) async {
   final result = await showOverlayDialog<bool>(
     builder:
         (context, close) => ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
           child: AlertDialog(
-            title: Text(title),
-            content: Text(message),
+            title: null,
+            titlePadding: EdgeInsets.zero,
+            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Symbols.help_rounded,
+                  size: 48,
+                  fill: 1,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(16),
+                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                const Gap(8),
+                Text(message),
+                const Gap(8),
+              ],
+            ),
             actions: [
               TextButton(
                 onPressed: () => close(false),
@@ -285,6 +346,12 @@ Future<bool> showConfirmAlert(String message, String title) async {
               ),
               TextButton(
                 onPressed: () => close(true),
+                style:
+                    isDanger
+                        ? TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        )
+                        : null,
                 child: Text(MaterialLocalizations.of(context).okButtonLabel),
               ),
             ],

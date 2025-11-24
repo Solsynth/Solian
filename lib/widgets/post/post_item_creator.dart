@@ -69,22 +69,24 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'delete'.tr(),
               image: MenuImage.icon(Symbols.delete),
               callback: () {
-                showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr()).then(
-                  (confirm) {
-                    if (confirm) {
-                      final client = ref.watch(apiClientProvider);
-                      client
-                          .delete('/sphere/posts/${item.id}')
-                          .catchError((err) {
-                            showErrorAlert(err);
-                            return err;
-                          })
-                          .then((_) {
-                            onRefresh?.call();
-                          });
-                    }
-                  },
-                );
+                showConfirmAlert(
+                  'deletePostHint'.tr(),
+                  'deletePost'.tr(),
+                  isDanger: true,
+                ).then((confirm) {
+                  if (confirm) {
+                    final client = ref.watch(apiClientProvider);
+                    client
+                        .delete('/sphere/posts/${item.id}')
+                        .catchError((err) {
+                          showErrorAlert(err);
+                          return err;
+                        })
+                        .then((_) {
+                          onRefresh?.call();
+                        });
+                  }
+                });
               },
             ),
             MenuSeparator(),

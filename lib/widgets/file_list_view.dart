@@ -512,6 +512,7 @@ class FileListView extends HookConsumerWidget {
                                   final confirmed = await showConfirmAlert(
                                     'Are you sure you want to delete the selected files?',
                                     'Delete Selected Files',
+                                    isDanger: true,
                                   );
                                   if (!confirmed) return;
                                   if (context.mounted) {
@@ -788,6 +789,7 @@ class FileListView extends HookConsumerWidget {
             final confirmed = await showConfirmAlert(
               'confirmDeleteFile'.tr(),
               'deleteFile'.tr(),
+              isDanger: true,
             );
             if (!confirmed) return;
 
@@ -1156,6 +1158,7 @@ class FileListView extends HookConsumerWidget {
           final confirmed = await showConfirmAlert(
             'confirmDeleteFile'.tr(),
             'deleteFile'.tr(),
+            isDanger: true,
           );
           if (!confirmed) return;
 
@@ -1224,6 +1227,7 @@ class FileListView extends HookConsumerWidget {
           final confirmed = await showConfirmAlert(
             'confirmDeleteFile'.tr(),
             'deleteFile'.tr(),
+            isDanger: true,
           );
           if (!confirmed) return;
 
@@ -1266,6 +1270,7 @@ class FileListView extends HookConsumerWidget {
             final confirmed = await showConfirmAlert(
               'confirmDeleteFile'.tr(),
               'deleteFile'.tr(),
+              isDanger: true,
             );
             if (!confirmed) return;
 

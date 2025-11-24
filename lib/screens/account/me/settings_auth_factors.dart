@@ -26,6 +26,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       final confirm = await showConfirmAlert(
         'authFactorDeleteHint'.tr(),
         'authFactorDelete'.tr(),
+        isDanger: true,
       );
       if (!confirm || !context.mounted) return;
       try {

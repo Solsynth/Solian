@@ -145,9 +145,11 @@ class PostActionButtons extends HookConsumerWidget {
           message: 'delete'.tr(),
           child: FilledButton.tonal(
             onPressed: () {
-              showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr()).then((
-                confirm,
-              ) {
+              showConfirmAlert(
+                'deletePostHint'.tr(),
+                'deletePost'.tr(),
+                isDanger: true,
+              ).then((confirm) {
                 if (confirm) {
                   final client = ref.watch(apiClientProvider);
                   client

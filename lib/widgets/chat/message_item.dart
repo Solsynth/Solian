@@ -596,6 +596,7 @@ class MessageHoverActionMenu extends StatelessWidget {
     final confirmed = await showConfirmAlert(
       'deleteMessageConfirmation'.tr(),
       'deleteMessage'.tr(),
+      isDanger: true,
     );
 
     if (confirmed) {

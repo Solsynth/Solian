@@ -231,6 +231,7 @@ class CustomAppsScreen extends HookConsumerWidget {
                                     showConfirmAlert(
                                       'deleteCustomAppHint'.tr(),
                                       'deleteCustomApp'.tr(),
+                                      isDanger: true,
                                     ).then((confirm) {
                                       if (confirm) {
                                         final client = ref.read(
