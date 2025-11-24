@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -177,8 +178,11 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
       // Show compose sheet
       if (mounted) {
-        PostComposeSheet.show(context, initialState: initialState);
-        Navigator.of(context).pop(); // Close the share sheet
+        await PostComposeSheet.show(context, initialState: initialState);
+        // Close the share sheet after the compose sheet is dismissed
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       showErrorAlert(e);
@@ -650,19 +654,26 @@ class _ChatRoomsList extends ConsumerWidget {
   }
 }
 
-class _ChatRoomOption extends StatelessWidget {
+class _ChatRoomOption extends HookConsumerWidget {
   final SnChatRoom room;
   final VoidCallback? onTap;
 
   const _ChatRoomOption({required this.room, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
+    final validMembers =
+        (room.members ?? [])
+            .where((m) => m.accountId != userInfo.value?.id)
+            .toList();
+
     final isDirect = room.type == 1; // Assuming type 1 is direct chat
     final displayName =
         room.name ??
-        (isDirect && room.members != null
-            ? room.members!.map((m) => m.account.nick).join(', ')
+        (isDirect
+            ? validMembers.map((m) => m.account.nick).join(', ')
             : 'unknownChat'.tr());
 
     return GestureDetector(
@@ -694,18 +705,22 @@ class _ChatRoomOption extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child:
-                  room.picture != null
-                      ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: CloudFileWidget(
-                          item: room.picture!,
-                          fit: BoxFit.cover,
-                        ),
+                  (isDirect && room.picture?.id == null)
+                      ? SplitAvatarWidget(
+                        filesId:
+                            validMembers
+                                .map((e) => e.account.profile.picture?.id)
+                                .toList(),
+                        radius: 16,
                       )
-                      : Icon(
-                        isDirect ? Symbols.person : Symbols.group,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
+                      : room.picture?.id == null
+                      ? CircleAvatar(
+                        radius: 16,
+                        child: Text(room.name![0].toUpperCase()),
+                      )
+                      : ProfilePictureWidget(
+                        fileId: room.picture?.id,
+                        radius: 16,
                       ),
             ),
             const SizedBox(height: 4),
