@@ -1,3 +1,4 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:island/widgets/share/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
@@ -240,23 +242,74 @@ class ExploreScreen extends HookConsumerWidget {
 
     final appBar = isWide ? null : _buildAppBar(tabController, context);
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: appBar,
-      body:
-          isWide
-              ? _buildWideBody(
-                context,
-                ref,
-                filterBar,
-                user,
-                notificationCount,
-                query,
-                events,
-                selectedDay,
-                currentFilter.value,
-              )
-              : _buildNarrowBody(context, ref, currentFilter.value),
+    final dragging = useState(false);
+
+    return DropTarget(
+      onDragDone: (detail) {
+        dragging.value = false;
+        if (detail.files.isNotEmpty) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => ShareSheet.files(files: detail.files),
+          );
+        }
+      },
+      onDragEntered: (_) => dragging.value = true,
+      onDragExited: (_) => dragging.value = false,
+      child: Stack(
+        children: [
+          AppScaffold(
+            isNoBackground: false,
+            appBar: appBar,
+            body:
+                isWide
+                    ? _buildWideBody(
+                      context,
+                      ref,
+                      filterBar,
+                      user,
+                      notificationCount,
+                      query,
+                      events,
+                      selectedDay,
+                      currentFilter.value,
+                    )
+                    : _buildNarrowBody(context, ref, currentFilter.value),
+          ),
+          if (dragging.value)
+            Positioned.fill(
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withOpacity(0.9),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.upload_file,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const Gap(16),
+                      Text(
+                        'dropToShare'.tr(),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
