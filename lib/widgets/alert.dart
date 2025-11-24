@@ -218,6 +218,8 @@ Future<T?> showOverlayDialog<T>({
   return completer.future;
 }
 
+const kDialogMaxWidth = 480.0;
+
 void showErrorAlert(dynamic err) {
   if (err is Error) {
     talker.error('Something went wrong...', err, err.stackTrace);
@@ -231,15 +233,18 @@ void showErrorAlert(dynamic err) {
 
   showOverlayDialog<void>(
     builder:
-        (context, close) => AlertDialog(
-          title: Text('somethingWentWrong'.tr()),
-          content: Text(text),
-          actions: [
-            TextButton(
-              onPressed: () => close(null),
-              child: Text(MaterialLocalizations.of(context).okButtonLabel),
-            ),
-          ],
+        (context, close) => ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+          child: AlertDialog(
+            title: Text('somethingWentWrong'.tr()),
+            content: Text(text),
+            actions: [
+              TextButton(
+                onPressed: () => close(null),
+                child: Text(MaterialLocalizations.of(context).okButtonLabel),
+              ),
+            ],
+          ),
         ),
   );
 }
@@ -247,15 +252,18 @@ void showErrorAlert(dynamic err) {
 void showInfoAlert(String message, String title) {
   showOverlayDialog<void>(
     builder:
-        (context, close) => AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => close(null),
-              child: Text(MaterialLocalizations.of(context).okButtonLabel),
-            ),
-          ],
+        (context, close) => ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+          child: AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => close(null),
+                child: Text(MaterialLocalizations.of(context).okButtonLabel),
+              ),
+            ],
+          ),
         ),
   );
 }
@@ -263,19 +271,24 @@ void showInfoAlert(String message, String title) {
 Future<bool> showConfirmAlert(String message, String title) async {
   final result = await showOverlayDialog<bool>(
     builder:
-        (context, close) => AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => close(false),
-              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-            ),
-            TextButton(
-              onPressed: () => close(true),
-              child: Text(MaterialLocalizations.of(context).okButtonLabel),
-            ),
-          ],
+        (context, close) => ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+          child: AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => close(false),
+                child: Text(
+                  MaterialLocalizations.of(context).cancelButtonLabel,
+                ),
+              ),
+              TextButton(
+                onPressed: () => close(true),
+                child: Text(MaterialLocalizations.of(context).okButtonLabel),
+              ),
+            ],
+          ),
         ),
   );
   return result ?? false;
