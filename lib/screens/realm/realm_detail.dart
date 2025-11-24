@@ -427,6 +427,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                               showConfirmAlert(
                                 'deleteRealmHint'.tr(),
                                 'deleteRealm'.tr(),
+                                isDanger: true,
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);

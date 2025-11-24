@@ -72,26 +72,10 @@ class FileManagementActionSection extends HookConsumerWidget {
   }
 
   Future<void> _purgeFiles(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('confirmPurge'.tr()),
-            content: Text('purgeFilesConfirm'.tr()),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('cancel'.tr()),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text('purgeAllFiles'.tr()),
-              ),
-            ],
-          ),
+    final confirmed = await showConfirmAlert(
+      'purgeFilesConfirm'.tr(),
+      'confirmPurge'.tr(),
+      isDanger: true,
     );
 
     if (confirmed != true) return;

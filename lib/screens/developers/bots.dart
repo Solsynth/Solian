@@ -172,6 +172,7 @@ class BotsScreen extends HookConsumerWidget {
                               showConfirmAlert(
                                 'deleteBotHint'.tr(),
                                 'deleteBot'.tr(),
+                                isDanger: true,
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.read(apiClientProvider);

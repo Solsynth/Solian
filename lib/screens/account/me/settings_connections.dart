@@ -82,6 +82,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
       final confirm = await showConfirmAlert(
         'accountConnectionDeleteHint'.tr(),
         'accountConnectionDelete'.tr(),
+        isDanger: true,
       );
       if (!confirm || !context.mounted) return;
       try {
@@ -332,6 +333,7 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                               final confirm = await showConfirmAlert(
                                 'accountConnectionDeleteHint'.tr(),
                                 'accountConnectionDelete'.tr(),
+                                isDanger: true,
                               );
                               if (confirm && context.mounted) {
                                 try {

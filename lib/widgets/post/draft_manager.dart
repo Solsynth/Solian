@@ -122,6 +122,7 @@ class DraftManagerSheet extends HookConsumerWidget {
                         final confirmed = await showConfirmAlert(
                           'clearAllDraftsConfirm'.tr(),
                           'clearAllDrafts'.tr(),
+                          isDanger: true,
                         );
 
                         if (confirmed == true) {

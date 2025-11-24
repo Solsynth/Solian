@@ -197,6 +197,7 @@ class PostActionableItem extends HookConsumerWidget {
                   showConfirmAlert(
                     'deletePostHint'.tr(),
                     'deletePost'.tr(),
+                    isDanger: true,
                   ).then((confirm) {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);

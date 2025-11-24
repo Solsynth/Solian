@@ -211,6 +211,7 @@ class AppSecretsScreen extends HookConsumerWidget {
                               showConfirmAlert(
                                 'deleteSecretHint'.tr(),
                                 'deleteSecret'.tr(),
+                                isDanger: true,
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.read(apiClientProvider);

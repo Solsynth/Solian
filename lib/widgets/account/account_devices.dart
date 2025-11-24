@@ -150,6 +150,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       final confirm = await showConfirmAlert(
         'authDeviceLogoutHint'.tr(),
         'authDeviceLogout'.tr(),
+        isDanger: true,
       );
       if (!confirm || !context.mounted) return;
       try {
@@ -276,6 +277,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                                 final confirm = await showConfirmAlert(
                                   'authDeviceLogoutHint'.tr(),
                                   'authDeviceLogout'.tr(),
+                                  isDanger: true,
                                 );
                                 if (confirm && context.mounted) {
                                   try {

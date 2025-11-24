@@ -631,6 +631,7 @@ class _ProjectListTile extends HookConsumerWidget {
             showConfirmAlert(
               'deleteProjectHint'.tr(),
               'deleteProject'.tr(),
+              isDanger: true,
             ).then((confirm) {
               if (confirm) {
                 final client = ref.read(apiClientProvider);

@@ -20,6 +20,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       final confirm = await showConfirmAlert(
         'contactMethodDeleteHint'.tr(),
         'contactMethodDelete'.tr(),
+        isDanger: true,
       );
       if (!confirm || !context.mounted) return;
       try {

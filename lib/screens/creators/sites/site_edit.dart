@@ -190,6 +190,7 @@ class SiteForm extends HookConsumerWidget {
       final confirmed = await showConfirmAlert(
         'publicationSiteDeleteConfirm'.tr(),
         'deletePublicationSite'.tr(),
+        isDanger: true,
       );
       if (confirmed != true) return;
 

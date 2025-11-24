@@ -62,6 +62,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
       final confirm = await showConfirmAlert(
         'accountDeletionHint'.tr(),
         'accountDeletion'.tr(),
+        isDanger: true,
       );
       if (!confirm || !context.mounted) return;
       try {
