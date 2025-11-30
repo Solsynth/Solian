@@ -48,6 +48,7 @@ class ChatRooms extends Table {
   TextColumn get picture => text().map(const MapConverter()).nullable()();
   TextColumn get background => text().map(const MapConverter()).nullable()();
   TextColumn get realmId => text().nullable()();
+  TextColumn get accountId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -62,14 +63,10 @@ class ChatMembers extends Table {
   TextColumn get accountId => text()();
   TextColumn get account => text().map(const MapConverter())();
   TextColumn get nick => text().nullable()();
-  IntColumn get role => integer()();
   IntColumn get notify => integer()();
   DateTimeColumn get joinedAt => dateTime().nullable()();
   DateTimeColumn get breakUntil => dateTime().nullable()();
   DateTimeColumn get timeoutUntil => dateTime().nullable()();
-  BoolColumn get isBot => boolean()();
-  TextColumn get status => text().nullable()();
-  DateTimeColumn get lastTyped => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();

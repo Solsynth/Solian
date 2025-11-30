@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -199,24 +198,17 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
           final members =
               membersRows.map((mRow) {
                 final account = SnAccount.fromJson(mRow.account);
-                SnAccountStatus? status;
-                if (mRow.status != null) {
-                  status = SnAccountStatus.fromJson(jsonDecode(mRow.status!));
-                }
                 return SnChatMember(
                   id: mRow.id,
                   chatRoomId: mRow.chatRoomId,
                   accountId: mRow.accountId,
                   account: account,
                   nick: mRow.nick,
-                  role: mRow.role,
                   notify: mRow.notify,
                   joinedAt: mRow.joinedAt,
                   breakUntil: mRow.breakUntil,
                   timeoutUntil: mRow.timeoutUntil,
-                  isBot: mRow.isBot,
-                  status: status,
-                  lastTyped: mRow.lastTyped,
+                  status: null,
                   createdAt: mRow.createdAt,
                   updatedAt: mRow.updatedAt,
                   deletedAt: mRow.deletedAt,
@@ -237,6 +229,7 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
                     ? SnCloudFile.fromJson(row.background!)
                     : null,
             realmId: row.realmId,
+            accountId: row.accountId,
             realm: null,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
@@ -709,16 +702,6 @@ class _ChatInvitesSheet extends HookConsumerWidget {
                           subtitle: Row(
                             spacing: 6,
                             children: [
-                              Flexible(
-                                child:
-                                    Text(
-                                      invite.role >= 100
-                                          ? 'permissionOwner'
-                                          : invite.role >= 50
-                                          ? 'permissionModerator'
-                                          : 'permissionMember',
-                                    ).tr(),
-                              ),
                               if (invite.chatRoom!.type == 1)
                                 Badge(
                                   label: const Text('directMessage').tr(),
