@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/pods/activity/activity_rpc.dart';
+import 'package:island/pods/config.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
+import 'package:island/screens/auth/login_content.dart';
 import 'package:island/screens/tray_manager.dart';
-import 'package:island/services/event_bus.dart';
 import 'package:island/pods/web_auth/web_auth_providers.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
@@ -117,14 +119,20 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     TrayService.instance.handleAction(menuItem);
   }
 
-  void _handleDeepLink(Uri uri, WidgetRef ref) {
+  void _handleDeepLink(Uri uri, WidgetRef ref) async {
     String path = '/${uri.host}${uri.path}';
 
     // Special handling for OIDC auth callback
-    if (path == '/auth/callback' &&
-        uri.queryParameters.containsKey('challenge')) {
-      final challenge = uri.queryParameters['challenge']!;
-      eventBus.fire(OidcAuthCallbackEvent(challenge));
+    if (path == '/auth/callback' && uri.queryParameters.containsKey('token')) {
+      final token = uri.queryParameters['token']!;
+      setToken(ref.read(sharedPreferencesProvider), token);
+      ref.invalidate(tokenProvider);
+
+      // Do post login tasks
+      if (mounted) {
+        await performPostLogin(context, ref);
+      }
+
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         windowManager.show();

@@ -120,7 +120,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
       return null;
     }, [isBusy]);
 
-    void performNext() {
+    Future<void> performNext() async {
       final email = emailController.text.trim();
       if (email.isEmpty) {
         showErrorAlert('fieldCannotBeEmpty'.tr());
@@ -130,7 +130,18 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
         showErrorAlert('fieldEmailAddressMustBeValid'.tr());
         return;
       }
-      onNext();
+
+      // Validate email availability with API
+      isBusy.value = true;
+      try {
+        final client = ref.watch(apiClientProvider);
+        await client.post('/pass/accounts/validate', data: {'email': email});
+        onNext();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
     }
 
     return Column(
@@ -343,14 +354,25 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
       return null;
     }, [isBusy]);
 
-    void performNext() {
+    Future<void> performNext() async {
       final username = usernameController.text.trim();
       final nickname = nicknameController.text.trim();
       if (username.isEmpty || nickname.isEmpty) {
         showErrorAlert('fieldCannotBeEmpty'.tr());
         return;
       }
-      onNext();
+
+      // Validate username availability with API
+      isBusy.value = true;
+      try {
+        final client = ref.watch(apiClientProvider);
+        await client.post('/pass/accounts/validate', data: {'name': username});
+        onNext();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
     }
 
     return Column(

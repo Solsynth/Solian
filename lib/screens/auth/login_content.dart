@@ -38,6 +38,20 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
 };
 
+/// Performs post-login tasks including fetching user info, subscribing to push
+/// notifications, connecting websocket, and closing the login dialog.
+Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
+  final userNotifier = ref.read(userInfoProvider.notifier);
+  await userNotifier.fetchUser();
+  final apiClient = ref.read(apiClientProvider);
+  subscribePushNotification(apiClient);
+  final wsNotifier = ref.read(websocketStateProvider.notifier);
+  wsNotifier.connect();
+  if (context.mounted && Navigator.canPop(context)) {
+    Navigator.pop(context, true);
+  }
+}
+
 class _LoginCheckScreen extends HookConsumerWidget {
   final SnAuthChallenge? challenge;
   final SnAuthFactor? factor;
@@ -80,14 +94,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
       if (!context.mounted) return;
 
       // Do post login tasks
-      final userNotifier = ref.read(userInfoProvider.notifier);
-      userNotifier.fetchUser().then((_) {
-        final apiClient = ref.read(apiClientProvider);
-        subscribePushNotification(apiClient);
-        final wsNotifier = ref.read(websocketStateProvider.notifier);
-        wsNotifier.connect();
-        if (context.mounted) Navigator.pop(context, true);
-      });
+      await performPostLogin(context, ref);
     }
 
     useEffect(() {
@@ -628,17 +635,13 @@ class _LoginLookupScreen extends HookConsumerWidget {
           },
         );
 
-        final challenge = SnAuthChallenge.fromJson(resp.data);
-        onChallenge(challenge);
-        final factorResp = await client.get(
-          '/pass/auth/challenge/${challenge.id}/factors',
-        );
-        onFactor(
-          List<SnAuthFactor>.from(
-            factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
-          ),
-        );
-        onNext();
+        final token = resp.data['token'];
+        setToken(ref.watch(sharedPreferencesProvider), token);
+        ref.invalidate(tokenProvider);
+        if (!context.mounted) return;
+
+        // Do post login tasks
+        await performPostLogin(context, ref);
       } catch (err) {
         if (err is SignInWithAppleAuthorizationException) return;
         showErrorAlert(err);
