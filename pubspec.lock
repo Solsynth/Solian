@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.64"
+  adaptive_number:
+    dependency: transitive
+    description:
+      name: adaptive_number
+      sha256: "3a567544e9b5c9c803006f51140ad544aedc79604fd4f3f2c1380003f97c1d77"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -377,6 +385,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  dart_jsonwebtoken:
+    dependency: transitive
+    description:
+      name: dart_jsonwebtoken
+      sha256: "0de65691c1d736e9459f22f654ddd6fd8368a271d4e41aa07e53e6301eff5075"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.1"
   dart_style:
     dependency: transitive
     description:
@@ -513,6 +529,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2"
+  ed25519_edwards:
+    dependency: transitive
+    description:
+      name: ed25519_edwards
+      sha256: "6ce0112d131327ec6d42beede1e5dfd526069b18ad45dcf654f15074ad9276cd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   email_validator:
     dependency: "direct main"
     description:
@@ -1140,10 +1164,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_udid
-      sha256: "31193dbfef74f697e9e5317e59f3c2ae6dc45ce4b9f5d39308a32446e8303acc"
+      sha256: "75a84371d51e1c87c38d6610d47777560a373a8139b2c0c2d8ce86b01a107dbb"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.0"
+    version: "4.1.1"
   flutter_web_plugins:
     dependency: "direct main"
     description: flutter
@@ -1153,10 +1177,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: "16ca9e30d428bae3dd32933e875c9f67c5843d1fa726c37cf1fc479eb9294549"
+      sha256: "71a38363a5b50603e405c275f30de2eb90f980b0cc94b0e1e9d8b9d6a6b03bf0"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   font_awesome_flutter:
     dependency: transitive
     description:
@@ -1505,10 +1529,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_client
-      sha256: ddb4467d306be472898b2459c87768121aba030173b3664ef367f7f7f4c96897
+      sha256: "4b8ef07d4acbd21e43a1edfd05932c2d71cc0c433607cefe64afdfe87bb53962"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.3"
+    version: "2.5.4"
   local_auth:
     dependency: "direct main"
     description:
@@ -1757,14 +1781,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
-  objective_c:
-    dependency: transitive
-    description:
-      name: objective_c
-      sha256: "1f81ed9e41909d44162d7ec8663b2c647c202317cc0b56d3d56f6a13146a0b64"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.1.0"
   octo_image:
     dependency: transitive
     description:
@@ -1841,10 +1857,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_foundation
-      sha256: "6192e477f34018ef1ea790c56fffc7302e3bc3efede9e798b934c252c8c105ba"
+      sha256: "6d13aece7b3f5c5a9731eaf553ff9dcbc2eff41087fd2df587fd0fed9a3eb0c4"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.0"
+    version: "2.5.1"
   path_provider_linux:
     dependency: transitive
     description:
@@ -1949,6 +1965,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.3"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -2615,18 +2639,18 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: fea2b5f6c976455d20b19bf77d29bf96a740d14579127b4fc1cdafde42b48177
+      sha256: a55762b7d6fdfe588378127b7b186aad418c04a8670c40d3d3438fa09e3d259a
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
       name: syncfusion_flutter_pdf
-      sha256: d7852ea65da3e5b64a06b38959cf0de1fb1eaafbfce7ac6950d4a3d59d3cfd57
+      sha256: ac85ff223e830f3f9d4f799bc5817e1ce6a136d60b3f8dac28bd9d6860db56e0
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_flutter_pdfviewer:
     dependency: "direct main"
     description:
@@ -2639,50 +2663,50 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_signaturepad
-      sha256: f74fca0463e0977b7fca6f37fc7dad3cab4b99648594dbe8b99f55f2f5c37ab0
+      sha256: ea5f6d5245f2297d1e6d296bfd43d5bd1ce5a13f8e24b6824fcd58ba9e152f72
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_pdfviewer_linux:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_linux
-      sha256: "1ffb2e3656694342e29216d7df19961b7fde40d424024efda0610fe5661f1dc3"
+      sha256: "9f7c99392acad22d3e837490226ccad85a172a9b0b958a9e6346237cb966c9c8"
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_macos
-      sha256: "166225a4db5c182cd6e18bba69685e15cfe7bd10232c1d5663842636de605437"
+      sha256: "4965ce7c8ccdd6d9cb1248bd87af4c4f69af7e7bdd822e1f13a94e25dc62262b"
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_pdfviewer_platform_interface:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_platform_interface
-      sha256: d630694835967ca78151b22ac88149325e933f1a5de29bf4e845753cc5123585
+      sha256: bc1121557352cb1b9710a79963300799dc6ff129522e04a47fcbc7a958e2feb8
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_pdfviewer_web:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_web
-      sha256: "395d3c6f2afb816f9f883b7fe7281a16d3bc38a8b3799e54a1c8399ff91fc059"
+      sha256: e4b12a8d9e7d3e867a5d5c5153e94db028b43b52b7b11be3a1c36f49b87c93db
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   syncfusion_pdfviewer_windows:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_windows
-      sha256: ac4a5fdf5eae92163933669d5ec80a3553b84421828d6c7beb167519084a42e4
+      sha256: "057f85e3978ebb2550121c6b2237db63f3b195b17e53806b1745dcc2c743bc7d"
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.12"
+    version: "31.2.15"
   synchronized:
     dependency: transitive
     description:
@@ -2703,34 +2727,34 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: f17bde91ef86a51803974804bc6c0e161d14b496522bbc646c531be2c702e390
+      sha256: "31b3081b6787c93b41bc14182229681a4a48b8b22f4b368f3493e7f41825a36d"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: "322e8fee094d5fdce10f0439fec5625fb73fd282622b37c794bdaab4e1fc2b1b"
+      sha256: "5534edf33aa913bdc9b4c733baee4795a884e46e6e632b024762738b53622da5"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   talker_flutter:
     dependency: "direct main"
     description:
       name: talker_flutter
-      sha256: "5869c80c046a8e0478560fa2ebb40a3f0e025a9948bcdea50c12343cba681820"
+      sha256: cd276e639841ddcd50effe86bc16e04ff9a58d1a06d470b0c3c7d62f13579ae8
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   talker_logger:
     dependency: "direct main"
     description:
       name: talker_logger
-      sha256: "87c66fefded42446d8c6365643582f3d180c0ce09485c129e9a88fa14d0d34eb"
+      sha256: "5e2cc1dd9cbb7811c44ed620b5365768e30b86b6a65e909a5c2324722517f077"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   talker_riverpod_logger:
     dependency: "direct main"
     description:
