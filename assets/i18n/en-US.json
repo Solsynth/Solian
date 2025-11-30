@@ -1474,5 +1474,6 @@
     "lotteryLastNumberSpecial": "The last selected number will be your special number.",
     "lotteryMultiplierRequired": "Please enter a multiplier",
     "lotteryMultiplierRange": "Multiplier must be between 1 and 10",
-    "dropToShare": "Drop to share"
+    "dropToShare": "Drop to share",
+    "friendsOnline": "Friends Online"
 }

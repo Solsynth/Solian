@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -62,7 +63,10 @@ class FriendsOverviewWidget extends HookConsumerWidget {
             children: [
               Row(
                 spacing: 8,
-                children: [const Icon(Symbols.group), Text('Friends Online')],
+                children: [
+                  const Icon(Symbols.group),
+                  Text('friendsOnline').tr(),
+                ],
               ).padding(horizontal: 16).height(48),
               if (onlineFriends.isEmpty)
                 Container(
