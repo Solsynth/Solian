@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:math" as math;
 import "package:easy_localization/easy_localization.dart";
 import "package:file_picker/file_picker.dart";
+import "package:google_fonts/google_fonts.dart";
 import "package:image_picker/image_picker.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
@@ -462,10 +463,9 @@ class ChatRoomScreen extends HookConsumerWidget {
         Badge(
           isLabelVisible: (onlineCount.value ?? 0) > 1,
           label: Text('${(onlineCount as AsyncData?)?.value}'),
+          textStyle: GoogleFonts.robotoMono(fontSize: 10),
           backgroundColor:
-              onlineCount.value != null && (onlineCount.value ?? 0) > 1
-                  ? Colors.green
-                  : Colors.grey,
+              (onlineCount.value ?? 0) > 1 ? Colors.green : Colors.grey,
           textColor: Colors.white,
           offset: Offset(6, 14),
           child: SizedBox(
