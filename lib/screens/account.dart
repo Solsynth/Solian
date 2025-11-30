@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/pods/websocket.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -468,6 +469,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('logout').tr(),
               onTap: () async {
+                final ws = ref.watch(websocketStateProvider.notifier);
                 final apiClient = ref.watch(apiClientProvider);
                 showLoadingModal(context);
                 await apiClient.delete('/pass/accounts/me/sessions/current');
@@ -476,6 +478,7 @@ class AccountScreen extends HookConsumerWidget {
                 hideLoadingModal(context);
                 final userNotifier = ref.read(userInfoProvider.notifier);
                 userNotifier.logOut();
+                ws.close();
               },
             ),
           ],
