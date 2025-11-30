@@ -22,6 +22,7 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
           ? null
           : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
   realmId: json['realm_id'] as String?,
+  accountId: json['account_id'] as String?,
   realm:
       json['realm'] == null
           ? null
@@ -49,6 +50,7 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'realm_id': instance.realmId,
+      'account_id': instance.accountId,
       'realm': instance.realm?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -162,7 +164,6 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       nick: json['nick'] as String?,
-      role: (json['role'] as num).toInt(),
       notify: (json['notify'] as num).toInt(),
       joinedAt:
           json['joined_at'] == null
@@ -176,7 +177,6 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
           json['timeout_until'] == null
               ? null
               : DateTime.parse(json['timeout_until'] as String),
-      isBot: json['is_bot'] as bool,
       status:
           json['status'] == null
               ? null
@@ -200,12 +200,10 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'account_id': instance.accountId,
       'account': instance.account.toJson(),
       'nick': instance.nick,
-      'role': instance.role,
       'notify': instance.notify,
       'joined_at': instance.joinedAt?.toIso8601String(),
       'break_until': instance.breakUntil?.toIso8601String(),
       'timeout_until': instance.timeoutUntil?.toIso8601String(),
-      'is_bot': instance.isBot,
       'status': instance.status?.toJson(),
       'last_typed': instance.lastTyped?.toIso8601String(),
     };

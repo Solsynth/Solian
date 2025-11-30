@@ -24,7 +24,7 @@ final chatUnreadCountNotifierProvider =
     );
 
 typedef _$ChatUnreadCountNotifier = AutoDisposeAsyncNotifier<int>;
-String _$chatSummaryHash() => r'33815a3bd81d20902b7063e8194fe336930df9b4';
+String _$chatSummaryHash() => r'8479ef53cfb0b698b800d0117d04774b6f78b3cc';
 
 /// See also [ChatSummary].
 @ProviderFor(ChatSummary)

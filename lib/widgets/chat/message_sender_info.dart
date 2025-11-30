@@ -115,25 +115,9 @@ class MessageSenderInfo extends StatelessWidget {
           spacing: 2,
           children: [
             Text(timestamp, style: TextStyle(fontSize: 10, color: textColor)),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 5,
-              children: [
-                AccountName(
-                  account: sender.account,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Badge(
-                  label:
-                      Text(
-                        sender.role >= 100
-                            ? 'permissionOwner'
-                            : sender.role >= 50
-                            ? 'permissionModerator'
-                            : 'permissionMember',
-                      ).tr(),
-                ),
-              ],
+            AccountName(
+              account: sender.account,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),

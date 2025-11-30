@@ -14,7 +14,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +61,15 @@ class AppDatabase extends _$AppDatabase {
         // Add new tables for separate sender and room data
         await m.createTable(chatRooms);
         await m.createTable(chatMembers);
+      }
+      if (from < 9) {
+        // Remove unused columns from chat_members
+        await customStatement('ALTER TABLE chat_members DROP COLUMN role');
+        await customStatement('ALTER TABLE chat_members DROP COLUMN is_bot');
+        await customStatement('ALTER TABLE chat_members DROP COLUMN status');
+        await customStatement(
+          'ALTER TABLE chat_members DROP COLUMN last_typed',
+        );
       }
     },
   );
@@ -237,14 +246,11 @@ class AppDatabase extends _$AppDatabase {
         accountId: senderRow.accountId,
         account: senderAccount,
         nick: senderRow.nick,
-        role: senderRow.role,
         notify: senderRow.notify,
         joinedAt: senderRow.joinedAt,
         breakUntil: senderRow.breakUntil,
         timeoutUntil: senderRow.timeoutUntil,
-        isBot: senderRow.isBot,
         status: null,
-        lastTyped: senderRow.lastTyped,
         createdAt: senderRow.createdAt,
         updatedAt: senderRow.updatedAt,
         deletedAt: senderRow.deletedAt,
@@ -281,12 +287,10 @@ class AppDatabase extends _$AppDatabase {
           updatedAt: DateTime.now(),
         ),
         nick: dbMessage.senderId, // Show the senderId as fallback
-        role: 0,
         notify: 0,
         joinedAt: null,
         breakUntil: null,
         timeoutUntil: null,
-        isBot: false,
         status: null,
         lastTyped: null,
         createdAt: DateTime.now(),
@@ -343,16 +347,10 @@ class AppDatabase extends _$AppDatabase {
       accountId: Value(member.accountId),
       account: Value(member.account.toJson()),
       nick: Value(member.nick),
-      role: Value(member.role),
       notify: Value(member.notify),
       joinedAt: Value(member.joinedAt),
       breakUntil: Value(member.breakUntil),
       timeoutUntil: Value(member.timeoutUntil),
-      isBot: Value(member.isBot),
-      status: Value(
-        member.status == null ? null : jsonEncode(member.status!.toJson()),
-      ),
-      lastTyped: Value(member.lastTyped),
       createdAt: Value(member.createdAt),
       updatedAt: Value(member.updatedAt),
       deletedAt: Value(member.deletedAt),

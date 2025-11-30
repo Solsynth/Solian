@@ -106,6 +106,17 @@ class $ChatRoomsTable extends ChatRooms
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -150,6 +161,7 @@ class $ChatRoomsTable extends ChatRooms
     picture,
     background,
     realmId,
+    accountId,
     createdAt,
     updatedAt,
     deletedAt,
@@ -213,6 +225,12 @@ class $ChatRoomsTable extends ChatRooms
       context.handle(
         _realmIdMeta,
         realmId.isAcceptableOrUnknown(data['realm_id']!, _realmIdMeta),
+      );
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -288,6 +306,10 @@ class $ChatRoomsTable extends ChatRooms
         DriftSqlType.string,
         data['${effectivePrefix}realm_id'],
       ),
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      ),
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -330,6 +352,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   final Map<String, dynamic>? picture;
   final Map<String, dynamic>? background;
   final String? realmId;
+  final String? accountId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -343,6 +366,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     this.picture,
     this.background,
     this.realmId,
+    this.accountId,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -376,6 +400,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     }
     if (!nullToAbsent || realmId != null) {
       map['realm_id'] = Variable<String>(realmId);
+    }
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -414,6 +441,10 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           realmId == null && nullToAbsent
               ? const Value.absent()
               : Value(realmId),
+      accountId:
+          accountId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(accountId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt:
@@ -440,6 +471,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
         json['background'],
       ),
       realmId: serializer.fromJson<String?>(json['realmId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -458,6 +490,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       'picture': serializer.toJson<Map<String, dynamic>?>(picture),
       'background': serializer.toJson<Map<String, dynamic>?>(background),
       'realmId': serializer.toJson<String?>(realmId),
+      'accountId': serializer.toJson<String?>(accountId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -474,6 +507,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     Value<Map<String, dynamic>?> picture = const Value.absent(),
     Value<Map<String, dynamic>?> background = const Value.absent(),
     Value<String?> realmId = const Value.absent(),
+    Value<String?> accountId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -487,6 +521,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     picture: picture.present ? picture.value : this.picture,
     background: background.present ? background.value : this.background,
     realmId: realmId.present ? realmId.value : this.realmId,
+    accountId: accountId.present ? accountId.value : this.accountId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -505,6 +540,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       background:
           data.background.present ? data.background.value : this.background,
       realmId: data.realmId.present ? data.realmId.value : this.realmId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -523,6 +559,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           ..write('picture: $picture, ')
           ..write('background: $background, ')
           ..write('realmId: $realmId, ')
+          ..write('accountId: $accountId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -541,6 +578,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     picture,
     background,
     realmId,
+    accountId,
     createdAt,
     updatedAt,
     deletedAt,
@@ -558,6 +596,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           other.picture == this.picture &&
           other.background == this.background &&
           other.realmId == this.realmId &&
+          other.accountId == this.accountId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -573,6 +612,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   final Value<Map<String, dynamic>?> picture;
   final Value<Map<String, dynamic>?> background;
   final Value<String?> realmId;
+  final Value<String?> accountId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -587,6 +627,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.picture = const Value.absent(),
     this.background = const Value.absent(),
     this.realmId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -602,6 +643,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.picture = const Value.absent(),
     this.background = const Value.absent(),
     this.realmId = const Value.absent(),
+    this.accountId = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -620,6 +662,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Expression<String>? picture,
     Expression<String>? background,
     Expression<String>? realmId,
+    Expression<String>? accountId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -635,6 +678,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       if (picture != null) 'picture': picture,
       if (background != null) 'background': background,
       if (realmId != null) 'realm_id': realmId,
+      if (accountId != null) 'account_id': accountId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -652,6 +696,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Value<Map<String, dynamic>?>? picture,
     Value<Map<String, dynamic>?>? background,
     Value<String?>? realmId,
+    Value<String?>? accountId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -667,6 +712,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       picture: picture ?? this.picture,
       background: background ?? this.background,
       realmId: realmId ?? this.realmId,
+      accountId: accountId ?? this.accountId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -708,6 +754,9 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     if (realmId.present) {
       map['realm_id'] = Variable<String>(realmId.value);
     }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -735,6 +784,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
           ..write('picture: $picture, ')
           ..write('background: $background, ')
           ..write('realmId: $realmId, ')
+          ..write('accountId: $accountId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -802,15 +852,6 @@ class $ChatMembersTable extends ChatMembers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _roleMeta = const VerificationMeta('role');
-  @override
-  late final GeneratedColumn<int> role = GeneratedColumn<int>(
-    'role',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _notifyMeta = const VerificationMeta('notify');
   @override
   late final GeneratedColumn<int> notify = GeneratedColumn<int>(
@@ -848,38 +889,6 @@ class $ChatMembersTable extends ChatMembers
   @override
   late final GeneratedColumn<DateTime> timeoutUntil = GeneratedColumn<DateTime>(
     'timeout_until',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isBotMeta = const VerificationMeta('isBot');
-  @override
-  late final GeneratedColumn<bool> isBot = GeneratedColumn<bool>(
-    'is_bot',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_bot" IN (0, 1))',
-    ),
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _lastTypedMeta = const VerificationMeta(
-    'lastTyped',
-  );
-  @override
-  late final GeneratedColumn<DateTime> lastTyped = GeneratedColumn<DateTime>(
-    'last_typed',
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
@@ -925,14 +934,10 @@ class $ChatMembersTable extends ChatMembers
     accountId,
     account,
     nick,
-    role,
     notify,
     joinedAt,
     breakUntil,
     timeoutUntil,
-    isBot,
-    status,
-    lastTyped,
     createdAt,
     updatedAt,
     deletedAt,
@@ -979,14 +984,6 @@ class $ChatMembersTable extends ChatMembers
         nick.isAcceptableOrUnknown(data['nick']!, _nickMeta),
       );
     }
-    if (data.containsKey('role')) {
-      context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_roleMeta);
-    }
     if (data.containsKey('notify')) {
       context.handle(
         _notifyMeta,
@@ -1014,26 +1011,6 @@ class $ChatMembersTable extends ChatMembers
           data['timeout_until']!,
           _timeoutUntilMeta,
         ),
-      );
-    }
-    if (data.containsKey('is_bot')) {
-      context.handle(
-        _isBotMeta,
-        isBot.isAcceptableOrUnknown(data['is_bot']!, _isBotMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_isBotMeta);
-    }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
-    if (data.containsKey('last_typed')) {
-      context.handle(
-        _lastTypedMeta,
-        lastTyped.isAcceptableOrUnknown(data['last_typed']!, _lastTypedMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -1092,11 +1069,6 @@ class $ChatMembersTable extends ChatMembers
         DriftSqlType.string,
         data['${effectivePrefix}nick'],
       ),
-      role:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}role'],
-          )!,
       notify:
           attachedDatabase.typeMapping.read(
             DriftSqlType.int,
@@ -1113,19 +1085,6 @@ class $ChatMembersTable extends ChatMembers
       timeoutUntil: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}timeout_until'],
-      ),
-      isBot:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}is_bot'],
-          )!,
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      ),
-      lastTyped: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_typed'],
       ),
       createdAt:
           attachedDatabase.typeMapping.read(
@@ -1159,14 +1118,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
   final String accountId;
   final Map<String, dynamic> account;
   final String? nick;
-  final int role;
   final int notify;
   final DateTime? joinedAt;
   final DateTime? breakUntil;
   final DateTime? timeoutUntil;
-  final bool isBot;
-  final String? status;
-  final DateTime? lastTyped;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -1176,14 +1131,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     required this.accountId,
     required this.account,
     this.nick,
-    required this.role,
     required this.notify,
     this.joinedAt,
     this.breakUntil,
     this.timeoutUntil,
-    required this.isBot,
-    this.status,
-    this.lastTyped,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -1202,7 +1153,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     if (!nullToAbsent || nick != null) {
       map['nick'] = Variable<String>(nick);
     }
-    map['role'] = Variable<int>(role);
     map['notify'] = Variable<int>(notify);
     if (!nullToAbsent || joinedAt != null) {
       map['joined_at'] = Variable<DateTime>(joinedAt);
@@ -1212,13 +1162,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     }
     if (!nullToAbsent || timeoutUntil != null) {
       map['timeout_until'] = Variable<DateTime>(timeoutUntil);
-    }
-    map['is_bot'] = Variable<bool>(isBot);
-    if (!nullToAbsent || status != null) {
-      map['status'] = Variable<String>(status);
-    }
-    if (!nullToAbsent || lastTyped != null) {
-      map['last_typed'] = Variable<DateTime>(lastTyped);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -1235,7 +1178,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
       accountId: Value(accountId),
       account: Value(account),
       nick: nick == null && nullToAbsent ? const Value.absent() : Value(nick),
-      role: Value(role),
       notify: Value(notify),
       joinedAt:
           joinedAt == null && nullToAbsent
@@ -1249,13 +1191,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
           timeoutUntil == null && nullToAbsent
               ? const Value.absent()
               : Value(timeoutUntil),
-      isBot: Value(isBot),
-      status:
-          status == null && nullToAbsent ? const Value.absent() : Value(status),
-      lastTyped:
-          lastTyped == null && nullToAbsent
-              ? const Value.absent()
-              : Value(lastTyped),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt:
@@ -1276,14 +1211,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
       accountId: serializer.fromJson<String>(json['accountId']),
       account: serializer.fromJson<Map<String, dynamic>>(json['account']),
       nick: serializer.fromJson<String?>(json['nick']),
-      role: serializer.fromJson<int>(json['role']),
       notify: serializer.fromJson<int>(json['notify']),
       joinedAt: serializer.fromJson<DateTime?>(json['joinedAt']),
       breakUntil: serializer.fromJson<DateTime?>(json['breakUntil']),
       timeoutUntil: serializer.fromJson<DateTime?>(json['timeoutUntil']),
-      isBot: serializer.fromJson<bool>(json['isBot']),
-      status: serializer.fromJson<String?>(json['status']),
-      lastTyped: serializer.fromJson<DateTime?>(json['lastTyped']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -1298,14 +1229,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
       'accountId': serializer.toJson<String>(accountId),
       'account': serializer.toJson<Map<String, dynamic>>(account),
       'nick': serializer.toJson<String?>(nick),
-      'role': serializer.toJson<int>(role),
       'notify': serializer.toJson<int>(notify),
       'joinedAt': serializer.toJson<DateTime?>(joinedAt),
       'breakUntil': serializer.toJson<DateTime?>(breakUntil),
       'timeoutUntil': serializer.toJson<DateTime?>(timeoutUntil),
-      'isBot': serializer.toJson<bool>(isBot),
-      'status': serializer.toJson<String?>(status),
-      'lastTyped': serializer.toJson<DateTime?>(lastTyped),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -1318,14 +1245,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     String? accountId,
     Map<String, dynamic>? account,
     Value<String?> nick = const Value.absent(),
-    int? role,
     int? notify,
     Value<DateTime?> joinedAt = const Value.absent(),
     Value<DateTime?> breakUntil = const Value.absent(),
     Value<DateTime?> timeoutUntil = const Value.absent(),
-    bool? isBot,
-    Value<String?> status = const Value.absent(),
-    Value<DateTime?> lastTyped = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -1335,14 +1258,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     accountId: accountId ?? this.accountId,
     account: account ?? this.account,
     nick: nick.present ? nick.value : this.nick,
-    role: role ?? this.role,
     notify: notify ?? this.notify,
     joinedAt: joinedAt.present ? joinedAt.value : this.joinedAt,
     breakUntil: breakUntil.present ? breakUntil.value : this.breakUntil,
     timeoutUntil: timeoutUntil.present ? timeoutUntil.value : this.timeoutUntil,
-    isBot: isBot ?? this.isBot,
-    status: status.present ? status.value : this.status,
-    lastTyped: lastTyped.present ? lastTyped.value : this.lastTyped,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -1355,7 +1274,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       account: data.account.present ? data.account.value : this.account,
       nick: data.nick.present ? data.nick.value : this.nick,
-      role: data.role.present ? data.role.value : this.role,
       notify: data.notify.present ? data.notify.value : this.notify,
       joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
       breakUntil:
@@ -1364,9 +1282,6 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
           data.timeoutUntil.present
               ? data.timeoutUntil.value
               : this.timeoutUntil,
-      isBot: data.isBot.present ? data.isBot.value : this.isBot,
-      status: data.status.present ? data.status.value : this.status,
-      lastTyped: data.lastTyped.present ? data.lastTyped.value : this.lastTyped,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -1381,14 +1296,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
           ..write('accountId: $accountId, ')
           ..write('account: $account, ')
           ..write('nick: $nick, ')
-          ..write('role: $role, ')
           ..write('notify: $notify, ')
           ..write('joinedAt: $joinedAt, ')
           ..write('breakUntil: $breakUntil, ')
           ..write('timeoutUntil: $timeoutUntil, ')
-          ..write('isBot: $isBot, ')
-          ..write('status: $status, ')
-          ..write('lastTyped: $lastTyped, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -1403,14 +1314,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
     accountId,
     account,
     nick,
-    role,
     notify,
     joinedAt,
     breakUntil,
     timeoutUntil,
-    isBot,
-    status,
-    lastTyped,
     createdAt,
     updatedAt,
     deletedAt,
@@ -1424,14 +1331,10 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
           other.accountId == this.accountId &&
           other.account == this.account &&
           other.nick == this.nick &&
-          other.role == this.role &&
           other.notify == this.notify &&
           other.joinedAt == this.joinedAt &&
           other.breakUntil == this.breakUntil &&
           other.timeoutUntil == this.timeoutUntil &&
-          other.isBot == this.isBot &&
-          other.status == this.status &&
-          other.lastTyped == this.lastTyped &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -1443,14 +1346,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
   final Value<String> accountId;
   final Value<Map<String, dynamic>> account;
   final Value<String?> nick;
-  final Value<int> role;
   final Value<int> notify;
   final Value<DateTime?> joinedAt;
   final Value<DateTime?> breakUntil;
   final Value<DateTime?> timeoutUntil;
-  final Value<bool> isBot;
-  final Value<String?> status;
-  final Value<DateTime?> lastTyped;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -1461,14 +1360,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     this.accountId = const Value.absent(),
     this.account = const Value.absent(),
     this.nick = const Value.absent(),
-    this.role = const Value.absent(),
     this.notify = const Value.absent(),
     this.joinedAt = const Value.absent(),
     this.breakUntil = const Value.absent(),
     this.timeoutUntil = const Value.absent(),
-    this.isBot = const Value.absent(),
-    this.status = const Value.absent(),
-    this.lastTyped = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1480,14 +1375,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     required String accountId,
     required Map<String, dynamic> account,
     this.nick = const Value.absent(),
-    required int role,
     required int notify,
     this.joinedAt = const Value.absent(),
     this.breakUntil = const Value.absent(),
     this.timeoutUntil = const Value.absent(),
-    required bool isBot,
-    this.status = const Value.absent(),
-    this.lastTyped = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -1496,9 +1387,7 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
        chatRoomId = Value(chatRoomId),
        accountId = Value(accountId),
        account = Value(account),
-       role = Value(role),
        notify = Value(notify),
-       isBot = Value(isBot),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<ChatMember> custom({
@@ -1507,14 +1396,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     Expression<String>? accountId,
     Expression<String>? account,
     Expression<String>? nick,
-    Expression<int>? role,
     Expression<int>? notify,
     Expression<DateTime>? joinedAt,
     Expression<DateTime>? breakUntil,
     Expression<DateTime>? timeoutUntil,
-    Expression<bool>? isBot,
-    Expression<String>? status,
-    Expression<DateTime>? lastTyped,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -1526,14 +1411,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
       if (accountId != null) 'account_id': accountId,
       if (account != null) 'account': account,
       if (nick != null) 'nick': nick,
-      if (role != null) 'role': role,
       if (notify != null) 'notify': notify,
       if (joinedAt != null) 'joined_at': joinedAt,
       if (breakUntil != null) 'break_until': breakUntil,
       if (timeoutUntil != null) 'timeout_until': timeoutUntil,
-      if (isBot != null) 'is_bot': isBot,
-      if (status != null) 'status': status,
-      if (lastTyped != null) 'last_typed': lastTyped,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -1547,14 +1428,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     Value<String>? accountId,
     Value<Map<String, dynamic>>? account,
     Value<String?>? nick,
-    Value<int>? role,
     Value<int>? notify,
     Value<DateTime?>? joinedAt,
     Value<DateTime?>? breakUntil,
     Value<DateTime?>? timeoutUntil,
-    Value<bool>? isBot,
-    Value<String?>? status,
-    Value<DateTime?>? lastTyped,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -1566,14 +1443,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
       accountId: accountId ?? this.accountId,
       account: account ?? this.account,
       nick: nick ?? this.nick,
-      role: role ?? this.role,
       notify: notify ?? this.notify,
       joinedAt: joinedAt ?? this.joinedAt,
       breakUntil: breakUntil ?? this.breakUntil,
       timeoutUntil: timeoutUntil ?? this.timeoutUntil,
-      isBot: isBot ?? this.isBot,
-      status: status ?? this.status,
-      lastTyped: lastTyped ?? this.lastTyped,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -1601,9 +1474,6 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     if (nick.present) {
       map['nick'] = Variable<String>(nick.value);
     }
-    if (role.present) {
-      map['role'] = Variable<int>(role.value);
-    }
     if (notify.present) {
       map['notify'] = Variable<int>(notify.value);
     }
@@ -1615,15 +1485,6 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
     }
     if (timeoutUntil.present) {
       map['timeout_until'] = Variable<DateTime>(timeoutUntil.value);
-    }
-    if (isBot.present) {
-      map['is_bot'] = Variable<bool>(isBot.value);
-    }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
-    if (lastTyped.present) {
-      map['last_typed'] = Variable<DateTime>(lastTyped.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1648,14 +1509,10 @@ class ChatMembersCompanion extends UpdateCompanion<ChatMember> {
           ..write('accountId: $accountId, ')
           ..write('account: $account, ')
           ..write('nick: $nick, ')
-          ..write('role: $role, ')
           ..write('notify: $notify, ')
           ..write('joinedAt: $joinedAt, ')
           ..write('breakUntil: $breakUntil, ')
           ..write('timeoutUntil: $timeoutUntil, ')
-          ..write('isBot: $isBot, ')
-          ..write('status: $status, ')
-          ..write('lastTyped: $lastTyped, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -3327,6 +3184,7 @@ typedef $$ChatRoomsTableCreateCompanionBuilder =
       Value<Map<String, dynamic>?> picture,
       Value<Map<String, dynamic>?> background,
       Value<String?> realmId,
+      Value<String?> accountId,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -3343,6 +3201,7 @@ typedef $$ChatRoomsTableUpdateCompanionBuilder =
       Value<Map<String, dynamic>?> picture,
       Value<Map<String, dynamic>?> background,
       Value<String?> realmId,
+      Value<String?> accountId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -3451,6 +3310,11 @@ class $$ChatRoomsTableFilterComposer
 
   ColumnFilters<String> get realmId => $composableBuilder(
     column: $table.realmId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+    column: $table.accountId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3574,6 +3438,11 @@ class $$ChatRoomsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+    column: $table.accountId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3632,6 +3501,9 @@ class $$ChatRoomsTableAnnotationComposer
 
   GeneratedColumn<String> get realmId =>
       $composableBuilder(column: $table.realmId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3730,6 +3602,7 @@ class $$ChatRoomsTableTableManager
                 Value<Map<String, dynamic>?> picture = const Value.absent(),
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> realmId = const Value.absent(),
+                Value<String?> accountId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -3744,6 +3617,7 @@ class $$ChatRoomsTableTableManager
                 picture: picture,
                 background: background,
                 realmId: realmId,
+                accountId: accountId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -3760,6 +3634,7 @@ class $$ChatRoomsTableTableManager
                 Value<Map<String, dynamic>?> picture = const Value.absent(),
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> realmId = const Value.absent(),
+                Value<String?> accountId = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -3774,6 +3649,7 @@ class $$ChatRoomsTableTableManager
                 picture: picture,
                 background: background,
                 realmId: realmId,
+                accountId: accountId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -3874,14 +3750,10 @@ typedef $$ChatMembersTableCreateCompanionBuilder =
       required String accountId,
       required Map<String, dynamic> account,
       Value<String?> nick,
-      required int role,
       required int notify,
       Value<DateTime?> joinedAt,
       Value<DateTime?> breakUntil,
       Value<DateTime?> timeoutUntil,
-      required bool isBot,
-      Value<String?> status,
-      Value<DateTime?> lastTyped,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -3894,14 +3766,10 @@ typedef $$ChatMembersTableUpdateCompanionBuilder =
       Value<String> accountId,
       Value<Map<String, dynamic>> account,
       Value<String?> nick,
-      Value<int> role,
       Value<int> notify,
       Value<DateTime?> joinedAt,
       Value<DateTime?> breakUntil,
       Value<DateTime?> timeoutUntil,
-      Value<bool> isBot,
-      Value<String?> status,
-      Value<DateTime?> lastTyped,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -3987,11 +3855,6 @@ class $$ChatMembersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get notify => $composableBuilder(
     column: $table.notify,
     builder: (column) => ColumnFilters(column),
@@ -4009,21 +3872,6 @@ class $$ChatMembersTableFilterComposer
 
   ColumnFilters<DateTime> get timeoutUntil => $composableBuilder(
     column: $table.timeoutUntil,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isBot => $composableBuilder(
-    column: $table.isBot,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get lastTyped => $composableBuilder(
-    column: $table.lastTyped,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4120,11 +3968,6 @@ class $$ChatMembersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get notify => $composableBuilder(
     column: $table.notify,
     builder: (column) => ColumnOrderings(column),
@@ -4142,21 +3985,6 @@ class $$ChatMembersTableOrderingComposer
 
   ColumnOrderings<DateTime> get timeoutUntil => $composableBuilder(
     column: $table.timeoutUntil,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isBot => $composableBuilder(
-    column: $table.isBot,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get lastTyped => $composableBuilder(
-    column: $table.lastTyped,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4220,9 +4048,6 @@ class $$ChatMembersTableAnnotationComposer
   GeneratedColumn<String> get nick =>
       $composableBuilder(column: $table.nick, builder: (column) => column);
 
-  GeneratedColumn<int> get role =>
-      $composableBuilder(column: $table.role, builder: (column) => column);
-
   GeneratedColumn<int> get notify =>
       $composableBuilder(column: $table.notify, builder: (column) => column);
 
@@ -4238,15 +4063,6 @@ class $$ChatMembersTableAnnotationComposer
     column: $table.timeoutUntil,
     builder: (column) => column,
   );
-
-  GeneratedColumn<bool> get isBot =>
-      $composableBuilder(column: $table.isBot, builder: (column) => column);
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get lastTyped =>
-      $composableBuilder(column: $table.lastTyped, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4340,14 +4156,10 @@ class $$ChatMembersTableTableManager
                 Value<String> accountId = const Value.absent(),
                 Value<Map<String, dynamic>> account = const Value.absent(),
                 Value<String?> nick = const Value.absent(),
-                Value<int> role = const Value.absent(),
                 Value<int> notify = const Value.absent(),
                 Value<DateTime?> joinedAt = const Value.absent(),
                 Value<DateTime?> breakUntil = const Value.absent(),
                 Value<DateTime?> timeoutUntil = const Value.absent(),
-                Value<bool> isBot = const Value.absent(),
-                Value<String?> status = const Value.absent(),
-                Value<DateTime?> lastTyped = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -4358,14 +4170,10 @@ class $$ChatMembersTableTableManager
                 accountId: accountId,
                 account: account,
                 nick: nick,
-                role: role,
                 notify: notify,
                 joinedAt: joinedAt,
                 breakUntil: breakUntil,
                 timeoutUntil: timeoutUntil,
-                isBot: isBot,
-                status: status,
-                lastTyped: lastTyped,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -4378,14 +4186,10 @@ class $$ChatMembersTableTableManager
                 required String accountId,
                 required Map<String, dynamic> account,
                 Value<String?> nick = const Value.absent(),
-                required int role,
                 required int notify,
                 Value<DateTime?> joinedAt = const Value.absent(),
                 Value<DateTime?> breakUntil = const Value.absent(),
                 Value<DateTime?> timeoutUntil = const Value.absent(),
-                required bool isBot,
-                Value<String?> status = const Value.absent(),
-                Value<DateTime?> lastTyped = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -4396,14 +4200,10 @@ class $$ChatMembersTableTableManager
                 accountId: accountId,
                 account: account,
                 nick: nick,
-                role: role,
                 notify: notify,
                 joinedAt: joinedAt,
                 breakUntil: breakUntil,
                 timeoutUntil: timeoutUntil,
-                isBot: isBot,
-                status: status,
-                lastTyped: lastTyped,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,

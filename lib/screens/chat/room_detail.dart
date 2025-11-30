@@ -440,12 +440,17 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
+    final chatRoom = ref.watch(chatroomProvider(id));
+
+    final isManagable =
+        chatIdentity.value?.accountId == chatRoom.value?.accountId ||
+        chatRoom.value?.type == 1;
 
     return PopupMenuButton(
       icon: Icon(Icons.more_vert, shadows: [iconShadow]),
       itemBuilder:
           (context) => [
-            if ((chatIdentity.value?.role ?? 0) >= 50)
+            if (isManagable)
               PopupMenuItem(
                 onTap: () {
                   showModalBottomSheet(
@@ -471,7 +476,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   ],
                 ),
               ),
-            if ((chatIdentity.value?.role ?? 0) >= 100)
+            if (isManagable)
               PopupMenuItem(
                 child: Row(
                   children: [
@@ -644,6 +649,11 @@ class _ChatMemberListSheet extends HookConsumerWidget {
     final memberNotifier = ref.read(chatMemberStateProvider(roomId).notifier);
 
     final roomIdentity = ref.watch(chatroomIdentityProvider(roomId));
+    final chatRoom = ref.watch(chatroomProvider(roomId));
+
+    final isManagable =
+        chatRoom.value?.accountId == roomIdentity.value?.accountId ||
+        chatRoom.value?.type == 1;
 
     useEffect(() {
       Future(() {
@@ -752,45 +762,11 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                             const Icon(Symbols.pending_actions, size: 20),
                         ],
                       ),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            member.role >= 100
-                                ? 'permissionOwner'
-                                : member.role >= 50
-                                ? 'permissionModerator'
-                                : 'permissionMember',
-                          ).tr(),
-                          Text('·').bold().padding(horizontal: 6),
-                          Expanded(child: Text("@${member.account.name}")),
-                        ],
-                      ),
+                      subtitle: Text("@${member.account.name}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if ((roomIdentity.value?.role ?? 0) >= 50)
-                            IconButton(
-                              icon: const Icon(Symbols.edit),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder:
-                                      (context) => _ChatMemberRoleSheet(
-                                        roomId: roomId,
-                                        member: member,
-                                      ),
-                                ).then((value) {
-                                  if (value != null) {
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  }
-                                });
-                              },
-                            ),
-                          if ((roomIdentity.value?.role ?? 0) >= 50)
+                          if (isManagable)
                             IconButton(
                               icon: const Icon(Symbols.delete),
                               onPressed: () {
@@ -825,123 +801,6 @@ class _ChatMemberListSheet extends HookConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ChatMemberRoleSheet extends HookConsumerWidget {
-  final String roomId;
-  final SnChatMember member;
-
-  const _ChatMemberRoleSheet({required this.roomId, required this.member});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final roleController = useTextEditingController(
-      text: member.role.toString(),
-    );
-
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                left: 20,
-                right: 16,
-                bottom: 12,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'memberRoleEdit'.tr(args: [member.account.name]),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Symbols.close),
-                    onPressed: () => Navigator.pop(context),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Autocomplete<int>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text.isEmpty) {
-                      return const [100, 50, 0];
-                    }
-                    final int? value = int.tryParse(textEditingValue.text);
-                    if (value == null) return const [100, 50, 0];
-                    return [100, 50, 0].where(
-                      (option) =>
-                          option.toString().contains(textEditingValue.text),
-                    );
-                  },
-                  onSelected: (int selection) {
-                    roleController.text = selection.toString();
-                  },
-                  fieldViewBuilder: (
-                    context,
-                    controller,
-                    focusNode,
-                    onFieldSubmitted,
-                  ) {
-                    return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'memberRole'.tr(),
-                        helperText: 'memberRoleHint'.tr(),
-                      ),
-                      onTapOutside: (event) => focusNode.unfocus(),
-                    );
-                  },
-                ),
-                const Gap(16),
-                FilledButton.icon(
-                  onPressed: () async {
-                    try {
-                      final newRole = int.parse(roleController.text);
-                      if (newRole < 0 || newRole > 100) {
-                        throw 'roleValidationHint'.tr();
-                      }
-
-                      final apiClient = ref.read(apiClientProvider);
-                      await apiClient.patch(
-                        '/sphere/chat/$roomId/members/${member.accountId}/role',
-                        data: newRole,
-                      );
-
-                      if (context.mounted) Navigator.pop(context, true);
-                    } catch (err) {
-                      showErrorAlert(err);
-                    }
-                  },
-                  icon: const Icon(Symbols.save),
-                  label: const Text('saveChanges').tr(),
-                ),
-              ],
-            ).padding(vertical: 16, horizontal: 24),
-          ],
-        ),
       ),
     );
   }
