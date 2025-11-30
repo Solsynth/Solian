@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
@@ -470,6 +471,7 @@ class AccountScreen extends HookConsumerWidget {
                 final apiClient = ref.watch(apiClientProvider);
                 showLoadingModal(context);
                 await apiClient.delete('/pass/accounts/me/sessions/current');
+                await resetDatabase(ref);
                 if (!context.mounted) return;
                 hideLoadingModal(context);
                 final userNotifier = ref.read(userInfoProvider.notifier);
