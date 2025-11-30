@@ -109,40 +109,44 @@ class DeveloperHubScreen extends HookConsumerWidget {
               ),
             )
           else
-            _MainContentSection(
-              currentDeveloper: currentDeveloper.value,
-              projects: projects,
-              developerStats: developerStats,
-              onProjectSelected: (project) {
-                currentProject.value = project;
-              },
-              onDeveloperSelected: (developer) {
-                currentDeveloper.value = developer;
-              },
-              onCreateProject: () {
-                if (currentDeveloper.value != null) {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder:
-                        (context) => SheetScaffold(
-                          titleText: 'createProject'.tr(),
-                          child: ProjectForm(
-                            publisherName:
-                                currentDeveloper.value!.publisher!.name,
-                          ),
-                        ),
-                  ).then((value) {
-                    if (value != null) {
-                      ref.invalidate(
-                        devProjectsProvider(
-                          currentDeveloper.value!.publisher!.name,
-                        ),
-                      );
+            Expanded(
+              child: Center(
+                child: _MainContentSection(
+                  currentDeveloper: currentDeveloper.value,
+                  projects: projects,
+                  developerStats: developerStats,
+                  onProjectSelected: (project) {
+                    currentProject.value = project;
+                  },
+                  onDeveloperSelected: (developer) {
+                    currentDeveloper.value = developer;
+                  },
+                  onCreateProject: () {
+                    if (currentDeveloper.value != null) {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder:
+                            (context) => SheetScaffold(
+                              titleText: 'createProject'.tr(),
+                              child: ProjectForm(
+                                publisherName:
+                                    currentDeveloper.value!.publisher!.name,
+                              ),
+                            ),
+                      ).then((value) {
+                        if (value != null) {
+                          ref.invalidate(
+                            devProjectsProvider(
+                              currentDeveloper.value!.publisher!.name,
+                            ),
+                          );
+                        }
+                      });
                     }
-                  });
-                }
-              },
+                  },
+                ),
+              ),
             ),
         ],
       ),
@@ -210,9 +214,12 @@ class _MainContentSection extends HookConsumerWidget {
         data:
             (stats) =>
                 currentDeveloper == null
-                    ? _DeveloperUnselectedWidget(
-                      onDeveloperSelected: onDeveloperSelected,
-                    )
+                    ? ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 640),
+                      child: _DeveloperUnselectedWidget(
+                        onDeveloperSelected: onDeveloperSelected,
+                      ),
+                    ).center()
                     : Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -725,6 +732,7 @@ class _DeveloperUnselectedWidget extends HookConsumerWidget {
     return Card(
       margin: const EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (!hasDevelopers) ...[
             const Icon(

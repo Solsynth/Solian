@@ -182,6 +182,7 @@ class _FriendTile extends ConsumerWidget {
                             Symbols.play_arrow,
                             size: 10,
                             color: Colors.white,
+                            fill: 1,
                           )
                           : null,
                 ),

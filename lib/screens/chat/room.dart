@@ -654,70 +654,88 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
     }
 
-    Widget chatMessageListWidget(
-      List<LocalChatMessage> messageList,
-    ) => AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + 8 + inputHeight.value,
-      ),
-      child: SuperListView.builder(
-        listController: listController,
-        controller: scrollController,
-        reverse: true, // Show newest messages at the bottom
-        itemCount: messageList.length,
-        findChildIndexCallback: (key) {
-          if (key is! ValueKey<String>) return null;
-          final messageId = key.value.substring(messageKeyPrefix.length);
-          final index = messageList.indexWhere(
-            (m) => (m.nonce ?? m.id) == messageId,
-          );
-          return index >= 0 ? index : null;
-        },
-        extentEstimation: (_, _) => 40,
-        itemBuilder: (context, index) {
-          final message = messageList[index];
-          final nextMessage =
-              index < messageList.length - 1 ? messageList[index + 1] : null;
-          final isLastInGroup =
-              nextMessage == null ||
-              nextMessage.senderId != message.senderId ||
-              nextMessage.createdAt
-                      .difference(message.createdAt)
-                      .inMinutes
-                      .abs() >
-                  3;
-
-          final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
-
-          return MessageItemWrapper(
-            key: key,
-            message: message,
-            index: index,
-            isLastInGroup: isLastInGroup,
-            isSelectionMode: isSelectionMode.value,
-            selectedMessages: selectedMessages.value,
-            chatIdentity: chatIdentity,
-            toggleSelectionMode: toggleSelectionMode,
-            toggleMessageSelection: toggleMessageSelection,
-            onMessageAction: onMessageAction,
-            onJump:
-                (messageId) => scrollToMessage(
-                  messageId: messageId,
-                  messageList: messageList,
-                  messagesNotifier: messagesNotifier,
-                  listController: listController,
-                  scrollController: scrollController,
-                  ref: ref,
+    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
+        ValueListenableBuilder<double>(
+          valueListenable: inputHeight,
+          builder: (context, height, child) {
+            return TweenAnimationBuilder<EdgeInsets>(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              tween: EdgeInsetsTween(
+                begin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 8 + height,
                 ),
-            attachmentProgress: attachmentProgress.value,
-            disableAnimation: settings.disableAnimation,
-            roomOpenTime: roomOpenTime,
-          );
-        },
-      ),
-    );
+                end: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 8 + height,
+                ),
+              ),
+              builder: (context, padding, child) {
+                return SuperListView.builder(
+                  listController: listController,
+                  controller: scrollController,
+                  reverse: true, // Show newest messages at the bottom
+                  padding: padding,
+                  itemCount: messageList.length,
+                  findChildIndexCallback: (key) {
+                    if (key is! ValueKey<String>) return null;
+                    final messageId = key.value.substring(
+                      messageKeyPrefix.length,
+                    );
+                    final index = messageList.indexWhere(
+                      (m) => (m.nonce ?? m.id) == messageId,
+                    );
+                    return index >= 0 ? index : null;
+                  },
+                  extentEstimation: (_, _) => 40,
+                  itemBuilder: (context, index) {
+                    final message = messageList[index];
+                    final nextMessage =
+                        index < messageList.length - 1
+                            ? messageList[index + 1]
+                            : null;
+                    final isLastInGroup =
+                        nextMessage == null ||
+                        nextMessage.senderId != message.senderId ||
+                        nextMessage.createdAt
+                                .difference(message.createdAt)
+                                .inMinutes
+                                .abs() >
+                            3;
+
+                    final key = Key(
+                      '$messageKeyPrefix${message.nonce ?? message.id}',
+                    );
+
+                    return MessageItemWrapper(
+                      key: key,
+                      message: message,
+                      index: index,
+                      isLastInGroup: isLastInGroup,
+                      isSelectionMode: isSelectionMode.value,
+                      selectedMessages: selectedMessages.value,
+                      chatIdentity: chatIdentity,
+                      toggleSelectionMode: toggleSelectionMode,
+                      toggleMessageSelection: toggleMessageSelection,
+                      onMessageAction: onMessageAction,
+                      onJump:
+                          (messageId) => scrollToMessage(
+                            messageId: messageId,
+                            messageList: messageList,
+                            messagesNotifier: messagesNotifier,
+                            listController: listController,
+                            scrollController: scrollController,
+                            ref: ref,
+                          ),
+                      attachmentProgress: attachmentProgress.value,
+                      disableAnimation: settings.disableAnimation,
+                      roomOpenTime: roomOpenTime,
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
 
     return AppScaffold(
       appBar: AppBar(
