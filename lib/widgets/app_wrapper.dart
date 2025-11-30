@@ -9,6 +9,7 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/screens/tray_manager.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:island/pods/web_auth/web_auth_providers.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
 import 'package:island/services/update_service.dart';
@@ -44,6 +45,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       TrayService.instance.initialize(this);
 
       ref.read(rpcServerStateProvider.notifier).start();
+      ref.read(webAuthServerStateProvider.notifier).start();
 
       final initialUrl = await protocolHandler.getInitialUrl();
       if (initialUrl != null && mounted) {
