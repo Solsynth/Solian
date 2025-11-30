@@ -409,66 +409,48 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final compactHeader = isWideScreen(context);
 
-    Widget onlineIndicator() => Row(
-      spacing: 8,
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: (onlineCount as AsyncData).value > 1 ? Colors.green : null,
-            border:
-                (onlineCount as AsyncData).value <= 1
-                    ? Border.all(color: Colors.grey)
-                    : null,
-          ),
-        ),
-        Text(
-          '${(onlineCount as AsyncData).value} online',
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-            color: Theme.of(context).appBarTheme.foregroundColor!,
-          ),
-        ),
-      ],
-    );
-
     Widget comfortHeaderWidget(SnChatRoom? room) => Column(
       spacing: 4,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(
-          height: 26,
-          width: 26,
-          child:
-              (room!.type == 1 && room.picture?.id == null)
-                  ? SplitAvatarWidget(
-                    filesId:
-                        room.members!
-                            .map((e) => e.account.profile.picture?.id)
-                            .toList(),
-                  )
-                  : room.picture?.id != null
-                  ? ProfilePictureWidget(
-                    fileId: room.picture?.id,
-                    fallbackIcon: Symbols.chat,
-                  )
-                  : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
+        Badge(
+          isLabelVisible: hasOnlineCount,
+          label: Text('${(onlineCount as AsyncData?)?.value}'),
+          backgroundColor:
+              (onlineCount as AsyncData?)?.value != null &&
+                      (onlineCount as AsyncData).value > 1
+                  ? Colors.green
+                  : Colors.grey,
+          child: SizedBox(
+            height: 26,
+            width: 26,
+            child:
+                (room!.type == 1 && room.picture?.id == null)
+                    ? SplitAvatarWidget(
+                      filesId:
+                          room.members!
+                              .map((e) => e.account.profile.picture?.id)
+                              .toList(),
+                    )
+                    : room.picture?.id != null
+                    ? ProfilePictureWidget(
+                      fileId: room.picture?.id,
+                      fallbackIcon: Symbols.chat,
+                    )
+                    : CircleAvatar(
+                      child: Text(
+                        room.name![0].toUpperCase(),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
-                  ),
+          ),
         ),
         Text(
           (room.type == 1 && room.name == null)
               ? room.members!.map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(15),
-        if (hasOnlineCount) onlineIndicator(),
       ],
     );
 
@@ -477,35 +459,44 @@ class ChatRoomScreen extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 28,
-          width: 28,
-          child:
-              (room!.type == 1 && room.picture?.id == null)
-                  ? SplitAvatarWidget(
-                    filesId:
-                        room.members!
-                            .map((e) => e.account.profile.picture?.id)
-                            .toList(),
-                  )
-                  : room.picture?.id != null
-                  ? ProfilePictureWidget(
-                    fileId: room.picture?.id,
-                    fallbackIcon: Symbols.chat,
-                  )
-                  : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
+        Badge(
+          isLabelVisible: (onlineCount.value ?? 0) > 1,
+          label: Text('${(onlineCount as AsyncData?)?.value}'),
+          backgroundColor:
+              onlineCount.value != null && (onlineCount.value ?? 0) > 1
+                  ? Colors.green
+                  : Colors.grey,
+          textColor: Colors.white,
+          offset: Offset(6, 14),
+          child: SizedBox(
+            height: 28,
+            width: 28,
+            child:
+                (room!.type == 1 && room.picture?.id == null)
+                    ? SplitAvatarWidget(
+                      filesId:
+                          room.members!
+                              .map((e) => e.account.profile.picture?.id)
+                              .toList(),
+                    )
+                    : room.picture?.id != null
+                    ? ProfilePictureWidget(
+                      fileId: room.picture?.id,
+                      fallbackIcon: Symbols.chat,
+                    )
+                    : CircleAvatar(
+                      child: Text(
+                        room.name![0].toUpperCase(),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
-                  ),
+          ),
         ),
         Text(
           (room.type == 1 && room.name == null)
               ? room.members!.map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(19),
-        if (hasOnlineCount) onlineIndicator().padding(left: 4, top: 6),
       ],
     );
 
