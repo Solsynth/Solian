@@ -1475,5 +1475,11 @@
     "lotteryMultiplierRequired": "Please enter a multiplier",
     "lotteryMultiplierRange": "Multiplier must be between 1 and 10",
     "dropToShare": "Drop to share",
-    "friendsOnline": "Friends Online"
+    "friendsOnline": "Friends Online",
+    "createAccountAlmostThere": "Almost There",
+    "createAccountAlmostThereHint": "You're one step away from joining the Solar Network! Please solve the captcha puzzle shows next.",
+    "createAccountNotice": "Things you need to know before you create an account:",
+    "createAccountConfirmEmail": "After your account being created, you need go to your email inbox to active your account to get permission to use all features.",
+    "createAccountNoAltAccounts": "Multiple or alternative accounts are banned from the Solar Network, that will violates our terms of services.",
+    "createAccountAgreeTerms": "I've read these terms and agree to the terms of service."
 }

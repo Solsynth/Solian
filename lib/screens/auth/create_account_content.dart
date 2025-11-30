@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:animations/animations.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/foundation.dart';
@@ -12,7 +13,6 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/screens/account/me/profile_update.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/udid.dart';
@@ -23,6 +23,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'captcha.dart';
+
+const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 
 Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
   final providerLower = provider.toLowerCase();
@@ -55,8 +57,521 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
   }
 }
 
-class CreateAccountContent extends HookConsumerWidget {
-  const CreateAccountContent({super.key});
+// Helper widget for bullet list items
+class _BulletPoint extends StatelessWidget {
+  final List<Widget> children;
+
+  const _BulletPoint({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 6),
+            child: Container(
+              width: 6.0,
+              height: 6.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withAlpha((255 * 0.6).round()),
+              ),
+            ),
+          ),
+          SizedBox(width: 8.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Stage 1: Email Entry
+class _CreateAccountEmailScreen extends HookConsumerWidget {
+  final TextEditingController emailController;
+  final VoidCallback onNext;
+  final Function(bool) onBusy;
+  final Function(String) onOidc;
+
+  const _CreateAccountEmailScreen({
+    super.key,
+    required this.emailController,
+    required this.onNext,
+    required this.onBusy,
+    required this.onOidc,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
+
+    void performNext() {
+      final email = emailController.text.trim();
+      if (email.isEmpty) {
+        showErrorAlert('fieldCannotBeEmpty'.tr());
+        return;
+      }
+      if (!EmailValidator.validate(email)) {
+        showErrorAlert('fieldEmailAddressMustBeValid'.tr());
+        return;
+      }
+      onNext();
+    }
+
+    return Column(
+      key: const ValueKey<int>(0),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CircleAvatar(
+            radius: 26,
+            child: const Icon(Symbols.mail, size: 28),
+          ).padding(bottom: 8),
+        ),
+        Text(
+          'createAccount',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ).tr().padding(left: 4, bottom: 16),
+        TextField(
+          controller: emailController,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [AutofillHints.email],
+          decoration: InputDecoration(
+            isDense: true,
+            border: const UnderlineInputBorder(),
+            labelText: 'email'.tr(),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ).padding(horizontal: 7),
+        if (!kIsWeb)
+          Row(
+            spacing: 6,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text("orCreateWith").tr().fontSize(11).opacity(0.85),
+              const Gap(8),
+              Spacer(),
+              IconButton.filledTonal(
+                onPressed: () => onOidc('github'),
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "github",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'GitHub',
+              ),
+              IconButton.filledTonal(
+                onPressed: () => onOidc('google'),
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "google",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'Google',
+              ),
+              IconButton.filledTonal(
+                onPressed: () => onOidc('apple'),
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "apple",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'Apple Account',
+              ),
+            ],
+          ).padding(horizontal: 8, top: 12)
+        else
+          const Gap(12),
+        const Gap(12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: isBusy.value ? null : () => performNext(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('next').tr(),
+                  const Icon(Symbols.chevron_right),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// Stage 2: Password Entry
+class _CreateAccountPasswordScreen extends HookConsumerWidget {
+  final TextEditingController passwordController;
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+  final Function(bool) onBusy;
+
+  const _CreateAccountPasswordScreen({
+    super.key,
+    required this.passwordController,
+    required this.onNext,
+    required this.onBack,
+    required this.onBusy,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
+
+    void performNext() {
+      final password = passwordController.text;
+      if (password.isEmpty) {
+        showErrorAlert('fieldCannotBeEmpty'.tr());
+        return;
+      }
+      onNext();
+    }
+
+    return Column(
+      key: const ValueKey<int>(1),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CircleAvatar(
+            radius: 26,
+            child: const Icon(Symbols.password, size: 28),
+          ).padding(bottom: 8),
+        ),
+        Text(
+          'password',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ).tr().padding(left: 4, bottom: 16),
+        TextField(
+          controller: passwordController,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [AutofillHints.password],
+          decoration: InputDecoration(
+            isDense: true,
+            border: const UnderlineInputBorder(),
+            labelText: 'password'.tr(),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ).padding(horizontal: 7),
+        const Gap(12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: isBusy.value ? null : () => onBack(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
+              ),
+            ),
+            TextButton(
+              onPressed: isBusy.value ? null : () => performNext(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('next').tr(),
+                  const Icon(Symbols.chevron_right),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// Stage 3: Username and Nickname Entry
+class _CreateAccountProfileScreen extends HookConsumerWidget {
+  final TextEditingController usernameController;
+  final TextEditingController nicknameController;
+  final bool isOidcFlow;
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+  final Function(bool) onBusy;
+
+  const _CreateAccountProfileScreen({
+    super.key,
+    required this.usernameController,
+    required this.nicknameController,
+    required this.isOidcFlow,
+    required this.onNext,
+    required this.onBack,
+    required this.onBusy,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
+
+    void performNext() {
+      final username = usernameController.text.trim();
+      final nickname = nicknameController.text.trim();
+      if (username.isEmpty || nickname.isEmpty) {
+        showErrorAlert('fieldCannotBeEmpty'.tr());
+        return;
+      }
+      onNext();
+    }
+
+    return Column(
+      key: const ValueKey<int>(2),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CircleAvatar(
+            radius: 26,
+            child: const Icon(Symbols.person, size: 28),
+          ).padding(bottom: 8),
+        ),
+        Text(
+          'Profile',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ).padding(left: 4, bottom: 16),
+        TextField(
+          controller: usernameController,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [AutofillHints.username],
+          decoration: InputDecoration(
+            isDense: true,
+            border: const UnderlineInputBorder(),
+            labelText: 'username'.tr(),
+            helperText: 'usernameCannotChangeHint'.tr(),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ).padding(horizontal: 7),
+        const Gap(12),
+        TextField(
+          controller: nicknameController,
+          autocorrect: false,
+          autofillHints: const [AutofillHints.nickname],
+          decoration: InputDecoration(
+            isDense: true,
+            border: const UnderlineInputBorder(),
+            labelText: 'nickname'.tr(),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ).padding(horizontal: 7),
+        const Gap(12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: isBusy.value ? null : () => onBack(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
+              ),
+            ),
+            TextButton(
+              onPressed: isBusy.value ? null : () => performNext(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('next').tr(),
+                  const Icon(Symbols.chevron_right),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// Stage 4: Terms Review
+class _CreateAccountTermsScreen extends HookConsumerWidget {
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+  final Function(bool) onBusy;
+
+  const _CreateAccountTermsScreen({
+    super.key,
+    required this.onNext,
+    required this.onBack,
+    required this.onBusy,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+    final termsAccepted = useState(false);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
+
+    void performNext() {
+      if (!termsAccepted.value) {
+        showErrorAlert('Please accept the terms of service to continue');
+        return;
+      }
+      onNext();
+    }
+
+    final unfocusColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withAlpha((255 * 0.75).round());
+
+    return Column(
+      key: const ValueKey<int>(3),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CircleAvatar(
+            radius: 26,
+            child: const Icon(Symbols.description, size: 28),
+          ).padding(bottom: 8),
+        ),
+        Text(
+          'Terms of Service',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ).padding(left: 4, bottom: 16),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'createAccountNotice',
+                style: TextStyle(
+                  color: unfocusColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ).tr(),
+              _BulletPoint(
+                children: [
+                  Text(
+                    'termAcceptNextWithAgree'.tr(),
+                    style: TextStyle(color: unfocusColor),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        launchUrlString('https://solsynth.dev/terms');
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('termAcceptLink').tr(),
+                          const Gap(4),
+                          const Icon(Symbols.launch, size: 14),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              _BulletPoint(children: [Text('createAccountConfirmEmail'.tr())]),
+              _BulletPoint(children: [Text('createAccountNoAltAccounts'.tr())]),
+            ],
+          ).width(double.infinity).padding(horizontal: 16, vertical: 12),
+        ),
+        const Gap(12),
+        CheckboxListTile(
+          value: termsAccepted.value,
+          onChanged: (value) {
+            termsAccepted.value = value ?? false;
+          },
+          title: Text('createAccountAgreeTerms').tr(),
+        ),
+        const Gap(12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: isBusy.value ? null : () => onBack(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
+              ),
+            ),
+            TextButton(
+              onPressed: isBusy.value ? null : () => performNext(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('next').tr(),
+                  const Icon(Symbols.chevron_right),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// Stage 5: Captcha and Complete
+class _CreateAccountCompleteScreen extends HookConsumerWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController usernameController;
+  final TextEditingController nicknameController;
+  final String? onboardingToken;
+  final VoidCallback onBack;
+  final Function(bool) onBusy;
+
+  const _CreateAccountCompleteScreen({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+    required this.usernameController,
+    required this.nicknameController,
+    required this.onboardingToken,
+    required this.onBack,
+    required this.onBusy,
+  });
 
   Map<String, dynamic> decodeJwt(String token) {
     final parts = token.split('.');
@@ -67,38 +582,33 @@ class CreateAccountContent extends HookConsumerWidget {
     return json.decode(decoded);
   }
 
+  void showPostCreateModal(BuildContext context) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => _PostCreateModal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formKey = useMemoized(GlobalKey<FormState>.new, const []);
+    final isBusy = useState(false);
 
-    final emailController = useTextEditingController();
-    final usernameController = useTextEditingController();
-    final nicknameController = useTextEditingController();
-    final passwordController = useTextEditingController();
-    final waitingForOidc = useState(false);
-    final onboardingToken = useState<String?>(null);
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
 
-    void showPostCreateModal() {
-      showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        builder: (context) => _PostCreateModal(),
-      );
-    }
-
-    void performAction() async {
-      if (!formKey.currentState!.validate()) return;
-
+    Future<void> performAction() async {
       String endpoint = '/pass/accounts';
       Map<String, dynamic> data = {};
 
-      if (onboardingToken.value != null) {
+      if (onboardingToken != null) {
         // OIDC onboarding
         endpoint = '/pass/account/onboard';
-        data['onboarding_token'] = onboardingToken.value;
+        data['onboarding_token'] = onboardingToken;
         data['name'] = usernameController.text;
         data['nick'] = nicknameController.text;
-        // Password is required in form, but might be optional
       } else {
         // Manual account creation
         final captchaTk = await CaptchaScreen.show(context);
@@ -119,6 +629,7 @@ class CreateAccountContent extends HookConsumerWidget {
       if (!context.mounted) return;
 
       try {
+        isBusy.value = true;
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(endpoint, data: data);
@@ -137,13 +648,90 @@ class CreateAccountContent extends HookConsumerWidget {
         } else {
           if (!context.mounted) return;
           hideLoadingModal(context);
-          onboardingToken.value = null; // reset
-          showPostCreateModal();
+          showPostCreateModal(context);
         }
       } catch (err) {
         if (context.mounted) hideLoadingModal(context);
         showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
       }
+    }
+
+    return Column(
+      key: const ValueKey<int>(4),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CircleAvatar(
+            radius: 26,
+            child: const Icon(Symbols.check_circle, size: 28),
+          ).padding(bottom: 8),
+        ),
+        Text(
+          'createAccountAlmostThere'.tr(),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ).padding(left: 4, bottom: 16),
+        Text(
+          'createAccountAlmostThereHint'.tr(),
+          style: TextStyle(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withAlpha((255 * 0.75).round()),
+          ),
+        ).padding(horizontal: 4),
+        const Gap(24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: isBusy.value ? null : () => onBack(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
+              ),
+            ),
+            TextButton(
+              onPressed: isBusy.value ? null : () => performAction(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('createAccount').tr(),
+                  const Icon(Symbols.chevron_right),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class CreateAccountContent extends HookConsumerWidget {
+  const CreateAccountContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+    final period = useState(0);
+    final onboardingToken = useState<String?>(null);
+    final waitingForOidc = useState(false);
+
+    final emailController = useTextEditingController();
+    final passwordController = useTextEditingController();
+    final usernameController = useTextEditingController();
+    final nicknameController = useTextEditingController();
+
+    Map<String, dynamic> decodeJwt(String token) {
+      final parts = token.split('.');
+      if (parts.length != 3) throw FormatException('Invalid JWT');
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      return json.decode(decoded);
     }
 
     useEffect(() {
@@ -170,13 +758,13 @@ class CreateAccountContent extends HookConsumerWidget {
             final name = decoded['name'] as String?;
             final email = decoded['email'] as String?;
             final provider = decoded['provider'] as String?;
-            // Pre-fill form
+            // Pre-fill form and jump to stage 2 (username/nickname)
             usernameController.text = '';
             nicknameController.text = name ?? '';
             emailController.text = email ?? '';
-            passwordController.clear(); // User needs to set password
+            passwordController.clear();
             onboardingToken.value = token;
-            // Optionally show a message
+            period.value = 2; // Jump to profile screen
             showSnackBar('Pre-filled from ${provider ?? 'provider'}');
           } else {
             // Existing user, switch to login
@@ -217,220 +805,92 @@ class CreateAccountContent extends HookConsumerWidget {
       }
     }
 
-    return StyledWidget(
-      Container(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: CircleAvatar(
-                  radius: 26,
-                  child: const Icon(Symbols.person_add, size: 28),
-                ).padding(bottom: 8),
-              ),
-              Text(
-                'createAccount',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                ),
-              ).tr().padding(left: 4, bottom: 16),
-              if (!kIsWeb)
-                Row(
-                  spacing: 6,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Text("orCreateWith").tr().fontSize(11).opacity(0.85),
-                    const Gap(8),
-                    Spacer(),
-                    IconButton.filledTonal(
-                      onPressed: () => withOidc('github'),
-                      padding: EdgeInsets.zero,
-                      icon: getProviderIcon(
-                        "github",
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      tooltip: 'GitHub',
-                    ),
-                    IconButton.filledTonal(
-                      onPressed: () => withOidc('google'),
-                      padding: EdgeInsets.zero,
-                      icon: getProviderIcon(
-                        "google",
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      tooltip: 'Google',
-                    ),
-                    IconButton.filledTonal(
-                      onPressed: () => withOidc('apple'),
-                      padding: EdgeInsets.zero,
-                      icon: getProviderIcon(
-                        "apple",
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      tooltip: 'Apple Account',
-                    ),
-                  ],
-                ).padding(horizontal: 8, vertical: 8)
-              else
-                const Gap(12),
-              Form(
-                key: formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: usernameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'fieldCannotBeEmpty'.tr();
-                        }
-                        return null;
-                      },
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      autofillHints: const [AutofillHints.username],
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: const UnderlineInputBorder(),
-                        labelText: 'username'.tr(),
-                        helperText: 'usernameCannotChangeHint'.tr(),
-                      ),
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                    const Gap(12),
-                    TextFormField(
-                      controller: nicknameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'fieldCannotBeEmpty'.tr();
-                        }
-                        return null;
-                      },
-                      autocorrect: false,
-                      autofillHints: const [AutofillHints.nickname],
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: const UnderlineInputBorder(),
-                        labelText: 'nickname'.tr(),
-                      ),
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                    const Gap(12),
-                    TextFormField(
-                      controller: emailController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'fieldCannotBeEmpty'.tr();
-                        }
-                        if (!EmailValidator.validate(value)) {
-                          return 'fieldEmailAddressMustBeValid'.tr();
-                        }
-                        return null;
-                      },
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: const UnderlineInputBorder(),
-                        labelText: 'email'.tr(),
-                      ),
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                    const Gap(12),
-                    TextFormField(
-                      controller: passwordController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'fieldCannotBeEmpty'.tr();
-                        }
-                        return null;
-                      },
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      autofillHints: const [AutofillHints.password],
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: const UnderlineInputBorder(),
-                        labelText: 'password'.tr(),
-                      ),
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                  ],
-                ).padding(horizontal: 7),
-              ),
-              const Gap(16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: StyledWidget(
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 290),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'termAcceptNextWithAgree'.tr(),
-                          textAlign: TextAlign.end,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface
-                                .withAlpha((255 * 0.75).round()),
-                          ),
+    return Theme(
+      data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+      child: Column(
+        children: [
+          if (isBusy.value)
+            LinearProgressIndicator(
+              minHeight: 4,
+              borderRadius: BorderRadius.zero,
+              trackGap: 0,
+              stopIndicatorRadius: 0,
+            )
+          else
+            LinearProgressIndicator(
+              minHeight: 4,
+              borderRadius: BorderRadius.zero,
+              trackGap: 0,
+              stopIndicatorRadius: 0,
+              value: period.value / 5,
+            ),
+          Expanded(
+            child:
+                SingleChildScrollView(
+                  child: PageTransitionSwitcher(
+                    transitionBuilder: (
+                      Widget child,
+                      Animation<double> primaryAnimation,
+                      Animation<double> secondaryAnimation,
+                    ) {
+                      return SharedAxisTransition(
+                        animation: primaryAnimation,
+                        secondaryAnimation: secondaryAnimation,
+                        transitionType: SharedAxisTransitionType.horizontal,
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: 380),
+                          child: child,
                         ),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('termAcceptLink').tr(),
-                                const Gap(4),
-                                const Icon(Symbols.launch, size: 14),
-                              ],
-                            ),
-                            onTap: () {
-                              launchUrlString('https://solsynth.dev/terms');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ).padding(horizontal: 16),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    performAction();
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text("next").tr(),
-                      const Icon(Symbols.chevron_right),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+                      );
+                    },
+                    child: switch (period.value % 5) {
+                      1 => _CreateAccountPasswordScreen(
+                        key: const ValueKey(1),
+                        passwordController: passwordController,
+                        onNext: () => period.value++,
+                        onBack: () => period.value--,
+                        onBusy: (value) => isBusy.value = value,
+                      ),
+                      2 => _CreateAccountProfileScreen(
+                        key: const ValueKey(2),
+                        usernameController: usernameController,
+                        nicknameController: nicknameController,
+                        isOidcFlow: onboardingToken.value != null,
+                        onNext: () => period.value++,
+                        onBack: () => period.value--,
+                        onBusy: (value) => isBusy.value = value,
+                      ),
+                      3 => _CreateAccountTermsScreen(
+                        key: const ValueKey(3),
+                        onNext: () => period.value++,
+                        onBack: () => period.value--,
+                        onBusy: (value) => isBusy.value = value,
+                      ),
+                      4 => _CreateAccountCompleteScreen(
+                        key: const ValueKey(4),
+                        emailController: emailController,
+                        passwordController: passwordController,
+                        usernameController: usernameController,
+                        nicknameController: nicknameController,
+                        onboardingToken: onboardingToken.value,
+                        onBack: () => period.value--,
+                        onBusy: (value) => isBusy.value = value,
+                      ),
+                      _ => _CreateAccountEmailScreen(
+                        key: const ValueKey(0),
+                        emailController: emailController,
+                        onNext: () => period.value++,
+                        onBusy: (value) => isBusy.value = value,
+                        onOidc: withOidc,
+                      ),
+                    },
+                  ).padding(all: 24),
+                ).center(),
           ),
-        ),
+          const Gap(4),
+        ],
       ),
-    ).padding(all: 24).center();
+    );
   }
 }
 

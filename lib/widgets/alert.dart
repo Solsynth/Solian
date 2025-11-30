@@ -271,6 +271,7 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
                 ),
                 const Gap(8),
                 Text(text),
+                const Gap(8),
               ],
             ),
             actions: [
