@@ -663,9 +663,11 @@ class ChatRoomScreen extends HookConsumerWidget {
               curve: Curves.easeOut,
               tween: EdgeInsetsTween(
                 begin: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
                   bottom: MediaQuery.of(context).padding.bottom + 8 + height,
                 ),
                 end: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
                   bottom: MediaQuery.of(context).padding.bottom + 8 + height,
                 ),
               ),
