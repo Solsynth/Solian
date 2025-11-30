@@ -31,7 +31,11 @@ void showSnackBar(String message, {SnackBarAction? action}) {
         ),
       ),
     ),
-    curve: Curves.easeInOut,
+    displayDuration: const Duration(milliseconds: 1500),
+    animationDuration: const Duration(milliseconds: 300),
+    reverseAnimationDuration: const Duration(milliseconds: 300),
+    curve: Curves.fastLinearToSlowEaseIn,
+    dismissType: DismissType.onTap,
     snackBarPosition: SnackBarPosition.bottom,
   );
 }
