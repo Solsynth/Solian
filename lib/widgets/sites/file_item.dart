@@ -15,6 +15,9 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:island/pods/config.dart';
 
 class FileItem extends HookConsumerWidget {
   final SnSiteFileEntry file;
@@ -64,6 +67,80 @@ class FileItem extends HookConsumerWidget {
     } catch (e) {
       showErrorAlert(e);
     }
+  }
+
+  Future<void> _showImageViewer(BuildContext context, WidgetRef ref) async {
+    final serverUrl = ref.read(serverUrlProvider);
+    final token = await getToken(ref.read(tokenProvider));
+    final imageUrl =
+        '$serverUrl/zone/sites/${site.id}/files/content/${file.relativePath}';
+
+    if (context.mounted) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (context) => Scaffold(
+                appBar: AppBar(
+                  title: Text(file.relativePath),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                ),
+                extendBodyBehindAppBar: true,
+                backgroundColor: Colors.black,
+                body: PhotoView(
+                  imageProvider: CachedNetworkImageProvider(
+                    imageUrl,
+                    headers:
+                        token != null
+                            ? {'Authorization': 'AtField $token'}
+                            : null,
+                  ),
+                  heroAttributes: PhotoViewHeroAttributes(
+                    tag: file.relativePath,
+                  ),
+                ),
+              ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openFile(BuildContext context, WidgetRef ref) async {
+    final ext = file.relativePath.split('.').last.toLowerCase();
+    final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].contains(ext);
+
+    if (isImage) {
+      await _showImageViewer(context, ref);
+      return;
+    }
+
+    // Check for large files (> 1MB)
+    if (file.size > 1024 * 1024) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Large File'),
+              content: Text(
+                'This file is large (${(file.size / 1024 / 1024).toStringAsFixed(2)} MB). Opening it might cause performance issues. Do you want to continue?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Open'),
+                ),
+              ],
+            ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    await _showEditSheet(context, ref);
   }
 
   Future<void> _showEditSheet(BuildContext context, WidgetRef ref) async {
@@ -140,7 +217,7 @@ class FileItem extends HookConsumerWidget {
                       children: [
                         const Icon(Symbols.edit),
                         const Gap(16),
-                        Text('Edit Content'),
+                        Text('Open'),
                       ],
                     ),
                   ),
@@ -162,7 +239,7 @@ class FileItem extends HookConsumerWidget {
                 await _downloadFile(context, ref);
                 break;
               case 'edit':
-                await _showEditSheet(context, ref);
+                await _openFile(context, ref);
                 break;
               case 'delete':
                 final confirmed = await showDialog<bool>(
@@ -209,7 +286,7 @@ class FileItem extends HookConsumerWidget {
           if (file.isDirectory) {
             onNavigateDirectory?.call(file.relativePath);
           } else {
-            _showEditSheet(context, ref);
+            _openFile(context, ref);
           }
         },
       ),
