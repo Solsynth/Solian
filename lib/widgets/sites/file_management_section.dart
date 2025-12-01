@@ -11,6 +11,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/sites/file_upload_dialog.dart';
 import 'package:island/widgets/sites/file_item.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:path/path.dart' as p;
 
 class FileManagementSection extends HookConsumerWidget {
   final SnPublicationSite site;
@@ -293,10 +294,10 @@ class FileManagementSection extends HookConsumerWidget {
     try {
       await for (final entity in Directory(dirPath).list(recursive: true)) {
         if (entity is File) {
-          String relativePath = entity.path.substring(dirPath.length);
-          if (relativePath.startsWith('/')) {
-            relativePath = relativePath.substring(1);
-          }
+          String relativePath = p.relative(entity.path, from: dirPath);
+          // Normalize to forward slashes for consistency (e.g. for API uploads)
+          relativePath = relativePath.replaceAll(r'\', '/');
+
           if (relativePath.isEmpty) continue;
           results.add({
             'file': File(entity.path),
