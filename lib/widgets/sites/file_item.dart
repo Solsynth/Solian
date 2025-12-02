@@ -116,25 +116,9 @@ class FileItem extends HookConsumerWidget {
 
     // Check for large files (> 1MB)
     if (file.size > 1024 * 1024) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Large File'),
-              content: Text(
-                'This file is large (${(file.size / 1024 / 1024).toStringAsFixed(2)} MB). Opening it might cause performance issues. Do you want to continue?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Open'),
-                ),
-              ],
-            ),
+      final confirmed = await showConfirmAlert(
+        'This file is large (${(file.size / 1024 / 1024).toStringAsFixed(2)} MB). Opening it might cause performance issues. Do you want to continue?',
+        'Large File',
       );
 
       if (confirmed != true) return;
