@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
@@ -15,6 +16,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
@@ -343,7 +345,7 @@ class ExploreScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Widget filterBar,
-    AsyncValue<dynamic> user,
+    AsyncValue<SnAccount?> user,
     AsyncValue<int?> notificationCount,
     ValueNotifier<EventCalendarQuery> query,
     AsyncValue<List<dynamic>> events,
@@ -382,8 +384,11 @@ class ExploreScreen extends HookConsumerWidget {
                 child: Column(
                   spacing: 8,
                   children: [
+                    const Gap(4),
+                    if (user.value?.activatedAt == null)
+                      AccountUnactivatedCard(),
                     CheckInWidget(
-                      margin: EdgeInsets.only(top: 12),
+                      margin: EdgeInsets.zero,
                       onChecked: () {
                         ref.invalidate(eventCalendarProvider(query.value));
                       },
@@ -584,6 +589,10 @@ class ExploreScreen extends HookConsumerWidget {
           child: CustomScrollView(
             slivers: [
               const SliverGap(8),
+              if (user.value?.activatedAt == null)
+                SliverToBoxAdapter(
+                  child: AccountUnactivatedCard().padding(bottom: 8),
+                ),
               if (user.value != null)
                 SliverToBoxAdapter(
                   child: CheckInWidget(

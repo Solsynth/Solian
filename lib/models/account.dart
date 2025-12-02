@@ -21,6 +21,7 @@ sealed class SnAccount with _$SnAccount {
     required SnWalletSubscriptionRef? perkSubscription,
     @Default([]) List<SnAccountBadge> badges,
     @Default([]) List<SnContactMethod> contacts,
+    required DateTime? activatedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
