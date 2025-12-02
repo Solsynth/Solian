@@ -178,6 +178,8 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
             ).padding(horizontal: 8),
+            if (user.value?.activatedAt == null)
+              AccountUnactivatedCard().padding(horizontal: 12, bottom: 4),
             Card(
               margin: EdgeInsets.zero,
               child: Column(

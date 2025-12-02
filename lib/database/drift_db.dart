@@ -266,6 +266,7 @@ class AppDatabase extends _$AppDatabase {
           id: 'unknown',
           name: 'unknown',
           nick: dbMessage.senderId, // Show the ID instead of Unknown
+          activatedAt: null,
           profile: SnAccountProfile(
             picture: null,
             id: 'unknown',

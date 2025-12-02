@@ -1485,5 +1485,9 @@
   "createAccountNoAltAccounts": "Multiple or alternative accounts are banned from the Solar Network, that will violates our terms of services.",
   "createAccountAgreeTerms": "I've read these terms and agree to the terms of service.",
   "createAccountProfile": "Create your profile",
-  "createAccountToS": "Review Terms & Conditions"
+  "createAccountToS": "Review Terms & Conditions",
+  "accountActivationAlert": "Remember to activate your account",
+  "accountActivationAlertHint": "Unactivated account may leads to various of permission issues, activate your account by clicking the link we sent to your email inbox.",
+  "accountActivationResendHint": "Didn't see it? Try click the button below to resend one. If you need to update your email while your account was unactivated, feel free to contact our customer service.",
+  "accountActivationResend": "Resend"
 }
