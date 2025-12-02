@@ -99,6 +99,7 @@ class _BulletPoint extends StatelessWidget {
 // Stage 1: Email Entry
 class _CreateAccountEmailScreen extends HookConsumerWidget {
   final TextEditingController emailController;
+  final TextEditingController affiliationSpellController;
   final VoidCallback onNext;
   final Function(bool) onBusy;
   final Function(String) onOidc;
@@ -106,6 +107,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
   const _CreateAccountEmailScreen({
     super.key,
     required this.emailController,
+    required this.affiliationSpellController,
     required this.onNext,
     required this.onBusy,
     required this.onOidc,
@@ -135,7 +137,14 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
       isBusy.value = true;
       try {
         final client = ref.watch(apiClientProvider);
-        await client.post('/pass/accounts/validate', data: {'email': email});
+        await client.post(
+          '/pass/accounts/validate',
+          data: {
+            'email': email,
+            if (affiliationSpellController.text.isNotEmpty)
+              'affiliation_spell': affiliationSpellController.text.trim(),
+          },
+        );
         onNext();
       } catch (err) {
         showErrorAlert(err);
@@ -168,6 +177,19 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
             isDense: true,
             border: const UnderlineInputBorder(),
             labelText: 'email'.tr(),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ).padding(horizontal: 7),
+        const Gap(12),
+        TextField(
+          controller: affiliationSpellController,
+          autocorrect: false,
+          decoration: InputDecoration(
+            isDense: true,
+            border: const UnderlineInputBorder(),
+            labelText: 'affiliationSpell'.tr(),
+            helperText: 'affiliationSpellHint'.tr(),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
@@ -387,7 +409,7 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
           ).padding(bottom: 8),
         ),
         Text(
-          'Profile',
+          'createAccountProfile'.tr(),
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
         ).padding(left: 4, bottom: 16),
         TextField(
@@ -493,7 +515,7 @@ class _CreateAccountTermsScreen extends HookConsumerWidget {
           ).padding(bottom: 8),
         ),
         Text(
-          'Terms of Service',
+          'createAccountToS'.tr(),
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
         ).padding(left: 4, bottom: 16),
         Card(
@@ -580,6 +602,7 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
   final TextEditingController passwordController;
   final TextEditingController usernameController;
   final TextEditingController nicknameController;
+  final TextEditingController affiliationSpellController;
   final String? onboardingToken;
   final VoidCallback onBack;
   final Function(bool) onBusy;
@@ -590,6 +613,7 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
     required this.passwordController,
     required this.usernameController,
     required this.nicknameController,
+    required this.affiliationSpellController,
     required this.onboardingToken,
     required this.onBack,
     required this.onBusy,
@@ -639,6 +663,9 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
         data['captcha_token'] = captchaTk;
         data['name'] = usernameController.text;
         data['nick'] = nicknameController.text;
+        if (affiliationSpellController.text.isNotEmpty) {
+          data['affiliation_spell'] = affiliationSpellController.text;
+        }
         data['email'] = emailController.text;
         data['password'] = passwordController.text;
         data['language'] =
@@ -746,6 +773,7 @@ class CreateAccountContent extends HookConsumerWidget {
     final passwordController = useTextEditingController();
     final usernameController = useTextEditingController();
     final nicknameController = useTextEditingController();
+    final affiliationSpellController = useTextEditingController();
 
     Map<String, dynamic> decodeJwt(String token) {
       final parts = token.split('.');
@@ -894,6 +922,7 @@ class CreateAccountContent extends HookConsumerWidget {
                         passwordController: passwordController,
                         usernameController: usernameController,
                         nicknameController: nicknameController,
+                        affiliationSpellController: affiliationSpellController,
                         onboardingToken: onboardingToken.value,
                         onBack: () => period.value--,
                         onBusy: (value) => isBusy.value = value,
@@ -901,6 +930,7 @@ class CreateAccountContent extends HookConsumerWidget {
                       _ => _CreateAccountEmailScreen(
                         key: const ValueKey(0),
                         emailController: emailController,
+                        affiliationSpellController: affiliationSpellController,
                         onNext: () => period.value++,
                         onBusy: (value) => isBusy.value = value,
                         onOidc: withOidc,
