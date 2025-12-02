@@ -41,7 +41,6 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       stepRemain: (json['step_remain'] as num).toInt(),
       stepTotal: (json['step_total'] as num).toInt(),
       failedAttempts: (json['failed_attempts'] as num).toInt(),
-      type: (json['type'] as num).toInt(),
       blacklistFactors:
           (json['blacklist_factors'] as List<dynamic>)
               .map((e) => e as String)
@@ -73,7 +72,6 @@ Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
       'step_remain': instance.stepRemain,
       'step_total': instance.stepTotal,
       'failed_attempts': instance.failedAttempts,
-      'type': instance.type,
       'blacklist_factors': instance.blacklistFactors,
       'audiences': instance.audiences,
       'scopes': instance.scopes,
@@ -96,11 +94,12 @@ _SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
           json['expired_at'] == null
               ? null
               : DateTime.parse(json['expired_at'] as String),
+      audiences: json['audiences'] as List<dynamic>,
+      scopes: json['scopes'] as List<dynamic>,
+      ipAddress: json['ip_address'] as String,
+      userAgent: json['user_agent'] as String,
+      type: (json['type'] as num).toInt(),
       accountId: json['account_id'] as String,
-      challengeId: json['challenge_id'] as String,
-      challenge: SnAuthChallenge.fromJson(
-        json['challenge'] as Map<String, dynamic>,
-      ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -115,9 +114,12 @@ Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
       'label': instance.label,
       'last_granted_at': instance.lastGrantedAt.toIso8601String(),
       'expired_at': instance.expiredAt?.toIso8601String(),
+      'audiences': instance.audiences,
+      'scopes': instance.scopes,
+      'ip_address': instance.ipAddress,
+      'user_agent': instance.userAgent,
+      'type': instance.type,
       'account_id': instance.accountId,
-      'challenge_id': instance.challengeId,
-      'challenge': instance.challenge.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
