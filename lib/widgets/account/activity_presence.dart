@@ -431,6 +431,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                       if (activity.titleUrl != null &&
                                           activity.titleUrl!.isNotEmpty)
                                         IconButton(
+                                          visualDensity: const VisualDensity(
+                                            vertical: -4,
+                                          ),
                                           onPressed: () {
                                             launchUrlString(activity.titleUrl!);
                                           },
@@ -583,6 +586,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                         if (activity.titleUrl != null &&
                                             activity.titleUrl!.isNotEmpty)
                                           IconButton(
+                                            visualDensity: const VisualDensity(
+                                              vertical: -4,
+                                            ),
                                             onPressed: () {
                                               launchUrlString(
                                                 activity.titleUrl!,
@@ -616,6 +622,8 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                   'assets/images/oidc/spotify.png',
                                   width: 24,
                                   height: 24,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),

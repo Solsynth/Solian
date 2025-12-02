@@ -506,6 +506,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Card(
                     child: InkWell(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
                       onTap: () {
                         context.pushNamed('createAccount');
                       },
@@ -528,6 +529,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Card(
                     child: InkWell(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
                       onTap: () {
                         context.pushNamed('login');
                       },
@@ -549,26 +551,35 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextButton(
+                    IconButton(
                       onPressed: () {
                         context.pushNamed('about');
                       },
-                      child: Text('about').tr(),
+                      iconSize: 18,
+                      color: Theme.of(context).colorScheme.secondary,
+                      icon: const Icon(Icons.info, fill: 1),
+                      tooltip: 'about'.tr(),
                     ),
-                    TextButton(
-                      child: Text('debugOptions').tr(),
+                    IconButton(
+                      icon: const Icon(Icons.bug_report, fill: 1),
                       onPressed: () {
                         showModalBottomSheet(
                           context: context,
                           builder: (context) => DebugSheet(),
                         );
                       },
+                      iconSize: 18,
+                      color: Theme.of(context).colorScheme.secondary,
+                      tooltip: 'debugOptions'.tr(),
                     ),
-                    TextButton(
+                    IconButton(
                       onPressed: () {
                         context.pushNamed('settings');
                       },
-                      child: Text('appSettings').tr(),
+                      icon: const Icon(Icons.settings, fill: 1),
+                      iconSize: 18,
+                      color: Theme.of(context).colorScheme.secondary,
+                      tooltip: 'appSettings'.tr(),
                     ),
                   ],
                 ),
