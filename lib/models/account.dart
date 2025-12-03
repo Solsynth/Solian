@@ -216,20 +216,20 @@ sealed class SnAuthDevice with _$SnAuthDevice {
 }
 
 @freezed
-sealed class SnAuthDeviceWithChallenge with _$SnAuthDeviceWithChallenge {
-  const factory SnAuthDeviceWithChallenge({
+sealed class SnAuthDeviceWithSession with _$SnAuthDeviceWithSession {
+  const factory SnAuthDeviceWithSession({
     required String id,
     required String deviceId,
     required String deviceName,
     required String? deviceLabel,
     required String accountId,
     required int platform,
-    required List<SnAuthChallenge> challenges,
+    required List<SnAuthSession> sessions,
     @Default(false) bool isCurrent,
-  }) = _SnAuthDeviceWithChallengee;
+  }) = _SnAuthDeviceWithSessione;
 
-  factory SnAuthDeviceWithChallenge.fromJson(Map<String, dynamic> json) =>
-      _$SnAuthDeviceWithChallengeFromJson(json);
+  factory SnAuthDeviceWithSession.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthDeviceWithSessionFromJson(json);
 }
 
 @freezed

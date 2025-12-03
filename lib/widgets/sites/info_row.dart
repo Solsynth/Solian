@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class InfoRow extends StatelessWidget {
   final String label;
-  final String value;
+  final String? value;
   final IconData icon;
   final bool monospace;
   final VoidCallback? onTap;
@@ -12,7 +12,7 @@ class InfoRow extends StatelessWidget {
   const InfoRow({
     super.key,
     required this.label,
-    required this.value,
+    this.value,
     required this.icon,
     this.monospace = false,
     this.onTap,
@@ -20,14 +20,17 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget valueWidget = Text(
-      value,
-      style:
-          monospace
-              ? GoogleFonts.robotoMono(fontSize: 14)
-              : Theme.of(context).textTheme.bodyMedium,
-      textAlign: TextAlign.end,
-    );
+    Widget? valueWidget =
+        value == null
+            ? null
+            : Text(
+              value!,
+              style:
+                  monospace
+                      ? GoogleFonts.robotoMono(fontSize: 14)
+                      : Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            );
 
     if (onTap != null) valueWidget = InkWell(onTap: onTap, child: valueWidget);
 
@@ -40,13 +43,16 @@ class InfoRow extends StatelessWidget {
           flex: 2,
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style:
+                valueWidget == null
+                    ? null
+                    : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
           ),
         ),
-        const Gap(12),
-        Expanded(flex: 3, child: valueWidget),
+        if (valueWidget != null) const Gap(12),
+        if (valueWidget != null) Expanded(flex: 3, child: valueWidget),
       ],
     );
   }

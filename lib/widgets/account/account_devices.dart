@@ -11,6 +11,7 @@ import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
+import 'package:island/widgets/sites/info_row.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -19,21 +20,21 @@ import 'package:island/widgets/extended_refresh_indicator.dart';
 part 'account_devices.g.dart';
 
 @riverpod
-Future<List<SnAuthDeviceWithChallenge>> authDevices(Ref ref) async {
+Future<List<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
   final resp = await ref
       .watch(apiClientProvider)
       .get('/pass/accounts/me/devices');
   final currentId = await getUdid();
   final data =
-      resp.data.map<SnAuthDeviceWithChallenge>((e) {
-        final ele = SnAuthDeviceWithChallenge.fromJson(e);
+      resp.data.map<SnAuthDeviceWithSession>((e) {
+        final ele = SnAuthDeviceWithSession.fromJson(e);
         return ele.copyWith(isCurrent: ele.deviceId == currentId);
       }).toList();
   return data;
 }
 
 class _DeviceListTile extends StatelessWidget {
-  final SnAuthDeviceWithChallenge device;
+  final SnAuthDeviceWithSession device;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutDevice;
 
@@ -69,11 +70,12 @@ class _DeviceListTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'lastActiveAt'.tr(
-              args: [device.challenges.first.createdAt.formatSystem()],
+          if (device.sessions.isNotEmpty)
+            Text(
+              'lastActiveAt'.tr(
+                args: [device.sessions.first.createdAt.formatSystem()],
+              ),
             ),
-          ),
         ],
       ),
       leading: Icon(switch (device.platform) {
@@ -114,26 +116,40 @@ class _DeviceListTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text('authDeviceChallenges'.tr()),
         ),
-        for (final challenge in device.challenges)
-          ListTile(
-            minTileHeight: 48,
-            title: Text(DateFormat().format(challenge.createdAt.toLocal())),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(challenge.ipAddress),
-                if (challenge.location != null)
-                  Row(
-                    spacing: 4,
-                    children:
-                        [challenge.location?.city, challenge.location?.country]
-                            .where((e) => e?.isNotEmpty ?? false)
-                            .map((e) => Text(e!))
-                            .toList(),
+        ...device.sessions
+            .map(
+              (session) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 4,
+                children: [
+                  InfoRow(
+                    label: 'createdAt'.tr(
+                      args: [session.createdAt.toLocal().formatSystem()],
+                    ),
+                    icon: Symbols.join,
                   ),
-              ],
-            ),
-          ),
+                  InfoRow(
+                    label: 'lastActiveAt'.tr(
+                      args: [session.lastGrantedAt.toLocal().formatSystem()],
+                    ),
+                    icon: Symbols.refresh_rounded,
+                  ),
+                  InfoRow(
+                    label:
+                        '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
+                    icon: Symbols.pin_drop,
+                  ),
+                  InfoRow(
+                    label:
+                        '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
+                    icon: Symbols.dns,
+                  ),
+                ],
+              ).padding(horizontal: 20, vertical: 8),
+            )
+            .expand((element) => [element, const Divider(height: 1)])
+            .toList()
+          ..removeLast(),
       ],
     );
   }

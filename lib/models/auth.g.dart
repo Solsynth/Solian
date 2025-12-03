@@ -96,8 +96,14 @@ _SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
               : DateTime.parse(json['expired_at'] as String),
       audiences: json['audiences'] as List<dynamic>,
       scopes: json['scopes'] as List<dynamic>,
-      ipAddress: json['ip_address'] as String,
-      userAgent: json['user_agent'] as String,
+      ipAddress: json['ip_address'] as String?,
+      userAgent: json['user_agent'] as String?,
+      location:
+          json['location'] == null
+              ? null
+              : GeoIpLocation.fromJson(
+                json['location'] as Map<String, dynamic>,
+              ),
       type: (json['type'] as num).toInt(),
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -118,6 +124,7 @@ Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
       'scopes': instance.scopes,
       'ip_address': instance.ipAddress,
       'user_agent': instance.userAgent,
+      'location': instance.location?.toJson(),
       'type': instance.type,
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),

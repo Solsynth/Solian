@@ -6,12 +6,12 @@ part of 'account_devices.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authDevicesHash() => r'35735af4ed75b73fe80c8942e53b3bc26a569c01';
+String _$authDevicesHash() => r'1af378149286020ec263be178c573ccc247a0cd1';
 
 /// See also [authDevices].
 @ProviderFor(authDevices)
 final authDevicesProvider =
-    AutoDisposeFutureProvider<List<SnAuthDeviceWithChallenge>>.internal(
+    AutoDisposeFutureProvider<List<SnAuthDeviceWithSession>>.internal(
       authDevices,
       name: r'authDevicesProvider',
       debugGetCreateSourceHash:
@@ -25,6 +25,6 @@ final authDevicesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthDevicesRef =
-    AutoDisposeFutureProviderRef<List<SnAuthDeviceWithChallenge>>;
+    AutoDisposeFutureProviderRef<List<SnAuthDeviceWithSession>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -124,7 +124,7 @@ class FileItem extends HookConsumerWidget {
       if (confirmed != true) return;
     }
 
-    await _showEditSheet(context, ref);
+    if (context.mounted) await _showEditSheet(context, ref);
   }
 
   Future<void> _showEditSheet(BuildContext context, WidgetRef ref) async {

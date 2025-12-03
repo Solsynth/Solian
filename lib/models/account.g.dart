@@ -367,24 +367,24 @@ Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
       'is_current': instance.isCurrent,
     };
 
-_SnAuthDeviceWithChallengee _$SnAuthDeviceWithChallengeeFromJson(
+_SnAuthDeviceWithSessione _$SnAuthDeviceWithSessioneFromJson(
   Map<String, dynamic> json,
-) => _SnAuthDeviceWithChallengee(
+) => _SnAuthDeviceWithSessione(
   id: json['id'] as String,
   deviceId: json['device_id'] as String,
   deviceName: json['device_name'] as String,
   deviceLabel: json['device_label'] as String?,
   accountId: json['account_id'] as String,
   platform: (json['platform'] as num).toInt(),
-  challenges:
-      (json['challenges'] as List<dynamic>)
-          .map((e) => SnAuthChallenge.fromJson(e as Map<String, dynamic>))
+  sessions:
+      (json['sessions'] as List<dynamic>)
+          .map((e) => SnAuthSession.fromJson(e as Map<String, dynamic>))
           .toList(),
   isCurrent: json['is_current'] as bool? ?? false,
 );
 
-Map<String, dynamic> _$SnAuthDeviceWithChallengeeToJson(
-  _SnAuthDeviceWithChallengee instance,
+Map<String, dynamic> _$SnAuthDeviceWithSessioneToJson(
+  _SnAuthDeviceWithSessione instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'device_id': instance.deviceId,
@@ -392,7 +392,7 @@ Map<String, dynamic> _$SnAuthDeviceWithChallengeeToJson(
   'device_label': instance.deviceLabel,
   'account_id': instance.accountId,
   'platform': instance.platform,
-  'challenges': instance.challenges.map((e) => e.toJson()).toList(),
+  'sessions': instance.sessions.map((e) => e.toJson()).toList(),
   'is_current': instance.isCurrent,
 };
 

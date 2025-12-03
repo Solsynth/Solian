@@ -3068,51 +3068,51 @@ as bool,
 
 }
 
-SnAuthDeviceWithChallenge _$SnAuthDeviceWithChallengeFromJson(
+SnAuthDeviceWithSession _$SnAuthDeviceWithSessionFromJson(
   Map<String, dynamic> json
 ) {
-    return _SnAuthDeviceWithChallengee.fromJson(
+    return _SnAuthDeviceWithSessione.fromJson(
       json
     );
 }
 
 /// @nodoc
-mixin _$SnAuthDeviceWithChallenge {
+mixin _$SnAuthDeviceWithSession {
 
- String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; List<SnAuthChallenge> get challenges; bool get isCurrent;
-/// Create a copy of SnAuthDeviceWithChallenge
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; List<SnAuthSession> get sessions; bool get isCurrent;
+/// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnAuthDeviceWithChallengeCopyWith<SnAuthDeviceWithChallenge> get copyWith => _$SnAuthDeviceWithChallengeCopyWithImpl<SnAuthDeviceWithChallenge>(this as SnAuthDeviceWithChallenge, _$identity);
+$SnAuthDeviceWithSessionCopyWith<SnAuthDeviceWithSession> get copyWith => _$SnAuthDeviceWithSessionCopyWithImpl<SnAuthDeviceWithSession>(this as SnAuthDeviceWithSession, _$identity);
 
-  /// Serializes this SnAuthDeviceWithChallenge to a JSON map.
+  /// Serializes this SnAuthDeviceWithSession to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDeviceWithChallenge&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.challenges, challenges)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDeviceWithSession&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.sessions, sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(challenges),isCurrent);
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(sessions),isCurrent);
 
 @override
 String toString() {
-  return 'SnAuthDeviceWithChallenge(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, challenges: $challenges, isCurrent: $isCurrent)';
+  return 'SnAuthDeviceWithSession(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnAuthDeviceWithChallengeCopyWith<$Res>  {
-  factory $SnAuthDeviceWithChallengeCopyWith(SnAuthDeviceWithChallenge value, $Res Function(SnAuthDeviceWithChallenge) _then) = _$SnAuthDeviceWithChallengeCopyWithImpl;
+abstract mixin class $SnAuthDeviceWithSessionCopyWith<$Res>  {
+  factory $SnAuthDeviceWithSessionCopyWith(SnAuthDeviceWithSession value, $Res Function(SnAuthDeviceWithSession) _then) = _$SnAuthDeviceWithSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthChallenge> challenges, bool isCurrent
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent
 });
 
 
@@ -3120,16 +3120,16 @@ $Res call({
 
 }
 /// @nodoc
-class _$SnAuthDeviceWithChallengeCopyWithImpl<$Res>
-    implements $SnAuthDeviceWithChallengeCopyWith<$Res> {
-  _$SnAuthDeviceWithChallengeCopyWithImpl(this._self, this._then);
+class _$SnAuthDeviceWithSessionCopyWithImpl<$Res>
+    implements $SnAuthDeviceWithSessionCopyWith<$Res> {
+  _$SnAuthDeviceWithSessionCopyWithImpl(this._self, this._then);
 
-  final SnAuthDeviceWithChallenge _self;
-  final $Res Function(SnAuthDeviceWithChallenge) _then;
+  final SnAuthDeviceWithSession _self;
+  final $Res Function(SnAuthDeviceWithSession) _then;
 
-/// Create a copy of SnAuthDeviceWithChallenge
+/// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? challenges = null,Object? isCurrent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
@@ -3137,8 +3137,8 @@ as String,deviceName: null == deviceName ? _self.deviceName : deviceName // igno
 as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
 as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
-as int,challenges: null == challenges ? _self.challenges : challenges // ignore: cast_nullable_to_non_nullable
-as List<SnAuthChallenge>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as int,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
+as List<SnAuthSession>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -3146,8 +3146,8 @@ as bool,
 }
 
 
-/// Adds pattern-matching-related methods to [SnAuthDeviceWithChallenge].
-extension SnAuthDeviceWithChallengePatterns on SnAuthDeviceWithChallenge {
+/// Adds pattern-matching-related methods to [SnAuthDeviceWithSession].
+extension SnAuthDeviceWithSessionPatterns on SnAuthDeviceWithSession {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -3160,10 +3160,10 @@ extension SnAuthDeviceWithChallengePatterns on SnAuthDeviceWithChallenge {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAuthDeviceWithChallengee value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAuthDeviceWithSessione value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee() when $default != null:
+case _SnAuthDeviceWithSessione() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -3182,10 +3182,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAuthDeviceWithChallengee value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAuthDeviceWithSessione value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee():
+case _SnAuthDeviceWithSessione():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -3200,10 +3200,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAuthDeviceWithChallengee value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAuthDeviceWithSessione value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee() when $default != null:
+case _SnAuthDeviceWithSessione() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -3221,10 +3221,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);case _:
+case _SnAuthDeviceWithSessione() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent);case _:
   return orElse();
 
 }
@@ -3242,10 +3242,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent)  $default,) {final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee():
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);}
+case _SnAuthDeviceWithSessione():
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3259,10 +3259,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent)?  $default,) {final _that = this;
 switch (_that) {
-case _SnAuthDeviceWithChallengee() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);case _:
+case _SnAuthDeviceWithSessione() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent);case _:
   return null;
 
 }
@@ -3273,9 +3273,9 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// @nodoc
 @JsonSerializable()
 
-class _SnAuthDeviceWithChallengee implements SnAuthDeviceWithChallenge {
-  const _SnAuthDeviceWithChallengee({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required final  List<SnAuthChallenge> challenges, this.isCurrent = false}): _challenges = challenges;
-  factory _SnAuthDeviceWithChallengee.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceWithChallengeeFromJson(json);
+class _SnAuthDeviceWithSessione implements SnAuthDeviceWithSession {
+  const _SnAuthDeviceWithSessione({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required final  List<SnAuthSession> sessions, this.isCurrent = false}): _sessions = sessions;
+  factory _SnAuthDeviceWithSessione.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceWithSessioneFromJson(json);
 
 @override final  String id;
 @override final  String deviceId;
@@ -3283,49 +3283,49 @@ class _SnAuthDeviceWithChallengee implements SnAuthDeviceWithChallenge {
 @override final  String? deviceLabel;
 @override final  String accountId;
 @override final  int platform;
- final  List<SnAuthChallenge> _challenges;
-@override List<SnAuthChallenge> get challenges {
-  if (_challenges is EqualUnmodifiableListView) return _challenges;
+ final  List<SnAuthSession> _sessions;
+@override List<SnAuthSession> get sessions {
+  if (_sessions is EqualUnmodifiableListView) return _sessions;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_challenges);
+  return EqualUnmodifiableListView(_sessions);
 }
 
 @override@JsonKey() final  bool isCurrent;
 
-/// Create a copy of SnAuthDeviceWithChallenge
+/// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnAuthDeviceWithChallengeeCopyWith<_SnAuthDeviceWithChallengee> get copyWith => __$SnAuthDeviceWithChallengeeCopyWithImpl<_SnAuthDeviceWithChallengee>(this, _$identity);
+_$SnAuthDeviceWithSessioneCopyWith<_SnAuthDeviceWithSessione> get copyWith => __$SnAuthDeviceWithSessioneCopyWithImpl<_SnAuthDeviceWithSessione>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnAuthDeviceWithChallengeeToJson(this, );
+  return _$SnAuthDeviceWithSessioneToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDeviceWithChallengee&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other._challenges, _challenges)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDeviceWithSessione&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other._sessions, _sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(_challenges),isCurrent);
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(_sessions),isCurrent);
 
 @override
 String toString() {
-  return 'SnAuthDeviceWithChallenge(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, challenges: $challenges, isCurrent: $isCurrent)';
+  return 'SnAuthDeviceWithSession(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnAuthDeviceWithChallengeeCopyWith<$Res> implements $SnAuthDeviceWithChallengeCopyWith<$Res> {
-  factory _$SnAuthDeviceWithChallengeeCopyWith(_SnAuthDeviceWithChallengee value, $Res Function(_SnAuthDeviceWithChallengee) _then) = __$SnAuthDeviceWithChallengeeCopyWithImpl;
+abstract mixin class _$SnAuthDeviceWithSessioneCopyWith<$Res> implements $SnAuthDeviceWithSessionCopyWith<$Res> {
+  factory _$SnAuthDeviceWithSessioneCopyWith(_SnAuthDeviceWithSessione value, $Res Function(_SnAuthDeviceWithSessione) _then) = __$SnAuthDeviceWithSessioneCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthChallenge> challenges, bool isCurrent
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent
 });
 
 
@@ -3333,25 +3333,25 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnAuthDeviceWithChallengeeCopyWithImpl<$Res>
-    implements _$SnAuthDeviceWithChallengeeCopyWith<$Res> {
-  __$SnAuthDeviceWithChallengeeCopyWithImpl(this._self, this._then);
+class __$SnAuthDeviceWithSessioneCopyWithImpl<$Res>
+    implements _$SnAuthDeviceWithSessioneCopyWith<$Res> {
+  __$SnAuthDeviceWithSessioneCopyWithImpl(this._self, this._then);
 
-  final _SnAuthDeviceWithChallengee _self;
-  final $Res Function(_SnAuthDeviceWithChallengee) _then;
+  final _SnAuthDeviceWithSessione _self;
+  final $Res Function(_SnAuthDeviceWithSessione) _then;
 
-/// Create a copy of SnAuthDeviceWithChallenge
+/// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? challenges = null,Object? isCurrent = null,}) {
-  return _then(_SnAuthDeviceWithChallengee(
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,}) {
+  return _then(_SnAuthDeviceWithSessione(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
 as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
 as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
-as int,challenges: null == challenges ? _self._challenges : challenges // ignore: cast_nullable_to_non_nullable
-as List<SnAuthChallenge>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as int,sessions: null == sessions ? _self._sessions : sessions // ignore: cast_nullable_to_non_nullable
+as List<SnAuthSession>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
