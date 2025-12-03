@@ -1020,6 +1020,8 @@
   "uploadFile": "Upload File",
   "authDeviceChallenges": "Device Usage",
   "authDeviceHint": "Swipe left to edit label, swipe right to logout device.",
+  "authSessionLogout": "Logout Session",
+  "authSessionLogoutHint": "Are you sure you want to logout this session? This will terminate this specific login session.",
   "settingsMessageDisplayStyle": "Message Display Style",
   "auto": "Auto",
   "manual": "Manual",
