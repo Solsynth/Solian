@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,12 +15,14 @@ import 'package:island/screens/account/profile.dart';
 import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/widgets/content/markdown_latex.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import 'image.dart';
 
@@ -185,19 +188,33 @@ class MarkdownTextContent extends HookConsumerWidget {
                       return const SizedBox.shrink();
                     }
 
-                    return ClipRRect(
+                    final heroTag = 'cloud-file-markdown#${const Uuid().v4()}';
+                    return InkWell(
+                      onTap: () {
+                        context.pushTransparentRoute(
+                          CloudFileLightbox(item: file, heroTag: heroTag),
+                          rootNavigator: true,
+                        );
+                      },
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
-                          ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
                         ),
-                        child: CloudFileWidget(
-                          item: file,
-                          fit: BoxFit.cover,
-                        ).clipRRect(all: 8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                          ),
+                          child: CloudFileWidget(
+                            item: file,
+                            heroTag: heroTag,
+                            fit: BoxFit.cover,
+                          ).clipRRect(all: 8),
+                        ),
                       ),
                     );
                 }
