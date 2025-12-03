@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
@@ -37,11 +38,13 @@ class _DeviceListTile extends StatelessWidget {
   final SnAuthDeviceWithSession device;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutDevice;
+  final Function(String) logoutSession;
 
   const _DeviceListTile({
     required this.device,
     required this.updateDeviceLabel,
     required this.logoutDevice,
+    required this.logoutSession,
   });
 
   @override
@@ -118,32 +121,47 @@ class _DeviceListTile extends StatelessWidget {
         ),
         ...device.sessions
             .map(
-              (session) => Column(
+              (session) => Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 4,
                 children: [
-                  InfoRow(
-                    label: 'createdAt'.tr(
-                      args: [session.createdAt.toLocal().formatSystem()],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 4,
+                      children: [
+                        InfoRow(
+                          label: 'createdAt'.tr(
+                            args: [session.createdAt.toLocal().formatSystem()],
+                          ),
+                          icon: Symbols.join,
+                        ),
+                        InfoRow(
+                          label: 'lastActiveAt'.tr(
+                            args: [
+                              session.lastGrantedAt.toLocal().formatSystem(),
+                            ],
+                          ),
+                          icon: Symbols.refresh_rounded,
+                        ),
+                        InfoRow(
+                          label:
+                              '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
+                          icon: Symbols.pin_drop,
+                        ),
+                        InfoRow(
+                          label:
+                              '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
+                          icon: Symbols.dns,
+                        ),
+                      ],
                     ),
-                    icon: Symbols.join,
                   ),
-                  InfoRow(
-                    label: 'lastActiveAt'.tr(
-                      args: [session.lastGrantedAt.toLocal().formatSystem()],
-                    ),
-                    icon: Symbols.refresh_rounded,
+                  IconButton(
+                    icon: Icon(Icons.logout),
+                    tooltip: 'authSessionLogout'.tr(),
+                    onPressed: () => logoutSession(session.id),
                   ),
-                  InfoRow(
-                    label:
-                        '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
-                    icon: Symbols.pin_drop,
-                  ),
-                  InfoRow(
-                    label:
-                        '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
-                    icon: Symbols.dns,
-                  ),
+                  const Gap(4),
                 ],
               ).padding(horizontal: 20, vertical: 8),
             )
@@ -172,6 +190,22 @@ class AccountSessionSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.delete('/pass/accounts/me/devices/$sessionId');
+        ref.invalidate(authDevicesProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    void logoutSession(String sessionId) async {
+      final confirm = await showConfirmAlert(
+        'authSessionLogoutHint'.tr(),
+        'authSessionLogout'.tr(),
+        isDanger: true,
+      );
+      if (!confirm || !context.mounted) return;
+      try {
+        final apiClient = ref.watch(apiClientProvider);
+        await apiClient.delete('/pass/accounts/me/sessions/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -265,6 +299,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                             device: device,
                             updateDeviceLabel: updateDeviceLabel,
                             logoutDevice: logoutDevice,
+                            logoutSession: logoutSession,
                           );
                         } else {
                           return Dismissible(
@@ -320,6 +355,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                               device: device,
                               updateDeviceLabel: updateDeviceLabel,
                               logoutDevice: logoutDevice,
+                              logoutSession: logoutSession,
                             ),
                           );
                         }
