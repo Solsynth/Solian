@@ -54,8 +54,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
     final settings = ref.watch(appSettingsNotifierProvider);
 
-    final hasOnlineCount = onlineCount.hasValue;
-
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
         appBar: AppBar(leading: const PageBackButton()),
@@ -416,13 +414,13 @@ class ChatRoomScreen extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Badge(
-          isLabelVisible: hasOnlineCount,
-          label: Text('${(onlineCount as AsyncData?)?.value}'),
+          isLabelVisible: (onlineCount.value ?? 0) > 1,
+          label: Text('${(onlineCount.value ?? 0)}'),
+          textStyle: GoogleFonts.robotoMono(fontSize: 10),
+          textColor: Colors.white,
           backgroundColor:
-              (onlineCount as AsyncData?)?.value != null &&
-                      (onlineCount as AsyncData).value > 1
-                  ? Colors.green
-                  : Colors.grey,
+              (onlineCount.value ?? 0) > 1 ? Colors.green : Colors.grey,
+          offset: Offset(6, 14),
           child: SizedBox(
             height: 26,
             width: 26,
@@ -462,7 +460,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       children: [
         Badge(
           isLabelVisible: (onlineCount.value ?? 0) > 1,
-          label: Text('${(onlineCount as AsyncData?)?.value}'),
+          label: Text('${(onlineCount.value ?? 0)}'),
           textStyle: GoogleFonts.robotoMono(fontSize: 10),
           backgroundColor:
               (onlineCount.value ?? 0) > 1 ? Colors.green : Colors.grey,
@@ -734,7 +732,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       appBar: AppBar(
         leading: !compactHeader ? const Center(child: PageBackButton()) : null,
         automaticallyImplyLeading: false,
-        toolbarHeight: compactHeader ? null : 80,
+        toolbarHeight: compactHeader ? null : 74,
         title: chatRoom.when(
           data:
               (room) =>
