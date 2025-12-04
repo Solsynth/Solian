@@ -229,9 +229,9 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
             final client = ref.read(apiClientProvider);
             final resp = await client.get('/sphere/chat/$identifier');
             final remoteRoom = SnChatRoom.fromJson(resp.data);
-            await db.saveChatRooms([remoteRoom]);
-            // Update state with fresh data
-            state = AsyncData(await _buildRoomFromDb(db, identifier));
+            // Update state with fresh data directly without saving to DB
+            // DB will be updated by ChatRoomJoinedNotifier's full sync
+            state = AsyncData(remoteRoom);
           } catch (_) {}
         }).ignore();
 
@@ -244,7 +244,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       final client = ref.watch(apiClientProvider);
       final resp = await client.get('/sphere/chat/$identifier');
       final room = SnChatRoom.fromJson(resp.data);
-      // await db.saveChatRooms([room]);
+      await db.saveChatRooms([room]);
       return room;
     } catch (err) {
       if (err is DioException && err.response?.statusCode == 404) {
@@ -252,65 +252,6 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       }
       rethrow; // Rethrow other errors
     }
-  }
-
-  Future<SnChatRoom?> _buildRoomFromDb(
-    AppDatabase db,
-    String identifier,
-  ) async {
-    final localRoomData =
-        await (db.select(db.chatRooms)
-          ..where((r) => r.id.equals(identifier))).getSingleOrNull();
-
-    if (localRoomData == null) return null;
-
-    final membersRows =
-        await (db.select(db.chatMembers)
-          ..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
-    final members =
-        membersRows.map((mRow) {
-          final account = SnAccount.fromJson(mRow.account);
-          return SnChatMember(
-            id: mRow.id,
-            chatRoomId: mRow.chatRoomId,
-            accountId: mRow.accountId,
-            account: account,
-            nick: mRow.nick,
-            notify: mRow.notify,
-            joinedAt: mRow.joinedAt,
-            breakUntil: mRow.breakUntil,
-            timeoutUntil: mRow.timeoutUntil,
-            status: null,
-            createdAt: mRow.createdAt,
-            updatedAt: mRow.updatedAt,
-            deletedAt: mRow.deletedAt,
-            chatRoom: null,
-          );
-        }).toList();
-
-    return SnChatRoom(
-      id: localRoomData.id,
-      name: localRoomData.name,
-      description: localRoomData.description,
-      type: localRoomData.type,
-      isPublic: localRoomData.isPublic!,
-      isCommunity: localRoomData.isCommunity!,
-      picture:
-          localRoomData.picture != null
-              ? SnCloudFile.fromJson(localRoomData.picture!)
-              : null,
-      background:
-          localRoomData.background != null
-              ? SnCloudFile.fromJson(localRoomData.background!)
-              : null,
-      realmId: localRoomData.realmId,
-      accountId: localRoomData.accountId,
-      realm: null,
-      createdAt: localRoomData.createdAt,
-      updatedAt: localRoomData.updatedAt,
-      deletedAt: localRoomData.deletedAt,
-      members: members,
-    );
   }
 }
 
