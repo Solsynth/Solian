@@ -369,33 +369,64 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
       children: [
         const Gap(12),
         // Vertical, scrollable packs rail like common emoji pickers
-        SizedBox(
-          height: 32,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            scrollDirection: Axis.horizontal,
-            itemCount: packs.length,
-            separatorBuilder: (_, _) => const Gap(4),
-            itemBuilder: (context, i) {
-              final selected = _index == i;
-              return Tooltip(
-                message: packs[i].name,
-                child: FilterChip(
-                  visualDensity: const VisualDensity(
-                    horizontal: 0,
-                    vertical: -4,
+        Card(
+          margin: EdgeInsets.zero,
+          child: SizedBox(
+            height: 36,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              scrollDirection: Axis.horizontal,
+              itemCount: packs.length,
+              separatorBuilder: (_, _) => const Gap(4),
+              itemBuilder: (context, i) {
+                final selected = _index == i;
+                return Tooltip(
+                  message: packs[i].name,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    decoration: BoxDecoration(
+                      color:
+                          selected
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      border:
+                          selected
+                              ? Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 4,
+                              )
+                              : null,
+                    ),
+                    margin: const EdgeInsets.only(right: 8),
+                    child: InkWell(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      onTap: () {
+                        setState(() => _index = i);
+                        HapticFeedback.selectionClick();
+                      },
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(end: selected ? 4 : 8),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        builder: (context, value, _) {
+                          return packs[i].icon != null
+                              ? CloudImageWidget(
+                                file: packs[i].icon!,
+                              ).clipRRect(all: value)
+                              : CloudImageWidget(
+                                file: packs[i].stickers.firstOrNull?.image,
+                              ).clipRRect(all: value);
+                        },
+                      ),
+                    ),
                   ),
-                  label: Text(packs[i].name, overflow: TextOverflow.ellipsis),
-                  selected: selected,
-                  onSelected: (_) {
-                    setState(() => _index = i);
-                    HapticFeedback.selectionClick();
-                  },
-                ),
-              );
-            },
-          ),
-        ),
+                );
+              },
+            ),
+          ).padding(vertical: 4),
+        ).padding(horizontal: 12),
 
         // Content
         Expanded(
