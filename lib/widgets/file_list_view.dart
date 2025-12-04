@@ -131,8 +131,10 @@ class FileListView extends HookConsumerWidget {
       FileListMode.unindexed => PaginationWidget(
         provider: unindexedFileListNotifierProvider,
         notifier: unindexedFileListNotifierProvider.notifier,
+        isRefreshable: false,
+        isSliver: true,
         contentBuilder:
-            (data) =>
+            (data, footer) =>
                 data.isEmpty
                     ? SliverToBoxAdapter(
                       child: _buildEmptyUnindexedFilesHint(ref),
@@ -145,13 +147,16 @@ class FileListView extends HookConsumerWidget {
                       isSelectionMode,
                       selectedFileIds,
                       currentVisibleItems,
+                      footer,
                     ),
       ),
       _ => PaginationWidget(
         provider: indexedCloudFileListNotifierProvider,
         notifier: indexedCloudFileListNotifierProvider.notifier,
+        isRefreshable: false,
+        isSliver: true,
         contentBuilder:
-            (data) =>
+            (data, footer) =>
                 data.isEmpty
                     ? SliverToBoxAdapter(
                       child: _buildEmptyDirectoryHint(ref, currentPath),
@@ -165,6 +170,7 @@ class FileListView extends HookConsumerWidget {
                       isSelectionMode,
                       selectedFileIds,
                       currentVisibleItems,
+                      footer,
                     ),
       ),
     };
@@ -567,6 +573,7 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
+    Widget footer,
   ) {
     currentVisibleItems.value = items;
     return switch (currentViewMode.value) {
@@ -578,7 +585,10 @@ class FileListView extends HookConsumerWidget {
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
         delegate: SliverChildBuilderDelegate((context, index) {
-          if (index >= items.length) {
+          if (index == items.length) {
+            return footer;
+          }
+          if (index > items.length) {
             return const SizedBox.shrink();
           }
 
@@ -609,12 +619,15 @@ class FileListView extends HookConsumerWidget {
               return const SizedBox.shrink();
             },
           );
-        }, childCount: items.length),
+        }, childCount: items.length + 1),
       ),
       // ListView mode
       _ => SliverList.builder(
-        itemCount: items.length,
+        itemCount: items.length + 1,
         itemBuilder: (context, index) {
+          if (index == items.length) {
+            return footer;
+          }
           final item = items[index];
           return item.map(
             file:
@@ -1006,6 +1019,7 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
+    Widget footer,
   ) {
     currentVisibleItems.value = items;
     return switch (currentViewMode.value) {
@@ -1017,7 +1031,10 @@ class FileListView extends HookConsumerWidget {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
         delegate: SliverChildBuilderDelegate((context, index) {
-          if (index >= items.length) {
+          if (index == items.length) {
+            return footer;
+          }
+          if (index > items.length) {
             return const SizedBox.shrink();
           }
 
@@ -1051,12 +1068,15 @@ class FileListView extends HookConsumerWidget {
                   },
                 ),
           );
-        }, childCount: items.length),
+        }, childCount: items.length + 1),
       ),
       // ListView mode
       _ => SliverList.builder(
-        itemCount: items.length,
+        itemCount: items.length + 1,
         itemBuilder: (context, index) {
+          if (index == items.length) {
+            return footer;
+          }
           final item = items[index];
           return item.map(
             file: (fileItem) {

@@ -573,6 +573,7 @@ class CreatorHubScreen extends HookConsumerWidget {
               child: publisherStats.when(
                 data:
                     (stats) => SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
                       child:
                           currentPublisher.value == null
                               ? ConstrainedBox(
@@ -602,7 +603,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                                     ).padding(horizontal: 12),
                                   buildNavigationWidget(true),
                                 ],
-                              ).padding(vertical: 24)
+                              )
                               : Column(
                                 spacing: 12,
                                 children: [

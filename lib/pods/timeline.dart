@@ -23,11 +23,7 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
     final client = ref.read(apiClientProvider);
 
     final cursor =
-        state.isLoading
-            ? null
-            : state.valueOrNull?.lastOrNull?.createdAt
-                .toUtc()
-                .toIso8601String();
+        state.valueOrNull?.lastOrNull?.createdAt.toUtc().toIso8601String();
 
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,

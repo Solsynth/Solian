@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/account/credits.dart';
 import 'package:island/services/time.dart';
@@ -10,46 +11,37 @@ import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/stellar_program_tab.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'leveling.g.dart';
+final levelingHistoryNotifierProvider = AsyncNotifierProvider(
+  LevelingHistoryNotifier.new,
+);
 
-@riverpod
-class LevelingHistoryNotifier extends _$LevelingHistoryNotifier
-    with CursorPagingNotifierMixin<SnExperienceRecord> {
-  static const int _pageSize = 20;
-
-  @override
-  Future<CursorPagingData<SnExperienceRecord>> build() => fetch(cursor: null);
+class LevelingHistoryNotifier extends AsyncNotifier<List<SnExperienceRecord>>
+    with AsyncPaginationController<SnExperienceRecord> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnExperienceRecord>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnExperienceRecord>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
       '/pass/accounts/me/leveling',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final records =
-        data.map((json) => SnExperienceRecord.fromJson(json)).toList();
 
-    final hasMore = offset + records.length < total;
-    final nextCursor = hasMore ? (offset + records.length).toString() : null;
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
-    return CursorPagingData(
-      items: records,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    final List<SnExperienceRecord> records =
+        response.data
+            .map((json) => SnExperienceRecord.fromJson(json))
+            .cast<SnExperienceRecord>()
+            .toList();
+
+    return records;
   }
 }
 
@@ -189,52 +181,42 @@ class LevelingScreen extends HookConsumerWidget {
               ),
             ),
             const SliverGap(8),
-            PagingHelperSliverView(
+            PaginationList(
               provider: levelingHistoryNotifierProvider,
-              futureRefreshable: levelingHistoryNotifierProvider.future,
-              notifierRefreshable: levelingHistoryNotifierProvider.notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => SliverList.builder(
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-                      final record = data.items[index];
-                      return ListTile(
-                        title: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(record.reason),
-                            Row(
-                              spacing: 4,
-                              children: [
-                                Text(
-                                  record.createdAt.formatRelative(context),
-                                ).fontSize(13),
-                                Text('·').fontSize(13).bold(),
-                                Text(
-                                  record.createdAt.formatSystem(),
-                                ).fontSize(13),
-                              ],
-                            ).opacity(0.8),
-                          ],
-                        ),
-                        subtitle: Row(
-                          spacing: 8,
+              notifier: levelingHistoryNotifierProvider.notifier,
+              isRefreshable: false,
+              isSliver: true,
+              itemBuilder:
+                  (context, idx, record) => ListTile(
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(record.reason),
+                        Row(
+                          spacing: 4,
                           children: [
                             Text(
-                              '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
-                            ),
-                            if (record.bonusMultiplier != 1.0)
-                              Text('x${record.bonusMultiplier}'),
+                              record.createdAt.formatRelative(context),
+                            ).fontSize(13),
+                            Text('·').fontSize(13).bold(),
+                            Text(record.createdAt.formatSystem()).fontSize(13),
                           ],
+                        ).opacity(0.8),
+                      ],
+                    ),
+                    subtitle: Row(
+                      spacing: 8,
+                      children: [
+                        Text(
+                          '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
                         ),
-                        minTileHeight: 56,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4),
-                      );
-                    },
+                        if (record.bonusMultiplier != 1.0)
+                          Text('x${record.bonusMultiplier}'),
+                      ],
+                    ),
+                    minTileHeight: 56,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 4),
                   ),
             ),
 

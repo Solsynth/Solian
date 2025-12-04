@@ -127,11 +127,14 @@ class ExploreScreen extends HookConsumerWidget {
       child: Row(
         children: [
           Row(
-            spacing: 4,
+            spacing: 8,
             children: [
               IconButton(
                 onPressed: () => handleFilterChange(null),
-                icon: Icon(Symbols.explore),
+                icon: Icon(
+                  Symbols.explore,
+                  fill: currentFilter.value == null ? 1 : null,
+                ),
                 tooltip: 'explore'.tr(),
                 isSelected: currentFilter.value == null,
                 color:
@@ -141,7 +144,10 @@ class ExploreScreen extends HookConsumerWidget {
               ),
               IconButton(
                 onPressed: () => handleFilterChange('subscriptions'),
-                icon: Icon(Symbols.subscriptions),
+                icon: Icon(
+                  Symbols.subscriptions,
+                  fill: currentFilter.value == 'subscriptions' ? 1 : null,
+                ),
                 tooltip: 'exploreFilterSubscriptions'.tr(),
                 isSelected: currentFilter.value == 'subscriptions',
                 color:
@@ -151,7 +157,10 @@ class ExploreScreen extends HookConsumerWidget {
               ),
               IconButton(
                 onPressed: () => handleFilterChange('friends'),
-                icon: Icon(Symbols.people),
+                icon: Icon(
+                  Symbols.people,
+                  fill: currentFilter.value == 'friends' ? 1 : null,
+                ),
                 tooltip: 'exploreFilterFriends'.tr(),
                 isSelected: currentFilter.value == 'friends',
                 color:
@@ -312,7 +321,9 @@ class ExploreScreen extends HookConsumerWidget {
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
-      contentBuilder: (data) => _ActivityListView(data: data, isWide: isWide),
+      contentBuilder:
+          (data, footer) =>
+              _ActivityListView(data: data, isWide: isWide, footer: footer),
     );
   }
 
@@ -428,31 +439,46 @@ class ExploreScreen extends HookConsumerWidget {
     final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
 
     return AppBar(
-      toolbarHeight: 48 + 4,
+      toolbarHeight: 48,
       flexibleSpace: Container(
         height: 48,
         margin: EdgeInsets.only(
           left: 8,
           right: 8,
           top: 4 + MediaQuery.of(context).padding.top,
+          bottom: 4,
         ),
         child: Row(
+          spacing: 8,
           children: [
             IconButton(
               onPressed: () => handleFilterChange(null),
-              icon: Icon(Symbols.explore, color: foregroundColor),
+              icon: Icon(
+                Symbols.explore,
+                color: foregroundColor,
+                fill: currentFilter == null ? 1 : null,
+              ),
               tooltip: 'explore'.tr(),
               isSelected: currentFilter == null,
+              color: currentFilter == null ? foregroundColor : null,
             ),
             IconButton(
               onPressed: () => handleFilterChange('subscriptions'),
-              icon: Icon(Symbols.subscriptions, color: foregroundColor),
+              icon: Icon(
+                Symbols.subscriptions,
+                color: foregroundColor,
+                fill: currentFilter == 'subscription' ? 1 : null,
+              ),
               tooltip: 'exploreFilterSubscriptions'.tr(),
               isSelected: currentFilter == 'subscriptions',
             ),
             IconButton(
               onPressed: () => handleFilterChange('friends'),
-              icon: Icon(Symbols.people, color: foregroundColor),
+              icon: Icon(
+                Symbols.people,
+                color: foregroundColor,
+                fill: currentFilter == 'friends' ? 1 : null,
+              ),
               tooltip: 'exploreFilterFriends'.tr(),
               isSelected: currentFilter == 'friends',
             ),
@@ -701,17 +727,26 @@ class _DiscoveryActivityItem extends StatelessWidget {
 class _ActivityListView extends HookConsumerWidget {
   final List<SnTimelineEvent> data;
   final bool isWide;
+  final Widget footer;
 
-  const _ActivityListView({required this.data, required this.isWide});
+  const _ActivityListView({
+    required this.data,
+    required this.isWide,
+    required this.footer,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.watch(activityListNotifierProvider.notifier);
 
     return SliverList.separated(
-      itemCount: data.length,
+      itemCount: data.length + 1,
       separatorBuilder: (_, _) => const Gap(8),
       itemBuilder: (context, index) {
+        if (index == data.length) {
+          return footer;
+        }
+
         final item = data[index];
         if (item.data == null) {
           return const SizedBox.shrink();

@@ -39,7 +39,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   Future<void> refresh() async {
     totalCount = null;
     fetchedCount = 0;
-    state = AsyncLoading<List<T>>();
+    state = AsyncData<List<T>>([]);
 
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();
@@ -74,7 +74,7 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
     fetchedCount = 0;
     currentFilter = filter;
 
-    state = AsyncLoading<List<T>>();
+    state = AsyncData<List<T>>([]);
 
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();
