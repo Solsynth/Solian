@@ -2,14 +2,24 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/file_list_item.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
 part 'file_list.g.dart';
 
 @riverpod
-class CloudFileListNotifier extends _$CloudFileListNotifier
-    with CursorPagingNotifierMixin<FileListItem> {
+Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
+  final client = ref.read(apiClientProvider);
+  final response = await client.get('/drive/billing/usage');
+  return response.data;
+}
+
+final indexedCloudFileListNotifierProvider = AsyncNotifierProvider(
+  IndexedCloudFileListNotifier.new,
+);
+
+class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
+    with AsyncPaginationController<FileListItem> {
   String _currentPath = '/';
   String? _poolId;
   String? _query;
@@ -42,12 +52,7 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
   }
 
   @override
-  Future<CursorPagingData<FileListItem>> build() => fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<FileListItem>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<FileListItem>> fetch() async {
     final client = ref.read(apiClientProvider);
 
     final queryParameters = <String, String>{'path': _currentPath};
@@ -83,21 +88,16 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
       ...files.map((file) => FileListItem.file(file)),
     ];
 
-    // The new API returns all files in the path, no pagination
-    return CursorPagingData(items: items, hasMore: false, nextCursor: null);
+    return items;
   }
 }
 
-@riverpod
-Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-  final response = await client.get('/drive/billing/usage');
-  return response.data;
-}
+final unindexedFileListNotifierProvider = AsyncNotifierProvider(
+  UnindexedFileListNotifier.new,
+);
 
-@riverpod
-class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
-    with CursorPagingNotifierMixin<FileListItem> {
+class UnindexedFileListNotifier extends AsyncNotifier<List<FileListItem>>
+    with AsyncPaginationController<FileListItem> {
   String? _poolId;
   bool _recycled = false;
   String? _query;
@@ -129,21 +129,15 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     ref.invalidateSelf();
   }
 
-  @override
-  Future<CursorPagingData<FileListItem>> build() => fetch(cursor: null);
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<FileListItem>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<FileListItem>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final offset = cursor != null ? int.tryParse(cursor) ?? 0 : 0;
-    const take = 50; // Default page size
-
     final queryParameters = <String, String>{
-      'take': take.toString(),
-      'offset': offset.toString(),
+      'take': pageSize.toString(),
+      'offset': fetchedCount.toString(),
     };
 
     if (_poolId != null) {
@@ -169,7 +163,7 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
       queryParameters: queryParameters,
     );
 
-    final total = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
+    totalCount = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
 
     final List<SnCloudFile> files =
         (response.data as List)
@@ -179,14 +173,7 @@ class UnindexedFileListNotifier extends _$UnindexedFileListNotifier
     final List<FileListItem> items =
         files.map((file) => FileListItem.unindexedFile(file)).toList();
 
-    final hasMore = offset + take < total;
-    final nextCursor = hasMore ? (offset + take).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return items;
   }
 }
 

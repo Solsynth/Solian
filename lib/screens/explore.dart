@@ -1,6 +1,5 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,6 +11,7 @@ import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/event_calendar.dart';
+import 'package:island/pods/timeline.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
@@ -21,23 +21,19 @@ import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
-import 'package:island/pods/network.dart';
 import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:island/widgets/web_article_card.dart';
-import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
-
-part 'explore.g.dart';
 
 Widget notificationIndicatorWidget(
   BuildContext context, {
@@ -114,13 +110,19 @@ class ExploreScreen extends HookConsumerWidget {
       return () => tabController.removeListener(listener);
     }, [tabController]);
 
+    final notifier = ref.watch(activityListNotifierProvider.notifier);
+
+    useEffect(() {
+      Future(() {
+        notifier.applyFilter(currentFilter.value);
+      });
+      return null;
+    }, [currentFilter.value]);
+
     // Listen for post creation events to refresh activities
     useEffect(() {
       final subscription = eventBus.on<PostCreatedEvent>().listen((event) {
-        // Refresh all activity lists when a new post is created
-        ref.invalidate(activityListNotifierProvider(null));
-        ref.invalidate(activityListNotifierProvider('subscriptions'));
-        ref.invalidate(activityListNotifierProvider('friends'));
+        ref.invalidate(activityListNotifierProvider);
       });
       return subscription.cancel;
     }, []);
@@ -276,7 +278,6 @@ class ExploreScreen extends HookConsumerWidget {
                       query,
                       events,
                       selectedDay,
-                      currentFilter.value,
                     )
                     : _buildNarrowBody(context, ref, currentFilter.value),
           ),
@@ -315,29 +316,15 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildActivityList(
-    BuildContext context,
-    WidgetRef ref,
-    String? filter,
-  ) {
-    final activitiesNotifier = ref.watch(
-      activityListNotifierProvider(filter).notifier,
-    );
-
+  Widget _buildActivityList(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
 
-    return PagingHelperSliverView(
-      provider: activityListNotifierProvider(filter),
-      futureRefreshable: activityListNotifierProvider(filter).future,
-      notifierRefreshable: activityListNotifierProvider(filter).notifier,
-      contentBuilder:
-          (data, widgetCount, endItemView) => _ActivityListView(
-            data: data,
-            widgetCount: widgetCount,
-            endItemView: endItemView,
-            activitiesNotifier: activitiesNotifier,
-            isWide: isWide,
-          ),
+    return PaginationWidget(
+      provider: activityListNotifierProvider,
+      notifier: activityListNotifierProvider.notifier,
+      // Sliver list cannot provide refresh handled by the pagination list
+      isRefreshable: false,
+      contentBuilder: (data) => _ActivityListView(data: data, isWide: isWide),
     );
   }
 
@@ -350,13 +337,10 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<EventCalendarQuery> query,
     AsyncValue<List<dynamic>> events,
     ValueNotifier<DateTime> selectedDay,
-    String? currentFilter,
   ) {
-    final bodyView = _buildActivityList(context, ref, currentFilter);
+    final bodyView = _buildActivityList(context, ref);
 
-    final activitiesNotifier = ref.watch(
-      activityListNotifierProvider(currentFilter).notifier,
-    );
+    final notifier = ref.watch(activityListNotifierProvider.notifier);
 
     return Row(
       spacing: 12,
@@ -364,7 +348,7 @@ class ExploreScreen extends HookConsumerWidget {
         Flexible(
           flex: 3,
           child: ExtendedRefreshIndicator(
-            onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
+            onRefresh: notifier.refresh,
             child: CustomScrollView(
               slivers: [
                 const SliverGap(12),
@@ -575,17 +559,15 @@ class ExploreScreen extends HookConsumerWidget {
       notificationUnreadCountNotifierProvider,
     );
 
-    final activitiesNotifier = ref.watch(
-      activityListNotifierProvider(currentFilter).notifier,
-    );
+    final bodyView = _buildActivityList(context, ref);
 
-    final bodyView = _buildActivityList(context, ref, currentFilter);
+    final notifier = ref.watch(activityListNotifierProvider.notifier);
 
     return Expanded(
-      child: ExtendedRefreshIndicator(
-        onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: ExtendedRefreshIndicator(
+          onRefresh: notifier.refresh,
           child: CustomScrollView(
             slivers: [
               const SliverGap(8),
@@ -623,8 +605,8 @@ class ExploreScreen extends HookConsumerWidget {
               bodyView,
             ],
           ),
-        ).padding(horizontal: 8),
-      ),
+        ),
+      ).padding(horizontal: 8),
     );
   }
 }
@@ -741,31 +723,20 @@ class _DiscoveryActivityItem extends StatelessWidget {
 }
 
 class _ActivityListView extends HookConsumerWidget {
-  final CursorPagingData<SnTimelineEvent> data;
-  final int widgetCount;
-  final Widget endItemView;
-  final ActivityListNotifier activitiesNotifier;
+  final List<SnTimelineEvent> data;
   final bool isWide;
 
-  const _ActivityListView({
-    required this.data,
-    required this.widgetCount,
-    required this.endItemView,
-    required this.activitiesNotifier,
-    required this.isWide,
-  });
+  const _ActivityListView({required this.data, required this.isWide});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.watch(activityListNotifierProvider.notifier);
+
     return SliverList.separated(
-      itemCount: widgetCount,
+      itemCount: data.length,
       separatorBuilder: (_, _) => const Gap(8),
       itemBuilder: (context, index) {
-        if (index == widgetCount - 1) {
-          return endItemView;
-        }
-
-        final item = data.items[index];
+        final item = data[index];
         if (item.data == null) {
           return const SizedBox.shrink();
         }
@@ -778,13 +749,10 @@ class _ActivityListView extends HookConsumerWidget {
               borderRadius: 8,
               item: SnPost.fromJson(item.data!),
               onRefresh: () {
-                activitiesNotifier.forceRefresh();
+                notifier.refresh();
               },
               onUpdate: (post) {
-                activitiesNotifier.updateOne(
-                  index,
-                  item.copyWith(data: post.toJson()),
-                );
+                notifier.updateOne(index, item.copyWith(data: post.toJson()));
               },
             );
             itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);
@@ -798,72 +766,6 @@ class _ActivityListView extends HookConsumerWidget {
 
         return itemWidget;
       },
-    );
-  }
-}
-
-@riverpod
-class ActivityListNotifier extends _$ActivityListNotifier
-    with CursorPagingNotifierMixin<SnTimelineEvent> {
-  @override
-  Future<CursorPagingData<SnTimelineEvent>> build(String? filter) =>
-      fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<SnTimelineEvent>> fetch({
-    required String? cursor,
-  }) async {
-    final client = ref.read(apiClientProvider);
-    final take = 20;
-
-    final queryParameters = {
-      if (cursor != null) 'cursor': cursor,
-      'take': take,
-      if (filter != null) 'filter': filter,
-      if (kDebugMode)
-        'debugInclude': 'realms,publishers,articles,shuffledPosts',
-    };
-
-    final response = await client.get(
-      '/sphere/timeline',
-      queryParameters: queryParameters,
-    );
-
-    final List<SnTimelineEvent> items =
-        (response.data as List)
-            .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
-            .toList();
-
-    final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
-    final nextCursor =
-        items.isNotEmpty
-            ? items
-                .map((x) => x.createdAt)
-                .reduce((a, b) => a.isBefore(b) ? a : b)
-                .toUtc()
-                .toIso8601String()
-            : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
-  }
-
-  void updateOne(int index, SnTimelineEvent activity) {
-    final currentState = state.valueOrNull;
-    if (currentState == null) return;
-
-    final updatedItems = [...currentState.items];
-    updatedItems[index] = activity;
-
-    state = AsyncData(
-      CursorPagingData(
-        items: updatedItems,
-        hasMore: currentState.hasMore,
-        nextCursor: currentState.nextCursor,
-      ),
     );
   }
 }

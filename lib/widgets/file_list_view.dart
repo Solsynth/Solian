@@ -22,9 +22,9 @@ import 'package:island/utils/format.dart';
 import 'package:island/utils/text.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 enum FileListMode { normal, unindexed }
@@ -59,7 +59,9 @@ class FileListView extends HookConsumerWidget {
 
     useEffect(() {
       if (mode.value == FileListMode.normal) {
-        final notifier = ref.read(cloudFileListNotifierProvider.notifier);
+        final notifier = ref.read(
+          indexedCloudFileListNotifierProvider.notifier,
+        );
         notifier.setPath(currentPath.value);
       }
       return null;
@@ -70,7 +72,9 @@ class FileListView extends HookConsumerWidget {
     final unindexedNotifier = ref.read(
       unindexedFileListNotifierProvider.notifier,
     );
-    final cloudNotifier = ref.read(cloudFileListNotifierProvider.notifier);
+    final cloudNotifier = ref.read(
+      indexedCloudFileListNotifierProvider.notifier,
+    );
     final recycled = useState<bool>(false);
     final poolsAsync = ref.watch(poolsProvider);
     final isSelectionMode = useState<bool>(false);
@@ -115,27 +119,26 @@ class FileListView extends HookConsumerWidget {
 
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal
-          ? cloudFileListNotifierProvider.select((value) => value.isLoading)
+          ? indexedCloudFileListNotifierProvider.select(
+            (value) => value.isLoading,
+          )
           : unindexedFileListNotifierProvider.select(
             (value) => value.isLoading,
           ),
     );
 
     final bodyWidget = switch (mode.value) {
-      FileListMode.unindexed => PagingHelperSliverView(
+      FileListMode.unindexed => PaginationWidget(
         provider: unindexedFileListNotifierProvider,
-        futureRefreshable: unindexedFileListNotifierProvider.future,
-        notifierRefreshable: unindexedFileListNotifierProvider.notifier,
+        notifier: unindexedFileListNotifierProvider.notifier,
         contentBuilder:
-            (data, widgetCount, endItemView) =>
-                data.items.isEmpty
+            (data) =>
+                data.isEmpty
                     ? SliverToBoxAdapter(
                       child: _buildEmptyUnindexedFilesHint(ref),
                     )
                     : _buildUnindexedFileListContent(
-                      data.items,
-                      widgetCount,
-                      endItemView,
+                      data,
                       ref,
                       context,
                       viewMode,
@@ -144,20 +147,17 @@ class FileListView extends HookConsumerWidget {
                       currentVisibleItems,
                     ),
       ),
-      _ => PagingHelperSliverView(
-        provider: cloudFileListNotifierProvider,
-        futureRefreshable: cloudFileListNotifierProvider.future,
-        notifierRefreshable: cloudFileListNotifierProvider.notifier,
+      _ => PaginationWidget(
+        provider: indexedCloudFileListNotifierProvider,
+        notifier: indexedCloudFileListNotifierProvider.notifier,
         contentBuilder:
-            (data, widgetCount, endItemView) =>
-                data.items.isEmpty
+            (data) =>
+                data.isEmpty
                     ? SliverToBoxAdapter(
                       child: _buildEmptyDirectoryHint(ref, currentPath),
                     )
                     : _buildFileListContent(
-                      data.items,
-                      widgetCount,
-                      endItemView,
+                      data,
                       ref,
                       context,
                       currentPath,
@@ -255,7 +255,7 @@ class FileListView extends HookConsumerWidget {
           completer.future
               .then((uploadedFile) {
                 if (uploadedFile != null) {
-                  ref.invalidate(cloudFileListNotifierProvider);
+                  ref.invalidate(indexedCloudFileListNotifierProvider);
                 }
               })
               .catchError((error) {
@@ -532,7 +532,7 @@ class FileListView extends HookConsumerWidget {
                                     isSelectionMode.value = false;
                                     ref.invalidate(
                                       mode.value == FileListMode.normal
-                                          ? cloudFileListNotifierProvider
+                                          ? indexedCloudFileListNotifierProvider
                                           : unindexedFileListNotifierProvider,
                                     );
                                     showSnackBar('Deleted $count files.');
@@ -560,8 +560,6 @@ class FileListView extends HookConsumerWidget {
 
   Widget _buildFileListContent(
     List<FileListItem> items,
-    int widgetCount,
-    Widget endItemView,
     WidgetRef ref,
     BuildContext context,
     ValueNotifier<String> currentPath,
@@ -580,10 +578,6 @@ class FileListView extends HookConsumerWidget {
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
         delegate: SliverChildBuilderDelegate((context, index) {
-          if (index == widgetCount - 1) {
-            return endItemView;
-          }
-
           if (index >= items.length) {
             return const SizedBox.shrink();
           }
@@ -615,16 +609,12 @@ class FileListView extends HookConsumerWidget {
               return const SizedBox.shrink();
             },
           );
-        }, childCount: widgetCount),
+        }, childCount: items.length),
       ),
       // ListView mode
       _ => SliverList.builder(
-        itemCount: widgetCount,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          if (index == widgetCount - 1) {
-            return endItemView;
-          }
-
           final item = items[index];
           return item.map(
             file:
@@ -801,7 +791,7 @@ class FileListView extends HookConsumerWidget {
               await client.delete(
                 '/drive/index/remove/${fileItem.fileIndex.id}',
               );
-              ref.invalidate(cloudFileListNotifierProvider);
+              ref.invalidate(indexedCloudFileListNotifierProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
             } finally {
@@ -1010,8 +1000,6 @@ class FileListView extends HookConsumerWidget {
 
   Widget _buildUnindexedFileListContent(
     List<FileListItem> items,
-    int widgetCount,
-    Widget endItemView,
     WidgetRef ref,
     BuildContext context,
     ValueNotifier<FileListViewMode> currentViewMode,
@@ -1029,10 +1017,6 @@ class FileListView extends HookConsumerWidget {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
         delegate: SliverChildBuilderDelegate((context, index) {
-          if (index == widgetCount - 1) {
-            return endItemView;
-          }
-
           if (index >= items.length) {
             return const SizedBox.shrink();
           }
@@ -1067,16 +1051,12 @@ class FileListView extends HookConsumerWidget {
                   },
                 ),
           );
-        }, childCount: widgetCount),
+        }, childCount: items.length),
       ),
       // ListView mode
       _ => SliverList.builder(
-        itemCount: widgetCount,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          if (index == widgetCount - 1) {
-            return endItemView;
-          }
-
           final item = items[index];
           return item.map(
             file: (fileItem) {
@@ -1168,7 +1148,7 @@ class FileListView extends HookConsumerWidget {
           try {
             final client = ref.read(apiClientProvider);
             await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
-            ref.invalidate(cloudFileListNotifierProvider);
+            ref.invalidate(indexedCloudFileListNotifierProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
           } finally {
