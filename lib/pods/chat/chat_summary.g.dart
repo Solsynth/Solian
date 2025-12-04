@@ -24,22 +24,22 @@ final chatUnreadCountNotifierProvider =
     );
 
 typedef _$ChatUnreadCountNotifier = AutoDisposeAsyncNotifier<int>;
-String _$chatSummaryHash() => r'8479ef53cfb0b698b800d0117d04774b6f78b3cc';
+String _$chatSummaryHash() => r'78d927d40cded9d7adbc20bd6f457fdf3c852632';
 
 /// See also [ChatSummary].
 @ProviderFor(ChatSummary)
-final chatSummaryProvider = AutoDisposeAsyncNotifierProvider<
-  ChatSummary,
-  Map<String, SnChatSummary>
->.internal(
-  ChatSummary.new,
-  name: r'chatSummaryProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$chatSummaryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final chatSummaryProvider =
+    AsyncNotifierProvider<ChatSummary, Map<String, SnChatSummary>>.internal(
+      ChatSummary.new,
+      name: r'chatSummaryProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$chatSummaryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef _$ChatSummary = AutoDisposeAsyncNotifier<Map<String, SnChatSummary>>;
+typedef _$ChatSummary = AsyncNotifier<Map<String, SnChatSummary>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -45,7 +45,7 @@ final chatRoomJoinedNotifierProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$ChatRoomJoinedNotifier = AutoDisposeAsyncNotifier<List<SnChatRoom>>;
-String _$chatRoomNotifierHash() => r'978bd602cf5e93e60e3c7b9f5799d46a87495c79';
+String _$chatRoomNotifierHash() => r'1e6391e2ab4eeb114fa001aaa6b06ab2bd646f38';
 
 /// Copied from Dart SDK
 class _SystemHash {

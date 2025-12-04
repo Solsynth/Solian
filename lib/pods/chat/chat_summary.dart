@@ -60,7 +60,7 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ChatSummary extends _$ChatSummary {
   @override
   Future<Map<String, SnChatSummary>> build() async {
