@@ -1492,5 +1492,6 @@
   "accountActivationAlertHint": "Unactivated account may leads to various of permission issues, activate your account by clicking the link we sent to your email inbox.",
   "accountActivationResendHint": "Didn't see it? Try click the button below to resend one. If you need to update your email while your account was unactivated, feel free to contact our customer service.",
   "accountActivationResend": "Resend",
-  "ipAddress": "IP Address"
+  "ipAddress": "IP Address",
+  "noFurtherData": "No further data"
 }

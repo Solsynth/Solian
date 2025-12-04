@@ -4,9 +4,11 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/services/time.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'credits.g.dart';
@@ -21,40 +23,35 @@ Future<double> socialCredits(Ref ref) async {
   return response.data?.toDouble() ?? 0.0;
 }
 
-@riverpod
-class SocialCreditHistoryNotifier extends _$SocialCreditHistoryNotifier
-    with CursorPagingNotifierMixin<SnSocialCreditRecord> {
-  static const int _pageSize = 20;
+final socialCreditHistoryNotifierProvider = AsyncNotifierProvider(
+  SocialCreditHistoryNotifier.new,
+);
+
+class SocialCreditHistoryNotifier
+    extends AsyncNotifier<List<SnSocialCreditRecord>>
+    with AsyncPaginationController<SnSocialCreditRecord> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnSocialCreditRecord>> build() => fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<SnSocialCreditRecord>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnSocialCreditRecord>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
       '/pass/accounts/me/credits/history',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
+
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+
     final records =
-        data.map((json) => SnSocialCreditRecord.fromJson(json)).toList();
+        response.data
+            .map((json) => SnSocialCreditRecord.fromJson(json))
+            .cast<SnSocialCreditRecord>()
+            .toList();
 
-    final hasMore = offset + records.length < total;
-    final nextCursor = hasMore ? (offset + records.length).toString() : null;
-
-    return CursorPagingData(
-      items: records,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return records;
   }
 }
 
@@ -110,38 +107,45 @@ class SocialCreditsTab extends HookConsumerWidget {
               .padding(horizontal: 20, vertical: 16),
         ),
         Expanded(
-          child: PagingHelperView(
+          child: PaginationList(
+            padding: EdgeInsets.zero,
             provider: socialCreditHistoryNotifierProvider,
-            futureRefreshable: socialCreditHistoryNotifierProvider.future,
-            notifierRefreshable: socialCreditHistoryNotifierProvider.notifier,
-            contentBuilder:
-                (data, widgetCount, endItemView) => ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: widgetCount,
-                  itemBuilder: (context, index) {
-                    if (index == widgetCount - 1) {
-                      return endItemView;
-                    }
-                    final record = data.items[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                      ),
-                      title: Text(record.reason),
-                      subtitle: Text(
-                        DateFormat.yMMMd().format(record.createdAt),
-                      ),
-                      trailing: Text(
-                        record.delta > 0
-                            ? '+${record.delta}'
-                            : '${record.delta}',
-                        style: TextStyle(
-                          color: record.delta > 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    );
-                  },
+            notifier: socialCreditHistoryNotifierProvider.notifier,
+            itemBuilder: (context, idx, record) {
+              final isExpired =
+                  record.expiredAt != null &&
+                  record.expiredAt!.isBefore(DateTime.now());
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                title: Text(
+                  record.reason,
+                  style:
+                      isExpired
+                          ? TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.8),
+                          )
+                          : null,
                 ),
+                subtitle: Row(
+                  spacing: 4,
+                  children: [
+                    Text(record.createdAt.formatSystem()),
+                    Text('to'),
+                    if (record.expiredAt != null)
+                      Text(record.expiredAt!.formatSystem()),
+                  ],
+                ),
+                trailing: Text(
+                  record.delta > 0 ? '+${record.delta}' : '${record.delta}',
+                  style: TextStyle(
+                    color: record.delta > 0 ? Colors.green : Colors.red,
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

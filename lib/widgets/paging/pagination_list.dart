@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
 
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/response.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -15,6 +17,7 @@ class PaginationList<T> extends HookConsumerWidget {
   final bool isRefreshable;
   final bool isSliver;
   final bool showDefaultWidgets;
+  final EdgeInsets? padding;
   const PaginationList({
     super.key,
     required this.provider,
@@ -23,6 +26,7 @@ class PaginationList<T> extends HookConsumerWidget {
     this.isRefreshable = true,
     this.isSliver = false,
     this.showDefaultWidgets = true,
+    this.padding,
   });
 
   @override
@@ -57,6 +61,7 @@ class PaginationList<T> extends HookConsumerWidget {
               },
             )
             : SuperListView.builder(
+              padding: padding,
               itemCount: (data.valueOrNull?.length ?? 0) + 1,
               itemBuilder: (context, idx) {
                 if (idx == data.valueOrNull?.length) {
@@ -134,7 +139,19 @@ class PaginationListFooter<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final child = SizedBox(
       height: 64,
-      child: Center(child: CircularProgressIndicator()).padding(all: 8),
+      child: Center(
+        child:
+            data.isLoading
+                ? CircularProgressIndicator()
+                : Row(
+                  spacing: 8,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Symbols.close, size: 16),
+                    Text('noFurtherData').tr().fontSize(13),
+                  ],
+                ).opacity(0.9),
+      ).padding(all: 8),
     );
 
     return VisibilityDetector(
