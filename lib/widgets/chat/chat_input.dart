@@ -17,6 +17,7 @@ import "package:island/models/wallet.dart";
 import "package:island/models/realm.dart";
 import "package:island/models/sticker.dart";
 import "package:island/pods/config.dart";
+import "package:island/pods/userinfo.dart";
 import "package:island/services/autocomplete_service.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/content/attachment_preview.dart";
@@ -343,6 +344,14 @@ class ChatInput extends HookConsumerWidget {
     final double leftMargin = isWideScreen(context) ? 8 : 16;
     final double rightMargin = isWideScreen(context) ? leftMargin + 8 : 16;
     const double bottomMargin = 16;
+
+    final userInfo = ref.watch(userInfoProvider);
+
+    List<SnChatMember> getValidMembers(List<SnChatMember> members) {
+      return members
+          .where((member) => member.accountId != userInfo.value?.id)
+          .toList();
+    }
 
     return Container(
       margin: EdgeInsets.only(
@@ -878,9 +887,9 @@ class ChatInput extends HookConsumerWidget {
                                 (chatRoom.type == 1 && chatRoom.name == null)
                                     ? 'chatDirectMessageHint'.tr(
                                       args: [
-                                        chatRoom.members!
-                                            .map((e) => e.account.nick)
-                                            .join(', '),
+                                        getValidMembers(
+                                          chatRoom.members!,
+                                        ).map((e) => e.account.nick).join(', '),
                                       ],
                                     )
                                     : 'chatMessageHint'.tr(

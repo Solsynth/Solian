@@ -20,6 +20,7 @@ import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/chat/chat_online_count.dart";
 import "package:island/pods/config.dart";
+import "package:island/pods/userinfo.dart";
 import "package:island/screens/chat/search_messages.dart";
 import "package:island/services/file_uploader.dart";
 import "package:island/screens/chat/chat.dart";
@@ -48,8 +49,8 @@ class ChatRoomScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatRoom = ref.watch(chatroomProvider(id));
-    final chatIdentity = ref.watch(chatroomIdentityProvider(id));
+    final chatRoom = ref.watch(ChatRoomNotifierProvider(id));
+    final chatIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
     final isSyncing = ref.watch(isSyncingProvider);
     final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
     final settings = ref.watch(appSettingsNotifierProvider);
@@ -100,7 +101,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                                   await apiClient.post(
                                     '/sphere/chat/${room.id}/members/me',
                                   );
-                                  ref.invalidate(chatroomIdentityProvider(id));
+                                  ref.invalidate(
+                                    ChatRoomIdentityNotifierProvider(id),
+                                  );
                                 } catch (err) {
                                   showErrorAlert(err);
                                 } finally {
@@ -129,7 +132,7 @@ class ChatRoomScreen extends HookConsumerWidget {
               appBar: AppBar(leading: const PageBackButton()),
               body: ResponseErrorWidget(
                 error: error,
-                onRetry: () => ref.refresh(chatroomProvider(id)),
+                onRetry: () => ref.refresh(ChatRoomNotifierProvider(id)),
               ),
             ),
       );
@@ -408,6 +411,14 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final compactHeader = isWideScreen(context);
 
+    final userInfo = ref.watch(userInfoProvider);
+
+    List<SnChatMember> getValidMembers(List<SnChatMember> members) {
+      return members
+          .where((member) => member.accountId != userInfo.value?.id)
+          .toList();
+    }
+
     Widget comfortHeaderWidget(SnChatRoom? room) => Column(
       spacing: 4,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -428,9 +439,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                 (room!.type == 1 && room.picture?.id == null)
                     ? SplitAvatarWidget(
                       filesId:
-                          room.members!
-                              .map((e) => e.account.profile.picture?.id)
-                              .toList(),
+                          getValidMembers(
+                            room.members!,
+                          ).map((e) => e.account.profile.picture?.id).toList(),
                     )
                     : room.picture?.id != null
                     ? ProfilePictureWidget(
@@ -447,7 +458,9 @@ class ChatRoomScreen extends HookConsumerWidget {
         ),
         Text(
           (room.type == 1 && room.name == null)
-              ? room.members!.map((e) => e.account.nick).join(', ')
+              ? getValidMembers(
+                room.members!,
+              ).map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(15),
       ],
@@ -473,9 +486,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                 (room!.type == 1 && room.picture?.id == null)
                     ? SplitAvatarWidget(
                       filesId:
-                          room.members!
-                              .map((e) => e.account.profile.picture?.id)
-                              .toList(),
+                          getValidMembers(
+                            room.members!,
+                          ).map((e) => e.account.profile.picture?.id).toList(),
                     )
                     : room.picture?.id != null
                     ? ProfilePictureWidget(
@@ -492,7 +505,9 @@ class ChatRoomScreen extends HookConsumerWidget {
         ),
         Text(
           (room.type == 1 && room.name == null)
-              ? room.members!.map((e) => e.account.nick).join(', ')
+              ? getValidMembers(
+                room.members!,
+              ).map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(19),
       ],

@@ -358,23 +358,29 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  Future<void> saveChatRooms(List<SnChatRoom> rooms) async {
+  Future<void> saveChatRooms(
+    List<SnChatRoom> rooms, {
+    bool override = false,
+  }) async {
     await transaction(() async {
-      // 1. Identify rooms to remove
-      final remoteRoomIds = rooms.map((r) => r.id).toSet();
-      final currentRooms = await select(chatRooms).get();
-      final currentRoomIds = currentRooms.map((r) => r.id).toSet();
-      final idsToRemove = currentRoomIds.difference(remoteRoomIds);
+      if (override) {
+        // 1. Identify rooms to remove
+        final remoteRoomIds = rooms.map((r) => r.id).toSet();
+        final currentRooms = await select(chatRooms).get();
+        final currentRoomIds = currentRooms.map((r) => r.id).toSet();
+        final idsToRemove = currentRoomIds.difference(remoteRoomIds);
 
-      if (idsToRemove.isNotEmpty) {
-        final idsList = idsToRemove.toList();
-        // Remove messages
-        await (delete(chatMessages)..where((t) => t.roomId.isIn(idsList))).go();
-        // Remove members
-        await (delete(chatMembers)
-          ..where((t) => t.chatRoomId.isIn(idsList))).go();
-        // Remove rooms
-        await (delete(chatRooms)..where((t) => t.id.isIn(idsList))).go();
+        if (idsToRemove.isNotEmpty) {
+          final idsList = idsToRemove.toList();
+          // Remove messages
+          await (delete(chatMessages)
+            ..where((t) => t.roomId.isIn(idsList))).go();
+          // Remove members
+          await (delete(chatMembers)
+            ..where((t) => t.chatRoomId.isIn(idsList))).go();
+          // Remove rooms
+          await (delete(chatRooms)..where((t) => t.id.isIn(idsList))).go();
+        }
       }
 
       // 2. Upsert remote rooms

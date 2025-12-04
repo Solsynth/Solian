@@ -664,7 +664,7 @@ class _ChatRoomsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatRooms = ref.watch(chatroomsJoinedProvider);
+    final chatRooms = ref.watch(chatRoomJoinedNotifierProvider);
 
     return chatRooms.when(
       data: (rooms) {

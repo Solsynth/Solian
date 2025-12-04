@@ -27,10 +27,10 @@ part 'messages_notifier.g.dart';
 
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
-  late final Dio _apiClient;
-  late final AppDatabase _database;
-  late final SnChatRoom _room;
-  late final SnChatMember _identity;
+  late Dio _apiClient;
+  late AppDatabase _database;
+  late SnChatRoom _room;
+  late SnChatMember _identity;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -39,7 +39,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool? _withLinks;
   bool? _withAttachments;
 
-  late final String _roomId;
   static const int _pageSize = 20;
   bool _hasMore = true;
   bool _isSyncing = false;
@@ -48,15 +47,16 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _allRemoteMessagesFetched = false;
   DateTime? _lastPauseTime;
 
-  late final Future<SnAccount?> Function(String) _fetchAccount;
+  late Future<SnAccount?> Function(String) _fetchAccount;
 
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
-    _roomId = roomId;
     _apiClient = ref.watch(apiClientProvider);
     _database = ref.watch(databaseProvider);
-    final room = await ref.watch(chatroomProvider(roomId).future);
-    final identity = await ref.watch(chatroomIdentityProvider(roomId).future);
+    final room = await ref.watch(ChatRoomNotifierProvider(roomId).future);
+    final identity = await ref.watch(
+      ChatRoomIdentityNotifierProvider(roomId).future,
+    );
 
     // Initialize fetch account method for corrupted data recovery
     _fetchAccount = (String accountId) async {
@@ -144,14 +144,14 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       dbMessages = await _database.searchMessages(
-        _roomId,
+        roomId,
         searchQuery,
         withAttachments: withAttachments,
         fetchAccount: _fetchAccount,
       );
     } else {
       final chatMessagesFromDb = await _database.getMessagesForRoom(
-        _roomId,
+        roomId,
         offset: offset,
         limit: take,
       );
@@ -194,9 +194,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (offset == 0) {
       final pendingForRoom =
-          _pendingMessages.values
-              .where((msg) => msg.roomId == _roomId)
-              .toList();
+          _pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
 
       final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages); // Use the helper function
@@ -221,7 +219,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     talker.log('Getting all messages for jump from offset $offset, take $take');
     final chatMessagesFromDb = await _database.getMessagesForRoom(
-      _roomId,
+      roomId,
       offset: offset,
       limit: take,
     );
@@ -245,9 +243,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (offset == 0) {
       final pendingForRoom =
-          _pendingMessages.values
-              .where((msg) => msg.roomId == _roomId)
-              .toList();
+          _pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
 
       final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages);
@@ -272,7 +268,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Fetching messages from API, offset $offset, take $take');
     if (_totalCount == null) {
       final response = await _apiClient.get(
-        '/sphere/chat/$_roomId/messages',
+        '/sphere/chat/$roomId/messages',
         queryParameters: {'offset': 0, 'take': 1},
       );
       _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
@@ -284,7 +280,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     final response = await _apiClient.get(
-      '/sphere/chat/$_roomId/messages',
+      '/sphere/chat/$roomId/messages',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -546,7 +542,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final mockMessage = SnChatMessage(
       id: 'pending_$nonce',
-      chatRoomId: _roomId,
+      chatRoomId: roomId,
       senderId: _identity.id,
       content: content,
       createdAt: DateTime.now(),
@@ -590,8 +586,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final response = await _apiClient.request(
         editingTo == null
-            ? '/sphere/chat/$_roomId/messages'
-            : '/sphere/chat/$_roomId/messages/${editingTo.id}',
+            ? '/sphere/chat/$roomId/messages'
+            : '/sphere/chat/$roomId/messages/${editingTo.id}',
         data: {
           'content': content,
           'attachments_id': cloudAttachments.map((e) => e.id).toList(),
@@ -731,7 +727,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
-    if (remoteMessage.chatRoomId != _roomId) return;
+    if (remoteMessage.chatRoomId != roomId) return;
 
     // Block message receiving during jumps to prevent list resets
     if (_isJumping) {
@@ -783,7 +779,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
-    if (remoteMessage.chatRoomId != _roomId) return;
+    if (remoteMessage.chatRoomId != roomId) return;
 
     // Block message updates during jumps to prevent list resets
     if (_isJumping) {
@@ -883,7 +879,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      await _apiClient.delete('/sphere/chat/$_roomId/messages/$messageId');
+      await _apiClient.delete('/sphere/chat/$roomId/messages/$messageId');
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
       talker.log(
@@ -991,7 +987,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       final response = await _apiClient.get(
-        '/sphere/chat/$_roomId/messages/$messageId',
+        '/sphere/chat/$roomId/messages/$messageId',
       );
       final remoteMessage = SnChatMessage.fromJson(response.data);
       final message = LocalChatMessage.fromRemoteMessage(
@@ -1048,7 +1044,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final query = _database.customSelect(
         'SELECT COUNT(*) as count FROM chat_messages WHERE room_id = ? AND created_at > ?',
         variables: [
-          Variable.withString(_roomId),
+          Variable.withString(roomId),
           Variable.withDateTime(message.createdAt),
         ],
         readsFrom: {_database.chatMessages},

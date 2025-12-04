@@ -39,8 +39,8 @@ class ChatDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final roomState = ref.watch(chatroomProvider(id));
-    final roomIdentity = ref.watch(chatroomIdentityProvider(id));
+    final roomState = ref.watch(ChatRoomNotifierProvider(id));
+    final roomIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
     final totalMessages = ref.watch(totalMessagesCountProvider(id));
 
     const kNotifyLevelText = [
@@ -56,7 +56,7 @@ class ChatDetailScreen extends HookConsumerWidget {
           '/sphere/chat/$id/members/me/notify',
           data: {'notify_level': level},
         );
-        ref.invalidate(chatroomIdentityProvider(id));
+        ref.invalidate(ChatRoomIdentityNotifierProvider(id));
         if (context.mounted) {
           showSnackBar(
             'chatNotifyLevelUpdated'.tr(args: [kNotifyLevelText[level].tr()]),
@@ -74,7 +74,7 @@ class ChatDetailScreen extends HookConsumerWidget {
           '/sphere/chat/$id/members/me/notify',
           data: {'break_until': until.toUtc().toIso8601String()},
         );
-        ref.invalidate(chatroomProvider(id));
+        ref.invalidate(ChatRoomNotifierProvider(id));
       } catch (err) {
         showErrorAlert(err);
       }
@@ -439,8 +439,8 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatIdentity = ref.watch(chatroomIdentityProvider(id));
-    final chatRoom = ref.watch(chatroomProvider(id));
+    final chatIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
+    final chatRoom = ref.watch(ChatRoomNotifierProvider(id));
 
     final isManagable =
         chatIdentity.value?.accountId == chatRoom.value?.accountId ||
@@ -461,7 +461,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   ).then((value) {
                     if (value != null) {
                       // Invalidate to refresh room data after edit
-                      ref.invalidate(chatroomProvider(id));
+                      ref.invalidate(ChatRoomNotifierProvider(id));
                     }
                   });
                 },
@@ -497,7 +497,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       await client.delete('/sphere/chat/$id');
-                      ref.invalidate(chatroomsJoinedProvider);
+                      ref.invalidate(chatRoomJoinedNotifierProvider);
                       if (context.mounted) {
                         context.pop();
                       }
@@ -530,7 +530,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       await client.delete('/sphere/chat/$id/members/me');
-                      ref.invalidate(chatroomsJoinedProvider);
+                      ref.invalidate(chatRoomJoinedNotifierProvider);
                       if (context.mounted) {
                         context.pop();
                       }
@@ -648,8 +648,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
     final memberState = ref.watch(chatMemberStateProvider(roomId));
     final memberNotifier = ref.read(chatMemberStateProvider(roomId).notifier);
 
-    final roomIdentity = ref.watch(chatroomIdentityProvider(roomId));
-    final chatRoom = ref.watch(chatroomProvider(roomId));
+    final roomIdentity = ref.watch(ChatRoomIdentityNotifierProvider(roomId));
+    final chatRoom = ref.watch(ChatRoomNotifierProvider(roomId));
 
     final isManagable =
         chatRoom.value?.accountId == roomIdentity.value?.accountId ||

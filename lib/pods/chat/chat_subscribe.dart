@@ -16,10 +16,9 @@ final currentSubscribedChatIdProvider = StateProvider<String?>((ref) => null);
 
 @riverpod
 class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
-  late final String _roomId;
-  late final SnChatRoom _chatRoom;
-  late final SnChatMember _chatIdentity;
-  late final MessagesNotifier _messagesNotifier;
+  late SnChatRoom _chatRoom;
+  late SnChatMember _chatIdentity;
+  late MessagesNotifier _messagesNotifier;
 
   final List<SnChatMember> _typingStatuses = [];
   Timer? _typingCleanupTimer;
@@ -29,10 +28,11 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
   @override
   List<SnChatMember> build(String roomId) {
-    _roomId = roomId;
     final ws = ref.watch(websocketProvider);
-    final chatRoomAsync = ref.watch(chatroomProvider(roomId));
-    final chatIdentityAsync = ref.watch(chatroomIdentityProvider(roomId));
+    final chatRoomAsync = ref.watch(ChatRoomNotifierProvider(roomId));
+    final chatIdentityAsync = ref.watch(
+      ChatRoomIdentityNotifierProvider(roomId),
+    );
     _messagesNotifier = ref.watch(messagesNotifierProvider(roomId).notifier);
 
     if (chatRoomAsync.isLoading || chatIdentityAsync.isLoading) {
@@ -199,7 +199,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       jsonEncode(
         WebSocketPacket(
           type: 'messages.read',
-          data: {'chat_room_id': _roomId},
+          data: {'chat_room_id': roomId},
           endpoint: 'sphere',
         ),
       ),
@@ -216,7 +216,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       jsonEncode(
         WebSocketPacket(
           type: 'messages.typing',
-          data: {'chat_room_id': _roomId},
+          data: {'chat_room_id': roomId},
           endpoint: 'sphere',
         ),
       ),

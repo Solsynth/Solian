@@ -6,26 +6,46 @@ part of 'chat.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatroomsJoinedHash() => r'50abce4f03a7a8509f16d5ad0b1dbf8e3aeb73b6';
+String _$chatroomInvitesHash() => r'5cd6391b09c5517ede19bacce43b45c8d71dd087';
 
-/// See also [chatroomsJoined].
-@ProviderFor(chatroomsJoined)
-final chatroomsJoinedProvider =
-    AutoDisposeFutureProvider<List<SnChatRoom>>.internal(
-      chatroomsJoined,
-      name: r'chatroomsJoinedProvider',
+/// See also [chatroomInvites].
+@ProviderFor(chatroomInvites)
+final chatroomInvitesProvider =
+    AutoDisposeFutureProvider<List<SnChatMember>>.internal(
+      chatroomInvites,
+      name: r'chatroomInvitesProvider',
       debugGetCreateSourceHash:
           const bool.fromEnvironment('dart.vm.product')
               ? null
-              : _$chatroomsJoinedHash,
+              : _$chatroomInvitesHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef ChatroomsJoinedRef = AutoDisposeFutureProviderRef<List<SnChatRoom>>;
-String _$chatroomHash() => r'2b17d94728026420d18d6c383d2400cf4a070913';
+typedef ChatroomInvitesRef = AutoDisposeFutureProviderRef<List<SnChatMember>>;
+String _$chatRoomJoinedNotifierHash() =>
+    r'c8092225ba0d9c08b2b5bca6f800f1877303b4ff';
+
+/// See also [ChatRoomJoinedNotifier].
+@ProviderFor(ChatRoomJoinedNotifier)
+final chatRoomJoinedNotifierProvider = AutoDisposeAsyncNotifierProvider<
+  ChatRoomJoinedNotifier,
+  List<SnChatRoom>
+>.internal(
+  ChatRoomJoinedNotifier.new,
+  name: r'chatRoomJoinedNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$chatRoomJoinedNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ChatRoomJoinedNotifier = AutoDisposeAsyncNotifier<List<SnChatRoom>>;
+String _$chatRoomNotifierHash() => r'978bd602cf5e93e60e3c7b9f5799d46a87495c79';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -48,141 +68,30 @@ class _SystemHash {
   }
 }
 
-/// See also [chatroom].
-@ProviderFor(chatroom)
-const chatroomProvider = ChatroomFamily();
+abstract class _$ChatRoomNotifier
+    extends BuildlessAutoDisposeAsyncNotifier<SnChatRoom?> {
+  late final String? identifier;
 
-/// See also [chatroom].
-class ChatroomFamily extends Family<AsyncValue<SnChatRoom?>> {
-  /// See also [chatroom].
-  const ChatroomFamily();
-
-  /// See also [chatroom].
-  ChatroomProvider call(String? identifier) {
-    return ChatroomProvider(identifier);
-  }
-
-  @override
-  ChatroomProvider getProviderOverride(covariant ChatroomProvider provider) {
-    return call(provider.identifier);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'chatroomProvider';
+  FutureOr<SnChatRoom?> build(String? identifier);
 }
 
-/// See also [chatroom].
-class ChatroomProvider extends AutoDisposeFutureProvider<SnChatRoom?> {
-  /// See also [chatroom].
-  ChatroomProvider(String? identifier)
-    : this._internal(
-        (ref) => chatroom(ref as ChatroomRef, identifier),
-        from: chatroomProvider,
-        name: r'chatroomProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$chatroomHash,
-        dependencies: ChatroomFamily._dependencies,
-        allTransitiveDependencies: ChatroomFamily._allTransitiveDependencies,
-        identifier: identifier,
-      );
+/// See also [ChatRoomNotifier].
+@ProviderFor(ChatRoomNotifier)
+const chatRoomNotifierProvider = ChatRoomNotifierFamily();
 
-  ChatroomProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.identifier,
-  }) : super.internal();
+/// See also [ChatRoomNotifier].
+class ChatRoomNotifierFamily extends Family<AsyncValue<SnChatRoom?>> {
+  /// See also [ChatRoomNotifier].
+  const ChatRoomNotifierFamily();
 
-  final String? identifier;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnChatRoom?> Function(ChatroomRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ChatroomProvider._internal(
-        (ref) => create(ref as ChatroomRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        identifier: identifier,
-      ),
-    );
+  /// See also [ChatRoomNotifier].
+  ChatRoomNotifierProvider call(String? identifier) {
+    return ChatRoomNotifierProvider(identifier);
   }
 
   @override
-  AutoDisposeFutureProviderElement<SnChatRoom?> createElement() {
-    return _ChatroomProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ChatroomProvider && other.identifier == identifier;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, identifier.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ChatroomRef on AutoDisposeFutureProviderRef<SnChatRoom?> {
-  /// The parameter `identifier` of this provider.
-  String? get identifier;
-}
-
-class _ChatroomProviderElement
-    extends AutoDisposeFutureProviderElement<SnChatRoom?>
-    with ChatroomRef {
-  _ChatroomProviderElement(super.provider);
-
-  @override
-  String? get identifier => (origin as ChatroomProvider).identifier;
-}
-
-String _$chatroomIdentityHash() => r'35e19a5a3e31752c79b97ba0358a7ec8fb8f6e99';
-
-/// See also [chatroomIdentity].
-@ProviderFor(chatroomIdentity)
-const chatroomIdentityProvider = ChatroomIdentityFamily();
-
-/// See also [chatroomIdentity].
-class ChatroomIdentityFamily extends Family<AsyncValue<SnChatMember?>> {
-  /// See also [chatroomIdentity].
-  const ChatroomIdentityFamily();
-
-  /// See also [chatroomIdentity].
-  ChatroomIdentityProvider call(String? identifier) {
-    return ChatroomIdentityProvider(identifier);
-  }
-
-  @override
-  ChatroomIdentityProvider getProviderOverride(
-    covariant ChatroomIdentityProvider provider,
+  ChatRoomNotifierProvider getProviderOverride(
+    covariant ChatRoomNotifierProvider provider,
   ) {
     return call(provider.identifier);
   }
@@ -199,29 +108,30 @@ class ChatroomIdentityFamily extends Family<AsyncValue<SnChatMember?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'chatroomIdentityProvider';
+  String? get name => r'chatRoomNotifierProvider';
 }
 
-/// See also [chatroomIdentity].
-class ChatroomIdentityProvider
-    extends AutoDisposeFutureProvider<SnChatMember?> {
-  /// See also [chatroomIdentity].
-  ChatroomIdentityProvider(String? identifier)
+/// See also [ChatRoomNotifier].
+class ChatRoomNotifierProvider
+    extends
+        AutoDisposeAsyncNotifierProviderImpl<ChatRoomNotifier, SnChatRoom?> {
+  /// See also [ChatRoomNotifier].
+  ChatRoomNotifierProvider(String? identifier)
     : this._internal(
-        (ref) => chatroomIdentity(ref as ChatroomIdentityRef, identifier),
-        from: chatroomIdentityProvider,
-        name: r'chatroomIdentityProvider',
+        () => ChatRoomNotifier()..identifier = identifier,
+        from: chatRoomNotifierProvider,
+        name: r'chatRoomNotifierProvider',
         debugGetCreateSourceHash:
             const bool.fromEnvironment('dart.vm.product')
                 ? null
-                : _$chatroomIdentityHash,
-        dependencies: ChatroomIdentityFamily._dependencies,
+                : _$chatRoomNotifierHash,
+        dependencies: ChatRoomNotifierFamily._dependencies,
         allTransitiveDependencies:
-            ChatroomIdentityFamily._allTransitiveDependencies,
+            ChatRoomNotifierFamily._allTransitiveDependencies,
         identifier: identifier,
       );
 
-  ChatroomIdentityProvider._internal(
+  ChatRoomNotifierProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -234,13 +144,16 @@ class ChatroomIdentityProvider
   final String? identifier;
 
   @override
-  Override overrideWith(
-    FutureOr<SnChatMember?> Function(ChatroomIdentityRef provider) create,
-  ) {
+  FutureOr<SnChatRoom?> runNotifierBuild(covariant ChatRoomNotifier notifier) {
+    return notifier.build(identifier);
+  }
+
+  @override
+  Override overrideWith(ChatRoomNotifier Function() create) {
     return ProviderOverride(
       origin: this,
-      override: ChatroomIdentityProvider._internal(
-        (ref) => create(ref as ChatroomIdentityRef),
+      override: ChatRoomNotifierProvider._internal(
+        () => create()..identifier = identifier,
         from: from,
         name: null,
         dependencies: null,
@@ -252,13 +165,14 @@ class ChatroomIdentityProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<SnChatMember?> createElement() {
-    return _ChatroomIdentityProviderElement(this);
+  AutoDisposeAsyncNotifierProviderElement<ChatRoomNotifier, SnChatRoom?>
+  createElement() {
+    return _ChatRoomNotifierProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is ChatroomIdentityProvider && other.identifier == identifier;
+    return other is ChatRoomNotifierProvider && other.identifier == identifier;
   }
 
   @override
@@ -272,38 +186,170 @@ class ChatroomIdentityProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin ChatroomIdentityRef on AutoDisposeFutureProviderRef<SnChatMember?> {
+mixin ChatRoomNotifierRef on AutoDisposeAsyncNotifierProviderRef<SnChatRoom?> {
   /// The parameter `identifier` of this provider.
   String? get identifier;
 }
 
-class _ChatroomIdentityProviderElement
-    extends AutoDisposeFutureProviderElement<SnChatMember?>
-    with ChatroomIdentityRef {
-  _ChatroomIdentityProviderElement(super.provider);
+class _ChatRoomNotifierProviderElement
+    extends
+        AutoDisposeAsyncNotifierProviderElement<ChatRoomNotifier, SnChatRoom?>
+    with ChatRoomNotifierRef {
+  _ChatRoomNotifierProviderElement(super.provider);
 
   @override
-  String? get identifier => (origin as ChatroomIdentityProvider).identifier;
+  String? get identifier => (origin as ChatRoomNotifierProvider).identifier;
 }
 
-String _$chatroomInvitesHash() => r'5cd6391b09c5517ede19bacce43b45c8d71dd087';
+String _$chatRoomIdentityNotifierHash() =>
+    r'27c17d55366d39be81d7209837e5c01f80a68a24';
 
-/// See also [chatroomInvites].
-@ProviderFor(chatroomInvites)
-final chatroomInvitesProvider =
-    AutoDisposeFutureProvider<List<SnChatMember>>.internal(
-      chatroomInvites,
-      name: r'chatroomInvitesProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$chatroomInvitesHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+abstract class _$ChatRoomIdentityNotifier
+    extends BuildlessAutoDisposeAsyncNotifier<SnChatMember?> {
+  late final String? identifier;
+
+  FutureOr<SnChatMember?> build(String? identifier);
+}
+
+/// See also [ChatRoomIdentityNotifier].
+@ProviderFor(ChatRoomIdentityNotifier)
+const chatRoomIdentityNotifierProvider = ChatRoomIdentityNotifierFamily();
+
+/// See also [ChatRoomIdentityNotifier].
+class ChatRoomIdentityNotifierFamily extends Family<AsyncValue<SnChatMember?>> {
+  /// See also [ChatRoomIdentityNotifier].
+  const ChatRoomIdentityNotifierFamily();
+
+  /// See also [ChatRoomIdentityNotifier].
+  ChatRoomIdentityNotifierProvider call(String? identifier) {
+    return ChatRoomIdentityNotifierProvider(identifier);
+  }
+
+  @override
+  ChatRoomIdentityNotifierProvider getProviderOverride(
+    covariant ChatRoomIdentityNotifierProvider provider,
+  ) {
+    return call(provider.identifier);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'chatRoomIdentityNotifierProvider';
+}
+
+/// See also [ChatRoomIdentityNotifier].
+class ChatRoomIdentityNotifierProvider
+    extends
+        AutoDisposeAsyncNotifierProviderImpl<
+          ChatRoomIdentityNotifier,
+          SnChatMember?
+        > {
+  /// See also [ChatRoomIdentityNotifier].
+  ChatRoomIdentityNotifierProvider(String? identifier)
+    : this._internal(
+        () => ChatRoomIdentityNotifier()..identifier = identifier,
+        from: chatRoomIdentityNotifierProvider,
+        name: r'chatRoomIdentityNotifierProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$chatRoomIdentityNotifierHash,
+        dependencies: ChatRoomIdentityNotifierFamily._dependencies,
+        allTransitiveDependencies:
+            ChatRoomIdentityNotifierFamily._allTransitiveDependencies,
+        identifier: identifier,
+      );
+
+  ChatRoomIdentityNotifierProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.identifier,
+  }) : super.internal();
+
+  final String? identifier;
+
+  @override
+  FutureOr<SnChatMember?> runNotifierBuild(
+    covariant ChatRoomIdentityNotifier notifier,
+  ) {
+    return notifier.build(identifier);
+  }
+
+  @override
+  Override overrideWith(ChatRoomIdentityNotifier Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: ChatRoomIdentityNotifierProvider._internal(
+        () => create()..identifier = identifier,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        identifier: identifier,
+      ),
     );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<
+    ChatRoomIdentityNotifier,
+    SnChatMember?
+  >
+  createElement() {
+    return _ChatRoomIdentityNotifierProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChatRoomIdentityNotifierProvider &&
+        other.identifier == identifier;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, identifier.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef ChatroomInvitesRef = AutoDisposeFutureProviderRef<List<SnChatMember>>;
+mixin ChatRoomIdentityNotifierRef
+    on AutoDisposeAsyncNotifierProviderRef<SnChatMember?> {
+  /// The parameter `identifier` of this provider.
+  String? get identifier;
+}
+
+class _ChatRoomIdentityNotifierProviderElement
+    extends
+        AutoDisposeAsyncNotifierProviderElement<
+          ChatRoomIdentityNotifier,
+          SnChatMember?
+        >
+    with ChatRoomIdentityNotifierRef {
+  _ChatRoomIdentityNotifierProviderElement(super.provider);
+
+  @override
+  String? get identifier =>
+      (origin as ChatRoomIdentityNotifierProvider).identifier;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
