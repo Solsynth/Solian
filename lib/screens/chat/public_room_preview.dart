@@ -3,7 +3,7 @@ import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/message.dart";
-import "package:island/screens/chat/chat.dart";
+import "package:island/pods/chat/chat_room.dart";
 import "package:island/widgets/content/cloud_files.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 import "package:easy_localization/easy_localization.dart";

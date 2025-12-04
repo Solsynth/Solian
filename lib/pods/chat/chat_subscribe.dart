@@ -3,10 +3,10 @@ import "dart:convert";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:island/models/chat.dart";
+import "package:island/pods/chat/chat_room.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/websocket.dart";
-import "package:island/screens/chat/chat.dart";
 import "package:island/widgets/chat/call_button.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 
