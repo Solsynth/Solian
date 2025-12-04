@@ -203,7 +203,7 @@ class PublicRoomPreview extends HookConsumerWidget {
                   showLoadingModal(context);
                   final apiClient = ref.read(apiClientProvider);
                   await apiClient.post('/sphere/chat/${room.id}/members/me');
-                  ref.invalidate(chatroomIdentityProvider(id));
+                  ref.invalidate(ChatRoomIdentityNotifierProvider(id));
                 } catch (err) {
                   showErrorAlert(err);
                 } finally {

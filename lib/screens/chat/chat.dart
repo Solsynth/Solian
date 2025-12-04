@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/account.dart';
+import 'package:island/database/drift_db.dart';
 import 'package:island/pods/database.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
@@ -184,87 +185,148 @@ class ChatRoomListTile extends HookConsumerWidget {
 }
 
 @riverpod
-Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
-  final db = ref.watch(databaseProvider);
+class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
+  @override
+  Future<List<SnChatRoom>> build() async {
+    final db = ref.watch(databaseProvider);
 
-  try {
+    try {
+      final localRoomsData = await db.select(db.chatRooms).get();
+      if (localRoomsData.isNotEmpty) {
+        final localRooms = await Future.wait(
+          localRoomsData.map((row) async {
+            final membersRows =
+                await (db.select(db.chatMembers)
+                  ..where((m) => m.chatRoomId.equals(row.id))).get();
+            final members =
+                membersRows.map((mRow) {
+                  final account = SnAccount.fromJson(mRow.account);
+                  return SnChatMember(
+                    id: mRow.id,
+                    chatRoomId: mRow.chatRoomId,
+                    accountId: mRow.accountId,
+                    account: account,
+                    nick: mRow.nick,
+                    notify: mRow.notify,
+                    joinedAt: mRow.joinedAt,
+                    breakUntil: mRow.breakUntil,
+                    timeoutUntil: mRow.timeoutUntil,
+                    status: null,
+                    createdAt: mRow.createdAt,
+                    updatedAt: mRow.updatedAt,
+                    deletedAt: mRow.deletedAt,
+                    chatRoom: null,
+                  );
+                }).toList();
+            return SnChatRoom(
+              id: row.id,
+              name: row.name,
+              description: row.description,
+              type: row.type,
+              isPublic: row.isPublic!,
+              isCommunity: row.isCommunity!,
+              picture:
+                  row.picture != null
+                      ? SnCloudFile.fromJson(row.picture!)
+                      : null,
+              background:
+                  row.background != null
+                      ? SnCloudFile.fromJson(row.background!)
+                      : null,
+              realmId: row.realmId,
+              accountId: row.accountId,
+              realm: null,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+              deletedAt: row.deletedAt,
+              members: members,
+            );
+          }),
+        );
+
+        // Background sync
+        Future(() async {
+          try {
+            final client = ref.read(apiClientProvider);
+            final resp = await client.get('/sphere/chat');
+            final remoteRooms =
+                resp.data
+                    .map((e) => SnChatRoom.fromJson(e))
+                    .cast<SnChatRoom>()
+                    .toList();
+            await db.saveChatRooms(remoteRooms, override: true);
+            // Update state with fresh data
+            state = AsyncData(await _buildRoomsFromDb(db));
+          } catch (_) {}
+        }).ignore();
+
+        return localRooms;
+      }
+    } catch (_) {}
+
+    // Fallback to API
+    final client = ref.watch(apiClientProvider);
+    final resp = await client.get('/sphere/chat');
+    final rooms =
+        resp.data
+            .map((e) => SnChatRoom.fromJson(e))
+            .cast<SnChatRoom>()
+            .toList();
+    await db.saveChatRooms(rooms, override: true);
+    return rooms;
+  }
+
+  Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
     final localRoomsData = await db.select(db.chatRooms).get();
-    if (localRoomsData.isNotEmpty) {
-      final localRooms = await Future.wait(
-        localRoomsData.map((row) async {
-          final membersRows =
-              await (db.select(db.chatMembers)
-                ..where((m) => m.chatRoomId.equals(row.id))).get();
-          final members =
-              membersRows.map((mRow) {
-                final account = SnAccount.fromJson(mRow.account);
-                return SnChatMember(
-                  id: mRow.id,
-                  chatRoomId: mRow.chatRoomId,
-                  accountId: mRow.accountId,
-                  account: account,
-                  nick: mRow.nick,
-                  notify: mRow.notify,
-                  joinedAt: mRow.joinedAt,
-                  breakUntil: mRow.breakUntil,
-                  timeoutUntil: mRow.timeoutUntil,
-                  status: null,
-                  createdAt: mRow.createdAt,
-                  updatedAt: mRow.updatedAt,
-                  deletedAt: mRow.deletedAt,
-                  chatRoom: null,
-                );
-              }).toList();
-          return SnChatRoom(
-            id: row.id,
-            name: row.name,
-            description: row.description,
-            type: row.type,
-            isPublic: row.isPublic!,
-            isCommunity: row.isCommunity!,
-            picture:
-                row.picture != null ? SnCloudFile.fromJson(row.picture!) : null,
-            background:
-                row.background != null
-                    ? SnCloudFile.fromJson(row.background!)
-                    : null,
-            realmId: row.realmId,
-            accountId: row.accountId,
-            realm: null,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-            deletedAt: row.deletedAt,
-            members: members,
-          );
-        }),
-      );
-
-      // Background sync
-      Future(() async {
-        try {
-          final client = ref.read(apiClientProvider);
-          final resp = await client.get('/sphere/chat');
-          final remoteRooms =
-              resp.data
-                  .map((e) => SnChatRoom.fromJson(e))
-                  .cast<SnChatRoom>()
-                  .toList();
-          await db.saveChatRooms(remoteRooms);
-          ref.invalidateSelf();
-        } catch (_) {}
-      }).ignore();
-
-      return localRooms;
-    }
-  } catch (_) {}
-
-  // Fallback to API
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/chat');
-  final rooms =
-      resp.data.map((e) => SnChatRoom.fromJson(e)).cast<SnChatRoom>().toList();
-  await db.saveChatRooms(rooms);
-  return rooms;
+    return Future.wait(
+      localRoomsData.map((row) async {
+        final membersRows =
+            await (db.select(db.chatMembers)
+              ..where((m) => m.chatRoomId.equals(row.id))).get();
+        final members =
+            membersRows.map((mRow) {
+              final account = SnAccount.fromJson(mRow.account);
+              return SnChatMember(
+                id: mRow.id,
+                chatRoomId: mRow.chatRoomId,
+                accountId: mRow.accountId,
+                account: account,
+                nick: mRow.nick,
+                notify: mRow.notify,
+                joinedAt: mRow.joinedAt,
+                breakUntil: mRow.breakUntil,
+                timeoutUntil: mRow.timeoutUntil,
+                status: null,
+                createdAt: mRow.createdAt,
+                updatedAt: mRow.updatedAt,
+                deletedAt: mRow.deletedAt,
+                chatRoom: null,
+              );
+            }).toList();
+        return SnChatRoom(
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          type: row.type,
+          isPublic: row.isPublic!,
+          isCommunity: row.isCommunity!,
+          picture:
+              row.picture != null ? SnCloudFile.fromJson(row.picture!) : null,
+          background:
+              row.background != null
+                  ? SnCloudFile.fromJson(row.background!)
+                  : null,
+          realmId: row.realmId,
+          accountId: row.accountId,
+          realm: null,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          deletedAt: row.deletedAt,
+          members: members,
+        );
+      }),
+    );
+  }
 }
 
 class ChatListBodyWidget extends HookConsumerWidget {
@@ -281,7 +343,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chats = ref.watch(chatroomsJoinedProvider);
+    final chats = ref.watch(chatRoomJoinedNotifierProvider);
 
     Widget bodyWidget = Column(
       children: [
@@ -304,7 +366,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 (items) => RefreshIndicator(
                   onRefresh:
                       () => Future.sync(() {
-                        ref.invalidate(chatroomsJoinedProvider);
+                        ref.invalidate(chatRoomJoinedNotifierProvider);
                       }),
                   child: SuperListView.builder(
                     padding: EdgeInsets.only(bottom: 96),
@@ -354,7 +416,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 (error, stack) => ResponseErrorWidget(
                   error: error,
                   onRetry: () {
-                    ref.invalidate(chatroomsJoinedProvider);
+                    ref.invalidate(chatRoomJoinedNotifierProvider);
                   },
                 ),
           ),
@@ -431,7 +493,7 @@ class ChatListScreen extends HookConsumerWidget {
 
       // Listen for chat rooms refresh events
       final subscription = eventBus.on<ChatRoomsRefreshEvent>().listen((event) {
-        ref.invalidate(chatroomsJoinedProvider);
+        ref.invalidate(chatRoomJoinedNotifierProvider);
       });
 
       return () {
@@ -600,32 +662,263 @@ class ChatListScreen extends HookConsumerWidget {
 }
 
 @riverpod
-Future<SnChatRoom?> chatroom(Ref ref, String? identifier) async {
-  if (identifier == null) return null;
-  try {
-    final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/sphere/chat/$identifier');
-    return SnChatRoom.fromJson(resp.data);
-  } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) {
-      return null; // Chat room not found
+class ChatRoomNotifier extends _$ChatRoomNotifier {
+  @override
+  Future<SnChatRoom?> build(String? identifier) async {
+    if (identifier == null) return null;
+    final db = ref.watch(databaseProvider);
+
+    try {
+      // Try to get from local database first
+      final localRoomData =
+          await (db.select(db.chatRooms)
+            ..where((r) => r.id.equals(identifier))).getSingleOrNull();
+
+      if (localRoomData != null) {
+        // Fetch members for this room
+        final membersRows =
+            await (db.select(db.chatMembers)
+              ..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
+        final members =
+            membersRows.map((mRow) {
+              final account = SnAccount.fromJson(mRow.account);
+              return SnChatMember(
+                id: mRow.id,
+                chatRoomId: mRow.chatRoomId,
+                accountId: mRow.accountId,
+                account: account,
+                nick: mRow.nick,
+                notify: mRow.notify,
+                joinedAt: mRow.joinedAt,
+                breakUntil: mRow.breakUntil,
+                timeoutUntil: mRow.timeoutUntil,
+                status: null,
+                createdAt: mRow.createdAt,
+                updatedAt: mRow.updatedAt,
+                deletedAt: mRow.deletedAt,
+                chatRoom: null,
+              );
+            }).toList();
+
+        final localRoom = SnChatRoom(
+          id: localRoomData.id,
+          name: localRoomData.name,
+          description: localRoomData.description,
+          type: localRoomData.type,
+          isPublic: localRoomData.isPublic!,
+          isCommunity: localRoomData.isCommunity!,
+          picture:
+              localRoomData.picture != null
+                  ? SnCloudFile.fromJson(localRoomData.picture!)
+                  : null,
+          background:
+              localRoomData.background != null
+                  ? SnCloudFile.fromJson(localRoomData.background!)
+                  : null,
+          realmId: localRoomData.realmId,
+          accountId: localRoomData.accountId,
+          realm: null,
+          createdAt: localRoomData.createdAt,
+          updatedAt: localRoomData.updatedAt,
+          deletedAt: localRoomData.deletedAt,
+          members: members,
+        );
+
+        // Background sync
+        Future(() async {
+          try {
+            final client = ref.read(apiClientProvider);
+            final resp = await client.get('/sphere/chat/$identifier');
+            final remoteRoom = SnChatRoom.fromJson(resp.data);
+            await db.saveChatRooms([remoteRoom]);
+            // Update state with fresh data
+            state = AsyncData(await _buildRoomFromDb(db, identifier));
+          } catch (_) {}
+        }).ignore();
+
+        return localRoom;
+      }
+    } catch (_) {}
+
+    // Fallback to API
+    try {
+      final client = ref.watch(apiClientProvider);
+      final resp = await client.get('/sphere/chat/$identifier');
+      final room = SnChatRoom.fromJson(resp.data);
+      await db.saveChatRooms([room]);
+      return room;
+    } catch (err) {
+      if (err is DioException && err.response?.statusCode == 404) {
+        return null; // Chat room not found
+      }
+      rethrow; // Rethrow other errors
     }
-    rethrow; // Rethrow other errors
+  }
+
+  Future<SnChatRoom?> _buildRoomFromDb(
+    AppDatabase db,
+    String identifier,
+  ) async {
+    final localRoomData =
+        await (db.select(db.chatRooms)
+          ..where((r) => r.id.equals(identifier))).getSingleOrNull();
+
+    if (localRoomData == null) return null;
+
+    final membersRows =
+        await (db.select(db.chatMembers)
+          ..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
+    final members =
+        membersRows.map((mRow) {
+          final account = SnAccount.fromJson(mRow.account);
+          return SnChatMember(
+            id: mRow.id,
+            chatRoomId: mRow.chatRoomId,
+            accountId: mRow.accountId,
+            account: account,
+            nick: mRow.nick,
+            notify: mRow.notify,
+            joinedAt: mRow.joinedAt,
+            breakUntil: mRow.breakUntil,
+            timeoutUntil: mRow.timeoutUntil,
+            status: null,
+            createdAt: mRow.createdAt,
+            updatedAt: mRow.updatedAt,
+            deletedAt: mRow.deletedAt,
+            chatRoom: null,
+          );
+        }).toList();
+
+    return SnChatRoom(
+      id: localRoomData.id,
+      name: localRoomData.name,
+      description: localRoomData.description,
+      type: localRoomData.type,
+      isPublic: localRoomData.isPublic!,
+      isCommunity: localRoomData.isCommunity!,
+      picture:
+          localRoomData.picture != null
+              ? SnCloudFile.fromJson(localRoomData.picture!)
+              : null,
+      background:
+          localRoomData.background != null
+              ? SnCloudFile.fromJson(localRoomData.background!)
+              : null,
+      realmId: localRoomData.realmId,
+      accountId: localRoomData.accountId,
+      realm: null,
+      createdAt: localRoomData.createdAt,
+      updatedAt: localRoomData.updatedAt,
+      deletedAt: localRoomData.deletedAt,
+      members: members,
+    );
   }
 }
 
 @riverpod
-Future<SnChatMember?> chatroomIdentity(Ref ref, String? identifier) async {
-  if (identifier == null) return null;
-  try {
-    final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/sphere/chat/$identifier/members/me');
-    return SnChatMember.fromJson(resp.data);
-  } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) {
-      return null; // Chat member not found
+class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
+  @override
+  Future<SnChatMember?> build(String? identifier) async {
+    if (identifier == null) return null;
+    final db = ref.watch(databaseProvider);
+    final userInfo = ref.watch(userInfoProvider);
+
+    try {
+      // Try to get from local database first
+      if (userInfo.value != null) {
+        final localMemberData =
+            await (db.select(db.chatMembers)
+                  ..where((m) => m.chatRoomId.equals(identifier))
+                  ..where((m) => m.accountId.equals(userInfo.value!.id)))
+                .getSingleOrNull();
+
+        if (localMemberData != null) {
+          final account = SnAccount.fromJson(localMemberData.account);
+          final localMember = SnChatMember(
+            id: localMemberData.id,
+            chatRoomId: localMemberData.chatRoomId,
+            accountId: localMemberData.accountId,
+            account: account,
+            nick: localMemberData.nick,
+            notify: localMemberData.notify,
+            joinedAt: localMemberData.joinedAt,
+            breakUntil: localMemberData.breakUntil,
+            timeoutUntil: localMemberData.timeoutUntil,
+            status: null,
+            createdAt: localMemberData.createdAt,
+            updatedAt: localMemberData.updatedAt,
+            deletedAt: localMemberData.deletedAt,
+            chatRoom: null,
+          );
+
+          // Background sync
+          Future(() async {
+            try {
+              final client = ref.read(apiClientProvider);
+              final resp = await client.get(
+                '/sphere/chat/$identifier/members/me',
+              );
+              final remoteMember = SnChatMember.fromJson(resp.data);
+              await db.saveMember(remoteMember);
+              // Update state with fresh data
+              if (userInfo.value != null) {
+                state = AsyncData(
+                  await _buildMemberFromDb(db, identifier, userInfo.value!.id),
+                );
+              }
+            } catch (_) {}
+          }).ignore();
+
+          return localMember;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback to API
+    try {
+      final client = ref.watch(apiClientProvider);
+      final resp = await client.get('/sphere/chat/$identifier/members/me');
+      final member = SnChatMember.fromJson(resp.data);
+      await db.saveMember(member);
+      return member;
+    } catch (err) {
+      if (err is DioException && err.response?.statusCode == 404) {
+        return null; // Chat member not found
+      }
+      rethrow; // Rethrow other errors
     }
-    rethrow; // Rethrow other errors
+  }
+
+  Future<SnChatMember?> _buildMemberFromDb(
+    AppDatabase db,
+    String identifier,
+    String accountId,
+  ) async {
+    final localMemberData =
+        await (db.select(db.chatMembers)
+              ..where((m) => m.chatRoomId.equals(identifier))
+              ..where((m) => m.accountId.equals(accountId)))
+            .getSingleOrNull();
+
+    if (localMemberData == null) return null;
+
+    final account = SnAccount.fromJson(localMemberData.account);
+    return SnChatMember(
+      id: localMemberData.id,
+      chatRoomId: localMemberData.chatRoomId,
+      accountId: localMemberData.accountId,
+      account: account,
+      nick: localMemberData.nick,
+      notify: localMemberData.notify,
+      joinedAt: localMemberData.joinedAt,
+      breakUntil: localMemberData.breakUntil,
+      timeoutUntil: localMemberData.timeoutUntil,
+      status: null,
+      createdAt: localMemberData.createdAt,
+      updatedAt: localMemberData.updatedAt,
+      deletedAt: localMemberData.deletedAt,
+      chatRoom: null,
+    );
   }
 }
 
@@ -651,7 +944,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         await client.post('/sphere/chat/invites/${invite.chatRoom!.id}/accept');
         ref.invalidate(chatroomInvitesProvider);
-        ref.invalidate(chatroomsJoinedProvider);
+        ref.invalidate(chatRoomJoinedNotifierProvider);
       } catch (err) {
         showErrorAlert(err);
       }

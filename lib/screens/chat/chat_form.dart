@@ -47,7 +47,7 @@ class EditChatScreen extends HookConsumerWidget {
     final isPublic = useState(true);
     final isCommunity = useState(false);
 
-    final chat = ref.watch(chatroomProvider(id));
+    final chat = ref.watch(ChatRoomNotifierProvider(id));
 
     final joinedRealms = ref.watch(realmsJoinedProvider);
     final currentRealm = useState<SnRealm?>(null);
