@@ -9,7 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
-import 'package:island/pods/chat/chat_rooms.dart';
+import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/chat/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/config.dart';

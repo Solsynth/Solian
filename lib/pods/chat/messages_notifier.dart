@@ -11,6 +11,7 @@ import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/models/poll.dart";
 import "package:island/models/wallet.dart";
+import "package:island/pods/chat/chat_room.dart";
 import "package:island/pods/database.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/network.dart";
@@ -19,8 +20,6 @@ import "package:island/talker.dart";
 import "package:island/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
-import "package:island/screens/chat/chat.dart";
-import "package:island/pods/chat/chat_rooms.dart";
 import "package:island/screens/account/profile.dart";
 
 part 'messages_notifier.g.dart';
