@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/file.dart';
 import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/cloud_file_picker.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -207,6 +210,9 @@ class StickerPackForm extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>(), []);
     final initialPack = ref.watch(stickerPackProvider(packId));
 
+    final icon = useState<String?>(
+      packId == null ? '' : initialPack.value?.icon?.id,
+    );
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final prefixController = useTextEditingController();
@@ -229,11 +235,12 @@ class StickerPackForm extends HookConsumerWidget {
         submitting.value = true;
         final apiClient = ref.watch(apiClientProvider);
         final resp = await apiClient.request(
-          '/sphere/stickers',
+          packId == null ? '/sphere/stickers' : '/sphere/stickers/$packId',
           data: {
             'name': nameController.text,
             'description': descriptionController.text,
             'prefix': prefixController.text,
+            'icon_id': icon.value,
           },
           queryParameters: {'pub': pubName},
           options: Options(method: packId == null ? 'POST' : 'PATCH'),
@@ -255,6 +262,44 @@ class StickerPackForm extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 16,
             children: [
+              Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    height: 80,
+                    width: 80,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                        ),
+                        child:
+                            (icon.value?.isEmpty ?? true)
+                                ? const SizedBox.shrink()
+                                : CloudImageWidget(fileId: icon.value!),
+                      ),
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder:
+                            (context) => CloudFilePicker(
+                              allowedTypes: {UniversalFileType.image},
+                            ),
+                      ).then((value) {
+                        if (value == null) return;
+                        icon.value = value[0].id;
+                      });
+                    },
+                    icon: const Icon(Symbols.cloud_upload),
+                  ),
+                ],
+              ),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(

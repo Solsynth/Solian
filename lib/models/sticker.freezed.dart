@@ -335,7 +335,7 @@ $SnStickerPackCopyWith<$Res>? get pack {
 /// @nodoc
 mixin _$SnStickerPack {
 
- String get id; String get name; String get description; String get prefix; String get publisherId; SnPublisher? get publisher; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnSticker> get stickers;
+ String get id; String get name; String get description; String get prefix; String get publisherId; SnCloudFile? get icon; SnPublisher? get publisher; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnSticker> get stickers;
 /// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -348,16 +348,16 @@ $SnStickerPackCopyWith<SnStickerPack> get copyWith => _$SnStickerPackCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnStickerPack&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.stickers, stickers));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnStickerPack&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.stickers, stickers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,prefix,publisherId,publisher,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(stickers));
+int get hashCode => Object.hash(runtimeType,id,name,description,prefix,publisherId,icon,publisher,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(stickers));
 
 @override
 String toString() {
-  return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stickers: $stickers)';
+  return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, icon: $icon, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stickers: $stickers)';
 }
 
 
@@ -368,11 +368,11 @@ abstract mixin class $SnStickerPackCopyWith<$Res>  {
   factory $SnStickerPackCopyWith(SnStickerPack value, $Res Function(SnStickerPack) _then) = _$SnStickerPackCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String prefix, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
+ String id, String name, String description, String prefix, String publisherId, SnCloudFile? icon, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
 });
 
 
-$SnPublisherCopyWith<$Res>? get publisher;
+$SnCloudFileCopyWith<$Res>? get icon;$SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -385,14 +385,15 @@ class _$SnStickerPackCopyWithImpl<$Res>
 
 /// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? prefix = null,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? stickers = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? prefix = null,Object? publisherId = null,Object? icon = freezed,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? stickers = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -401,6 +402,18 @@ as List<SnSticker>,
   ));
 }
 /// Create a copy of SnStickerPack
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -491,10 +504,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnStickerPack() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
+return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
   return orElse();
 
 }
@@ -512,10 +525,10 @@ return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publish
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)  $default,) {final _that = this;
 switch (_that) {
 case _SnStickerPack():
-return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);}
+return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -529,10 +542,10 @@ return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publish
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,) {final _that = this;
 switch (_that) {
 case _SnStickerPack() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
+return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
   return null;
 
 }
@@ -544,7 +557,7 @@ return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publish
 @JsonSerializable()
 
 class _SnStickerPack implements SnStickerPack {
-  const _SnStickerPack({required this.id, required this.name, required this.description, required this.prefix, required this.publisherId, required this.publisher, required this.createdAt, required this.updatedAt, required this.deletedAt, final  List<SnSticker> stickers = const []}): _stickers = stickers;
+  const _SnStickerPack({required this.id, required this.name, required this.description, required this.prefix, required this.publisherId, required this.icon, required this.publisher, required this.createdAt, required this.updatedAt, required this.deletedAt, final  List<SnSticker> stickers = const []}): _stickers = stickers;
   factory _SnStickerPack.fromJson(Map<String, dynamic> json) => _$SnStickerPackFromJson(json);
 
 @override final  String id;
@@ -552,6 +565,7 @@ class _SnStickerPack implements SnStickerPack {
 @override final  String description;
 @override final  String prefix;
 @override final  String publisherId;
+@override final  SnCloudFile? icon;
 @override final  SnPublisher? publisher;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -577,16 +591,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnStickerPack&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._stickers, _stickers));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnStickerPack&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._stickers, _stickers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,prefix,publisherId,publisher,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_stickers));
+int get hashCode => Object.hash(runtimeType,id,name,description,prefix,publisherId,icon,publisher,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_stickers));
 
 @override
 String toString() {
-  return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stickers: $stickers)';
+  return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, icon: $icon, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stickers: $stickers)';
 }
 
 
@@ -597,11 +611,11 @@ abstract mixin class _$SnStickerPackCopyWith<$Res> implements $SnStickerPackCopy
   factory _$SnStickerPackCopyWith(_SnStickerPack value, $Res Function(_SnStickerPack) _then) = __$SnStickerPackCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String prefix, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
+ String id, String name, String description, String prefix, String publisherId, SnCloudFile? icon, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
 });
 
 
-@override $SnPublisherCopyWith<$Res>? get publisher;
+@override $SnCloudFileCopyWith<$Res>? get icon;@override $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -614,14 +628,15 @@ class __$SnStickerPackCopyWithImpl<$Res>
 
 /// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? prefix = null,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? stickers = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? prefix = null,Object? publisherId = null,Object? icon = freezed,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? stickers = null,}) {
   return _then(_SnStickerPack(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -631,6 +646,18 @@ as List<SnSticker>,
 }
 
 /// Create a copy of SnStickerPack
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
