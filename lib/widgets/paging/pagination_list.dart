@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
+import 'package:island/widgets/response.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class PaginationList<T> extends HookConsumerWidget {
@@ -34,7 +35,7 @@ class PaginationList<T> extends HookConsumerWidget {
         if (scrollInfo is ScrollEndNotification &&
             scrollInfo.metrics.axisDirection == AxisDirection.down &&
             scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent) {
-          if (!noti.fetchedAll) {
+          if (!noti.fetchedAll && !data.isLoading && !data.hasError) {
             noti.fetchFurther();
           }
         }
@@ -54,24 +55,42 @@ class PaginationWidget<T> extends HookConsumerWidget {
   final Refreshable<PaginationController<T>> notifier;
   final Widget Function(List<T>) contentBuilder;
   final bool isRefreshable;
+  final bool isSliver;
+  final bool showDefaultWidgets;
   const PaginationWidget({
     super.key,
     required this.provider,
     required this.notifier,
     required this.contentBuilder,
     this.isRefreshable = true,
+    this.isSliver = false,
+    this.showDefaultWidgets = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
+
+    if (data.isLoading) {
+      final content = ResponseLoadingWidget();
+      return isSliver ? SliverFillRemaining(child: content) : content;
+    }
+
+    if (data.hasError) {
+      final content = ResponseErrorWidget(
+        error: data.error,
+        onRetry: noti.refresh,
+      );
+      return isSliver ? SliverFillRemaining(child: content) : content;
+    }
+
     final content = NotificationListener(
       onNotification: (ScrollNotification scrollInfo) {
         if (scrollInfo is ScrollEndNotification &&
             scrollInfo.metrics.axisDirection == AxisDirection.down &&
             scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent) {
-          if (!noti.fetchedAll) {
+          if (!noti.fetchedAll && !data.isLoading && !data.hasError) {
             noti.fetchFurther();
           }
         }

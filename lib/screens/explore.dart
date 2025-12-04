@@ -72,8 +72,8 @@ class ExploreScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useTabController(initialLength: 3);
     final currentFilter = useState<String?>(null);
+    final notifier = ref.watch(activityListNotifierProvider.notifier);
 
     useEffect(() {
       // Set FAB type to chat
@@ -91,33 +91,10 @@ class ExploreScreen extends HookConsumerWidget {
       };
     }, []);
 
-    useEffect(() {
-      void listener() {
-        switch (tabController.index) {
-          case 0:
-            currentFilter.value = null;
-            break;
-          case 1:
-            currentFilter.value = 'subscriptions';
-            break;
-          case 2:
-            currentFilter.value = 'friends';
-            break;
-        }
-      }
-
-      tabController.addListener(listener);
-      return () => tabController.removeListener(listener);
-    }, [tabController]);
-
-    final notifier = ref.watch(activityListNotifierProvider.notifier);
-
-    useEffect(() {
-      Future(() {
-        notifier.applyFilter(currentFilter.value);
-      });
-      return null;
-    }, [currentFilter.value]);
+    void handleFilterChange(String? filter) {
+      currentFilter.value = filter;
+      notifier.applyFilter(filter);
+    }
 
     // Listen for post creation events to refresh activities
     useEffect(() {
@@ -149,35 +126,42 @@ class ExploreScreen extends HookConsumerWidget {
       margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       child: Row(
         children: [
-          Expanded(
-            child: TabBar(
-              controller: tabController,
-              tabAlignment: TabAlignment.start,
-              isScrollable: true,
-              dividerColor: Colors.transparent,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-              tabs: [
-                Tab(
-                  icon: Tooltip(
-                    message: 'explore'.tr(),
-                    child: Icon(Symbols.explore),
-                  ),
-                ),
-                Tab(
-                  icon: Tooltip(
-                    message: 'exploreFilterSubscriptions'.tr(),
-                    child: Icon(Symbols.subscriptions),
-                  ),
-                ),
-                Tab(
-                  icon: Tooltip(
-                    message: 'exploreFilterFriends'.tr(),
-                    child: Icon(Symbols.people),
-                  ),
-                ),
-              ],
-            ),
+          Row(
+            spacing: 4,
+            children: [
+              IconButton(
+                onPressed: () => handleFilterChange(null),
+                icon: Icon(Symbols.explore),
+                tooltip: 'explore'.tr(),
+                isSelected: currentFilter.value == null,
+                color:
+                    currentFilter.value == null
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+              ),
+              IconButton(
+                onPressed: () => handleFilterChange('subscriptions'),
+                icon: Icon(Symbols.subscriptions),
+                tooltip: 'exploreFilterSubscriptions'.tr(),
+                isSelected: currentFilter.value == 'subscriptions',
+                color:
+                    currentFilter.value == 'subscriptions'
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+              ),
+              IconButton(
+                onPressed: () => handleFilterChange('friends'),
+                icon: Icon(Symbols.people),
+                tooltip: 'exploreFilterFriends'.tr(),
+                isSelected: currentFilter.value == 'friends',
+                color:
+                    currentFilter.value == 'friends'
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+              ),
+            ],
           ),
+          const Spacer(),
           IconButton(
             onPressed: () {
               context.pushNamed('articles');
@@ -241,10 +225,13 @@ class ExploreScreen extends HookConsumerWidget {
             tooltip: 'search'.tr(),
           ),
         ],
-      ).padding(horizontal: 8),
+      ).padding(horizontal: 8, vertical: 4),
     );
 
-    final appBar = isWide ? null : _buildAppBar(tabController, context);
+    final appBar =
+        isWide
+            ? null
+            : _buildAppBar(currentFilter.value, handleFilterChange, context);
 
     final dragging = useState(false);
 
@@ -324,6 +311,7 @@ class ExploreScreen extends HookConsumerWidget {
       notifier: activityListNotifierProvider.notifier,
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
+      isSliver: true,
       contentBuilder: (data) => _ActivityListView(data: data, isWide: isWide),
     );
   }
@@ -433,7 +421,8 @@ class ExploreScreen extends HookConsumerWidget {
   }
 
   PreferredSizeWidget _buildAppBar(
-    TabController tabController,
+    String? currentFilter,
+    void Function(String?) handleFilterChange,
     BuildContext context,
   ) {
     final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
@@ -449,38 +438,25 @@ class ExploreScreen extends HookConsumerWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: TabBar(
-                controller: tabController,
-                tabAlignment: TabAlignment.start,
-                isScrollable: true,
-                dividerColor: Colors.transparent,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                tabs: [
-                  Tab(
-                    icon: Tooltip(
-                      message: 'explore'.tr(),
-                      child: Icon(Symbols.explore, color: foregroundColor),
-                    ),
-                  ),
-                  Tab(
-                    icon: Tooltip(
-                      message: 'exploreFilterSubscriptions'.tr(),
-                      child: Icon(
-                        Symbols.subscriptions,
-                        color: foregroundColor,
-                      ),
-                    ),
-                  ),
-                  Tab(
-                    icon: Tooltip(
-                      message: 'exploreFilterFriends'.tr(),
-                      child: Icon(Symbols.people, color: foregroundColor),
-                    ),
-                  ),
-                ],
-              ),
+            IconButton(
+              onPressed: () => handleFilterChange(null),
+              icon: Icon(Symbols.explore, color: foregroundColor),
+              tooltip: 'explore'.tr(),
+              isSelected: currentFilter == null,
             ),
+            IconButton(
+              onPressed: () => handleFilterChange('subscriptions'),
+              icon: Icon(Symbols.subscriptions, color: foregroundColor),
+              tooltip: 'exploreFilterSubscriptions'.tr(),
+              isSelected: currentFilter == 'subscriptions',
+            ),
+            IconButton(
+              onPressed: () => handleFilterChange('friends'),
+              icon: Icon(Symbols.people, color: foregroundColor),
+              tooltip: 'exploreFilterFriends'.tr(),
+              isSelected: currentFilter == 'friends',
+            ),
+            const Spacer(),
             IconButton(
               onPressed: () {
                 context.pushNamed('articles');

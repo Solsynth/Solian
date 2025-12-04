@@ -45,11 +45,12 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
       return await fetch();
     });
     state = newState;
+    fetchedCount = newState.value?.length ?? 0;
   }
 
   @override
   Future<void> fetchFurther() async {
-    if (!fetchedAll) return;
+    if (fetchedAll) return;
 
     state = AsyncLoading<List<T>>();
 
@@ -67,6 +68,7 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
     implements PaginationFiltered<F> {
   @override
   Future<void> applyFilter(F filter) async {
+    if (currentFilter == filter) return;
     // Reset the data
     totalCount = null;
     fetchedCount = 0;
