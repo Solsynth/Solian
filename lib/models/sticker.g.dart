@@ -42,6 +42,10 @@ _SnStickerPack _$SnStickerPackFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       prefix: json['prefix'] as String,
       publisherId: json['publisher_id'] as String,
+      icon:
+          json['icon'] == null
+              ? null
+              : SnCloudFile.fromJson(json['icon'] as Map<String, dynamic>),
       publisher:
           json['publisher'] == null
               ? null
@@ -66,6 +70,7 @@ Map<String, dynamic> _$SnStickerPackToJson(_SnStickerPack instance) =>
       'description': instance.description,
       'prefix': instance.prefix,
       'publisher_id': instance.publisherId,
+      'icon': instance.icon?.toJson(),
       'publisher': instance.publisher?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),

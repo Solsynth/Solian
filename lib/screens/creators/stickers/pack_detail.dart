@@ -320,7 +320,6 @@ class StickerForm extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>(), []);
 
     final image = useState<String?>(id == null ? '' : sticker.value?.image.id);
-    final imageController = useTextEditingController(text: image.value);
     final slugController = useTextEditingController(
       text: id == null ? '' : sticker.value?.slug,
     );
@@ -328,7 +327,6 @@ class StickerForm extends HookConsumerWidget {
     useEffect(() {
       if (sticker.value != null) {
         image.value = sticker.value!.image.id;
-        imageController.text = sticker.value!.image.id;
         slugController.text = sticker.value!.slug;
       }
       return null;
@@ -344,7 +342,7 @@ class StickerForm extends HookConsumerWidget {
           id == null
               ? '/sphere/stickers/$packId/content'
               : '/sphere/stickers/$packId/content/$id',
-          data: {'slug': slugController.text, 'image_id': imageController.text},
+          data: {'slug': slugController.text, 'image_id': image.value},
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
@@ -392,7 +390,6 @@ class StickerForm extends HookConsumerWidget {
                 ).then((value) {
                   if (value == null) return;
                   image.value = value[0].id;
-                  imageController.text = image.value!;
                 });
               },
               icon: const Icon(Symbols.cloud_upload),

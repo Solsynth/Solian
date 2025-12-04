@@ -30,6 +30,7 @@ sealed class SnStickerPack with _$SnStickerPack {
     required String description,
     required String prefix,
     required String publisherId,
+    required SnCloudFile? icon,
     required SnPublisher? publisher,
     required DateTime createdAt,
     required DateTime updatedAt,
