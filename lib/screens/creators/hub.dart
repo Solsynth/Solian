@@ -10,6 +10,7 @@ import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/heatmap.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/utils/text.dart';
@@ -18,11 +19,11 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/response.dart';
 import 'package:island/widgets/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'hub.g.dart';
@@ -77,38 +78,31 @@ Future<List<SnPublisherMember>> publisherInvites(Ref ref) async {
       .toList();
 }
 
-@riverpod
-class PublisherMemberListNotifier extends _$PublisherMemberListNotifier
-    with CursorPagingNotifierMixin<SnPublisherMember> {
-  static const int _pageSize = 20;
+final publisherMemberListNotifierProvider = AsyncNotifierProvider.family
+    .autoDispose(PublisherMemberListNotifier.new);
+
+class PublisherMemberListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPublisherMember>, String>
+    with FamilyAsyncPaginationController<SnPublisherMember, String> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPublisherMember>> build(String uname) async {
-    return fetch();
-  }
-
-  @override
-  Future<CursorPagingData<SnPublisherMember>> fetch({String? cursor}) async {
+  Future<List<SnPublisherMember>> fetch() async {
     final apiClient = ref.read(apiClientProvider);
-    final offset = cursor != null ? int.parse(cursor) : 0;
 
     final response = await apiClient.get(
-      '/sphere/publishers/$uname/members',
-      queryParameters: {'offset': offset, 'take': _pageSize},
+      '/sphere/publishers/$arg/members',
+      queryParameters: {'offset': fetchedCount.toString(), 'take': pageSize},
     );
 
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final members = data.map((e) => SnPublisherMember.fromJson(e)).toList();
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final members =
+        response.data
+            .map((e) => SnPublisherMember.fromJson(e))
+            .cast<SnPublisherMember>()
+            .toList();
 
-    final hasMore = offset + members.length < total;
-    final nextCursor = hasMore ? (offset + members.length).toString() : null;
-
-    return CursorPagingData(
-      items: members,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return members;
   }
 }
 
@@ -902,100 +896,87 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: PagingHelperView(
+            child: PaginationList(
               provider: memberListProvider,
-              futureRefreshable: memberListProvider.future,
-              notifierRefreshable: memberListProvider.notifier,
-              contentBuilder: (data, widgetCount, endItemView) {
-                return ListView.builder(
-                  itemCount: widgetCount,
-                  itemBuilder: (context, index) {
-                    if (index == data.items.length) {
-                      return endItemView;
-                    }
-
-                    final member = data.items[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: ProfilePictureWidget(
-                        fileId: member.account!.profile.picture?.id,
-                      ),
-                      title: Row(
-                        spacing: 6,
-                        children: [
-                          Flexible(child: Text(member.account!.nick)),
-                          if (member.joinedAt == null)
-                            const Icon(Symbols.pending_actions, size: 20),
-                        ],
-                      ),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            member.role >= 100
-                                ? 'permissionOwner'
-                                : member.role >= 50
-                                ? 'permissionModerator'
-                                : 'permissionMember',
-                          ).tr(),
-                          Text('·').bold().padding(horizontal: 6),
-                          Expanded(child: Text("@${member.account!.name}")),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if ((publisherIdentity.value?.role ?? 0) >= 50)
-                            IconButton(
-                              icon: const Icon(Symbols.edit),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder:
-                                      (context) => _PublisherMemberRoleSheet(
-                                        publisherUname: publisherUname,
-                                        member: member,
-                                      ),
-                                ).then((value) {
-                                  if (value != null) {
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  }
-                                });
-                              },
-                            ),
-                          if ((publisherIdentity.value?.role ?? 0) >= 50)
-                            IconButton(
-                              icon: const Icon(Symbols.delete),
-                              onPressed: () {
-                                showConfirmAlert(
-                                  'removePublisherMemberHint'.tr(),
-                                  'removePublisherMember'.tr(),
-                                ).then((confirm) async {
-                                  if (confirm != true) return;
-                                  try {
-                                    final apiClient = ref.watch(
-                                      apiClientProvider,
-                                    );
-                                    await apiClient.delete(
-                                      '/sphere/publishers/$publisherUname/members/${member.accountId}',
-                                    );
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  } catch (err) {
-                                    showErrorAlert(err);
-                                  }
-                                });
-                              },
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+              notifier: memberListProvider.notifier,
+              itemBuilder: (context, index, member) {
+                return ListTile(
+                  contentPadding: EdgeInsets.only(left: 16, right: 12),
+                  leading: ProfilePictureWidget(
+                    fileId: member.account!.profile.picture?.id,
+                  ),
+                  title: Row(
+                    spacing: 6,
+                    children: [
+                      Flexible(child: Text(member.account!.nick)),
+                      if (member.joinedAt == null)
+                        const Icon(Symbols.pending_actions, size: 20),
+                    ],
+                  ),
+                  subtitle: Row(
+                    children: [
+                      Text(
+                        member.role >= 100
+                            ? 'permissionOwner'
+                            : member.role >= 50
+                            ? 'permissionModerator'
+                            : 'permissionMember',
+                      ).tr(),
+                      Text('·').bold().padding(horizontal: 6),
+                      Expanded(child: Text("@${member.account!.name}")),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if ((publisherIdentity.value?.role ?? 0) >= 50)
+                        IconButton(
+                          icon: const Icon(Symbols.edit),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              context: context,
+                              builder:
+                                  (context) => _PublisherMemberRoleSheet(
+                                    publisherUname: publisherUname,
+                                    member: member,
+                                  ),
+                            ).then((value) {
+                              if (value != null) {
+                                // Refresh both providers
+                                memberNotifier.reset();
+                                memberNotifier.loadMore();
+                                ref.invalidate(memberListProvider);
+                              }
+                            });
+                          },
+                        ),
+                      if ((publisherIdentity.value?.role ?? 0) >= 50)
+                        IconButton(
+                          icon: const Icon(Symbols.delete),
+                          onPressed: () {
+                            showConfirmAlert(
+                              'removePublisherMemberHint'.tr(),
+                              'removePublisherMember'.tr(),
+                            ).then((confirm) async {
+                              if (confirm != true) return;
+                              try {
+                                final apiClient = ref.watch(apiClientProvider);
+                                await apiClient.delete(
+                                  '/sphere/publishers/$publisherUname/members/${member.accountId}',
+                                );
+                                // Refresh both providers
+                                memberNotifier.reset();
+                                memberNotifier.loadMore();
+                                ref.invalidate(memberListProvider);
+                              } catch (err) {
+                                showErrorAlert(err);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  ),
                 );
               },
             ),

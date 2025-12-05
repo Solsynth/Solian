@@ -19,7 +19,8 @@ import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
@@ -990,70 +991,87 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
   }
 }
 
-@riverpod
-class TransactionListNotifier extends _$TransactionListNotifier
-    with CursorPagingNotifierMixin<SnTransaction> {
-  static const int _pageSize = 20;
+final transactionListNotifierProvider = AsyncNotifierProvider(
+  TransactionListNotifier.new,
+);
+
+class TransactionListNotifier extends AsyncNotifier<List<SnTransaction>>
+    with AsyncPaginationController<SnTransaction> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnTransaction>> build() => fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<SnTransaction>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnTransaction>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
+    final offset = fetchedCount;
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': offset, 'take': pageSize};
 
     final response = await client.get(
       '/pass/wallets/transactions',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
     final transactions =
         data.map((json) => SnTransaction.fromJson(json)).toList();
 
-    final hasMore = offset + transactions.length < total;
-    final nextCursor =
-        hasMore ? (offset + transactions.length).toString() : null;
-
-    return CursorPagingData(
-      items: transactions,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return transactions;
   }
 }
 
-@riverpod
-Future<List<SnWalletFund>> walletFunds(
-  Ref ref, {
-  int offset = 0,
-  int take = 20,
-}) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get(
-    '/pass/wallets/funds?offset=$offset&take=$take',
-  );
-  return (resp.data as List).map((e) => SnWalletFund.fromJson(e)).toList();
+final walletFundsNotifierProvider = AsyncNotifierProvider(
+  WalletFundsNotifier.new,
+);
+
+class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
+    with AsyncPaginationController<SnWalletFund> {
+  static const int pageSize = 20;
+
+  @override
+  Future<List<SnWalletFund>> fetch() async {
+    final client = ref.read(apiClientProvider);
+    final offset = fetchedCount;
+
+    final response = await client.get(
+      '/pass/wallets/funds?offset=$offset&take=$pageSize',
+    );
+    // Assuming total count header is present or we just check if list is empty
+    final list =
+        (response.data as List).map((e) => SnWalletFund.fromJson(e)).toList();
+    if (list.length < pageSize) {
+      totalCount = fetchedCount + list.length;
+    }
+    return list;
+  }
 }
 
-@riverpod
-Future<List<SnWalletFundRecipient>> walletFundRecipients(
-  Ref ref, {
-  int offset = 0,
-  int take = 20,
-}) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get(
-    '/pass/wallets/funds/recipients?offset=$offset&take=$take',
-  );
-  return (resp.data as List)
-      .map((e) => SnWalletFundRecipient.fromJson(e))
-      .toList();
+final walletFundRecipientsNotifierProvider = AsyncNotifierProvider(
+  WalletFundRecipientsNotifier.new,
+);
+
+class WalletFundRecipientsNotifier
+    extends AsyncNotifier<List<SnWalletFundRecipient>>
+    with AsyncPaginationController<SnWalletFundRecipient> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<List<SnWalletFundRecipient>> fetch() async {
+    final client = ref.read(apiClientProvider);
+    final offset = fetchedCount;
+
+    final response = await client.get(
+      '/pass/wallets/funds/recipients?offset=$offset&take=$_pageSize',
+    );
+    final list =
+        (response.data as List)
+            .map((e) => SnWalletFundRecipient.fromJson(e))
+            .toList();
+
+    if (list.length < _pageSize) {
+      totalCount = fetchedCount + list.length;
+    }
+    return list;
+  }
 }
 
 @riverpod
@@ -1408,71 +1426,50 @@ class WalletScreen extends HookConsumerWidget {
               controller: tabController,
               children: [
                 // Transactions Tab
-                CustomScrollView(
-                  slivers: [
-                    PagingHelperSliverView(
-                      provider: transactionListNotifierProvider,
-                      futureRefreshable: transactionListNotifierProvider.future,
-                      notifierRefreshable:
-                          transactionListNotifierProvider.notifier,
-                      contentBuilder:
-                          (
-                            data,
-                            widgetCount,
-                            endItemView,
-                          ) => SliverList.builder(
-                            itemCount: widgetCount,
-                            itemBuilder: (context, index) {
-                              if (index == widgetCount - 1) {
-                                return endItemView;
-                              }
+                PaginationList(
+                  padding: EdgeInsets.zero,
+                  provider: transactionListNotifierProvider,
+                  notifier: transactionListNotifierProvider.notifier,
+                  itemBuilder: (context, index, transaction) {
+                    final isIncome =
+                        transaction.payeeWalletId == wallet.value?.id;
 
-                              final transaction = data.items[index];
-                              final isIncome =
-                                  transaction.payeeWalletId == wallet.value?.id;
-
-                              return InkWell(
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    useRootNavigator: true,
-                                    isScrollControlled: true,
-                                    builder:
-                                        (context) => TransactionDetailSheet(
-                                          transaction: transaction,
-                                        ),
-                                  );
-                                },
-                                child: ListTile(
-                                  key: ValueKey(transaction.id),
-                                  leading: Icon(
-                                    isIncome
-                                        ? Symbols.payment_arrow_down
-                                        : Symbols.paid,
-                                  ),
-                                  title: Text(
-                                    transaction.remarks ?? '',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    DateFormat.yMd().add_Hm().format(
-                                      transaction.createdAt,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
-                                    style: TextStyle(
-                                      color:
-                                          isIncome ? Colors.green : Colors.red,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                    return InkWell(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useRootNavigator: true,
+                          isScrollControlled: true,
+                          builder:
+                              (context) => TransactionDetailSheet(
+                                transaction: transaction,
+                              ),
+                        );
+                      },
+                      child: ListTile(
+                        key: ValueKey(transaction.id),
+                        leading: Icon(
+                          isIncome ? Symbols.payment_arrow_down : Symbols.paid,
+                        ),
+                        title: Text(
+                          transaction.remarks ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          DateFormat.yMd().add_Hm().format(
+                            transaction.createdAt,
                           ),
-                    ),
-                  ],
+                        ),
+                        trailing: Text(
+                          '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
+                          style: TextStyle(
+                            color: isIncome ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
                 // My Funds Tab
@@ -1522,7 +1519,7 @@ class WalletScreen extends HookConsumerWidget {
   }
 
   Widget _buildFundsList(BuildContext context, WidgetRef ref) {
-    final funds = ref.watch(walletFundsProvider());
+    final funds = ref.watch(walletFundsNotifierProvider);
 
     return funds.when(
       data: (fundList) {
@@ -1784,7 +1781,7 @@ class WalletScreen extends HookConsumerWidget {
       if (paidOrder != null) {
         // Wait for server to handle order
         await Future.delayed(const Duration(seconds: 1));
-        ref.invalidate(walletFundsProvider);
+        ref.invalidate(walletFundsNotifierProvider);
         ref.invalidate(walletCurrentProvider);
         if (context.mounted) {
           showSnackBar('fundCreatedSuccessfully'.tr());

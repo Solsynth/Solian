@@ -27,7 +27,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   int? totalCount;
 
   @override
-  int fetchedCount = 0;
+  int get fetchedCount => state.value?.length ?? 0;
 
   @override
   bool get fetchedAll => totalCount != null && fetchedCount >= totalCount!;
@@ -38,14 +38,12 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   @override
   Future<void> refresh() async {
     totalCount = null;
-    fetchedCount = 0;
     state = AsyncData<List<T>>([]);
 
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();
     });
     state = newState;
-    fetchedCount = newState.value?.length ?? 0;
   }
 
   @override
@@ -60,7 +58,47 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
     });
 
     state = newState;
-    fetchedCount = newState.value?.length ?? 0;
+  }
+}
+
+mixin FamilyAsyncPaginationController<T, Arg>
+    on AutoDisposeFamilyAsyncNotifier<List<T>, Arg>
+    implements PaginationController<T> {
+  @override
+  int? totalCount;
+
+  @override
+  int get fetchedCount => state.value?.length ?? 0;
+
+  @override
+  bool get fetchedAll => totalCount != null && fetchedCount >= totalCount!;
+
+  @override
+  FutureOr<List<T>> build(Arg arg) async => fetch();
+
+  @override
+  Future<void> refresh() async {
+    totalCount = null;
+    state = AsyncData<List<T>>([]);
+
+    final newState = await AsyncValue.guard<List<T>>(() async {
+      return await fetch();
+    });
+    state = newState;
+  }
+
+  @override
+  Future<void> fetchFurther() async {
+    if (fetchedAll) return;
+
+    state = AsyncLoading<List<T>>();
+
+    final newState = await AsyncValue.guard<List<T>>(() async {
+      final elements = await fetch();
+      return [...?state.valueOrNull, ...elements];
+    });
+
+    state = newState;
   }
 }
 
@@ -71,10 +109,8 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
     if (currentFilter == filter) return;
     // Reset the data
     totalCount = null;
-    fetchedCount = 0;
-    currentFilter = filter;
-
     state = AsyncData<List<T>>([]);
+    currentFilter = filter;
 
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();

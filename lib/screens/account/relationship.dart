@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/models/relationship.dart';
 import 'package:island/pods/network.dart';
 
@@ -28,39 +29,31 @@ Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
       .toList();
 }
 
-@riverpod
-class RelationshipListNotifier extends _$RelationshipListNotifier
-    with CursorPagingNotifierMixin<SnRelationship> {
-  @override
-  Future<CursorPagingData<SnRelationship>> build() => fetch(cursor: null);
+final relationshipListNotifierProvider = AsyncNotifierProvider(
+  RelationshipListNotifier.new,
+);
 
+class RelationshipListNotifier extends AsyncNotifier<List<SnRelationship>>
+    with AsyncPaginationController<SnRelationship> {
   @override
-  Future<CursorPagingData<SnRelationship>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnRelationship>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
     final take = 20;
 
     final response = await client.get(
       '/pass/relationships',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {'offset': fetchedCount.toString(), 'take': take},
     );
 
     final List<SnRelationship> items =
         (response.data as List)
             .map((e) => SnRelationship.fromJson(e as Map<String, dynamic>))
+            .cast<SnRelationship>()
             .toList();
 
-    final total = int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
+    totalCount = int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
 
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return items;
   }
 }
 
@@ -242,7 +235,7 @@ class RelationshipScreen extends HookConsumerWidget {
         await client.post(
           '/pass/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
         );
-        relationshipNotifier.forceRefresh();
+        relationshipNotifier.refresh();
         if (!context.mounted) return;
         if (isAccept) {
           showSnackBar(
@@ -270,7 +263,7 @@ class RelationshipScreen extends HookConsumerWidget {
         '/pass/relationships/${relationship.accountId}',
         data: {'status': newStatus},
       );
-      relationshipNotifier.forceRefresh();
+      relationshipNotifier.refresh();
     }
 
     final user = ref.watch(userInfoProvider);
@@ -305,32 +298,20 @@ class RelationshipScreen extends HookConsumerWidget {
             ),
           const Divider(height: 1),
           Expanded(
-            child: PagingHelperView(
+            child: PaginationList(
               provider: relationshipListNotifierProvider,
-              futureRefreshable: relationshipListNotifierProvider.future,
-              notifierRefreshable: relationshipListNotifierProvider.notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-
-                      final relationship = data.items[index];
-                      return RelationshipListTile(
-                        relationship: relationship,
-                        submitting: submitting.value,
-                        onAccept: () => handleFriendRequest(relationship, true),
-                        onDecline:
-                            () => handleFriendRequest(relationship, false),
-                        currentUserId: user.value?.id,
-                        showRelatedAccount: false,
-                        onUpdateStatus: updateRelationship,
-                      );
-                    },
-                  ),
+              notifier: relationshipListNotifierProvider.notifier,
+              itemBuilder: (context, index, relationship) {
+                return RelationshipListTile(
+                  relationship: relationship,
+                  submitting: submitting.value,
+                  onAccept: () => handleFriendRequest(relationship, true),
+                  onDecline: () => handleFriendRequest(relationship, false),
+                  currentUserId: user.value?.id,
+                  showRelatedAccount: false,
+                  onUpdateStatus: updateRelationship,
+                );
+              },
             ),
           ),
         ],
