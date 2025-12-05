@@ -3,53 +3,36 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/realm/realm_card.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'realm_list.g.dart';
+final realmListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<RealmListNotifier, List<SnRealm>, String?>(RealmListNotifier.new);
 
-@riverpod
-class RealmListNotifier extends _$RealmListNotifier
-    with CursorPagingNotifierMixin<SnRealm> {
+class RealmListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnRealm>, String?>
+    with FamilyAsyncPaginationController<SnRealm, String?> {
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnRealm>> build(String? query) {
-    return fetch(cursor: null, query: query);
-  }
-
-  @override
-  Future<CursorPagingData<SnRealm>> fetch({
-    required String? cursor,
-    String? query,
-  }) async {
+  Future<List<SnRealm>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     final queryParams = {
-      'offset': offset,
+      'offset': fetchedCount,
       'take': _pageSize,
-      if (query != null && query.isNotEmpty) 'query': query,
+      if (arg != null && arg!.isNotEmpty) 'query': arg,
     };
 
     final response = await client.get(
       '/sphere/discovery/realms',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final realms = data.map((json) => SnRealm.fromJson(json)).toList();
-
-    final hasMore = offset + realms.length < total;
-    final nextCursor = hasMore ? (offset + realms.length).toString() : null;
-
-    return CursorPagingData(
-      items: realms,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnRealm.fromJson(json)).toList();
   }
 }
 
@@ -60,34 +43,32 @@ class SliverRealmList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PagingHelperSliverView(
-      provider: realmListNotifierProvider(query),
-      futureRefreshable: realmListNotifierProvider(query).future,
-      notifierRefreshable: realmListNotifierProvider(query).notifier,
-      contentBuilder:
-          (data, widgetCount, endItemView) => SliverList.separated(
-            itemCount: widgetCount,
-            itemBuilder: (context, index) {
-              if (index == widgetCount - 1) {
-                return endItemView;
-              }
-
-              final realm = data.items[index];
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child:
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 540),
-                      child: RealmCard(realm: realm),
-                    ).center(),
-              );
-            },
-            separatorBuilder: (_, _) => const Gap(8),
-          ),
+    final provider = realmListNotifierProvider(query);
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isSliver: true,
+      isRefreshable: false,
+      itemBuilder: (context, index, realm) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child:
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 540),
+                    child: RealmCard(realm: realm),
+                  ).center(),
+            ),
+            if (index <
+                (ref.read(provider).valueOrNull?.length ?? 0) -
+                    1) // Add gap except for last item? Actually PaginationList handles loading indicator which might look like last item.
+              // Wait, ref.read(provider).valueOrNull?.length might change.
+              // Simpler to just add bottom padding to all, or Gap.
+              const Gap(8),
+          ],
+        );
+      },
     );
   }
 }

@@ -2,45 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 
-part 'post_award_history_sheet.g.dart';
+final postAwardListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<PostAwardListNotifier, List<SnPostAward>, String>(
+      PostAwardListNotifier.new,
+    );
 
-@riverpod
-class PostAwardListNotifier extends _$PostAwardListNotifier
-    with CursorPagingNotifierMixin<SnPostAward> {
+class PostAwardListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPostAward>, String>
+    with FamilyAsyncPaginationController<SnPostAward, String> {
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPostAward>> build({required String postId}) {
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnPostAward>> fetch({required String? cursor}) async {
+  Future<List<SnPostAward>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
 
     final response = await client.get(
-      '/sphere/posts/$postId/awards',
+      '/sphere/posts/$arg/awards',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final awards = data.map((json) => SnPostAward.fromJson(json)).toList();
-
-    final hasMore = offset + awards.length < total;
-    final nextCursor = hasMore ? (offset + awards.length).toString() : null;
-
-    return CursorPagingData(
-      items: awards,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnPostAward.fromJson(json)).toList();
   }
 }
 
@@ -51,31 +39,22 @@ class PostAwardHistorySheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postAwardListNotifierProvider(postId: postId);
+    final provider = postAwardListNotifierProvider(postId);
 
     return SheetScaffold(
       titleText: 'Award History',
-      child: PagingHelperView(
+      child: PaginationList(
         provider: provider,
-        futureRefreshable: provider.future,
-        notifierRefreshable: provider.notifier,
-        contentBuilder:
-            (data, widgetCount, endItemView) => ListView.builder(
-              itemCount: widgetCount,
-              itemBuilder: (context, index) {
-                if (index == widgetCount - 1) {
-                  return endItemView;
-                }
-
-                final award = data.items[index];
-                return Column(
-                  children: [
-                    PostAwardItem(award: award),
-                    const Divider(height: 1),
-                  ],
-                );
-              },
-            ),
+        notifier: provider.notifier,
+        itemBuilder: (context, index, award) {
+          return Column(
+            children: [
+              PostAwardItem(award: award),
+              if (index < (ref.read(provider).valueOrNull?.length ?? 0) - 1)
+                const Divider(height: 1),
+            ],
+          );
+        },
       ),
     );
   }

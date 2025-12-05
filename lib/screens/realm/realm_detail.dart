@@ -22,47 +22,51 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'realm_detail.g.dart';
+final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
+    .family<Color?, String>((ref, realmSlug) async {
+      final realm = await ref.watch(realmProvider(realmSlug).future);
+      if (realm?.background == null) return null;
+      final colors = await ColorExtractionService.getColorsFromImage(
+        CloudImageWidget.provider(
+          fileId: realm!.background!.id,
+          serverUrl: ref.watch(serverUrlProvider),
+        ),
+      );
+      if (colors.isEmpty) return null;
+      final dominantColor = colors.first;
+      return dominantColor.computeLuminance() > 0.5
+          ? Colors.black
+          : Colors.white;
+    });
 
-@riverpod
-Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
-  final realm = await ref.watch(realmProvider(realmSlug).future);
-  if (realm?.background == null) return null;
-  final colors = await ColorExtractionService.getColorsFromImage(
-    CloudImageWidget.provider(
-      fileId: realm!.background!.id,
-      serverUrl: ref.watch(serverUrlProvider),
-    ),
-  );
-  if (colors.isEmpty) return null;
-  final dominantColor = colors.first;
-  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-}
+final realmIdentityProvider = FutureProvider.autoDispose
+    .family<SnRealmMember?, String>((ref, realmSlug) async {
+      try {
+        final apiClient = ref.watch(apiClientProvider);
+        final response = await apiClient.get(
+          '/pass/realms/$realmSlug/members/me',
+        );
+        return SnRealmMember.fromJson(response.data);
+      } catch (err) {
+        if (err is DioException && err.response?.statusCode == 404) {
+          return null; // No identity found, user is not a member
+        }
+        rethrow;
+      }
+    });
 
-@riverpod
-Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
-  try {
-    final apiClient = ref.watch(apiClientProvider);
-    final response = await apiClient.get('/pass/realms/$realmSlug/members/me');
-    return SnRealmMember.fromJson(response.data);
-  } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) {
-      return null; // No identity found, user is not a member
-    }
-    rethrow;
-  }
-}
-
-@riverpod
-Future<List<SnChatRoom>> realmChatRooms(Ref ref, String realmSlug) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/sphere/realms/$realmSlug/chat');
-  return (response.data as List).map((e) => SnChatRoom.fromJson(e)).toList();
-}
+final realmChatRoomsProvider = FutureProvider.autoDispose
+    .family<List<SnChatRoom>, String>((ref, realmSlug) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final response = await apiClient.get('/sphere/realms/$realmSlug/chat');
+      return (response.data as List)
+          .map((e) => SnChatRoom.fromJson(e))
+          .toList();
+    });
 
 class RealmDetailScreen extends HookConsumerWidget {
   final String slug;
@@ -520,49 +524,32 @@ class _RealmActionMenu extends HookConsumerWidget {
   }
 }
 
-@riverpod
-class RealmMemberListNotifier extends _$RealmMemberListNotifier
-    with CursorPagingNotifierMixin<SnRealmMember> {
+final realmMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<RealmMemberListNotifier, List<SnRealmMember>, String>(
+      RealmMemberListNotifier.new,
+    );
+
+class RealmMemberListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnRealmMember>, String>
+    with FamilyAsyncPaginationController<SnRealmMember, String> {
   static const int _pageSize = 20;
-  ValueNotifier<int> totalCount = ValueNotifier(0);
 
   @override
-  Future<CursorPagingData<SnRealmMember>> build(String realmSlug) async {
-    totalCount.value = 0;
-    return fetch();
-  }
-
-  @override
-  Future<CursorPagingData<SnRealmMember>> fetch({String? cursor}) async {
+  Future<List<SnRealmMember>> fetch() async {
     final apiClient = ref.read(apiClientProvider);
-    final offset = cursor != null ? int.parse(cursor) : 0;
 
     final response = await apiClient.get(
-      '/pass/realms/$realmSlug/members',
+      '/pass/realms/$arg/members',
       queryParameters: {
-        'offset': offset,
+        'offset': fetchedCount,
         'take': _pageSize,
         'withStatus': true,
       },
     );
 
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    totalCount.value = total;
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final members = data.map((e) => SnRealmMember.fromJson(e)).toList();
-
-    final hasMore = offset + members.length < total;
-    final nextCursor = hasMore ? (offset + members.length).toString() : null;
-
-    return CursorPagingData(
-      items: members,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
-  }
-
-  void dispose() {
-    totalCount.dispose();
+    return data.map((e) => SnRealmMember.fromJson(e)).toList();
   }
 }
 
@@ -574,11 +561,10 @@ class _RealmMemberListSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
     final memberListProvider = realmMemberListNotifierProvider(realmSlug);
-    final memberListNotifier = ref.watch(memberListProvider.notifier);
-
-    useEffect(() {
-      return memberListNotifier.dispose;
-    }, []);
+    // memberListNotifier is not watched here to prevent unnecessary rebuilds of this widget
+    // when we only need it for passing to PaginationList as a Refreshable
+    // However, we used useEffect to dispose it, but AutoDispose handles it.
+    // So we remove the useEffect and the watch.
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -606,17 +592,19 @@ class _RealmMemberListSheet extends HookConsumerWidget {
         padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
         child: Row(
           children: [
-            ListenableBuilder(
-              listenable: memberListNotifier.totalCount,
-              builder:
-                  (context, _) => Text(
-                    'members'.plural(memberListNotifier.totalCount.value),
-                    key: ValueKey(memberListNotifier),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                    ),
+            Consumer(
+              builder: (context, ref, _) {
+                // effective watch to rebuild when data changes (and totalCount updates)
+                ref.watch(memberListProvider);
+                final notifier = ref.read(memberListProvider.notifier);
+                return Text(
+                  'members'.plural(notifier.totalCount ?? 0),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
                   ),
+                );
+              },
             ),
             const Spacer(),
             IconButton(
@@ -643,105 +631,94 @@ class _RealmMemberListSheet extends HookConsumerWidget {
 
     Widget buildMemberListContent() {
       return Expanded(
-        child: PagingHelperView(
+        child: PaginationList(
           provider: memberListProvider,
-          futureRefreshable: memberListProvider.future,
-          notifierRefreshable: memberListProvider.notifier,
-          contentBuilder: (data, widgetCount, endItemView) {
-            return ListView.builder(
-              itemCount: widgetCount,
-              itemBuilder: (context, index) {
-                if (index == data.items.length) {
-                  return endItemView;
-                }
-
-                final member = data.items[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.only(left: 16, right: 12),
-                  leading: AccountPfcGestureDetector(
-                    uname: member.account!.name,
-                    child: ProfilePictureWidget(
-                      fileId: member.account!.profile.picture?.id,
+          notifier: memberListProvider.notifier,
+          itemBuilder: (context, index, member) {
+            return ListTile(
+              contentPadding: EdgeInsets.only(left: 16, right: 12),
+              leading: AccountPfcGestureDetector(
+                uname: member.account!.name,
+                child: ProfilePictureWidget(
+                  fileId: member.account!.profile.picture?.id,
+                ),
+              ),
+              title: Row(
+                spacing: 6,
+                children: [
+                  Flexible(
+                    child: Text(
+                      member.account!.nick,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  title: Row(
-                    spacing: 6,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          member.account!.nick,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (member.status != null)
-                        AccountStatusLabel(status: member.status!),
-                      if (member.joinedAt == null)
-                        const Icon(Symbols.pending_actions, size: 20),
-                    ],
-                  ),
-                  subtitle: Row(
-                    children: [
-                      Text(
-                        member.role >= 100
-                            ? 'permissionOwner'
-                            : member.role >= 50
-                            ? 'permissionModerator'
-                            : 'permissionMember',
-                      ).tr(),
-                      Text('·').bold().padding(horizontal: 6),
-                      Expanded(child: Text("@${member.account!.name}")),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if ((realmIdentity.value?.role ?? 0) >= 50)
-                        IconButton(
-                          icon: const Icon(Symbols.edit),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              isScrollControlled: true,
-                              context: context,
-                              builder:
-                                  (context) => _RealmMemberRoleSheet(
-                                    realmSlug: realmSlug,
-                                    member: member,
-                                  ),
-                            ).then((value) {
-                              if (value != null) {
-                                // Refresh the provider
-                                ref.invalidate(memberListProvider);
-                              }
-                            });
-                          },
-                        ),
-                      if ((realmIdentity.value?.role ?? 0) >= 50)
-                        IconButton(
-                          icon: const Icon(Symbols.delete),
-                          onPressed: () {
-                            showConfirmAlert(
-                              'removeRealmMemberHint'.tr(),
-                              'removeRealmMember'.tr(),
-                            ).then((confirm) async {
-                              if (confirm != true) return;
-                              try {
-                                final apiClient = ref.watch(apiClientProvider);
-                                await apiClient.delete(
-                                  '/pass/realms/$realmSlug/members/${member.accountId}',
-                                );
-                                // Refresh the provider
-                                ref.invalidate(memberListProvider);
-                              } catch (err) {
-                                showErrorAlert(err);
-                              }
-                            });
-                          },
-                        ),
-                    ],
-                  ),
-                );
-              },
+                  if (member.status != null)
+                    AccountStatusLabel(status: member.status!),
+                  if (member.joinedAt == null)
+                    const Icon(Symbols.pending_actions, size: 20),
+                ],
+              ),
+              subtitle: Row(
+                children: [
+                  Text(
+                    member.role >= 100
+                        ? 'permissionOwner'
+                        : member.role >= 50
+                        ? 'permissionModerator'
+                        : 'permissionMember',
+                  ).tr(),
+                  Text('·').bold().padding(horizontal: 6),
+                  Expanded(child: Text("@${member.account!.name}")),
+                ],
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if ((realmIdentity.value?.role ?? 0) >= 50)
+                    IconButton(
+                      icon: const Icon(Symbols.edit),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder:
+                              (context) => _RealmMemberRoleSheet(
+                                realmSlug: realmSlug,
+                                member: member,
+                              ),
+                        ).then((value) {
+                          if (value != null) {
+                            // Refresh the provider
+                            ref.invalidate(memberListProvider);
+                          }
+                        });
+                      },
+                    ),
+                  if ((realmIdentity.value?.role ?? 0) >= 50)
+                    IconButton(
+                      icon: const Icon(Symbols.delete),
+                      onPressed: () {
+                        showConfirmAlert(
+                          'removeRealmMemberHint'.tr(),
+                          'removeRealmMember'.tr(),
+                        ).then((confirm) async {
+                          if (confirm != true) return;
+                          try {
+                            final apiClient = ref.watch(apiClientProvider);
+                            await apiClient.delete(
+                              '/pass/realms/$realmSlug/members/${member.accountId}',
+                            );
+                            // Refresh the provider
+                            ref.invalidate(memberListProvider);
+                          } catch (err) {
+                            showErrorAlert(err);
+                          }
+                        });
+                      },
+                    ),
+                ],
+              ),
             );
           },
         ),

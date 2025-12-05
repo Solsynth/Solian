@@ -5,29 +5,28 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-part 'chat_link_attachments.g.dart';
+final chatCloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose<
+  ChatCloudFileListNotifier,
+  List<SnCloudFile>
+>(ChatCloudFileListNotifier.new);
 
-@riverpod
-class ChatCloudFileListNotifier extends _$ChatCloudFileListNotifier
-    with CursorPagingNotifierMixin<SnCloudFile> {
+class ChatCloudFileListNotifier
+    extends AutoDisposeAsyncNotifier<List<SnCloudFile>>
+    with AutoDisposeAsyncPaginationController<SnCloudFile> {
   @override
-  Future<CursorPagingData<SnCloudFile>> build() => fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<SnCloudFile>> fetch({required String? cursor}) async {
+  Future<List<SnCloudFile>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
     final take = 20;
 
-    final queryParameters = {'offset': offset, 'take': take};
+    final queryParameters = {'offset': fetchedCount, 'take': take};
 
     final response = await client.get(
       '/drive/files/me',
@@ -38,16 +37,9 @@ class ChatCloudFileListNotifier extends _$ChatCloudFileListNotifier
         (response.data as List)
             .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
             .toList();
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return items;
   }
 }
 
@@ -77,61 +69,49 @@ class ChatLinkAttachment extends HookConsumerWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  PagingHelperView(
+                  PaginationList(
                     provider: chatCloudFileListNotifierProvider,
-                    futureRefreshable: chatCloudFileListNotifierProvider.future,
-                    notifierRefreshable:
-                        chatCloudFileListNotifierProvider.notifier,
-                    contentBuilder:
-                        (data, widgetCount, endItemView) => ListView.builder(
-                          padding: EdgeInsets.only(top: 8),
-                          itemCount: widgetCount,
-                          itemBuilder: (context, index) {
-                            if (index == widgetCount - 1) {
-                              return endItemView;
-                            }
-
-                            final item = data.items[index];
-                            final itemType =
-                                item.mimeType?.split('/').firstOrNull;
-                            return ListTile(
-                              leading: ClipRRect(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(8),
-                                ),
-                                child: SizedBox(
-                                  height: 48,
-                                  width: 48,
-                                  child: switch (itemType) {
-                                    'image' => CloudImageWidget(file: item),
-                                    'audio' =>
-                                      const Icon(
-                                        Symbols.audio_file,
-                                        fill: 1,
-                                      ).center(),
-                                    'video' =>
-                                      const Icon(
-                                        Symbols.video_file,
-                                        fill: 1,
-                                      ).center(),
-                                    _ =>
-                                      const Icon(
-                                        Symbols.body_system,
-                                        fill: 1,
-                                      ).center(),
-                                  },
-                                ),
-                              ),
-                              title:
-                                  item.name.isEmpty
-                                      ? Text('untitled').tr().italic()
-                                      : Text(item.name),
-                              onTap: () {
-                                Navigator.pop(context, item);
-                              },
-                            );
-                          },
+                    notifier: chatCloudFileListNotifierProvider.notifier,
+                    padding: EdgeInsets.only(top: 8),
+                    itemBuilder: (context, index, item) {
+                      final itemType = item.mimeType?.split('/').firstOrNull;
+                      return ListTile(
+                        leading: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          child: SizedBox(
+                            height: 48,
+                            width: 48,
+                            child: switch (itemType) {
+                              'image' => CloudImageWidget(file: item),
+                              'audio' =>
+                                const Icon(
+                                  Symbols.audio_file,
+                                  fill: 1,
+                                ).center(),
+                              'video' =>
+                                const Icon(
+                                  Symbols.video_file,
+                                  fill: 1,
+                                ).center(),
+                              _ =>
+                                const Icon(
+                                  Symbols.body_system,
+                                  fill: 1,
+                                ).center(),
+                            },
+                          ),
                         ),
+                        title:
+                            item.name.isEmpty
+                                ? Text('untitled').tr().italic()
+                                : Text(item.name),
+                        onTap: () {
+                          Navigator.pop(context, item);
+                        },
+                      );
+                    },
                   ),
                   SingleChildScrollView(
                     child: Column(

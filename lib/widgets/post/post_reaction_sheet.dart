@@ -8,60 +8,63 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/stickers/sticker_picker.dart';
 import 'package:island/pods/config.dart';
 
-part 'post_reaction_sheet.g.dart';
+class ReactionListParams {
+  final String symbol;
+  final String postId;
 
-@riverpod
-class ReactionListNotifier extends _$ReactionListNotifier
-    with CursorPagingNotifierMixin<SnPostReaction> {
+  const ReactionListParams({required this.symbol, required this.postId});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReactionListParams &&
+          runtimeType == other.runtimeType &&
+          symbol == other.symbol &&
+          postId == other.postId;
+
+  @override
+  int get hashCode => symbol.hashCode ^ postId.hashCode;
+}
+
+final reactionListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<ReactionListNotifier, List<SnPostReaction>, ReactionListParams>(
+      ReactionListNotifier.new,
+    );
+
+class ReactionListNotifier
+    extends
+        AutoDisposeFamilyAsyncNotifier<List<SnPostReaction>, ReactionListParams>
+    with FamilyAsyncPaginationController<SnPostReaction, ReactionListParams> {
   static const int _pageSize = 20;
 
-  int? totalCount;
-
   @override
-  Future<CursorPagingData<SnPostReaction>> build({
-    required String symbol,
-    required String postId,
-  }) {
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnPostReaction>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnPostReaction>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     final response = await client.get(
-      '/sphere/posts/$postId/reactions',
-      queryParameters: {'symbol': symbol, 'offset': offset, 'take': _pageSize},
+      '/sphere/posts/${arg.postId}/reactions',
+      queryParameters: {
+        'symbol': arg.symbol,
+        'offset': fetchedCount,
+        'take': _pageSize,
+      },
     );
 
     totalCount = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
 
     final List<dynamic> data = response.data;
-    final reactions =
-        data.map((json) => SnPostReaction.fromJson(json)).toList();
-
-    final hasMore = reactions.length == _pageSize;
-    final nextCursor = hasMore ? (offset + reactions.length).toString() : null;
-
-    return CursorPagingData(
-      items: reactions,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnPostReaction.fromJson(json)).toList();
   }
 }
 
@@ -485,10 +488,8 @@ class ReactionDetailsPopup extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = reactionListNotifierProvider(
-      symbol: symbol,
-      postId: postId,
-    );
+    final params = ReactionListParams(symbol: symbol, postId: postId);
+    final provider = reactionListNotifierProvider(params);
 
     final width = math.min(MediaQuery.of(context).size.width * 0.8, 480.0);
     return PopupCard(
@@ -516,34 +517,24 @@ class ReactionDetailsPopup extends HookConsumerWidget {
             ),
             const Divider(height: 1),
             Expanded(
-              child: PagingHelperView(
+              child: PaginationList(
                 provider: provider,
-                futureRefreshable: provider.future,
-                notifierRefreshable: provider.notifier,
-                contentBuilder:
-                    (data, widgetCount, endItemView) => ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: widgetCount,
-                      itemBuilder: (context, index) {
-                        if (index == widgetCount - 1) {
-                          return endItemView;
-                        }
-
-                        final reaction = data.items[index];
-                        return ListTile(
-                          leading: AccountPfcGestureDetector(
-                            uname: reaction.account?.name ?? 'unknown',
-                            child: ProfilePictureWidget(
-                              file: reaction.account?.profile.picture,
-                            ),
-                          ),
-                          title: Text(reaction.account?.nick ?? 'unknown'.tr()),
-                          subtitle: Text(
-                            '${reaction.createdAt.formatRelative(context)} · ${reaction.createdAt.formatSystem()}',
-                          ),
-                        );
-                      },
+                notifier: provider.notifier,
+                padding: EdgeInsets.zero,
+                itemBuilder: (context, index, reaction) {
+                  return ListTile(
+                    leading: AccountPfcGestureDetector(
+                      uname: reaction.account?.name ?? 'unknown',
+                      child: ProfilePictureWidget(
+                        file: reaction.account?.profile.picture,
+                      ),
                     ),
+                    title: Text(reaction.account?.nick ?? 'unknown'.tr()),
+                    subtitle: Text(
+                      '${reaction.createdAt.formatRelative(context)} · ${reaction.createdAt.formatSystem()}',
+                    ),
+                  );
+                },
               ),
             ),
           ],

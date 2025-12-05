@@ -7,18 +7,18 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:island/widgets/response.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final postSearchNotifierProvider = StateNotifierProvider.autoDispose<
-  PostSearchNotifier,
-  AsyncValue<CursorPagingData<SnPost>>
->((ref) => PostSearchNotifier(ref));
+final postSearchNotifierProvider =
+    AsyncNotifierProvider.autoDispose<PostSearchNotifier, List<SnPost>>(
+      PostSearchNotifier.new,
+    );
 
-class PostSearchNotifier
-    extends StateNotifier<AsyncValue<CursorPagingData<SnPost>>> {
-  final AutoDisposeRef ref;
+class PostSearchNotifier extends AutoDisposeAsyncNotifier<List<SnPost>>
+    with AutoDisposeAsyncPaginationController<SnPost> {
   static const int _pageSize = 20;
   String _currentQuery = '';
   String? _pubName;
@@ -28,12 +28,13 @@ class PostSearchNotifier
   List<String>? _tags;
   bool _shuffle = false;
   bool? _pinned;
-  bool _isLoading = false;
 
-  PostSearchNotifier(this.ref) : super(const AsyncValue.loading()) {
-    state = const AsyncValue.data(
-      CursorPagingData(items: [], hasMore: false, nextCursor: null),
-    );
+  @override
+  FutureOr<List<SnPost>> build() async {
+    // Initial state is empty if no query/filters, or fetch if needed
+    // But original logic allowed initial empty state.
+    // Let's replicate original logic: return empty list initially if no query.
+    return [];
   }
 
   Future<void> search(
@@ -46,8 +47,6 @@ class PostSearchNotifier
     bool shuffle = false,
     bool? pinned,
   }) async {
-    if (_isLoading) return;
-
     _currentQuery = query.trim();
     _pubName = pubName;
     _realm = realm;
@@ -57,7 +56,6 @@ class PostSearchNotifier
     _shuffle = shuffle;
     _pinned = pinned;
 
-    // Allow search even with empty query if any filters are applied
     final hasFilters =
         pubName != null ||
         realm != null ||
@@ -68,59 +66,38 @@ class PostSearchNotifier
         pinned != null;
 
     if (_currentQuery.isEmpty && !hasFilters) {
-      state = AsyncValue.data(
-        CursorPagingData(items: [], hasMore: false, nextCursor: null),
-      );
+      state = const AsyncData([]);
+      totalCount = null;
       return;
     }
 
-    await fetch(cursor: null);
+    await refresh();
   }
 
-  Future<void> fetch({String? cursor}) async {
-    if (_isLoading) return;
+  @override
+  Future<List<SnPost>> fetch() async {
+    final client = ref.read(apiClientProvider);
 
-    _isLoading = true;
-    state = const AsyncValue.loading();
+    final response = await client.get(
+      '/sphere/posts',
+      queryParameters: {
+        'query': _currentQuery,
+        'offset': fetchedCount,
+        'take': _pageSize,
+        'vector': false,
+        if (_pubName != null) 'pub': _pubName,
+        if (_realm != null) 'realm': _realm,
+        if (_type != null) 'type': _type,
+        if (_tags != null) 'tags': _tags,
+        if (_categories != null) 'categories': _categories,
+        if (_shuffle) 'shuffle': true,
+        if (_pinned != null) 'pinned': _pinned,
+      },
+    );
 
-    try {
-      final client = ref.read(apiClientProvider);
-      final offset = cursor == null ? 0 : int.parse(cursor);
-
-      final response = await client.get(
-        '/sphere/posts',
-        queryParameters: {
-          'query': _currentQuery,
-          'offset': offset,
-          'take': _pageSize,
-          'vector': false,
-          if (_pubName != null) 'pub': _pubName,
-          if (_realm != null) 'realm': _realm,
-          if (_type != null) 'type': _type,
-          if (_tags != null) 'tags': _tags,
-          if (_categories != null) 'categories': _categories,
-          if (_shuffle) 'shuffle': true,
-          if (_pinned != null) 'pinned': _pinned,
-        },
-      );
-
-      final data = response.data as List;
-      final posts = data.map((json) => SnPost.fromJson(json)).toList();
-      final hasMore = posts.length == _pageSize;
-      final nextCursor = hasMore ? (offset + posts.length).toString() : null;
-
-      state = AsyncValue.data(
-        CursorPagingData(
-          items: posts,
-          hasMore: hasMore,
-          nextCursor: nextCursor,
-        ),
-      );
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    } finally {
-      _isLoading = false;
-    }
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final data = response.data as List;
+    return data.map((json) => SnPost.fromJson(json)).toList();
   }
 }
 
@@ -339,55 +316,34 @@ class PostSearchScreen extends HookConsumerWidget {
                     ),
                   ),
                 ),
-              searchState.when(
-                data: (data) {
-                  if (data.items.isEmpty && searchController.text.isNotEmpty) {
-                    return SliverFillRemaining(
-                      child: Center(child: Text('noResultsFound'.tr())),
-                    );
-                  }
-
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      if (index >= data.items.length) {
-                        ref
-                            .read(postSearchNotifierProvider.notifier)
-                            .fetch(cursor: data.nextCursor);
-                        return Center(child: CircularProgressIndicator());
-                      }
-
-                      final post = data.items[index];
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 600),
-                          child: Card(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: PostActionableItem(
-                              item: post,
-                              borderRadius: 8,
-                            ),
-                          ),
+              // Use PaginationList with isSliver=true
+              PaginationList(
+                provider: postSearchNotifierProvider,
+                notifier: postSearchNotifierProvider.notifier,
+                isSliver: true,
+                isRefreshable:
+                    false, // CustomScrollView handles refreshing usually, but here we don't have PullToRefresh
+                itemBuilder: (context, index, post) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 600),
+                      child: Card(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                      );
-                    }, childCount: data.items.length + (data.hasMore ? 1 : 0)),
-                  );
-                },
-                loading:
-                    () => SliverFillRemaining(
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                error:
-                    (error, stack) => SliverFillRemaining(
-                      child: ResponseErrorWidget(
-                        error: error,
-                        onRetry:
-                            () => ref.invalidate(postSearchNotifierProvider),
+                        child: PostActionableItem(item: post, borderRadius: 8),
                       ),
                     ),
+                  );
+                },
               ),
+              if (searchState.valueOrNull?.isEmpty == true &&
+                  searchController.text.isNotEmpty &&
+                  !searchState.isLoading)
+                SliverFillRemaining(
+                  child: Center(child: Text('noResultsFound'.tr())),
+                ),
             ],
           );
         },

@@ -1,79 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_creator.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
-part 'post_list.g.dart';
+part 'post_list.freezed.dart';
 
-@riverpod
-class PostListNotifier extends _$PostListNotifier
-    with CursorPagingNotifierMixin<SnPost> {
-  static const int _pageSize = 20;
-
-  @override
-  Future<CursorPagingData<SnPost>> build({
+@freezed
+sealed class PostListQuery with _$PostListQuery {
+  const factory PostListQuery({
     String? pubName,
     String? realm,
     int? type,
     List<String>? categories,
     List<String>? tags,
     bool? pinned,
-    bool shuffle = false,
+    @Default(false) bool shuffle,
     bool? includeReplies,
     bool? mediaOnly,
     String? queryTerm,
     String? order,
     int? periodStart,
     int? periodEnd,
-    bool orderDesc = true,
-  }) {
-    return fetch(cursor: null);
-  }
+    @Default(true) bool orderDesc,
+  }) = _PostListQuery;
+}
+
+final postListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<PostListNotifier, List<SnPost>, PostListQuery>(
+      PostListNotifier.new,
+    );
+
+class PostListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPost>, PostListQuery>
+    with FamilyAsyncPaginationController<SnPost, PostListQuery> {
+  static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPost>> fetch({required String? cursor}) async {
+  Future<List<SnPost>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     final queryParams = {
-      'offset': offset,
+      'offset': fetchedCount,
       'take': _pageSize,
-      'replies': includeReplies,
-      'orderDesc': orderDesc,
-      if (shuffle) 'shuffle': shuffle,
-      if (pubName != null) 'pub': pubName,
-      if (realm != null) 'realm': realm,
-      if (type != null) 'type': type,
-      if (tags != null) 'tags': tags,
-      if (categories != null) 'categories': categories,
-      if (pinned != null) 'pinned': pinned,
-      if (order != null) 'order': order,
-      if (periodStart != null) 'periodStart': periodStart,
-      if (periodEnd != null) 'periodEnd': periodEnd,
-      if (queryTerm != null) 'query': queryTerm,
-      if (mediaOnly != null) 'media': mediaOnly,
+      'replies': arg.includeReplies,
+      'orderDesc': arg.orderDesc,
+      if (arg.shuffle) 'shuffle': arg.shuffle,
+      if (arg.pubName != null) 'pub': arg.pubName,
+      if (arg.realm != null) 'realm': arg.realm,
+      if (arg.type != null) 'type': arg.type,
+      if (arg.tags != null) 'tags': arg.tags,
+      if (arg.categories != null) 'categories': arg.categories,
+      if (arg.pinned != null) 'pinned': arg.pinned,
+      if (arg.order != null) 'order': arg.order,
+      if (arg.periodStart != null) 'periodStart': arg.periodStart,
+      if (arg.periodEnd != null) 'periodEnd': arg.periodEnd,
+      if (arg.queryTerm != null) 'query': arg.queryTerm,
+      if (arg.mediaOnly != null) 'media': arg.mediaOnly,
     };
 
     final response = await client.get(
       '/sphere/posts',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final posts = data.map((json) => SnPost.fromJson(json)).toList();
-
-    final hasMore = offset + posts.length < total;
-    final nextCursor = hasMore ? (offset + posts.length).toString() : null;
-
-    return CursorPagingData(
-      items: posts,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnPost.fromJson(json)).toList();
   }
 }
 
@@ -137,7 +133,7 @@ class SliverPostList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postListNotifierProvider(
+    final params = PostListQuery(
       pubName: pubName,
       realm: realm,
       type: type,
@@ -153,32 +149,26 @@ class SliverPostList extends HookConsumerWidget {
       periodEnd: periodEnd,
       orderDesc: orderDesc ?? true,
     );
-    return PagingHelperSliverView(
+    final provider = postListNotifierProvider(params);
+    final notifier = provider.notifier;
+
+    return PaginationList(
       provider: provider,
-      futureRefreshable: provider.future,
-      notifierRefreshable: provider.notifier,
-      contentBuilder:
-          (data, widgetCount, endItemView) => SliverList.builder(
-            itemCount: widgetCount,
-            itemBuilder: (context, index) {
-              if (index == widgetCount - 1) {
-                return endItemView;
-              }
+      notifier: notifier,
+      isRefreshable: false,
+      isSliver: true,
+      itemBuilder: (context, index, post) {
+        if (maxWidth != null) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth!),
+              child: _buildPostItem(post),
+            ),
+          );
+        }
 
-              final post = data.items[index];
-
-              if (maxWidth != null) {
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxWidth!),
-                    child: _buildPostItem(post),
-                  ),
-                );
-              }
-
-              return _buildPostItem(post);
-            },
-          ),
+        return _buildPostItem(post);
+      },
     );
   }
 

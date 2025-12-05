@@ -4,55 +4,40 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/poll/poll_stats_widget.dart';
 import 'package:island/widgets/response.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'poll_feedback.g.dart';
+final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<PollFeedbackNotifier, List<SnPollAnswer>, String>(
+      PollFeedbackNotifier.new,
+    );
 
-@riverpod
-class PollFeedbackNotifier extends _$PollFeedbackNotifier
-    with CursorPagingNotifierMixin<SnPollAnswer> {
+class PollFeedbackNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPollAnswer>, String>
+    with FamilyAsyncPaginationController<SnPollAnswer, String> {
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPollAnswer>> build(String id) {
-    // immediately load first page
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnPollAnswer>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnPollAnswer>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
 
     final response = await client.get(
-      '/sphere/polls/$id/feedback',
+      '/sphere/polls/$arg/feedback',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final items = data.map((json) => SnPollAnswer.fromJson(json)).toList();
-
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnPollAnswer.fromJson(json)).toList();
   }
 }
 
@@ -64,6 +49,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final poll = ref.watch(pollWithStatsProvider(pollId));
+    final provider = pollFeedbackNotifierProvider(pollId);
 
     return SheetScaffold(
       titleText: title ?? 'Poll feedback',
@@ -74,27 +60,20 @@ class PollFeedbackSheet extends HookConsumerWidget {
                 SliverToBoxAdapter(child: _PollHeader(poll: data)),
                 SliverToBoxAdapter(child: const Divider(height: 1)),
                 SliverGap(4),
-                PagingHelperSliverView(
-                  provider: pollFeedbackNotifierProvider(pollId),
-                  futureRefreshable:
-                      pollFeedbackNotifierProvider(pollId).future,
-                  notifierRefreshable:
-                      pollFeedbackNotifierProvider(pollId).notifier,
-                  contentBuilder:
-                      (val, widgetCount, endItemView) => SliverList.separated(
-                        itemCount: widgetCount,
-                        itemBuilder: (context, index) {
-                          if (index == widgetCount - 1) {
-                            // Provided by PagingHelperView to indicate end/loading
-                            return endItemView;
-                          }
-                          final answer = val.items[index];
-                          return _PollAnswerTile(answer: answer, poll: data);
-                        },
-                        separatorBuilder:
-                            (context, index) =>
-                                const Divider(height: 1).padding(vertical: 4),
-                      ),
+                PaginationList(
+                  provider: provider,
+                  notifier: provider.notifier,
+                  isSliver: true,
+                  itemBuilder: (context, index, answer) {
+                    return Column(
+                      children: [
+                        _PollAnswerTile(answer: answer, poll: data),
+                        if (index <
+                            (ref.read(provider).valueOrNull?.length ?? 0) - 1)
+                          const Divider(height: 1).padding(vertical: 4),
+                      ],
+                    );
+                  },
                 ),
                 SliverGap(4 + MediaQuery.of(context).padding.bottom),
               ],

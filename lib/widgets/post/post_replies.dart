@@ -2,54 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
-import 'package:styled_widget/styled_widget.dart';
 
-part 'post_replies.g.dart';
+final postRepliesNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<PostRepliesNotifier, List<SnPost>, String>(PostRepliesNotifier.new);
 
-@riverpod
-class PostRepliesNotifier extends _$PostRepliesNotifier
-    with CursorPagingNotifierMixin<SnPost> {
+class PostRepliesNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPost>, String>
+    with FamilyAsyncPaginationController<SnPost, String> {
   static const int _pageSize = 20;
 
-  PostRepliesNotifier();
-
-  String? _postId;
-
   @override
-  Future<CursorPagingData<SnPost>> build(String postId) {
-    _postId = postId;
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnPost>> fetch({required String? cursor}) async {
-    if (_postId == null) {
-      throw StateError('PostRepliesNotifier must be initialized with postId');
-    }
-
+  Future<List<SnPost>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     final response = await client.get(
-      '/sphere/posts/$_postId/replies',
-      queryParameters: {'offset': offset, 'take': _pageSize},
+      '/sphere/posts/$arg/replies',
+      queryParameters: {'offset': fetchedCount, 'take': _pageSize},
     );
 
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final posts = data.map((json) => SnPost.fromJson(json)).toList();
-
-    final hasMore = offset + posts.length < total;
-    final nextCursor = hasMore ? (offset + posts.length).toString() : null;
-
-    return CursorPagingData(
-      items: posts,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnPost.fromJson(json)).toList();
   }
 }
 
@@ -66,52 +42,32 @@ class PostRepliesList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PagingHelperSliverView(
-      provider: postRepliesNotifierProvider(postId),
-      futureRefreshable: postRepliesNotifierProvider(postId).future,
-      notifierRefreshable: postRepliesNotifierProvider(postId).notifier,
-      contentBuilder: (data, widgetCount, endItemView) {
-        if (data.items.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Text(
-                  'No replies',
-                  textAlign: TextAlign.center,
-                ).fontSize(18).bold(),
-                const Text('Why not start a discussion?'),
-              ],
-            ).padding(vertical: 16),
-          );
-        }
+    final provider = postRepliesNotifierProvider(postId);
 
-        return SliverList.builder(
-          itemCount: widgetCount,
-          itemBuilder: (context, index) {
-            if (index == widgetCount - 1) {
-              return endItemView;
-            }
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      itemBuilder: (context, index, item) {
+        final contentWidget = Card(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: PostActionableItem(
+            borderRadius: 8,
+            item: item,
+            isShowReference: false,
+            isEmbedOpenable: true,
+            onOpen: onOpen,
+          ),
+        );
 
-            final contentWidget = Card(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: PostActionableItem(
-                borderRadius: 8,
-                item: data.items[index],
-                isShowReference: false,
-                isEmbedOpenable: true,
-                onOpen: onOpen,
-              ),
-            );
+        if (maxWidth == null) return contentWidget;
 
-            if (maxWidth == null) return contentWidget;
-
-            return Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth!),
-                child: contentWidget,
-              ),
-            );
-          },
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: contentWidget,
+          ),
         );
       },
     );

@@ -2,49 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/thought.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 
-part 'thought_sequence_list.g.dart';
+final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose<
+  ThoughtSequenceListNotifier,
+  List<SnThinkingSequence>
+>(ThoughtSequenceListNotifier.new);
 
-@riverpod
-class ThoughtSequenceListNotifier extends _$ThoughtSequenceListNotifier
-    with CursorPagingNotifierMixin<SnThinkingSequence> {
+class ThoughtSequenceListNotifier
+    extends AutoDisposeAsyncNotifier<List<SnThinkingSequence>>
+    with AutoDisposeAsyncPaginationController<SnThinkingSequence> {
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnThinkingSequence>> build() {
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnThinkingSequence>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnThinkingSequence>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
 
     final response = await client.get(
       '/insight/thought/sequences',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final sequences =
-        data.map((json) => SnThinkingSequence.fromJson(json)).toList();
-
-    final hasMore = offset + sequences.length < total;
-    final nextCursor = hasMore ? (offset + sequences.length).toString() : null;
-
-    return CursorPagingData(
-      items: sequences,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return data.map((json) => SnThinkingSequence.fromJson(json)).toList();
   }
 }
 
@@ -58,29 +43,19 @@ class ThoughtSequenceSelector extends HookConsumerWidget {
     final provider = thoughtSequenceListNotifierProvider;
     return SheetScaffold(
       titleText: 'Select Conversation',
-      child: PagingHelperView(
+      child: PaginationList(
         provider: provider,
-        futureRefreshable: provider.future,
-        notifierRefreshable: provider.notifier,
-        contentBuilder:
-            (data, widgetCount, endItemView) => ListView.builder(
-              itemCount: widgetCount,
-              itemBuilder: (context, index) {
-                if (index == widgetCount - 1) {
-                  return endItemView;
-                }
-
-                final sequence = data.items[index];
-                return ListTile(
-                  title: Text(sequence.topic ?? 'Untitled Conversation'),
-                  subtitle: Text(sequence.createdAt.formatSystem()),
-                  onTap: () {
-                    onSequenceSelected(sequence.id);
-                    Navigator.of(context).pop();
-                  },
-                );
-              },
-            ),
+        notifier: provider.notifier,
+        itemBuilder: (context, index, sequence) {
+          return ListTile(
+            title: Text(sequence.topic ?? 'Untitled Conversation'),
+            subtitle: Text(sequence.createdAt.formatSystem()),
+            onTap: () {
+              onSequenceSelected(sequence.id);
+              Navigator.of(context).pop();
+            },
+          );
+        },
       ),
     );
   }

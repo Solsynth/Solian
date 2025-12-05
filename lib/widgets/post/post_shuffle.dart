@@ -14,9 +14,10 @@ class PostShuffleScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postListState = ref.watch(postListNotifierProvider(shuffle: true));
+    const params = PostListQuery(shuffle: true);
+    final postListState = ref.watch(postListNotifierProvider(params));
     final postListNotifier = ref.watch(
-      postListNotifierProvider(shuffle: true).notifier,
+      postListNotifierProvider(params).notifier,
     );
 
     final cardSwiperController = useMemoized(() => CardSwiperController(), []);
@@ -37,12 +38,13 @@ class PostShuffleScreen extends HookConsumerWidget {
                   kBottomControlHeight + MediaQuery.of(context).padding.bottom,
             ),
             child: Builder(
-              key: ValueKey(postListState.value?.items.length ?? 0),
+              key: ValueKey(postListState.valueOrNull?.length ?? 0),
               builder: (context) {
-                if ((postListState.value?.items.length ?? 0) > 0) {
+                final items = postListState.valueOrNull ?? [];
+                if (items.isNotEmpty) {
                   return CardSwiper(
                     controller: cardSwiperController,
-                    cardsCount: postListState.value!.items.length,
+                    cardsCount: items.length,
                     isLoop: false,
                     cardBuilder: (
                       context,
@@ -60,9 +62,7 @@ class PostShuffleScreen extends HookConsumerWidget {
                                 borderRadius: const BorderRadius.all(
                                   Radius.circular(8),
                                 ),
-                                child: PostActionableItem(
-                                  item: postListState.value!.items[index],
-                                ),
+                                child: PostActionableItem(item: items[index]),
                               ),
                             ),
                           ),
@@ -70,8 +70,8 @@ class PostShuffleScreen extends HookConsumerWidget {
                       );
                     },
                     onEnd: () async {
-                      if (postListState.value?.hasMore ?? true) {
-                        postListNotifier.forceRefresh();
+                      if (!postListNotifier.fetchedAll) {
+                        postListNotifier.fetchFurther();
                       }
                     },
                   );
