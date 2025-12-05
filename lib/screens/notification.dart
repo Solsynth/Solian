@@ -7,16 +7,17 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -81,45 +82,37 @@ class NotificationUnreadCountNotifier
   }
 }
 
-@riverpod
-class NotificationListNotifier extends _$NotificationListNotifier
-    with CursorPagingNotifierMixin<SnNotification> {
-  static const int _pageSize = 5;
+final notificationListNotifierProvider = AsyncNotifierProvider(
+  NotificationListNotifier.new,
+);
+
+class NotificationListNotifier extends AsyncNotifier<List<SnNotification>>
+    with AsyncPaginationController<SnNotification> {
+  static const int pageSize = 5;
 
   @override
-  Future<CursorPagingData<SnNotification>> build() => fetch(cursor: null);
-
-  @override
-  Future<CursorPagingData<SnNotification>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnNotification>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
       '/ring/notifications',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final notifications =
-        data.map((json) => SnNotification.fromJson(json)).toList();
+        response.data
+            .map((json) => SnNotification.fromJson(json))
+            .cast<SnNotification>()
+            .toList();
 
-    final hasMore = offset + notifications.length < total;
-    final nextCursor =
-        hasMore ? (offset + notifications.length).toString() : null;
     final unreadCount = notifications.where((n) => n.viewedAt == null).length;
     ref
         .read(notificationUnreadCountNotifierProvider.notifier)
         .decrement(unreadCount);
 
-    return CursorPagingData(
-      items: notifications,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return notifications;
   }
 }
 
@@ -174,129 +167,108 @@ class NotificationSheet extends HookConsumerWidget {
           icon: const Icon(Symbols.mark_as_unread),
         ),
       ],
-      child: PagingHelperView(
+      child: PaginationList(
         provider: notificationListNotifierProvider,
-        futureRefreshable: notificationListNotifierProvider.future,
-        notifierRefreshable: notificationListNotifierProvider.notifier,
-        contentBuilder:
-            (data, widgetCount, endItemView) => ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: widgetCount,
-              itemBuilder: (context, index) {
-                if (index == widgetCount - 1) {
-                  return endItemView;
-                }
+        notifier: notificationListNotifierProvider.notifier,
+        itemBuilder: (context, index, notification) {
+          final pfp = notification.meta['pfp'] as String?;
+          final images = notification.meta['images'] as List?;
+          final imageIds = images?.cast<String>() ?? [];
 
-                final notification = data.items[index];
-                final pfp = notification.meta['pfp'] as String?;
-                final images = notification.meta['images'] as List?;
-                final imageIds = images?.cast<String>() ?? [];
-
-                return ListTile(
-                  isThreeLine: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading:
-                      pfp != null
-                          ? ProfilePictureWidget(fileId: pfp, radius: 20)
-                          : CircleAvatar(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                            child: Icon(
-                              _getNotificationIcon(notification.topic),
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                  title: Text(notification.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (notification.subtitle.isNotEmpty)
-                        Text(notification.subtitle).bold(),
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Text(
-                            DateFormat().format(
-                              notification.createdAt.toLocal(),
-                            ),
-                          ).fontSize(11),
-                          Text('·').fontSize(11).bold(),
-                          Text(
-                            RelativeTime(
-                              context,
-                            ).format(notification.createdAt.toLocal()),
-                          ).fontSize(11),
-                        ],
-                      ).opacity(0.75).padding(bottom: 4),
-                      MarkdownTextContent(
-                        content: notification.content,
-                        textStyle: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.8),
-                        ),
+          return ListTile(
+            isThreeLine: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading:
+                pfp != null
+                    ? ProfilePictureWidget(fileId: pfp, radius: 20)
+                    : CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(
+                        _getNotificationIcon(notification.topic),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
-                      if (imageIds.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children:
-                                imageIds.map((imageId) {
-                                  return SizedBox(
-                                    width: 80,
-                                    height: 80,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: CloudImageWidget(
-                                        fileId: imageId,
-                                        aspectRatio: 1,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                        ),
-                    ],
+                    ),
+            title: Text(notification.title),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (notification.subtitle.isNotEmpty)
+                  Text(notification.subtitle).bold(),
+                Row(
+                  spacing: 6,
+                  children: [
+                    Text(
+                      DateFormat().format(notification.createdAt.toLocal()),
+                    ).fontSize(11),
+                    Text('·').fontSize(11).bold(),
+                    Text(
+                      RelativeTime(
+                        context,
+                      ).format(notification.createdAt.toLocal()),
+                    ).fontSize(11),
+                  ],
+                ).opacity(0.75).padding(bottom: 4),
+                MarkdownTextContent(
+                  content: notification.content,
+                  textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.8),
                   ),
-                  trailing:
-                      notification.viewedAt != null
-                          ? null
-                          : Container(
-                            width: 12,
-                            height: 12,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                  onTap: () {
-                    if (notification.meta['action_uri'] != null) {
-                      var uri = notification.meta['action_uri'] as String;
-                      if (uri.startsWith('/')) {
-                        // In-app routes
-                        rootNavigatorKey.currentContext?.push(
-                          notification.meta['action_uri'],
-                        );
-                      } else {
-                        // External URLs
-                        launchUrlString(uri);
-                      }
-                    }
-                  },
-                );
-              },
+                ),
+                if (imageIds.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children:
+                          imageIds.map((imageId) {
+                            return SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CloudImageWidget(
+                                  fileId: imageId,
+                                  aspectRatio: 1,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+              ],
             ),
+            trailing:
+                notification.viewedAt != null
+                    ? null
+                    : Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+            onTap: () {
+              if (notification.meta['action_uri'] != null) {
+                var uri = notification.meta['action_uri'] as String;
+                if (uri.startsWith('/')) {
+                  // In-app routes
+                  rootNavigatorKey.currentContext?.push(
+                    notification.meta['action_uri'],
+                  );
+                } else {
+                  // External URLs
+                  launchUrlString(uri);
+                }
+              }
+            },
+          );
+        },
       ),
     );
   }

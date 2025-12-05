@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/account/status.dart';
@@ -17,9 +18,9 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/screens/chat/chat_form.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/database.dart';
 import 'package:island/screens/chat/search_messages.dart';
@@ -600,39 +601,36 @@ class ChatMemberNotifier extends StateNotifier<ChatRoomMemberState> {
   }
 }
 
-@riverpod
-class ChatMemberListNotifier extends _$ChatMemberListNotifier
-    with CursorPagingNotifierMixin<SnChatMember> {
-  @override
-  Future<CursorPagingData<SnChatMember>> build(String roomId) {
-    return fetch();
-  }
+final chatMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<ChatMemberListNotifier, List<SnChatMember>, String>(
+      ChatMemberListNotifier.new,
+    );
+
+class ChatMemberListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnChatMember>, String>
+    with FamilyAsyncPaginationController<SnChatMember, String> {
+  static const pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnChatMember>> fetch({String? cursor}) async {
-    final offset = cursor == null ? 0 : int.parse(cursor);
-    final take = 20;
-
+  Future<List<SnChatMember>> fetch() async {
     final apiClient = ref.watch(apiClientProvider);
     final response = await apiClient.get(
-      '/sphere/chat/$roomId/members',
-      queryParameters: {'offset': offset, 'take': take, 'withStatus': true},
+      '/sphere/chat/$arg/members',
+      queryParameters: {
+        'offset': fetchedCount.toString(),
+        'take': pageSize,
+        'withStatus': true,
+      },
     );
 
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final members = data.map((e) => SnChatMember.fromJson(e)).toList();
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final members =
+        response.data
+            .map((e) => SnChatMember.fromJson(e))
+            .cast<SnChatMember>()
+            .toList();
 
-    // Calculate next cursor based on total count
-    final nextOffset = offset + members.length;
-    final String? nextCursor =
-        nextOffset < total ? nextOffset.toString() : null;
-
-    return CursorPagingData(
-      items: members,
-      nextCursor: nextCursor,
-      hasMore: members.length < total,
-    );
+    return members;
   }
 }
 
@@ -727,75 +725,62 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: PagingHelperView(
+            child: PaginationList(
               provider: memberListProvider,
-              futureRefreshable: memberListProvider.future,
-              notifierRefreshable: memberListProvider.notifier,
-              contentBuilder: (data, widgetCount, endItemView) {
-                return ListView.builder(
-                  itemCount: widgetCount,
-                  itemBuilder: (context, index) {
-                    if (index == data.items.length) {
-                      return endItemView;
-                    }
-
-                    final member = data.items[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: AccountPfcGestureDetector(
-                        uname: member.account.name,
-                        child: ProfilePictureWidget(
-                          fileId: member.account.profile.picture?.id,
+              notifier: memberListProvider.notifier,
+              itemBuilder: (context, idx, member) {
+                return ListTile(
+                  contentPadding: EdgeInsets.only(left: 16, right: 12),
+                  leading: AccountPfcGestureDetector(
+                    uname: member.account.name,
+                    child: ProfilePictureWidget(
+                      fileId: member.account.profile.picture?.id,
+                    ),
+                  ),
+                  title: Row(
+                    spacing: 6,
+                    children: [
+                      Flexible(child: Text(member.account.nick)),
+                      if (member.status != null)
+                        AccountStatusLabel(
+                          status: member.status!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      title: Row(
-                        spacing: 6,
-                        children: [
-                          Flexible(child: Text(member.account.nick)),
-                          if (member.status != null)
-                            AccountStatusLabel(
-                              status: member.status!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          if (member.joinedAt == null)
-                            const Icon(Symbols.pending_actions, size: 20),
-                        ],
-                      ),
-                      subtitle: Text("@${member.account.name}"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isManagable)
-                            IconButton(
-                              icon: const Icon(Symbols.delete),
-                              onPressed: () {
-                                showConfirmAlert(
-                                  'removeChatMemberHint'.tr(),
-                                  'removeChatMember'.tr(),
-                                ).then((confirm) async {
-                                  if (confirm != true) return;
-                                  try {
-                                    final apiClient = ref.watch(
-                                      apiClientProvider,
-                                    );
-                                    await apiClient.delete(
-                                      '/sphere/chat/$roomId/members/${member.accountId}',
-                                    );
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  } catch (err) {
-                                    showErrorAlert(err);
-                                  }
-                                });
-                              },
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                      if (member.joinedAt == null)
+                        const Icon(Symbols.pending_actions, size: 20),
+                    ],
+                  ),
+                  subtitle: Text("@${member.account.name}"),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isManagable)
+                        IconButton(
+                          icon: const Icon(Symbols.delete),
+                          onPressed: () {
+                            showConfirmAlert(
+                              'removeChatMemberHint'.tr(),
+                              'removeChatMember'.tr(),
+                            ).then((confirm) async {
+                              if (confirm != true) return;
+                              try {
+                                final apiClient = ref.watch(apiClientProvider);
+                                await apiClient.delete(
+                                  '/sphere/chat/$roomId/members/${member.accountId}',
+                                );
+                                // Refresh both providers
+                                memberNotifier.reset();
+                                memberNotifier.loadMore();
+                                ref.invalidate(memberListProvider);
+                              } catch (err) {
+                                showErrorAlert(err);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  ),
                 );
               },
             ),

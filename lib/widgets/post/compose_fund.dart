@@ -22,6 +22,8 @@ class ComposeFundSheet extends HookConsumerWidget {
     final isPushing = useState(false);
     final errorText = useState<String?>(null);
 
+    final fundsData = ref.watch(walletFundsNotifierProvider);
+
     return SheetScaffold(
       heightFactor: 0.6,
       titleText: 'fund'.tr(),
@@ -41,161 +43,146 @@ class ComposeFundSheet extends HookConsumerWidget {
               child: TabBarView(
                 children: [
                   // Link/Select existing fund list
-                  ref
-                      .watch(walletFundsProvider())
-                      .when(
-                        data:
-                            (funds) =>
-                                funds.isEmpty
-                                    ? Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Symbols.money_bag,
-                                            size: 48,
-                                            color:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.outline,
-                                          ),
-                                          const Gap(16),
-                                          Text(
-                                            'noFundsCreated'.tr(),
-                                            style:
-                                                Theme.of(
-                                                  context,
-                                                ).textTheme.titleMedium,
-                                          ),
-                                        ],
+                  fundsData.when(
+                    data:
+                        (funds) =>
+                            funds.isEmpty
+                                ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Symbols.money_bag,
+                                        size: 48,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.outline,
                                       ),
-                                    )
-                                    : ListView.builder(
-                                      padding: const EdgeInsets.all(16),
-                                      itemCount: funds.length,
-                                      itemBuilder: (context, index) {
-                                        final fund = funds[index];
+                                      const Gap(16),
+                                      Text(
+                                        'noFundsCreated'.tr(),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: funds.length,
+                                  itemBuilder: (context, index) {
+                                    final fund = funds[index];
 
-                                        return Card(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 8,
-                                          ),
-                                          child: InkWell(
-                                            onTap:
-                                                () => Navigator.of(
-                                                  context,
-                                                ).pop(fund),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      child: InkWell(
+                                        onTap:
+                                            () =>
+                                                Navigator.of(context).pop(fund),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
                                                 children: [
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        Symbols.money_bag,
+                                                  Icon(
+                                                    Symbols.money_bag,
+                                                    color:
+                                                        Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
+                                                    fill: 1,
+                                                  ),
+                                                  const Gap(8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${fund.totalAmount.toStringAsFixed(2)} ${fund.currency}',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         color:
                                                             Theme.of(context)
                                                                 .colorScheme
                                                                 .primary,
-                                                        fill: 1,
                                                       ),
-                                                      const Gap(8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          '${fund.totalAmount.toStringAsFixed(2)} ${fund.currency}',
-                                                          style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .colorScheme
-                                                                    .primary,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 8,
-                                                              vertical: 4,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color:
-                                                              _getFundStatusColor(
-                                                                context,
-                                                                fund.status,
-                                                              ).withOpacity(
-                                                                0.1,
-                                                              ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                12,
-                                                              ),
-                                                        ),
-                                                        child: Text(
-                                                          _getFundStatusText(
-                                                            fund.status,
-                                                          ),
-                                                          style: TextStyle(
-                                                            color:
-                                                                _getFundStatusColor(
-                                                                  context,
-                                                                  fund.status,
-                                                                ),
-                                                            fontSize: 12,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  if (fund.message != null &&
-                                                      fund
-                                                          .message!
-                                                          .isNotEmpty) ...[
-                                                    const Gap(8),
-                                                    Text(
-                                                      fund.message!,
-                                                      style:
-                                                          Theme.of(context)
-                                                              .textTheme
-                                                              .bodyMedium,
                                                     ),
-                                                  ],
-                                                  const Gap(8),
-                                                  Text(
-                                                    '${'recipients'.tr()}: ${fund.recipients.where((r) => r.isReceived).length}/${fund.recipients.length}',
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.bodySmall?.copyWith(
+                                                  ),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
+                                                        ),
+                                                    decoration: BoxDecoration(
                                                       color:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .onSurfaceVariant,
+                                                          _getFundStatusColor(
+                                                            context,
+                                                            fund.status,
+                                                          ).withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      _getFundStatusText(
+                                                        fund.status,
+                                                      ),
+                                                      style: TextStyle(
+                                                        color:
+                                                            _getFundStatusColor(
+                                                              context,
+                                                              fund.status,
+                                                            ),
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                            ),
+                                              if (fund.message != null &&
+                                                  fund.message!.isNotEmpty) ...[
+                                                const Gap(8),
+                                                Text(
+                                                  fund.message!,
+                                                  style:
+                                                      Theme.of(
+                                                        context,
+                                                      ).textTheme.bodyMedium,
+                                                ),
+                                              ],
+                                              const Gap(8),
+                                              Text(
+                                                '${'recipients'.tr()}: ${fund.recipients.where((r) => r.isReceived).length}/${fund.recipients.length}',
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall?.copyWith(
+                                                  color:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurfaceVariant,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        );
-                                      },
-                                    ),
-                        loading:
-                            () => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                        error:
-                            (error, stack) =>
-                                Center(child: Text('Error: $error')),
-                      ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                    loading:
+                        () => const Center(child: CircularProgressIndicator()),
+                    error:
+                        (error, stack) => Center(child: Text('Error: $error')),
+                  ),
 
                   // Create new fund and return it
                   SingleChildScrollView(
@@ -314,7 +301,9 @@ class ComposeFundSheet extends HookConsumerWidget {
                                           await Future.delayed(
                                             const Duration(seconds: 1),
                                           );
-                                          ref.invalidate(walletFundsProvider);
+                                          ref.invalidate(
+                                            walletFundsNotifierProvider,
+                                          );
 
                                           // Return the created fund
                                           final updatedResp = await client.get(
