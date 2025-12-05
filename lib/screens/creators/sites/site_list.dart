@@ -6,54 +6,43 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/screens/creators/sites/site_edit.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'site_list.g.dart';
+final siteListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+  SiteListNotifier.new,
+);
 
-@riverpod
-class SiteListNotifier extends _$SiteListNotifier
-    with CursorPagingNotifierMixin<SnPublicationSite> {
-  static const int _pageSize = 20;
-
-  @override
-  Future<CursorPagingData<SnPublicationSite>> build(String? pubName) {
-    // immediately load first page
-    return fetch(cursor: null);
-  }
+class SiteListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPublicationSite>, String>
+    with FamilyAsyncPaginationController<SnPublicationSite, String> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPublicationSite>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnPublicationSite>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     // read the current family argument passed to provider
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
-      '/zone/sites/$pubName',
+      '/zone/sites/$arg',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final items = data.map((json) => SnPublicationSite.fromJson(json)).toList();
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final items =
+        response.data
+            .map((json) => SnPublicationSite.fromJson(json))
+            .cast<SnPublicationSite>()
+            .toList();
 
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return items;
   }
 }
 
@@ -84,24 +73,15 @@ class CreatorSiteListScreen extends HookConsumerWidget {
         child: CustomScrollView(
           slivers: [
             const SliverGap(8),
-            PagingHelperSliverView(
+            PaginationList(
               provider: siteListNotifierProvider(pubName),
-              futureRefreshable: siteListNotifierProvider(pubName).future,
-              notifierRefreshable: siteListNotifierProvider(pubName).notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => SliverList.builder(
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-                      final site = data.items[index];
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 640),
-                        child: _CreatorSiteItem(site: site, pubName: pubName),
-                      ).center();
-                    },
-                  ),
+              notifier: siteListNotifierProvider(pubName).notifier,
+              itemBuilder: (context, index, site) {
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: _CreatorSiteItem(site: site, pubName: pubName),
+                ).center();
+              },
             ),
           ],
         ),

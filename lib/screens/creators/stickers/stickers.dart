@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -14,10 +15,10 @@ import 'package:island/widgets/content/cloud_file_picker.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
 part 'stickers.g.dart';
 
@@ -81,111 +82,94 @@ class SliverStickerPacksList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PagingHelperView(
+    return PaginationList(
       provider: stickerPacksNotifierProvider(pubName),
-      futureRefreshable: stickerPacksNotifierProvider(pubName).future,
-      notifierRefreshable: stickerPacksNotifierProvider(pubName).notifier,
-      contentBuilder:
-          (data, widgetCount, endItemView) => ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: widgetCount,
-            itemBuilder: (context, index) {
-              if (index == widgetCount - 1) {
-                return endItemView;
-              }
-
-              final sticker = data.items[index];
-              return ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                ),
-                title: Text(sticker.name),
-                subtitle: Text(sticker.description),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder:
-                        (context) => SheetScaffold(
-                          titleText: sticker.name,
-                          actions: [
-                            IconButton(
-                              icon: const Icon(Symbols.add_circle),
-                              onPressed: () {
-                                final id = sticker.id;
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder:
-                                      (context) => SheetScaffold(
-                                        titleText: 'createSticker'.tr(),
-                                        child: StickerForm(packId: id),
-                                      ),
-                                ).then((value) {
-                                  if (value != null) {
-                                    ref.invalidate(
-                                      stickerPackContentProvider(id),
-                                    );
-                                  }
-                                });
-                              },
-                            ),
-                            StickerPackActionMenu(
-                              pubName: pubName,
-                              packId: sticker.id,
-                              iconShadow: Shadow(),
-                            ),
-                          ],
-                          child: StickerPackDetailContent(
-                            id: sticker.id,
-                            pubName: pubName,
-                          ),
-                        ),
-                  );
-                },
-              );
-            },
+      notifier: stickerPacksNotifierProvider(pubName).notifier,
+      itemBuilder: (context, index, sticker) {
+        return ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
+          title: Text(sticker.name),
+          subtitle: Text(sticker.description),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder:
+                  (context) => SheetScaffold(
+                    titleText: sticker.name,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Symbols.add_circle),
+                        onPressed: () {
+                          final id = sticker.id;
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder:
+                                (context) => SheetScaffold(
+                                  titleText: 'createSticker'.tr(),
+                                  child: StickerForm(packId: id),
+                                ),
+                          ).then((value) {
+                            if (value != null) {
+                              ref.invalidate(stickerPackContentProvider(id));
+                            }
+                          });
+                        },
+                      ),
+                      StickerPackActionMenu(
+                        pubName: pubName,
+                        packId: sticker.id,
+                        iconShadow: Shadow(),
+                      ),
+                    ],
+                    child: StickerPackDetailContent(
+                      id: sticker.id,
+                      pubName: pubName,
+                    ),
+                  ),
+            );
+          },
+        );
+      },
     );
   }
 }
 
-@riverpod
-class StickerPacksNotifier extends _$StickerPacksNotifier
-    with CursorPagingNotifierMixin<SnStickerPack> {
-  static const int _pageSize = 20;
+final stickerPacksNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+  StickerPacksNotifier.new,
+);
+
+class StickerPacksNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnStickerPack>, String>
+    with FamilyAsyncPaginationController<SnStickerPack, String> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnStickerPack>> build(String pubName) {
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnStickerPack>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnStickerPack>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     try {
       final response = await client.get(
         '/sphere/stickers',
-        queryParameters: {'offset': offset, 'take': _pageSize, 'pub': pubName},
+        queryParameters: {
+          'offset': fetchedCount.toString(),
+          'take': pageSize,
+          'pub': arg,
+        },
       );
 
-      final total = int.parse(response.headers.value('X-Total') ?? '0');
-      final List<dynamic> data = response.data;
-      final stickers = data.map((e) => SnStickerPack.fromJson(e)).toList();
+      totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+      final stickers =
+          response.data
+              .map((e) => SnStickerPack.fromJson(e))
+              .cast<SnStickerPack>()
+              .toList();
 
-      final hasMore = offset + stickers.length < total;
-      final nextCursor = hasMore ? (offset + stickers.length).toString() : null;
-
-      return CursorPagingData(
-        items: stickers,
-        hasMore: hasMore,
-        nextCursor: nextCursor,
-      );
+      return stickers;
     } catch (err) {
       rethrow;
     }

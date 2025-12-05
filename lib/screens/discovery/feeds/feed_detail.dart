@@ -1,17 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'feed_detail.g.dart';
@@ -23,52 +22,32 @@ Future<SnWebFeed> marketplaceWebFeed(Ref ref, String feedId) async {
   return SnWebFeed.fromJson(resp.data);
 }
 
-/// Provider for web feed articles content
-@riverpod
+final marketplaceWebFeedContentNotifierProvider = AsyncNotifierProvider.family
+    .autoDispose(MarketplaceWebFeedContentNotifier.new);
+
 class MarketplaceWebFeedContentNotifier
-    extends _$MarketplaceWebFeedContentNotifier
-    with CursorPagingNotifierMixin<SnWebArticle> {
-  static const int _pageSize = 20;
+    extends AutoDisposeFamilyAsyncNotifier<List<SnWebArticle>, String>
+    with FamilyAsyncPaginationController<SnWebArticle, String> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnWebArticle>> build(String feedId) async {
-    _feedId = feedId;
-    return fetch(cursor: null);
-  }
-
-  late final String _feedId;
-  ValueNotifier<int> totalCount = ValueNotifier(0);
-
-  @override
-  Future<CursorPagingData<SnWebArticle>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnWebArticle>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
-      '/sphere/feeds/$_feedId/articles',
+      '/sphere/feeds/$arg/articles',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    totalCount.value = total;
-    final List<dynamic> data = response.data;
-    final articles = data.map((json) => SnWebArticle.fromJson(json)).toList();
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final articles =
+        response.data
+            .map((json) => SnWebArticle.fromJson(json))
+            .cast<SnWebArticle>()
+            .toList();
 
-    final hasMore = offset + articles.length < total;
-    final nextCursor = hasMore ? (offset + articles.length).toString() : null;
-
-    return CursorPagingData(
-      items: articles,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
-  }
-
-  void dispose() {
-    totalCount.dispose();
+    return articles;
   }
 }
 
@@ -126,10 +105,6 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
       marketplaceWebFeedContentNotifierProvider(id).notifier,
     );
 
-    useEffect(() {
-      return feedNotifier.dispose;
-    }, []);
-
     return AppScaffold(
       appBar: AppBar(title: Text(feed.value?.title ?? 'loading'.tr())),
       body: Column(
@@ -147,14 +122,10 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
                           spacing: 4,
                           children: [
                             const Icon(Symbols.rss_feed, size: 16),
-                            ListenableBuilder(
-                              listenable: feedNotifier.totalCount,
-                              builder:
-                                  (context, _) => Text(
-                                    'webFeedArticleCount'.plural(
-                                      feedNotifier.totalCount.value,
-                                    ),
-                                  ),
+                            Text(
+                              'webFeedArticleCount'.plural(
+                                feedNotifier.totalCount ?? 0,
+                              ),
                             ),
                           ],
                         ).opacity(0.85),
@@ -174,29 +145,12 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
           const Divider(height: 1),
           // Articles list
           Expanded(
-            child: PagingHelperView(
+            child: PaginationList(
               provider: marketplaceWebFeedContentNotifierProvider(id),
-              futureRefreshable:
-                  marketplaceWebFeedContentNotifierProvider(id).future,
-              notifierRefreshable:
-                  marketplaceWebFeedContentNotifierProvider(id).notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
-                    ),
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-
-                      final article = data.items[index];
-                      return WebArticleCard(article: article);
-                    },
-                    separatorBuilder: (context, index) => const Gap(12),
-                  ),
+              notifier: marketplaceWebFeedContentNotifierProvider(id).notifier,
+              itemBuilder: (context, index, article) {
+                return WebArticleCard(article: article);
+              },
             ),
           ),
           Container(

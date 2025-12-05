@@ -1,41 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
 part 'articles.g.dart';
+part 'articles.freezed.dart';
 
-@riverpod
-class ArticlesListNotifier extends _$ArticlesListNotifier
-    with CursorPagingNotifierMixin<SnWebArticle> {
-  static const int _pageSize = 20;
+@freezed
+sealed class ArticleListQuery with _$ArticleListQuery {
+  const factory ArticleListQuery({String? feedId, String? publisherId}) =
+      _ArticleListQuery;
+}
 
-  Map<String, dynamic> _params = {};
+final articlesListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+  ArticlesListNotifier.new,
+);
 
-  @override
-  Future<CursorPagingData<SnWebArticle>> build({
-    String? feedId,
-    String? publisherId,
-  }) async {
-    _params = {
-      if (feedId != null) 'feedId': feedId,
-      if (publisherId != null) 'publisherId': publisherId,
-    };
-    return fetch(cursor: null);
-  }
+class ArticlesListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnWebArticle>, ArticleListQuery>
+    with FamilyAsyncPaginationController<SnWebArticle, ArticleListQuery> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnWebArticle>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnWebArticle>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'limit': _pageSize, 'offset': offset, ..._params};
+    final queryParams = {'limit': pageSize, 'offset': fetchedCount.toString()};
 
     try {
       final response = await client.get(
@@ -43,23 +39,17 @@ class ArticlesListNotifier extends _$ArticlesListNotifier
         queryParameters: queryParams,
       );
 
-      final List<dynamic> data = response.data;
       final articles =
-          data
+          response.data
               .map(
                 (json) => SnWebArticle.fromJson(json as Map<String, dynamic>),
               )
+              .cast<SnWebArticle>()
               .toList();
 
-      final total = int.tryParse(response.headers.value('X-Total') ?? '0') ?? 0;
-      final hasMore = offset + articles.length < total;
-      final nextCursor = hasMore ? (offset + articles.length).toString() : null;
+      totalCount = int.tryParse(response.headers.value('X-Total') ?? '0') ?? 0;
 
-      return CursorPagingData(
-        items: articles,
-        hasMore: hasMore,
-        nextCursor: nextCursor,
-      );
+      return articles;
     } catch (e) {
       debugPrint('Error fetching articles: $e');
       rethrow;
@@ -85,34 +75,17 @@ class SliverArticlesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PagingHelperSliverView(
-      provider: articlesListNotifierProvider(
-        feedId: feedId,
-        publisherId: publisherId,
-      ),
-      futureRefreshable:
-          articlesListNotifierProvider(
-            feedId: feedId,
-            publisherId: publisherId,
-          ).future,
-      notifierRefreshable:
-          articlesListNotifierProvider(
-            feedId: feedId,
-            publisherId: publisherId,
-          ).notifier,
-      contentBuilder:
-          (data, widgetCount, endItemView) => SliverList.separated(
-            itemCount: widgetCount,
-            itemBuilder: (context, index) {
-              if (index == widgetCount - 1) {
-                return endItemView;
-              }
-
-              final article = data.items[index];
-              return WebArticleCard(article: article, showDetails: true);
-            },
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-          ),
+    final provider = articlesListNotifierProvider(
+      ArticleListQuery(feedId: feedId, publisherId: publisherId),
+    );
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      itemBuilder: (context, index, article) {
+        return WebArticleCard(article: article, showDetails: true);
+      },
     );
   }
 }

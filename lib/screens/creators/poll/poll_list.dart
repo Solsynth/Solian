@@ -4,60 +4,51 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/paging.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'poll_list.g.dart';
 
-@riverpod
-class PollListNotifier extends _$PollListNotifier
-    with CursorPagingNotifierMixin<SnPollWithStats> {
-  static const int _pageSize = 20;
+final pollListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+  PollListNotifier.new,
+);
+
+class PollListNotifier
+    extends AutoDisposeFamilyAsyncNotifier<List<SnPollWithStats>, String?>
+    with FamilyAsyncPaginationController<SnPollWithStats, String?> {
+  static const int pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPollWithStats>> build(String? pubName) {
-    // immediately load first page
-    return fetch(cursor: null);
-  }
-
-  @override
-  Future<CursorPagingData<SnPollWithStats>> fetch({
-    required String? cursor,
-  }) async {
+  Future<List<SnPollWithStats>> fetch() async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
 
     // read the current family argument passed to provider
-    final currentPub = pubName;
     final queryParams = {
-      'offset': offset,
-      'take': _pageSize,
-      if (currentPub != null) 'pub': currentPub,
+      'offset': fetchedCount.toString(),
+      'take': pageSize,
+      if (arg != null) 'pub': arg,
     };
 
     final response = await client.get(
       '/sphere/polls/me',
       queryParameters: queryParams,
     );
-    final total = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final items = data.map((json) => SnPollWithStats.fromJson(json)).toList();
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final items =
+        response.data
+            .map((json) => SnPollWithStats.fromJson(json))
+            .cast<SnPollWithStats>()
+            .toList();
 
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
-
-    return CursorPagingData(
-      items: items,
-      hasMore: hasMore,
-      nextCursor: nextCursor,
-    );
+    return items;
   }
 }
 
@@ -97,31 +88,19 @@ class CreatorPollListScreen extends HookConsumerWidget {
       ),
       body: ExtendedRefreshIndicator(
         onRefresh: () => ref.refresh(pollListNotifierProvider(pubName).future),
-        child: CustomScrollView(
-          slivers: [
-            PagingHelperSliverView(
-              provider: pollListNotifierProvider(pubName),
-              futureRefreshable: pollListNotifierProvider(pubName).future,
-              notifierRefreshable: pollListNotifierProvider(pubName).notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => SliverList.builder(
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-                      final pollWithStats = data.items[index];
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 640),
-                        child: _CreatorPollItem(
-                          pollWithStats: pollWithStats,
-                          pubName: pubName,
-                        ),
-                      ).center();
-                    },
-                  ),
-            ),
-          ],
+        child: PaginationList(
+          provider: pollListNotifierProvider(pubName),
+          notifier: pollListNotifierProvider(pubName).notifier,
+          padding: const EdgeInsets.only(top: 12),
+          itemBuilder: (context, index, pollWithStats) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 640),
+              child: _CreatorPollItem(
+                pollWithStats: pollWithStats,
+                pubName: pubName,
+              ),
+            ).center();
+          },
         ),
       ),
     );

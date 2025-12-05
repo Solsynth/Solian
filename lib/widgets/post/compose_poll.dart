@@ -9,8 +9,8 @@ import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 
@@ -45,35 +45,21 @@ class ComposePollSheet extends HookConsumerWidget {
               child: TabBarView(
                 children: [
                   // Link/Select existing poll list
-                  PagingHelperView(
+                  PaginationList(
                     provider: pollListNotifierProvider(pub?.name),
-                    futureRefreshable:
-                        pollListNotifierProvider(pub?.name).future,
-                    notifierRefreshable:
-                        pollListNotifierProvider(pub?.name).notifier,
-                    contentBuilder:
-                        (data, widgetCount, endItemView) => ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: widgetCount,
-                          itemBuilder: (context, index) {
-                            if (index == widgetCount - 1) {
-                              return endItemView;
-                            }
-
-                            final poll = data.items[index];
-
-                            return ListTile(
-                              leading: const Icon(Symbols.how_to_vote, fill: 1),
-                              title: Text(poll.title ?? 'untitled'.tr()),
-                              subtitle: _buildPollSubtitle(poll),
-                              onTap: () {
-                                Navigator.of(
-                                  context,
-                                ).pop(SnPoll.fromPollWithStats(poll));
-                              },
-                            );
-                          },
-                        ),
+                    notifier: pollListNotifierProvider(pub?.name).notifier,
+                    itemBuilder: (context, index, poll) {
+                      return ListTile(
+                        leading: const Icon(Symbols.how_to_vote, fill: 1),
+                        title: Text(poll.title ?? 'untitled'.tr()),
+                        subtitle: _buildPollSubtitle(poll),
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pop(SnPoll.fromPollWithStats(poll));
+                        },
+                      );
+                    },
                   ),
 
                   // Create new poll and return it
