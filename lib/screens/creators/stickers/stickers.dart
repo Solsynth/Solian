@@ -41,11 +41,10 @@ class StickersScreen extends HookConsumerWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder:
-                (context) => SheetScaffold(
-                  titleText: 'createStickerPack'.tr(),
-                  child: StickerPackForm(pubName: pubName),
-                ),
+            builder: (context) => SheetScaffold(
+              titleText: 'createStickerPack'.tr(),
+              child: StickerPackForm(pubName: pubName),
+            ),
           ).then((value) {
             if (value != null) {
               ref.invalidate(stickerPacksProvider(pubName));
@@ -54,24 +53,23 @@ class StickersScreen extends HookConsumerWidget {
         },
         child: const Icon(Symbols.add),
       ),
-      body:
-          isWideScreen(context)
-              ? Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 640),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
+      body: isWideScreen(context)
+          ? Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 640),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
                     ),
-                    margin: const EdgeInsets.only(top: 16),
-                    child: content,
                   ),
+                  margin: const EdgeInsets.only(top: 16),
+                  child: content,
                 ),
-              )
-              : content,
+              ),
+            )
+          : content,
     );
   }
 }
@@ -83,6 +81,7 @@ class SliverStickerPacksList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PaginationList(
+      padding: EdgeInsets.zero,
       provider: stickerPacksProvider(pubName),
       notifier: stickerPacksProvider(pubName).notifier,
       itemBuilder: (context, index, sticker) {
@@ -97,40 +96,38 @@ class SliverStickerPacksList extends HookConsumerWidget {
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              builder:
-                  (context) => SheetScaffold(
-                    titleText: sticker.name,
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Symbols.add_circle),
-                        onPressed: () {
-                          final id = sticker.id;
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder:
-                                (context) => SheetScaffold(
-                                  titleText: 'createSticker'.tr(),
-                                  child: StickerForm(packId: id),
-                                ),
-                          ).then((value) {
-                            if (value != null) {
-                              ref.invalidate(stickerPackContentProvider(id));
-                            }
-                          });
-                        },
-                      ),
-                      StickerPackActionMenu(
-                        pubName: pubName,
-                        packId: sticker.id,
-                        iconShadow: Shadow(),
-                      ),
-                    ],
-                    child: StickerPackDetailContent(
-                      id: sticker.id,
-                      pubName: pubName,
-                    ),
+              builder: (context) => SheetScaffold(
+                titleText: sticker.name,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Symbols.add_circle),
+                    onPressed: () {
+                      final id = sticker.id;
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => SheetScaffold(
+                          titleText: 'createSticker'.tr(),
+                          child: StickerForm(packId: id),
+                        ),
+                      ).then((value) {
+                        if (value != null) {
+                          ref.invalidate(stickerPackContentProvider(id));
+                        }
+                      });
+                    },
                   ),
+                  StickerPackActionMenu(
+                    pubName: pubName,
+                    packId: sticker.id,
+                    iconShadow: Shadow(),
+                  ),
+                ],
+                child: StickerPackDetailContent(
+                  id: sticker.id,
+                  pubName: pubName,
+                ),
+              ),
             );
           },
         );
@@ -165,11 +162,10 @@ class StickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
       );
 
       totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-      final stickers =
-          response.data
-              .map((e) => SnStickerPack.fromJson(e))
-              .cast<SnStickerPack>()
-              .toList();
+      final stickers = response.data
+          .map((e) => SnStickerPack.fromJson(e))
+          .cast<SnStickerPack>()
+          .toList();
 
       return stickers;
     } catch (err) {
@@ -262,10 +258,9 @@ class StickerPackForm extends HookConsumerWidget {
                           color: Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
-                        child:
-                            (icon.value?.isEmpty ?? true)
-                                ? const SizedBox.shrink()
-                                : CloudImageWidget(fileId: icon.value!),
+                        child: (icon.value?.isEmpty ?? true)
+                            ? const SizedBox.shrink()
+                            : CloudImageWidget(fileId: icon.value!),
                       ),
                     ),
                   ),
@@ -273,10 +268,9 @@ class StickerPackForm extends HookConsumerWidget {
                     onPressed: () {
                       showModalBottomSheet(
                         context: context,
-                        builder:
-                            (context) => CloudFilePicker(
-                              allowedTypes: {UniversalFileType.image},
-                            ),
+                        builder: (context) => CloudFilePicker(
+                          allowedTypes: {UniversalFileType.image},
+                        ),
                       ).then((value) {
                         if (value == null) return;
                         icon.value = value[0].id;
@@ -300,8 +294,8 @@ class StickerPackForm extends HookConsumerWidget {
                   }
                   return null;
                 },
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
               TextFormField(
                 controller: descriptionController,
@@ -314,8 +308,8 @@ class StickerPackForm extends HookConsumerWidget {
                 ),
                 minLines: 3,
                 maxLines: null,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
               TextFormField(
                 controller: prefixController,
@@ -332,8 +326,8 @@ class StickerPackForm extends HookConsumerWidget {
                   }
                   return null;
                 },
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
             ],
           ),

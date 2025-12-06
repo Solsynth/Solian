@@ -5,16 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
 
-final webFeedListProvider = FutureProvider.family<List<SnWebFeed>, String>((
-  ref,
-  pubName,
-) async {
-  final client = ref.watch(apiClientProvider);
-  final response = await client.get('/sphere/publishers/$pubName/feeds');
-  return (response.data as List)
-      .map((json) => SnWebFeed.fromJson(json))
-      .toList();
-});
+final webFeedListProvider = FutureProvider.autoDispose
+    .family<List<SnWebFeed>, String>((ref, pubName) async {
+      final client = ref.watch(apiClientProvider);
+      final response = await client.get('/sphere/publishers/$pubName/feeds');
+      return (response.data as List)
+          .map((json) => SnWebFeed.fromJson(json))
+          .toList();
+    });
 
 class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
   final ({String pubName, String? feedId}) arg;
@@ -51,10 +49,9 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
       final client = ref.read(apiClientProvider);
       final url = '/sphere/publishers/${feed.publisherId}/feeds';
 
-      final response =
-          feed.id.isEmpty
-              ? await client.post(url, data: feed.toJson())
-              : await client.patch('$url/${feed.id}', data: feed.toJson());
+      final response = feed.id.isEmpty
+          ? await client.post(url, data: feed.toJson())
+          : await client.patch('$url/${feed.id}', data: feed.toJson());
 
       state = AsyncValue.data(SnWebFeed.fromJson(response.data));
     } catch (error, stackTrace) {
