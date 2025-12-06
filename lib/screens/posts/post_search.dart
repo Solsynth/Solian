@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_item_skeleton.dart';
 import 'package:island/widgets/posts/post_filter.dart';
 import 'package:gap/gap.dart';
 import 'package:island/pods/post/post_list.dart';
@@ -140,6 +141,12 @@ class PostSearchScreen extends HookConsumerWidget {
                               ).notifier,
                               isSliver: true,
                               isRefreshable: false,
+                              footerSkeletonChild: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: const PostItemSkeleton(),
+                              ),
                               itemBuilder: (context, index, post) {
                                 return Card(
                                   margin: EdgeInsets.symmetric(
@@ -261,6 +268,10 @@ class PostSearchScreen extends HookConsumerWidget {
                       ).notifier,
                       isSliver: true,
                       isRefreshable: false,
+                      footerSkeletonChild: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: const PostItemSkeleton(),
+                      ),
                       itemBuilder: (context, index, post) {
                         return Center(
                           child: ConstrainedBox(
