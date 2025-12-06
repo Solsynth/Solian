@@ -21,6 +21,7 @@ class PaginationList<T> extends HookConsumerWidget {
   final bool isSliver;
   final bool showDefaultWidgets;
   final EdgeInsets? padding;
+  final Widget? footerSkeletonChild;
   const PaginationList({
     super.key,
     required this.provider,
@@ -30,6 +31,7 @@ class PaginationList<T> extends HookConsumerWidget {
     this.isSliver = false,
     this.showDefaultWidgets = true,
     this.padding,
+    this.footerSkeletonChild,
   });
 
   @override
@@ -55,7 +57,11 @@ class PaginationList<T> extends HookConsumerWidget {
             itemCount: (data.value?.length ?? 0) + 1,
             itemBuilder: (context, idx) {
               if (idx == data.value?.length) {
-                return PaginationListFooter(noti: noti, data: data);
+                return PaginationListFooter(
+                  noti: noti,
+                  data: data,
+                  skeletonChild: footerSkeletonChild,
+                );
               }
               final entry = data.value?[idx];
               if (entry != null) return itemBuilder(context, idx, entry);
@@ -67,7 +73,11 @@ class PaginationList<T> extends HookConsumerWidget {
             itemCount: (data.value?.length ?? 0) + 1,
             itemBuilder: (context, idx) {
               if (idx == data.value?.length) {
-                return PaginationListFooter(noti: noti, data: data);
+                return PaginationListFooter(
+                  noti: noti,
+                  data: data,
+                  skeletonChild: footerSkeletonChild,
+                );
               }
               final entry = data.value?[idx];
               if (entry != null) return itemBuilder(context, idx, entry);
@@ -88,6 +98,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
   final bool isRefreshable;
   final bool isSliver;
   final bool showDefaultWidgets;
+  final Widget? footerSkeletonChild;
   const PaginationWidget({
     super.key,
     required this.provider,
@@ -96,6 +107,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
     this.isRefreshable = true,
     this.isSliver = false,
     this.showDefaultWidgets = true,
+    this.footerSkeletonChild,
   });
 
   @override
@@ -116,7 +128,11 @@ class PaginationWidget<T> extends HookConsumerWidget {
       return isSliver ? SliverFillRemaining(child: content) : content;
     }
 
-    final footer = PaginationListFooter(noti: noti, data: data);
+    final footer = PaginationListFooter(
+      noti: noti,
+      data: data,
+      skeletonChild: footerSkeletonChild,
+    );
     final content = contentBuilder(data.value ?? [], footer);
 
     return isRefreshable
@@ -153,23 +169,18 @@ class PaginationListFooter<T> extends HookConsumerWidget {
             trailing: const Icon(Icons.ac_unit),
           ),
     );
-    final child = SizedBox(
-      height: 64,
-      child: Center(
-        child: hasBeenVisible.value
-            ? data.isLoading
-                  ? placeholder
-                  : Row(
-                      spacing: 8,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Symbols.close, size: 16),
-                        Text('noFurtherData').tr().fontSize(13),
-                      ],
-                    ).opacity(0.9)
-            : placeholder,
-      ).padding(all: 8),
-    );
+    final child = hasBeenVisible.value
+        ? data.isLoading
+              ? placeholder
+              : Row(
+                  spacing: 8,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Symbols.close, size: 16),
+                    Text('noFurtherData').tr().fontSize(13),
+                  ],
+                ).opacity(0.9).height(64).center()
+        : placeholder;
 
     return VisibilityDetector(
       key: Key("pagination-list-${noti.hashCode}"),
