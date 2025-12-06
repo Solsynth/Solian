@@ -127,102 +127,88 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
               // Stickers grid
               Expanded(
                 child: packContent.when(
-                  data:
-                      (stickers) => RefreshIndicator(
-                        onRefresh:
-                            () => ref.refresh(
-                              marketplaceStickerPackContentProvider(
-                                packId: id,
-                              ).future,
-                            ),
-                        child: GridView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 20,
+                  data: (stickers) => RefreshIndicator(
+                    onRefresh: () => ref.refresh(
+                      marketplaceStickerPackContentProvider(packId: id).future,
+                    ),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 96,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
                           ),
-                          gridDelegate:
-                              const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 96,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                              ),
-                          itemCount: stickers.length,
-                          itemBuilder: (context, index) {
-                            final sticker = stickers[index];
-                            return Tooltip(
-                              message: ':${p?.prefix ?? ''}${sticker.slug}:',
-                              child: ClipRRect(
+                      itemCount: stickers.length,
+                      itemBuilder: (context, index) {
+                        final sticker = stickers[index];
+                        return Tooltip(
+                          message: ':${p?.prefix ?? ''}${sticker.slug}:',
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
                                 borderRadius: const BorderRadius.all(
                                   Radius.circular(8),
                                 ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainer,
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(8),
-                                    ),
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: 1,
-                                    child: CloudImageWidget(
-                                      fileId: sticker.image.id,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
+                              ),
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: CloudImageWidget(
+                                  fileId: sticker.image.id,
+                                  fit: BoxFit.contain,
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                  error:
-                      (err, _) =>
-                          Text(
-                            'Error: $err',
-                          ).textAlignment(TextAlign.center).center(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  error: (err, _) => Text(
+                    'Error: $err',
+                  ).textAlignment(TextAlign.center).center(),
                   loading: () => const CircularProgressIndicator().center(),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 child: owned.when(
-                  data:
-                      (isOwned) => FilledButton.icon(
-                        onPressed:
-                            isOwned
-                                ? removePackFromMyCollection
-                                : addPackToMyCollection,
-                        icon: Icon(
-                          isOwned ? Symbols.remove_circle : Symbols.add_circle,
-                        ),
-                        label: Text(
-                          isOwned ? 'removePack'.tr() : 'addPack'.tr(),
-                        ),
-                      ),
-                  loading:
-                      () => const SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                  error:
-                      (_, _) => OutlinedButton.icon(
-                        onPressed: addPackToMyCollection,
-                        icon: const Icon(Symbols.add_circle),
-                        label: Text('addPack').tr(),
-                      ),
+                  data: (isOwned) => FilledButton.icon(
+                    onPressed: isOwned
+                        ? removePackFromMyCollection
+                        : addPackToMyCollection,
+                    icon: Icon(
+                      isOwned ? Symbols.remove_circle : Symbols.add_circle,
+                    ),
+                    label: Text(isOwned ? 'removePack'.tr() : 'addPack'.tr()),
+                  ),
+                  loading: () => const SizedBox(
+                    height: 32,
+                    width: 32,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ).center(),
+                  error: (_, _) => OutlinedButton.icon(
+                    onPressed: addPackToMyCollection,
+                    icon: const Icon(Symbols.add_circle),
+                    label: Text('addPack').tr(),
+                  ),
                 ),
               ),
               Gap(MediaQuery.of(context).padding.bottom + 16),
             ],
           );
         },
-        error:
-            (err, _) =>
-                Text('Error: $err').textAlignment(TextAlign.center).center(),
+        error: (err, _) =>
+            Text('Error: $err').textAlignment(TextAlign.center).center(),
         loading: () => const CircularProgressIndicator().center(),
       ),
     );

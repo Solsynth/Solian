@@ -60,11 +60,10 @@ class MarketplaceStickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final stickers =
-        response.data
-            .map((e) => SnStickerPack.fromJson(e))
-            .cast<SnStickerPack>()
-            .toList();
+    final stickers = response.data
+        .map((e) => SnStickerPack.fromJson(e))
+        .cast<SnStickerPack>()
+        .toList();
 
     return stickers;
   }
@@ -112,14 +111,12 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
             onPressed: () {
               query.value = query.value.copyWith(byUsage: !query.value.byUsage);
             },
-            icon:
-                query.value.byUsage
-                    ? const Icon(Symbols.local_fire_department)
-                    : const Icon(Symbols.access_time),
-            tooltip:
-                query.value.byUsage
-                    ? 'orderByPopularity'.tr()
-                    : 'orderByReleaseDate'.tr(),
+            icon: query.value.byUsage
+                ? const Icon(Symbols.local_fire_department)
+                : const Icon(Symbols.access_time),
+            tooltip: query.value.byUsage
+                ? 'orderByPopularity'.tr()
+                : 'orderByReleaseDate'.tr(),
           ),
           const Gap(8),
         ],
@@ -137,8 +134,8 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
               padding: WidgetStateProperty.all(
                 const EdgeInsets.symmetric(horizontal: 24),
               ),
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               trailing: [
                 if (query.value.query != null && query.value.query!.isNotEmpty)
                   IconButton(
@@ -171,26 +168,53 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
               padding: EdgeInsets.only(top: 8),
               provider: marketplaceStickerPacksNotifierProvider,
               notifier: marketplaceStickerPacksNotifierProvider.notifier,
-              itemBuilder:
-                  (context, idx, pack) => Card(
-                    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: Column(
-                      children: [
-                        Container(
-                          color:
-                              Theme.of(context).colorScheme.secondaryContainer,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 20,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+              itemBuilder: (context, idx, pack) => Card(
+                margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Column(
+                  children: [
+                    if (pack.stickers.isNotEmpty)
+                      Container(
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 20,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                  math.min(pack.stickers.length, 4),
+                                  (index) => Padding(
+                                    padding: EdgeInsets.only(
+                                      right: index < 3 ? 8 : 0,
+                                    ),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 80,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.tertiaryContainer,
+                                      ),
+                                      child: CloudImageWidget(
+                                        file: pack.stickers[index].image,
+                                      ),
+                                    ).clipRRect(all: 8),
+                                  ),
+                                ),
+                              ),
+                              if (pack.stickers.length > 4)
+                                const SizedBox(height: 8),
+                              if (pack.stickers.length > 4)
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: List.generate(
-                                    math.min(pack.stickers.length, 4),
+                                    math.min(pack.stickers.length - 4, 4),
                                     (index) => Padding(
                                       padding: EdgeInsets.only(
                                         right: index < 3 ? 8 : 0,
@@ -203,89 +227,55 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.tertiaryContainer,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.tertiaryContainer,
                                         ),
                                         child: CloudImageWidget(
-                                          file: pack.stickers[index].image,
+                                          file: pack.stickers[index + 4].image,
                                         ),
                                       ).clipRRect(all: 8),
                                     ),
                                   ),
                                 ),
-                                if (pack.stickers.length > 4)
-                                  const SizedBox(height: 8),
-                                if (pack.stickers.length > 4)
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: List.generate(
-                                      math.min(pack.stickers.length - 4, 4),
-                                      (index) => Padding(
-                                        padding: EdgeInsets.only(
-                                          right: index < 3 ? 8 : 0,
-                                        ),
-                                        child: Container(
-                                          constraints: const BoxConstraints(
-                                            maxWidth: 80,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            color:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.tertiaryContainer,
-                                          ),
-                                          child: CloudImageWidget(
-                                            file:
-                                                pack.stickers[index + 4].image,
-                                          ),
-                                        ).clipRRect(all: 8),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                            ],
                           ),
-                        ).clipRRect(topLeft: 8, topRight: 8),
-                        ListTile(
-                          leading: Container(
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.tertiaryContainer,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                            ),
-                            child: CloudImageWidget(
-                              file: pack.icon ?? pack.stickers.first.image,
-                            ),
-                          ).width(40).height(40).clipRRect(all: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                          ),
-                          title: Text(pack.name),
-                          subtitle: Text(pack.description),
-                          trailing: const Icon(Symbols.chevron_right),
-                          onTap: () {
-                            // Navigate to user-facing sticker pack detail page.
-                            // Adjust the route name/parameters if your app uses different ones.
-                            context.pushNamed(
-                              'stickerPackDetail',
-                              pathParameters: {'packId': pack.id},
-                            );
-                          },
                         ),
-                      ],
+                      ).clipRRect(topLeft: 8, topRight: 8),
+                    ListTile(
+                      leading: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                        ),
+                        child: CloudImageWidget(
+                          file: pack.icon ?? pack.stickers.firstOrNull?.image,
+                        ),
+                      ).width(40).height(40).clipRRect(all: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
+                        ),
+                      ),
+                      title: Text(pack.name),
+                      subtitle: Text(pack.description),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        // Navigate to user-facing sticker pack detail page.
+                        // Adjust the route name/parameters if your app uses different ones.
+                        context.pushNamed(
+                          'stickerPackDetail',
+                          pathParameters: {'packId': pack.id},
+                        );
+                      },
                     ),
-                  ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
