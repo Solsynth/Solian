@@ -18,10 +18,91 @@ import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 part 'notification.g.dart';
+
+class SkeletonNotificationTile extends StatelessWidget {
+  const SkeletonNotificationTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const fakeTitle = 'New notification';
+    const fakeSubtitle = 'You have a new message from someone';
+    const fakeContent =
+        'This is a preview of the notification content. It may contain formatted text.';
+    const List<String> fakeImageIds = []; // Empty list for no images
+    const String? fakePfp = null; // No profile picture
+
+    return ListTile(
+      isThreeLine: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      leading: fakePfp != null
+          ? ProfilePictureWidget(fileId: fakePfp, radius: 20)
+          : CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Icon(
+                Symbols.notifications,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+      title: const Text(fakeTitle),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(fakeSubtitle).bold(),
+          Row(
+            spacing: 6,
+            children: [
+              Text('Loading...').fontSize(11),
+              Skeleton.ignore(child: Text('·').fontSize(11).bold()),
+              Text('Now').fontSize(11),
+            ],
+          ).opacity(0.75).padding(bottom: 4),
+          MarkdownTextContent(
+            content: fakeContent,
+            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            ),
+          ),
+          if (fakeImageIds.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: fakeImageIds.map((imageId) {
+                  return SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CloudImageWidget(
+                        fileId: imageId,
+                        aspectRatio: 1,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
+      trailing: Container(
+        width: 12,
+        height: 12,
+        decoration: const BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+        ),
+      ),
+      onTap: () {},
+    );
+  }
+}
 
 @riverpod
 class NotificationUnreadCountNotifier
@@ -182,6 +263,7 @@ class NotificationSheet extends HookConsumerWidget {
             child: PaginationList(
               provider: notificationListProvider,
               notifier: notificationListProvider.notifier,
+              footerSkeletonChild: const SkeletonNotificationTile(),
               itemBuilder: (context, index, notification) {
                 final pfp = notification.meta['pfp'] as String?;
                 final images = notification.meta['images'] as List?;
