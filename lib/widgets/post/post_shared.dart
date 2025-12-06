@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -66,6 +68,7 @@ class PostReplyPreview extends HookConsumerWidget {
   final bool isOpenable;
   final bool isCompact;
   final bool isAutoload;
+  final double? itemMaxWidth;
   final VoidCallback? onOpen;
   const PostReplyPreview({
     super.key,
@@ -73,6 +76,7 @@ class PostReplyPreview extends HookConsumerWidget {
     this.isOpenable = false,
     this.isCompact = false,
     this.isAutoload = true,
+    this.itemMaxWidth,
     this.onOpen,
   });
 
@@ -114,39 +118,49 @@ class PostReplyPreview extends HookConsumerWidget {
       return null;
     }, [parent]);
 
-    final featuredReply =
-        isOpenable ? null : ref.watch(postFeaturedReplyProvider(parent.id));
+    final featuredReply = isOpenable
+        ? null
+        : ref.watch(postFeaturedReplyProvider(parent.id));
 
-    final itemWidget =
-        isOpenable
-            ? Column(
+    Widget itemBuilder(double maxWidth) {
+      return isOpenable
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (final post in posts.value)
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       InkWell(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            ProfilePictureWidget(
-                              file: post.publisher.picture,
-                              radius: 12,
-                            ).padding(top: 4),
-                            if (post.content?.isNotEmpty ?? false)
-                              Expanded(
-                                child: MarkdownTextContent(
-                                  content: post.content!,
-                                  attachments: post.attachments,
-                                ).padding(top: 2),
-                              )
-                            else
-                              Expanded(
-                                child: Text(
-                                  'postHasAttachments',
-                                ).plural(post.attachments.length),
-                              ),
-                          ],
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              ProfilePictureWidget(
+                                file: post.publisher.picture,
+                                radius: 12,
+                              ).padding(top: 4),
+                              if (post.content?.isNotEmpty ?? false)
+                                Expanded(
+                                  child: MarkdownTextContent(
+                                    content: post.content!,
+                                    attachments: post.attachments,
+                                  ).padding(top: 2),
+                                )
+                              else
+                                Expanded(
+                                  child:
+                                      Text(
+                                            'postHasAttachments',
+                                            style: TextStyle(height: 2),
+                                          )
+                                          .plural(post.attachments.length)
+                                          .padding(top: 2),
+                                ),
+                            ],
+                          ),
                         ),
                         onTap: () {
                           onOpen?.call();
@@ -162,12 +176,14 @@ class PostReplyPreview extends HookConsumerWidget {
                           isOpenable: true,
                           isCompact: true,
                           isAutoload: false,
+                          itemMaxWidth: math.max(maxWidth - 24, 200),
                           onOpen: onOpen,
                         ).padding(left: 24),
                     ],
                   ),
                 if (loading.value)
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     spacing: 8,
                     children: [
                       SizedBox(
@@ -179,8 +195,9 @@ class PostReplyPreview extends HookConsumerWidget {
                     ],
                   )
                 else if (posts.value.length < parent.repliesCount)
-                  InkWell(
+                  GestureDetector(
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       spacing: 8,
                       children: [
                         const Icon(Symbols.keyboard_arrow_down, size: 20),
@@ -193,81 +210,87 @@ class PostReplyPreview extends HookConsumerWidget {
                   ),
               ],
             )
-            : (featuredReply!).map(
-              data:
-                  (data) => Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      ProfilePictureWidget(
-                        file: data.value?.publisher.picture,
-                        radius: 12,
-                      ).padding(top: 4),
-                      if (data.value?.content?.isNotEmpty ?? false)
-                        Expanded(
-                          child: MarkdownTextContent(
-                            content: data.value!.content!,
-                            attachments: data.value!.attachments,
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: Text(
-                            'postHasAttachments',
-                          ).plural(data.value?.attachments.length ?? 0),
+          : (featuredReply!).map(
+              data: (data) => ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    ProfilePictureWidget(
+                      file: data.value?.publisher.picture,
+                      radius: 12,
+                    ).padding(top: 4),
+                    if (data.value?.content?.isNotEmpty ?? false)
+                      Expanded(
+                        child: MarkdownTextContent(
+                          content: data.value!.content!,
+                          attachments: data.value!.attachments,
                         ),
-                    ],
-                  ),
-              error:
-                  (e) => Row(
-                    spacing: 8,
-                    children: [
-                      const Icon(Symbols.close, size: 18),
-                      Text(e.error.toString()),
-                    ],
-                  ),
-              loading:
-                  (_) => Row(
-                    spacing: 8,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(),
+                      )
+                    else
+                      Expanded(
+                        child: Text(
+                          'postHasAttachments',
+                        ).plural(data.value?.attachments.length ?? 0),
                       ),
-                      Text('loading').tr(),
-                    ],
-                  ),
-            );
-
-    final contentWidget =
-        isCompact
-            ? itemWidget
-            : Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.5),
+                  ],
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 4,
+              error: (e) => Row(
+                spacing: 8,
                 children: [
-                  Text('repliesCount')
-                      .plural(parent.repliesCount)
-                      .fontSize(15)
-                      .bold()
-                      .padding(horizontal: 5),
-                  itemWidget,
+                  const Icon(Symbols.close, size: 18),
+                  Text(e.error.toString()),
+                ],
+              ),
+              loading: (_) => Row(
+                spacing: 8,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(),
+                  ),
+                  Text('loading').tr(),
                 ],
               ),
             );
+    }
 
-    return InkWell(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
+    final contentWidget = isCompact
+        ? itemBuilder(itemMaxWidth ?? MediaQuery.of(context).size.width)
+        : Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text('repliesCount')
+                        .plural(parent.repliesCount)
+                        .fontSize(15)
+                        .bold()
+                        .padding(horizontal: 5),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: itemBuilder(constraints.maxWidth),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+
+    return GestureDetector(
       onTap: () {
         showModalBottomSheet(
           context: context,
@@ -479,8 +502,9 @@ class ReferencedPostWidget extends StatelessWidget {
                           referencePost.description!,
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -490,10 +514,9 @@ class ReferencedPostWidget extends StatelessWidget {
                           content: referencePost.content!,
                           textStyle: const TextStyle(fontSize: 14),
                           isSelectable: false,
-                          linesMargin:
-                              referencePost.type == 0
-                                  ? const EdgeInsets.only(bottom: 4)
-                                  : null,
+                          linesMargin: referencePost.type == 0
+                              ? const EdgeInsets.only(bottom: 4)
+                              : null,
                           attachments: item.attachments,
                         ).padding(bottom: 4),
                       if (referencePost.isTruncated)
@@ -537,11 +560,10 @@ class ReferencedPostWidget extends StatelessWidget {
     }
 
     return content.gestures(
-      onTap:
-          () => context.pushNamed(
-            'postDetail',
-            pathParameters: {'id': referencePost!.id},
-          ),
+      onTap: () => context.pushNamed(
+        'postDetail',
+        pathParameters: {'id': referencePost!.id},
+      ),
     );
   }
 }
@@ -577,15 +599,14 @@ class PostHeader extends StatelessWidget {
           spacing: 12,
           children: [
             GestureDetector(
-              onTap:
-                  isInteractive
-                      ? () {
-                        context.pushNamed(
-                          'publisherProfile',
-                          pathParameters: {'name': item.publisher.name},
-                        );
-                      }
-                      : null,
+              onTap: isInteractive
+                  ? () {
+                      context.pushNamed(
+                        'publisherProfile',
+                        pathParameters: {'name': item.publisher.name},
+                      );
+                    }
+                  : null,
               child: ProfilePictureWidget(
                 file:
                     item.publisher.picture ??
@@ -606,19 +627,19 @@ class PostHeader extends StatelessWidget {
                       Flexible(
                         child:
                             (item.publisher.account != null &&
-                                    item.publisher.type == 0)
-                                ? AccountName(
-                                  hideOverlay: hideOverlay,
-                                  account: item.publisher.account!,
-                                  textOverride: item.publisher.nick,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                  hideVerificationMark: true,
-                                )
-                                : Text(
-                                  item.publisher.nick,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ).bold(),
+                                item.publisher.type == 0)
+                            ? AccountName(
+                                hideOverlay: hideOverlay,
+                                account: item.publisher.account!,
+                                textOverride: item.publisher.nick,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                hideVerificationMark: true,
+                              )
+                            : Text(
+                                item.publisher.nick,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ).bold(),
                       ),
                       if (item.publisher.verification != null)
                         VerificationMark(
@@ -627,14 +648,13 @@ class PostHeader extends StatelessWidget {
                         ),
                       if (item.realm == null)
                         Flexible(
-                          child:
-                              isCompact
-                                  ? const SizedBox.shrink()
-                                  : Text(
-                                    '@${item.publisher.name}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ).fontSize(11),
+                          child: isCompact
+                              ? const SizedBox.shrink()
+                              : Text(
+                                  '@${item.publisher.name}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ).fontSize(11),
                         )
                       else
                         ...([
@@ -673,8 +693,8 @@ class PostHeader extends StatelessWidget {
                   Text(
                     !isFullPost && isRelativeTime
                         ? (item.publishedAt ?? item.createdAt)!.formatRelative(
-                          context,
-                        )
+                            context,
+                          )
                         : (item.publishedAt ?? item.createdAt)!.formatSystem(),
                   ).fontSize(10),
                 ],
@@ -734,15 +754,14 @@ class PostBody extends ConsumerWidget {
             const Icon(Symbols.label, size: 16).padding(top: 2),
             for (final tag in isFullPost ? item.tags : item.tags.take(3))
               InkWell(
-                onTap:
-                    isInteractive
-                        ? () {
-                          GoRouter.of(context).pushNamed(
-                            'postTagDetail',
-                            pathParameters: {'slug': tag.slug},
-                          );
-                        }
-                        : null,
+                onTap: isInteractive
+                    ? () {
+                        GoRouter.of(context).pushNamed(
+                          'postTagDetail',
+                          pathParameters: {'slug': tag.slug},
+                        );
+                      }
+                    : null,
                 child: Text('#${tag.name ?? tag.slug}'),
               ),
             if (!isFullPost && item.tags.length > 3)
@@ -761,15 +780,14 @@ class PostBody extends ConsumerWidget {
             for (final category
                 in isFullPost ? item.categories : item.categories.take(2))
               InkWell(
-                onTap:
-                    isInteractive
-                        ? () {
-                          GoRouter.of(context).pushNamed(
-                            'postCategoryDetail',
-                            pathParameters: {'slug': category.slug},
-                          );
-                        }
-                        : null,
+                onTap: isInteractive
+                    ? () {
+                        GoRouter.of(context).pushNamed(
+                          'postCategoryDetail',
+                          pathParameters: {'slug': category.slug},
+                        );
+                      }
+                    : null,
                 child: Text(category.categoryDisplayTitle),
               ),
             if (!isFullPost && item.categories.length > 2)
@@ -798,12 +816,11 @@ class PostBody extends ConsumerWidget {
             hideOverlay
                 ? text
                 : Tooltip(
-                  message:
-                      !isFullPost && isRelativeTime
-                          ? item.editedAt!.formatSystem()
-                          : item.editedAt!.formatRelative(context),
-                  child: text,
-                ),
+                    message: !isFullPost && isRelativeTime
+                        ? item.editedAt!.formatSystem()
+                        : item.editedAt!.formatRelative(context),
+                    child: text,
+                  ),
           ],
         ),
       );
@@ -936,10 +953,9 @@ class PostBody extends ConsumerWidget {
                     ],
                   ).padding(bottom: 4),
                 MarkdownTextContent(
-                  content:
-                      item.isTruncated
-                          ? '${item.content!}...'
-                          : item.content ?? '',
+                  content: item.isTruncated
+                      ? '${item.content!}...'
+                      : item.content ?? '',
                   isSelectable: isTextSelectable,
                   attachments: item.attachments,
                 ),
