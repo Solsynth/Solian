@@ -53,37 +53,36 @@ class BotKeysScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'newKeyGenerated'.tr(),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('copyKeyHint'.tr()),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SelectableText(token),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: token));
-                      },
-                      icon: const Icon(Symbols.copy_all),
-                      label: Text('copy'.tr()),
-                    ),
-                  ],
+        builder: (context) => SheetScaffold(
+          titleText: 'newKeyGenerated'.tr(),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('copyKeyHint'.tr()),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(token),
                 ),
-              ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: token));
+                  },
+                  icon: const Icon(Symbols.copy_all),
+                  label: Text('copy'.tr()),
+                ),
+              ],
             ),
+          ),
+        ),
       ).whenComplete(() {
         ref.invalidate(botKeysProvider(publisherName, projectId, botId));
       });
@@ -94,45 +93,50 @@ class BotKeysScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'newBotKey'.tr(),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: keyNameController,
-                      decoration: InputDecoration(labelText: 'keyName'.tr()),
-                      autofocus: true,
+        builder: (context) => SheetScaffold(
+          heightFactor: 0.7,
+          titleText: 'newBotKey'.tr(),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: keyNameController,
+                  decoration: InputDecoration(
+                    labelText: 'keyName'.tr(),
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        if (keyNameController.text.isEmpty) return;
-                        final keyName = keyNameController.text;
-                        Navigator.pop(context); // Close the sheet
-                        try {
-                          final client = ref.read(apiClientProvider);
-                          final resp = await client.post(
-                            '/develop/developers/$publisherName/projects/$projectId/bots/$botId/keys',
-                            data: {'label': keyName},
-                          );
-                          final newApiKey = SnAccountApiKey.fromJson(resp.data);
-                          showNewKeySheet(newApiKey);
-                        } catch (e) {
-                          showErrorAlert(e.toString());
-                        }
-                      },
-                      icon: const Icon(Symbols.add),
-                      label: Text('create'.tr()),
-                    ),
-                  ],
+                  ),
+                  autofocus: true,
                 ),
-              ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () async {
+                    if (keyNameController.text.isEmpty) return;
+                    final keyName = keyNameController.text;
+                    Navigator.pop(context); // Close the sheet
+                    try {
+                      final client = ref.read(apiClientProvider);
+                      final resp = await client.post(
+                        '/develop/developers/$publisherName/projects/$projectId/bots/$botId/keys',
+                        data: {'label': keyName},
+                      );
+                      final newApiKey = SnAccountApiKey.fromJson(resp.data);
+                      showNewKeySheet(newApiKey);
+                    } catch (e) {
+                      showErrorAlert(e.toString());
+                    }
+                  },
+                  icon: const Icon(Symbols.add),
+                  label: Text('create'.tr()),
+                ),
+              ],
             ),
+          ),
+        ),
       );
     }
 
@@ -189,92 +193,79 @@ class BotKeysScreen extends HookConsumerWidget {
             ListTile(
               leading: const Icon(Symbols.add),
               title: Text('newBotKey'.tr()),
-              trailing: const Icon(Symbols.chevron_right),
               onTap: createKey,
             ),
             const Divider(height: 1),
             Expanded(
-              child:
-                  data.isEmpty
-                      ? Center(child: Text('noBotKeys'.tr()))
-                      : RefreshIndicator(
-                        onRefresh:
-                            () => ref.refresh(
-                              botKeysProvider(
-                                publisherName,
-                                projectId,
-                                botId,
-                              ).future,
+              child: data.isEmpty
+                  ? Center(child: Text('noBotKeys'.tr()))
+                  : RefreshIndicator(
+                      onRefresh: () => ref.refresh(
+                        botKeysProvider(publisherName, projectId, botId).future,
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final apiKey = data[index];
+                          return ListTile(
+                            title: Text(apiKey.label),
+                            subtitle: Text(apiKey.createdAt.formatSystem()),
+                            contentPadding: EdgeInsets.only(
+                              left: 16,
+                              right: 12,
                             ),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: data.length,
-                          itemBuilder: (context, index) {
-                            final apiKey = data[index];
-                            return ListTile(
-                              title: Text(apiKey.label),
-                              subtitle: Text(apiKey.createdAt.formatSystem()),
-                              contentPadding: EdgeInsets.only(
-                                left: 16,
-                                right: 12,
-                              ),
-                              trailing: PopupMenuButton(
-                                itemBuilder:
-                                    (context) => [
-                                      PopupMenuItem(
-                                        value: 'rotate',
-                                        child: Row(
-                                          children: [
-                                            const Icon(Symbols.refresh),
-                                            const Gap(12),
-                                            Text('rotateKey'.tr()),
-                                          ],
-                                        ),
+                            trailing: PopupMenuButton(
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'rotate',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Symbols.refresh),
+                                      const Gap(12),
+                                      Text('rotateKey'.tr()),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'revoke',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Symbols.delete,
+                                        color: Colors.red,
                                       ),
-                                      PopupMenuItem(
-                                        value: 'revoke',
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Symbols.delete,
-                                              color: Colors.red,
-                                            ),
-                                            const Gap(12),
-                                            Text(
-                                              'revoke'.tr(),
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                      const Gap(12),
+                                      Text(
+                                        'revoke'.tr(),
+                                        style: TextStyle(color: Colors.red),
                                       ),
                                     ],
-                                onSelected: (value) {
-                                  if (value == 'rotate') {
-                                    rotateKey(apiKey.id);
-                                  } else if (value == 'revoke') {
-                                    revokeKey(apiKey.id);
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
+                                  ),
+                                ),
+                              ],
+                              onSelected: (value) {
+                                if (value == 'rotate') {
+                                  rotateKey(apiKey.id);
+                                } else if (value == 'revoke') {
+                                  revokeKey(apiKey.id);
+                                }
+                              },
+                            ),
+                          );
+                        },
                       ),
+                    ),
             ),
           ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (err, stack) => ResponseErrorWidget(
-            error: err,
-            onRetry:
-                () => ref.invalidate(
-                  botKeysProvider(publisherName, projectId, botId),
-                ),
-          ),
+      error: (err, stack) => ResponseErrorWidget(
+        error: err,
+        onRetry: () =>
+            ref.invalidate(botKeysProvider(publisherName, projectId, botId)),
+      ),
     );
   }
 }

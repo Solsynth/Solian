@@ -76,15 +76,14 @@ class CustomAppsScreen extends HookConsumerWidget {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
-                      builder:
-                          (context) => SheetScaffold(
-                            titleText: 'createCustomApp'.tr(),
-                            child: NewCustomAppScreen(
-                              publisherName: publisherName,
-                              projectId: projectId,
-                              isModal: true,
-                            ),
-                          ),
+                      builder: (context) => SheetScaffold(
+                        titleText: 'createCustomApp'.tr(),
+                        child: NewCustomAppScreen(
+                          publisherName: publisherName,
+                          projectId: projectId,
+                          isModal: true,
+                        ),
+                      ),
                     );
                   },
                   icon: const Icon(Symbols.add),
@@ -95,10 +94,8 @@ class CustomAppsScreen extends HookConsumerWidget {
           );
         }
         return ExtendedRefreshIndicator(
-          onRefresh:
-              () => ref.refresh(
-                customAppsProvider(publisherName, projectId).future,
-              ),
+          onRefresh: () =>
+              ref.refresh(customAppsProvider(publisherName, projectId).future),
           child: Column(
             children: [
               const Gap(8),
@@ -110,15 +107,14 @@ class CustomAppsScreen extends HookConsumerWidget {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
-                        builder:
-                            (context) => SheetScaffold(
-                              titleText: 'createCustomApp'.tr(),
-                              child: NewCustomAppScreen(
-                                publisherName: publisherName,
-                                projectId: projectId,
-                                isModal: true,
-                              ),
-                            ),
+                        builder: (context) => SheetScaffold(
+                          titleText: 'createCustomApp'.tr(),
+                          child: NewCustomAppScreen(
+                            publisherName: publisherName,
+                            projectId: projectId,
+                            isModal: true,
+                          ),
+                        ),
                       );
                     },
                     icon: const Icon(Symbols.add),
@@ -146,31 +142,20 @@ class CustomAppsScreen extends HookConsumerWidget {
                         },
                         child: Column(
                           children: [
-                            SizedBox(
-                              height: 150,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (app.background != null)
-                                    CloudFileWidget(
-                                      item: app.background!,
-                                      fit: BoxFit.cover,
-                                    ).clipRRect(topLeft: 8, topRight: 8),
-                                  if (app.picture != null)
-                                    Positioned(
-                                      left: 16,
-                                      bottom: 16,
-                                      child: ProfilePictureWidget(
-                                        fileId: app.picture!.id,
-                                        radius: 40,
-                                        fallbackIcon: Symbols.apps,
-                                      ),
-                                    ),
-                                ],
+                            if (app.background != null)
+                              AspectRatio(
+                                aspectRatio: 16 / 7,
+                                child: CloudFileWidget(
+                                  item: app.background!,
+                                  fit: BoxFit.cover,
+                                ).clipRRect(topLeft: 8, topRight: 8),
                               ),
-                            ),
                             ListTile(
                               title: Text(app.name),
+                              leading: ProfilePictureWidget(
+                                fileId: app.picture?.id,
+                                fallbackIcon: Symbols.apps,
+                              ),
                               subtitle: Text(
                                 app.slug,
                                 style: GoogleFonts.robotoMono(fontSize: 12),
@@ -180,52 +165,48 @@ class CustomAppsScreen extends HookConsumerWidget {
                                 right: 12,
                               ),
                               trailing: PopupMenuButton(
-                                itemBuilder:
-                                    (context) => [
-                                      PopupMenuItem(
-                                        value: 'edit',
-                                        child: Row(
-                                          children: [
-                                            const Icon(Symbols.edit),
-                                            const SizedBox(width: 12),
-                                            Text('edit').tr(),
-                                          ],
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Symbols.edit),
+                                        const SizedBox(width: 12),
+                                        Text('edit').tr(),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Symbols.delete,
+                                          color: Colors.red,
                                         ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'delete',
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Symbols.delete,
-                                              color: Colors.red,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              'delete',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ).tr(),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ).tr(),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 onSelected: (value) {
                                   if (value == 'edit') {
                                     showModalBottomSheet(
                                       context: context,
                                       isScrollControlled: true,
-                                      builder:
-                                          (context) => SheetScaffold(
-                                            titleText: 'editCustomApp'.tr(),
-                                            child: EditAppScreen(
-                                              publisherName: publisherName,
-                                              projectId: projectId,
-                                              id: app.id,
-                                              isModal: true,
-                                            ),
-                                          ),
+                                      builder: (context) => SheetScaffold(
+                                        titleText: 'editCustomApp'.tr(),
+                                        child: EditAppScreen(
+                                          publisherName: publisherName,
+                                          projectId: projectId,
+                                          id: app.id,
+                                          isModal: true,
+                                        ),
+                                      ),
                                     );
                                   } else if (value == 'delete') {
                                     showConfirmAlert(
@@ -264,14 +245,11 @@ class CustomAppsScreen extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (err, stack) => ResponseErrorWidget(
-            error: err,
-            onRetry:
-                () => ref.invalidate(
-                  customAppsProvider(publisherName, projectId),
-                ),
-          ),
+      error: (err, stack) => ResponseErrorWidget(
+        error: err,
+        onRetry: () =>
+            ref.invalidate(customAppsProvider(publisherName, projectId)),
+      ),
     );
   }
 }

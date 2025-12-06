@@ -54,15 +54,14 @@ class BotsScreen extends HookConsumerWidget {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
-                      builder:
-                          (context) => SheetScaffold(
-                            titleText: 'createBot'.tr(),
-                            child: NewBotScreen(
-                              publisherName: publisherName,
-                              projectId: projectId,
-                              isModal: true,
-                            ),
-                          ),
+                      builder: (context) => SheetScaffold(
+                        titleText: 'createBot'.tr(),
+                        child: NewBotScreen(
+                          publisherName: publisherName,
+                          projectId: projectId,
+                          isModal: true,
+                        ),
+                      ),
                     );
                   },
                   icon: const Icon(Symbols.add),
@@ -73,8 +72,8 @@ class BotsScreen extends HookConsumerWidget {
           );
         }
         return ExtendedRefreshIndicator(
-          onRefresh:
-              () => ref.refresh(botsProvider(publisherName, projectId).future),
+          onRefresh: () =>
+              ref.refresh(botsProvider(publisherName, projectId).future),
           child: Column(
             children: [
               const Gap(8),
@@ -86,15 +85,14 @@ class BotsScreen extends HookConsumerWidget {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
-                        builder:
-                            (context) => SheetScaffold(
-                              titleText: 'createBot'.tr(),
-                              child: NewBotScreen(
-                                publisherName: publisherName,
-                                projectId: projectId,
-                                isModal: true,
-                              ),
-                            ),
+                        builder: (context) => SheetScaffold(
+                          titleText: 'createBot'.tr(),
+                          child: NewBotScreen(
+                            publisherName: publisherName,
+                            projectId: projectId,
+                            isModal: true,
+                          ),
+                        ),
                       );
                     },
                     icon: const Icon(Symbols.add),
@@ -108,23 +106,30 @@ class BotsScreen extends HookConsumerWidget {
                   itemBuilder: (context, index) {
                     final bot = data[index];
                     return Card(
-                      child: ListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        ),
-                        leading: CircleAvatar(
-                          child:
-                              bot.account.profile.picture != null
-                                  ? ProfilePictureWidget(
-                                    file: bot.account.profile.picture!,
-                                  )
-                                  : const Icon(Symbols.smart_toy),
-                        ),
-                        title: Text(bot.account.nick),
-                        subtitle: Text(bot.account.name),
-                        trailing: PopupMenuButton(
-                          itemBuilder:
-                              (context) => [
+                      child: Column(
+                        children: [
+                          if (bot.account.profile.background != null)
+                            AspectRatio(
+                              aspectRatio: 16 / 7,
+                              child: CloudFileWidget(
+                                item: bot.account.profile.background!,
+                                fit: BoxFit.cover,
+                              ).clipRRect(topLeft: 8, topRight: 8),
+                            ),
+                          ListTile(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8.0),
+                              ),
+                            ),
+                            leading: ProfilePictureWidget(
+                              fallbackIcon: Symbols.smart_toy,
+                              file: bot.account.profile.picture,
+                            ),
+                            title: Text(bot.account.nick),
+                            subtitle: Text(bot.account.name),
+                            trailing: PopupMenuButton(
+                              itemBuilder: (context) => [
                                 PopupMenuItem(
                                   value: 'edit',
                                   child: Row(
@@ -152,13 +157,12 @@ class BotsScreen extends HookConsumerWidget {
                                   ),
                                 ),
                               ],
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                builder:
-                                    (context) => SheetScaffold(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) => SheetScaffold(
                                       titleText: 'editBot'.tr(),
                                       child: EditBotScreen(
                                         publisherName: publisherName,
@@ -167,36 +171,40 @@ class BotsScreen extends HookConsumerWidget {
                                         isModal: true,
                                       ),
                                     ),
-                              );
-                            } else if (value == 'delete') {
-                              showConfirmAlert(
-                                'deleteBotHint'.tr(),
-                                'deleteBot'.tr(),
-                                isDanger: true,
-                              ).then((confirm) {
-                                if (confirm) {
-                                  final client = ref.read(apiClientProvider);
-                                  client.delete(
-                                    '/develop/developers/$publisherName/projects/$projectId/bots/${bot.id}',
                                   );
-                                  ref.invalidate(
-                                    botsProvider(publisherName, projectId),
-                                  );
+                                } else if (value == 'delete') {
+                                  showConfirmAlert(
+                                    'deleteBotHint'.tr(),
+                                    'deleteBot'.tr(),
+                                    isDanger: true,
+                                  ).then((confirm) {
+                                    if (confirm) {
+                                      final client = ref.read(
+                                        apiClientProvider,
+                                      );
+                                      client.delete(
+                                        '/develop/developers/$publisherName/projects/$projectId/bots/${bot.id}',
+                                      );
+                                      ref.invalidate(
+                                        botsProvider(publisherName, projectId),
+                                      );
+                                    }
+                                  });
                                 }
-                              });
-                            }
-                          },
-                        ),
-                        onTap: () {
-                          context.pushNamed(
-                            'developerBotDetail',
-                            pathParameters: {
-                              'name': publisherName,
-                              'projectId': projectId,
-                              'botId': bot.id,
+                              },
+                            ),
+                            onTap: () {
+                              context.pushNamed(
+                                'developerBotDetail',
+                                pathParameters: {
+                                  'name': publisherName,
+                                  'projectId': projectId,
+                                  'botId': bot.id,
+                                },
+                              );
                             },
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -207,12 +215,10 @@ class BotsScreen extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (err, stack) => ResponseErrorWidget(
-            error: err,
-            onRetry:
-                () => ref.invalidate(botsProvider(publisherName, projectId)),
-          ),
+      error: (err, stack) => ResponseErrorWidget(
+        error: err,
+        onRetry: () => ref.invalidate(botsProvider(publisherName, projectId)),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/custom_app_secret.dart';
 import 'package:island/pods/network.dart';
@@ -53,37 +54,36 @@ class AppSecretsScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'newSecretGenerated'.tr(),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('copySecretHint'.tr()),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SelectableText(newSecret),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: newSecret));
-                      },
-                      icon: const Icon(Symbols.copy_all),
-                      label: Text('copy'.tr()),
-                    ),
-                  ],
+        builder: (context) => SheetScaffold(
+          titleText: 'newSecretGenerated'.tr(),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('copySecretHint'.tr()),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(newSecret),
                 ),
-              ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: newSecret));
+                  },
+                  icon: const Icon(Symbols.copy_all),
+                  label: Text('copy'.tr()),
+                ),
+              ],
             ),
+          ),
+        ),
       ).whenComplete(() {
         ref.invalidate(
           customAppSecretsProvider(publisherName, projectId, appId),
@@ -114,22 +114,38 @@ class AppSecretsScreen extends HookConsumerWidget {
                         controller: descriptionController,
                         decoration: InputDecoration(
                           labelText: 'description'.tr(),
+                          border: OutlineInputBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(12),
+                            ),
+                          ),
                         ),
                         autofocus: true,
                       ),
-                      const SizedBox(height: 20),
+                      const Gap(16),
                       TextFormField(
                         controller: expiresInController,
                         decoration: InputDecoration(
                           labelText: 'expiresIn'.tr(),
+                          border: OutlineInputBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(12),
+                            ),
+                          ),
                         ),
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 20),
-                      SwitchListTile(
-                        title: Text('isOidc'.tr()),
-                        value: isOidc.value,
-                        onChanged: (value) => isOidc.value = value,
+                      const Gap(16),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        child: SwitchListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          title: Text('isOidc'.tr()),
+                          value: isOidc.value,
+                          onChanged: (value) => isOidc.value = value,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       FilledButton.icon(
@@ -175,14 +191,9 @@ class AppSecretsScreen extends HookConsumerWidget {
     return secrets.when(
       data: (data) {
         return RefreshIndicator(
-          onRefresh:
-              () => ref.refresh(
-                customAppSecretsProvider(
-                  publisherName,
-                  projectId,
-                  appId,
-                ).future,
-              ),
+          onRefresh: () => ref.refresh(
+            customAppSecretsProvider(publisherName, projectId, appId).future,
+          ),
           child: Column(
             children: [
               ListTile(
@@ -240,14 +251,12 @@ class AppSecretsScreen extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (err, stack) => ResponseErrorWidget(
-            error: err,
-            onRetry:
-                () => ref.invalidate(
-                  customAppSecretsProvider(publisherName, projectId, appId),
-                ),
-          ),
+      error: (err, stack) => ResponseErrorWidget(
+        error: err,
+        onRetry: () => ref.invalidate(
+          customAppSecretsProvider(publisherName, projectId, appId),
+        ),
+      ),
     );
   }
 }

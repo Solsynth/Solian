@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +11,7 @@ import 'package:island/models/post.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_card.dart';
 import 'package:island/widgets/post/compose_shared.dart';
@@ -171,7 +175,14 @@ class PostComposeSheet extends HookConsumerWidget {
       ),
     ];
 
+    // Tablet will show a virtual keyboard, so we adjust the height factor accordingly
+    final isTablet =
+        isWideScreen(context) &&
+        !kIsWeb &&
+        (Platform.isAndroid || Platform.isAndroid);
+
     return SheetScaffold(
+      heightFactor: isTablet ? 0.95 : 0.8,
       titleText: 'postCompose'.tr(),
       actions: actions,
       child: PostComposeCard(
