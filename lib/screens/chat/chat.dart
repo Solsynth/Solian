@@ -20,6 +20,7 @@ import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/pods/chat/chat_room.dart';
@@ -50,84 +51,124 @@ class ChatRoomListTile extends HookConsumerWidget {
     if (validMembers.isNotEmpty) {
       final userInfo = ref.watch(userInfoProvider);
       if (userInfo.value != null) {
-        validMembers =
-            validMembers
-                .where((e) => e.accountId != userInfo.value!.id)
-                .toList();
+        validMembers = validMembers
+            .where((e) => e.accountId != userInfo.value!.id)
+            .toList();
       }
     }
 
     Widget buildSubtitle() {
       if (subtitle != null) return subtitle!;
 
-      return summary.when(
-        data: (data) {
-          if (data == null) {
-            return isDirect && room.description == null
-                ? Text(
-                  validMembers.map((e) => '@${e.account.name}').join(', '),
-                  maxLines: 1,
-                )
-                : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1);
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (data.unreadCount > 0)
-                Text(
-                  'unreadMessages'.plural(data.unreadCount),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        layoutBuilder: (currentChild, previousChildren) => Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+        ),
+        child: summary.when(
+          data: (data) => Container(
+            key: const ValueKey('data'),
+            child: data == null
+                ? isDirect && room.description == null
+                      ? Text(
+                          validMembers
+                              .map((e) => '@${e.account.name}')
+                              .join(', '),
+                          maxLines: 1,
+                        )
+                      : Text(
+                          room.description ?? 'descriptionNone'.tr(),
+                          maxLines: 1,
+                        )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (data.unreadCount > 0)
+                        Text(
+                          'unreadMessages'.plural(data.unreadCount),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      if (data.lastMessage == null)
+                        Text(
+                          room.description ?? 'descriptionNone'.tr(),
+                          maxLines: 1,
+                        )
+                      else
+                        Row(
+                          spacing: 4,
+                          children: [
+                            Badge(
+                              label: Text(
+                                data.lastMessage!.sender.account.nick,
+                              ),
+                              textColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                            ),
+                            Expanded(
+                              child: Text(
+                                (data.lastMessage!.content?.isNotEmpty ?? false)
+                                    ? data.lastMessage!.content!
+                                    : 'messageNone'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                RelativeTime(
+                                  context,
+                                ).format(data.lastMessage!.createdAt),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
-                ),
-              if (data.lastMessage == null)
-                Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1)
-              else
-                Row(
-                  spacing: 4,
-                  children: [
-                    Badge(
-                      label: Text(data.lastMessage!.sender.account.nick),
-                      textColor: Theme.of(context).colorScheme.onPrimary,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                    ),
-                    Expanded(
-                      child: Text(
-                        (data.lastMessage!.content?.isNotEmpty ?? false)
-                            ? data.lastMessage!.content!
-                            : 'messageNone'.tr(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        RelativeTime(
-                          context,
-                        ).format(data.lastMessage!.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          );
-        },
-        loading: () => const SizedBox.shrink(),
-        error:
-            (_, _) =>
-                isDirect && room.description == null
-                    ? Text(
-                      validMembers.map((e) => '@${e.account.name}').join(', '),
-                      maxLines: 1,
-                    )
-                    : Text(
-                      room.description ?? 'descriptionNone'.tr(),
-                      maxLines: 1,
-                    ),
+          ),
+          loading: () => Container(
+            key: const ValueKey('loading'),
+            child: Builder(
+              builder: (context) {
+                final seed = DateTime.now().microsecondsSinceEpoch;
+                final len = 4 + (seed % 17); // 4..20 inclusive
+                const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                var s = seed;
+                final buffer = StringBuffer();
+                for (var i = 0; i < len; i++) {
+                  s = (s * 1103515245 + 12345) & 0x7fffffff;
+                  buffer.write(chars[s % chars.length]);
+                }
+                return Skeletonizer(
+                  enabled: true,
+                  child: Text(buffer.toString()),
+                );
+              },
+            ),
+          ),
+          error: (_, _) => Container(
+            key: const ValueKey('error'),
+            child: isDirect && room.description == null
+                ? Text(
+                    validMembers.map((e) => '@${e.account.name}').join(', '),
+                    maxLines: 1,
+                  )
+                : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1),
+          ),
+        ),
       );
     }
 
@@ -149,17 +190,15 @@ class ChatRoomListTile extends HookConsumerWidget {
           loading: () => false,
           error: (_, _) => false,
         ),
-        child:
-            (isDirect && room.picture?.id == null)
-                ? SplitAvatarWidget(
-                  filesId:
-                      validMembers
-                          .map((e) => e.account.profile.picture?.id)
-                          .toList(),
-                )
-                : room.picture?.id == null
-                ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
-                : ProfilePictureWidget(fileId: room.picture?.id),
+        child: (isDirect && room.picture?.id == null)
+            ? SplitAvatarWidget(
+                filesId: validMembers
+                    .map((e) => e.account.profile.picture?.id)
+                    .toList(),
+              )
+            : room.picture?.id == null
+            ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
+            : ProfilePictureWidget(fileId: room.picture?.id),
       ),
       title: Text(titleText),
       subtitle: buildSubtitle(),
@@ -199,74 +238,67 @@ class ChatListBodyWidget extends HookConsumerWidget {
           builder: (context, ref, _) {
             final summaryState = ref.watch(chatSummaryProvider);
             return summaryState.maybeWhen(
-              loading:
-                  () => const LinearProgressIndicator(
-                    minHeight: 2,
-                    borderRadius: BorderRadius.zero,
-                  ),
+              loading: () => const LinearProgressIndicator(
+                minHeight: 2,
+                borderRadius: BorderRadius.zero,
+              ),
               orElse: () => const SizedBox.shrink(),
             );
           },
         ),
         Expanded(
           child: chats.when(
-            data:
-                (items) => RefreshIndicator(
-                  onRefresh:
-                      () => Future.sync(() {
-                        ref.invalidate(chatRoomJoinedProvider);
-                      }),
-                  child: SuperListView.builder(
-                    padding: EdgeInsets.only(bottom: 96),
-                    itemCount:
-                        items
-                            .where(
-                              (item) =>
-                                  selectedTab.value == 0 ||
-                                  (selectedTab.value == 1 && item.type == 1) ||
-                                  (selectedTab.value == 2 && item.type != 1),
-                            )
-                            .length,
-                    itemBuilder: (context, index) {
-                      final filteredItems =
-                          items
-                              .where(
-                                (item) =>
-                                    selectedTab.value == 0 ||
-                                    (selectedTab.value == 1 &&
-                                        item.type == 1) ||
-                                    (selectedTab.value == 2 && item.type != 1),
-                              )
-                              .toList();
-                      final item = filteredItems[index];
-                      return ChatRoomListTile(
-                        room: item,
-                        isDirect: item.type == 1,
-                        onTap: () {
-                          if (isWideScreen(context)) {
-                            context.replaceNamed(
-                              'chatRoom',
-                              pathParameters: {'id': item.id},
-                            );
-                          } else {
-                            context.pushNamed(
-                              'chatRoom',
-                              pathParameters: {'id': item.id},
-                            );
-                          }
-                        },
-                      );
+            data: (items) => RefreshIndicator(
+              onRefresh: () => Future.sync(() {
+                ref.invalidate(chatRoomJoinedProvider);
+              }),
+              child: SuperListView.builder(
+                padding: EdgeInsets.only(bottom: 96),
+                itemCount: items
+                    .where(
+                      (item) =>
+                          selectedTab.value == 0 ||
+                          (selectedTab.value == 1 && item.type == 1) ||
+                          (selectedTab.value == 2 && item.type != 1),
+                    )
+                    .length,
+                itemBuilder: (context, index) {
+                  final filteredItems = items
+                      .where(
+                        (item) =>
+                            selectedTab.value == 0 ||
+                            (selectedTab.value == 1 && item.type == 1) ||
+                            (selectedTab.value == 2 && item.type != 1),
+                      )
+                      .toList();
+                  final item = filteredItems[index];
+                  return ChatRoomListTile(
+                    room: item,
+                    isDirect: item.type == 1,
+                    onTap: () {
+                      if (isWideScreen(context)) {
+                        context.replaceNamed(
+                          'chatRoom',
+                          pathParameters: {'id': item.id},
+                        );
+                      } else {
+                        context.pushNamed(
+                          'chatRoom',
+                          pathParameters: {'id': item.id},
+                        );
+                      }
                     },
-                  ),
-                ),
+                  );
+                },
+              ),
+            ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error:
-                (error, stack) => ResponseErrorWidget(
-                  error: error,
-                  onRetry: () {
-                    ref.invalidate(chatRoomJoinedProvider);
-                  },
-                ),
+            error: (error, stack) => ResponseErrorWidget(
+              error: error,
+              onRetry: () {
+                ref.invalidate(chatRoomJoinedProvider);
+              },
+            ),
           ),
         ),
       ],
@@ -552,53 +584,47 @@ class _ChatInvitesSheet extends HookConsumerWidget {
         ),
       ],
       child: invites.when(
-        data:
-            (items) =>
-                items.isEmpty
-                    ? Center(
-                      child:
-                          Text(
-                            'invitesEmpty',
-                            textAlign: TextAlign.center,
-                          ).tr(),
-                    )
-                    : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final invite = items[index];
-                        return ChatRoomListTile(
-                          room: invite.chatRoom!,
-                          isDirect: invite.chatRoom!.type == 1,
-                          subtitle: Row(
-                            spacing: 6,
-                            children: [
-                              if (invite.chatRoom!.type == 1)
-                                Badge(
-                                  label: const Text('directMessage').tr(),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  textColor:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                ),
-                            ],
+        data: (items) => items.isEmpty
+            ? Center(
+                child: Text('invitesEmpty', textAlign: TextAlign.center).tr(),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final invite = items[index];
+                  return ChatRoomListTile(
+                    room: invite.chatRoom!,
+                    isDirect: invite.chatRoom!.type == 1,
+                    subtitle: Row(
+                      spacing: 6,
+                      children: [
+                        if (invite.chatRoom!.type == 1)
+                          Badge(
+                            label: const Text('directMessage').tr(),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            textColor: Theme.of(context).colorScheme.onPrimary,
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Symbols.check),
-                                onPressed: () => acceptInvite(invite),
-                              ),
-                              IconButton(
-                                icon: const Icon(Symbols.close),
-                                onPressed: () => declineInvite(invite),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                      ],
                     ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Symbols.check),
+                          onPressed: () => acceptInvite(invite),
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.close),
+                          onPressed: () => declineInvite(invite),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),

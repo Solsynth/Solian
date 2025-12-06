@@ -44,11 +44,10 @@ class PollListNotifier extends AsyncNotifier<List<SnPollWithStats>>
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final items =
-        response.data
-            .map((json) => SnPollWithStats.fromJson(json))
-            .cast<SnPollWithStats>()
-            .toList();
+    final items = response.data
+        .map((json) => SnPollWithStats.fromJson(json))
+        .cast<SnPollWithStats>()
+        .toList();
 
     return items;
   }
@@ -91,6 +90,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
       body: ExtendedRefreshIndicator(
         onRefresh: () => ref.refresh(pollListNotifierProvider(pubName).future),
         child: PaginationList(
+          footerSkeletonMaxWidth: 640,
           provider: pollListNotifierProvider(pubName),
           notifier: pollListNotifierProvider(pubName).notifier,
           padding: const EdgeInsets.only(top: 12),
@@ -119,10 +119,9 @@ class _CreatorPollItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final ended = pollWithStats.endedAt;
-    final endedText =
-        ended == null
-            ? 'No end'
-            : MaterialLocalizations.of(context).formatFullDate(ended);
+    final endedText = ended == null
+        ? 'No end'
+        : MaterialLocalizations.of(context).formatFullDate(ended);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -152,78 +151,69 @@ class _CreatorPollItem extends HookConsumerWidget {
           ],
         ),
         trailing: PopupMenuButton<String>(
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.edit),
-                      const Gap(16),
-                      Text('edit').tr(),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              child: Row(
+                children: [
+                  const Icon(Symbols.edit),
+                  const Gap(16),
+                  Text('edit').tr(),
+                ],
+              ),
+              onTap: () async {
+                final result = await showModalBottomSheet<SnPoll>(
+                  context: context,
+                  isScrollControlled: true,
+                  isDismissible: false,
+                  builder: (context) => PollEditorScreen(
+                    initialPublisher: pubName,
+                    initialPollId: pollWithStats.id,
+                  ),
+                );
+                if (result != null && context.mounted) {
+                  ref.invalidate(pollListNotifierProvider(pubName));
+                }
+              },
+            ),
+            PopupMenuItem(
+              child: Row(
+                children: [
+                  const Icon(Symbols.delete, color: Colors.red),
+                  const Gap(16),
+                  Text('delete').tr().textColor(Colors.red),
+                ],
+              ),
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Delete Poll'),
+                    content: Text('Are you sure you want to delete this poll?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Delete'),
+                      ),
                     ],
                   ),
-                  onTap: () async {
-                    final result = await showModalBottomSheet<SnPoll>(
-                      context: context,
-                      isScrollControlled: true,
-                      isDismissible: false,
-                      builder:
-                          (context) => PollEditorScreen(
-                            initialPublisher: pubName,
-                            initialPollId: pollWithStats.id,
-                          ),
-                    );
-                    if (result != null && context.mounted) {
-                      ref.invalidate(pollListNotifierProvider(pubName));
-                    }
-                  },
-                ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.delete, color: Colors.red),
-                      const Gap(16),
-                      Text('delete').tr().textColor(Colors.red),
-                    ],
-                  ),
-                  onTap: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text('Delete Poll'),
-                            content: Text(
-                              'Are you sure you want to delete this poll?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(false),
-                                child: Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text('Delete'),
-                              ),
-                            ],
-                          ),
-                    );
-                    if (confirmed == true) {
-                      try {
-                        final client = ref.read(apiClientProvider);
-                        await client.delete(
-                          '/sphere/polls/${pollWithStats.id}',
-                        );
-                        ref.invalidate(pollListNotifierProvider(pubName));
-                        showSnackBar('Poll deleted successfully');
-                      } catch (e) {
-                        showErrorAlert(e);
-                      }
-                    }
-                  },
-                ),
-              ],
+                );
+                if (confirmed == true) {
+                  try {
+                    final client = ref.read(apiClientProvider);
+                    await client.delete('/sphere/polls/${pollWithStats.id}');
+                    ref.invalidate(pollListNotifierProvider(pubName));
+                    showSnackBar('Poll deleted successfully');
+                  } catch (e) {
+                    showErrorAlert(e);
+                  }
+                }
+              },
+            ),
+          ],
         ),
         onTap: () {
           showModalBottomSheet(

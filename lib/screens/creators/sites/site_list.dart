@@ -12,7 +12,6 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 final siteListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
@@ -38,11 +37,10 @@ class SiteListNotifier extends AsyncNotifier<List<SnPublicationSite>>
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final items =
-        response.data
-            .map((json) => SnPublicationSite.fromJson(json))
-            .cast<SnPublicationSite>()
-            .toList();
+    final items = response.data
+        .map((json) => SnPublicationSite.fromJson(json))
+        .cast<SnPublicationSite>()
+        .toList();
 
     return items;
   }
@@ -70,23 +68,17 @@ class CreatorSiteListScreen extends HookConsumerWidget {
         onPressed: () => _createSite(context),
         child: Icon(Icons.add),
       ),
-      body: ExtendedRefreshIndicator(
-        onRefresh: () => ref.refresh(siteListNotifierProvider(pubName).future),
-        child: CustomScrollView(
-          slivers: [
-            const SliverGap(8),
-            PaginationList(
-              provider: siteListNotifierProvider(pubName),
-              notifier: siteListNotifierProvider(pubName).notifier,
-              itemBuilder: (context, index, site) {
-                return ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 640),
-                  child: _CreatorSiteItem(site: site, pubName: pubName),
-                ).center();
-              },
-            ),
-          ],
-        ),
+      body: PaginationList(
+        footerSkeletonMaxWidth: 640,
+        provider: siteListNotifierProvider(pubName),
+        notifier: siteListNotifierProvider(pubName).notifier,
+        padding: const EdgeInsets.only(top: 12),
+        itemBuilder: (context, index, site) {
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 640),
+            child: _CreatorSiteItem(site: site, pubName: pubName),
+          ).center();
+        },
       ),
     );
   }
@@ -148,73 +140,65 @@ class _CreatorSiteItem extends HookConsumerWidget {
                 ),
               ),
               PopupMenuButton<String>(
-                itemBuilder:
-                    (context) => [
-                      PopupMenuItem(
-                        child: Row(
-                          children: [
-                            const Icon(Symbols.edit),
-                            const Gap(16),
-                            Text('edit').tr(),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.edit),
+                        const Gap(16),
+                        Text('edit').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) =>
+                            SiteForm(pubName: pubName, siteSlug: site.slug),
+                      );
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.delete, color: Colors.red),
+                        const Gap(16),
+                        Text('delete').tr().textColor(Colors.red),
+                      ],
+                    ),
+                    onTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('deleteSite'.tr()),
+                          content: Text('deleteSiteConfirm'.tr()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text('cancel'.tr()),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text('delete'.tr()),
+                            ),
                           ],
                         ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder:
-                                (context) => SiteForm(
-                                  pubName: pubName,
-                                  siteSlug: site.slug,
-                                ),
+                      );
+                      if (confirmed == true) {
+                        try {
+                          final client = ref.read(apiClientProvider);
+                          await client.delete(
+                            '/zone/sites/$pubName/${site.slug}',
                           );
-                        },
-                      ),
-                      PopupMenuItem(
-                        child: Row(
-                          children: [
-                            const Icon(Symbols.delete, color: Colors.red),
-                            const Gap(16),
-                            Text('delete').tr().textColor(Colors.red),
-                          ],
-                        ),
-                        onTap: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder:
-                                (context) => AlertDialog(
-                                  title: Text('deleteSite'.tr()),
-                                  content: Text('deleteSiteConfirm'.tr()),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () =>
-                                              Navigator.of(context).pop(false),
-                                      child: Text('cancel'.tr()),
-                                    ),
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.of(context).pop(true),
-                                      child: Text('delete'.tr()),
-                                    ),
-                                  ],
-                                ),
-                          );
-                          if (confirmed == true) {
-                            try {
-                              final client = ref.read(apiClientProvider);
-                              await client.delete(
-                                '/zone/sites/$pubName/${site.slug}',
-                              );
-                              ref.invalidate(siteListNotifierProvider(pubName));
-                              showSnackBar('siteDeletedSuccess'.tr());
-                            } catch (e) {
-                              showErrorAlert(e);
-                            }
-                          }
-                        },
-                      ),
-                    ],
+                          ref.invalidate(siteListNotifierProvider(pubName));
+                          showSnackBar('siteDeletedSuccess'.tr());
+                        } catch (e) {
+                          showErrorAlert(e);
+                        }
+                      }
+                    },
+                  ),
+                ],
               ),
             ],
           ),
