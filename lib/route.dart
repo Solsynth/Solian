@@ -105,10 +105,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             name: 'articleCompose',
             path: '/articles/compose',
-            builder:
-                (context, state) => ArticleComposeScreen(
-                  initialState: state.extra as PostComposeInitialState?,
-                ),
+            builder: (context, state) => ArticleComposeScreen(
+              initialState: state.extra as PostComposeInitialState?,
+            ),
           ),
           GoRoute(
             name: 'articleEdit',
@@ -190,12 +189,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 name: 'explore',
                 path: '/',
-                pageBuilder:
-                    (context, state) => CustomTransitionPage(
-                      key: const ValueKey('explore'),
-                      child: const ExploreScreen(),
-                      transitionsBuilder: _tabPagesTransitionBuilder,
-                    ),
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: const ValueKey('explore'),
+                  child: const ExploreScreen(),
+                  transitionsBuilder: _tabPagesTransitionBuilder,
+                ),
               ),
               GoRoute(
                 name: 'postSearch',
@@ -219,11 +217,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final slug = state.pathParameters['slug']!;
                   return PostCategoryDetailScreen(slug: slug, isCategory: true);
                 },
-              ),
-              GoRoute(
-                name: 'postTags',
-                path: '/posts/tags',
-                builder: (context, state) => const PostTagsListScreen(),
               ),
               GoRoute(
                 name: 'postTagDetail',
@@ -260,12 +253,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               // Chat tab
               ShellRoute(
-                pageBuilder:
-                    (context, state, child) => CustomTransitionPage(
-                      key: const ValueKey('chat'),
-                      child: ChatShellScreen(child: child),
-                      transitionsBuilder: _tabPagesTransitionBuilder,
-                    ),
+                pageBuilder: (context, state, child) => CustomTransitionPage(
+                  key: const ValueKey('chat'),
+                  child: ChatShellScreen(child: child),
+                  transitionsBuilder: _tabPagesTransitionBuilder,
+                ),
                 routes: [
                   GoRoute(
                     name: 'chatList',
@@ -303,12 +295,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 name: 'realmList',
                 path: '/realms',
-                pageBuilder:
-                    (context, state) => CustomTransitionPage(
-                      key: const ValueKey('realms'),
-                      child: const RealmListScreen(),
-                      transitionsBuilder: _tabPagesTransitionBuilder,
-                    ),
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: const ValueKey('realms'),
+                  child: const RealmListScreen(),
+                  transitionsBuilder: _tabPagesTransitionBuilder,
+                ),
                 routes: [
                   GoRoute(
                     name: 'realmNew',
@@ -336,12 +327,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               // Account tab
               ShellRoute(
-                pageBuilder:
-                    (context, state, child) => CustomTransitionPage(
-                      key: const ValueKey('account'),
-                      child: AccountShellScreen(child: child),
-                      transitionsBuilder: _tabPagesTransitionBuilder,
-                    ),
+                pageBuilder: (context, state, child) => CustomTransitionPage(
+                  key: const ValueKey('account'),
+                  child: AccountShellScreen(child: child),
+                  transitionsBuilder: _tabPagesTransitionBuilder,
+                ),
                 routes: [
                   GoRoute(
                     name: 'account',
@@ -352,8 +342,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     name: 'stickerMarketplace',
                     path: '/stickers',
-                    builder:
-                        (context, state) => const MarketplaceStickersScreen(),
+                    builder: (context, state) =>
+                        const MarketplaceStickersScreen(),
                     routes: [
                       GoRoute(
                         name: 'stickerPackDetail',
@@ -368,8 +358,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     name: 'webFeedMarketplace',
                     path: '/feeds',
-                    builder:
-                        (context, state) => const MarketplaceWebFeedsScreen(),
+                    builder: (context, state) =>
+                        const MarketplaceWebFeedsScreen(),
                     routes: [
                       GoRoute(
                         name: 'webFeedDetail',
@@ -516,29 +506,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 name: 'developerHub',
                 path: '/developers',
-                builder:
-                    (context, state) => DeveloperHubScreen(
-                      initialPublisherName:
-                          state.uri.queryParameters['publisher'],
-                      initialProjectId: state.uri.queryParameters['project'],
-                    ),
+                builder: (context, state) => DeveloperHubScreen(
+                  initialPublisherName: state.uri.queryParameters['publisher'],
+                  initialProjectId: state.uri.queryParameters['project'],
+                ),
                 routes: [
                   GoRoute(
                     name: 'developerProjectNew',
                     path: ':name/projects/new',
-                    builder:
-                        (context, state) => NewProjectScreen(
-                          publisherName: state.pathParameters['name']!,
-                        ),
+                    builder: (context, state) => NewProjectScreen(
+                      publisherName: state.pathParameters['name']!,
+                    ),
                   ),
                   GoRoute(
                     name: 'developerProjectEdit',
                     path: ':name/projects/:id/edit',
-                    builder:
-                        (context, state) => EditProjectScreen(
-                          publisherName: state.pathParameters['name']!,
-                          id: state.pathParameters['id']!,
-                        ),
+                    builder: (context, state) => EditProjectScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                    ),
                   ),
                   GoRoute(
                     name: 'developerProjectDetail',
@@ -558,22 +544,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         name: 'developerAppDetail',
                         path: 'apps/:appId',
-                        builder:
-                            (context, state) => AppDetailScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                              appId: state.pathParameters['appId']!,
-                            ),
+                        builder: (context, state) => AppDetailScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          appId: state.pathParameters['appId']!,
+                        ),
                       ),
                       GoRoute(
                         name: 'developerBotDetail',
                         path: 'bots/:botId',
-                        builder:
-                            (context, state) => BotDetailScreen(
-                              publisherName: state.pathParameters['name']!,
-                              projectId: state.pathParameters['projectId']!,
-                              botId: state.pathParameters['botId']!,
-                            ),
+                        builder: (context, state) => BotDetailScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          botId: state.pathParameters['botId']!,
+                        ),
                       ),
                     ],
                   ),

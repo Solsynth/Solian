@@ -102,7 +102,7 @@ class ExploreScreen extends HookConsumerWidget {
     // Listen for post creation events to refresh activities
     useEffect(() {
       final subscription = eventBus.on<PostCreatedEvent>().listen((event) {
-        ref.invalidate(activityListProvider);
+        ref.read(activityListProvider.notifier).refresh();
       });
       return subscription.cancel;
     }, []);
@@ -183,23 +183,11 @@ class ExploreScreen extends HookConsumerWidget {
                   children: [
                     const Icon(Symbols.category),
                     const Gap(12),
-                    Text('categories').tr(),
+                    Text('categoriesAndTags').tr(),
                   ],
                 ),
                 onTap: () {
                   context.pushNamed('postCategories');
-                },
-              ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.label),
-                    const Gap(12),
-                    Text('tags').tr(),
-                  ],
-                ),
-                onTap: () {
-                  context.pushNamed('postTags');
                 },
               ),
               PopupMenuItem(
@@ -490,23 +478,11 @@ class ExploreScreen extends HookConsumerWidget {
                     children: [
                       const Icon(Symbols.category),
                       const Gap(12),
-                      Text('categories').tr(),
+                      Text('categoriesAndTags').tr(),
                     ],
                   ),
                   onTap: () {
                     context.pushNamed('postCategories');
-                  },
-                ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.label),
-                      const Gap(12),
-                      Text('tags').tr(),
-                    ],
-                  ),
-                  onTap: () {
-                    context.pushNamed('postTags');
                   },
                 ),
                 PopupMenuItem(

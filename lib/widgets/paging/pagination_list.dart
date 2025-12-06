@@ -22,6 +22,7 @@ class PaginationList<T> extends HookConsumerWidget {
   final bool showDefaultWidgets;
   final EdgeInsets? padding;
   final Widget? footerSkeletonChild;
+  final double? footerSkeletonMaxWidth;
   const PaginationList({
     super.key,
     required this.provider,
@@ -32,6 +33,7 @@ class PaginationList<T> extends HookConsumerWidget {
     this.showDefaultWidgets = true,
     this.padding,
     this.footerSkeletonChild,
+    this.footerSkeletonMaxWidth,
   });
 
   @override
@@ -53,7 +55,9 @@ class PaginationList<T> extends HookConsumerWidget {
               ).colorScheme.surfaceContainerHighest,
             ),
             containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+            child:
+                footerSkeletonChild ??
+                _DefaultSkeletonChild(maxWidth: footerSkeletonMaxWidth),
           ),
         );
         return SliverList.list(children: content);
@@ -75,6 +79,7 @@ class PaginationList<T> extends HookConsumerWidget {
               noti: noti,
               data: data,
               skeletonChild: footerSkeletonChild,
+              skeletonMaxWidth: footerSkeletonMaxWidth,
             );
           }
           final entry = data.value?[idx];
@@ -102,7 +107,9 @@ class PaginationList<T> extends HookConsumerWidget {
               ).colorScheme.surfaceContainerHighest,
             ),
             containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+            child:
+                footerSkeletonChild ??
+                _DefaultSkeletonChild(maxWidth: footerSkeletonMaxWidth),
           ),
         );
         return SizedBox(
@@ -128,6 +135,7 @@ class PaginationList<T> extends HookConsumerWidget {
               noti: noti,
               data: data,
               skeletonChild: footerSkeletonChild,
+              skeletonMaxWidth: footerSkeletonMaxWidth,
             );
           }
           final entry = data.value?[idx];
@@ -159,6 +167,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
   final bool isSliver;
   final bool showDefaultWidgets;
   final Widget? footerSkeletonChild;
+  final double? footerSkeletonMaxWidth;
   const PaginationWidget({
     super.key,
     required this.provider,
@@ -168,6 +177,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
     this.isSliver = false,
     this.showDefaultWidgets = true,
     this.footerSkeletonChild,
+    this.footerSkeletonMaxWidth,
   });
 
   @override
@@ -189,7 +199,9 @@ class PaginationWidget<T> extends HookConsumerWidget {
               ).colorScheme.surfaceContainerHighest,
             ),
             containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+            child:
+                footerSkeletonChild ??
+                _DefaultSkeletonChild(maxWidth: footerSkeletonMaxWidth),
           ),
         );
         return SliverList.list(children: content);
@@ -207,6 +219,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
         noti: noti,
         data: data,
         skeletonChild: footerSkeletonChild,
+        skeletonMaxWidth: footerSkeletonMaxWidth,
       );
       final content = contentBuilder(data.value ?? [], footer);
 
@@ -229,7 +242,9 @@ class PaginationWidget<T> extends HookConsumerWidget {
               ).colorScheme.surfaceContainerHighest,
             ),
             containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+            child:
+                footerSkeletonChild ??
+                _DefaultSkeletonChild(maxWidth: footerSkeletonMaxWidth),
           ),
         );
         return SizedBox(
@@ -250,6 +265,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
         noti: noti,
         data: data,
         skeletonChild: footerSkeletonChild,
+        skeletonMaxWidth: footerSkeletonMaxWidth,
       );
       final content = contentBuilder(data.value ?? [], footer);
 
@@ -272,6 +288,7 @@ class PaginationListFooter<T> extends HookConsumerWidget {
   final PaginationController<T> noti;
   final AsyncValue<List<T>> data;
   final Widget? skeletonChild;
+  final double? skeletonMaxWidth;
   final bool isSliver;
 
   const PaginationListFooter({
@@ -279,6 +296,7 @@ class PaginationListFooter<T> extends HookConsumerWidget {
     required this.noti,
     required this.data,
     this.skeletonChild,
+    this.skeletonMaxWidth,
     this.isSliver = false,
   });
 
@@ -293,7 +311,7 @@ class PaginationListFooter<T> extends HookConsumerWidget {
         highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: skeletonChild ?? _DefaultSkeletonChild(),
+      child: skeletonChild ?? _DefaultSkeletonChild(maxWidth: skeletonMaxWidth),
     );
     final child = hasBeenVisible.value
         ? data.isLoading
@@ -322,14 +340,24 @@ class PaginationListFooter<T> extends HookConsumerWidget {
 }
 
 class _DefaultSkeletonChild extends StatelessWidget {
-  const _DefaultSkeletonChild();
+  final double? maxWidth;
+  const _DefaultSkeletonChild({this.maxWidth});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    final content = ListTile(
       title: Text('Some data'),
       subtitle: const Text('Subtitle here'),
       trailing: const Icon(Icons.ac_unit),
     );
+    if (maxWidth != null) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth!),
+          child: content,
+        ),
+      );
+    }
+    return content;
   }
 }

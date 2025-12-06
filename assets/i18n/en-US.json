@@ -618,6 +618,7 @@
   "tagsHint": "Enter tags, separated by commas",
   "categories": "Categories",
   "categoriesHint": "Enter categories, separated by commas",
+  "categoriesAndTags": "Categories & Tags",
   "chatNotJoined": "You have not joined this chat yet.",
   "chatUnableJoin": "You can't join this chat due to it's access control settings.",
   "chatJoin": "Join the Chat",

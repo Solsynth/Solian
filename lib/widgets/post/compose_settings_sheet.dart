@@ -9,32 +9,13 @@ import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/post/post_categories.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-
-part 'compose_settings_sheet.g.dart';
-
-@riverpod
-Future<List<SnPostCategory>> postCategories(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/posts/categories');
-  final categories =
-      resp.data
-          .map((e) => SnPostCategory.fromJson(e))
-          .cast<SnPostCategory>()
-          .toList();
-  // Remove duplicates based on id
-  final uniqueCategories = <String, SnPostCategory>{};
-  for (final category in categories) {
-    uniqueCategories[category.id] = category;
-  }
-  return uniqueCategories.values.toList();
-}
 
 class ComposeSettingsSheet extends HookConsumerWidget {
   final ComposeState state;
@@ -121,39 +102,38 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     void showVisibilitySheet() {
       showModalBottomSheet(
         context: context,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'postVisibility'.tr(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  buildVisibilityOption(
-                    context,
-                    0,
-                    Symbols.public,
-                    'postVisibilityPublic',
-                  ),
-                  buildVisibilityOption(
-                    context,
-                    1,
-                    Symbols.group,
-                    'postVisibilityFriends',
-                  ),
-                  buildVisibilityOption(
-                    context,
-                    2,
-                    Symbols.link_off,
-                    'postVisibilityUnlisted',
-                  ),
-                  buildVisibilityOption(
-                    context,
-                    3,
-                    Symbols.lock,
-                    'postVisibilityPrivate',
-                  ),
-                ],
+        builder: (context) => SheetScaffold(
+          titleText: 'postVisibility'.tr(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildVisibilityOption(
+                context,
+                0,
+                Symbols.public,
+                'postVisibilityPublic',
               ),
-            ),
+              buildVisibilityOption(
+                context,
+                1,
+                Symbols.group,
+                'postVisibilityFriends',
+              ),
+              buildVisibilityOption(
+                context,
+                2,
+                Symbols.link_off,
+                'postVisibilityUnlisted',
+              ),
+              buildVisibilityOption(
+                context,
+                3,
+                Symbols.lock,
+                'postVisibilityPrivate',
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -182,8 +162,8 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
 
             // Tags field
@@ -209,51 +189,48 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children:
-                          currentTags.map((tag) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(16),
+                      children: currentTags.map((tag) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '#$tag',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                  fontSize: 14,
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                              const Gap(4),
+                              InkWell(
+                                onTap: () {
+                                  final newTags = List<String>.from(
+                                    state.tags.value,
+                                  )..remove(tag);
+                                  state.tags.value = newTags;
+                                },
+                                child: Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '#$tag',
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const Gap(4),
-                                  InkWell(
-                                    onTap: () {
-                                      final newTags = List<String>.from(
-                                        state.tags.value,
-                                      )..remove(tag);
-                                      state.tags.value = newTags;
-                                    },
-                                    child: Icon(
-                                      Icons.close,
-                                      size: 16,
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                   // Tag input with autocomplete
                   TypeAheadField<SnPostTag>(
@@ -274,8 +251,8 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                         },
                       );
                     },
-                    suggestionsCallback:
-                        (pattern) => _fetchTagSuggestions(pattern, ref),
+                    suggestionsCallback: (pattern) =>
+                        _fetchTagSuggestions(pattern, ref),
                     itemBuilder: (context, suggestion) {
                       return ListTile(
                         shape: const RoundedRectangleBorder(
@@ -314,55 +291,49 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 ),
               ),
               hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
-              items:
-                  (postCategories.value ?? <SnPostCategory>[]).map((item) {
-                    return DropdownMenuItem(
-                      value: item,
-                      enabled: false,
-                      child: StatefulBuilder(
-                        builder: (context, menuSetState) {
-                          final isSelected = state.categories.value.contains(
-                            item,
-                          );
-                          return InkWell(
-                            onTap: () {
-                              isSelected
-                                  ? state.categories.value =
-                                      state.categories.value
-                                          .where((e) => e != item)
-                                          .toList()
-                                  : state.categories.value = [
-                                    ...state.categories.value,
-                                    item,
-                                  ];
-                              menuSetState(() {});
-                            },
-                            child: Container(
-                              height: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (isSelected)
-                                    const Icon(Icons.check_box_outlined)
-                                  else
-                                    const Icon(Icons.check_box_outline_blank),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      item.categoryDisplayTitle,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
+              items: (postCategories.value ?? <SnPostCategory>[]).map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  enabled: false,
+                  child: StatefulBuilder(
+                    builder: (context, menuSetState) {
+                      final isSelected = state.categories.value.contains(item);
+                      return InkWell(
+                        onTap: () {
+                          isSelected
+                              ? state.categories.value = state.categories.value
+                                    .where((e) => e != item)
+                                    .toList()
+                              : state.categories.value = [
+                                  ...state.categories.value,
+                                  item,
+                                ];
+                          menuSetState(() {});
                         },
-                      ),
-                    );
-                  }).toList(),
+                        child: Container(
+                          height: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            children: [
+                              if (isSelected)
+                                const Icon(Icons.check_box_outlined)
+                              else
+                                const Icon(Icons.check_box_outline_blank),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  item.categoryDisplayTitle,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }).toList(),
               value: currentCategories.isEmpty ? null : currentCategories.last,
               onChanged: (_) {},
               selectedItemBuilder: (context) {
