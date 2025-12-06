@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
@@ -7,6 +8,7 @@ import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -48,31 +50,30 @@ class PaginationList<T> extends HookConsumerWidget {
       return isSliver ? SliverFillRemaining(child: content) : content;
     }
 
-    final listView =
-        isSliver
-            ? SuperSliverList.builder(
-              itemCount: (data.value?.length ?? 0) + 1,
-              itemBuilder: (context, idx) {
-                if (idx == data.value?.length) {
-                  return PaginationListFooter(noti: noti, data: data);
-                }
-                final entry = data.value?[idx];
-                if (entry != null) return itemBuilder(context, idx, entry);
-                return null;
-              },
-            )
-            : SuperListView.builder(
-              padding: padding,
-              itemCount: (data.value?.length ?? 0) + 1,
-              itemBuilder: (context, idx) {
-                if (idx == data.value?.length) {
-                  return PaginationListFooter(noti: noti, data: data);
-                }
-                final entry = data.value?[idx];
-                if (entry != null) return itemBuilder(context, idx, entry);
-                return null;
-              },
-            );
+    final listView = isSliver
+        ? SuperSliverList.builder(
+            itemCount: (data.value?.length ?? 0) + 1,
+            itemBuilder: (context, idx) {
+              if (idx == data.value?.length) {
+                return PaginationListFooter(noti: noti, data: data);
+              }
+              final entry = data.value?[idx];
+              if (entry != null) return itemBuilder(context, idx, entry);
+              return null;
+            },
+          )
+        : SuperListView.builder(
+            padding: padding,
+            itemCount: (data.value?.length ?? 0) + 1,
+            itemBuilder: (context, idx) {
+              if (idx == data.value?.length) {
+                return PaginationListFooter(noti: noti, data: data);
+              }
+              final entry = data.value?[idx];
+              if (entry != null) return itemBuilder(context, idx, entry);
+              return null;
+            },
+          );
 
     return isRefreshable
         ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: listView)
@@ -124,40 +125,56 @@ class PaginationWidget<T> extends HookConsumerWidget {
   }
 }
 
-class PaginationListFooter<T> extends StatelessWidget {
+class PaginationListFooter<T> extends HookConsumerWidget {
   final PaginationController<T> noti;
   final AsyncValue<List<T>> data;
+  final Widget? skeletonChild;
   final bool isSliver;
 
   const PaginationListFooter({
     super.key,
     required this.noti,
     required this.data,
+    this.skeletonChild,
     this.isSliver = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasBeenVisible = useState(false);
+
+    final placeholder = Skeletonizer(
+      enabled: true,
+      child:
+          skeletonChild ??
+          ListTile(
+            title: Text('Some data'),
+            subtitle: const Text('Subtitle here'),
+            trailing: const Icon(Icons.ac_unit),
+          ),
+    );
     final child = SizedBox(
       height: 64,
       child: Center(
-        child:
-            data.isLoading
-                ? CircularProgressIndicator()
-                : Row(
-                  spacing: 8,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Symbols.close, size: 16),
-                    Text('noFurtherData').tr().fontSize(13),
-                  ],
-                ).opacity(0.9),
+        child: hasBeenVisible.value
+            ? data.isLoading
+                  ? placeholder
+                  : Row(
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Symbols.close, size: 16),
+                        Text('noFurtherData').tr().fontSize(13),
+                      ],
+                    ).opacity(0.9)
+            : placeholder,
       ).padding(all: 8),
     );
 
     return VisibilityDetector(
       key: Key("pagination-list-${noti.hashCode}"),
       onVisibilityChanged: (VisibilityInfo info) {
+        hasBeenVisible.value = true;
         if (!noti.fetchedAll && !data.isLoading && !data.hasError) {
           noti.fetchFurther();
         }

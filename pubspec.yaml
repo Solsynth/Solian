@@ -170,6 +170,7 @@ dependencies:
   flutter_animate: ^4.5.2
   http_parser: ^4.1.2
   flutter_code_editor: ^0.3.5
+  skeletonizer: ^2.1.1
 
 dev_dependencies:
   flutter_test:
