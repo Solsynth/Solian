@@ -269,6 +269,7 @@ class PostReplyPreview extends HookConsumerWidget {
               ),
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
+            width: double.infinity,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return Column(
