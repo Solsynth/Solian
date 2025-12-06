@@ -40,8 +40,23 @@ class PaginationList<T> extends HookConsumerWidget {
     final noti = ref.watch(notifier);
 
     if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
-      final content = ResponseLoadingWidget();
-      return isSliver ? SliverFillRemaining(child: content) : content;
+      final content = List<Widget>.generate(
+        10,
+        (_) => Skeletonizer(
+          enabled: true,
+          effect: ShimmerEffect(
+            baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            highlightColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
+          ),
+          containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+        ),
+      );
+      return isSliver
+          ? SliverList.list(children: content)
+          : ListView(children: content);
     }
 
     if (data.hasError) {
@@ -116,8 +131,23 @@ class PaginationWidget<T> extends HookConsumerWidget {
     final noti = ref.watch(notifier);
 
     if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
-      final content = ResponseLoadingWidget();
-      return isSliver ? SliverFillRemaining(child: content) : content;
+      final content = List<Widget>.generate(
+        10,
+        (_) => Skeletonizer(
+          enabled: true,
+          effect: ShimmerEffect(
+            baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            highlightColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
+          ),
+          containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+        ),
+      );
+      return isSliver
+          ? SliverList.list(children: content)
+          : ListView(children: content);
     }
 
     if (data.hasError) {
@@ -161,13 +191,12 @@ class PaginationListFooter<T> extends HookConsumerWidget {
 
     final placeholder = Skeletonizer(
       enabled: true,
-      child:
-          skeletonChild ??
-          ListTile(
-            title: Text('Some data'),
-            subtitle: const Text('Subtitle here'),
-            trailing: const Icon(Icons.ac_unit),
-          ),
+      effect: ShimmerEffect(
+        baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+        highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+      child: skeletonChild ?? _DefaultSkeletonChild(),
     );
     final child = hasBeenVisible.value
         ? data.isLoading
@@ -191,6 +220,19 @@ class PaginationListFooter<T> extends HookConsumerWidget {
         }
       },
       child: isSliver ? SliverToBoxAdapter(child: child) : child,
+    );
+  }
+}
+
+class _DefaultSkeletonChild extends StatelessWidget {
+  const _DefaultSkeletonChild();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text('Some data'),
+      subtitle: const Text('Subtitle here'),
+      trailing: const Icon(Icons.ac_unit),
     );
   }
 }

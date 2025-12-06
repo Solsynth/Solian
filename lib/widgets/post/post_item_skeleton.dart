@@ -26,28 +26,38 @@ class PostItemSkeleton extends StatelessWidget {
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Gap(renderingPadding.vertical),
-        _PostHeaderSkeleton(
-          isFullPost: isFullPost,
-          isCompact: isCompact,
-          renderingPadding: renderingPadding,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 640),
+        child: Card(
+          margin: EdgeInsets.only(bottom: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Gap(renderingPadding.vertical),
+              _PostHeaderSkeleton(
+                isFullPost: isFullPost,
+                isCompact: isCompact,
+                renderingPadding: renderingPadding,
+              ),
+              _PostBodySkeleton(
+                isFullPost: isFullPost,
+                renderingPadding: renderingPadding,
+              ),
+              if (isShowReference)
+                _ReferencedPostWidgetSkeleton(
+                  renderingPadding: renderingPadding,
+                ),
+              if (isEmbedReply)
+                _PostReplyPreviewSkeleton(
+                  renderingPadding: renderingPadding,
+                ).padding(horizontal: renderingPadding.horizontal, top: 8),
+              Gap(renderingPadding.vertical),
+            ],
+          ),
         ),
-        _PostBodySkeleton(
-          isFullPost: isFullPost,
-          renderingPadding: renderingPadding,
-        ),
-        if (isShowReference)
-          _ReferencedPostWidgetSkeleton(renderingPadding: renderingPadding),
-        if (isEmbedReply)
-          _PostReplyPreviewSkeleton(
-            renderingPadding: renderingPadding,
-          ).padding(horizontal: renderingPadding.horizontal, top: 8),
-        Gap(renderingPadding.vertical),
-      ],
+      ),
     );
   }
 }

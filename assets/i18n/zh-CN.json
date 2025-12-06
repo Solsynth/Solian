@@ -1489,5 +1489,6 @@
   "accountActivationAlert": "请记住激活您的账户",
   "accountActivationAlertHint": "未激活的账户可能会导致各种权限问题，请点击我们发送到您邮箱收件箱的链接来激活您的账户。",
   "accountActivationResendHint": "没收到？请尝试点击下方按钮重新发送。如果您在账户未激活期间需要更新邮箱，请随时联系我们的客服。",
-  "accountActivationResend": "重新发送"
+  "accountActivationResend": "重新发送",
+  "noFurtherData": "已经到底了"
 }

@@ -5,6 +5,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_item_skeleton.dart';
 
 final postRepliesProvider = AsyncNotifierProvider.autoDispose.family(
   PostRepliesNotifier.new,
@@ -52,6 +53,7 @@ class PostRepliesList extends HookConsumerWidget {
       notifier: provider.notifier,
       isRefreshable: false,
       isSliver: true,
+      footerSkeletonChild: const PostItemSkeleton(),
       itemBuilder: (context, index, item) {
         final contentWidget = Card(
           margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
