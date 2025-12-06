@@ -48,12 +48,24 @@ class PostRepliesList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = postRepliesProvider(postId);
 
+    final skeletonItem = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: const PostItemSkeleton(),
+    );
+
     return PaginationList(
       provider: provider,
       notifier: provider.notifier,
       isRefreshable: false,
       isSliver: true,
-      footerSkeletonChild: const PostItemSkeleton(),
+      footerSkeletonChild: maxWidth == null
+          ? skeletonItem
+          : Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: skeletonItem,
+              ),
+            ),
       itemBuilder: (context, index, item) {
         final contentWidget = Card(
           margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
