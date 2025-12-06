@@ -39,70 +39,115 @@ class PaginationList<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
-      final content = List<Widget>.generate(
-        10,
-        (_) => Skeletonizer(
-          enabled: true,
-          effect: ShimmerEffect(
-            baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            highlightColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest,
+    if (isSliver) {
+      // For slivers, return widgets directly without animation
+      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+        final content = List<Widget>.generate(
+          10,
+          (_) => Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              highlightColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+            ),
+            containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
           ),
-          containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-          child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
-        ),
+        );
+        return SliverList.list(children: content);
+      }
+
+      if (data.hasError) {
+        final content = ResponseErrorWidget(
+          error: data.error,
+          onRetry: noti.refresh,
+        );
+        return SliverFillRemaining(child: content);
+      }
+
+      final listView = SuperSliverList.builder(
+        itemCount: (data.value?.length ?? 0) + 1,
+        itemBuilder: (context, idx) {
+          if (idx == data.value?.length) {
+            return PaginationListFooter(
+              noti: noti,
+              data: data,
+              skeletonChild: footerSkeletonChild,
+            );
+          }
+          final entry = data.value?[idx];
+          if (entry != null) return itemBuilder(context, idx, entry);
+          return null;
+        },
       );
-      return isSliver
-          ? SliverList.list(children: content)
-          : ListView(children: content);
+
+      return isRefreshable
+          ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: listView)
+          : listView;
     }
 
-    if (data.hasError) {
-      final content = ResponseErrorWidget(
-        error: data.error,
-        onRetry: noti.refresh,
+    // For non-slivers, use AnimatedSwitcher for smooth transitions
+    Widget buildContent() {
+      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+        final content = List<Widget>.generate(
+          10,
+          (_) => Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              highlightColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+            ),
+            containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+          ),
+        );
+        return SizedBox(
+          key: const ValueKey('loading'),
+          child: ListView(children: content),
+        );
+      }
+
+      if (data.hasError) {
+        final content = ResponseErrorWidget(
+          error: data.error,
+          onRetry: noti.refresh,
+        );
+        return SizedBox(key: const ValueKey('error'), child: content);
+      }
+
+      final listView = SuperListView.builder(
+        padding: padding,
+        itemCount: (data.value?.length ?? 0) + 1,
+        itemBuilder: (context, idx) {
+          if (idx == data.value?.length) {
+            return PaginationListFooter(
+              noti: noti,
+              data: data,
+              skeletonChild: footerSkeletonChild,
+            );
+          }
+          final entry = data.value?[idx];
+          if (entry != null) return itemBuilder(context, idx, entry);
+          return null;
+        },
       );
-      return isSliver ? SliverFillRemaining(child: content) : content;
+
+      return SizedBox(
+        key: const ValueKey('data'),
+        child: isRefreshable
+            ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: listView)
+            : listView,
+      );
     }
 
-    final listView = isSliver
-        ? SuperSliverList.builder(
-            itemCount: (data.value?.length ?? 0) + 1,
-            itemBuilder: (context, idx) {
-              if (idx == data.value?.length) {
-                return PaginationListFooter(
-                  noti: noti,
-                  data: data,
-                  skeletonChild: footerSkeletonChild,
-                );
-              }
-              final entry = data.value?[idx];
-              if (entry != null) return itemBuilder(context, idx, entry);
-              return null;
-            },
-          )
-        : SuperListView.builder(
-            padding: padding,
-            itemCount: (data.value?.length ?? 0) + 1,
-            itemBuilder: (context, idx) {
-              if (idx == data.value?.length) {
-                return PaginationListFooter(
-                  noti: noti,
-                  data: data,
-                  skeletonChild: footerSkeletonChild,
-                );
-              }
-              final entry = data.value?[idx];
-              if (entry != null) return itemBuilder(context, idx, entry);
-              return null;
-            },
-          );
-
-    return isRefreshable
-        ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: listView)
-        : listView;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: buildContent(),
+    );
   }
 }
 
@@ -130,44 +175,96 @@ class PaginationWidget<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
-      final content = List<Widget>.generate(
-        10,
-        (_) => Skeletonizer(
-          enabled: true,
-          effect: ShimmerEffect(
-            baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            highlightColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest,
+    if (isSliver) {
+      // For slivers, return widgets directly without animation
+      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+        final content = List<Widget>.generate(
+          10,
+          (_) => Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              highlightColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+            ),
+            containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
           ),
-          containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-          child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
-        ),
+        );
+        return SliverList.list(children: content);
+      }
+
+      if (data.hasError) {
+        final content = ResponseErrorWidget(
+          error: data.error,
+          onRetry: noti.refresh,
+        );
+        return SliverFillRemaining(child: content);
+      }
+
+      final footer = PaginationListFooter(
+        noti: noti,
+        data: data,
+        skeletonChild: footerSkeletonChild,
       );
-      return isSliver
-          ? SliverList.list(children: content)
-          : ListView(children: content);
+      final content = contentBuilder(data.value ?? [], footer);
+
+      return isRefreshable
+          ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: content)
+          : content;
     }
 
-    if (data.hasError) {
-      final content = ResponseErrorWidget(
-        error: data.error,
-        onRetry: noti.refresh,
+    // For non-slivers, use AnimatedSwitcher for smooth transitions
+    Widget buildContent() {
+      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+        final content = List<Widget>.generate(
+          10,
+          (_) => Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              highlightColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+            ),
+            containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+            child: footerSkeletonChild ?? const _DefaultSkeletonChild(),
+          ),
+        );
+        return SizedBox(
+          key: const ValueKey('loading'),
+          child: ListView(children: content),
+        );
+      }
+
+      if (data.hasError) {
+        final content = ResponseErrorWidget(
+          error: data.error,
+          onRetry: noti.refresh,
+        );
+        return SizedBox(key: const ValueKey('error'), child: content);
+      }
+
+      final footer = PaginationListFooter(
+        noti: noti,
+        data: data,
+        skeletonChild: footerSkeletonChild,
       );
-      return isSliver ? SliverFillRemaining(child: content) : content;
+      final content = contentBuilder(data.value ?? [], footer);
+
+      return SizedBox(
+        key: const ValueKey('data'),
+        child: isRefreshable
+            ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: content)
+            : content,
+      );
     }
 
-    final footer = PaginationListFooter(
-      noti: noti,
-      data: data,
-      skeletonChild: footerSkeletonChild,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: buildContent(),
     );
-    final content = contentBuilder(data.value ?? [], footer);
-
-    return isRefreshable
-        ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: content)
-        : content;
   }
 }
 
