@@ -12,30 +12,25 @@ _CustomApp _$CustomAppFromJson(Map<String, dynamic> json) => _CustomApp(
   name: json['name'] as String? ?? '',
   description: json['description'] as String?,
   status: (json['status'] as num?)?.toInt() ?? 0,
-  picture:
-      json['picture'] == null
-          ? null
-          : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
-  background:
-      json['background'] == null
-          ? null
-          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
-  verification:
-      json['verification'] == null
-          ? null
-          : SnVerificationMark.fromJson(
-            json['verification'] as Map<String, dynamic>,
-          ),
-  oauthConfig:
-      json['oauth_config'] == null
-          ? null
-          : CustomAppOauthConfig.fromJson(
-            json['oauth_config'] as Map<String, dynamic>,
-          ),
-  links:
-      json['links'] == null
-          ? null
-          : CustomAppLinks.fromJson(json['links'] as Map<String, dynamic>),
+  picture: json['picture'] == null
+      ? null
+      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+  background: json['background'] == null
+      ? null
+      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+  verification: json['verification'] == null
+      ? null
+      : SnVerificationMark.fromJson(
+          json['verification'] as Map<String, dynamic>,
+        ),
+  oauthConfig: json['oauth_config'] == null
+      ? null
+      : CustomAppOauthConfig.fromJson(
+          json['oauth_config'] as Map<String, dynamic>,
+        ),
+  links: json['links'] == null
+      ? null
+      : CustomAppLinks.fromJson(json['links'] as Map<String, dynamic>),
   secrets:
       (json['secrets'] as List<dynamic>?)
           ?.map((e) => CustomAppSecret.fromJson(e as Map<String, dynamic>))
@@ -83,10 +78,9 @@ _CustomAppOauthConfig _$CustomAppOauthConfigFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
-  postLogoutRedirectUris:
-      (json['post_logout_redirect_uris'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+  postLogoutRedirectUris: (json['post_logout_redirect_uris'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   allowedScopes:
       (json['allowed_scopes'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -118,10 +112,9 @@ _CustomAppSecret _$CustomAppSecretFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String? ?? '',
       secret: json['secret'] as String? ?? '',
       description: json['description'] as String?,
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
       isOidc: json['is_oidc'] as bool? ?? false,
       appId: json['app_id'] as String? ?? '',
     );

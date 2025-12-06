@@ -12,10 +12,9 @@ _SnNotableDay _$SnNotableDayFromJson(Map<String, dynamic> json) =>
       localName: json['local_name'] as String,
       globalName: json['global_name'] as String,
       countryCode: json['country_code'] as String,
-      holidays:
-          (json['holidays'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      holidays: (json['holidays'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$SnNotableDayToJson(_SnNotableDay instance) =>
@@ -35,10 +34,9 @@ _SnTimelineEvent _$SnTimelineEventFromJson(Map<String, dynamic> json) =>
       data: json['data'],
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnTimelineEventToJson(_SnTimelineEvent instance) =>
@@ -56,21 +54,18 @@ _SnCheckInResult _$SnCheckInResultFromJson(Map<String, dynamic> json) =>
     _SnCheckInResult(
       id: json['id'] as String,
       level: (json['level'] as num).toInt(),
-      tips:
-          (json['tips'] as List<dynamic>)
-              .map((e) => SnFortuneTip.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      tips: (json['tips'] as List<dynamic>)
+          .map((e) => SnFortuneTip.fromJson(e as Map<String, dynamic>))
+          .toList(),
       accountId: json['account_id'] as String,
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnCheckInResultToJson(_SnCheckInResult instance) =>
@@ -103,16 +98,14 @@ _SnEventCalendarEntry _$SnEventCalendarEntryFromJson(
   Map<String, dynamic> json,
 ) => _SnEventCalendarEntry(
   date: DateTime.parse(json['date'] as String),
-  checkInResult:
-      json['check_in_result'] == null
-          ? null
-          : SnCheckInResult.fromJson(
-            json['check_in_result'] as Map<String, dynamic>,
-          ),
-  statuses:
-      (json['statuses'] as List<dynamic>)
-          .map((e) => SnAccountStatus.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  checkInResult: json['check_in_result'] == null
+      ? null
+      : SnCheckInResult.fromJson(
+          json['check_in_result'] as Map<String, dynamic>,
+        ),
+  statuses: (json['statuses'] as List<dynamic>)
+      .map((e) => SnAccountStatus.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$SnEventCalendarEntryToJson(
@@ -141,10 +134,9 @@ _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>

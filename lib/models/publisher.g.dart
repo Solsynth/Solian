@@ -12,38 +12,31 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   name: json['name'] as String? ?? '',
   nick: json['nick'] as String? ?? '',
   bio: json['bio'] as String? ?? '',
-  picture:
-      json['picture'] == null
-          ? null
-          : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
-  background:
-      json['background'] == null
-          ? null
-          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
-  account:
-      json['account'] == null
-          ? null
-          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  picture: json['picture'] == null
+      ? null
+      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+  background: json['background'] == null
+      ? null
+      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+  account: json['account'] == null
+      ? null
+      : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
   accountId: json['account_id'] as String?,
-  createdAt:
-      json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-  updatedAt:
-      json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  createdAt: json['created_at'] == null
+      ? null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
+      ? null
+      : DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
   realmId: json['realm_id'] as String?,
-  verification:
-      json['verification'] == null
-          ? null
-          : SnVerificationMark.fromJson(
-            json['verification'] as Map<String, dynamic>,
-          ),
+  verification: json['verification'] == null
+      ? null
+      : SnVerificationMark.fromJson(
+          json['verification'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -67,26 +60,22 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
 _SnPublisherMember _$SnPublisherMemberFromJson(Map<String, dynamic> json) =>
     _SnPublisherMember(
       publisherId: json['publisher_id'] as String,
-      publisher:
-          json['publisher'] == null
-              ? null
-              : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+      publisher: json['publisher'] == null
+          ? null
+          : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
       accountId: json['account_id'] as String,
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       role: (json['role'] as num).toInt(),
-      joinedAt:
-          json['joined_at'] == null
-              ? null
-              : DateTime.parse(json['joined_at'] as String),
+      joinedAt: json['joined_at'] == null
+          ? null
+          : DateTime.parse(json['joined_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnPublisherMemberToJson(_SnPublisherMember instance) =>

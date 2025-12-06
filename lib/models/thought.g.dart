@@ -16,14 +16,12 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
-  attachedPosts:
-      (json['attached_posts'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-  attachedMessages:
-      (json['attached_messages'] as List<dynamic>?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList(),
+  attachedPosts: (json['attached_posts'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  attachedMessages: (json['attached_messages'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
   serviceId: json['service_id'] as String?,
 );
 
@@ -87,18 +85,14 @@ _SnThinkingMessagePart _$SnThinkingMessagePartFromJson(
     (json['type'] as num).toInt(),
   ),
   text: json['text'] as String?,
-  functionCall:
-      json['function_call'] == null
-          ? null
-          : SnFunctionCall.fromJson(
-            json['function_call'] as Map<String, dynamic>,
-          ),
-  functionResult:
-      json['function_result'] == null
-          ? null
-          : SnFunctionResult.fromJson(
-            json['function_result'] as Map<String, dynamic>,
-          ),
+  functionCall: json['function_call'] == null
+      ? null
+      : SnFunctionCall.fromJson(json['function_call'] as Map<String, dynamic>),
+  functionResult: json['function_result'] == null
+      ? null
+      : SnFunctionResult.fromJson(
+          json['function_result'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$SnThinkingMessagePartToJson(
@@ -119,10 +113,9 @@ _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
@@ -159,18 +152,16 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
       tokenCount: (json['token_count'] as num?)?.toInt(),
       modelName: json['model_name'] as String?,
       sequenceId: json['sequence_id'] as String,
-      sequence:
-          json['sequence'] == null
-              ? null
-              : SnThinkingSequence.fromJson(
-                json['sequence'] as Map<String, dynamic>,
-              ),
+      sequence: json['sequence'] == null
+          ? null
+          : SnThinkingSequence.fromJson(
+              json['sequence'] as Map<String, dynamic>,
+            ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
@@ -206,10 +197,9 @@ _ThoughtServicesResponse _$ThoughtServicesResponseFromJson(
   Map<String, dynamic> json,
 ) => _ThoughtServicesResponse(
   defaultService: json['default_service'] as String,
-  services:
-      (json['services'] as List<dynamic>)
-          .map((e) => ThoughtService.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  services: (json['services'] as List<dynamic>)
+      .map((e) => ThoughtService.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$ThoughtServicesResponseToJson(

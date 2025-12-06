@@ -34,35 +34,29 @@ Map<String, dynamic> _$GeoIpLocationToJson(_GeoIpLocation instance) =>
 _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
     _SnAuthChallenge(
       id: json['id'] as String,
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
       stepRemain: (json['step_remain'] as num).toInt(),
       stepTotal: (json['step_total'] as num).toInt(),
       failedAttempts: (json['failed_attempts'] as num).toInt(),
-      blacklistFactors:
-          (json['blacklist_factors'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      blacklistFactors: (json['blacklist_factors'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       audiences: json['audiences'] as List<dynamic>,
       scopes: json['scopes'] as List<dynamic>,
       ipAddress: json['ip_address'] as String,
       userAgent: json['user_agent'] as String,
       nonce: json['nonce'] as String?,
-      location:
-          json['location'] == null
-              ? null
-              : GeoIpLocation.fromJson(
-                json['location'] as Map<String, dynamic>,
-              ),
+      location: json['location'] == null
+          ? null
+          : GeoIpLocation.fromJson(json['location'] as Map<String, dynamic>),
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
@@ -90,28 +84,23 @@ _SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       label: json['label'] as String?,
       lastGrantedAt: DateTime.parse(json['last_granted_at'] as String),
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
       audiences: json['audiences'] as List<dynamic>,
       scopes: json['scopes'] as List<dynamic>,
       ipAddress: json['ip_address'] as String?,
       userAgent: json['user_agent'] as String?,
-      location:
-          json['location'] == null
-              ? null
-              : GeoIpLocation.fromJson(
-                json['location'] as Map<String, dynamic>,
-              ),
+      location: json['location'] == null
+          ? null
+          : GeoIpLocation.fromJson(json['location'] as Map<String, dynamic>),
       type: (json['type'] as num).toInt(),
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
@@ -138,18 +127,15 @@ _SnAuthFactor _$SnAuthFactorFromJson(Map<String, dynamic> json) =>
       type: (json['type'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
-      enabledAt:
-          json['enabled_at'] == null
-              ? null
-              : DateTime.parse(json['enabled_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
+      enabledAt: json['enabled_at'] == null
+          ? null
+          : DateTime.parse(json['enabled_at'] as String),
       trustworthy: (json['trustworthy'] as num).toInt(),
       createdResponse: json['created_response'] as Map<String, dynamic>?,
     );
@@ -177,10 +163,9 @@ _SnAccountConnection _$SnAccountConnectionFromJson(Map<String, dynamic> json) =>
       lastUsedAt: DateTime.parse(json['last_used_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAccountConnectionToJson(

@@ -21,7 +21,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/file_pool.dart';
+import 'package:island/pods/drive/file_pool.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -249,10 +249,9 @@ class SettingsScreen extends HookConsumerWidget {
                   showDialog(
                     context: context,
                     builder: (context) {
-                      Color selectedColor =
-                          settings.appColorScheme != null
-                              ? Color(settings.appColorScheme!)
-                              : Colors.indigo;
+                      Color selectedColor = settings.appColorScheme != null
+                          ? Color(settings.appColorScheme!)
+                          : Colors.indigo;
 
                       return AlertDialog(
                         title: Text('Seed Color').tr(),
@@ -292,10 +291,9 @@ class SettingsScreen extends HookConsumerWidget {
                   height: 24,
                   margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
                   decoration: BoxDecoration(
-                    color:
-                        settings.appColorScheme != null
-                            ? Color(settings.appColorScheme!)
-                            : Colors.indigo,
+                    color: settings.appColorScheme != null
+                        ? Color(settings.appColorScheme!)
+                        : Colors.indigo,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: Theme.of(
@@ -310,19 +308,17 @@ class SettingsScreen extends HookConsumerWidget {
             // Custom colors section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child:
-                  Text(
-                    'Custom Colors',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ).bold(),
+              child: Text(
+                'Custom Colors',
+                style: Theme.of(context).textTheme.titleMedium,
+              ).bold(),
             ),
             // Primary color
             _ColorPickerTile(
               title: 'Primary',
-              color:
-                  settings.customColors?.primary != null
-                      ? Color(settings.customColors!.primary!)
-                      : null,
+              color: settings.customColors?.primary != null
+                  ? Color(settings.customColors!.primary!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -333,10 +329,9 @@ class SettingsScreen extends HookConsumerWidget {
             // Secondary
             _ColorPickerTile(
               title: 'Secondary',
-              color:
-                  settings.customColors?.secondary != null
-                      ? Color(settings.customColors!.secondary!)
-                      : null,
+              color: settings.customColors?.secondary != null
+                  ? Color(settings.customColors!.secondary!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -347,10 +342,9 @@ class SettingsScreen extends HookConsumerWidget {
             // Tertiary
             _ColorPickerTile(
               title: 'Tertiary',
-              color:
-                  settings.customColors?.tertiary != null
-                      ? Color(settings.customColors!.tertiary!)
-                      : null,
+              color: settings.customColors?.tertiary != null
+                  ? Color(settings.customColors!.tertiary!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -361,10 +355,9 @@ class SettingsScreen extends HookConsumerWidget {
             // Surface
             _ColorPickerTile(
               title: 'Surface',
-              color:
-                  settings.customColors?.surface != null
-                      ? Color(settings.customColors!.surface!)
-                      : null,
+              color: settings.customColors?.surface != null
+                  ? Color(settings.customColors!.surface!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -375,10 +368,9 @@ class SettingsScreen extends HookConsumerWidget {
             // Background
             _ColorPickerTile(
               title: 'Background',
-              color:
-                  settings.customColors?.background != null
-                      ? Color(settings.customColors!.background!)
-                      : null,
+              color: settings.customColors?.background != null
+                  ? Color(settings.customColors!.background!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -391,10 +383,9 @@ class SettingsScreen extends HookConsumerWidget {
             // Error
             _ColorPickerTile(
               title: 'Error',
-              color:
-                  settings.customColors?.error != null
-                      ? Color(settings.customColors!.error!)
-                      : null,
+              color: settings.customColors?.error != null
+                  ? Color(settings.customColors!.error!)
+                  : null,
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
@@ -509,8 +500,9 @@ class SettingsScreen extends HookConsumerWidget {
       // Background image enabled
       if (!kIsWeb && docBasepath.value != null)
         FutureBuilder<bool>(
-          future:
-              File('${docBasepath.value}/$kAppBackgroundImagePath').exists(),
+          future: File(
+            '${docBasepath.value}/$kAppBackgroundImagePath',
+          ).exists(),
           builder: (context, snapshot) {
             if (!snapshot.hasData || !snapshot.data!) {
               return const SizedBox.shrink();
@@ -536,8 +528,9 @@ class SettingsScreen extends HookConsumerWidget {
       // Clear background image option
       if (!kIsWeb && docBasepath.value != null)
         FutureBuilder<bool>(
-          future:
-              File('${docBasepath.value}/$kAppBackgroundImagePath').exists(),
+          future: File(
+            '${docBasepath.value}/$kAppBackgroundImagePath',
+          ).exists(),
           builder: (context, snapshot) {
             if (!snapshot.hasData || !snapshot.data!) {
               return const SizedBox.shrink();
@@ -565,8 +558,9 @@ class SettingsScreen extends HookConsumerWidget {
 
       if (!kIsWeb && docBasepath.value != null)
         FutureBuilder(
-          future:
-              File('${docBasepath.value}/$kAppBackgroundImagePath').exists(),
+          future: File(
+            '${docBasepath.value}/$kAppBackgroundImagePath',
+          ).exists(),
           builder: (context, snapshot) {
             if (!snapshot.hasData || !snapshot.data!) {
               return const SizedBox.shrink();
@@ -598,8 +592,8 @@ class SettingsScreen extends HookConsumerWidget {
                 );
                 final color =
                     MediaQuery.of(context).platformBrightness == Brightness.dark
-                        ? colorScheme.primary
-                        : colorScheme.primary;
+                    ? colorScheme.primary
+                    : colorScheme.primary;
                 ref
                     .read(appSettingsProvider.notifier)
                     .setAppColorScheme(color.value);
@@ -674,20 +668,19 @@ class SettingsScreen extends HookConsumerWidget {
               trailing: DropdownButtonHideUnderline(
                 child: DropdownButton2<String>(
                   isExpanded: true,
-                  items:
-                      validPools.map((p) {
-                        return DropdownMenuItem<String>(
-                          value: p.id,
-                          child: Tooltip(
-                            message: p.name,
-                            child: Text(
-                              p.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ).fontSize(14),
-                          ),
-                        );
-                      }).toList(),
+                  items: validPools.map((p) {
+                    return DropdownMenuItem<String>(
+                      value: p.id,
+                      child: Tooltip(
+                        message: p.name,
+                        child: Text(
+                          p.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ).fontSize(14),
+                      ),
+                    );
+                  }).toList(),
                   value: currentPoolId,
                   onChanged: (value) {
                     ref
@@ -705,19 +698,17 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             );
           },
-          loading:
-              () => const ListTile(
-                minLeadingWidth: 48,
-                title: Text('Loading pools...'),
-                leading: CircularProgressIndicator(),
-              ),
-          error:
-              (err, st) => ListTile(
-                minLeadingWidth: 48,
-                title: Text('settingsDefaultPool').tr(),
-                subtitle: Text('Error: $err'),
-                leading: const Icon(Icons.error, color: Colors.red),
-              ),
+          loading: () => const ListTile(
+            minLeadingWidth: 48,
+            title: Text('Loading pools...'),
+            leading: CircularProgressIndicator(),
+          ),
+          error: (err, st) => ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDefaultPool').tr(),
+            subtitle: Text('Error: $err'),
+            leading: const Icon(Icons.error, color: Colors.red),
+          ),
         ),
     ];
 
@@ -767,10 +758,9 @@ class SettingsScreen extends HookConsumerWidget {
       ListTile(
         minLeadingWidth: 48,
         title: Text('settingsEnterToSend').tr(),
-        subtitle:
-            isDesktop
-                ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
-                : null,
+        subtitle: isDesktop
+            ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
+            : null,
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.send),
         trailing: Switch(
@@ -823,33 +813,32 @@ class SettingsScreen extends HookConsumerWidget {
     ];
 
     // Desktop-specific settings
-    final desktopSettings =
-        !isDesktop
-            ? <Widget>[]
-            : [
-              ListTile(
-                minLeadingWidth: 48,
-                title: Text('settingsWindowOpacity').tr(),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                leading: const Icon(Symbols.opacity),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Slider(
-                    value: settings.windowOpacity,
-                    min: 0.1,
-                    max: 1.0,
-                    year2023: true,
-                    padding: EdgeInsets.only(right: 24),
-                    label: '${(settings.windowOpacity * 100).round()}%',
-                    onChanged: (value) {
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .setWindowOpacity(value);
-                    },
-                  ),
+    final desktopSettings = !isDesktop
+        ? <Widget>[]
+        : [
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsWindowOpacity').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.opacity),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Slider(
+                  value: settings.windowOpacity,
+                  min: 0.1,
+                  max: 1.0,
+                  year2023: true,
+                  padding: EdgeInsets.only(right: 24),
+                  label: '${(settings.windowOpacity * 100).round()}%',
+                  onChanged: (value) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setWindowOpacity(value);
+                  },
                 ),
               ),
-            ];
+            ),
+          ];
 
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {

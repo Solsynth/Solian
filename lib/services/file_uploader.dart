@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/upload_tasks.dart';
+import 'package:island/pods/drive/upload_tasks.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:path/path.dart' show extension;
@@ -211,8 +211,9 @@ class FileUploader {
       // Use old way for Uint8List
       final chunks = <Uint8List>[];
       for (int i = 0; i < fileData.length; i += chunkSize) {
-        final end =
-            i + chunkSize > fileData.length ? fileData.length : i + chunkSize;
+        final end = i + chunkSize > fileData.length
+            ? fileData.length
+            : i + chunkSize;
         chunks.add(Uint8List.fromList(fileData.sublist(i, end)));
       }
 

@@ -10,10 +10,9 @@ _SnHeatmap _$SnHeatmapFromJson(Map<String, dynamic> json) => _SnHeatmap(
   unit: json['unit'] as String,
   periodStart: DateTime.parse(json['period_start'] as String),
   periodEnd: DateTime.parse(json['period_end'] as String),
-  items:
-      (json['items'] as List<dynamic>)
-          .map((e) => SnHeatmapItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  items: (json['items'] as List<dynamic>)
+      .map((e) => SnHeatmapItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$SnHeatmapToJson(_SnHeatmap instance) =>

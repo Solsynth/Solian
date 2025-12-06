@@ -11,25 +11,20 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   title: json['title'] as String?,
   description: json['description'] as String?,
   language: json['language'] as String?,
-  editedAt:
-      json['edited_at'] == null
-          ? null
-          : DateTime.parse(json['edited_at'] as String),
-  publishedAt:
-      json['published_at'] == null
-          ? null
-          : DateTime.parse(json['published_at'] as String),
+  editedAt: json['edited_at'] == null
+      ? null
+      : DateTime.parse(json['edited_at'] as String),
+  publishedAt: json['published_at'] == null
+      ? null
+      : DateTime.parse(json['published_at'] as String),
   visibility: (json['visibility'] as num?)?.toInt() ?? 0,
   content: json['content'] as String?,
   slug: json['slug'] as String?,
   type: (json['type'] as num?)?.toInt() ?? 0,
   meta: json['meta'] as Map<String, dynamic>?,
-  embedView:
-      json['embed_view'] == null
-          ? null
-          : SnPostEmbedView.fromJson(
-            json['embed_view'] as Map<String, dynamic>,
-          ),
+  embedView: json['embed_view'] == null
+      ? null
+      : SnPostEmbedView.fromJson(json['embed_view'] as Map<String, dynamic>),
   viewsUnique: (json['views_unique'] as num?)?.toInt() ?? 0,
   viewsTotal: (json['views_total'] as num?)?.toInt() ?? 0,
   upvotes: (json['upvotes'] as num?)?.toInt() ?? 0,
@@ -38,25 +33,21 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   awardedScore: (json['awarded_score'] as num?)?.toInt() ?? 0,
   pinMode: (json['pin_mode'] as num?)?.toInt(),
   threadedPostId: json['threaded_post_id'] as String?,
-  threadedPost:
-      json['threaded_post'] == null
-          ? null
-          : SnPost.fromJson(json['threaded_post'] as Map<String, dynamic>),
+  threadedPost: json['threaded_post'] == null
+      ? null
+      : SnPost.fromJson(json['threaded_post'] as Map<String, dynamic>),
   repliedPostId: json['replied_post_id'] as String?,
-  repliedPost:
-      json['replied_post'] == null
-          ? null
-          : SnPost.fromJson(json['replied_post'] as Map<String, dynamic>),
+  repliedPost: json['replied_post'] == null
+      ? null
+      : SnPost.fromJson(json['replied_post'] as Map<String, dynamic>),
   forwardedPostId: json['forwarded_post_id'] as String?,
-  forwardedPost:
-      json['forwarded_post'] == null
-          ? null
-          : SnPost.fromJson(json['forwarded_post'] as Map<String, dynamic>),
+  forwardedPost: json['forwarded_post'] == null
+      ? null
+      : SnPost.fromJson(json['forwarded_post'] as Map<String, dynamic>),
   realmId: json['realm_id'] as String?,
-  realm:
-      json['realm'] == null
-          ? null
-          : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
+  realm: json['realm'] == null
+      ? null
+      : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
   attachments:
       (json['attachments'] as List<dynamic>?)
           ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
@@ -90,18 +81,15 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           ?.map((e) => SnPostFeaturedRecord.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  createdAt:
-      json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-  updatedAt:
-      json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  createdAt: json['created_at'] == null
+      ? null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
+      ? null
+      : DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
   repliedGone: json['replied_gone'] as bool? ?? false,
   forwardedGone: json['forwarded_gone'] as bool? ?? false,
   isTruncated: json['is_truncated'] as bool? ?? false,
@@ -214,18 +202,15 @@ _SnPostAward _$SnPostAwardFromJson(Map<String, dynamic> json) => _SnPostAward(
   message: json['message'] as String?,
   postId: json['post_id'] as String,
   accountId: json['account_id'] as String,
-  createdAt:
-      json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-  updatedAt:
-      json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  createdAt: json['created_at'] == null
+      ? null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
+      ? null
+      : DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnPostAwardToJson(_SnPostAward instance) =>
@@ -250,14 +235,12 @@ _SnPostReaction _$SnPostReactionFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnPostReactionToJson(_SnPostReaction instance) =>
@@ -278,17 +261,15 @@ _SnPostFeaturedRecord _$SnPostFeaturedRecordFromJson(
 ) => _SnPostFeaturedRecord(
   id: json['id'] as String,
   postId: json['post_id'] as String,
-  featuredAt:
-      json['featured_at'] == null
-          ? null
-          : DateTime.parse(json['featured_at'] as String),
+  featuredAt: json['featured_at'] == null
+      ? null
+      : DateTime.parse(json['featured_at'] as String),
   socialCredits: (json['social_credits'] as num).toInt(),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnPostFeaturedRecordToJson(

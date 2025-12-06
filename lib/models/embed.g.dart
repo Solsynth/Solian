@@ -17,10 +17,9 @@ _SnScrappedLink _$SnScrappedLinkFromJson(Map<String, dynamic> json) =>
       siteName: json['site_name'] as String?,
       contentType: json['content_type'] as String?,
       author: json['author'] as String?,
-      publishedDate:
-          json['published_date'] == null
-              ? null
-              : DateTime.parse(json['published_date'] as String),
+      publishedDate: json['published_date'] == null
+          ? null
+          : DateTime.parse(json['published_date'] as String),
     );
 
 Map<String, dynamic> _$SnScrappedLinkToJson(_SnScrappedLink instance) =>

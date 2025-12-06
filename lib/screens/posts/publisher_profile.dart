@@ -22,6 +22,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:island/widgets/activity_heatmap.dart';
+import 'package:island/widgets/posts/post_filter.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -82,8 +83,9 @@ class _PublisherBasisWidget extends StatelessWidget {
                             size: 12,
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                           offset: Offset(0, 48),
                           child: ProfilePictureWidget(
                             file: data.picture,
@@ -121,8 +123,9 @@ class _PublisherBasisWidget extends StatelessWidget {
                               size: 16,
                               color: Theme.of(context).colorScheme.onPrimary,
                             ),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                             offset: Offset(0, 48),
                             child: ProfilePictureWidget(
                               file: data.picture,
@@ -201,45 +204,41 @@ class _PublisherBasisWidget extends StatelessWidget {
                               ),
                             subStatus
                                 .when(
-                                  data:
-                                      (status) => FilledButton.icon(
-                                        onPressed:
-                                            subscribing.value
-                                                ? null
-                                                : (status.isSubscribed
-                                                    ? unsubscribe
-                                                    : subscribe),
-                                        icon: Icon(
-                                          status.isSubscribed
-                                              ? Symbols.remove_circle
-                                              : Symbols.add_circle,
-                                        ),
-                                        label:
-                                            Text(
-                                              status.isSubscribed
-                                                  ? 'unsubscribe'
-                                                  : 'subscribe',
-                                            ).tr(),
-                                        style: ButtonStyle(
-                                          visualDensity: VisualDensity(
-                                            vertical: -2,
-                                          ),
-                                        ),
+                                  data: (status) => FilledButton.icon(
+                                    onPressed: subscribing.value
+                                        ? null
+                                        : (status.isSubscribed
+                                              ? unsubscribe
+                                              : subscribe),
+                                    icon: Icon(
+                                      status.isSubscribed
+                                          ? Symbols.remove_circle
+                                          : Symbols.add_circle,
+                                    ),
+                                    label: Text(
+                                      status.isSubscribed
+                                          ? 'unsubscribe'
+                                          : 'subscribe',
+                                    ).tr(),
+                                    style: ButtonStyle(
+                                      visualDensity: VisualDensity(
+                                        vertical: -2,
                                       ),
+                                    ),
+                                  ),
                                   error: (_, _) => const SizedBox(),
-                                  loading:
-                                      () => const SizedBox(
-                                        height: 36,
-                                        child: Center(
-                                          child: SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
+                                  loading: () => const SizedBox(
+                                    height: 36,
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
                                         ),
                                       ),
+                                    ),
+                                  ),
                                 )
                                 .padding(vertical: 12),
                           ],
@@ -271,10 +270,10 @@ class _PublisherBadgesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return (badges.value?.isNotEmpty ?? false)
         ? Card(
-          child: BadgeList(
-            badges: badges.value!,
-          ).padding(horizontal: 26, vertical: 20),
-        ).padding(horizontal: 4)
+            child: BadgeList(
+              badges: badges.value!,
+            ).padding(horizontal: 26, vertical: 20),
+          ).padding(horizontal: 4)
         : const SizedBox.shrink();
   }
 }
@@ -288,9 +287,9 @@ class _PublisherVerificationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return (data.verification != null)
         ? Card(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: VerificationStatusCard(mark: data.verification!),
-        )
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: VerificationStatusCard(mark: data.verification!),
+          )
         : const SizedBox.shrink();
   }
 }
@@ -333,14 +332,12 @@ class _PublisherHeatmapWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return heatmap.when(
-      data:
-          (data) =>
-              data != null
-                  ? ActivityHeatmapWidget(
-                    heatmap: data,
-                    forceDense: forceDense,
-                  ).padding(horizontal: 8)
-                  : const SizedBox.shrink(),
+      data: (data) => data != null
+          ? ActivityHeatmapWidget(
+              heatmap: data,
+              forceDense: forceDense,
+            ).padding(horizontal: 8)
+          : const SizedBox.shrink(),
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
     );
@@ -372,242 +369,16 @@ class _PublisherCategoryTabWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
-        children: [
-          TabBar(
-            controller: categoryTabController,
-            dividerColor: Colors.transparent,
-            splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
-            tabs: [
-              Tab(text: 'all'.tr()),
-              Tab(text: 'postTypePost'.tr()),
-              Tab(text: 'postArticle'.tr()),
-            ],
-          ),
-          const Divider(height: 1),
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      title: Text('reply'.tr()),
-                      value: includeReplies.value,
-                      tristate: true,
-                      onChanged: (value) {
-                        // Cycle through: null -> false -> true -> null
-                        if (includeReplies.value == null) {
-                          includeReplies.value = false;
-                        } else if (includeReplies.value == false) {
-                          includeReplies.value = true;
-                        } else {
-                          includeReplies.value = null;
-                        }
-                      },
-                      dense: true,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      secondary: const Icon(Symbols.reply),
-                    ),
-                  ),
-                  Expanded(
-                    child: CheckboxListTile(
-                      title: Text('attachments'.tr()),
-                      value: mediaOnly.value,
-                      onChanged: (value) {
-                        if (value != null) {
-                          mediaOnly.value = value;
-                        }
-                      },
-                      dense: true,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      secondary: const Icon(Symbols.attachment),
-                    ),
-                  ),
-                ],
-              ),
-              CheckboxListTile(
-                title: Text('descendingOrder'.tr()),
-                value: orderDesc.value,
-                onChanged: (value) {
-                  if (value != null) {
-                    orderDesc.value = value;
-                  }
-                },
-                dense: true,
-                controlAffinity: ListTileControlAffinity.leading,
-                secondary: const Icon(Symbols.sort),
-              ),
-            ],
-          ),
-          const Divider(height: 1),
-          ListTile(
-            title: Text('advancedFilters'.tr()),
-            leading: const Icon(Symbols.filter_list),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(const Radius.circular(8)),
-            ),
-            trailing: Icon(
-              showAdvancedFilters.value
-                  ? Symbols.expand_less
-                  : Symbols.expand_more,
-            ),
-            onTap: () {
-              showAdvancedFilters.value = !showAdvancedFilters.value;
-            },
-          ),
-          if (showAdvancedFilters.value) ...[
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'search'.tr(),
-                      hintText: 'searchPosts'.tr(),
-                      prefixIcon: const Icon(Symbols.search),
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      queryTerm.value = value.isEmpty ? null : value;
-                    },
-                  ),
-                  const Gap(12),
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'sortBy'.tr(),
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    value: order.value,
-                    items: [
-                      DropdownMenuItem(value: 'date', child: Text('date'.tr())),
-                      DropdownMenuItem(
-                        value: 'popularity',
-                        child: Text('popularity'.tr()),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      order.value = value;
-                    },
-                  ),
-                  const Gap(12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  periodStart.value != null
-                                      ? DateTime.fromMillisecondsSinceEpoch(
-                                        periodStart.value! * 1000,
-                                      )
-                                      : DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (pickedDate != null) {
-                              periodStart.value =
-                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
-                            }
-                          },
-                          child: InputDecorator(
-                            decoration: InputDecoration(
-                              labelText: 'fromDate'.tr(),
-                              border: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              suffixIcon: const Icon(Symbols.calendar_today),
-                            ),
-                            child: Text(
-                              periodStart.value != null
-                                  ? DateTime.fromMillisecondsSinceEpoch(
-                                    periodStart.value! * 1000,
-                                  ).toString().split(' ')[0]
-                                  : 'selectDate'.tr(),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const Gap(8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  periodEnd.value != null
-                                      ? DateTime.fromMillisecondsSinceEpoch(
-                                        periodEnd.value! * 1000,
-                                      )
-                                      : DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (pickedDate != null) {
-                              periodEnd.value =
-                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
-                            }
-                          },
-                          child: InputDecorator(
-                            decoration: InputDecoration(
-                              labelText: 'toDate'.tr(),
-                              border: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              suffixIcon: const Icon(Symbols.calendar_today),
-                            ),
-                            child: Text(
-                              periodEnd.value != null
-                                  ? DateTime.fromMillisecondsSinceEpoch(
-                                    periodEnd.value! * 1000,
-                                  ).toString().split(' ')[0]
-                                  : 'selectDate'.tr(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+    return PostFilterWidget(
+      categoryTabController: categoryTabController,
+      includeReplies: includeReplies,
+      mediaOnly: mediaOnly,
+      queryTerm: queryTerm,
+      order: order,
+      orderDesc: orderDesc,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      showAdvancedFilters: showAdvancedFilters,
     );
   }
 }
@@ -739,205 +510,34 @@ class PublisherProfileScreen extends HookConsumerWidget {
     );
 
     return publisher.when(
-      data:
-          (data) => AppScaffold(
-            isNoBackground: false,
-            appBar:
-                isWideScreen(context)
-                    ? AppBar(
-                      foregroundColor: appbarColor.value,
-                      leading: PageBackButton(
-                        color: appbarColor.value,
-                        shadows: [appbarShadow],
-                      ),
-                      title: Text(
-                        data.nick,
-                        style: TextStyle(
-                          color:
-                              appbarColor.value ??
-                              Theme.of(context).appBarTheme.foregroundColor,
-                          shadows: [appbarShadow],
-                        ),
-                      ),
-                    )
-                    : null,
-            body:
-                isWideScreen(context)
-                    ? Row(
-                      children: [
-                        Flexible(
-                          flex: 4,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverGap(16),
-                              SliverToBoxAdapter(
-                                child: Card(
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  child: ListTile(
-                                    title: Text('pinnedPosts'.tr()),
-                                    leading: const Icon(Symbols.push_pin),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8),
-                                      ),
-                                    ),
-                                    trailing: Icon(
-                                      isPinnedExpanded.value
-                                          ? Symbols.expand_less
-                                          : Symbols.expand_more,
-                                    ),
-                                    onTap:
-                                        () =>
-                                            isPinnedExpanded.value =
-                                                !isPinnedExpanded.value,
-                                  ),
-                                ),
-                              ),
-                              ...[
-                                if (isPinnedExpanded.value)
-                                  SliverPostList(pubName: name, pinned: true),
-                              ],
-                              SliverToBoxAdapter(
-                                child: _PublisherCategoryTabWidget(
-                                  categoryTabController: categoryTabController,
-                                  includeReplies: includeReplies,
-                                  mediaOnly: mediaOnly,
-                                  queryTerm: queryTerm,
-                                  order: order,
-                                  orderDesc: orderDesc,
-                                  periodStart: periodStart,
-                                  periodEnd: periodEnd,
-                                  showAdvancedFilters: showAdvancedFilters,
-                                ),
-                              ),
-                              SliverPostList(
-                                key: ValueKey(
-                                  '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
-                                ),
-                                pubName: name,
-                                pinned: false,
-                                type:
-                                    categoryTab.value == 1
-                                        ? 0
-                                        : (categoryTab.value == 2 ? 1 : null),
-                                includeReplies: includeReplies.value,
-                                mediaOnly: mediaOnly.value,
-                                queryTerm: queryTerm.value,
-                                order: order.value,
-                                orderDesc: orderDesc.value,
-                                periodStart: periodStart.value,
-                                periodEnd: periodEnd.value,
-                              ),
-                              SliverGap(
-                                MediaQuery.of(context).padding.bottom + 16,
-                              ),
-                            ],
-                          ).padding(left: 8),
-                        ),
-                        Flexible(
-                          flex: 3,
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _PublisherBasisWidget(
-                                    data: data,
-                                    subStatus: subStatus,
-                                    subscribing: subscribing,
-                                    subscribe: subscribe,
-                                    unsubscribe: unsubscribe,
-                                  ).padding(horizontal: 4, top: 20),
-                                  _PublisherBadgesWidget(
-                                    data: data,
-                                    badges: badges,
-                                  ),
-                                  _PublisherVerificationWidget(data: data),
-                                  _PublisherBioWidget(data: data),
-                                  _PublisherHeatmapWidget(
-                                    heatmap: heatmap,
-                                    forceDense: true,
-                                  ).padding(vertical: 4),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                    : CustomScrollView(
+      data: (data) => AppScaffold(
+        isNoBackground: false,
+        appBar: isWideScreen(context)
+            ? AppBar(
+                foregroundColor: appbarColor.value,
+                leading: PageBackButton(
+                  color: appbarColor.value,
+                  shadows: [appbarShadow],
+                ),
+                title: Text(
+                  data.nick,
+                  style: TextStyle(
+                    color:
+                        appbarColor.value ??
+                        Theme.of(context).appBarTheme.foregroundColor,
+                    shadows: [appbarShadow],
+                  ),
+                ),
+              )
+            : null,
+        body: isWideScreen(context)
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 4,
+                    child: CustomScrollView(
                       slivers: [
-                        SliverAppBar(
-                          foregroundColor: appbarColor.value,
-                          expandedHeight: 180,
-                          pinned: true,
-                          leading: PageBackButton(
-                            color: appbarColor.value,
-                            shadows: [appbarShadow],
-                          ),
-                          flexibleSpace: Stack(
-                            children: [
-                              Positioned.fill(
-                                child:
-                                    data.background?.id != null
-                                        ? CloudImageWidget(
-                                          file: data.background,
-                                        )
-                                        : Container(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).appBarTheme.backgroundColor,
-                                        ),
-                              ),
-                              FlexibleSpaceBar(
-                                title: Text(
-                                  data.nick,
-                                  style: TextStyle(
-                                    color:
-                                        appbarColor.value ??
-                                        Theme.of(
-                                          context,
-                                        ).appBarTheme.foregroundColor,
-                                    shadows: [appbarShadow],
-                                  ),
-                                ),
-                                background:
-                                    Container(), // Empty container since background is handled by Stack
-                              ),
-                            ],
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _PublisherBasisWidget(
-                            data: data,
-                            subStatus: subStatus,
-                            subscribing: subscribing,
-                            subscribe: subscribe,
-                            unsubscribe: unsubscribe,
-                          ).padding(horizontal: 4, top: 8),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _PublisherBadgesWidget(
-                            data: data,
-                            badges: badges,
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _PublisherVerificationWidget(data: data),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _PublisherBioWidget(data: data),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _PublisherHeatmapWidget(
-                            heatmap: heatmap,
-                          ).padding(vertical: 4),
-                        ),
+                        SliverGap(16),
                         SliverToBoxAdapter(
                           child: Card(
                             margin: EdgeInsets.symmetric(
@@ -946,15 +546,19 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             ),
                             child: ListTile(
                               title: Text('pinnedPosts'.tr()),
+                              leading: const Icon(Symbols.push_pin),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                              ),
                               trailing: Icon(
                                 isPinnedExpanded.value
                                     ? Symbols.expand_less
                                     : Symbols.expand_more,
                               ),
-                              onTap:
-                                  () =>
-                                      isPinnedExpanded.value =
-                                          !isPinnedExpanded.value,
+                              onTap: () => isPinnedExpanded.value =
+                                  !isPinnedExpanded.value,
                             ),
                           ),
                         ),
@@ -981,10 +585,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           ),
                           pubName: name,
                           pinned: false,
-                          type:
-                              categoryTab.value == 1
-                                  ? 0
-                                  : (categoryTab.value == 2 ? 1 : null),
+                          type: categoryTab.value == 1
+                              ? 0
+                              : (categoryTab.value == 2 ? 1 : null),
                           includeReplies: includeReplies.value,
                           mediaOnly: mediaOnly.value,
                           queryTerm: queryTerm.value,
@@ -995,20 +598,158 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         ),
                         SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
+                    ).padding(left: 8),
+                  ),
+                  Flexible(
+                    flex: 3,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _PublisherBasisWidget(
+                              data: data,
+                              subStatus: subStatus,
+                              subscribing: subscribing,
+                              subscribe: subscribe,
+                              unsubscribe: unsubscribe,
+                            ).padding(horizontal: 4, top: 20),
+                            _PublisherBadgesWidget(data: data, badges: badges),
+                            _PublisherVerificationWidget(data: data),
+                            _PublisherBioWidget(data: data),
+                            _PublisherHeatmapWidget(
+                              heatmap: heatmap,
+                              forceDense: true,
+                            ).padding(vertical: 4),
+                          ],
+                        ),
+                      ),
                     ),
-          ),
-      error:
-          (error, stackTrace) => AppScaffold(
-            isNoBackground: false,
-            appBar: AppBar(leading: const PageBackButton()),
-            body: Center(child: Text(error.toString())),
-          ),
-      loading:
-          () => AppScaffold(
-            isNoBackground: false,
-            appBar: AppBar(leading: const PageBackButton()),
-            body: Center(child: CircularProgressIndicator()),
-          ),
+                  ),
+                ],
+              )
+            : CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    foregroundColor: appbarColor.value,
+                    expandedHeight: 180,
+                    pinned: true,
+                    leading: PageBackButton(
+                      color: appbarColor.value,
+                      shadows: [appbarShadow],
+                    ),
+                    flexibleSpace: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: data.background?.id != null
+                              ? CloudImageWidget(file: data.background)
+                              : Container(
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.backgroundColor,
+                                ),
+                        ),
+                        FlexibleSpaceBar(
+                          title: Text(
+                            data.nick,
+                            style: TextStyle(
+                              color:
+                                  appbarColor.value ??
+                                  Theme.of(context).appBarTheme.foregroundColor,
+                              shadows: [appbarShadow],
+                            ),
+                          ),
+                          background:
+                              Container(), // Empty container since background is handled by Stack
+                        ),
+                      ],
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _PublisherBasisWidget(
+                      data: data,
+                      subStatus: subStatus,
+                      subscribing: subscribing,
+                      subscribe: subscribe,
+                      unsubscribe: unsubscribe,
+                    ).padding(horizontal: 4, top: 8),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _PublisherBadgesWidget(data: data, badges: badges),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _PublisherVerificationWidget(data: data),
+                  ),
+                  SliverToBoxAdapter(child: _PublisherBioWidget(data: data)),
+                  SliverToBoxAdapter(
+                    child: _PublisherHeatmapWidget(
+                      heatmap: heatmap,
+                    ).padding(vertical: 4),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Card(
+                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: ListTile(
+                        title: Text('pinnedPosts'.tr()),
+                        trailing: Icon(
+                          isPinnedExpanded.value
+                              ? Symbols.expand_less
+                              : Symbols.expand_more,
+                        ),
+                        onTap: () =>
+                            isPinnedExpanded.value = !isPinnedExpanded.value,
+                      ),
+                    ),
+                  ),
+                  ...[
+                    if (isPinnedExpanded.value)
+                      SliverPostList(pubName: name, pinned: true),
+                  ],
+                  SliverToBoxAdapter(
+                    child: _PublisherCategoryTabWidget(
+                      categoryTabController: categoryTabController,
+                      includeReplies: includeReplies,
+                      mediaOnly: mediaOnly,
+                      queryTerm: queryTerm,
+                      order: order,
+                      orderDesc: orderDesc,
+                      periodStart: periodStart,
+                      periodEnd: periodEnd,
+                      showAdvancedFilters: showAdvancedFilters,
+                    ),
+                  ),
+                  SliverPostList(
+                    key: ValueKey(
+                      '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
+                    ),
+                    pubName: name,
+                    pinned: false,
+                    type: categoryTab.value == 1
+                        ? 0
+                        : (categoryTab.value == 2 ? 1 : null),
+                    includeReplies: includeReplies.value,
+                    mediaOnly: mediaOnly.value,
+                    queryTerm: queryTerm.value,
+                    order: order.value,
+                    orderDesc: orderDesc.value,
+                    periodStart: periodStart.value,
+                    periodEnd: periodEnd.value,
+                  ),
+                  SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                ],
+              ),
+      ),
+      error: (error, stackTrace) => AppScaffold(
+        isNoBackground: false,
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Center(child: Text(error.toString())),
+      ),
+      loading: () => AppScaffold(
+        isNoBackground: false,
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

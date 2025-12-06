@@ -22,10 +22,9 @@ _DriveTask _$DriveTaskFromJson(Map<String, dynamic> json) => _DriveTask(
   transmissionProgress: (json['transmission_progress'] as num?)?.toDouble(),
   errorMessage: json['error_message'] as String?,
   statusMessage: json['status_message'] as String?,
-  result:
-      json['result'] == null
-          ? null
-          : SnCloudFile.fromJson(json['result'] as Map<String, dynamic>),
+  result: json['result'] == null
+      ? null
+      : SnCloudFile.fromJson(json['result'] as Map<String, dynamic>),
   poolId: json['pool_id'] as String?,
   bundleId: json['bundle_id'] as String?,
   encryptPassword: json['encrypt_password'] as String?,

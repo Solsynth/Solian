@@ -24,7 +24,7 @@ import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_fund.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
-import 'package:island/pods/file_pool.dart';
+import 'package:island/pods/drive/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:island/talker.dart';
 
@@ -108,8 +108,8 @@ class ComposeLogic {
     String? pollId;
     String? fundId;
     if (originalPost?.meta?['embeds'] is List) {
-      final embeds =
-          (originalPost!.meta!['embeds'] as List).cast<Map<String, dynamic>>();
+      final embeds = (originalPost!.meta!['embeds'] as List)
+          .cast<Map<String, dynamic>>();
       try {
         final pollEmbed = embeds.firstWhere((e) => e['type'] == 'poll');
         pollId = pollEmbed['id'];
@@ -202,11 +202,10 @@ class ComposeLogic {
         final attachment = state.attachments.value[i];
         if (attachment.data is! SnCloudFile) {
           try {
-            final cloudFile =
-                await FileUploader.createCloudFile(
-                  ref: ref,
-                  fileData: attachment,
-                ).future;
+            final cloudFile = await FileUploader.createCloudFile(
+              ref: ref,
+              fileData: attachment,
+            ).future;
             if (cloudFile != null) {
               // Update attachments list with cloud file
               final clone = List.of(state.attachments.value);
@@ -242,11 +241,10 @@ class ComposeLogic {
         repliedPost: null,
         forwardedPostId: null,
         forwardedPost: null,
-        attachments:
-            state.attachments.value
-                .map((e) => e.data)
-                .whereType<SnCloudFile>()
-                .toList(),
+        attachments: state.attachments.value
+            .map((e) => e.data)
+            .whereType<SnCloudFile>()
+            .toList(),
         publisher: SnPublisher(
           id: '',
           type: 0,
@@ -315,11 +313,10 @@ class ComposeLogic {
         repliedPost: null,
         forwardedPostId: null,
         forwardedPost: null,
-        attachments:
-            state.attachments.value
-                .map((e) => e.data)
-                .whereType<SnCloudFile>()
-                .toList(),
+        attachments: state.attachments.value
+            .map((e) => e.data)
+            .whereType<SnCloudFile>()
+            .toList(),
         publisher: SnPublisher(
           id: '',
           type: 0,
@@ -501,11 +498,10 @@ class ComposeLogic {
     UniversalFile value,
     int index,
   ) {
-    state.attachments.value =
-        state.attachments.value.mapIndexed((idx, ele) {
-          if (idx == index) return value;
-          return ele;
-        }).toList();
+    state.attachments.value = state.attachments.value.mapIndexed((idx, ele) {
+      if (idx == index) return value;
+      return ele;
+    }).toList();
   }
 
   static Future<void> uploadAttachment(
@@ -528,22 +524,20 @@ class ComposeLogic {
       final pools = await ref.read(poolsProvider.future);
       final selectedPoolId = resolveDefaultPoolId(ref, pools);
 
-      cloudFile =
-          await FileUploader.createCloudFile(
-            ref: ref,
-            fileData: attachment,
-            poolId: poolId ?? selectedPoolId,
-            mode:
-                attachment.type == UniversalFileType.file
-                    ? FileUploadMode.generic
-                    : FileUploadMode.mediaSafe,
-            onProgress: (progress, _) {
-              state.attachmentProgress.value = {
-                ...state.attachmentProgress.value,
-                index: progress ?? 0.0,
-              };
-            },
-          ).future;
+      cloudFile = await FileUploader.createCloudFile(
+        ref: ref,
+        fileData: attachment,
+        poolId: poolId ?? selectedPoolId,
+        mode: attachment.type == UniversalFileType.file
+            ? FileUploadMode.generic
+            : FileUploadMode.mediaSafe,
+        onProgress: (progress, _) {
+          state.attachmentProgress.value = {
+            ...state.attachmentProgress.value,
+            index: progress ?? 0.0,
+          };
+        },
+      ).future;
 
       if (cloudFile == null) {
         throw ArgumentError('Failed to upload the file...');
@@ -713,11 +707,10 @@ class ComposeLogic {
         if (state.slugController.text.isNotEmpty)
           'slug': state.slugController.text,
         'visibility': state.visibility.value,
-        'attachments':
-            state.attachments.value
-                .where((e) => e.isOnCloud)
-                .map((e) => e.data.id)
-                .toList(),
+        'attachments': state.attachments.value
+            .where((e) => e.isOnCloud)
+            .map((e) => e.data.id)
+            .toList(),
         'type': state.postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,

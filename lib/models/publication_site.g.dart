@@ -17,10 +17,9 @@ _SnPublicationSite _$SnPublicationSiteFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      pages:
-          (json['pages'] as List<dynamic>)
-              .map((e) => SnPublicationPage.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      pages: (json['pages'] as List<dynamic>)
+          .map((e) => SnPublicationPage.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$SnPublicationSiteToJson(_SnPublicationSite instance) =>

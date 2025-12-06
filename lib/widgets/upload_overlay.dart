@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/drive_task.dart';
-import 'package:island/pods/upload_tasks.dart';
+import 'package:island/pods/drive/upload_tasks.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -223,14 +223,14 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                   if (!isExpanded && activeTasks.isNotEmpty)
                                     Text(
                                       _getOverallProgressText(activeTasks),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.copyWith(
-                                        color:
-                                            Theme.of(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(
                                               context,
                                             ).colorScheme.onSurfaceVariant,
-                                      ),
+                                          ),
                                     ),
                                 ],
                               ),
@@ -244,10 +244,9 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                 child: CircularProgressIndicator(
                                   value: _getOverallProgress(activeTasks),
                                   strokeWidth: 3,
-                                  backgroundColor:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                                 ),
                               ),
 
@@ -263,8 +262,8 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                   size: 20,
                                 ),
                               ),
-                              onPressed:
-                                  () => onExpansionChanged?.call(!isExpanded),
+                              onPressed: () =>
+                                  onExpansionChanged?.call(!isExpanded),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -297,20 +296,18 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                       leading: Icon(
                                         Symbols.clear_all,
                                         size: 18,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                       onTap: () {
                                         taskNotifier.clearCompletedTasks();
                                         onExpansionChanged?.call(false);
                                       },
 
-                                      tileColor:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHighest,
+                                      tileColor: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
                                     ),
                                   ),
 
@@ -326,17 +323,17 @@ class _UploadOverlayContent extends HookConsumerWidget {
                                       leading: Icon(
                                         Symbols.clear_all,
                                         size: 18,
-                                        color:
-                                            Theme.of(context).colorScheme.error,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
                                       ),
                                       onTap: () {
                                         taskNotifier.clearAllTasks();
                                         onExpansionChanged?.call(false);
                                       },
-                                      tileColor:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHighest,
+                                      tileColor: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
                                     ),
                                   ),
 
@@ -556,8 +553,9 @@ class _UploadTaskTileState extends State<UploadTaskTile>
               child: CircularProgressIndicator(
                 value: widget.task.progress,
                 strokeWidth: 2.5,
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
               ),
             ),
           ),
@@ -604,10 +602,9 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         color = Theme.of(context).colorScheme.secondary;
         break;
       case DriveTaskStatus.inProgress:
-        icon =
-            widget.task.type == 'FileDownload'
-                ? Symbols.download
-                : Symbols.upload;
+        icon = widget.task.type == 'FileDownload'
+            ? Symbols.download
+            : Symbols.upload;
         color = Theme.of(context).colorScheme.primary;
         break;
       case DriveTaskStatus.paused:

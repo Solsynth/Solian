@@ -8,21 +8,18 @@ part of 'wallet.dart';
 
 _SnWallet _$SnWalletFromJson(Map<String, dynamic> json) => _SnWallet(
   id: json['id'] as String,
-  pockets:
-      (json['pockets'] as List<dynamic>)
-          .map((e) => SnWalletPocket.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  pockets: (json['pockets'] as List<dynamic>)
+      .map((e) => SnWalletPocket.fromJson(e as Map<String, dynamic>))
+      .toList(),
   accountId: json['account_id'] as String,
-  account:
-      json['account'] == null
-          ? null
-          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  account: json['account'] == null
+      ? null
+      : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnWalletToJson(_SnWallet instance) => <String, dynamic>{
@@ -77,10 +74,9 @@ _SnWalletPocket _$SnWalletPocketFromJson(Map<String, dynamic> json) =>
       walletId: json['wallet_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnWalletPocketToJson(_SnWalletPocket instance) =>
@@ -102,21 +98,18 @@ _SnTransaction _$SnTransactionFromJson(Map<String, dynamic> json) =>
       remarks: json['remarks'] as String?,
       type: (json['type'] as num).toInt(),
       payerWalletId: json['payer_wallet_id'] as String?,
-      payerWallet:
-          json['payer_wallet'] == null
-              ? null
-              : SnWallet.fromJson(json['payer_wallet'] as Map<String, dynamic>),
+      payerWallet: json['payer_wallet'] == null
+          ? null
+          : SnWallet.fromJson(json['payer_wallet'] as Map<String, dynamic>),
       payeeWalletId: json['payee_wallet_id'] as String?,
-      payeeWallet:
-          json['payee_wallet'] == null
-              ? null
-              : SnWallet.fromJson(json['payee_wallet'] as Map<String, dynamic>),
+      payeeWallet: json['payee_wallet'] == null
+          ? null
+          : SnWallet.fromJson(json['payee_wallet'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnTransactionToJson(_SnTransaction instance) =>
@@ -140,10 +133,9 @@ _SnWalletSubscription _$SnWalletSubscriptionFromJson(
 ) => _SnWalletSubscription(
   id: json['id'] as String,
   begunAt: DateTime.parse(json['begun_at'] as String),
-  endedAt:
-      json['ended_at'] == null
-          ? null
-          : DateTime.parse(json['ended_at'] as String),
+  endedAt: json['ended_at'] == null
+      ? null
+      : DateTime.parse(json['ended_at'] as String),
   identifier: json['identifier'] as String,
   isActive: json['is_active'] as bool? ?? true,
   isFreeTrial: json['is_free_trial'] as bool? ?? false,
@@ -153,23 +145,20 @@ _SnWalletSubscription _$SnWalletSubscriptionFromJson(
   basePrice: (json['base_price'] as num?)?.toDouble(),
   couponId: json['coupon_id'] as String?,
   coupon: json['coupon'],
-  renewalAt:
-      json['renewal_at'] == null
-          ? null
-          : DateTime.parse(json['renewal_at'] as String),
+  renewalAt: json['renewal_at'] == null
+      ? null
+      : DateTime.parse(json['renewal_at'] as String),
   accountId: json['account_id'] as String,
-  account:
-      json['account'] == null
-          ? null
-          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  account: json['account'] == null
+      ? null
+      : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
   isAvailable: json['is_available'] as bool? ?? true,
   finalPrice: (json['final_price'] as num?)?.toDouble(),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnWalletSubscriptionToJson(
@@ -204,10 +193,9 @@ _SnWalletSubscriptionRef _$SnWalletSubscriptionRefFromJson(
   isActive: json['is_active'] as bool,
   accountId: json['account_id'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   identifier: json['identifier'] as String,
 );
@@ -239,10 +227,9 @@ _SnWalletOrder _$SnWalletOrderFromJson(Map<String, dynamic> json) =>
       issuerAppId: json['issuer_app_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnWalletOrderToJson(_SnWalletOrder instance) =>
@@ -269,43 +256,36 @@ _SnWalletGift _$SnWalletGiftFromJson(Map<String, dynamic> json) =>
       giftCode: json['gift_code'] as String,
       subscriptionIdentifier: json['subscription_identifier'] as String,
       recipientId: json['recipient_id'] as String?,
-      recipient:
-          json['recipient'] == null
-              ? null
-              : SnAccount.fromJson(json['recipient'] as Map<String, dynamic>),
+      recipient: json['recipient'] == null
+          ? null
+          : SnAccount.fromJson(json['recipient'] as Map<String, dynamic>),
       gifterId: json['gifter_id'] as String,
-      gifter:
-          json['gifter'] == null
-              ? null
-              : SnAccount.fromJson(json['gifter'] as Map<String, dynamic>),
+      gifter: json['gifter'] == null
+          ? null
+          : SnAccount.fromJson(json['gifter'] as Map<String, dynamic>),
       redeemerId: json['redeemer_id'] as String?,
-      redeemer:
-          json['redeemer'] == null
-              ? null
-              : SnAccount.fromJson(json['redeemer'] as Map<String, dynamic>),
+      redeemer: json['redeemer'] == null
+          ? null
+          : SnAccount.fromJson(json['redeemer'] as Map<String, dynamic>),
       message: json['message'] as String?,
       status: (json['status'] as num).toInt(),
-      redeemedAt:
-          json['redeemed_at'] == null
-              ? null
-              : DateTime.parse(json['redeemed_at'] as String),
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
+      redeemedAt: json['redeemed_at'] == null
+          ? null
+          : DateTime.parse(json['redeemed_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
       subscriptionId: json['subscription_id'] as String?,
-      subscription:
-          json['subscription'] == null
-              ? null
-              : SnWalletSubscription.fromJson(
-                json['subscription'] as Map<String, dynamic>,
-              ),
+      subscription: json['subscription'] == null
+          ? null
+          : SnWalletSubscription.fromJson(
+              json['subscription'] as Map<String, dynamic>,
+            ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnWalletGiftToJson(_SnWalletGift instance) =>
@@ -330,35 +310,31 @@ Map<String, dynamic> _$SnWalletGiftToJson(_SnWalletGift instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
-_SnWalletFund _$SnWalletFundFromJson(
-  Map<String, dynamic> json,
-) => _SnWalletFund(
-  id: json['id'] as String,
-  currency: json['currency'] as String,
-  totalAmount: (json['total_amount'] as num).toDouble(),
-  remainingAmount: (json['remaining_amount'] as num).toDouble(),
-  amountOfSplits: (json['amount_of_splits'] as num).toInt(),
-  splitType: (json['split_type'] as num).toInt(),
-  status: (json['status'] as num).toInt(),
-  message: json['message'] as String?,
-  creatorAccountId: json['creator_account_id'] as String,
-  creatorAccount:
-      json['creator_account'] == null
+_SnWalletFund _$SnWalletFundFromJson(Map<String, dynamic> json) =>
+    _SnWalletFund(
+      id: json['id'] as String,
+      currency: json['currency'] as String,
+      totalAmount: (json['total_amount'] as num).toDouble(),
+      remainingAmount: (json['remaining_amount'] as num).toDouble(),
+      amountOfSplits: (json['amount_of_splits'] as num).toInt(),
+      splitType: (json['split_type'] as num).toInt(),
+      status: (json['status'] as num).toInt(),
+      message: json['message'] as String?,
+      creatorAccountId: json['creator_account_id'] as String,
+      creatorAccount: json['creator_account'] == null
           ? null
           : SnAccount.fromJson(json['creator_account'] as Map<String, dynamic>),
-  expiredAt: DateTime.parse(json['expired_at'] as String),
-  recipients:
-      (json['recipients'] as List<dynamic>)
+      expiredAt: DateTime.parse(json['expired_at'] as String),
+      recipients: (json['recipients'] as List<dynamic>)
           .map((e) => SnWalletFundRecipient.fromJson(e as Map<String, dynamic>))
           .toList(),
-  isOpen: json['is_open'] as bool,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
+      isOpen: json['is_open'] as bool,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
-);
+    );
 
 Map<String, dynamic> _$SnWalletFundToJson(_SnWalletFund instance) =>
     <String, dynamic>{
@@ -386,24 +362,19 @@ _SnWalletFundRecipient _$SnWalletFundRecipientFromJson(
   id: json['id'] as String,
   fundId: json['fund_id'] as String,
   recipientAccountId: json['recipient_account_id'] as String,
-  recipientAccount:
-      json['recipient_account'] == null
-          ? null
-          : SnAccount.fromJson(
-            json['recipient_account'] as Map<String, dynamic>,
-          ),
+  recipientAccount: json['recipient_account'] == null
+      ? null
+      : SnAccount.fromJson(json['recipient_account'] as Map<String, dynamic>),
   amount: (json['amount'] as num).toDouble(),
   isReceived: json['is_received'] as bool,
-  receivedAt:
-      json['received_at'] == null
-          ? null
-          : DateTime.parse(json['received_at'] as String),
+  receivedAt: json['received_at'] == null
+      ? null
+      : DateTime.parse(json['received_at'] as String),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnWalletFundRecipientToJson(
@@ -425,33 +396,29 @@ _SnLotteryTicket _$SnLotteryTicketFromJson(Map<String, dynamic> json) =>
     _SnLotteryTicket(
       id: json['id'] as String,
       accountId: json['account_id'] as String,
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-      regionOneNumbers:
-          (json['region_one_numbers'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      regionOneNumbers: (json['region_one_numbers'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
       regionTwoNumber: (json['region_two_number'] as num).toInt(),
       multiplier: (json['multiplier'] as num).toInt(),
       drawStatus: (json['draw_status'] as num).toInt(),
-      drawDate:
-          json['draw_date'] == null
-              ? null
-              : DateTime.parse(json['draw_date'] as String),
+      drawDate: json['draw_date'] == null
+          ? null
+          : DateTime.parse(json['draw_date'] as String),
       matchedRegionOneNumbers:
           (json['matched_region_one_numbers'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList(),
-      matchedRegionTwoNumber:
-          (json['matched_region_two_number'] as num?)?.toInt(),
+      matchedRegionTwoNumber: (json['matched_region_two_number'] as num?)
+          ?.toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnLotteryTicketToJson(_SnLotteryTicket instance) =>
@@ -471,26 +438,24 @@ Map<String, dynamic> _$SnLotteryTicketToJson(_SnLotteryTicket instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
-_SnLotteryRecord _$SnLotteryRecordFromJson(Map<String, dynamic> json) =>
-    _SnLotteryRecord(
-      id: json['id'] as String,
-      drawDate: DateTime.parse(json['draw_date'] as String),
-      winningRegionOneNumbers:
-          (json['winning_region_one_numbers'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
-      winningRegionTwoNumber:
-          (json['winning_region_two_number'] as num).toInt(),
-      totalTickets: (json['total_tickets'] as num).toInt(),
-      totalPrizesAwarded: (json['total_prizes_awarded'] as num).toInt(),
-      totalPrizeAmount: (json['total_prize_amount'] as num).toDouble(),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
-    );
+_SnLotteryRecord _$SnLotteryRecordFromJson(
+  Map<String, dynamic> json,
+) => _SnLotteryRecord(
+  id: json['id'] as String,
+  drawDate: DateTime.parse(json['draw_date'] as String),
+  winningRegionOneNumbers: (json['winning_region_one_numbers'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+  winningRegionTwoNumber: (json['winning_region_two_number'] as num).toInt(),
+  totalTickets: (json['total_tickets'] as num).toInt(),
+  totalPrizesAwarded: (json['total_prizes_awarded'] as num).toInt(),
+  totalPrizeAmount: (json['total_prize_amount'] as num).toDouble(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
+);
 
 Map<String, dynamic> _$SnLotteryRecordToJson(_SnLotteryRecord instance) =>
     <String, dynamic>{

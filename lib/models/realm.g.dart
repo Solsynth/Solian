@@ -12,27 +12,23 @@ _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   name: json['name'] as String? ?? '',
   description: json['description'] as String? ?? '',
   verifiedAs: json['verified_as'] as String?,
-  verifiedAt:
-      json['verified_at'] == null
-          ? null
-          : DateTime.parse(json['verified_at'] as String),
+  verifiedAt: json['verified_at'] == null
+      ? null
+      : DateTime.parse(json['verified_at'] as String),
   isCommunity: json['is_community'] as bool,
   isPublic: json['is_public'] as bool,
-  picture:
-      json['picture'] == null
-          ? null
-          : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
-  background:
-      json['background'] == null
-          ? null
-          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+  picture: json['picture'] == null
+      ? null
+      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+  background: json['background'] == null
+      ? null
+      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
   accountId: json['account_id'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
@@ -55,32 +51,25 @@ Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
 _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
     _SnRealmMember(
       realmId: json['realm_id'] as String,
-      realm:
-          json['realm'] == null
-              ? null
-              : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
+      realm: json['realm'] == null
+          ? null
+          : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
       accountId: json['account_id'] as String,
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       role: (json['role'] as num).toInt(),
-      joinedAt:
-          json['joined_at'] == null
-              ? null
-              : DateTime.parse(json['joined_at'] as String),
+      joinedAt: json['joined_at'] == null
+          ? null
+          : DateTime.parse(json['joined_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
-      status:
-          json['status'] == null
-              ? null
-              : SnAccountStatus.fromJson(
-                json['status'] as Map<String, dynamic>,
-              ),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      status: json['status'] == null
+          ? null
+          : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>

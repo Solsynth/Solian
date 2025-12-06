@@ -264,11 +264,10 @@ class $ChatRoomsTable extends ChatRooms
   ChatRoom map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ChatRoom(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -277,11 +276,10 @@ class $ChatRoomsTable extends ChatRooms
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
-      type:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}type'],
-          )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
       isPublic: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_public'],
@@ -310,16 +308,14 @@ class $ChatRoomsTable extends ChatRooms
         DriftSqlType.string,
         data['${effectivePrefix}account_id'],
       ),
-      createdAt:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}created_at'],
-          )!,
-      updatedAt:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}updated_at'],
-          )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       deletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
@@ -416,41 +412,33 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return ChatRoomsCompanion(
       id: Value(id),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      description:
-          description == null && nullToAbsent
-              ? const Value.absent()
-              : Value(description),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       type: Value(type),
-      isPublic:
-          isPublic == null && nullToAbsent
-              ? const Value.absent()
-              : Value(isPublic),
-      isCommunity:
-          isCommunity == null && nullToAbsent
-              ? const Value.absent()
-              : Value(isCommunity),
-      picture:
-          picture == null && nullToAbsent
-              ? const Value.absent()
-              : Value(picture),
-      background:
-          background == null && nullToAbsent
-              ? const Value.absent()
-              : Value(background),
-      realmId:
-          realmId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(realmId),
-      accountId:
-          accountId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(accountId),
+      isPublic: isPublic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isPublic),
+      isCommunity: isCommunity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isCommunity),
+      picture: picture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(picture),
+      background: background == null && nullToAbsent
+          ? const Value.absent()
+          : Value(background),
+      realmId: realmId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(realmId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
-      deletedAt:
-          deletedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(deletedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -530,15 +518,18 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return ChatRoom(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      description:
-          data.description.present ? data.description.value : this.description,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       type: data.type.present ? data.type.value : this.type,
       isPublic: data.isPublic.present ? data.isPublic.value : this.isPublic,
-      isCommunity:
-          data.isCommunity.present ? data.isCommunity.value : this.isCommunity,
+      isCommunity: data.isCommunity.present
+          ? data.isCommunity.value
+          : this.isCommunity,
       picture: data.picture.present ? data.picture.value : this.picture,
-      background:
-          data.background.present ? data.background.value : this.background,
+      background: data.background.present
+          ? data.background.value
+          : this.background,
       realmId: data.realmId.present ? data.realmId.value : this.realmId,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -1044,21 +1035,18 @@ class $ChatMembersTable extends ChatMembers
   ChatMember map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ChatMember(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
-      chatRoomId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}chat_room_id'],
-          )!,
-      accountId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}account_id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      chatRoomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_room_id'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
       account: $ChatMembersTable.$converteraccount.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -1069,11 +1057,10 @@ class $ChatMembersTable extends ChatMembers
         DriftSqlType.string,
         data['${effectivePrefix}nick'],
       ),
-      notify:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}notify'],
-          )!,
+      notify: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}notify'],
+      )!,
       joinedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}joined_at'],
@@ -1086,16 +1073,14 @@ class $ChatMembersTable extends ChatMembers
         DriftSqlType.dateTime,
         data['${effectivePrefix}timeout_until'],
       ),
-      createdAt:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}created_at'],
-          )!,
-      updatedAt:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}updated_at'],
-          )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       deletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
@@ -1179,24 +1164,20 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
       account: Value(account),
       nick: nick == null && nullToAbsent ? const Value.absent() : Value(nick),
       notify: Value(notify),
-      joinedAt:
-          joinedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(joinedAt),
-      breakUntil:
-          breakUntil == null && nullToAbsent
-              ? const Value.absent()
-              : Value(breakUntil),
-      timeoutUntil:
-          timeoutUntil == null && nullToAbsent
-              ? const Value.absent()
-              : Value(timeoutUntil),
+      joinedAt: joinedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(joinedAt),
+      breakUntil: breakUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(breakUntil),
+      timeoutUntil: timeoutUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeoutUntil),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
-      deletedAt:
-          deletedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(deletedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -1269,19 +1250,20 @@ class ChatMember extends DataClass implements Insertable<ChatMember> {
   ChatMember copyWithCompanion(ChatMembersCompanion data) {
     return ChatMember(
       id: data.id.present ? data.id.value : this.id,
-      chatRoomId:
-          data.chatRoomId.present ? data.chatRoomId.value : this.chatRoomId,
+      chatRoomId: data.chatRoomId.present
+          ? data.chatRoomId.value
+          : this.chatRoomId,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       account: data.account.present ? data.account.value : this.account,
       nick: data.nick.present ? data.nick.value : this.nick,
       notify: data.notify.present ? data.notify.value : this.notify,
       joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
-      breakUntil:
-          data.breakUntil.present ? data.breakUntil.value : this.breakUntil,
-      timeoutUntil:
-          data.timeoutUntil.present
-              ? data.timeoutUntil.value
-              : this.timeoutUntil,
+      breakUntil: data.breakUntil.present
+          ? data.breakUntil.value
+          : this.breakUntil,
+      timeoutUntil: data.timeoutUntil.present
+          ? data.timeoutUntil.value
+          : this.timeoutUntil,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -1695,31 +1677,33 @@ class $ChatMessagesTable extends ChatMessages
     List<Map<String, dynamic>>,
     String
   >
-  attachments = GeneratedColumn<String>(
-    'attachments',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  ).withConverter<List<Map<String, dynamic>>>(
-    $ChatMessagesTable.$converterattachments,
-  );
+  attachments =
+      GeneratedColumn<String>(
+        'attachments',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<Map<String, dynamic>>>(
+        $ChatMessagesTable.$converterattachments,
+      );
   @override
   late final GeneratedColumnWithTypeConverter<
     List<Map<String, dynamic>>,
     String
   >
-  reactions = GeneratedColumn<String>(
-    'reactions',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  ).withConverter<List<Map<String, dynamic>>>(
-    $ChatMessagesTable.$converterreactions,
-  );
+  reactions =
+      GeneratedColumn<String>(
+        'reactions',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<Map<String, dynamic>>>(
+        $ChatMessagesTable.$converterreactions,
+      );
   static const VerificationMeta _repliedMessageIdMeta = const VerificationMeta(
     'repliedMessageId',
   );
@@ -1882,21 +1866,18 @@ class $ChatMessagesTable extends ChatMessages
   ChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ChatMessage(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
-      roomId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}room_id'],
-          )!,
-      senderId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}sender_id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      roomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_id'],
+      )!,
+      senderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_id'],
+      )!,
       content: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}content'],
@@ -1905,16 +1886,14 @@ class $ChatMessagesTable extends ChatMessages
         DriftSqlType.string,
         data['${effectivePrefix}nonce'],
       ),
-      data:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}data'],
-          )!,
-      createdAt:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}created_at'],
-          )!,
+      data: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
       status: $ChatMessagesTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
@@ -1933,11 +1912,10 @@ class $ChatMessagesTable extends ChatMessages
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
-      type:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}type'],
-          )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
       meta: $ChatMessagesTable.$convertermeta.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -2101,44 +2079,38 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       id: Value(id),
       roomId: Value(roomId),
       senderId: Value(senderId),
-      content:
-          content == null && nullToAbsent
-              ? const Value.absent()
-              : Value(content),
-      nonce:
-          nonce == null && nullToAbsent ? const Value.absent() : Value(nonce),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
+      nonce: nonce == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nonce),
       data: Value(data),
       createdAt: Value(createdAt),
       status: Value(status),
-      isDeleted:
-          isDeleted == null && nullToAbsent
-              ? const Value.absent()
-              : Value(isDeleted),
-      updatedAt:
-          updatedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(updatedAt),
-      deletedAt:
-          deletedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(deletedAt),
+      isDeleted: isDeleted == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDeleted),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
       type: Value(type),
       meta: Value(meta),
       membersMentioned: Value(membersMentioned),
-      editedAt:
-          editedAt == null && nullToAbsent
-              ? const Value.absent()
-              : Value(editedAt),
+      editedAt: editedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(editedAt),
       attachments: Value(attachments),
       reactions: Value(reactions),
-      repliedMessageId:
-          repliedMessageId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(repliedMessageId),
-      forwardedMessageId:
-          forwardedMessageId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(forwardedMessageId),
+      repliedMessageId: repliedMessageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(repliedMessageId),
+      forwardedMessageId: forwardedMessageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forwardedMessageId),
     );
   }
 
@@ -2245,14 +2217,12 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     editedAt: editedAt.present ? editedAt.value : this.editedAt,
     attachments: attachments ?? this.attachments,
     reactions: reactions ?? this.reactions,
-    repliedMessageId:
-        repliedMessageId.present
-            ? repliedMessageId.value
-            : this.repliedMessageId,
-    forwardedMessageId:
-        forwardedMessageId.present
-            ? forwardedMessageId.value
-            : this.forwardedMessageId,
+    repliedMessageId: repliedMessageId.present
+        ? repliedMessageId.value
+        : this.repliedMessageId,
+    forwardedMessageId: forwardedMessageId.present
+        ? forwardedMessageId.value
+        : this.forwardedMessageId,
   );
   ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
     return ChatMessage(
@@ -2269,22 +2239,20 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       type: data.type.present ? data.type.value : this.type,
       meta: data.meta.present ? data.meta.value : this.meta,
-      membersMentioned:
-          data.membersMentioned.present
-              ? data.membersMentioned.value
-              : this.membersMentioned,
+      membersMentioned: data.membersMentioned.present
+          ? data.membersMentioned.value
+          : this.membersMentioned,
       editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
-      attachments:
-          data.attachments.present ? data.attachments.value : this.attachments,
+      attachments: data.attachments.present
+          ? data.attachments.value
+          : this.attachments,
       reactions: data.reactions.present ? data.reactions.value : this.reactions,
-      repliedMessageId:
-          data.repliedMessageId.present
-              ? data.repliedMessageId.value
-              : this.repliedMessageId,
-      forwardedMessageId:
-          data.forwardedMessageId.present
-              ? data.forwardedMessageId.value
-              : this.forwardedMessageId,
+      repliedMessageId: data.repliedMessageId.present
+          ? data.repliedMessageId.value
+          : this.repliedMessageId,
+      forwardedMessageId: data.forwardedMessageId.present
+          ? data.forwardedMessageId.value
+          : this.forwardedMessageId,
     );
   }
 
@@ -2809,11 +2777,10 @@ class $PostDraftsTable extends PostDrafts
   PostDraft map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PostDraft(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
       title: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}title'],
@@ -2826,26 +2793,22 @@ class $PostDraftsTable extends PostDrafts
         DriftSqlType.string,
         data['${effectivePrefix}content'],
       ),
-      visibility:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}visibility'],
-          )!,
-      type:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}type'],
-          )!,
-      lastModified:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}last_modified'],
-          )!,
-      postData:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}post_data'],
-          )!,
+      visibility: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}visibility'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      lastModified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
+      )!,
+      postData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}post_data'],
+      )!,
     );
   }
 
@@ -2897,16 +2860,15 @@ class PostDraft extends DataClass implements Insertable<PostDraft> {
   PostDraftsCompanion toCompanion(bool nullToAbsent) {
     return PostDraftsCompanion(
       id: Value(id),
-      title:
-          title == null && nullToAbsent ? const Value.absent() : Value(title),
-      description:
-          description == null && nullToAbsent
-              ? const Value.absent()
-              : Value(description),
-      content:
-          content == null && nullToAbsent
-              ? const Value.absent()
-              : Value(content),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
       visibility: Value(visibility),
       type: Value(type),
       lastModified: Value(lastModified),
@@ -2968,16 +2930,17 @@ class PostDraft extends DataClass implements Insertable<PostDraft> {
     return PostDraft(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
-      description:
-          data.description.present ? data.description.value : this.description,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       content: data.content.present ? data.content.value : this.content,
-      visibility:
-          data.visibility.present ? data.visibility.value : this.visibility,
+      visibility: data.visibility.present
+          ? data.visibility.value
+          : this.visibility,
       type: data.type.present ? data.type.value : this.type,
-      lastModified:
-          data.lastModified.present
-              ? data.lastModified.value
-              : this.lastModified,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
       postData: data.postData.present ? data.postData.value : this.postData,
     );
   }
@@ -3585,12 +3548,12 @@ class $$ChatRoomsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$ChatRoomsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$ChatRoomsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$ChatRoomsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$ChatRoomsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatRoomsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatRoomsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -3655,76 +3618,71 @@ class $$ChatRoomsTableTableManager
                 deletedAt: deletedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          $$ChatRoomsTableReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
-          prefetchHooksCallback: ({
-            chatMembersRefs = false,
-            chatMessagesRefs = false,
-          }) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (chatMembersRefs) db.chatMembers,
-                if (chatMessagesRefs) db.chatMessages,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (chatMembersRefs)
-                    await $_getPrefetchedData<
-                      ChatRoom,
-                      $ChatRoomsTable,
-                      ChatMember
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ChatRoomsTableReferences
-                          ._chatMembersRefsTable(db),
-                      managerFromTypedResult:
-                          (p0) =>
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChatRoomsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({chatMembersRefs = false, chatMessagesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (chatMembersRefs) db.chatMembers,
+                    if (chatMessagesRefs) db.chatMessages,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (chatMembersRefs)
+                        await $_getPrefetchedData<
+                          ChatRoom,
+                          $ChatRoomsTable,
+                          ChatMember
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ChatRoomsTableReferences
+                              ._chatMembersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
                               $$ChatRoomsTableReferences(
                                 db,
                                 table,
                                 p0,
                               ).chatMembersRefs,
-                      referencedItemsForCurrentItem:
-                          (item, referencedItems) => referencedItems.where(
-                            (e) => e.chatRoomId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                  if (chatMessagesRefs)
-                    await $_getPrefetchedData<
-                      ChatRoom,
-                      $ChatRoomsTable,
-                      ChatMessage
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ChatRoomsTableReferences
-                          ._chatMessagesRefsTable(db),
-                      managerFromTypedResult:
-                          (p0) =>
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.chatRoomId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (chatMessagesRefs)
+                        await $_getPrefetchedData<
+                          ChatRoom,
+                          $ChatRoomsTable,
+                          ChatMessage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ChatRoomsTableReferences
+                              ._chatMessagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
                               $$ChatRoomsTableReferences(
                                 db,
                                 table,
                                 p0,
                               ).chatMessagesRefs,
-                      referencedItemsForCurrentItem:
-                          (item, referencedItems) =>
-                              referencedItems.where((e) => e.roomId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.roomId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4142,13 +4100,12 @@ class $$ChatMembersTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$ChatMembersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$ChatMembersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$ChatMembersTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$ChatMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMembersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -4209,83 +4166,82 @@ class $$ChatMembersTableTableManager
                 deletedAt: deletedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          $$ChatMembersTableReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
-          prefetchHooksCallback: ({
-            chatRoomId = false,
-            chatMessagesRefs = false,
-          }) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (chatMessagesRefs) db.chatMessages],
-              addJoins: <
-                T extends TableManagerState<
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic
-                >
-              >(state) {
-                if (chatRoomId) {
-                  state =
-                      state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.chatRoomId,
-                            referencedTable: $$ChatMembersTableReferences
-                                ._chatRoomIdTable(db),
-                            referencedColumn:
-                                $$ChatMembersTableReferences
-                                    ._chatRoomIdTable(db)
-                                    .id,
-                          )
-                          as T;
-                }
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChatMembersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({chatRoomId = false, chatMessagesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (chatMessagesRefs) db.chatMessages,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (chatRoomId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.chatRoomId,
+                                    referencedTable:
+                                        $$ChatMembersTableReferences
+                                            ._chatRoomIdTable(db),
+                                    referencedColumn:
+                                        $$ChatMembersTableReferences
+                                            ._chatRoomIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (chatMessagesRefs)
-                    await $_getPrefetchedData<
-                      ChatMember,
-                      $ChatMembersTable,
-                      ChatMessage
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ChatMembersTableReferences
-                          ._chatMessagesRefsTable(db),
-                      managerFromTypedResult:
-                          (p0) =>
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (chatMessagesRefs)
+                        await $_getPrefetchedData<
+                          ChatMember,
+                          $ChatMembersTable,
+                          ChatMessage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ChatMembersTableReferences
+                              ._chatMessagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
                               $$ChatMembersTableReferences(
                                 db,
                                 table,
                                 p0,
                               ).chatMessagesRefs,
-                      referencedItemsForCurrentItem:
-                          (item, referencedItems) => referencedItems.where(
-                            (e) => e.senderId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.senderId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4831,13 +4787,12 @@ class $$ChatMessagesTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$ChatMessagesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$ChatMessagesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -4930,66 +4885,63 @@ class $$ChatMessagesTableTableManager
                 forwardedMessageId: forwardedMessageId,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          $$ChatMessagesTableReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChatMessagesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: ({roomId = false, senderId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins: <
-                T extends TableManagerState<
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic
-                >
-              >(state) {
-                if (roomId) {
-                  state =
-                      state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.roomId,
-                            referencedTable: $$ChatMessagesTableReferences
-                                ._roomIdTable(db),
-                            referencedColumn:
-                                $$ChatMessagesTableReferences
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (roomId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.roomId,
+                                referencedTable: $$ChatMessagesTableReferences
+                                    ._roomIdTable(db),
+                                referencedColumn: $$ChatMessagesTableReferences
                                     ._roomIdTable(db)
                                     .id,
-                          )
-                          as T;
-                }
-                if (senderId) {
-                  state =
-                      state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.senderId,
-                            referencedTable: $$ChatMessagesTableReferences
-                                ._senderIdTable(db),
-                            referencedColumn:
-                                $$ChatMessagesTableReferences
+                              )
+                              as T;
+                    }
+                    if (senderId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.senderId,
+                                referencedTable: $$ChatMessagesTableReferences
+                                    ._senderIdTable(db),
+                                referencedColumn: $$ChatMessagesTableReferences
                                     ._senderIdTable(db)
                                     .id,
-                          )
-                          as T;
-                }
+                              )
+                              as T;
+                    }
 
-                return state;
-              },
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
@@ -5201,12 +5153,12 @@ class $$PostDraftsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$PostDraftsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$PostDraftsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$PostDraftsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$PostDraftsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PostDraftsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PostDraftsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -5251,16 +5203,9 @@ class $$PostDraftsTableTableManager
                 postData: postData,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );

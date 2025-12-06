@@ -35,10 +35,9 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   description: json['description'] as String?,
   fileMeta: json['file_meta'] as Map<String, dynamic>?,
   userMeta: json['user_meta'] as Map<String, dynamic>?,
-  pool:
-      json['pool'] == null
-          ? null
-          : SnFilePool.fromJson(json['pool'] as Map<String, dynamic>),
+  pool: json['pool'] == null
+      ? null
+      : SnFilePool.fromJson(json['pool'] as Map<String, dynamic>),
   sensitiveMarks:
       (json['sensitive_marks'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -47,17 +46,15 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   mimeType: json['mime_type'] as String?,
   hash: json['hash'] as String?,
   size: (json['size'] as num).toInt(),
-  uploadedAt:
-      json['uploaded_at'] == null
-          ? null
-          : DateTime.parse(json['uploaded_at'] as String),
+  uploadedAt: json['uploaded_at'] == null
+      ? null
+      : DateTime.parse(json['uploaded_at'] as String),
   uploadedTo: json['uploaded_to'] as String?,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
@@ -87,10 +84,9 @@ _SnCloudFileIndex _$SnCloudFileIndexFromJson(Map<String, dynamic> json) =>
       file: SnCloudFile.fromJson(json['file'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnCloudFileIndexToJson(_SnCloudFileIndex instance) =>

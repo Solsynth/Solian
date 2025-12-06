@@ -14,10 +14,9 @@ _Bot _$BotFromJson(Map<String, dynamic> json) => _Bot(
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-  developer:
-      json['developer'] == null
-          ? null
-          : SnDeveloper.fromJson(json['developer'] as Map<String, dynamic>),
+  developer: json['developer'] == null
+      ? null
+      : SnDeveloper.fromJson(json['developer'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$BotToJson(_Bot instance) => <String, dynamic>{
@@ -74,10 +73,9 @@ _BotSecret _$BotSecretFromJson(Map<String, dynamic> json) => _BotSecret(
   id: json['id'] as String? ?? '',
   secret: json['secret'] as String? ?? '',
   description: json['description'] as String?,
-  expiredAt:
-      json['expired_at'] == null
-          ? null
-          : DateTime.parse(json['expired_at'] as String),
+  expiredAt: json['expired_at'] == null
+      ? null
+      : DateTime.parse(json['expired_at'] as String),
   botId: json['bot_id'] as String? ?? '',
 );
 

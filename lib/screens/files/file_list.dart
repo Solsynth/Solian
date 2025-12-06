@@ -7,7 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/file_pool.dart';
-import 'package:island/pods/file_list.dart';
+import 'package:island/pods/drive/file_list.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -40,38 +40,31 @@ class FileListScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.bar_chart),
-            onPressed:
-                () => _showUsageSheet(
-                  context,
-                  usageAsync.value,
-                  quotaAsync.value,
-                ),
+            onPressed: () =>
+                _showUsageSheet(context, usageAsync.value, quotaAsync.value),
           ),
           const Gap(8),
         ],
       ),
       body: usageAsync.when(
-        data:
-            (usage) => quotaAsync.when(
-              data:
-                  (quota) => FileListView(
-                    usage: usage,
-                    quota: quota,
-                    currentPath: currentPath,
-                    selectedPool: selectedPool,
-                    onPickAndUpload:
-                        () => _pickAndUploadFile(
-                          ref,
-                          currentPath.value,
-                          selectedPool.value?.id,
-                        ),
-                    onShowCreateDirectory: _showCreateDirectoryDialog,
-                    mode: mode,
-                    viewMode: viewMode,
-                  ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error loading quota')),
+        data: (usage) => quotaAsync.when(
+          data: (quota) => FileListView(
+            usage: usage,
+            quota: quota,
+            currentPath: currentPath,
+            selectedPool: selectedPool,
+            onPickAndUpload: () => _pickAndUploadFile(
+              ref,
+              currentPath.value,
+              selectedPool.value?.id,
             ),
+            onShowCreateDirectory: _showCreateDirectoryDialog,
+            mode: mode,
+            viewMode: viewMode,
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error loading quota')),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error loading usage')),
       ),
@@ -158,44 +151,43 @@ class FileListScreen extends HookConsumerWidget {
 
     await showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Navigate to Directory'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Gap(8),
-                TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(
-                    labelText: 'Directory path',
-                    hintText: 'e.g., documents, projects/my-app',
-                    helperText:
-                        'Enter a directory path. The directory will be created when you upload files to it.',
-                    helperMaxLines: 3,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                  onSubmitted: (_) {
-                    handleChangeDirectory(context);
-                  },
+      builder: (context) => AlertDialog(
+        title: const Text('Navigate to Directory'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Gap(8),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Directory path',
+                hintText: 'e.g., documents, projects/my-app',
+                helperText:
+                    'Enter a directory path. The directory will be created when you upload files to it.',
+                helperMaxLines: 3,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
-              ],
+              ),
+              onSubmitted: (_) {
+                handleChangeDirectory(context);
+              },
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              TextButton.icon(
-                onPressed: () => handleChangeDirectory(context),
-                label: const Text('Go to Directory'),
-                icon: const Icon(Symbols.arrow_right_alt),
-              ),
-            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
           ),
+          TextButton.icon(
+            onPressed: () => handleChangeDirectory(context),
+            label: const Text('Go to Directory'),
+            icon: const Icon(Symbols.arrow_right_alt),
+          ),
+        ],
+      ),
     );
   }
 
@@ -207,14 +199,13 @@ class FileListScreen extends HookConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (context) => SheetScaffold(
-            titleText: 'Usage Overview',
-            child: UsageOverviewWidget(
-              usage: usage,
-              quota: quota,
-            ).padding(horizontal: 8, vertical: 16),
-          ),
+      builder: (context) => SheetScaffold(
+        titleText: 'Usage Overview',
+        child: UsageOverviewWidget(
+          usage: usage,
+          quota: quota,
+        ).padding(horizontal: 8, vertical: 16),
+      ),
     );
   }
 }

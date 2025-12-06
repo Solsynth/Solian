@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/file_pool.dart';
-import 'package:island/pods/file_pool.dart';
+import 'package:island/pods/drive/file_pool.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
@@ -79,13 +79,12 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                     children: [
                       DropdownButtonFormField<String>(
                         value: selectedPoolId,
-                        items:
-                            pools.map((pool) {
-                              return DropdownMenuItem<String>(
-                                value: pool.id,
-                                child: Text(pool.name),
-                              );
-                            }).toList(),
+                        items: pools.map((pool) {
+                          return DropdownMenuItem<String>(
+                            value: pool.id,
+                            child: Text(pool.name),
+                          );
+                        }).toList(),
                         onChanged: (value) {
                           setState(() {
                             selectedPoolId = value;
@@ -140,10 +139,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.errorContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.errorContainer,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Column(
@@ -155,23 +153,22 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                           Icon(
                                             Symbols.warning,
                                             size: 18,
-                                            color:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.error,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
                                           ),
                                           const Gap(8),
                                           Text(
                                             'uploadConstraints'.tr(),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium?.copyWith(
-                                              color:
-                                                  Theme.of(
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Theme.of(
                                                     context,
                                                   ).colorScheme.error,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -183,28 +180,28 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                               _formatFileSize(maxFileSize),
                                             ],
                                           ),
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.copyWith(
-                                            color:
-                                                Theme.of(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(
                                                   context,
                                                 ).colorScheme.error,
-                                          ),
+                                              ),
                                         ),
                                       ],
                                       if (!typeAccepted) ...[
                                         const Gap(4),
                                         Text(
                                           'fileTypeNotAccepted'.tr(),
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.copyWith(
-                                            color:
-                                                Theme.of(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(
                                                   context,
                                                 ).colorScheme.error,
-                                          ),
+                                              ),
                                         ),
                                       ],
                                     ],
@@ -229,10 +226,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                           ),
                                         ],
                                       ),
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
                                     ).fontSize(13),
                                   ),
                                 ],
@@ -300,8 +296,8 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
     final maxFileSize = selectedPool.policyConfig?['max_file_size'] as int?;
     final fileSizeExceeded = maxFileSize != null && fileSize > maxFileSize;
 
-    final acceptTypes =
-        (selectedPool.policyConfig?['accept_types'] as List?)?.cast<String>();
+    final acceptTypes = (selectedPool.policyConfig?['accept_types'] as List?)
+        ?.cast<String>();
     final mimeType =
         attachment.data.mimeType ??
         ComposeLogic.getMimeTypeFromFileType(attachment.type);

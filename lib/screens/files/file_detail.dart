@@ -10,9 +10,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/file_references.dart';
+import 'package:island/pods/drive/file_references.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/upload_tasks.dart';
+import 'package:island/pods/drive/upload_tasks.dart';
 import 'package:island/models/drive_task.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
@@ -120,8 +120,9 @@ class FileDetailScreen extends HookConsumerWidget {
                         child: SizedBox(
                           width: 400,
                           child: Material(
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             elevation: 8,
                             child: FileInfoSheet(
                               item: item,
@@ -176,17 +177,15 @@ class FileDetailScreen extends HookConsumerWidget {
     actions.add(
       IconButton(
         icon: Icon(Icons.link),
-        onPressed:
-            () => showModalBottomSheet(
-              useRootNavigator: true,
-              context: context,
-              isScrollControlled: true,
-              builder:
-                  (context) => SheetScaffold(
-                    titleText: 'File References',
-                    child: ReferencesList(fileId: item.id),
-                  ),
-            ),
+        onPressed: () => showModalBottomSheet(
+          useRootNavigator: true,
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => SheetScaffold(
+            titleText: 'File References',
+            child: ReferencesList(fileId: item.id),
+          ),
+        ),
       ),
     );
 
@@ -300,43 +299,39 @@ class ReferencesList extends ConsumerWidget {
     final asyncReferences = ref.watch(fileReferencesProvider(fileId));
 
     return asyncReferences.when(
-      data:
-          (references) => ListView.builder(
-            itemCount: references.length,
-            itemBuilder: (context, index) {
-              final reference = references[index];
-              return ListTile(
-                leading: const Icon(Icons.link),
-                title: Row(
-                  spacing: 6,
-                  children: [
-                    Text(
-                      reference.usage,
-                      style: GoogleFonts.robotoMono(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    Text(
-                      reference.id,
-                      style: GoogleFonts.robotoMono(fontSize: 13),
-                    ),
-                  ],
+      data: (references) => ListView.builder(
+        itemCount: references.length,
+        itemBuilder: (context, index) {
+          final reference = references[index];
+          return ListTile(
+            leading: const Icon(Icons.link),
+            title: Row(
+              spacing: 6,
+              children: [
+                Text(
+                  reference.usage,
+                  style: GoogleFonts.robotoMono(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
-                subtitle: Row(
-                  spacing: 8,
-                  children: [
-                    Text(reference.createdAt.formatRelative(context)),
-                    const VerticalDivider(width: 1, thickness: 1).height(12),
-                    Text(reference.createdAt.formatSystem()),
-                  ],
-                ),
-              );
-            },
-          ),
+                Text(reference.id, style: GoogleFonts.robotoMono(fontSize: 13)),
+              ],
+            ),
+            subtitle: Row(
+              spacing: 8,
+              children: [
+                Text(reference.createdAt.formatRelative(context)),
+                const VerticalDivider(width: 1, thickness: 1).height(12),
+                Text(reference.createdAt.formatSystem()),
+              ],
+            ),
+          );
+        },
+      ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (error, _) => Center(child: Text('Error loading references: $error')),
+      error: (error, _) =>
+          Center(child: Text('Error loading references: $error')),
     );
   }
 }

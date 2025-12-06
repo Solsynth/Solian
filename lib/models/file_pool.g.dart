@@ -16,18 +16,15 @@ _SnFilePool _$SnFilePoolFromJson(Map<String, dynamic> json) => _SnFilePool(
   isHidden: json['is_hidden'] as bool?,
   accountId: json['account_id'] as String?,
   resourceIdentifier: json['resource_identifier'] as String?,
-  createdAt:
-      json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-  updatedAt:
-      json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  createdAt: json['created_at'] == null
+      ? null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
+      ? null
+      : DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnFilePoolToJson(_SnFilePool instance) =>

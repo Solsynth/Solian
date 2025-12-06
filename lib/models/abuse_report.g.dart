@@ -12,18 +12,16 @@ _SnAbuseReport _$SnAbuseReportFromJson(Map<String, dynamic> json) =>
       resourceIdentifier: json['resource_identifier'] as String,
       type: (json['type'] as num).toInt(),
       reason: json['reason'] as String,
-      resolvedAt:
-          json['resolved_at'] == null
-              ? null
-              : DateTime.parse(json['resolved_at'] as String),
+      resolvedAt: json['resolved_at'] == null
+          ? null
+          : DateTime.parse(json['resolved_at'] as String),
       resolution: json['resolution'] as String?,
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAbuseReportToJson(_SnAbuseReport instance) =>

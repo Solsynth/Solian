@@ -9,22 +9,19 @@ part of 'reference.dart';
 _Reference _$ReferenceFromJson(Map<String, dynamic> json) => _Reference(
   id: json['id'] as String,
   fileId: json['file_id'] as String,
-  file:
-      json['file'] == null
-          ? null
-          : SnCloudFile.fromJson(json['file'] as Map<String, dynamic>),
+  file: json['file'] == null
+      ? null
+      : SnCloudFile.fromJson(json['file'] as Map<String, dynamic>),
   usage: json['usage'] as String,
   resourceId: json['resource_id'] as String,
-  expiredAt:
-      json['expired_at'] == null
-          ? null
-          : DateTime.parse(json['expired_at'] as String),
+  expiredAt: json['expired_at'] == null
+      ? null
+      : DateTime.parse(json['expired_at'] as String),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$ReferenceToJson(_Reference instance) =>

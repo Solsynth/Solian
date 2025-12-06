@@ -17,14 +17,12 @@ _SnWebFeed _$SnWebFeedFromJson(Map<String, dynamic> json) => _SnWebFeed(
   url: json['url'] as String,
   title: json['title'] as String,
   description: json['description'] as String?,
-  preview:
-      json['preview'] == null
-          ? null
-          : SnScrappedLink.fromJson(json['preview'] as Map<String, dynamic>),
-  config:
-      json['config'] == null
-          ? const SnWebFeedConfig()
-          : SnWebFeedConfig.fromJson(json['config'] as Map<String, dynamic>),
+  preview: json['preview'] == null
+      ? null
+      : SnScrappedLink.fromJson(json['preview'] as Map<String, dynamic>),
+  config: json['config'] == null
+      ? const SnWebFeedConfig()
+      : SnWebFeedConfig.fromJson(json['config'] as Map<String, dynamic>),
   publisherId: json['publisher_id'] as String,
   articles:
       (json['articles'] as List<dynamic>?)
@@ -33,10 +31,9 @@ _SnWebFeed _$SnWebFeedFromJson(Map<String, dynamic> json) => _SnWebFeed(
       const [],
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnWebFeedToJson(_SnWebFeed instance) =>
@@ -61,28 +58,22 @@ _SnWebArticle _$SnWebArticleFromJson(Map<String, dynamic> json) =>
       url: json['url'] as String,
       author: json['author'] as String?,
       meta: json['meta'] as Map<String, dynamic>?,
-      preview:
-          json['preview'] == null
-              ? null
-              : SnScrappedLink.fromJson(
-                json['preview'] as Map<String, dynamic>,
-              ),
-      feed:
-          json['feed'] == null
-              ? null
-              : SnWebFeed.fromJson(json['feed'] as Map<String, dynamic>),
+      preview: json['preview'] == null
+          ? null
+          : SnScrappedLink.fromJson(json['preview'] as Map<String, dynamic>),
+      feed: json['feed'] == null
+          ? null
+          : SnWebFeed.fromJson(json['feed'] as Map<String, dynamic>),
       content: json['content'] as String?,
-      publishedAt:
-          json['published_at'] == null
-              ? null
-              : DateTime.parse(json['published_at'] as String),
+      publishedAt: json['published_at'] == null
+          ? null
+          : DateTime.parse(json['published_at'] as String),
       feedId: json['feed_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnWebArticleToJson(_SnWebArticle instance) =>

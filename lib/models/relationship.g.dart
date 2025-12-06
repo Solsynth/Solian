@@ -8,26 +8,22 @@ part of 'relationship.dart';
 
 _SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>
     _SnRelationship(
-      createdAt:
-          json['created_at'] == null
-              ? null
-              : DateTime.parse(json['created_at'] as String),
-      updatedAt:
-          json['updated_at'] == null
-              ? null
-              : DateTime.parse(json['updated_at'] as String),
-      deletedAt:
-          json['deleted_at'] == null
-              ? null
-              : DateTime.parse(json['deleted_at'] as String),
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
       accountId: json['account_id'] as String,
       account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       relatedId: json['related_id'] as String,
       related: SnAccount.fromJson(json['related'] as Map<String, dynamic>),
-      expiredAt:
-          json['expired_at'] == null
-              ? null
-              : DateTime.parse(json['expired_at'] as String),
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
       status: (json['status'] as num).toInt(),
     );
 

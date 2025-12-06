@@ -10,10 +10,9 @@ AutoCompletionAccountResponse _$AutoCompletionAccountResponseFromJson(
   Map<String, dynamic> json,
 ) => AutoCompletionAccountResponse(
   type: json['type'] as String,
-  items:
-      (json['items'] as List<dynamic>)
-          .map((e) => AutoCompletionItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  items: (json['items'] as List<dynamic>)
+      .map((e) => AutoCompletionItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
   $type: json['runtimeType'] as String?,
 );
 
@@ -29,10 +28,9 @@ AutoCompletionStickerResponse _$AutoCompletionStickerResponseFromJson(
   Map<String, dynamic> json,
 ) => AutoCompletionStickerResponse(
   type: json['type'] as String,
-  items:
-      (json['items'] as List<dynamic>)
-          .map((e) => AutoCompletionItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  items: (json['items'] as List<dynamic>)
+      .map((e) => AutoCompletionItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
   $type: json['runtimeType'] as String?,
 );
 

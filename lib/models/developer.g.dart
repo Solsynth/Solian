@@ -9,10 +9,9 @@ part of 'developer.dart';
 _SnDeveloper _$SnDeveloperFromJson(Map<String, dynamic> json) => _SnDeveloper(
   id: json['id'] as String,
   publisherId: json['publisher_id'] as String,
-  publisher:
-      json['publisher'] == null
-          ? null
-          : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+  publisher: json['publisher'] == null
+      ? null
+      : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$SnDeveloperToJson(_SnDeveloper instance) =>

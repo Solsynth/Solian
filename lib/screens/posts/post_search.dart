@@ -7,9 +7,12 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
-
+import 'package:island/widgets/posts/post_filter.dart';
+import 'package:gap/gap.dart';
 import 'package:island/pods/paging.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 final postSearchProvider = AsyncNotifierProvider.autoDispose(
@@ -36,6 +39,14 @@ class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
     return [];
   }
 
+  bool? _includeReplies;
+  bool _mediaOnly = false;
+  String? _queryTerm;
+  String? _order;
+  bool _orderDesc = true;
+  int? _periodStart;
+  int? _periodEnd;
+
   Future<void> search(
     String query, {
     String? pubName,
@@ -45,6 +56,13 @@ class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
     List<String>? tags,
     bool shuffle = false,
     bool? pinned,
+    bool? includeReplies,
+    bool mediaOnly = false,
+    String? queryTerm,
+    String? order,
+    bool orderDesc = true,
+    int? periodStart,
+    int? periodEnd,
   }) async {
     _currentQuery = query.trim();
     _pubName = pubName;
@@ -54,6 +72,13 @@ class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
     _tags = tags;
     _shuffle = shuffle;
     _pinned = pinned;
+    _includeReplies = includeReplies;
+    _mediaOnly = mediaOnly;
+    _queryTerm = queryTerm;
+    _order = order;
+    _orderDesc = orderDesc;
+    _periodStart = periodStart;
+    _periodEnd = periodEnd;
 
     final hasFilters =
         pubName != null ||
@@ -62,7 +87,13 @@ class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
         categories != null ||
         tags != null ||
         shuffle ||
-        pinned != null;
+        pinned != null ||
+        includeReplies != null ||
+        mediaOnly ||
+        queryTerm != null ||
+        order != null ||
+        periodStart != null ||
+        periodEnd != null;
 
     if (_currentQuery.isEmpty && !hasFilters) {
       state = const AsyncData([]);
@@ -91,6 +122,13 @@ class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
         if (_categories != null) 'categories': _categories,
         if (_shuffle) 'shuffle': true,
         if (_pinned != null) 'pinned': _pinned,
+        if (_includeReplies != null) 'includeReplies': _includeReplies,
+        if (_mediaOnly) 'mediaOnly': true,
+        if (_queryTerm != null) 'queryTerm': _queryTerm,
+        if (_order != null) 'order': _order,
+        if (_orderDesc) 'orderDesc': true,
+        if (_periodStart != null) 'periodStart': _periodStart,
+        if (_periodEnd != null) 'periodEnd': _periodEnd,
       },
     );
 
@@ -117,6 +155,17 @@ class PostSearchScreen extends HookConsumerWidget {
     final shuffleValue = useState(false);
     final pinnedValue = useState<bool?>(null);
 
+    // State variables for PostFilterWidget
+    final categoryTabController = useTabController(initialLength: 3);
+    final includeReplies = useState<bool?>(null);
+    final mediaOnly = useState(false);
+    final queryTerm = useState<String?>(null);
+    final order = useState<String?>('date');
+    final orderDesc = useState(true);
+    final periodStart = useState<int?>(null);
+    final periodEnd = useState<int?>(null);
+    final showAdvancedFilters = useState(false);
+
     useEffect(() {
       return () {
         searchController.dispose();
@@ -130,7 +179,21 @@ class PostSearchScreen extends HookConsumerWidget {
       if (debounceTimer.value?.isActive ?? false) debounceTimer.value!.cancel();
 
       debounceTimer.value = Timer(debounce, () {
-        ref.read(postSearchProvider.notifier).search(query);
+        ref
+            .read(postSearchProvider.notifier)
+            .search(
+              query,
+              type: categoryTabController.index == 1
+                  ? 0
+                  : (categoryTabController.index == 2 ? 1 : null),
+              includeReplies: includeReplies.value,
+              mediaOnly: mediaOnly.value,
+              queryTerm: queryTerm.value,
+              order: order.value,
+              orderDesc: orderDesc.value,
+              periodStart: periodStart.value,
+              periodEnd: periodEnd.value,
+            );
       });
     }
 
@@ -142,20 +205,28 @@ class PostSearchScreen extends HookConsumerWidget {
             .read(postSearchProvider.notifier)
             .search(
               query,
-              pubName:
-                  pubNameController.text.isNotEmpty
-                      ? pubNameController.text
-                      : null,
-              realm:
-                  realmController.text.isNotEmpty ? realmController.text : null,
-              type: typeValue.value,
-              categories:
-                  selectedCategories.value.isNotEmpty
-                      ? selectedCategories.value
-                      : null,
+              pubName: pubNameController.text.isNotEmpty
+                  ? pubNameController.text
+                  : null,
+              realm: realmController.text.isNotEmpty
+                  ? realmController.text
+                  : null,
+              type: categoryTabController.index == 1
+                  ? 0
+                  : (categoryTabController.index == 2 ? 1 : null),
+              categories: selectedCategories.value.isNotEmpty
+                  ? selectedCategories.value
+                  : null,
               tags: selectedTags.value.isNotEmpty ? selectedTags.value : null,
               shuffle: shuffleValue.value,
               pinned: pinnedValue.value,
+              includeReplies: includeReplies.value,
+              mediaOnly: mediaOnly.value,
+              queryTerm: queryTerm.value,
+              order: order.value,
+              orderDesc: orderDesc.value,
+              periodStart: periodStart.value,
+              periodEnd: periodEnd.value,
             );
       });
     }
@@ -164,187 +235,213 @@ class PostSearchScreen extends HookConsumerWidget {
       showFilters.value = !showFilters.value;
     }
 
-    void applyFilters() {
-      onSearchWithFilters(searchController.text);
-    }
-
-    void clearFilters() {
-      pubNameController.clear();
-      realmController.clear();
-      typeValue.value = null;
-      selectedCategories.value = [];
-      selectedTags.value = [];
-      shuffleValue.value = false;
-      pinnedValue.value = null;
-      onSearchChanged(searchController.text);
-    }
-
     Widget buildFilterPanel() {
-      return Card(
-        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'filters'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ).padding(left: 4),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: applyFilters,
-                        child: Text('apply'.tr()),
-                      ),
-                      TextButton(
-                        onPressed: clearFilters,
-                        child: Text('clear'.tr()),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: pubNameController,
-                decoration: InputDecoration(
-                  labelText: 'pubName'.tr(),
-                  border: OutlineInputBorder(
-                    borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  ),
-                ),
-                onChanged:
-                    (value) => onSearchWithFilters(searchController.text),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: realmController,
-                decoration: InputDecoration(
-                  labelText: 'realm'.tr(),
-                  border: OutlineInputBorder(
-                    borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  ),
-                ),
-                onChanged:
-                    (value) => onSearchWithFilters(searchController.text),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Checkbox(
-                    value: shuffleValue.value,
-                    onChanged: (value) {
-                      shuffleValue.value = value ?? false;
-                      onSearchWithFilters(searchController.text);
-                    },
-                  ),
-                  Text('shuffle'.tr()),
-                ],
-              ),
-              Row(
-                children: [
-                  Checkbox(
-                    value: pinnedValue.value ?? false,
-                    onChanged: (value) {
-                      pinnedValue.value = value;
-                      onSearchWithFilters(searchController.text);
-                    },
-                  ),
-                  Text('pinned'.tr()),
-                ],
-              ),
-            ],
-          ),
-        ),
+      return PostFilterWidget(
+        categoryTabController: categoryTabController,
+        includeReplies: includeReplies,
+        mediaOnly: mediaOnly,
+        queryTerm: queryTerm,
+        order: order,
+        orderDesc: orderDesc,
+        periodStart: periodStart,
+        periodEnd: periodEnd,
+        showAdvancedFilters: showAdvancedFilters,
+        hideSearch: true,
       );
     }
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'search'.tr(),
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
+      appBar: isWideScreen(context)
+          ? null
+          : AppBar(
+              title: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'search'.tr(),
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: Theme.of(context).appBarTheme.foregroundColor,
+                      ),
+                      onChanged: onSearchChanged,
+                      onSubmitted: (value) {
+                        onSearchWithFilters(value);
+                      },
+                      autofocus: true,
+                    ),
                   ),
-                ),
-                style: TextStyle(
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
-                onChanged: onSearchChanged,
-                onSubmitted: (value) {
-                  onSearchWithFilters(value);
-                },
-                autofocus: true,
+                  IconButton(
+                    icon: Icon(
+                      showFilters.value
+                          ? Icons.filter_alt
+                          : Icons.filter_alt_outlined,
+                    ),
+                    onPressed: toggleFilters,
+                    tooltip: 'toggleFilters'.tr(),
+                  ),
+                ],
               ),
             ),
-            IconButton(
-              icon: Icon(
-                showFilters.value
-                    ? Icons.filter_alt
-                    : Icons.filter_alt_outlined,
-              ),
-              onPressed: toggleFilters,
-              tooltip: 'toggleFilters'.tr(),
-            ),
-          ],
-        ),
-      ),
       body: Consumer(
         builder: (context, ref, child) {
           final searchState = ref.watch(postSearchProvider);
 
-          return CustomScrollView(
-            slivers: [
-              if (showFilters.value)
-                SliverToBoxAdapter(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: buildFilterPanel(),
+          return isWideScreen(context)
+              ? Row(
+                  children: [
+                    Flexible(
+                      flex: 4,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverGap(16),
+                          SliverToBoxAdapter(
+                            child: SearchBar(
+                              elevation: WidgetStateProperty.all(4),
+                              controller: searchController,
+                              hintText: 'search'.tr(),
+                              leading: const Icon(Icons.search),
+                              padding: WidgetStateProperty.all(
+                                const EdgeInsets.symmetric(horizontal: 24),
+                              ),
+                              onChanged: onSearchChanged,
+                              onSubmitted: (value) {
+                                onSearchWithFilters(value);
+                              },
+                            ),
+                          ),
+                          const SliverGap(16),
+                          if (showFilters.value && !isWideScreen(context))
+                            SliverToBoxAdapter(child: buildFilterPanel()),
+                          // Use PaginationList with isSliver=true
+                          PaginationList(
+                            provider: postSearchProvider,
+                            notifier: postSearchProvider.notifier,
+                            isSliver: true,
+                            isRefreshable: false,
+                            itemBuilder: (context, index, post) {
+                              return Card(
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: PostActionableItem(
+                                  item: post,
+                                  borderRadius: 8,
+                                ),
+                              );
+                            },
+                          ),
+                          if (searchState.value?.isEmpty == true &&
+                              searchController.text.isNotEmpty &&
+                              !searchState.isLoading)
+                            SliverFillRemaining(
+                              child: Center(child: Text('noResultsFound'.tr())),
+                            ),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                        ],
+                      ).padding(left: 8),
                     ),
-                  ),
-                ),
-              // Use PaginationList with isSliver=true
-              PaginationList(
-                provider: postSearchProvider,
-                notifier: postSearchProvider.notifier,
-                isSliver: true,
-                isRefreshable:
-                    false, // CustomScrollView handles refreshing usually, but here we don't have PullToRefresh
-                itemBuilder: (context, index, post) {
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: 600),
-                      child: Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                    Flexible(
+                      flex: 3,
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Gap(16),
+                              Card(
+                                margin: EdgeInsets.symmetric(horizontal: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Symbols.tune,
+                                      ).padding(horizontal: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'filters'.tr(),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Symbols.filter_alt,
+                                          fill: showFilters.value ? 1 : null,
+                                        ),
+                                        onPressed: toggleFilters,
+                                        tooltip: 'toggleFilters'.tr(),
+                                      ),
+                                      const Gap(4),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const Gap(8),
+                              if (showFilters.value) buildFilterPanel(),
+                            ],
+                          ),
                         ),
-                        child: PostActionableItem(item: post, borderRadius: 8),
                       ),
                     ),
-                  );
-                },
-              ),
-              if (searchState.value?.isEmpty == true &&
-                  searchController.text.isNotEmpty &&
-                  !searchState.isLoading)
-                SliverFillRemaining(
-                  child: Center(child: Text('noResultsFound'.tr())),
-                ),
-            ],
-          );
+                  ],
+                )
+              : CustomScrollView(
+                  slivers: [
+                    if (showFilters.value)
+                      SliverToBoxAdapter(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: buildFilterPanel(),
+                          ),
+                        ),
+                      ),
+                    // Use PaginationList with isSliver=true
+                    PaginationList(
+                      provider: postSearchProvider,
+                      notifier: postSearchProvider.notifier,
+                      isSliver: true,
+                      isRefreshable: false,
+                      itemBuilder: (context, index, post) {
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 600),
+                            child: Card(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              child: PostActionableItem(
+                                item: post,
+                                borderRadius: 8,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    if (searchState.value?.isEmpty == true &&
+                        searchController.text.isNotEmpty &&
+                        !searchState.isLoading)
+                      SliverFillRemaining(
+                        child: Center(child: Text('noResultsFound'.tr())),
+                      ),
+                  ],
+                );
         },
       ),
     );
