@@ -79,43 +79,21 @@ class PostSearchScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: isWideScreen(context)
-          ? null
-          : AppBar(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: 'search'.tr(),
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).appBarTheme.foregroundColor,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                      ),
-                      onChanged: onSearchChanged,
-                      onSubmitted: (value) {
-                        onSearchChanged(value, skipDebounce: true);
-                      },
-                      autofocus: true,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      showFilters.value
-                          ? Icons.filter_alt
-                          : Icons.filter_alt_outlined,
-                    ),
-                    onPressed: toggleFilterDisplay,
-                    tooltip: 'toggleFilters'.tr(),
-                  ),
-                ],
+      appBar: AppBar(
+        title: Text('searchPosts'.tr()),
+        actions: [
+          if (!isWideScreen(context))
+            IconButton(
+              icon: Icon(
+                showFilters.value
+                    ? Icons.filter_alt
+                    : Icons.filter_alt_outlined,
               ),
+              onPressed: toggleFilterDisplay,
+              tooltip: 'toggleFilters'.tr(),
             ),
+        ],
+      ),
       body: Consumer(
         builder: (context, ref, child) {
           final searchState = ref.watch(
@@ -152,10 +130,7 @@ class PostSearchScreen extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                            const SliverGap(16),
-                            if (showFilters.value && !isWideScreen(context))
-                              SliverToBoxAdapter(child: buildFilterPanel()),
-                            // Use PaginationList with isSliver=true
+                            const SliverGap(12),
                             PaginationList(
                               provider: postListProvider(
                                 PostListQueryConfig(id: kSearchPostListId),
@@ -246,6 +221,28 @@ class PostSearchScreen extends HookConsumerWidget {
                 )
               : CustomScrollView(
                   slivers: [
+                    const SliverGap(4),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: SearchBar(
+                          elevation: WidgetStateProperty.all(4),
+                          controller: searchController,
+                          hintText: 'search'.tr(),
+                          leading: const Icon(Icons.search),
+                          padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                          onChanged: onSearchChanged,
+                          onSubmitted: (value) {
+                            onSearchChanged(value, skipDebounce: true);
+                          },
+                        ),
+                      ),
+                    ),
                     if (showFilters.value)
                       SliverToBoxAdapter(
                         child: Center(
@@ -255,7 +252,6 @@ class PostSearchScreen extends HookConsumerWidget {
                           ),
                         ),
                       ),
-                    // Use PaginationList with isSliver=true
                     PaginationList(
                       provider: postListProvider(
                         PostListQueryConfig(id: kSearchPostListId),
