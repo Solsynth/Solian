@@ -18,8 +18,8 @@ final cloudFileListNotifierProvider =
       CloudFileListNotifier.new,
     );
 
-class CloudFileListNotifier extends AutoDisposeAsyncNotifier<List<SnCloudFile>>
-    with AutoDisposeAsyncPaginationController<SnCloudFile> {
+class CloudFileListNotifier extends AsyncNotifier<List<SnCloudFile>>
+    with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
     final client = ref.read(apiClientProvider);

@@ -59,9 +59,7 @@ class FileListView extends HookConsumerWidget {
 
     useEffect(() {
       if (mode.value == FileListMode.normal) {
-        final notifier = ref.read(
-          indexedCloudFileListNotifierProvider.notifier,
-        );
+        final notifier = ref.read(indexedCloudFileListProvider.notifier);
         notifier.setPath(currentPath.value);
       }
       return null;
@@ -69,12 +67,8 @@ class FileListView extends HookConsumerWidget {
 
     if (usage == null) return const SizedBox.shrink();
 
-    final unindexedNotifier = ref.read(
-      unindexedFileListNotifierProvider.notifier,
-    );
-    final cloudNotifier = ref.read(
-      indexedCloudFileListNotifierProvider.notifier,
-    );
+    final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
+    final cloudNotifier = ref.read(indexedCloudFileListProvider.notifier);
     final recycled = useState<bool>(false);
     final poolsAsync = ref.watch(poolsProvider);
     final isSelectionMode = useState<bool>(false);
@@ -119,18 +113,14 @@ class FileListView extends HookConsumerWidget {
 
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal
-          ? indexedCloudFileListNotifierProvider.select(
-            (value) => value.isLoading,
-          )
-          : unindexedFileListNotifierProvider.select(
-            (value) => value.isLoading,
-          ),
+          ? indexedCloudFileListProvider.select((value) => value.isLoading)
+          : unindexedFileListProvider.select((value) => value.isLoading),
     );
 
     final bodyWidget = switch (mode.value) {
       FileListMode.unindexed => PaginationWidget(
-        provider: unindexedFileListNotifierProvider,
-        notifier: unindexedFileListNotifierProvider.notifier,
+        provider: unindexedFileListProvider,
+        notifier: unindexedFileListProvider.notifier,
         isRefreshable: false,
         isSliver: true,
         contentBuilder:
@@ -151,8 +141,8 @@ class FileListView extends HookConsumerWidget {
                     ),
       ),
       _ => PaginationWidget(
-        provider: indexedCloudFileListNotifierProvider,
-        notifier: indexedCloudFileListNotifierProvider.notifier,
+        provider: indexedCloudFileListProvider,
+        notifier: indexedCloudFileListProvider.notifier,
         isRefreshable: false,
         isSliver: true,
         contentBuilder:
@@ -261,7 +251,7 @@ class FileListView extends HookConsumerWidget {
           completer.future
               .then((uploadedFile) {
                 if (uploadedFile != null) {
-                  ref.invalidate(indexedCloudFileListNotifierProvider);
+                  ref.invalidate(indexedCloudFileListProvider);
                 }
               })
               .catchError((error) {
@@ -538,8 +528,8 @@ class FileListView extends HookConsumerWidget {
                                     isSelectionMode.value = false;
                                     ref.invalidate(
                                       mode.value == FileListMode.normal
-                                          ? indexedCloudFileListNotifierProvider
-                                          : unindexedFileListNotifierProvider,
+                                          ? indexedCloudFileListProvider
+                                          : unindexedFileListProvider,
                                     );
                                     showSnackBar('Deleted $count files.');
                                   } catch (e) {
@@ -804,7 +794,7 @@ class FileListView extends HookConsumerWidget {
               await client.delete(
                 '/drive/index/remove/${fileItem.fileIndex.id}',
               );
-              ref.invalidate(indexedCloudFileListNotifierProvider);
+              ref.invalidate(indexedCloudFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
             } finally {
@@ -1168,7 +1158,7 @@ class FileListView extends HookConsumerWidget {
           try {
             final client = ref.read(apiClientProvider);
             await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
-            ref.invalidate(indexedCloudFileListNotifierProvider);
+            ref.invalidate(indexedCloudFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
           } finally {
@@ -1237,7 +1227,7 @@ class FileListView extends HookConsumerWidget {
           try {
             final client = ref.read(apiClientProvider);
             await client.delete('/drive/files/${file.id}');
-            ref.invalidate(unindexedFileListNotifierProvider);
+            ref.invalidate(unindexedFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
           } finally {
@@ -1280,7 +1270,7 @@ class FileListView extends HookConsumerWidget {
             try {
               final client = ref.read(apiClientProvider);
               await client.delete('/drive/files/${unindexedFileItem.file.id}');
-              ref.invalidate(unindexedFileListNotifierProvider);
+              ref.invalidate(unindexedFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
             } finally {
@@ -1374,7 +1364,7 @@ class FileListView extends HookConsumerWidget {
                   );
                   final count = response.data['count'] as int? ?? 0;
                   showSnackBar('Cleared $count recycled files.');
-                  ref.invalidate(unindexedFileListNotifierProvider);
+                  ref.invalidate(unindexedFileListProvider);
                 } catch (e) {
                   showSnackBar('Failed to clear recycled files.');
                 } finally {
@@ -1566,7 +1556,7 @@ class FileListView extends HookConsumerWidget {
       icon: const Icon(Symbols.refresh),
       onPressed: () {
         if (mode.value == FileListMode.unindexed) {
-          ref.invalidate(unindexedFileListNotifierProvider);
+          ref.invalidate(unindexedFileListProvider);
         } else {
           cloudNotifier.setPath(currentPath.value);
         }

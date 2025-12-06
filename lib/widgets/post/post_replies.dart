@@ -6,13 +6,16 @@ import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 
-final postRepliesNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<PostRepliesNotifier, List<SnPost>, String>(PostRepliesNotifier.new);
+final postRepliesProvider = AsyncNotifierProvider.autoDispose.family(
+  PostRepliesNotifier.new,
+);
 
-class PostRepliesNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPost>, String>
-    with FamilyAsyncPaginationController<SnPost, String> {
-  static const int _pageSize = 20;
+class PostRepliesNotifier extends AsyncNotifier<List<SnPost>>
+    with AsyncPaginationController<SnPost> {
+  static const int pageSize = 20;
+
+  final String arg;
+  PostRepliesNotifier(this.arg);
 
   @override
   Future<List<SnPost>> fetch() async {
@@ -20,7 +23,7 @@ class PostRepliesNotifier
 
     final response = await client.get(
       '/sphere/posts/$arg/replies',
-      queryParameters: {'offset': fetchedCount, 'take': _pageSize},
+      queryParameters: {'offset': fetchedCount, 'take': pageSize},
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
@@ -42,7 +45,7 @@ class PostRepliesList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postRepliesNotifierProvider(postId);
+    final provider = postRepliesProvider(postId);
 
     return PaginationList(
       provider: provider,

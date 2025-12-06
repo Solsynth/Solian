@@ -294,12 +294,15 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 }
 
 final updateInfoProvider =
-    StateNotifierProvider<UpdateInfoNotifier, (String?, String?)>((ref) {
-      return UpdateInfoNotifier();
-    });
+    NotifierProvider<UpdateInfoNotifier, (String?, String?)>(
+      UpdateInfoNotifier.new,
+    );
 
-class UpdateInfoNotifier extends StateNotifier<(String?, String?)> {
-  UpdateInfoNotifier() : super((null, null));
+class UpdateInfoNotifier extends Notifier<(String?, String?)> {
+  @override
+  (String?, String?) build() {
+    return (null, null);
+  }
 
   void setUpdate(String newVersion, String newChangelog) {
     state = (newVersion, newChangelog);

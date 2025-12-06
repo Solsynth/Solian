@@ -6,289 +6,161 @@ part of 'feed_detail.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$marketplaceWebFeedHash() =>
-    r'8383f94f1bc272b903c341b8d95000313b69d14c';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [marketplaceWebFeed].
 @ProviderFor(marketplaceWebFeed)
-const marketplaceWebFeedProvider = MarketplaceWebFeedFamily();
+const marketplaceWebFeedProvider = MarketplaceWebFeedFamily._();
 
-/// See also [marketplaceWebFeed].
-class MarketplaceWebFeedFamily extends Family<AsyncValue<SnWebFeed>> {
-  /// See also [marketplaceWebFeed].
-  const MarketplaceWebFeedFamily();
+final class MarketplaceWebFeedProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWebFeed>,
+          SnWebFeed,
+          FutureOr<SnWebFeed>
+        >
+    with $FutureModifier<SnWebFeed>, $FutureProvider<SnWebFeed> {
+  const MarketplaceWebFeedProvider._({
+    required MarketplaceWebFeedFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'marketplaceWebFeedProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [marketplaceWebFeed].
-  MarketplaceWebFeedProvider call(String feedId) {
-    return MarketplaceWebFeedProvider(feedId);
+  @override
+  String debugGetCreateSourceHash() => _$marketplaceWebFeedHash();
+
+  @override
+  String toString() {
+    return r'marketplaceWebFeedProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  MarketplaceWebFeedProvider getProviderOverride(
-    covariant MarketplaceWebFeedProvider provider,
-  ) {
-    return call(provider.feedId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<SnWebFeed> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'marketplaceWebFeedProvider';
-}
-
-/// See also [marketplaceWebFeed].
-class MarketplaceWebFeedProvider extends AutoDisposeFutureProvider<SnWebFeed> {
-  /// See also [marketplaceWebFeed].
-  MarketplaceWebFeedProvider(String feedId)
-    : this._internal(
-        (ref) => marketplaceWebFeed(ref as MarketplaceWebFeedRef, feedId),
-        from: marketplaceWebFeedProvider,
-        name: r'marketplaceWebFeedProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$marketplaceWebFeedHash,
-        dependencies: MarketplaceWebFeedFamily._dependencies,
-        allTransitiveDependencies:
-            MarketplaceWebFeedFamily._allTransitiveDependencies,
-        feedId: feedId,
-      );
-
-  MarketplaceWebFeedProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.feedId,
-  }) : super.internal();
-
-  final String feedId;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnWebFeed> Function(MarketplaceWebFeedRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MarketplaceWebFeedProvider._internal(
-        (ref) => create(ref as MarketplaceWebFeedRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        feedId: feedId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnWebFeed> createElement() {
-    return _MarketplaceWebFeedProviderElement(this);
+  FutureOr<SnWebFeed> create(Ref ref) {
+    final argument = this.argument as String;
+    return marketplaceWebFeed(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is MarketplaceWebFeedProvider && other.feedId == feedId;
+    return other is MarketplaceWebFeedProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, feedId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MarketplaceWebFeedRef on AutoDisposeFutureProviderRef<SnWebFeed> {
-  /// The parameter `feedId` of this provider.
-  String get feedId;
-}
+String _$marketplaceWebFeedHash() =>
+    r'8383f94f1bc272b903c341b8d95000313b69d14c';
 
-class _MarketplaceWebFeedProviderElement
-    extends AutoDisposeFutureProviderElement<SnWebFeed>
-    with MarketplaceWebFeedRef {
-  _MarketplaceWebFeedProviderElement(super.provider);
+final class MarketplaceWebFeedFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnWebFeed>, String> {
+  const MarketplaceWebFeedFamily._()
+    : super(
+        retry: null,
+        name: r'marketplaceWebFeedProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  MarketplaceWebFeedProvider call(String feedId) =>
+      MarketplaceWebFeedProvider._(argument: feedId, from: this);
 
   @override
-  String get feedId => (origin as MarketplaceWebFeedProvider).feedId;
+  String toString() => r'marketplaceWebFeedProvider';
+}
+
+/// Provider for web feed subscription status
+
+@ProviderFor(marketplaceWebFeedSubscription)
+const marketplaceWebFeedSubscriptionProvider =
+    MarketplaceWebFeedSubscriptionFamily._();
+
+/// Provider for web feed subscription status
+
+final class MarketplaceWebFeedSubscriptionProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Provider for web feed subscription status
+  const MarketplaceWebFeedSubscriptionProvider._({
+    required MarketplaceWebFeedSubscriptionFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'marketplaceWebFeedSubscriptionProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$marketplaceWebFeedSubscriptionHash();
+
+  @override
+  String toString() {
+    return r'marketplaceWebFeedSubscriptionProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as String;
+    return marketplaceWebFeedSubscription(ref, feedId: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MarketplaceWebFeedSubscriptionProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$marketplaceWebFeedSubscriptionHash() =>
     r'2ff06a48ed7d4236b57412ecca55e94c0a0b6330';
 
 /// Provider for web feed subscription status
-///
-/// Copied from [marketplaceWebFeedSubscription].
-@ProviderFor(marketplaceWebFeedSubscription)
-const marketplaceWebFeedSubscriptionProvider =
-    MarketplaceWebFeedSubscriptionFamily();
 
-/// Provider for web feed subscription status
-///
-/// Copied from [marketplaceWebFeedSubscription].
-class MarketplaceWebFeedSubscriptionFamily extends Family<AsyncValue<bool>> {
-  /// Provider for web feed subscription status
-  ///
-  /// Copied from [marketplaceWebFeedSubscription].
-  const MarketplaceWebFeedSubscriptionFamily();
-
-  /// Provider for web feed subscription status
-  ///
-  /// Copied from [marketplaceWebFeedSubscription].
-  MarketplaceWebFeedSubscriptionProvider call({required String feedId}) {
-    return MarketplaceWebFeedSubscriptionProvider(feedId: feedId);
-  }
-
-  @override
-  MarketplaceWebFeedSubscriptionProvider getProviderOverride(
-    covariant MarketplaceWebFeedSubscriptionProvider provider,
-  ) {
-    return call(feedId: provider.feedId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'marketplaceWebFeedSubscriptionProvider';
-}
-
-/// Provider for web feed subscription status
-///
-/// Copied from [marketplaceWebFeedSubscription].
-class MarketplaceWebFeedSubscriptionProvider
-    extends AutoDisposeFutureProvider<bool> {
-  /// Provider for web feed subscription status
-  ///
-  /// Copied from [marketplaceWebFeedSubscription].
-  MarketplaceWebFeedSubscriptionProvider({required String feedId})
-    : this._internal(
-        (ref) => marketplaceWebFeedSubscription(
-          ref as MarketplaceWebFeedSubscriptionRef,
-          feedId: feedId,
-        ),
-        from: marketplaceWebFeedSubscriptionProvider,
+final class MarketplaceWebFeedSubscriptionFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, String> {
+  const MarketplaceWebFeedSubscriptionFamily._()
+    : super(
+        retry: null,
         name: r'marketplaceWebFeedSubscriptionProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$marketplaceWebFeedSubscriptionHash,
-        dependencies: MarketplaceWebFeedSubscriptionFamily._dependencies,
-        allTransitiveDependencies:
-            MarketplaceWebFeedSubscriptionFamily._allTransitiveDependencies,
-        feedId: feedId,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  MarketplaceWebFeedSubscriptionProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.feedId,
-  }) : super.internal();
+  /// Provider for web feed subscription status
 
-  final String feedId;
+  MarketplaceWebFeedSubscriptionProvider call({required String feedId}) =>
+      MarketplaceWebFeedSubscriptionProvider._(argument: feedId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<bool> Function(MarketplaceWebFeedSubscriptionRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MarketplaceWebFeedSubscriptionProvider._internal(
-        (ref) => create(ref as MarketplaceWebFeedSubscriptionRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        feedId: feedId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<bool> createElement() {
-    return _MarketplaceWebFeedSubscriptionProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is MarketplaceWebFeedSubscriptionProvider &&
-        other.feedId == feedId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, feedId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'marketplaceWebFeedSubscriptionProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MarketplaceWebFeedSubscriptionRef on AutoDisposeFutureProviderRef<bool> {
-  /// The parameter `feedId` of this provider.
-  String get feedId;
-}
-
-class _MarketplaceWebFeedSubscriptionProviderElement
-    extends AutoDisposeFutureProviderElement<bool>
-    with MarketplaceWebFeedSubscriptionRef {
-  _MarketplaceWebFeedSubscriptionProviderElement(super.provider);
-
-  @override
-  String get feedId =>
-      (origin as MarketplaceWebFeedSubscriptionProvider).feedId;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

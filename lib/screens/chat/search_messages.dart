@@ -124,9 +124,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
     // Debounce timer for search optimization
     final debounceTimer = useRef<Timer?>(null);
 
-    final messagesNotifier = ref.read(
-      messagesNotifierProvider(roomId).notifier,
-    );
+    final messagesNotifier = ref.read(messagesProvider(roomId).notifier);
 
     // Optimized search function with debouncing
     void performSearch(String query) async {
@@ -180,7 +178,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // Clear flashing messages when entering search screen
-        ref.read(flashingMessagesProvider.notifier).state = {};
+        ref.read(flashingMessagesProvider.notifier).clear();
       });
       return null;
     }, []);

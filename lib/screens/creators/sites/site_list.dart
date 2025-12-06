@@ -19,10 +19,12 @@ final siteListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   SiteListNotifier.new,
 );
 
-class SiteListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPublicationSite>, String>
-    with FamilyAsyncPaginationController<SnPublicationSite, String> {
+class SiteListNotifier extends AsyncNotifier<List<SnPublicationSite>>
+    with AsyncPaginationController<SnPublicationSite> {
   static const int pageSize = 20;
+
+  final String arg;
+  SiteListNotifier(this.arg);
 
   @override
   Future<List<SnPublicationSite>> fetch() async {

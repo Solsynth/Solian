@@ -6,26 +6,52 @@ part of 'notification.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(NotificationUnreadCountNotifier)
+const notificationUnreadCountProvider =
+    NotificationUnreadCountNotifierProvider._();
+
+final class NotificationUnreadCountNotifierProvider
+    extends $AsyncNotifierProvider<NotificationUnreadCountNotifier, int> {
+  const NotificationUnreadCountNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationUnreadCountProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationUnreadCountNotifierHash();
+
+  @$internal
+  @override
+  NotificationUnreadCountNotifier create() => NotificationUnreadCountNotifier();
+}
+
 String _$notificationUnreadCountNotifierHash() =>
     r'8bff5ad3b65389589b4112add3246afd9b8e38f9';
 
-/// See also [NotificationUnreadCountNotifier].
-@ProviderFor(NotificationUnreadCountNotifier)
-final notificationUnreadCountNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      NotificationUnreadCountNotifier,
-      int
-    >.internal(
-      NotificationUnreadCountNotifier.new,
-      name: r'notificationUnreadCountNotifierProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$notificationUnreadCountNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$NotificationUnreadCountNotifier = AutoDisposeAsyncNotifier<int>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$NotificationUnreadCountNotifier extends $AsyncNotifier<int> {
+  FutureOr<int> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<int>, int>,
+              AsyncValue<int>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

@@ -99,7 +99,7 @@ class ChatSummary extends _$ChatSummary {
         final unreadToDecrement = summary.unreadCount;
         if (unreadToDecrement > 0) {
           ref
-              .read(chatUnreadCountNotifierProvider.notifier)
+              .read(chatUnreadCountProvider.notifier)
               .decrement(unreadToDecrement);
         }
 

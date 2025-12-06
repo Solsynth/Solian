@@ -116,7 +116,7 @@ class FileListScreen extends HookConsumerWidget {
             completer.future
                 .then((uploadedFile) {
                   if (uploadedFile != null) {
-                    ref.invalidate(indexedCloudFileListNotifierProvider);
+                    ref.invalidate(indexedCloudFileListProvider);
                   }
                 })
                 .catchError((error) {

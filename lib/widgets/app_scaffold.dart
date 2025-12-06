@@ -43,9 +43,7 @@ class WindowScaffold extends HookConsumerWidget {
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         void saveWindowSize() {
           windowManager.getBounds().then((bounds) {
-            final settingsNotifier = ref.read(
-              appSettingsNotifierProvider.notifier,
-            );
+            final settingsNotifier = ref.read(appSettingsProvider.notifier);
             settingsNotifier.setWindowSize(bounds.size);
           });
         }
@@ -437,7 +435,7 @@ class AppBackground extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageFileAsync = ref.watch(backgroundImageFileProvider);
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     if (isRoot || !isWideScreen(context)) {
       return imageFileAsync.when(
@@ -482,8 +480,7 @@ class EmptyPageHolder extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasBackground =
-        ref.watch(backgroundImageFileProvider).valueOrNull != null;
+    final hasBackground = ref.watch(backgroundImageFileProvider).value != null;
     if (hasBackground) {
       return const SizedBox.shrink();
     }

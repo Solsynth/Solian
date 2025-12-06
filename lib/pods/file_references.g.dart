@@ -6,148 +6,80 @@ part of 'file_references.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fileReferencesHash() => r'd66c678c221f61978bdb242b98e6dbe31d0c204b';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [fileReferences].
 @ProviderFor(fileReferences)
-const fileReferencesProvider = FileReferencesFamily();
+const fileReferencesProvider = FileReferencesFamily._();
 
-/// See also [fileReferences].
-class FileReferencesFamily extends Family<AsyncValue<List<Reference>>> {
-  /// See also [fileReferences].
-  const FileReferencesFamily();
+final class FileReferencesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Reference>>,
+          List<Reference>,
+          FutureOr<List<Reference>>
+        >
+    with $FutureModifier<List<Reference>>, $FutureProvider<List<Reference>> {
+  const FileReferencesProvider._({
+    required FileReferencesFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'fileReferencesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [fileReferences].
-  FileReferencesProvider call(String fileId) {
-    return FileReferencesProvider(fileId);
+  @override
+  String debugGetCreateSourceHash() => _$fileReferencesHash();
+
+  @override
+  String toString() {
+    return r'fileReferencesProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  FileReferencesProvider getProviderOverride(
-    covariant FileReferencesProvider provider,
-  ) {
-    return call(provider.fileId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<List<Reference>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fileReferencesProvider';
-}
-
-/// See also [fileReferences].
-class FileReferencesProvider
-    extends AutoDisposeFutureProvider<List<Reference>> {
-  /// See also [fileReferences].
-  FileReferencesProvider(String fileId)
-    : this._internal(
-        (ref) => fileReferences(ref as FileReferencesRef, fileId),
-        from: fileReferencesProvider,
-        name: r'fileReferencesProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$fileReferencesHash,
-        dependencies: FileReferencesFamily._dependencies,
-        allTransitiveDependencies:
-            FileReferencesFamily._allTransitiveDependencies,
-        fileId: fileId,
-      );
-
-  FileReferencesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.fileId,
-  }) : super.internal();
-
-  final String fileId;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<Reference>> Function(FileReferencesRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FileReferencesProvider._internal(
-        (ref) => create(ref as FileReferencesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        fileId: fileId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<Reference>> createElement() {
-    return _FileReferencesProviderElement(this);
+  FutureOr<List<Reference>> create(Ref ref) {
+    final argument = this.argument as String;
+    return fileReferences(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FileReferencesProvider && other.fileId == fileId;
+    return other is FileReferencesProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, fileId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FileReferencesRef on AutoDisposeFutureProviderRef<List<Reference>> {
-  /// The parameter `fileId` of this provider.
-  String get fileId;
-}
+String _$fileReferencesHash() => r'd66c678c221f61978bdb242b98e6dbe31d0c204b';
 
-class _FileReferencesProviderElement
-    extends AutoDisposeFutureProviderElement<List<Reference>>
-    with FileReferencesRef {
-  _FileReferencesProviderElement(super.provider);
+final class FileReferencesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Reference>>, String> {
+  const FileReferencesFamily._()
+    : super(
+        retry: null,
+        name: r'fileReferencesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  FileReferencesProvider call(String fileId) =>
+      FileReferencesProvider._(argument: fileId, from: this);
 
   @override
-  String get fileId => (origin as FileReferencesProvider).fileId;
+  String toString() => r'fileReferencesProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -48,11 +48,11 @@ class ChatRoomScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatRoom = ref.watch(ChatRoomNotifierProvider(id));
-    final chatIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
-    final isSyncing = ref.watch(isSyncingProvider);
-    final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final chatRoom = ref.watch(chatRoomProvider(id));
+    final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
+    final isSyncing = ref.watch(chatSyncingProvider);
+    final onlineCount = ref.watch(chatOnlineCountProvider(id));
+    final settings = ref.watch(appSettingsProvider);
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
@@ -100,9 +100,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                   await apiClient.post(
                                     '/sphere/chat/${room.id}/members/me',
                                   );
-                                  ref.invalidate(
-                                    ChatRoomIdentityNotifierProvider(id),
-                                  );
+                                  ref.invalidate(chatRoomIdentityProvider(id));
                                 } catch (err) {
                                   showErrorAlert(err);
                                 } finally {
@@ -131,17 +129,15 @@ class ChatRoomScreen extends HookConsumerWidget {
               appBar: AppBar(leading: const PageBackButton()),
               body: ResponseErrorWidget(
                 error: error,
-                onRetry: () => ref.refresh(ChatRoomNotifierProvider(id)),
+                onRetry: () => ref.refresh(chatRoomProvider(id)),
               ),
             ),
       );
     }
 
-    final messages = ref.watch(messagesNotifierProvider(id));
-    final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
-    final chatSubscribeNotifier = ref.read(
-      chatSubscribeNotifierProvider(id).notifier,
-    );
+    final messages = ref.watch(messagesProvider(id));
+    final messagesNotifier = ref.read(messagesProvider(id).notifier);
+    final chatSubscribeNotifier = ref.read(chatSubscribeProvider(id).notifier);
 
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
@@ -384,7 +380,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       // Convert selected message IDs to message data
       final selectedMessageData =
-          messages.valueOrNull
+          messages.value
               ?.where((msg) => selectedMessages.value.contains(msg.id))
               .map(
                 (msg) => {
@@ -773,8 +769,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                 'chatDetail',
                 pathParameters: {'id': id},
               );
-              if (result is SearchMessagesResult &&
-                  messages.valueOrNull != null) {
+              if (result is SearchMessagesResult && messages.value != null) {
                 final messageId = result.messageId;
 
                 // Jump to the message and trigger flash effect

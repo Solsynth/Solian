@@ -67,7 +67,7 @@ class MessageItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
@@ -1150,7 +1150,7 @@ class MessageQuoteWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messagesNotifier = ref.watch(
-      messagesNotifierProvider(message.roomId).notifier,
+      messagesProvider(message.roomId).notifier,
     );
 
     return FutureBuilder<LocalChatMessage?>(

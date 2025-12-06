@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
-
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -34,7 +35,7 @@ class PaginationList<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if (data.isLoading && data.valueOrNull?.isEmpty == true) {
+    if (data.isLoading && data.value?.isEmpty == true) {
       final content = ResponseLoadingWidget();
       return isSliver ? SliverFillRemaining(child: content) : content;
     }
@@ -50,24 +51,24 @@ class PaginationList<T> extends HookConsumerWidget {
     final listView =
         isSliver
             ? SuperSliverList.builder(
-              itemCount: (data.valueOrNull?.length ?? 0) + 1,
+              itemCount: (data.value?.length ?? 0) + 1,
               itemBuilder: (context, idx) {
-                if (idx == data.valueOrNull?.length) {
+                if (idx == data.value?.length) {
                   return PaginationListFooter(noti: noti, data: data);
                 }
-                final entry = data.valueOrNull?[idx];
+                final entry = data.value?[idx];
                 if (entry != null) return itemBuilder(context, idx, entry);
                 return null;
               },
             )
             : SuperListView.builder(
               padding: padding,
-              itemCount: (data.valueOrNull?.length ?? 0) + 1,
+              itemCount: (data.value?.length ?? 0) + 1,
               itemBuilder: (context, idx) {
-                if (idx == data.valueOrNull?.length) {
+                if (idx == data.value?.length) {
                   return PaginationListFooter(noti: noti, data: data);
                 }
-                final entry = data.valueOrNull?[idx];
+                final entry = data.value?[idx];
                 if (entry != null) return itemBuilder(context, idx, entry);
                 return null;
               },
@@ -101,7 +102,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if (data.isLoading && data.valueOrNull?.isEmpty == true) {
+    if (data.isLoading && data.value?.isEmpty == true) {
       final content = ResponseLoadingWidget();
       return isSliver ? SliverFillRemaining(child: content) : content;
     }
@@ -115,7 +116,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
     }
 
     final footer = PaginationListFooter(noti: noti, data: data);
-    final content = contentBuilder(data.valueOrNull ?? [], footer);
+    final content = contentBuilder(data.value ?? [], footer);
 
     return isRefreshable
         ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: content)

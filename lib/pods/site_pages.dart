@@ -25,16 +25,12 @@ Future<SnPublicationPage> sitePage(Ref ref, String pageId) async {
   return SnPublicationPage.fromJson(resp.data);
 }
 
-class SitePagesNotifier
-    extends
-        AutoDisposeFamilyAsyncNotifier<
-          List<SnPublicationPage>,
-          ({String pubName, String siteSlug})
-        > {
+class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
+  final ({String pubName, String siteSlug}) arg;
+  SitePagesNotifier(this.arg);
+
   @override
-  Future<List<SnPublicationPage>> build(
-    ({String pubName, String siteSlug}) arg,
-  ) async {
+  Future<List<SnPublicationPage>> build() async {
     return fetchPages();
   }
 

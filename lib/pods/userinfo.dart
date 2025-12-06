@@ -14,26 +14,27 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
 
-class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
-  final Ref _ref;
-
-  UserInfoNotifier(this._ref) : super(const AsyncValue.data(null));
-
-  Future<void> fetchUser() async {
-    final token = _ref.watch(tokenProvider);
+class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
+  @override
+  Future<SnAccount?> build() async {
+    final token = ref.watch(tokenProvider);
     if (token == null) {
       talker.info('[UserInfo] No token found, not going to fetch...');
-      return;
+      return null;
     }
+    return _fetchUser();
+  }
+
+  Future<SnAccount?> _fetchUser() async {
     try {
-      final client = _ref.read(apiClientProvider);
+      final client = ref.read(apiClientProvider);
       final response = await client.get('/pass/accounts/me');
       final user = SnAccount.fromJson(response.data);
-      state = AsyncValue.data(user);
 
       if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
         FirebaseAnalytics.instance.setUserId(id: user.id);
       }
+      return user;
     } catch (error, stackTrace) {
       if (!kIsWeb) {
         if (error is DioException) {
@@ -69,58 +70,63 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
                 ),
           ).then((value) {
             if (value == true) {
-              fetchUser();
+              ref.invalidateSelf();
+            }
+          });
+        } else {
+          showOverlayDialog<bool>(
+            builder:
+                (context, close) => AlertDialog(
+                  title: Text('failedToLoadUserInfo'.tr()),
+                  content: Text(
+                    [
+                      'failedToLoadUserInfoNetwork'.tr(),
+                      error.toString(),
+                    ].join('\n\n').trim(),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => close(false),
+                      child: Text('okay'.tr()),
+                    ),
+                    TextButton(
+                      onPressed: () => close(true),
+                      child: Text('retry'.tr()),
+                    ),
+                  ],
+                ),
+          ).then((value) {
+            if (value == true) {
+              ref.invalidateSelf();
             }
           });
         }
-        showOverlayDialog<bool>(
-          builder:
-              (context, close) => AlertDialog(
-                title: Text('failedToLoadUserInfo'.tr()),
-                content: Text(
-                  [
-                    'failedToLoadUserInfoNetwork'.tr(),
-                    error.toString(),
-                  ].join('\n\n').trim(),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => close(false),
-                    child: Text('okay'.tr()),
-                  ),
-                  TextButton(
-                    onPressed: () => close(true),
-                    child: Text('retry'.tr()),
-                  ),
-                ],
-              ),
-        ).then((value) {
-          if (value == true) {
-            fetchUser();
-          }
-        });
       }
       talker.error(
         "[UserInfo] Failed to fetch user info...",
         error,
         stackTrace,
       );
-      state = AsyncValue.data(null);
+      return null;
     }
+  }
+
+  Future<void> fetchUser() async {
+    ref.invalidateSelf();
+    await future;
   }
 
   Future<void> logOut() async {
     state = const AsyncValue.data(null);
-    final prefs = _ref.read(sharedPreferencesProvider);
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
-    _ref.invalidate(tokenProvider);
+    ref.invalidate(tokenProvider);
     if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
       FirebaseAnalytics.instance.setUserId(id: null);
     }
   }
 }
 
-final userInfoProvider =
-    StateNotifierProvider<UserInfoNotifier, AsyncValue<SnAccount?>>(
-      (ref) => UserInfoNotifier(ref),
-    );
+final userInfoProvider = AsyncNotifierProvider<UserInfoNotifier, SnAccount?>(
+  UserInfoNotifier.new,
+);

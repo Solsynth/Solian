@@ -6,447 +6,296 @@ part of 'stellar_program_tab.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(accountStellarSubscription)
+const accountStellarSubscriptionProvider =
+    AccountStellarSubscriptionProvider._();
+
+final class AccountStellarSubscriptionProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWalletSubscription?>,
+          SnWalletSubscription?,
+          FutureOr<SnWalletSubscription?>
+        >
+    with
+        $FutureModifier<SnWalletSubscription?>,
+        $FutureProvider<SnWalletSubscription?> {
+  const AccountStellarSubscriptionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountStellarSubscriptionProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountStellarSubscriptionHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnWalletSubscription?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnWalletSubscription?> create(Ref ref) {
+    return accountStellarSubscription(ref);
+  }
+}
+
 String _$accountStellarSubscriptionHash() =>
     r'7cdfc7ca29aac240fc8704f4493498d87f307400';
 
-/// See also [accountStellarSubscription].
-@ProviderFor(accountStellarSubscription)
-final accountStellarSubscriptionProvider =
-    AutoDisposeFutureProvider<SnWalletSubscription?>.internal(
-      accountStellarSubscription,
-      name: r'accountStellarSubscriptionProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$accountStellarSubscriptionHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AccountStellarSubscriptionRef =
-    AutoDisposeFutureProviderRef<SnWalletSubscription?>;
-String _$accountSentGiftsHash() => r'460af8d22e16dc402848cb94e9b8a8a26d023c41';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [accountSentGifts].
 @ProviderFor(accountSentGifts)
-const accountSentGiftsProvider = AccountSentGiftsFamily();
+const accountSentGiftsProvider = AccountSentGiftsFamily._();
 
-/// See also [accountSentGifts].
-class AccountSentGiftsFamily extends Family<AsyncValue<List<SnWalletGift>>> {
-  /// See also [accountSentGifts].
-  const AccountSentGiftsFamily();
+final class AccountSentGiftsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnWalletGift>>,
+          List<SnWalletGift>,
+          FutureOr<List<SnWalletGift>>
+        >
+    with
+        $FutureModifier<List<SnWalletGift>>,
+        $FutureProvider<List<SnWalletGift>> {
+  const AccountSentGiftsProvider._({
+    required AccountSentGiftsFamily super.from,
+    required ({int offset, int take}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountSentGiftsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [accountSentGifts].
-  AccountSentGiftsProvider call({int offset = 0, int take = 20}) {
-    return AccountSentGiftsProvider(offset: offset, take: take);
+  @override
+  String debugGetCreateSourceHash() => _$accountSentGiftsHash();
+
+  @override
+  String toString() {
+    return r'accountSentGiftsProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AccountSentGiftsProvider getProviderOverride(
-    covariant AccountSentGiftsProvider provider,
-  ) {
-    return call(offset: provider.offset, take: provider.take);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<List<SnWalletGift>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountSentGiftsProvider';
-}
-
-/// See also [accountSentGifts].
-class AccountSentGiftsProvider
-    extends AutoDisposeFutureProvider<List<SnWalletGift>> {
-  /// See also [accountSentGifts].
-  AccountSentGiftsProvider({int offset = 0, int take = 20})
-    : this._internal(
-        (ref) => accountSentGifts(
-          ref as AccountSentGiftsRef,
-          offset: offset,
-          take: take,
-        ),
-        from: accountSentGiftsProvider,
-        name: r'accountSentGiftsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountSentGiftsHash,
-        dependencies: AccountSentGiftsFamily._dependencies,
-        allTransitiveDependencies:
-            AccountSentGiftsFamily._allTransitiveDependencies,
-        offset: offset,
-        take: take,
-      );
-
-  AccountSentGiftsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.offset,
-    required this.take,
-  }) : super.internal();
-
-  final int offset;
-  final int take;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<SnWalletGift>> Function(AccountSentGiftsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountSentGiftsProvider._internal(
-        (ref) => create(ref as AccountSentGiftsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        offset: offset,
-        take: take,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnWalletGift>> createElement() {
-    return _AccountSentGiftsProviderElement(this);
+  FutureOr<List<SnWalletGift>> create(Ref ref) {
+    final argument = this.argument as ({int offset, int take});
+    return accountSentGifts(ref, offset: argument.offset, take: argument.take);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountSentGiftsProvider &&
-        other.offset == offset &&
-        other.take == take;
+    return other is AccountSentGiftsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, offset.hashCode);
-    hash = _SystemHash.combine(hash, take.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountSentGiftsRef on AutoDisposeFutureProviderRef<List<SnWalletGift>> {
-  /// The parameter `offset` of this provider.
-  int get offset;
+String _$accountSentGiftsHash() => r'460af8d22e16dc402848cb94e9b8a8a26d023c41';
 
-  /// The parameter `take` of this provider.
-  int get take;
+final class AccountSentGiftsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<SnWalletGift>>,
+          ({int offset, int take})
+        > {
+  const AccountSentGiftsFamily._()
+    : super(
+        retry: null,
+        name: r'accountSentGiftsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountSentGiftsProvider call({int offset = 0, int take = 20}) =>
+      AccountSentGiftsProvider._(
+        argument: (offset: offset, take: take),
+        from: this,
+      );
+
+  @override
+  String toString() => r'accountSentGiftsProvider';
 }
 
-class _AccountSentGiftsProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnWalletGift>>
-    with AccountSentGiftsRef {
-  _AccountSentGiftsProviderElement(super.provider);
+@ProviderFor(accountReceivedGifts)
+const accountReceivedGiftsProvider = AccountReceivedGiftsFamily._();
+
+final class AccountReceivedGiftsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnWalletGift>>,
+          List<SnWalletGift>,
+          FutureOr<List<SnWalletGift>>
+        >
+    with
+        $FutureModifier<List<SnWalletGift>>,
+        $FutureProvider<List<SnWalletGift>> {
+  const AccountReceivedGiftsProvider._({
+    required AccountReceivedGiftsFamily super.from,
+    required ({int offset, int take}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountReceivedGiftsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  int get offset => (origin as AccountSentGiftsProvider).offset;
+  String debugGetCreateSourceHash() => _$accountReceivedGiftsHash();
+
   @override
-  int get take => (origin as AccountSentGiftsProvider).take;
+  String toString() {
+    return r'accountReceivedGiftsProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnWalletGift>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnWalletGift>> create(Ref ref) {
+    final argument = this.argument as ({int offset, int take});
+    return accountReceivedGifts(
+      ref,
+      offset: argument.offset,
+      take: argument.take,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountReceivedGiftsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$accountReceivedGiftsHash() =>
     r'1208c27cca49e154af073071a197b37a2703f56d';
 
-/// See also [accountReceivedGifts].
-@ProviderFor(accountReceivedGifts)
-const accountReceivedGiftsProvider = AccountReceivedGiftsFamily();
-
-/// See also [accountReceivedGifts].
-class AccountReceivedGiftsFamily
-    extends Family<AsyncValue<List<SnWalletGift>>> {
-  /// See also [accountReceivedGifts].
-  const AccountReceivedGiftsFamily();
-
-  /// See also [accountReceivedGifts].
-  AccountReceivedGiftsProvider call({int offset = 0, int take = 20}) {
-    return AccountReceivedGiftsProvider(offset: offset, take: take);
-  }
-
-  @override
-  AccountReceivedGiftsProvider getProviderOverride(
-    covariant AccountReceivedGiftsProvider provider,
-  ) {
-    return call(offset: provider.offset, take: provider.take);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountReceivedGiftsProvider';
-}
-
-/// See also [accountReceivedGifts].
-class AccountReceivedGiftsProvider
-    extends AutoDisposeFutureProvider<List<SnWalletGift>> {
-  /// See also [accountReceivedGifts].
-  AccountReceivedGiftsProvider({int offset = 0, int take = 20})
-    : this._internal(
-        (ref) => accountReceivedGifts(
-          ref as AccountReceivedGiftsRef,
-          offset: offset,
-          take: take,
-        ),
-        from: accountReceivedGiftsProvider,
+final class AccountReceivedGiftsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<SnWalletGift>>,
+          ({int offset, int take})
+        > {
+  const AccountReceivedGiftsFamily._()
+    : super(
+        retry: null,
         name: r'accountReceivedGiftsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountReceivedGiftsHash,
-        dependencies: AccountReceivedGiftsFamily._dependencies,
-        allTransitiveDependencies:
-            AccountReceivedGiftsFamily._allTransitiveDependencies,
-        offset: offset,
-        take: take,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountReceivedGiftsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.offset,
-    required this.take,
-  }) : super.internal();
-
-  final int offset;
-  final int take;
+  AccountReceivedGiftsProvider call({int offset = 0, int take = 20}) =>
+      AccountReceivedGiftsProvider._(
+        argument: (offset: offset, take: take),
+        from: this,
+      );
 
   @override
-  Override overrideWith(
-    FutureOr<List<SnWalletGift>> Function(AccountReceivedGiftsRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountReceivedGiftsProvider._internal(
-        (ref) => create(ref as AccountReceivedGiftsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        offset: offset,
-        take: take,
-      ),
-    );
+  String toString() => r'accountReceivedGiftsProvider';
+}
+
+@ProviderFor(accountGift)
+const accountGiftProvider = AccountGiftFamily._();
+
+final class AccountGiftProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWalletGift>,
+          SnWalletGift,
+          FutureOr<SnWalletGift>
+        >
+    with $FutureModifier<SnWalletGift>, $FutureProvider<SnWalletGift> {
+  const AccountGiftProvider._({
+    required AccountGiftFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountGiftProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountGiftHash();
+
+  @override
+  String toString() {
+    return r'accountGiftProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<SnWalletGift>> createElement() {
-    return _AccountReceivedGiftsProviderElement(this);
+  $FutureProviderElement<SnWalletGift> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnWalletGift> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountGift(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountReceivedGiftsProvider &&
-        other.offset == offset &&
-        other.take == take;
+    return other is AccountGiftProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, offset.hashCode);
-    hash = _SystemHash.combine(hash, take.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountReceivedGiftsRef
-    on AutoDisposeFutureProviderRef<List<SnWalletGift>> {
-  /// The parameter `offset` of this provider.
-  int get offset;
-
-  /// The parameter `take` of this provider.
-  int get take;
-}
-
-class _AccountReceivedGiftsProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnWalletGift>>
-    with AccountReceivedGiftsRef {
-  _AccountReceivedGiftsProviderElement(super.provider);
-
-  @override
-  int get offset => (origin as AccountReceivedGiftsProvider).offset;
-  @override
-  int get take => (origin as AccountReceivedGiftsProvider).take;
 }
 
 String _$accountGiftHash() => r'70ca553e0b84cba9dfbee428f9bf44207138713a';
 
-/// See also [accountGift].
-@ProviderFor(accountGift)
-const accountGiftProvider = AccountGiftFamily();
-
-/// See also [accountGift].
-class AccountGiftFamily extends Family<AsyncValue<SnWalletGift>> {
-  /// See also [accountGift].
-  const AccountGiftFamily();
-
-  /// See also [accountGift].
-  AccountGiftProvider call(String giftId) {
-    return AccountGiftProvider(giftId);
-  }
-
-  @override
-  AccountGiftProvider getProviderOverride(
-    covariant AccountGiftProvider provider,
-  ) {
-    return call(provider.giftId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountGiftProvider';
-}
-
-/// See also [accountGift].
-class AccountGiftProvider extends AutoDisposeFutureProvider<SnWalletGift> {
-  /// See also [accountGift].
-  AccountGiftProvider(String giftId)
-    : this._internal(
-        (ref) => accountGift(ref as AccountGiftRef, giftId),
-        from: accountGiftProvider,
+final class AccountGiftFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnWalletGift>, String> {
+  const AccountGiftFamily._()
+    : super(
+        retry: null,
         name: r'accountGiftProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountGiftHash,
-        dependencies: AccountGiftFamily._dependencies,
-        allTransitiveDependencies: AccountGiftFamily._allTransitiveDependencies,
-        giftId: giftId,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountGiftProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.giftId,
-  }) : super.internal();
-
-  final String giftId;
+  AccountGiftProvider call(String giftId) =>
+      AccountGiftProvider._(argument: giftId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnWalletGift> Function(AccountGiftRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountGiftProvider._internal(
-        (ref) => create(ref as AccountGiftRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        giftId: giftId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnWalletGift> createElement() {
-    return _AccountGiftProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is AccountGiftProvider && other.giftId == giftId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, giftId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'accountGiftProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountGiftRef on AutoDisposeFutureProviderRef<SnWalletGift> {
-  /// The parameter `giftId` of this provider.
-  String get giftId;
-}
-
-class _AccountGiftProviderElement
-    extends AutoDisposeFutureProviderElement<SnWalletGift>
-    with AccountGiftRef {
-  _AccountGiftProviderElement(super.provider);
-
-  @override
-  String get giftId => (origin as AccountGiftProvider).giftId;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

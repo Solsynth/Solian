@@ -115,7 +115,7 @@ class PostReplyPreview extends HookConsumerWidget {
     }, [parent]);
 
     final featuredReply =
-        isOpenable ? null : ref.watch(PostFeaturedReplyProvider(parent.id));
+        isOpenable ? null : ref.watch(postFeaturedReplyProvider(parent.id));
 
     final itemWidget =
         isOpenable

@@ -6,883 +6,532 @@ part of 'profile.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountHash() => r'5e2b7bd59151b4638a5561f495537c259f767123';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [account].
 @ProviderFor(account)
-const accountProvider = AccountFamily();
+const accountProvider = AccountFamily._();
 
-/// See also [account].
-class AccountFamily extends Family<AsyncValue<SnAccount>> {
-  /// See also [account].
-  const AccountFamily();
+final class AccountProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnAccount>,
+          SnAccount,
+          FutureOr<SnAccount>
+        >
+    with $FutureModifier<SnAccount>, $FutureProvider<SnAccount> {
+  const AccountProvider._({
+    required AccountFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [account].
-  AccountProvider call(String uname) {
-    return AccountProvider(uname);
+  @override
+  String debugGetCreateSourceHash() => _$accountHash();
+
+  @override
+  String toString() {
+    return r'accountProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AccountProvider getProviderOverride(covariant AccountProvider provider) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<SnAccount> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountProvider';
-}
-
-/// See also [account].
-class AccountProvider extends AutoDisposeFutureProvider<SnAccount> {
-  /// See also [account].
-  AccountProvider(String uname)
-    : this._internal(
-        (ref) => account(ref as AccountRef, uname),
-        from: accountProvider,
-        name: r'accountProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountHash,
-        dependencies: AccountFamily._dependencies,
-        allTransitiveDependencies: AccountFamily._allTransitiveDependencies,
-        uname: uname,
-      );
-
-  AccountProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnAccount> Function(AccountRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountProvider._internal(
-        (ref) => create(ref as AccountRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnAccount> createElement() {
-    return _AccountProviderElement(this);
+  FutureOr<SnAccount> create(Ref ref) {
+    final argument = this.argument as String;
+    return account(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountProvider && other.uname == uname;
+    return other is AccountProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountRef on AutoDisposeFutureProviderRef<SnAccount> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
+String _$accountHash() => r'5e2b7bd59151b4638a5561f495537c259f767123';
 
-class _AccountProviderElement
-    extends AutoDisposeFutureProviderElement<SnAccount>
-    with AccountRef {
-  _AccountProviderElement(super.provider);
+final class AccountFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnAccount>, String> {
+  const AccountFamily._()
+    : super(
+        retry: null,
+        name: r'accountProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountProvider call(String uname) =>
+      AccountProvider._(argument: uname, from: this);
 
   @override
-  String get uname => (origin as AccountProvider).uname;
+  String toString() => r'accountProvider';
+}
+
+@ProviderFor(accountBadges)
+const accountBadgesProvider = AccountBadgesFamily._();
+
+final class AccountBadgesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnAccountBadge>>,
+          List<SnAccountBadge>,
+          FutureOr<List<SnAccountBadge>>
+        >
+    with
+        $FutureModifier<List<SnAccountBadge>>,
+        $FutureProvider<List<SnAccountBadge>> {
+  const AccountBadgesProvider._({
+    required AccountBadgesFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountBadgesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountBadgesHash();
+
+  @override
+  String toString() {
+    return r'accountBadgesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnAccountBadge>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnAccountBadge>> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountBadges(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountBadgesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$accountBadgesHash() => r'68db63f49827020beecbdbf20529520d0cd14a7d';
 
-/// See also [accountBadges].
-@ProviderFor(accountBadges)
-const accountBadgesProvider = AccountBadgesFamily();
-
-/// See also [accountBadges].
-class AccountBadgesFamily extends Family<AsyncValue<List<SnAccountBadge>>> {
-  /// See also [accountBadges].
-  const AccountBadgesFamily();
-
-  /// See also [accountBadges].
-  AccountBadgesProvider call(String uname) {
-    return AccountBadgesProvider(uname);
-  }
-
-  @override
-  AccountBadgesProvider getProviderOverride(
-    covariant AccountBadgesProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountBadgesProvider';
-}
-
-/// See also [accountBadges].
-class AccountBadgesProvider
-    extends AutoDisposeFutureProvider<List<SnAccountBadge>> {
-  /// See also [accountBadges].
-  AccountBadgesProvider(String uname)
-    : this._internal(
-        (ref) => accountBadges(ref as AccountBadgesRef, uname),
-        from: accountBadgesProvider,
+final class AccountBadgesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
+  const AccountBadgesFamily._()
+    : super(
+        retry: null,
         name: r'accountBadgesProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountBadgesHash,
-        dependencies: AccountBadgesFamily._dependencies,
-        allTransitiveDependencies:
-            AccountBadgesFamily._allTransitiveDependencies,
-        uname: uname,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountBadgesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
+  AccountBadgesProvider call(String uname) =>
+      AccountBadgesProvider._(argument: uname, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<List<SnAccountBadge>> Function(AccountBadgesRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountBadgesProvider._internal(
-        (ref) => create(ref as AccountBadgesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnAccountBadge>> createElement() {
-    return _AccountBadgesProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is AccountBadgesProvider && other.uname == uname;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'accountBadgesProvider';
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountBadgesRef on AutoDisposeFutureProviderRef<List<SnAccountBadge>> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
-
-class _AccountBadgesProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnAccountBadge>>
-    with AccountBadgesRef {
-  _AccountBadgesProviderElement(super.provider);
-
-  @override
-  String get uname => (origin as AccountBadgesProvider).uname;
-}
-
-String _$accountAppbarForcegroundColorHash() =>
-    r'127fcc7fd6ec6a41ac4a6975276b5271aa4fa7d0';
-
-/// See also [accountAppbarForcegroundColor].
 @ProviderFor(accountAppbarForcegroundColor)
 const accountAppbarForcegroundColorProvider =
-    AccountAppbarForcegroundColorFamily();
+    AccountAppbarForcegroundColorFamily._();
 
-/// See also [accountAppbarForcegroundColor].
-class AccountAppbarForcegroundColorFamily extends Family<AsyncValue<Color?>> {
-  /// See also [accountAppbarForcegroundColor].
-  const AccountAppbarForcegroundColorFamily();
+final class AccountAppbarForcegroundColorProvider
+    extends $FunctionalProvider<AsyncValue<Color?>, Color?, FutureOr<Color?>>
+    with $FutureModifier<Color?>, $FutureProvider<Color?> {
+  const AccountAppbarForcegroundColorProvider._({
+    required AccountAppbarForcegroundColorFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountAppbarForcegroundColorProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [accountAppbarForcegroundColor].
-  AccountAppbarForcegroundColorProvider call(String uname) {
-    return AccountAppbarForcegroundColorProvider(uname);
+  @override
+  String debugGetCreateSourceHash() => _$accountAppbarForcegroundColorHash();
+
+  @override
+  String toString() {
+    return r'accountAppbarForcegroundColorProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AccountAppbarForcegroundColorProvider getProviderOverride(
-    covariant AccountAppbarForcegroundColorProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<Color?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountAppbarForcegroundColorProvider';
-}
-
-/// See also [accountAppbarForcegroundColor].
-class AccountAppbarForcegroundColorProvider
-    extends AutoDisposeFutureProvider<Color?> {
-  /// See also [accountAppbarForcegroundColor].
-  AccountAppbarForcegroundColorProvider(String uname)
-    : this._internal(
-        (ref) => accountAppbarForcegroundColor(
-          ref as AccountAppbarForcegroundColorRef,
-          uname,
-        ),
-        from: accountAppbarForcegroundColorProvider,
-        name: r'accountAppbarForcegroundColorProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountAppbarForcegroundColorHash,
-        dependencies: AccountAppbarForcegroundColorFamily._dependencies,
-        allTransitiveDependencies:
-            AccountAppbarForcegroundColorFamily._allTransitiveDependencies,
-        uname: uname,
-      );
-
-  AccountAppbarForcegroundColorProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
-
-  @override
-  Override overrideWith(
-    FutureOr<Color?> Function(AccountAppbarForcegroundColorRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountAppbarForcegroundColorProvider._internal(
-        (ref) => create(ref as AccountAppbarForcegroundColorRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<Color?> createElement() {
-    return _AccountAppbarForcegroundColorProviderElement(this);
+  FutureOr<Color?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountAppbarForcegroundColor(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
     return other is AccountAppbarForcegroundColorProvider &&
-        other.uname == uname;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountAppbarForcegroundColorRef on AutoDisposeFutureProviderRef<Color?> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
+String _$accountAppbarForcegroundColorHash() =>
+    r'127fcc7fd6ec6a41ac4a6975276b5271aa4fa7d0';
 
-class _AccountAppbarForcegroundColorProviderElement
-    extends AutoDisposeFutureProviderElement<Color?>
-    with AccountAppbarForcegroundColorRef {
-  _AccountAppbarForcegroundColorProviderElement(super.provider);
-
-  @override
-  String get uname => (origin as AccountAppbarForcegroundColorProvider).uname;
-}
-
-String _$accountDirectChatHash() => r'149ea3a3730672cfbbb8c16fe1f2caa0bb9f0e17';
-
-/// See also [accountDirectChat].
-@ProviderFor(accountDirectChat)
-const accountDirectChatProvider = AccountDirectChatFamily();
-
-/// See also [accountDirectChat].
-class AccountDirectChatFamily extends Family<AsyncValue<SnChatRoom?>> {
-  /// See also [accountDirectChat].
-  const AccountDirectChatFamily();
-
-  /// See also [accountDirectChat].
-  AccountDirectChatProvider call(String uname) {
-    return AccountDirectChatProvider(uname);
-  }
-
-  @override
-  AccountDirectChatProvider getProviderOverride(
-    covariant AccountDirectChatProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountDirectChatProvider';
-}
-
-/// See also [accountDirectChat].
-class AccountDirectChatProvider extends AutoDisposeFutureProvider<SnChatRoom?> {
-  /// See also [accountDirectChat].
-  AccountDirectChatProvider(String uname)
-    : this._internal(
-        (ref) => accountDirectChat(ref as AccountDirectChatRef, uname),
-        from: accountDirectChatProvider,
-        name: r'accountDirectChatProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountDirectChatHash,
-        dependencies: AccountDirectChatFamily._dependencies,
-        allTransitiveDependencies:
-            AccountDirectChatFamily._allTransitiveDependencies,
-        uname: uname,
+final class AccountAppbarForcegroundColorFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Color?>, String> {
+  const AccountAppbarForcegroundColorFamily._()
+    : super(
+        retry: null,
+        name: r'accountAppbarForcegroundColorProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountDirectChatProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
+  AccountAppbarForcegroundColorProvider call(String uname) =>
+      AccountAppbarForcegroundColorProvider._(argument: uname, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnChatRoom?> Function(AccountDirectChatRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountDirectChatProvider._internal(
-        (ref) => create(ref as AccountDirectChatRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
+  String toString() => r'accountAppbarForcegroundColorProvider';
+}
+
+@ProviderFor(accountDirectChat)
+const accountDirectChatProvider = AccountDirectChatFamily._();
+
+final class AccountDirectChatProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnChatRoom?>,
+          SnChatRoom?,
+          FutureOr<SnChatRoom?>
+        >
+    with $FutureModifier<SnChatRoom?>, $FutureProvider<SnChatRoom?> {
+  const AccountDirectChatProvider._({
+    required AccountDirectChatFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountDirectChatProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountDirectChatHash();
+
+  @override
+  String toString() {
+    return r'accountDirectChatProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<SnChatRoom?> createElement() {
-    return _AccountDirectChatProviderElement(this);
+  $FutureProviderElement<SnChatRoom?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnChatRoom?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountDirectChat(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountDirectChatProvider && other.uname == uname;
+    return other is AccountDirectChatProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountDirectChatRef on AutoDisposeFutureProviderRef<SnChatRoom?> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
+String _$accountDirectChatHash() => r'149ea3a3730672cfbbb8c16fe1f2caa0bb9f0e17';
 
-class _AccountDirectChatProviderElement
-    extends AutoDisposeFutureProviderElement<SnChatRoom?>
-    with AccountDirectChatRef {
-  _AccountDirectChatProviderElement(super.provider);
+final class AccountDirectChatFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnChatRoom?>, String> {
+  const AccountDirectChatFamily._()
+    : super(
+        retry: null,
+        name: r'accountDirectChatProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountDirectChatProvider call(String uname) =>
+      AccountDirectChatProvider._(argument: uname, from: this);
 
   @override
-  String get uname => (origin as AccountDirectChatProvider).uname;
+  String toString() => r'accountDirectChatProvider';
+}
+
+@ProviderFor(accountRelationship)
+const accountRelationshipProvider = AccountRelationshipFamily._();
+
+final class AccountRelationshipProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnRelationship?>,
+          SnRelationship?,
+          FutureOr<SnRelationship?>
+        >
+    with $FutureModifier<SnRelationship?>, $FutureProvider<SnRelationship?> {
+  const AccountRelationshipProvider._({
+    required AccountRelationshipFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountRelationshipProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountRelationshipHash();
+
+  @override
+  String toString() {
+    return r'accountRelationshipProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnRelationship?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnRelationship?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountRelationship(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountRelationshipProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$accountRelationshipHash() =>
     r'319f743261b113a1d3c6a397d48d13c858312669';
 
-/// See also [accountRelationship].
-@ProviderFor(accountRelationship)
-const accountRelationshipProvider = AccountRelationshipFamily();
-
-/// See also [accountRelationship].
-class AccountRelationshipFamily extends Family<AsyncValue<SnRelationship?>> {
-  /// See also [accountRelationship].
-  const AccountRelationshipFamily();
-
-  /// See also [accountRelationship].
-  AccountRelationshipProvider call(String uname) {
-    return AccountRelationshipProvider(uname);
-  }
-
-  @override
-  AccountRelationshipProvider getProviderOverride(
-    covariant AccountRelationshipProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountRelationshipProvider';
-}
-
-/// See also [accountRelationship].
-class AccountRelationshipProvider
-    extends AutoDisposeFutureProvider<SnRelationship?> {
-  /// See also [accountRelationship].
-  AccountRelationshipProvider(String uname)
-    : this._internal(
-        (ref) => accountRelationship(ref as AccountRelationshipRef, uname),
-        from: accountRelationshipProvider,
+final class AccountRelationshipFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnRelationship?>, String> {
+  const AccountRelationshipFamily._()
+    : super(
+        retry: null,
         name: r'accountRelationshipProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountRelationshipHash,
-        dependencies: AccountRelationshipFamily._dependencies,
-        allTransitiveDependencies:
-            AccountRelationshipFamily._allTransitiveDependencies,
-        uname: uname,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountRelationshipProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
+  AccountRelationshipProvider call(String uname) =>
+      AccountRelationshipProvider._(argument: uname, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnRelationship?> Function(AccountRelationshipRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountRelationshipProvider._internal(
-        (ref) => create(ref as AccountRelationshipRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
+  String toString() => r'accountRelationshipProvider';
+}
+
+@ProviderFor(accountBotDeveloper)
+const accountBotDeveloperProvider = AccountBotDeveloperFamily._();
+
+final class AccountBotDeveloperProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnDeveloper?>,
+          SnDeveloper?,
+          FutureOr<SnDeveloper?>
+        >
+    with $FutureModifier<SnDeveloper?>, $FutureProvider<SnDeveloper?> {
+  const AccountBotDeveloperProvider._({
+    required AccountBotDeveloperFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountBotDeveloperProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountBotDeveloperHash();
+
+  @override
+  String toString() {
+    return r'accountBotDeveloperProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<SnRelationship?> createElement() {
-    return _AccountRelationshipProviderElement(this);
+  $FutureProviderElement<SnDeveloper?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnDeveloper?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountBotDeveloper(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountRelationshipProvider && other.uname == uname;
+    return other is AccountBotDeveloperProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountRelationshipRef on AutoDisposeFutureProviderRef<SnRelationship?> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
-
-class _AccountRelationshipProviderElement
-    extends AutoDisposeFutureProviderElement<SnRelationship?>
-    with AccountRelationshipRef {
-  _AccountRelationshipProviderElement(super.provider);
-
-  @override
-  String get uname => (origin as AccountRelationshipProvider).uname;
 }
 
 String _$accountBotDeveloperHash() =>
     r'673534770640a8cf1484ea0af0f4d0ef283ef157';
 
-/// See also [accountBotDeveloper].
-@ProviderFor(accountBotDeveloper)
-const accountBotDeveloperProvider = AccountBotDeveloperFamily();
-
-/// See also [accountBotDeveloper].
-class AccountBotDeveloperFamily extends Family<AsyncValue<SnDeveloper?>> {
-  /// See also [accountBotDeveloper].
-  const AccountBotDeveloperFamily();
-
-  /// See also [accountBotDeveloper].
-  AccountBotDeveloperProvider call(String uname) {
-    return AccountBotDeveloperProvider(uname);
-  }
-
-  @override
-  AccountBotDeveloperProvider getProviderOverride(
-    covariant AccountBotDeveloperProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountBotDeveloperProvider';
-}
-
-/// See also [accountBotDeveloper].
-class AccountBotDeveloperProvider
-    extends AutoDisposeFutureProvider<SnDeveloper?> {
-  /// See also [accountBotDeveloper].
-  AccountBotDeveloperProvider(String uname)
-    : this._internal(
-        (ref) => accountBotDeveloper(ref as AccountBotDeveloperRef, uname),
-        from: accountBotDeveloperProvider,
+final class AccountBotDeveloperFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnDeveloper?>, String> {
+  const AccountBotDeveloperFamily._()
+    : super(
+        retry: null,
         name: r'accountBotDeveloperProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountBotDeveloperHash,
-        dependencies: AccountBotDeveloperFamily._dependencies,
-        allTransitiveDependencies:
-            AccountBotDeveloperFamily._allTransitiveDependencies,
-        uname: uname,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountBotDeveloperProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
+  AccountBotDeveloperProvider call(String uname) =>
+      AccountBotDeveloperProvider._(argument: uname, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnDeveloper?> Function(AccountBotDeveloperRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountBotDeveloperProvider._internal(
-        (ref) => create(ref as AccountBotDeveloperRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
+  String toString() => r'accountBotDeveloperProvider';
+}
+
+@ProviderFor(accountPublishers)
+const accountPublishersProvider = AccountPublishersFamily._();
+
+final class AccountPublishersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnPublisher>>,
+          List<SnPublisher>,
+          FutureOr<List<SnPublisher>>
+        >
+    with
+        $FutureModifier<List<SnPublisher>>,
+        $FutureProvider<List<SnPublisher>> {
+  const AccountPublishersProvider._({
+    required AccountPublishersFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountPublishersProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountPublishersHash();
+
+  @override
+  String toString() {
+    return r'accountPublishersProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<SnDeveloper?> createElement() {
-    return _AccountBotDeveloperProviderElement(this);
+  $FutureProviderElement<List<SnPublisher>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnPublisher>> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountPublishers(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountBotDeveloperProvider && other.uname == uname;
+    return other is AccountPublishersProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountBotDeveloperRef on AutoDisposeFutureProviderRef<SnDeveloper?> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
-
-class _AccountBotDeveloperProviderElement
-    extends AutoDisposeFutureProviderElement<SnDeveloper?>
-    with AccountBotDeveloperRef {
-  _AccountBotDeveloperProviderElement(super.provider);
-
-  @override
-  String get uname => (origin as AccountBotDeveloperProvider).uname;
 }
 
 String _$accountPublishersHash() => r'25f5695b4a5154163d77f1769876d826bf736609';
 
-/// See also [accountPublishers].
-@ProviderFor(accountPublishers)
-const accountPublishersProvider = AccountPublishersFamily();
-
-/// See also [accountPublishers].
-class AccountPublishersFamily extends Family<AsyncValue<List<SnPublisher>>> {
-  /// See also [accountPublishers].
-  const AccountPublishersFamily();
-
-  /// See also [accountPublishers].
-  AccountPublishersProvider call(String id) {
-    return AccountPublishersProvider(id);
-  }
-
-  @override
-  AccountPublishersProvider getProviderOverride(
-    covariant AccountPublishersProvider provider,
-  ) {
-    return call(provider.id);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountPublishersProvider';
-}
-
-/// See also [accountPublishers].
-class AccountPublishersProvider
-    extends AutoDisposeFutureProvider<List<SnPublisher>> {
-  /// See also [accountPublishers].
-  AccountPublishersProvider(String id)
-    : this._internal(
-        (ref) => accountPublishers(ref as AccountPublishersRef, id),
-        from: accountPublishersProvider,
+final class AccountPublishersFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<SnPublisher>>, String> {
+  const AccountPublishersFamily._()
+    : super(
+        retry: null,
         name: r'accountPublishersProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountPublishersHash,
-        dependencies: AccountPublishersFamily._dependencies,
-        allTransitiveDependencies:
-            AccountPublishersFamily._allTransitiveDependencies,
-        id: id,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  AccountPublishersProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.id,
-  }) : super.internal();
-
-  final String id;
+  AccountPublishersProvider call(String id) =>
+      AccountPublishersProvider._(argument: id, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<List<SnPublisher>> Function(AccountPublishersRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountPublishersProvider._internal(
-        (ref) => create(ref as AccountPublishersRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        id: id,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnPublisher>> createElement() {
-    return _AccountPublishersProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is AccountPublishersProvider && other.id == id;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, id.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'accountPublishersProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountPublishersRef on AutoDisposeFutureProviderRef<List<SnPublisher>> {
-  /// The parameter `id` of this provider.
-  String get id;
-}
-
-class _AccountPublishersProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnPublisher>>
-    with AccountPublishersRef {
-  _AccountPublishersProviderElement(super.provider);
-
-  @override
-  String get id => (origin as AccountPublishersProvider).id;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

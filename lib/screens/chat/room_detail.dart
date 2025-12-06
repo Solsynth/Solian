@@ -1,8 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,8 +38,8 @@ class ChatDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final roomState = ref.watch(ChatRoomNotifierProvider(id));
-    final roomIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
+    final roomState = ref.watch(chatRoomProvider(id));
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(id));
     final totalMessages = ref.watch(totalMessagesCountProvider(id));
 
     const kNotifyLevelText = [
@@ -57,7 +55,7 @@ class ChatDetailScreen extends HookConsumerWidget {
           '/sphere/chat/$id/members/me/notify',
           data: {'notify_level': level},
         );
-        ref.invalidate(ChatRoomIdentityNotifierProvider(id));
+        ref.invalidate(chatRoomIdentityProvider(id));
         if (context.mounted) {
           showSnackBar(
             'chatNotifyLevelUpdated'.tr(args: [kNotifyLevelText[level].tr()]),
@@ -75,7 +73,7 @@ class ChatDetailScreen extends HookConsumerWidget {
           '/sphere/chat/$id/members/me/notify',
           data: {'break_until': until.toUtc().toIso8601String()},
         );
-        ref.invalidate(ChatRoomNotifierProvider(id));
+        ref.invalidate(chatRoomIdentityProvider(id));
       } catch (err) {
         showErrorAlert(err);
       }
@@ -440,8 +438,8 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatIdentity = ref.watch(ChatRoomIdentityNotifierProvider(id));
-    final chatRoom = ref.watch(ChatRoomNotifierProvider(id));
+    final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
+    final chatRoom = ref.watch(chatRoomProvider(id));
 
     final isManagable =
         chatIdentity.value?.accountId == chatRoom.value?.accountId ||
@@ -462,7 +460,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   ).then((value) {
                     if (value != null) {
                       // Invalidate to refresh room data after edit
-                      ref.invalidate(ChatRoomNotifierProvider(id));
+                      ref.invalidate(chatMemberListProvider(id));
                     }
                   });
                 },
@@ -498,7 +496,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       await client.delete('/sphere/chat/$id');
-                      ref.invalidate(chatRoomJoinedNotifierProvider);
+                      ref.invalidate(chatRoomJoinedProvider);
                       if (context.mounted) {
                         context.pop();
                       }
@@ -531,7 +529,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       await client.delete('/sphere/chat/$id/members/me');
-                      ref.invalidate(chatRoomJoinedNotifierProvider);
+                      ref.invalidate(chatRoomJoinedProvider);
                       if (context.mounted) {
                         context.pop();
                       }
@@ -554,62 +552,16 @@ sealed class ChatRoomMemberState with _$ChatRoomMemberState {
   }) = _ChatRoomMemberState;
 }
 
-final chatMemberStateProvider = StateNotifierProvider.family<
-  ChatMemberNotifier,
-  ChatRoomMemberState,
-  String
->((ref, roomId) {
-  final apiClient = ref.watch(apiClientProvider);
-  return ChatMemberNotifier(apiClient, roomId);
-});
+final chatMemberListProvider = AsyncNotifierProvider.autoDispose.family(
+  ChatMemberListNotifier.new,
+);
 
-class ChatMemberNotifier extends StateNotifier<ChatRoomMemberState> {
-  final String roomId;
-  final Dio _apiClient;
-
-  ChatMemberNotifier(this._apiClient, this.roomId)
-    : super(const ChatRoomMemberState(members: [], isLoading: false, total: 0));
-
-  Future<void> loadMore({int offset = 0, int take = 20}) async {
-    if (state.isLoading) return;
-    if (state.total > 0 && state.members.length >= state.total) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final response = await _apiClient.get(
-        '/sphere/chat/$roomId/members',
-        queryParameters: {'offset': offset, 'take': take},
-      );
-
-      final total = int.parse(response.headers.value('X-Total') ?? '0');
-      final List<dynamic> data = response.data;
-      final members = data.map((e) => SnChatMember.fromJson(e)).toList();
-
-      state = state.copyWith(
-        members: [...state.members, ...members],
-        total: total,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-    }
-  }
-
-  void reset() {
-    state = const ChatRoomMemberState(members: [], isLoading: false, total: 0);
-  }
-}
-
-final chatMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<ChatMemberListNotifier, List<SnChatMember>, String>(
-      ChatMemberListNotifier.new,
-    );
-
-class ChatMemberListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnChatMember>, String>
-    with FamilyAsyncPaginationController<SnChatMember, String> {
+class ChatMemberListNotifier extends AsyncNotifier<List<SnChatMember>>
+    with AsyncPaginationController<SnChatMember> {
   static const pageSize = 20;
+
+  final String arg;
+  ChatMemberListNotifier(this.arg);
 
   @override
   Future<List<SnChatMember>> fetch() async {
@@ -640,25 +592,14 @@ class _ChatMemberListSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final memberListProvider = chatMemberListNotifierProvider(roomId);
+    final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
 
-    // For backward compatibility and to show total count in the header
-    final memberState = ref.watch(chatMemberStateProvider(roomId));
-    final memberNotifier = ref.read(chatMemberStateProvider(roomId).notifier);
-
-    final roomIdentity = ref.watch(ChatRoomIdentityNotifierProvider(roomId));
-    final chatRoom = ref.watch(ChatRoomNotifierProvider(roomId));
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
+    final chatRoom = ref.watch(chatRoomProvider(roomId));
 
     final isManagable =
         chatRoom.value?.accountId == roomIdentity.value?.accountId ||
         chatRoom.value?.type == 1;
-
-    useEffect(() {
-      Future(() {
-        memberNotifier.loadMore();
-      });
-      return null;
-    }, []);
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -674,10 +615,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           '/sphere/chat/invites/$roomId',
           data: {'related_user_id': result.id, 'role': 0},
         );
-        // Refresh both providers
-        memberNotifier.reset();
-        await memberNotifier.loadMore();
-        ref.invalidate(memberListProvider);
+        memberNotifier.refresh();
       } catch (err) {
         showErrorAlert(err);
       }
@@ -694,7 +632,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'members'.plural(memberState.total),
+                  'members'.plural(memberNotifier.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
@@ -709,10 +647,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                 IconButton(
                   icon: const Icon(Symbols.refresh),
                   onPressed: () {
-                    // Refresh both providers
-                    memberNotifier.reset();
-                    memberNotifier.loadMore();
-                    ref.invalidate(memberListProvider);
+                    memberNotifier.refresh();
                   },
                 ),
                 IconButton(
@@ -726,8 +661,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: PaginationList(
-              provider: memberListProvider,
-              notifier: memberListProvider.notifier,
+              provider: chatMemberListProvider(roomId),
+              notifier: chatMemberListProvider(roomId).notifier,
               itemBuilder: (context, idx, member) {
                 return ListTile(
                   contentPadding: EdgeInsets.only(left: 16, right: 12),
@@ -770,9 +705,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                                   '/sphere/chat/$roomId/members/${member.accountId}',
                                 );
                                 // Refresh both providers
-                                memberNotifier.reset();
-                                memberNotifier.loadMore();
-                                ref.invalidate(memberListProvider);
+                                memberNotifier.refresh();
                               } catch (err) {
                                 showErrorAlert(err);
                               }

@@ -73,19 +73,21 @@ class ExploreScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFilter = useState<String?>(null);
-    final notifier = ref.watch(activityListNotifierProvider.notifier);
+    final notifier = ref.watch(activityListProvider.notifier);
 
     useEffect(() {
       // Set FAB type to chat
+
       final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
       Future(() {
-        fabMenuNotifier.state = FabMenuType.compose;
+        fabMenuNotifier.setMenuType(FabMenuType.compose);
       });
       return () {
         // Clean up: reset FAB type to main
+        final fabMenu = ref.read(fabMenuTypeProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (fabMenuNotifier.state == FabMenuType.compose) {
-            fabMenuNotifier.state = FabMenuType.main;
+          if (fabMenu == FabMenuType.compose) {
+            fabMenuNotifier.setMenuType(FabMenuType.main);
           }
         });
       };
@@ -99,7 +101,7 @@ class ExploreScreen extends HookConsumerWidget {
     // Listen for post creation events to refresh activities
     useEffect(() {
       final subscription = eventBus.on<PostCreatedEvent>().listen((event) {
-        ref.invalidate(activityListNotifierProvider);
+        ref.invalidate(activityListProvider);
       });
       return subscription.cancel;
     }, []);
@@ -116,9 +118,7 @@ class ExploreScreen extends HookConsumerWidget {
 
     final user = ref.watch(userInfoProvider);
 
-    final notificationCount = ref.watch(
-      notificationUnreadCountNotifierProvider,
-    );
+    final notificationCount = ref.watch(notificationUnreadCountProvider);
 
     final isWide = isWideScreen(context);
 
@@ -316,8 +316,8 @@ class ExploreScreen extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     return PaginationWidget(
-      provider: activityListNotifierProvider,
-      notifier: activityListNotifierProvider.notifier,
+      provider: activityListProvider,
+      notifier: activityListProvider.notifier,
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
@@ -339,7 +339,7 @@ class ExploreScreen extends HookConsumerWidget {
   ) {
     final bodyView = _buildActivityList(context, ref);
 
-    final notifier = ref.watch(activityListNotifierProvider.notifier);
+    final notifier = ref.watch(activityListProvider.notifier);
 
     return Row(
       spacing: 12,
@@ -557,13 +557,11 @@ class ExploreScreen extends HookConsumerWidget {
     String? currentFilter,
   ) {
     final user = ref.watch(userInfoProvider);
-    final notificationCount = ref.watch(
-      notificationUnreadCountNotifierProvider,
-    );
+    final notificationCount = ref.watch(notificationUnreadCountProvider);
 
     final bodyView = _buildActivityList(context, ref);
 
-    final notifier = ref.watch(activityListNotifierProvider.notifier);
+    final notifier = ref.watch(activityListProvider.notifier);
 
     return Expanded(
       child: ClipRRect(
@@ -737,7 +735,7 @@ class _ActivityListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.watch(activityListNotifierProvider.notifier);
+    final notifier = ref.watch(activityListProvider.notifier);
 
     return SliverList.separated(
       itemCount: data.length + 1,

@@ -191,7 +191,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chats = ref.watch(chatRoomJoinedNotifierProvider);
+    final chats = ref.watch(chatRoomJoinedProvider);
 
     Widget bodyWidget = Column(
       children: [
@@ -214,7 +214,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 (items) => RefreshIndicator(
                   onRefresh:
                       () => Future.sync(() {
-                        ref.invalidate(chatRoomJoinedNotifierProvider);
+                        ref.invalidate(chatRoomJoinedProvider);
                       }),
                   child: SuperListView.builder(
                     padding: EdgeInsets.only(bottom: 96),
@@ -264,7 +264,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 (error, stack) => ResponseErrorWidget(
                   error: error,
                   onRetry: () {
-                    ref.invalidate(chatRoomJoinedNotifierProvider);
+                    ref.invalidate(chatRoomJoinedProvider);
                   },
                 ),
           ),
@@ -341,7 +341,7 @@ class ChatListScreen extends HookConsumerWidget {
 
       // Listen for chat rooms refresh events
       final subscription = eventBus.on<ChatRoomsRefreshEvent>().listen((event) {
-        ref.invalidate(chatRoomJoinedNotifierProvider);
+        ref.invalidate(chatRoomJoinedProvider);
       });
 
       return () {
@@ -353,13 +353,14 @@ class ChatListScreen extends HookConsumerWidget {
       // Set FAB type to chat
       final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
       Future(() {
-        fabMenuNotifier.state = FabMenuType.chat;
+        fabMenuNotifier.setMenuType(FabMenuType.chat);
       });
       return () {
         // Clean up: reset FAB type to main
+        final fabMenu = ref.read(fabMenuTypeProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (fabMenuNotifier.state == FabMenuType.chat) {
-            fabMenuNotifier.state = FabMenuType.main;
+          if (fabMenu == FabMenuType.chat) {
+            fabMenuNotifier.setMenuType(FabMenuType.main);
           }
         });
       };
@@ -521,7 +522,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         await client.post('/sphere/chat/invites/${invite.chatRoom!.id}/accept');
         ref.invalidate(chatroomInvitesProvider);
-        ref.invalidate(chatRoomJoinedNotifierProvider);
+        ref.invalidate(chatRoomJoinedProvider);
       } catch (err) {
         showErrorAlert(err);
       }

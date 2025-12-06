@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/widgets/chat/message_item.dart';
 
 // Provider to track animated messages to prevent replay
-final animatedMessagesProvider = StateProvider<Set<String>>((ref) => {});
+final animatedMessagesProvider =
+    NotifierProvider<AnimatedMessagesNotifier, Set<String>>(
+      AnimatedMessagesNotifier.new,
+    );
 
-class MessageItemWrapper extends HookConsumerWidget {
+class AnimatedMessagesNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() {
+    return {};
+  }
+
+  void addMessage(String messageId) {
+    state = {...state, messageId};
+  }
+}
+
+class MessageItemWrapper extends ConsumerWidget {
   final LocalChatMessage message;
   final int index;
   final bool isLastInGroup;
@@ -78,9 +92,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       onEnd: () {
         // Mark as animated
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref
-              .read(animatedMessagesProvider.notifier)
-              .update((state) => {...state, message.id});
+          ref.read(animatedMessagesProvider.notifier).addMessage(message.id);
         });
       },
       child: child,

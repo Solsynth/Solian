@@ -14,7 +14,7 @@ Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
   return response.data;
 }
 
-final indexedCloudFileListNotifierProvider = AsyncNotifierProvider(
+final indexedCloudFileListProvider = AsyncNotifierProvider(
   IndexedCloudFileListNotifier.new,
 );
 
@@ -92,7 +92,7 @@ class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
   }
 }
 
-final unindexedFileListNotifierProvider = AsyncNotifierProvider(
+final unindexedFileListProvider = AsyncNotifierProvider(
   UnindexedFileListNotifier.new,
 );
 

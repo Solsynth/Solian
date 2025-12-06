@@ -82,7 +82,7 @@ class NotificationUnreadCountNotifier
   }
 }
 
-final notificationListNotifierProvider = AsyncNotifierProvider(
+final notificationListProvider = AsyncNotifierProvider(
   NotificationListNotifier.new,
 );
 
@@ -108,9 +108,7 @@ class NotificationListNotifier extends AsyncNotifier<List<SnNotification>>
             .toList();
 
     final unreadCount = notifications.where((n) => n.viewedAt == null).length;
-    ref
-        .read(notificationUnreadCountNotifierProvider.notifier)
-        .decrement(unreadCount);
+    ref.read(notificationUnreadCountProvider.notifier).decrement(unreadCount);
 
     return notifications;
   }
@@ -147,7 +145,7 @@ class NotificationSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Refresh unread count when sheet opens to sync across devices
-    ref.read(notificationUnreadCountNotifierProvider.notifier).refresh();
+    ref.read(notificationUnreadCountProvider.notifier).refresh();
 
     Future<void> markAllRead() async {
       showLoadingModal(context);
@@ -155,8 +153,8 @@ class NotificationSheet extends HookConsumerWidget {
       await apiClient.post('/ring/notifications/all/read');
       if (!context.mounted) return;
       hideLoadingModal(context);
-      ref.invalidate(notificationListNotifierProvider);
-      ref.watch(notificationUnreadCountNotifierProvider.notifier).clear();
+      ref.invalidate(notificationListProvider);
+      ref.watch(notificationUnreadCountProvider.notifier).clear();
     }
 
     return SheetScaffold(
@@ -168,8 +166,8 @@ class NotificationSheet extends HookConsumerWidget {
         ),
       ],
       child: PaginationList(
-        provider: notificationListNotifierProvider,
-        notifier: notificationListNotifierProvider.notifier,
+        provider: notificationListProvider,
+        notifier: notificationListProvider.notifier,
         itemBuilder: (context, index, notification) {
           final pfp = notification.meta['pfp'] as String?;
           final images = notification.meta['images'] as List?;

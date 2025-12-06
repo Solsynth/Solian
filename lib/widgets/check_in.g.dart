@@ -6,44 +6,84 @@ part of 'check_in.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(checkInResultToday)
+const checkInResultTodayProvider = CheckInResultTodayProvider._();
+
+final class CheckInResultTodayProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnCheckInResult?>,
+          SnCheckInResult?,
+          FutureOr<SnCheckInResult?>
+        >
+    with $FutureModifier<SnCheckInResult?>, $FutureProvider<SnCheckInResult?> {
+  const CheckInResultTodayProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'checkInResultTodayProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$checkInResultTodayHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnCheckInResult?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnCheckInResult?> create(Ref ref) {
+    return checkInResultToday(ref);
+  }
+}
+
 String _$checkInResultTodayHash() =>
     r'b4dc97b2243f542b36c295dc5cce3fe6097cb308';
 
-/// See also [checkInResultToday].
-@ProviderFor(checkInResultToday)
-final checkInResultTodayProvider =
-    AutoDisposeFutureProvider<SnCheckInResult?>.internal(
-      checkInResultToday,
-      name: r'checkInResultTodayProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$checkInResultTodayHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CheckInResultTodayRef = AutoDisposeFutureProviderRef<SnCheckInResult?>;
-String _$nextNotableDayHash() => r'c8404308f6b0f581cc7df251bce8f3c5ac130245';
-
-/// See also [nextNotableDay].
 @ProviderFor(nextNotableDay)
-final nextNotableDayProvider =
-    AutoDisposeFutureProvider<SnNotableDay?>.internal(
-      nextNotableDay,
-      name: r'nextNotableDayProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$nextNotableDayHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const nextNotableDayProvider = NextNotableDayProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef NextNotableDayRef = AutoDisposeFutureProviderRef<SnNotableDay?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class NextNotableDayProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnNotableDay?>,
+          SnNotableDay?,
+          FutureOr<SnNotableDay?>
+        >
+    with $FutureModifier<SnNotableDay?>, $FutureProvider<SnNotableDay?> {
+  const NextNotableDayProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nextNotableDayProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nextNotableDayHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnNotableDay?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnNotableDay?> create(Ref ref) {
+    return nextNotableDay(ref);
+  }
+}
+
+String _$nextNotableDayHash() => r'c8404308f6b0f581cc7df251bce8f3c5ac130245';

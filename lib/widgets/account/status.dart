@@ -15,8 +15,16 @@ import 'package:styled_widget/styled_widget.dart';
 
 part 'status.g.dart';
 
-class CurrentAccountStatusNotifier extends StateNotifier<SnAccountStatus?> {
-  CurrentAccountStatusNotifier() : super(null);
+final currentAccountStatusProvider =
+    NotifierProvider<CurrentAccountStatusNotifier, SnAccountStatus?>(
+      CurrentAccountStatusNotifier.new,
+    );
+
+class CurrentAccountStatusNotifier extends Notifier<SnAccountStatus?> {
+  @override
+  SnAccountStatus? build() {
+    return null;
+  }
 
   void setStatus(SnAccountStatus status) {
     state = status;
@@ -26,13 +34,6 @@ class CurrentAccountStatusNotifier extends StateNotifier<SnAccountStatus?> {
     state = null;
   }
 }
-
-final currentAccountStatusProvider =
-    StateNotifierProvider<CurrentAccountStatusNotifier, SnAccountStatus?>((
-      ref,
-    ) {
-      return CurrentAccountStatusNotifier();
-    });
 
 @riverpod
 Future<SnAccountStatus?> accountStatus(Ref ref, String uname) async {

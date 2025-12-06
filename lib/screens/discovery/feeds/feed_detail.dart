@@ -26,9 +26,12 @@ final marketplaceWebFeedContentNotifierProvider = AsyncNotifierProvider.family
     .autoDispose(MarketplaceWebFeedContentNotifier.new);
 
 class MarketplaceWebFeedContentNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnWebArticle>, String>
-    with FamilyAsyncPaginationController<SnWebArticle, String> {
+    extends AsyncNotifier<List<SnWebArticle>>
+    with AsyncPaginationController<SnWebArticle> {
   static const int pageSize = 20;
+
+  final String arg;
+  MarketplaceWebFeedContentNotifier(this.arg);
 
   @override
   Future<List<SnWebArticle>> fetch() async {

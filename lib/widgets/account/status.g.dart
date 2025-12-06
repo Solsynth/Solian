@@ -6,148 +6,80 @@ part of 'status.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountStatusHash() => r'4cac809808e6f1345dab06dc32d759cfcea13315';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [accountStatus].
 @ProviderFor(accountStatus)
-const accountStatusProvider = AccountStatusFamily();
+const accountStatusProvider = AccountStatusFamily._();
 
-/// See also [accountStatus].
-class AccountStatusFamily extends Family<AsyncValue<SnAccountStatus?>> {
-  /// See also [accountStatus].
-  const AccountStatusFamily();
+final class AccountStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnAccountStatus?>,
+          SnAccountStatus?,
+          FutureOr<SnAccountStatus?>
+        >
+    with $FutureModifier<SnAccountStatus?>, $FutureProvider<SnAccountStatus?> {
+  const AccountStatusProvider._({
+    required AccountStatusFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [accountStatus].
-  AccountStatusProvider call(String uname) {
-    return AccountStatusProvider(uname);
+  @override
+  String debugGetCreateSourceHash() => _$accountStatusHash();
+
+  @override
+  String toString() {
+    return r'accountStatusProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AccountStatusProvider getProviderOverride(
-    covariant AccountStatusProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<SnAccountStatus?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'accountStatusProvider';
-}
-
-/// See also [accountStatus].
-class AccountStatusProvider
-    extends AutoDisposeFutureProvider<SnAccountStatus?> {
-  /// See also [accountStatus].
-  AccountStatusProvider(String uname)
-    : this._internal(
-        (ref) => accountStatus(ref as AccountStatusRef, uname),
-        from: accountStatusProvider,
-        name: r'accountStatusProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$accountStatusHash,
-        dependencies: AccountStatusFamily._dependencies,
-        allTransitiveDependencies:
-            AccountStatusFamily._allTransitiveDependencies,
-        uname: uname,
-      );
-
-  AccountStatusProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String uname;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnAccountStatus?> Function(AccountStatusRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AccountStatusProvider._internal(
-        (ref) => create(ref as AccountStatusRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnAccountStatus?> createElement() {
-    return _AccountStatusProviderElement(this);
+  FutureOr<SnAccountStatus?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountStatus(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountStatusProvider && other.uname == uname;
+    return other is AccountStatusProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AccountStatusRef on AutoDisposeFutureProviderRef<SnAccountStatus?> {
-  /// The parameter `uname` of this provider.
-  String get uname;
-}
+String _$accountStatusHash() => r'4cac809808e6f1345dab06dc32d759cfcea13315';
 
-class _AccountStatusProviderElement
-    extends AutoDisposeFutureProviderElement<SnAccountStatus?>
-    with AccountStatusRef {
-  _AccountStatusProviderElement(super.provider);
+final class AccountStatusFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnAccountStatus?>, String> {
+  const AccountStatusFamily._()
+    : super(
+        retry: null,
+        name: r'accountStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountStatusProvider call(String uname) =>
+      AccountStatusProvider._(argument: uname, from: this);
 
   @override
-  String get uname => (origin as AccountStatusProvider).uname;
+  String toString() => r'accountStatusProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

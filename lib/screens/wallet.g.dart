@@ -6,180 +6,157 @@ part of 'wallet.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$walletCurrentHash() => r'bdc7cb27ce2286b561a03522085cc4efc884faad';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [walletCurrent].
 @ProviderFor(walletCurrent)
-final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet?>.internal(
-  walletCurrent,
-  name: r'walletCurrentProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$walletCurrentHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const walletCurrentProvider = WalletCurrentProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet?>;
-String _$walletStatsHash() => r'2243011937b377a66cdf44cae144021cee69e82f';
-
-/// See also [walletStats].
-@ProviderFor(walletStats)
-final walletStatsProvider = AutoDisposeFutureProvider<SnWalletStats>.internal(
-  walletStats,
-  name: r'walletStatsProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$walletStatsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef WalletStatsRef = AutoDisposeFutureProviderRef<SnWalletStats>;
-String _$walletFundHash() => r'459efdee5e2775eedaa4312e0d317c218fa7e1fa';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [walletFund].
-@ProviderFor(walletFund)
-const walletFundProvider = WalletFundFamily();
-
-/// See also [walletFund].
-class WalletFundFamily extends Family<AsyncValue<SnWalletFund>> {
-  /// See also [walletFund].
-  const WalletFundFamily();
-
-  /// See also [walletFund].
-  WalletFundProvider call(String fundId) {
-    return WalletFundProvider(fundId);
-  }
-
-  @override
-  WalletFundProvider getProviderOverride(
-    covariant WalletFundProvider provider,
-  ) {
-    return call(provider.fundId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'walletFundProvider';
-}
-
-/// See also [walletFund].
-class WalletFundProvider extends AutoDisposeFutureProvider<SnWalletFund> {
-  /// See also [walletFund].
-  WalletFundProvider(String fundId)
-    : this._internal(
-        (ref) => walletFund(ref as WalletFundRef, fundId),
-        from: walletFundProvider,
-        name: r'walletFundProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$walletFundHash,
-        dependencies: WalletFundFamily._dependencies,
-        allTransitiveDependencies: WalletFundFamily._allTransitiveDependencies,
-        fundId: fundId,
+final class WalletCurrentProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWallet?>,
+          SnWallet?,
+          FutureOr<SnWallet?>
+        >
+    with $FutureModifier<SnWallet?>, $FutureProvider<SnWallet?> {
+  const WalletCurrentProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletCurrentProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
       );
 
-  WalletFundProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.fundId,
-  }) : super.internal();
+  @override
+  String debugGetCreateSourceHash() => _$walletCurrentHash();
 
-  final String fundId;
+  @$internal
+  @override
+  $FutureProviderElement<SnWallet?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Override overrideWith(
-    FutureOr<SnWalletFund> Function(WalletFundRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: WalletFundProvider._internal(
-        (ref) => create(ref as WalletFundRef),
-        from: from,
-        name: null,
+  FutureOr<SnWallet?> create(Ref ref) {
+    return walletCurrent(ref);
+  }
+}
+
+String _$walletCurrentHash() => r'bdc7cb27ce2286b561a03522085cc4efc884faad';
+
+@ProviderFor(walletStats)
+const walletStatsProvider = WalletStatsProvider._();
+
+final class WalletStatsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWalletStats>,
+          SnWalletStats,
+          FutureOr<SnWalletStats>
+        >
+    with $FutureModifier<SnWalletStats>, $FutureProvider<SnWalletStats> {
+  const WalletStatsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletStatsProvider',
+        isAutoDispose: true,
         dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        fundId: fundId,
-      ),
-    );
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletStatsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnWalletStats> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnWalletStats> create(Ref ref) {
+    return walletStats(ref);
+  }
+}
+
+String _$walletStatsHash() => r'2243011937b377a66cdf44cae144021cee69e82f';
+
+@ProviderFor(walletFund)
+const walletFundProvider = WalletFundFamily._();
+
+final class WalletFundProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnWalletFund>,
+          SnWalletFund,
+          FutureOr<SnWalletFund>
+        >
+    with $FutureModifier<SnWalletFund>, $FutureProvider<SnWalletFund> {
+  const WalletFundProvider._({
+    required WalletFundFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'walletFundProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletFundHash();
+
+  @override
+  String toString() {
+    return r'walletFundProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<SnWalletFund> createElement() {
-    return _WalletFundProviderElement(this);
+  $FutureProviderElement<SnWalletFund> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnWalletFund> create(Ref ref) {
+    final argument = this.argument as String;
+    return walletFund(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is WalletFundProvider && other.fundId == fundId;
+    return other is WalletFundProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, fundId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin WalletFundRef on AutoDisposeFutureProviderRef<SnWalletFund> {
-  /// The parameter `fundId` of this provider.
-  String get fundId;
-}
+String _$walletFundHash() => r'459efdee5e2775eedaa4312e0d317c218fa7e1fa';
 
-class _WalletFundProviderElement
-    extends AutoDisposeFutureProviderElement<SnWalletFund>
-    with WalletFundRef {
-  _WalletFundProviderElement(super.provider);
+final class WalletFundFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnWalletFund>, String> {
+  const WalletFundFamily._()
+    : super(
+        retry: null,
+        name: r'walletFundProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  WalletFundProvider call(String fundId) =>
+      WalletFundProvider._(argument: fundId, from: this);
 
   @override
-  String get fundId => (origin as WalletFundProvider).fundId;
+  String toString() => r'walletFundProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

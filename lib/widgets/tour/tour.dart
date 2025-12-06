@@ -11,7 +11,7 @@ class TourTriggerWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tourStatus = ref.watch(tourStatusNotifierProvider.notifier);
+    final tourStatus = ref.watch(tourStatusProvider.notifier);
 
     useEffect(() {
       Future(() async {

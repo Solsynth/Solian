@@ -20,7 +20,7 @@ class DraftManagerSheet extends HookConsumerWidget {
     final searchController = useTextEditingController();
     final searchQuery = useState('');
 
-    final drafts = ref.watch(composeStorageNotifierProvider);
+    final drafts = ref.watch(composeStorageProvider);
 
     // Search functionality
     final filteredDrafts = useMemoized(() {
@@ -101,7 +101,7 @@ class DraftManagerSheet extends HookConsumerWidget {
                     },
                     onDelete: () async {
                       await ref
-                          .read(composeStorageNotifierProvider.notifier)
+                          .read(composeStorageProvider.notifier)
                           .deleteDraft(draft.id);
                     },
                   );
@@ -127,7 +127,7 @@ class DraftManagerSheet extends HookConsumerWidget {
 
                         if (confirmed == true) {
                           await ref
-                              .read(composeStorageNotifierProvider.notifier)
+                              .read(composeStorageProvider.notifier)
                               .clearAllDrafts();
                         }
                       },

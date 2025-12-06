@@ -6,446 +6,257 @@ part of 'site_files.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$siteFilesHash() => r'd4029e6c160edcd454eb39ef1c19427b7f95a8d8';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [siteFiles].
 @ProviderFor(siteFiles)
-const siteFilesProvider = SiteFilesFamily();
+const siteFilesProvider = SiteFilesFamily._();
 
-/// See also [siteFiles].
-class SiteFilesFamily extends Family<AsyncValue<List<SnSiteFileEntry>>> {
-  /// See also [siteFiles].
-  const SiteFilesFamily();
+final class SiteFilesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnSiteFileEntry>>,
+          List<SnSiteFileEntry>,
+          FutureOr<List<SnSiteFileEntry>>
+        >
+    with
+        $FutureModifier<List<SnSiteFileEntry>>,
+        $FutureProvider<List<SnSiteFileEntry>> {
+  const SiteFilesProvider._({
+    required SiteFilesFamily super.from,
+    required ({String siteId, String? path}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'siteFilesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [siteFiles].
-  SiteFilesProvider call({required String siteId, String? path}) {
-    return SiteFilesProvider(siteId: siteId, path: path);
+  @override
+  String debugGetCreateSourceHash() => _$siteFilesHash();
+
+  @override
+  String toString() {
+    return r'siteFilesProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  SiteFilesProvider getProviderOverride(covariant SiteFilesProvider provider) {
-    return call(siteId: provider.siteId, path: provider.path);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+  $FutureProviderElement<List<SnSiteFileEntry>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'siteFilesProvider';
-}
-
-/// See also [siteFiles].
-class SiteFilesProvider
-    extends AutoDisposeFutureProvider<List<SnSiteFileEntry>> {
-  /// See also [siteFiles].
-  SiteFilesProvider({required String siteId, String? path})
-    : this._internal(
-        (ref) => siteFiles(ref as SiteFilesRef, siteId: siteId, path: path),
-        from: siteFilesProvider,
-        name: r'siteFilesProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$siteFilesHash,
-        dependencies: SiteFilesFamily._dependencies,
-        allTransitiveDependencies: SiteFilesFamily._allTransitiveDependencies,
-        siteId: siteId,
-        path: path,
-      );
-
-  SiteFilesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.siteId,
-    required this.path,
-  }) : super.internal();
-
-  final String siteId;
-  final String? path;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<SnSiteFileEntry>> Function(SiteFilesRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: SiteFilesProvider._internal(
-        (ref) => create(ref as SiteFilesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        siteId: siteId,
-        path: path,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnSiteFileEntry>> createElement() {
-    return _SiteFilesProviderElement(this);
+  FutureOr<List<SnSiteFileEntry>> create(Ref ref) {
+    final argument = this.argument as ({String siteId, String? path});
+    return siteFiles(ref, siteId: argument.siteId, path: argument.path);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is SiteFilesProvider &&
-        other.siteId == siteId &&
-        other.path == path;
+    return other is SiteFilesProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, siteId.hashCode);
-    hash = _SystemHash.combine(hash, path.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SiteFilesRef on AutoDisposeFutureProviderRef<List<SnSiteFileEntry>> {
-  /// The parameter `siteId` of this provider.
-  String get siteId;
+String _$siteFilesHash() => r'd4029e6c160edcd454eb39ef1c19427b7f95a8d8';
 
-  /// The parameter `path` of this provider.
-  String? get path;
+final class SiteFilesFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<SnSiteFileEntry>>,
+          ({String siteId, String? path})
+        > {
+  const SiteFilesFamily._()
+    : super(
+        retry: null,
+        name: r'siteFilesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SiteFilesProvider call({required String siteId, String? path}) =>
+      SiteFilesProvider._(argument: (siteId: siteId, path: path), from: this);
+
+  @override
+  String toString() => r'siteFilesProvider';
 }
 
-class _SiteFilesProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnSiteFileEntry>>
-    with SiteFilesRef {
-  _SiteFilesProviderElement(super.provider);
+@ProviderFor(siteFileContent)
+const siteFileContentProvider = SiteFileContentFamily._();
+
+final class SiteFileContentProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnFileContent>,
+          SnFileContent,
+          FutureOr<SnFileContent>
+        >
+    with $FutureModifier<SnFileContent>, $FutureProvider<SnFileContent> {
+  const SiteFileContentProvider._({
+    required SiteFileContentFamily super.from,
+    required ({String siteId, String relativePath}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'siteFileContentProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  String get siteId => (origin as SiteFilesProvider).siteId;
+  String debugGetCreateSourceHash() => _$siteFileContentHash();
+
   @override
-  String? get path => (origin as SiteFilesProvider).path;
+  String toString() {
+    return r'siteFileContentProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnFileContent> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnFileContent> create(Ref ref) {
+    final argument = this.argument as ({String siteId, String relativePath});
+    return siteFileContent(
+      ref,
+      siteId: argument.siteId,
+      relativePath: argument.relativePath,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SiteFileContentProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$siteFileContentHash() => r'b594ad4f8c54555e742ece94ee001092cb2f83d1';
 
-/// See also [siteFileContent].
-@ProviderFor(siteFileContent)
-const siteFileContentProvider = SiteFileContentFamily();
+final class SiteFileContentFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<SnFileContent>,
+          ({String siteId, String relativePath})
+        > {
+  const SiteFileContentFamily._()
+    : super(
+        retry: null,
+        name: r'siteFileContentProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-/// See also [siteFileContent].
-class SiteFileContentFamily extends Family<AsyncValue<SnFileContent>> {
-  /// See also [siteFileContent].
-  const SiteFileContentFamily();
-
-  /// See also [siteFileContent].
   SiteFileContentProvider call({
     required String siteId,
     required String relativePath,
-  }) {
-    return SiteFileContentProvider(siteId: siteId, relativePath: relativePath);
-  }
+  }) => SiteFileContentProvider._(
+    argument: (siteId: siteId, relativePath: relativePath),
+    from: this,
+  );
 
   @override
-  SiteFileContentProvider getProviderOverride(
-    covariant SiteFileContentProvider provider,
-  ) {
-    return call(siteId: provider.siteId, relativePath: provider.relativePath);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'siteFileContentProvider';
+  String toString() => r'siteFileContentProvider';
 }
 
-/// See also [siteFileContent].
-class SiteFileContentProvider extends AutoDisposeFutureProvider<SnFileContent> {
-  /// See also [siteFileContent].
-  SiteFileContentProvider({
-    required String siteId,
-    required String relativePath,
-  }) : this._internal(
-         (ref) => siteFileContent(
-           ref as SiteFileContentRef,
-           siteId: siteId,
-           relativePath: relativePath,
-         ),
-         from: siteFileContentProvider,
-         name: r'siteFileContentProvider',
-         debugGetCreateSourceHash:
-             const bool.fromEnvironment('dart.vm.product')
-                 ? null
-                 : _$siteFileContentHash,
-         dependencies: SiteFileContentFamily._dependencies,
-         allTransitiveDependencies:
-             SiteFileContentFamily._allTransitiveDependencies,
-         siteId: siteId,
-         relativePath: relativePath,
+@ProviderFor(siteFileContentRaw)
+const siteFileContentRawProvider = SiteFileContentRawFamily._();
+
+final class SiteFileContentRawProvider
+    extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
+    with $FutureModifier<String>, $FutureProvider<String> {
+  const SiteFileContentRawProvider._({
+    required SiteFileContentRawFamily super.from,
+    required ({String siteId, String relativePath}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'siteFileContentRawProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  SiteFileContentProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.siteId,
-    required this.relativePath,
-  }) : super.internal();
-
-  final String siteId;
-  final String relativePath;
+  @override
+  String debugGetCreateSourceHash() => _$siteFileContentRawHash();
 
   @override
-  Override overrideWith(
-    FutureOr<SnFileContent> Function(SiteFileContentRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: SiteFileContentProvider._internal(
-        (ref) => create(ref as SiteFileContentRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        siteId: siteId,
-        relativePath: relativePath,
-      ),
+  String toString() {
+    return r'siteFileContentRawProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<String> create(Ref ref) {
+    final argument = this.argument as ({String siteId, String relativePath});
+    return siteFileContentRaw(
+      ref,
+      siteId: argument.siteId,
+      relativePath: argument.relativePath,
     );
   }
 
   @override
-  AutoDisposeFutureProviderElement<SnFileContent> createElement() {
-    return _SiteFileContentProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is SiteFileContentProvider &&
-        other.siteId == siteId &&
-        other.relativePath == relativePath;
+    return other is SiteFileContentRawProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, siteId.hashCode);
-    hash = _SystemHash.combine(hash, relativePath.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SiteFileContentRef on AutoDisposeFutureProviderRef<SnFileContent> {
-  /// The parameter `siteId` of this provider.
-  String get siteId;
-
-  /// The parameter `relativePath` of this provider.
-  String get relativePath;
-}
-
-class _SiteFileContentProviderElement
-    extends AutoDisposeFutureProviderElement<SnFileContent>
-    with SiteFileContentRef {
-  _SiteFileContentProviderElement(super.provider);
-
-  @override
-  String get siteId => (origin as SiteFileContentProvider).siteId;
-  @override
-  String get relativePath => (origin as SiteFileContentProvider).relativePath;
 }
 
 String _$siteFileContentRawHash() =>
     r'd0331c30698a9f4b90fe9b79273ff5914fa46616';
 
-/// See also [siteFileContentRaw].
-@ProviderFor(siteFileContentRaw)
-const siteFileContentRawProvider = SiteFileContentRawFamily();
+final class SiteFileContentRawFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<String>,
+          ({String siteId, String relativePath})
+        > {
+  const SiteFileContentRawFamily._()
+    : super(
+        retry: null,
+        name: r'siteFileContentRawProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-/// See also [siteFileContentRaw].
-class SiteFileContentRawFamily extends Family<AsyncValue<String>> {
-  /// See also [siteFileContentRaw].
-  const SiteFileContentRawFamily();
-
-  /// See also [siteFileContentRaw].
   SiteFileContentRawProvider call({
     required String siteId,
     required String relativePath,
-  }) {
-    return SiteFileContentRawProvider(
-      siteId: siteId,
-      relativePath: relativePath,
-    );
-  }
+  }) => SiteFileContentRawProvider._(
+    argument: (siteId: siteId, relativePath: relativePath),
+    from: this,
+  );
 
   @override
-  SiteFileContentRawProvider getProviderOverride(
-    covariant SiteFileContentRawProvider provider,
-  ) {
-    return call(siteId: provider.siteId, relativePath: provider.relativePath);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'siteFileContentRawProvider';
+  String toString() => r'siteFileContentRawProvider';
 }
-
-/// See also [siteFileContentRaw].
-class SiteFileContentRawProvider extends AutoDisposeFutureProvider<String> {
-  /// See also [siteFileContentRaw].
-  SiteFileContentRawProvider({
-    required String siteId,
-    required String relativePath,
-  }) : this._internal(
-         (ref) => siteFileContentRaw(
-           ref as SiteFileContentRawRef,
-           siteId: siteId,
-           relativePath: relativePath,
-         ),
-         from: siteFileContentRawProvider,
-         name: r'siteFileContentRawProvider',
-         debugGetCreateSourceHash:
-             const bool.fromEnvironment('dart.vm.product')
-                 ? null
-                 : _$siteFileContentRawHash,
-         dependencies: SiteFileContentRawFamily._dependencies,
-         allTransitiveDependencies:
-             SiteFileContentRawFamily._allTransitiveDependencies,
-         siteId: siteId,
-         relativePath: relativePath,
-       );
-
-  SiteFileContentRawProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.siteId,
-    required this.relativePath,
-  }) : super.internal();
-
-  final String siteId;
-  final String relativePath;
-
-  @override
-  Override overrideWith(
-    FutureOr<String> Function(SiteFileContentRawRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: SiteFileContentRawProvider._internal(
-        (ref) => create(ref as SiteFileContentRawRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        siteId: siteId,
-        relativePath: relativePath,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<String> createElement() {
-    return _SiteFileContentRawProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is SiteFileContentRawProvider &&
-        other.siteId == siteId &&
-        other.relativePath == relativePath;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, siteId.hashCode);
-    hash = _SystemHash.combine(hash, relativePath.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SiteFileContentRawRef on AutoDisposeFutureProviderRef<String> {
-  /// The parameter `siteId` of this provider.
-  String get siteId;
-
-  /// The parameter `relativePath` of this provider.
-  String get relativePath;
-}
-
-class _SiteFileContentRawProviderElement
-    extends AutoDisposeFutureProviderElement<String>
-    with SiteFileContentRawRef {
-  _SiteFileContentRawProviderElement(super.provider);
-
-  @override
-  String get siteId => (origin as SiteFileContentRawProvider).siteId;
-  @override
-  String get relativePath =>
-      (origin as SiteFileContentRawProvider).relativePath;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

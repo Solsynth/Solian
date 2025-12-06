@@ -6,25 +6,46 @@ part of 'account_devices.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authDevicesHash() => r'1af378149286020ec263be178c573ccc247a0cd1';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [authDevices].
 @ProviderFor(authDevices)
-final authDevicesProvider =
-    AutoDisposeFutureProvider<List<SnAuthDeviceWithSession>>.internal(
-      authDevices,
-      name: r'authDevicesProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$authDevicesHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const authDevicesProvider = AuthDevicesProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AuthDevicesRef =
-    AutoDisposeFutureProviderRef<List<SnAuthDeviceWithSession>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AuthDevicesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnAuthDeviceWithSession>>,
+          List<SnAuthDeviceWithSession>,
+          FutureOr<List<SnAuthDeviceWithSession>>
+        >
+    with
+        $FutureModifier<List<SnAuthDeviceWithSession>>,
+        $FutureProvider<List<SnAuthDeviceWithSession>> {
+  const AuthDevicesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authDevicesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authDevicesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnAuthDeviceWithSession>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnAuthDeviceWithSession>> create(Ref ref) {
+    return authDevices(ref);
+  }
+}
+
+String _$authDevicesHash() => r'1af378149286020ec263be178c573ccc247a0cd1';

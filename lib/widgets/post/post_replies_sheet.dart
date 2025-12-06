@@ -41,7 +41,7 @@ class PostRepliesSheet extends HookConsumerWidget {
               child: PostQuickReply(
                 parent: post,
                 onPosted: () {
-                  ref.invalidate(postRepliesNotifierProvider(post.id));
+                  ref.invalidate(postRepliesProvider(post.id));
                 },
                 onLaunch: () {
                   Navigator.of(context).pop();

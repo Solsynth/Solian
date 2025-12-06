@@ -6,163 +6,97 @@ part of 'chat_online_count.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatOnlineCountNotifierHash() =>
-    r'19af8fd0e9f62c65e12a68215406776085235fa3';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$ChatOnlineCountNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<int> {
-  late final String chatroomId;
-
-  FutureOr<int> build(String chatroomId);
-}
-
-/// See also [ChatOnlineCountNotifier].
 @ProviderFor(ChatOnlineCountNotifier)
-const chatOnlineCountNotifierProvider = ChatOnlineCountNotifierFamily();
+const chatOnlineCountProvider = ChatOnlineCountNotifierFamily._();
 
-/// See also [ChatOnlineCountNotifier].
-class ChatOnlineCountNotifierFamily extends Family<AsyncValue<int>> {
-  /// See also [ChatOnlineCountNotifier].
-  const ChatOnlineCountNotifierFamily();
+final class ChatOnlineCountNotifierProvider
+    extends $AsyncNotifierProvider<ChatOnlineCountNotifier, int> {
+  const ChatOnlineCountNotifierProvider._({
+    required ChatOnlineCountNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'chatOnlineCountProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [ChatOnlineCountNotifier].
-  ChatOnlineCountNotifierProvider call(String chatroomId) {
-    return ChatOnlineCountNotifierProvider(chatroomId);
+  @override
+  String debugGetCreateSourceHash() => _$chatOnlineCountNotifierHash();
+
+  @override
+  String toString() {
+    return r'chatOnlineCountProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  ChatOnlineCountNotifierProvider getProviderOverride(
-    covariant ChatOnlineCountNotifierProvider provider,
-  ) {
-    return call(provider.chatroomId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'chatOnlineCountNotifierProvider';
-}
-
-/// See also [ChatOnlineCountNotifier].
-class ChatOnlineCountNotifierProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<ChatOnlineCountNotifier, int> {
-  /// See also [ChatOnlineCountNotifier].
-  ChatOnlineCountNotifierProvider(String chatroomId)
-    : this._internal(
-        () => ChatOnlineCountNotifier()..chatroomId = chatroomId,
-        from: chatOnlineCountNotifierProvider,
-        name: r'chatOnlineCountNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$chatOnlineCountNotifierHash,
-        dependencies: ChatOnlineCountNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            ChatOnlineCountNotifierFamily._allTransitiveDependencies,
-        chatroomId: chatroomId,
-      );
-
-  ChatOnlineCountNotifierProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.chatroomId,
-  }) : super.internal();
-
-  final String chatroomId;
-
-  @override
-  FutureOr<int> runNotifierBuild(covariant ChatOnlineCountNotifier notifier) {
-    return notifier.build(chatroomId);
-  }
-
-  @override
-  Override overrideWith(ChatOnlineCountNotifier Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: ChatOnlineCountNotifierProvider._internal(
-        () => create()..chatroomId = chatroomId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        chatroomId: chatroomId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeAsyncNotifierProviderElement<ChatOnlineCountNotifier, int>
-  createElement() {
-    return _ChatOnlineCountNotifierProviderElement(this);
-  }
+  ChatOnlineCountNotifier create() => ChatOnlineCountNotifier();
 
   @override
   bool operator ==(Object other) {
     return other is ChatOnlineCountNotifierProvider &&
-        other.chatroomId == chatroomId;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, chatroomId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ChatOnlineCountNotifierRef on AutoDisposeAsyncNotifierProviderRef<int> {
-  /// The parameter `chatroomId` of this provider.
-  String get chatroomId;
-}
+String _$chatOnlineCountNotifierHash() =>
+    r'19af8fd0e9f62c65e12a68215406776085235fa3';
 
-class _ChatOnlineCountNotifierProviderElement
-    extends
-        AutoDisposeAsyncNotifierProviderElement<ChatOnlineCountNotifier, int>
-    with ChatOnlineCountNotifierRef {
-  _ChatOnlineCountNotifierProviderElement(super.provider);
+final class ChatOnlineCountNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          ChatOnlineCountNotifier,
+          AsyncValue<int>,
+          int,
+          FutureOr<int>,
+          String
+        > {
+  const ChatOnlineCountNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'chatOnlineCountProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ChatOnlineCountNotifierProvider call(String chatroomId) =>
+      ChatOnlineCountNotifierProvider._(argument: chatroomId, from: this);
 
   @override
-  String get chatroomId =>
-      (origin as ChatOnlineCountNotifierProvider).chatroomId;
+  String toString() => r'chatOnlineCountProvider';
 }
 
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ChatOnlineCountNotifier extends $AsyncNotifier<int> {
+  late final _$args = ref.$arg as String;
+  String get chatroomId => _$args;
+
+  FutureOr<int> build(String chatroomId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(_$args);
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<int>, int>,
+              AsyncValue<int>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

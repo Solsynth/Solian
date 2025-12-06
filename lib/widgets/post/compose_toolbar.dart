@@ -75,7 +75,7 @@ class ComposeToolbar extends HookConsumerWidget {
         builder:
             (context) => DraftManagerSheet(
               onDraftSelected: (draftId) {
-                final draft = ref.read(composeStorageNotifierProvider)[draftId];
+                final draft = ref.read(composeStorageProvider)[draftId];
                 if (draft != null) {
                   state.titleController.text = draft.title ?? '';
                   state.descriptionController.text = draft.description ?? '';

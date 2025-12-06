@@ -13,15 +13,15 @@ final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose<
 >(ThoughtSequenceListNotifier.new);
 
 class ThoughtSequenceListNotifier
-    extends AutoDisposeAsyncNotifier<List<SnThinkingSequence>>
-    with AutoDisposeAsyncPaginationController<SnThinkingSequence> {
-  static const int _pageSize = 20;
+    extends AsyncNotifier<List<SnThinkingSequence>>
+    with AsyncPaginationController<SnThinkingSequence> {
+  static const int pageSize = 20;
 
   @override
   Future<List<SnThinkingSequence>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': pageSize};
 
     final response = await client.get(
       '/insight/thought/sequences',

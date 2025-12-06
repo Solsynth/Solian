@@ -60,7 +60,7 @@ class PostComposeCard extends HookConsumerWidget {
     final theme = Theme.of(context);
 
     // Capture the notifier to avoid using ref after dispose
-    final notifier = ref.read(composeStorageNotifierProvider.notifier);
+    final notifier = ref.read(composeStorageProvider.notifier);
 
     // Create compose state
     final ComposeState composeState =
@@ -158,7 +158,7 @@ class PostComposeCard extends HookConsumerWidget {
 
           // Delete draft after successful submission
           ref
-              .read(composeStorageNotifierProvider.notifier)
+              .read(composeStorageProvider.notifier)
               .deleteDraft(composeState.draftId);
 
           // Reset the form for new composition

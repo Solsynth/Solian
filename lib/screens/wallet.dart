@@ -991,7 +991,7 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
   }
 }
 
-final transactionListNotifierProvider = AsyncNotifierProvider(
+final transactionListProvider = AsyncNotifierProvider(
   TransactionListNotifier.new,
 );
 
@@ -1019,9 +1019,7 @@ class TransactionListNotifier extends AsyncNotifier<List<SnTransaction>>
   }
 }
 
-final walletFundsNotifierProvider = AsyncNotifierProvider(
-  WalletFundsNotifier.new,
-);
+final walletFundsProvider = AsyncNotifierProvider(WalletFundsNotifier.new);
 
 class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
     with AsyncPaginationController<SnWalletFund> {
@@ -1045,7 +1043,7 @@ class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
   }
 }
 
-final walletFundRecipientsNotifierProvider = AsyncNotifierProvider(
+final walletFundRecipientsProvider = AsyncNotifierProvider(
   WalletFundRecipientsNotifier.new,
 );
 
@@ -1428,8 +1426,8 @@ class WalletScreen extends HookConsumerWidget {
                 // Transactions Tab
                 PaginationList(
                   padding: EdgeInsets.zero,
-                  provider: transactionListNotifierProvider,
-                  notifier: transactionListNotifierProvider.notifier,
+                  provider: transactionListProvider,
+                  notifier: transactionListProvider.notifier,
                   itemBuilder: (context, index, transaction) {
                     final isIncome =
                         transaction.payeeWalletId == wallet.value?.id;
@@ -1519,7 +1517,7 @@ class WalletScreen extends HookConsumerWidget {
   }
 
   Widget _buildFundsList(BuildContext context, WidgetRef ref) {
-    final funds = ref.watch(walletFundsNotifierProvider);
+    final funds = ref.watch(walletFundsProvider);
 
     return funds.when(
       data: (fundList) {
@@ -1781,7 +1779,7 @@ class WalletScreen extends HookConsumerWidget {
       if (paidOrder != null) {
         // Wait for server to handle order
         await Future.delayed(const Duration(seconds: 1));
-        ref.invalidate(walletFundsNotifierProvider);
+        ref.invalidate(walletFundsProvider);
         ref.invalidate(walletCurrentProvider);
         if (context.mounted) {
           showSnackBar('fundCreatedSuccessfully'.tr());
@@ -1807,7 +1805,7 @@ class WalletScreen extends HookConsumerWidget {
       if (context.mounted) hideLoadingModal(context);
 
       // Invalidate providers to refresh data
-      ref.invalidate(transactionListNotifierProvider);
+      ref.invalidate(transactionListProvider);
       ref.invalidate(walletCurrentProvider);
       if (context.mounted) {
         showSnackBar('transferCreatedSuccessfully'.tr());

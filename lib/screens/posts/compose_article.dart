@@ -122,7 +122,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
     useEffect(() {
       if (originalPost == null && initialState == null) {
         // Try to load the most recent article draft
-        final drafts = ref.read(composeStorageNotifierProvider);
+        final drafts = ref.read(composeStorageProvider);
         if (drafts.isNotEmpty) {
           final mostRecentDraft = drafts.values.reduce(
             (a, b) =>

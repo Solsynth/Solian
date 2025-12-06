@@ -81,10 +81,12 @@ Future<List<SnPublisherMember>> publisherInvites(Ref ref) async {
 final publisherMemberListNotifierProvider = AsyncNotifierProvider.family
     .autoDispose(PublisherMemberListNotifier.new);
 
-class PublisherMemberListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPublisherMember>, String>
-    with FamilyAsyncPaginationController<SnPublisherMember, String> {
+class PublisherMemberListNotifier extends AsyncNotifier<List<SnPublisherMember>>
+    with AsyncPaginationController<SnPublisherMember> {
   static const int pageSize = 20;
+
+  final String arg;
+  PublisherMemberListNotifier(this.arg);
 
   @override
   Future<List<SnPublisherMember>> fetch() async {
@@ -759,55 +761,6 @@ class PublisherMemberState {
   }
 }
 
-final publisherMemberStateProvider = StateNotifierProvider.family<
-  PublisherMemberNotifier,
-  PublisherMemberState,
-  String
->((ref, publisherUname) {
-  final apiClient = ref.watch(apiClientProvider);
-  return PublisherMemberNotifier(apiClient, publisherUname);
-});
-
-class PublisherMemberNotifier extends StateNotifier<PublisherMemberState> {
-  final String publisherUname;
-  final Dio _apiClient;
-
-  PublisherMemberNotifier(this._apiClient, this.publisherUname)
-    : super(
-        const PublisherMemberState(members: [], isLoading: false, total: 0),
-      );
-
-  Future<void> loadMore({int offset = 0, int take = 20}) async {
-    if (state.isLoading) return;
-    if (state.total > 0 && state.members.length >= state.total) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final response = await _apiClient.get(
-        '/sphere/publishers/$publisherUname/members',
-        queryParameters: {'offset': offset, 'take': take},
-      );
-
-      final total = int.parse(response.headers.value('X-Total') ?? '0');
-      final List<dynamic> data = response.data;
-      final members = data.map((e) => SnPublisherMember.fromJson(e)).toList();
-
-      state = state.copyWith(
-        members: [...state.members, ...members],
-        total: total,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-    }
-  }
-
-  void reset() {
-    state = const PublisherMemberState(members: [], isLoading: false, total: 0);
-  }
-}
-
 class _PublisherMemberListSheet extends HookConsumerWidget {
   final String publisherUname;
   const _PublisherMemberListSheet({required this.publisherUname});
@@ -820,17 +773,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
     final memberListProvider = publisherMemberListNotifierProvider(
       publisherUname,
     );
-    final memberState = ref.watch(publisherMemberStateProvider(publisherUname));
     final memberNotifier = ref.read(
-      publisherMemberStateProvider(publisherUname).notifier,
+      publisherMemberListNotifierProvider(publisherUname).notifier,
     );
-
-    useEffect(() {
-      Future(() {
-        memberNotifier.loadMore();
-      });
-      return null;
-    }, []);
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -846,10 +791,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
           '/sphere/publishers/invites/$publisherUname',
           data: {'related_user_id': result.id, 'role': 0},
         );
-        // Refresh both providers
-        memberNotifier.reset();
-        await memberNotifier.loadMore();
-        ref.invalidate(memberListProvider);
+        memberNotifier.refresh();
       } catch (err) {
         showErrorAlert(err);
       }
@@ -866,7 +808,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'members'.plural(memberState.total),
+                  'members'.plural(memberNotifier.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
@@ -881,9 +823,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                 IconButton(
                   icon: const Icon(Symbols.refresh),
                   onPressed: () {
-                    memberNotifier.reset();
-                    memberNotifier.loadMore();
-                    ref.invalidate(memberListProvider);
+                    memberNotifier.refresh();
                   },
                 ),
                 IconButton(
@@ -943,10 +883,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                                   ),
                             ).then((value) {
                               if (value != null) {
-                                // Refresh both providers
-                                memberNotifier.reset();
-                                memberNotifier.loadMore();
-                                ref.invalidate(memberListProvider);
+                                memberNotifier.refresh();
                               }
                             });
                           },
@@ -965,10 +902,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                                 await apiClient.delete(
                                   '/sphere/publishers/$publisherUname/members/${member.accountId}',
                                 );
-                                // Refresh both providers
-                                memberNotifier.reset();
-                                memberNotifier.loadMore();
-                                ref.invalidate(memberListProvider);
+                                memberNotifier.refresh();
                               } catch (err) {
                                 showErrorAlert(err);
                               }

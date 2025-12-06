@@ -55,16 +55,12 @@ Future<String> siteFileContentRaw(
   return resp.data is String ? resp.data : resp.data['content'] as String;
 }
 
-class SiteFilesNotifier
-    extends
-        AutoDisposeFamilyAsyncNotifier<
-          List<SnSiteFileEntry>,
-          ({String siteId, String? path})
-        > {
+class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
+  final ({String siteId, String? path}) arg;
+  SiteFilesNotifier(this.arg);
+
   @override
-  Future<List<SnSiteFileEntry>> build(
-    ({String siteId, String? path}) arg,
-  ) async {
+  Future<List<SnSiteFileEntry>> build() async {
     return fetchFiles();
   }
 
@@ -152,8 +148,6 @@ class SiteFilesNotifier
   }
 }
 
-final siteFilesNotifierProvider = AsyncNotifierProvider.autoDispose.family<
-  SiteFilesNotifier,
-  List<SnSiteFileEntry>,
-  ({String siteId, String? path})
->(SiteFilesNotifier.new);
+final siteFilesNotifierProvider = AsyncNotifierProvider.autoDispose.family(
+  SiteFilesNotifier.new,
+);

@@ -6,43 +6,87 @@ part of 'file_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(billingUsage)
+const billingUsageProvider = BillingUsageProvider._();
+
+final class BillingUsageProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>?>,
+          Map<String, dynamic>?,
+          FutureOr<Map<String, dynamic>?>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>?>,
+        $FutureProvider<Map<String, dynamic>?> {
+  const BillingUsageProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'billingUsageProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$billingUsageHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, dynamic>?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>?> create(Ref ref) {
+    return billingUsage(ref);
+  }
+}
+
 String _$billingUsageHash() => r'58d8bc774868d60781574c85d6b25869a79c57aa';
 
-/// See also [billingUsage].
-@ProviderFor(billingUsage)
-final billingUsageProvider =
-    AutoDisposeFutureProvider<Map<String, dynamic>?>.internal(
-      billingUsage,
-      name: r'billingUsageProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$billingUsageHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef BillingUsageRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
-String _$billingQuotaHash() => r'4ec5d728e439015800abb2d0d673b5a7329cc654';
-
-/// See also [billingQuota].
 @ProviderFor(billingQuota)
-final billingQuotaProvider =
-    AutoDisposeFutureProvider<Map<String, dynamic>?>.internal(
-      billingQuota,
-      name: r'billingQuotaProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$billingQuotaHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const billingQuotaProvider = BillingQuotaProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef BillingQuotaRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class BillingQuotaProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>?>,
+          Map<String, dynamic>?,
+          FutureOr<Map<String, dynamic>?>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>?>,
+        $FutureProvider<Map<String, dynamic>?> {
+  const BillingQuotaProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'billingQuotaProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$billingQuotaHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, dynamic>?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>?> create(Ref ref) {
+    return billingQuota(ref);
+  }
+}
+
+String _$billingQuotaHash() => r'4ec5d728e439015800abb2d0d673b5a7329cc654';

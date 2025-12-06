@@ -6,147 +6,80 @@ part of 'poll_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$pollWithStatsHash() => r'6bb910046ce1e09368f9922dbec52fdc2cc86740';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [pollWithStats].
 @ProviderFor(pollWithStats)
-const pollWithStatsProvider = PollWithStatsFamily();
+const pollWithStatsProvider = PollWithStatsFamily._();
 
-/// See also [pollWithStats].
-class PollWithStatsFamily extends Family<AsyncValue<SnPollWithStats>> {
-  /// See also [pollWithStats].
-  const PollWithStatsFamily();
+final class PollWithStatsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPollWithStats>,
+          SnPollWithStats,
+          FutureOr<SnPollWithStats>
+        >
+    with $FutureModifier<SnPollWithStats>, $FutureProvider<SnPollWithStats> {
+  const PollWithStatsProvider._({
+    required PollWithStatsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'pollWithStatsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [pollWithStats].
-  PollWithStatsProvider call(String id) {
-    return PollWithStatsProvider(id);
+  @override
+  String debugGetCreateSourceHash() => _$pollWithStatsHash();
+
+  @override
+  String toString() {
+    return r'pollWithStatsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  PollWithStatsProvider getProviderOverride(
-    covariant PollWithStatsProvider provider,
-  ) {
-    return call(provider.id);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<SnPollWithStats> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'pollWithStatsProvider';
-}
-
-/// See also [pollWithStats].
-class PollWithStatsProvider extends AutoDisposeFutureProvider<SnPollWithStats> {
-  /// See also [pollWithStats].
-  PollWithStatsProvider(String id)
-    : this._internal(
-        (ref) => pollWithStats(ref as PollWithStatsRef, id),
-        from: pollWithStatsProvider,
-        name: r'pollWithStatsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$pollWithStatsHash,
-        dependencies: PollWithStatsFamily._dependencies,
-        allTransitiveDependencies:
-            PollWithStatsFamily._allTransitiveDependencies,
-        id: id,
-      );
-
-  PollWithStatsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.id,
-  }) : super.internal();
-
-  final String id;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnPollWithStats> Function(PollWithStatsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PollWithStatsProvider._internal(
-        (ref) => create(ref as PollWithStatsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        id: id,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnPollWithStats> createElement() {
-    return _PollWithStatsProviderElement(this);
+  FutureOr<SnPollWithStats> create(Ref ref) {
+    final argument = this.argument as String;
+    return pollWithStats(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PollWithStatsProvider && other.id == id;
+    return other is PollWithStatsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, id.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PollWithStatsRef on AutoDisposeFutureProviderRef<SnPollWithStats> {
-  /// The parameter `id` of this provider.
-  String get id;
-}
+String _$pollWithStatsHash() => r'6bb910046ce1e09368f9922dbec52fdc2cc86740';
 
-class _PollWithStatsProviderElement
-    extends AutoDisposeFutureProviderElement<SnPollWithStats>
-    with PollWithStatsRef {
-  _PollWithStatsProviderElement(super.provider);
+final class PollWithStatsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnPollWithStats>, String> {
+  const PollWithStatsFamily._()
+    : super(
+        retry: null,
+        name: r'pollWithStatsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PollWithStatsProvider call(String id) =>
+      PollWithStatsProvider._(argument: id, from: this);
 
   @override
-  String get id => (origin as PollWithStatsProvider).id;
+  String toString() => r'pollWithStatsProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

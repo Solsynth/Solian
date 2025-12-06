@@ -6,148 +6,80 @@ part of 'account_picker.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$searchAccountsHash() => r'3b4aa4d7970a1e406c1a0a1dfac2c686e05bc533';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [searchAccounts].
 @ProviderFor(searchAccounts)
-const searchAccountsProvider = SearchAccountsFamily();
+const searchAccountsProvider = SearchAccountsFamily._();
 
-/// See also [searchAccounts].
-class SearchAccountsFamily extends Family<AsyncValue<List<SnAccount>>> {
-  /// See also [searchAccounts].
-  const SearchAccountsFamily();
+final class SearchAccountsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnAccount>>,
+          List<SnAccount>,
+          FutureOr<List<SnAccount>>
+        >
+    with $FutureModifier<List<SnAccount>>, $FutureProvider<List<SnAccount>> {
+  const SearchAccountsProvider._({
+    required SearchAccountsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'searchAccountsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [searchAccounts].
-  SearchAccountsProvider call({required String query}) {
-    return SearchAccountsProvider(query: query);
+  @override
+  String debugGetCreateSourceHash() => _$searchAccountsHash();
+
+  @override
+  String toString() {
+    return r'searchAccountsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  SearchAccountsProvider getProviderOverride(
-    covariant SearchAccountsProvider provider,
-  ) {
-    return call(query: provider.query);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<List<SnAccount>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'searchAccountsProvider';
-}
-
-/// See also [searchAccounts].
-class SearchAccountsProvider
-    extends AutoDisposeFutureProvider<List<SnAccount>> {
-  /// See also [searchAccounts].
-  SearchAccountsProvider({required String query})
-    : this._internal(
-        (ref) => searchAccounts(ref as SearchAccountsRef, query: query),
-        from: searchAccountsProvider,
-        name: r'searchAccountsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$searchAccountsHash,
-        dependencies: SearchAccountsFamily._dependencies,
-        allTransitiveDependencies:
-            SearchAccountsFamily._allTransitiveDependencies,
-        query: query,
-      );
-
-  SearchAccountsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.query,
-  }) : super.internal();
-
-  final String query;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<SnAccount>> Function(SearchAccountsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: SearchAccountsProvider._internal(
-        (ref) => create(ref as SearchAccountsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        query: query,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnAccount>> createElement() {
-    return _SearchAccountsProviderElement(this);
+  FutureOr<List<SnAccount>> create(Ref ref) {
+    final argument = this.argument as String;
+    return searchAccounts(ref, query: argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is SearchAccountsProvider && other.query == query;
+    return other is SearchAccountsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, query.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SearchAccountsRef on AutoDisposeFutureProviderRef<List<SnAccount>> {
-  /// The parameter `query` of this provider.
-  String get query;
-}
+String _$searchAccountsHash() => r'3b4aa4d7970a1e406c1a0a1dfac2c686e05bc533';
 
-class _SearchAccountsProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnAccount>>
-    with SearchAccountsRef {
-  _SearchAccountsProviderElement(super.provider);
+final class SearchAccountsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<SnAccount>>, String> {
+  const SearchAccountsFamily._()
+    : super(
+        retry: null,
+        name: r'searchAccountsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SearchAccountsProvider call({required String query}) =>
+      SearchAccountsProvider._(argument: query, from: this);
 
   @override
-  String get query => (origin as SearchAccountsProvider).query;
+  String toString() => r'searchAccountsProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

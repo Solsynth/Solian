@@ -6,174 +6,101 @@ part of 'messages_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$messagesNotifierHash() => r'd76d799494b06fac2adc42d94b7ecd7b8d68c352';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$MessagesNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<List<LocalChatMessage>> {
-  late final String roomId;
-
-  FutureOr<List<LocalChatMessage>> build(String roomId);
-}
-
-/// See also [MessagesNotifier].
 @ProviderFor(MessagesNotifier)
-const messagesNotifierProvider = MessagesNotifierFamily();
+const messagesProvider = MessagesNotifierFamily._();
 
-/// See also [MessagesNotifier].
-class MessagesNotifierFamily
-    extends Family<AsyncValue<List<LocalChatMessage>>> {
-  /// See also [MessagesNotifier].
-  const MessagesNotifierFamily();
+final class MessagesNotifierProvider
+    extends $AsyncNotifierProvider<MessagesNotifier, List<LocalChatMessage>> {
+  const MessagesNotifierProvider._({
+    required MessagesNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'messagesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [MessagesNotifier].
-  MessagesNotifierProvider call(String roomId) {
-    return MessagesNotifierProvider(roomId);
+  @override
+  String debugGetCreateSourceHash() => _$messagesNotifierHash();
+
+  @override
+  String toString() {
+    return r'messagesProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  MessagesNotifierProvider getProviderOverride(
-    covariant MessagesNotifierProvider provider,
-  ) {
-    return call(provider.roomId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'messagesNotifierProvider';
-}
-
-/// See also [MessagesNotifier].
-class MessagesNotifierProvider
-    extends
-        AutoDisposeAsyncNotifierProviderImpl<
-          MessagesNotifier,
-          List<LocalChatMessage>
-        > {
-  /// See also [MessagesNotifier].
-  MessagesNotifierProvider(String roomId)
-    : this._internal(
-        () => MessagesNotifier()..roomId = roomId,
-        from: messagesNotifierProvider,
-        name: r'messagesNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$messagesNotifierHash,
-        dependencies: MessagesNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            MessagesNotifierFamily._allTransitiveDependencies,
-        roomId: roomId,
-      );
-
-  MessagesNotifierProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.roomId,
-  }) : super.internal();
-
-  final String roomId;
-
-  @override
-  FutureOr<List<LocalChatMessage>> runNotifierBuild(
-    covariant MessagesNotifier notifier,
-  ) {
-    return notifier.build(roomId);
-  }
-
-  @override
-  Override overrideWith(MessagesNotifier Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: MessagesNotifierProvider._internal(
-        () => create()..roomId = roomId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        roomId: roomId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeAsyncNotifierProviderElement<
-    MessagesNotifier,
-    List<LocalChatMessage>
-  >
-  createElement() {
-    return _MessagesNotifierProviderElement(this);
-  }
+  MessagesNotifier create() => MessagesNotifier();
 
   @override
   bool operator ==(Object other) {
-    return other is MessagesNotifierProvider && other.roomId == roomId;
+    return other is MessagesNotifierProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, roomId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MessagesNotifierRef
-    on AutoDisposeAsyncNotifierProviderRef<List<LocalChatMessage>> {
-  /// The parameter `roomId` of this provider.
-  String get roomId;
-}
+String _$messagesNotifierHash() => r'2f3f19cb99357184e82d66e74a31863fcfc48856';
 
-class _MessagesNotifierProviderElement
-    extends
-        AutoDisposeAsyncNotifierProviderElement<
+final class MessagesNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
           MessagesNotifier,
-          List<LocalChatMessage>
-        >
-    with MessagesNotifierRef {
-  _MessagesNotifierProviderElement(super.provider);
+          AsyncValue<List<LocalChatMessage>>,
+          List<LocalChatMessage>,
+          FutureOr<List<LocalChatMessage>>,
+          String
+        > {
+  const MessagesNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'messagesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  MessagesNotifierProvider call(String roomId) =>
+      MessagesNotifierProvider._(argument: roomId, from: this);
 
   @override
-  String get roomId => (origin as MessagesNotifierProvider).roomId;
+  String toString() => r'messagesProvider';
 }
 
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$MessagesNotifier
+    extends $AsyncNotifier<List<LocalChatMessage>> {
+  late final _$args = ref.$arg as String;
+  String get roomId => _$args;
+
+  FutureOr<List<LocalChatMessage>> build(String roomId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(_$args);
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<List<LocalChatMessage>>, List<LocalChatMessage>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<List<LocalChatMessage>>,
+                List<LocalChatMessage>
+              >,
+              AsyncValue<List<LocalChatMessage>>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

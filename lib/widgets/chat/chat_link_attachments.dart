@@ -13,14 +13,12 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-final chatCloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose<
-  ChatCloudFileListNotifier,
-  List<SnCloudFile>
->(ChatCloudFileListNotifier.new);
+final chatCloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose(
+  ChatCloudFileListNotifier.new,
+);
 
-class ChatCloudFileListNotifier
-    extends AutoDisposeAsyncNotifier<List<SnCloudFile>>
-    with AutoDisposeAsyncPaginationController<SnCloudFile> {
+class ChatCloudFileListNotifier extends AsyncNotifier<List<SnCloudFile>>
+    with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
     final client = ref.read(apiClientProvider);

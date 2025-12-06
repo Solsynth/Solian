@@ -13,7 +13,7 @@ final poolsProvider = FutureProvider<List<SnFilePool>>((ref) async {
 });
 
 String? resolveDefaultPoolId(WidgetRef ref, List<SnFilePool> pools) {
-  final settings = ref.watch(appSettingsNotifierProvider);
+  final settings = ref.watch(appSettingsProvider);
 
   final configuredId = settings.defaultPoolId;
   if (configuredId != null && pools.any((p) => p.id == configuredId)) {

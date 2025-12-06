@@ -22,8 +22,8 @@ class CallScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
-    final callState = ref.watch(callNotifierProvider);
-    final callNotifier = ref.watch(callNotifierProvider.notifier);
+    final callState = ref.watch(callProvider);
+    final callNotifier = ref.watch(callProvider.notifier);
 
     useEffect(() {
       talker.info('[Call] Joining the call...');

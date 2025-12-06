@@ -11,9 +11,11 @@ import 'package:styled_widget/styled_widget.dart';
 final realmListNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<RealmListNotifier, List<SnRealm>, String?>(RealmListNotifier.new);
 
-class RealmListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnRealm>, String?>
-    with FamilyAsyncPaginationController<SnRealm, String?> {
+class RealmListNotifier extends AsyncNotifier<List<SnRealm>>
+    with AsyncPaginationController<SnRealm> {
+  String? arg;
+  RealmListNotifier(this.arg);
+
   static const int _pageSize = 20;
 
   @override
@@ -61,9 +63,9 @@ class SliverRealmList extends HookConsumerWidget {
                   ).center(),
             ),
             if (index <
-                (ref.read(provider).valueOrNull?.length ?? 0) -
+                (ref.read(provider).value?.length ?? 0) -
                     1) // Add gap except for last item? Actually PaginationList handles loading indicator which might look like last item.
-              // Wait, ref.read(provider).valueOrNull?.length might change.
+              // Wait, ref.read(provider).value?.length might change.
               // Simpler to just add bottom padding to all, or Gap.
               const Gap(8),
           ],

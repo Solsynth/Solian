@@ -10,8 +10,8 @@ class CallContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final callState = ref.watch(callNotifierProvider);
-    final callNotifier = ref.watch(callNotifierProvider.notifier);
+    final callState = ref.watch(callProvider);
+    final callNotifier = ref.watch(callProvider.notifier);
 
     if (!callState.isConnected) {
       return const Center(child: CircularProgressIndicator());

@@ -52,10 +52,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
     _database = ref.watch(databaseProvider);
-    final room = await ref.watch(ChatRoomNotifierProvider(roomId).future);
-    final identity = await ref.watch(
-      ChatRoomIdentityNotifierProvider(roomId).future,
-    );
+    final room = await ref.watch(chatRoomProvider(roomId).future);
+    final identity = await ref.watch(chatRoomIdentityProvider(roomId).future);
 
     // Initialize fetch account method for corrupted data recovery
     _fetchAccount = (String accountId) async {
@@ -321,7 +319,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _allRemoteMessagesFetched = false;
 
     talker.log('Starting message sync');
-    Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
+    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     try {
       final dbMessages = await _database.getMessagesForRoom(
         _room.id,
@@ -397,9 +395,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       talker.log('Finished message sync');
-      Future.microtask(
-        () => ref.read(isSyncingProvider.notifier).state = false,
-      );
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
       _isSyncing = false;
     }
   }
@@ -496,7 +492,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_hasMore || state is AsyncLoading) return;
     talker.log('Loading more messages');
 
-    Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
+    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     try {
       final currentMessages = state.value ?? [];
       final offset = currentMessages.length;
@@ -519,9 +515,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       showErrorAlert(err);
     } finally {
-      Future.microtask(
-        () => ref.read(isSyncingProvider.notifier).state = false,
-      );
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
     }
   }
 

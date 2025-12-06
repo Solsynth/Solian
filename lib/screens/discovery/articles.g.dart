@@ -6,24 +6,44 @@ part of 'articles.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscribedFeedsHash() => r'5c0c8c30c5f543f6ea1d39786a6778f77ba5b3df';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [subscribedFeeds].
 @ProviderFor(subscribedFeeds)
-final subscribedFeedsProvider =
-    AutoDisposeFutureProvider<List<SnWebFeed>>.internal(
-      subscribedFeeds,
-      name: r'subscribedFeedsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$subscribedFeedsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const subscribedFeedsProvider = SubscribedFeedsProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef SubscribedFeedsRef = AutoDisposeFutureProviderRef<List<SnWebFeed>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class SubscribedFeedsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnWebFeed>>,
+          List<SnWebFeed>,
+          FutureOr<List<SnWebFeed>>
+        >
+    with $FutureModifier<List<SnWebFeed>>, $FutureProvider<List<SnWebFeed>> {
+  const SubscribedFeedsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'subscribedFeedsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$subscribedFeedsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnWebFeed>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnWebFeed>> create(Ref ref) {
+    return subscribedFeeds(ref);
+  }
+}
+
+String _$subscribedFeedsHash() => r'5c0c8c30c5f543f6ea1d39786a6778f77ba5b3df';

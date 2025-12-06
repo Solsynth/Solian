@@ -4,16 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
 
-class SiteNotifier
-    extends
-        AutoDisposeFamilyAsyncNotifier<
-          SnPublicationSite,
-          ({String pubName, String? siteId})
-        > {
+class SiteNotifier extends AsyncNotifier<SnPublicationSite> {
+  final ({String pubName, String? siteId}) arg;
+  SiteNotifier(this.arg);
+
   @override
-  FutureOr<SnPublicationSite> build(
-    ({String pubName, String? siteId}) arg,
-  ) async {
+  FutureOr<SnPublicationSite> build() async {
     if (arg.siteId == null || arg.siteId!.isEmpty) {
       return SnPublicationSite(
         id: '',

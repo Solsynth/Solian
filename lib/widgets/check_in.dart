@@ -253,7 +253,7 @@ class CheckInWidget extends HookConsumerWidget {
                   vertical: -2,
                 ),
                 onPressed: () {
-                  if (todayResult.valueOrNull == null) {
+                  if (todayResult.value == null) {
                     checkIn();
                   } else {
                     showModalBottomSheet(

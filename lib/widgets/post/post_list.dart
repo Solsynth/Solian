@@ -35,10 +35,12 @@ final postListNotifierProvider = AsyncNotifierProvider.autoDispose
       PostListNotifier.new,
     );
 
-class PostListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPost>, PostListQuery>
-    with FamilyAsyncPaginationController<SnPost, PostListQuery> {
-  static const int _pageSize = 20;
+class PostListNotifier extends AsyncNotifier<List<SnPost>>
+    with AsyncPaginationController<SnPost> {
+  final PostListQuery arg;
+  PostListNotifier(this.arg);
+
+  static const int pageSize = 20;
 
   @override
   Future<List<SnPost>> fetch() async {
@@ -46,7 +48,7 @@ class PostListNotifier
 
     final queryParams = {
       'offset': fetchedCount,
-      'take': _pageSize,
+      'take': pageSize,
       'replies': arg.includeReplies,
       'orderDesc': arg.orderDesc,
       if (arg.shuffle) 'shuffle': arg.shuffle,

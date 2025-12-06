@@ -12,7 +12,17 @@ import "package:riverpod_annotation/riverpod_annotation.dart";
 
 part 'chat_subscribe.g.dart';
 
-final currentSubscribedChatIdProvider = StateProvider<String?>((ref) => null);
+final currentSubscribedChatIdProvider =
+    NotifierProvider<CurrentSubscribedChatIdNotifier, String?>(
+      CurrentSubscribedChatIdNotifier.new,
+    );
+
+class CurrentSubscribedChatIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? value) => state = value;
+}
 
 @riverpod
 class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
@@ -29,11 +39,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   @override
   List<SnChatMember> build(String roomId) {
     final ws = ref.watch(websocketProvider);
-    final chatRoomAsync = ref.watch(ChatRoomNotifierProvider(roomId));
-    final chatIdentityAsync = ref.watch(
-      ChatRoomIdentityNotifierProvider(roomId),
-    );
-    _messagesNotifier = ref.watch(messagesNotifierProvider(roomId).notifier);
+    final chatRoomAsync = ref.watch(chatRoomProvider(roomId));
+    final chatIdentityAsync = ref.watch(chatRoomIdentityProvider(roomId));
+    _messagesNotifier = ref.watch(messagesProvider(roomId).notifier);
 
     if (chatRoomAsync.isLoading || chatIdentityAsync.isLoading) {
       return [];
@@ -59,7 +67,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     );
 
     Future.microtask(
-      () => ref.read(currentSubscribedChatIdProvider.notifier).state = roomId,
+      () => ref.read(currentSubscribedChatIdProvider.notifier).set(roomId),
     );
 
     // Send initial read receipt
@@ -130,7 +138,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     // Cleanup on dispose
     ref.onDispose(() {
-      ref.read(currentSubscribedChatIdProvider.notifier).state = null;
+      ref.read(currentSubscribedChatIdProvider.notifier).set(null);
       wsState.sendMessage(
         jsonEncode(
           WebSocketPacket(

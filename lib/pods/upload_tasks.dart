@@ -9,18 +9,16 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/talker.dart';
 
-final uploadTasksProvider =
-    StateNotifierProvider<UploadTasksNotifier, List<DriveTask>>(
-      (ref) => UploadTasksNotifier(ref),
-    );
+final uploadTasksProvider = NotifierProvider(UploadTasksNotifier.new);
 
-class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
-  final Ref ref;
+class UploadTasksNotifier extends Notifier<List<DriveTask>> {
   StreamSubscription? _websocketSubscription;
   final Map<String, Map<String, dynamic>> _pendingUploads = {};
 
-  UploadTasksNotifier(this.ref) : super([]) {
+  @override
+  List<DriveTask> build() {
     _listenToWebSocket();
+    return [];
   }
 
   void _listenToWebSocket() {
@@ -334,10 +332,8 @@ class UploadTasksNotifier extends StateNotifier<List<DriveTask>> {
     return taskId;
   }
 
-  @override
   void dispose() {
     _websocketSubscription?.cancel();
-    super.dispose();
   }
 }
 

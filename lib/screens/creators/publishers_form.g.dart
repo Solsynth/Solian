@@ -6,163 +6,121 @@ part of 'publishers_form.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$publishersManagedHash() => r'ea83759fed9bd5119738b4d09f12b4476959e0a3';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [publishersManaged].
 @ProviderFor(publishersManaged)
-final publishersManagedProvider =
-    AutoDisposeFutureProvider<List<SnPublisher>>.internal(
-      publishersManaged,
-      name: r'publishersManagedProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$publishersManagedHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const publishersManagedProvider = PublishersManagedProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef PublishersManagedRef = AutoDisposeFutureProviderRef<List<SnPublisher>>;
-String _$publisherHash() => r'18fb5c6b3d79dd8af4fbee108dec1a0e8a034038';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [publisher].
-@ProviderFor(publisher)
-const publisherProvider = PublisherFamily();
-
-/// See also [publisher].
-class PublisherFamily extends Family<AsyncValue<SnPublisher?>> {
-  /// See also [publisher].
-  const PublisherFamily();
-
-  /// See also [publisher].
-  PublisherProvider call(String? identifier) {
-    return PublisherProvider(identifier);
-  }
-
-  @override
-  PublisherProvider getProviderOverride(covariant PublisherProvider provider) {
-    return call(provider.identifier);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'publisherProvider';
-}
-
-/// See also [publisher].
-class PublisherProvider extends AutoDisposeFutureProvider<SnPublisher?> {
-  /// See also [publisher].
-  PublisherProvider(String? identifier)
-    : this._internal(
-        (ref) => publisher(ref as PublisherRef, identifier),
-        from: publisherProvider,
-        name: r'publisherProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$publisherHash,
-        dependencies: PublisherFamily._dependencies,
-        allTransitiveDependencies: PublisherFamily._allTransitiveDependencies,
-        identifier: identifier,
+final class PublishersManagedProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnPublisher>>,
+          List<SnPublisher>,
+          FutureOr<List<SnPublisher>>
+        >
+    with
+        $FutureModifier<List<SnPublisher>>,
+        $FutureProvider<List<SnPublisher>> {
+  const PublishersManagedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'publishersManagedProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
       );
 
-  PublisherProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.identifier,
-  }) : super.internal();
+  @override
+  String debugGetCreateSourceHash() => _$publishersManagedHash();
 
-  final String? identifier;
+  @$internal
+  @override
+  $FutureProviderElement<List<SnPublisher>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Override overrideWith(
-    FutureOr<SnPublisher?> Function(PublisherRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PublisherProvider._internal(
-        (ref) => create(ref as PublisherRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        identifier: identifier,
-      ),
-    );
+  FutureOr<List<SnPublisher>> create(Ref ref) {
+    return publishersManaged(ref);
+  }
+}
+
+String _$publishersManagedHash() => r'ea83759fed9bd5119738b4d09f12b4476959e0a3';
+
+@ProviderFor(publisher)
+const publisherProvider = PublisherFamily._();
+
+final class PublisherProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublisher?>,
+          SnPublisher?,
+          FutureOr<SnPublisher?>
+        >
+    with $FutureModifier<SnPublisher?>, $FutureProvider<SnPublisher?> {
+  const PublisherProvider._({
+    required PublisherFamily super.from,
+    required String? super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherHash();
+
+  @override
+  String toString() {
+    return r'publisherProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<SnPublisher?> createElement() {
-    return _PublisherProviderElement(this);
+  $FutureProviderElement<SnPublisher?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublisher?> create(Ref ref) {
+    final argument = this.argument as String?;
+    return publisher(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PublisherProvider && other.identifier == identifier;
+    return other is PublisherProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, identifier.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PublisherRef on AutoDisposeFutureProviderRef<SnPublisher?> {
-  /// The parameter `identifier` of this provider.
-  String? get identifier;
-}
+String _$publisherHash() => r'18fb5c6b3d79dd8af4fbee108dec1a0e8a034038';
 
-class _PublisherProviderElement
-    extends AutoDisposeFutureProviderElement<SnPublisher?>
-    with PublisherRef {
-  _PublisherProviderElement(super.provider);
+final class PublisherFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnPublisher?>, String?> {
+  const PublisherFamily._()
+    : super(
+        retry: null,
+        name: r'publisherProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherProvider call(String? identifier) =>
+      PublisherProvider._(argument: identifier, from: this);
 
   @override
-  String? get identifier => (origin as PublisherProvider).identifier;
+  String toString() => r'publisherProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

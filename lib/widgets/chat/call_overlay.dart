@@ -25,8 +25,8 @@ class CallControlsBar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final callState = ref.watch(callNotifierProvider);
-    final callNotifier = ref.read(callNotifierProvider.notifier);
+    final callState = ref.watch(callProvider);
+    final callNotifier = ref.read(callProvider.notifier);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -268,7 +268,7 @@ class CallControlsBar extends HookConsumerWidget {
     String deviceType,
   ) async {
     try {
-      final callNotifier = ref.read(callNotifierProvider.notifier);
+      final callNotifier = ref.read(callProvider.notifier);
 
       if (deviceType == 'videoinput') {
         // Switch camera device
@@ -312,8 +312,8 @@ class CallOverlayBar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final callState = ref.watch(callNotifierProvider);
-    final callNotifier = ref.read(callNotifierProvider.notifier);
+    final callState = ref.watch(callProvider);
+    final callNotifier = ref.read(callProvider.notifier);
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
 
     // State for overlay mode: compact or preview
@@ -398,7 +398,7 @@ class CallOverlayBar extends HookConsumerWidget {
                 isLoading.value = true;
                 try {
                   // Just join the room, don't navigate
-                  await ref.read(callNotifierProvider.notifier).joinRoom(room);
+                  await ref.read(callProvider.notifier).joinRoom(room);
                 } catch (e) {
                   showErrorAlert(e);
                 } finally {

@@ -57,9 +57,7 @@ class AccountScreen extends HookConsumerWidget {
     }
 
     final user = ref.watch(userInfoProvider);
-    final notificationUnreadCount = ref.watch(
-      notificationUnreadCountNotifierProvider,
-    );
+    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
 
     if (user.value == null || user.value == null) {
       return _UnauthorizedAccountScreen();

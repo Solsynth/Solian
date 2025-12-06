@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:island/pods/config.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'theme.g.dart';
 
 @riverpod
 ThemeSet theme(Ref ref) {
-  final settings = ref.watch(appSettingsNotifierProvider);
+  final settings = ref.watch(appSettingsProvider);
   return createAppThemeSet(settings);
 }
 

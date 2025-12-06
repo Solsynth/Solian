@@ -6,25 +6,59 @@ part of 'compose_storage_db.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(ComposeStorageNotifier)
+const composeStorageProvider = ComposeStorageNotifierProvider._();
+
+final class ComposeStorageNotifierProvider
+    extends $NotifierProvider<ComposeStorageNotifier, Map<String, SnPost>> {
+  const ComposeStorageNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'composeStorageProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$composeStorageNotifierHash();
+
+  @$internal
+  @override
+  ComposeStorageNotifier create() => ComposeStorageNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, SnPost> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, SnPost>>(value),
+    );
+  }
+}
+
 String _$composeStorageNotifierHash() =>
     r'e78dbfd8dbaf728970985aaa2ac4df3575ddfcdf';
 
-/// See also [ComposeStorageNotifier].
-@ProviderFor(ComposeStorageNotifier)
-final composeStorageNotifierProvider = AutoDisposeNotifierProvider<
-  ComposeStorageNotifier,
-  Map<String, SnPost>
->.internal(
-  ComposeStorageNotifier.new,
-  name: r'composeStorageNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$composeStorageNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$ComposeStorageNotifier = AutoDisposeNotifier<Map<String, SnPost>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
+  Map<String, SnPost> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Map<String, SnPost>, Map<String, SnPost>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<String, SnPost>, Map<String, SnPost>>,
+              Map<String, SnPost>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

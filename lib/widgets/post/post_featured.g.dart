@@ -6,23 +6,44 @@ part of 'post_featured.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$featuredPostsHash() => r'4b7fffb02eac72f5861b02af1b1e5da36b571698';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [featuredPosts].
 @ProviderFor(featuredPosts)
-final featuredPostsProvider = AutoDisposeFutureProvider<List<SnPost>>.internal(
-  featuredPosts,
-  name: r'featuredPostsProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$featuredPostsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const featuredPostsProvider = FeaturedPostsProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FeaturedPostsRef = AutoDisposeFutureProviderRef<List<SnPost>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class FeaturedPostsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnPost>>,
+          List<SnPost>,
+          FutureOr<List<SnPost>>
+        >
+    with $FutureModifier<List<SnPost>>, $FutureProvider<List<SnPost>> {
+  const FeaturedPostsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'featuredPostsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$featuredPostsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnPost>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnPost>> create(Ref ref) {
+    return featuredPosts(ref);
+  }
+}
+
+String _$featuredPostsHash() => r'4b7fffb02eac72f5861b02af1b1e5da36b571698';

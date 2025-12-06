@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
@@ -16,7 +16,20 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 
-final currentRouteProvider = StateProvider<String?>((ref) => null);
+final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String?>(
+  CurrentRouteNotifier.new,
+);
+
+class CurrentRouteNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    return null;
+  }
+
+  void updateRoute(String? route) {
+    state = route;
+  }
+}
 
 const kWideScreenRouteStart = 4;
 const kTabRoutes = [
@@ -42,16 +55,14 @@ class TabsScreen extends HookConsumerWidget {
     // Update the current route provider whenever the location changes
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(currentRouteProvider.notifier).state = currentLocation;
+        ref.read(currentRouteProvider.notifier).updateRoute(currentLocation);
       });
       return null;
     }, [currentLocation]);
 
-    final notificationUnreadCount = ref.watch(
-      notificationUnreadCountNotifierProvider,
-    );
+    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
 
-    final chatUnreadCount = ref.watch(chatUnreadCountNotifierProvider);
+    final chatUnreadCount = ref.watch(chatUnreadCountProvider);
 
     final wideScreen = isWideScreen(context);
 
@@ -134,7 +145,7 @@ class TabsScreen extends HookConsumerWidget {
       isWideScreen(context) ? null : kWideScreenRouteStart,
     );
     final shouldShowFab = routes.contains(currentLocation) && !wideScreen;
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     if (isWideScreen(context)) {
       return Container(

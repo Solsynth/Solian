@@ -100,12 +100,16 @@ class WebSocketService {
           }
         },
         onDone: () {
-          talker.info('[WebSocket] Connection closed, attempting to reconnect...');
+          talker.info(
+            '[WebSocket] Connection closed, attempting to reconnect...',
+          );
           _scheduleReconnect();
           _statusStreamController.sink.add(WebSocketState.disconnected());
         },
         onError: (error) {
-          talker.error('[WebSocket] Error occurred: $error, attempting to reconnect...');
+          talker.error(
+            '[WebSocket] Error occurred: $error, attempting to reconnect...',
+          );
           _scheduleReconnect();
           _statusStreamController.sink.add(
             WebSocketState.error(error.toString()),
@@ -152,15 +156,20 @@ class WebSocketService {
 }
 
 final websocketStateProvider =
-    StateNotifierProvider<WebSocketStateNotifier, WebSocketState>(
-      (ref) => WebSocketStateNotifier(ref),
+    NotifierProvider<WebSocketStateNotifier, WebSocketState>(
+      WebSocketStateNotifier.new,
     );
 
-class WebSocketStateNotifier extends StateNotifier<WebSocketState> {
-  final Ref ref;
+class WebSocketStateNotifier extends Notifier<WebSocketState> {
   Timer? _reconnectTimer;
 
-  WebSocketStateNotifier(this.ref) : super(const WebSocketState.disconnected());
+  @override
+  WebSocketState build() {
+    ref.onDispose(() {
+      _reconnectTimer?.cancel();
+    });
+    return const WebSocketState.disconnected();
+  }
 
   Future<void> connect() async {
     state = const WebSocketState.connecting();
@@ -169,7 +178,7 @@ class WebSocketStateNotifier extends StateNotifier<WebSocketState> {
       await service.connect(ref);
       state = const WebSocketState.connected();
       service.statusStream.listen((event) {
-        if (mounted) state = event;
+        state = event;
       });
     } catch (err) {
       state = WebSocketState.error('Failed to connect: $err');

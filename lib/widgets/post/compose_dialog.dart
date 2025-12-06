@@ -47,7 +47,7 @@ class PostComposeDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drafts = ref.watch(composeStorageNotifierProvider);
+    final drafts = ref.watch(composeStorageProvider);
     final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
 
@@ -166,7 +166,7 @@ class PostComposeDialog extends HookConsumerWidget {
     WidgetRef ref,
     ValueNotifier<PostComposeInitialState?> restoredInitialState,
   ) async {
-    final drafts = ref.read(composeStorageNotifierProvider);
+    final drafts = ref.read(composeStorageProvider);
     if (drafts.isNotEmpty) {
       final latestDraft = drafts.values.last;
 
@@ -200,7 +200,7 @@ class PostComposeDialog extends HookConsumerWidget {
       if (restore == true) {
         // Delete the old draft
         await ref
-            .read(composeStorageNotifierProvider.notifier)
+            .read(composeStorageProvider.notifier)
             .deleteDraft(latestDraft.id);
         restoredInitialState.value = PostComposeInitialState(
           title: latestDraft.title,

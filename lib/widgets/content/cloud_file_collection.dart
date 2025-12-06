@@ -410,7 +410,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dataSaving = ref.watch(
-      appSettingsNotifierProvider.select((s) => s.dataSavingMode),
+      appSettingsProvider.select((s) => s.dataSavingMode),
     );
     final showMature = useState(false);
     final showDataSaving = useState(!dataSaving);

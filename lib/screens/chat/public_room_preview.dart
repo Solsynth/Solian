@@ -27,8 +27,8 @@ class PublicRoomPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messages = ref.watch(messagesNotifierProvider(id));
-    final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
+    final messages = ref.watch(messagesProvider(id));
+    final messagesNotifier = ref.read(messagesProvider(id).notifier);
     final scrollController = useScrollController();
 
     final listController = useMemoized(() => ListController(), []);
@@ -203,7 +203,7 @@ class PublicRoomPreview extends HookConsumerWidget {
                   showLoadingModal(context);
                   final apiClient = ref.read(apiClientProvider);
                   await apiClient.post('/sphere/chat/${room.id}/members/me');
-                  ref.invalidate(ChatRoomIdentityNotifierProvider(id));
+                  ref.invalidate(chatRoomIdentityProvider(id));
                 } catch (err) {
                   showErrorAlert(err);
                 } finally {

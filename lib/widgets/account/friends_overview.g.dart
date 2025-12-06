@@ -6,25 +6,46 @@ part of 'friends_overview.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$friendsOverviewHash() => r'5ef86c6849804c97abd3df094f120c7dd5e938db';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [friendsOverview].
 @ProviderFor(friendsOverview)
-final friendsOverviewProvider =
-    AutoDisposeFutureProvider<List<SnFriendOverviewItem>>.internal(
-      friendsOverview,
-      name: r'friendsOverviewProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$friendsOverviewHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const friendsOverviewProvider = FriendsOverviewProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FriendsOverviewRef =
-    AutoDisposeFutureProviderRef<List<SnFriendOverviewItem>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class FriendsOverviewProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnFriendOverviewItem>>,
+          List<SnFriendOverviewItem>,
+          FutureOr<List<SnFriendOverviewItem>>
+        >
+    with
+        $FutureModifier<List<SnFriendOverviewItem>>,
+        $FutureProvider<List<SnFriendOverviewItem>> {
+  const FriendsOverviewProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'friendsOverviewProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$friendsOverviewHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnFriendOverviewItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnFriendOverviewItem>> create(Ref ref) {
+    return friendsOverview(ref);
+  }
+}
+
+String _$friendsOverviewHash() => r'5ef86c6849804c97abd3df094f120c7dd5e938db';

@@ -66,7 +66,7 @@ class ThoughtScreen extends HookConsumerWidget {
     );
 
     // Get initial thoughts and topic from provider
-    final initialThoughts = thoughts.valueOrNull;
+    final initialThoughts = thoughts.value;
     final initialTopic =
         (initialThoughts?.isNotEmpty ?? false) &&
                 initialThoughts!.first.sequence?.topic != null

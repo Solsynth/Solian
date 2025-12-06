@@ -19,7 +19,7 @@ class CallParticipantCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final width =
         math.min(MediaQuery.of(context).size.width - 80, 360).toDouble();
-    final callNotifier = ref.watch(callNotifierProvider.notifier);
+    final callNotifier = ref.watch(callProvider.notifier);
 
     final volumeSliderValue = useState(callNotifier.getParticipantVolume(live));
 

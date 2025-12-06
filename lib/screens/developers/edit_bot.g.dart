@@ -6,162 +6,74 @@ part of 'edit_bot.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$botHash() => r'7bec47bb2a4061a5babc6d6d19c3d4c320c91188';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [bot].
 @ProviderFor(bot)
-const botProvider = BotFamily();
+const botProvider = BotFamily._();
 
-/// See also [bot].
-class BotFamily extends Family<AsyncValue<Bot?>> {
-  /// See also [bot].
-  const BotFamily();
+final class BotProvider
+    extends $FunctionalProvider<AsyncValue<Bot?>, Bot?, FutureOr<Bot?>>
+    with $FutureModifier<Bot?>, $FutureProvider<Bot?> {
+  const BotProvider._({
+    required BotFamily super.from,
+    required (String, String, String) super.argument,
+  }) : super(
+         retry: null,
+         name: r'botProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [bot].
-  BotProvider call(String publisherName, String projectId, String id) {
-    return BotProvider(publisherName, projectId, id);
+  @override
+  String debugGetCreateSourceHash() => _$botHash();
+
+  @override
+  String toString() {
+    return r'botProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  BotProvider getProviderOverride(covariant BotProvider provider) {
-    return call(provider.publisherName, provider.projectId, provider.id);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<Bot?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'botProvider';
-}
-
-/// See also [bot].
-class BotProvider extends AutoDisposeFutureProvider<Bot?> {
-  /// See also [bot].
-  BotProvider(String publisherName, String projectId, String id)
-    : this._internal(
-        (ref) => bot(ref as BotRef, publisherName, projectId, id),
-        from: botProvider,
-        name: r'botProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product') ? null : _$botHash,
-        dependencies: BotFamily._dependencies,
-        allTransitiveDependencies: BotFamily._allTransitiveDependencies,
-        publisherName: publisherName,
-        projectId: projectId,
-        id: id,
-      );
-
-  BotProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.publisherName,
-    required this.projectId,
-    required this.id,
-  }) : super.internal();
-
-  final String publisherName;
-  final String projectId;
-  final String id;
-
-  @override
-  Override overrideWith(FutureOr<Bot?> Function(BotRef provider) create) {
-    return ProviderOverride(
-      origin: this,
-      override: BotProvider._internal(
-        (ref) => create(ref as BotRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        publisherName: publisherName,
-        projectId: projectId,
-        id: id,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<Bot?> createElement() {
-    return _BotProviderElement(this);
+  FutureOr<Bot?> create(Ref ref) {
+    final argument = this.argument as (String, String, String);
+    return bot(ref, argument.$1, argument.$2, argument.$3);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BotProvider &&
-        other.publisherName == publisherName &&
-        other.projectId == projectId &&
-        other.id == id;
+    return other is BotProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, publisherName.hashCode);
-    hash = _SystemHash.combine(hash, projectId.hashCode);
-    hash = _SystemHash.combine(hash, id.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin BotRef on AutoDisposeFutureProviderRef<Bot?> {
-  /// The parameter `publisherName` of this provider.
-  String get publisherName;
+String _$botHash() => r'7bec47bb2a4061a5babc6d6d19c3d4c320c91188';
 
-  /// The parameter `projectId` of this provider.
-  String get projectId;
+final class BotFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Bot?>, (String, String, String)> {
+  const BotFamily._()
+    : super(
+        retry: null,
+        name: r'botProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  /// The parameter `id` of this provider.
-  String get id;
+  BotProvider call(String publisherName, String projectId, String id) =>
+      BotProvider._(argument: (publisherName, projectId, id), from: this);
+
+  @override
+  String toString() => r'botProvider';
 }
-
-class _BotProviderElement extends AutoDisposeFutureProviderElement<Bot?>
-    with BotRef {
-  _BotProviderElement(super.provider);
-
-  @override
-  String get publisherName => (origin as BotProvider).publisherName;
-  @override
-  String get projectId => (origin as BotProvider).projectId;
-  @override
-  String get id => (origin as BotProvider).id;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

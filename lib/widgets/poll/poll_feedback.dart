@@ -20,16 +20,18 @@ final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose
       PollFeedbackNotifier.new,
     );
 
-class PollFeedbackNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPollAnswer>, String>
-    with FamilyAsyncPaginationController<SnPollAnswer, String> {
-  static const int _pageSize = 20;
+class PollFeedbackNotifier extends AsyncNotifier<List<SnPollAnswer>>
+    with AsyncPaginationController<SnPollAnswer> {
+  static const int pageSize = 20;
+
+  final String arg;
+  PollFeedbackNotifier(this.arg);
 
   @override
   Future<List<SnPollAnswer>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': pageSize};
 
     final response = await client.get(
       '/sphere/polls/$arg/feedback',
@@ -68,8 +70,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
                     return Column(
                       children: [
                         _PollAnswerTile(answer: answer, poll: data),
-                        if (index <
-                            (ref.read(provider).valueOrNull?.length ?? 0) - 1)
+                        if (index < (ref.read(provider).value?.length ?? 0) - 1)
                           const Divider(height: 1).padding(vertical: 4),
                       ],
                     );

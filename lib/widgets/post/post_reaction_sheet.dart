@@ -18,35 +18,29 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/stickers/sticker_picker.dart';
 import 'package:island/pods/config.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class ReactionListParams {
-  final String symbol;
-  final String postId;
+part 'post_reaction_sheet.freezed.dart';
 
-  const ReactionListParams({required this.symbol, required this.postId});
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ReactionListParams &&
-          runtimeType == other.runtimeType &&
-          symbol == other.symbol &&
-          postId == other.postId;
-
-  @override
-  int get hashCode => symbol.hashCode ^ postId.hashCode;
+@freezed
+sealed class ReactionListQuery with _$ReactionListQuery {
+  const factory ReactionListQuery({
+    required String symbol,
+    required String postId,
+  }) = _ReactionListQuery;
 }
 
 final reactionListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<ReactionListNotifier, List<SnPostReaction>, ReactionListParams>(
+    .family<ReactionListNotifier, List<SnPostReaction>, ReactionListQuery>(
       ReactionListNotifier.new,
     );
 
-class ReactionListNotifier
-    extends
-        AutoDisposeFamilyAsyncNotifier<List<SnPostReaction>, ReactionListParams>
-    with FamilyAsyncPaginationController<SnPostReaction, ReactionListParams> {
-  static const int _pageSize = 20;
+class ReactionListNotifier extends AsyncNotifier<List<SnPostReaction>>
+    with AsyncPaginationController<SnPostReaction> {
+  static const int pageSize = 20;
+
+  final ReactionListQuery arg;
+  ReactionListNotifier(this.arg);
 
   @override
   Future<List<SnPostReaction>> fetch() async {
@@ -57,7 +51,7 @@ class ReactionListNotifier
       queryParameters: {
         'symbol': arg.symbol,
         'offset': fetchedCount,
-        'take': _pageSize,
+        'take': pageSize,
       },
     );
 
@@ -488,7 +482,7 @@ class ReactionDetailsPopup extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final params = ReactionListParams(symbol: symbol, postId: postId);
+    final params = ReactionListQuery(symbol: symbol, postId: postId);
     final provider = reactionListNotifierProvider(params);
 
     final width = math.min(MediaQuery.of(context).size.width * 0.8, 480.0);

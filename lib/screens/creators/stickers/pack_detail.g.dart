@@ -6,272 +6,157 @@ part of 'pack_detail.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stickerPackContentHash() =>
-    r'42d74f51022e67e35cb601c2f30f4f02e1f2be9d';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [stickerPackContent].
 @ProviderFor(stickerPackContent)
-const stickerPackContentProvider = StickerPackContentFamily();
+const stickerPackContentProvider = StickerPackContentFamily._();
 
-/// See also [stickerPackContent].
-class StickerPackContentFamily extends Family<AsyncValue<List<SnSticker>>> {
-  /// See also [stickerPackContent].
-  const StickerPackContentFamily();
+final class StickerPackContentProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnSticker>>,
+          List<SnSticker>,
+          FutureOr<List<SnSticker>>
+        >
+    with $FutureModifier<List<SnSticker>>, $FutureProvider<List<SnSticker>> {
+  const StickerPackContentProvider._({
+    required StickerPackContentFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'stickerPackContentProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [stickerPackContent].
-  StickerPackContentProvider call(String packId) {
-    return StickerPackContentProvider(packId);
+  @override
+  String debugGetCreateSourceHash() => _$stickerPackContentHash();
+
+  @override
+  String toString() {
+    return r'stickerPackContentProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  StickerPackContentProvider getProviderOverride(
-    covariant StickerPackContentProvider provider,
-  ) {
-    return call(provider.packId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<List<SnSticker>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'stickerPackContentProvider';
-}
-
-/// See also [stickerPackContent].
-class StickerPackContentProvider
-    extends AutoDisposeFutureProvider<List<SnSticker>> {
-  /// See also [stickerPackContent].
-  StickerPackContentProvider(String packId)
-    : this._internal(
-        (ref) => stickerPackContent(ref as StickerPackContentRef, packId),
-        from: stickerPackContentProvider,
-        name: r'stickerPackContentProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$stickerPackContentHash,
-        dependencies: StickerPackContentFamily._dependencies,
-        allTransitiveDependencies:
-            StickerPackContentFamily._allTransitiveDependencies,
-        packId: packId,
-      );
-
-  StickerPackContentProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.packId,
-  }) : super.internal();
-
-  final String packId;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<SnSticker>> Function(StickerPackContentRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: StickerPackContentProvider._internal(
-        (ref) => create(ref as StickerPackContentRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        packId: packId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SnSticker>> createElement() {
-    return _StickerPackContentProviderElement(this);
+  FutureOr<List<SnSticker>> create(Ref ref) {
+    final argument = this.argument as String;
+    return stickerPackContent(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is StickerPackContentProvider && other.packId == packId;
+    return other is StickerPackContentProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, packId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin StickerPackContentRef on AutoDisposeFutureProviderRef<List<SnSticker>> {
-  /// The parameter `packId` of this provider.
-  String get packId;
-}
+String _$stickerPackContentHash() =>
+    r'42d74f51022e67e35cb601c2f30f4f02e1f2be9d';
 
-class _StickerPackContentProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnSticker>>
-    with StickerPackContentRef {
-  _StickerPackContentProviderElement(super.provider);
+final class StickerPackContentFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<SnSticker>>, String> {
+  const StickerPackContentFamily._()
+    : super(
+        retry: null,
+        name: r'stickerPackContentProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  StickerPackContentProvider call(String packId) =>
+      StickerPackContentProvider._(argument: packId, from: this);
 
   @override
-  String get packId => (origin as StickerPackContentProvider).packId;
+  String toString() => r'stickerPackContentProvider';
+}
+
+@ProviderFor(stickerPackSticker)
+const stickerPackStickerProvider = StickerPackStickerFamily._();
+
+final class StickerPackStickerProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnSticker?>,
+          SnSticker?,
+          FutureOr<SnSticker?>
+        >
+    with $FutureModifier<SnSticker?>, $FutureProvider<SnSticker?> {
+  const StickerPackStickerProvider._({
+    required StickerPackStickerFamily super.from,
+    required StickerWithPackQuery? super.argument,
+  }) : super(
+         retry: null,
+         name: r'stickerPackStickerProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$stickerPackStickerHash();
+
+  @override
+  String toString() {
+    return r'stickerPackStickerProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnSticker?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnSticker?> create(Ref ref) {
+    final argument = this.argument as StickerWithPackQuery?;
+    return stickerPackSticker(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is StickerPackStickerProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$stickerPackStickerHash() =>
     r'5c553666b3a63530bdebae4b7cd52f303c5ab3a0';
 
-/// See also [stickerPackSticker].
-@ProviderFor(stickerPackSticker)
-const stickerPackStickerProvider = StickerPackStickerFamily();
-
-/// See also [stickerPackSticker].
-class StickerPackStickerFamily extends Family<AsyncValue<SnSticker?>> {
-  /// See also [stickerPackSticker].
-  const StickerPackStickerFamily();
-
-  /// See also [stickerPackSticker].
-  StickerPackStickerProvider call(StickerWithPackQuery? query) {
-    return StickerPackStickerProvider(query);
-  }
-
-  @override
-  StickerPackStickerProvider getProviderOverride(
-    covariant StickerPackStickerProvider provider,
-  ) {
-    return call(provider.query);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'stickerPackStickerProvider';
-}
-
-/// See also [stickerPackSticker].
-class StickerPackStickerProvider extends AutoDisposeFutureProvider<SnSticker?> {
-  /// See also [stickerPackSticker].
-  StickerPackStickerProvider(StickerWithPackQuery? query)
-    : this._internal(
-        (ref) => stickerPackSticker(ref as StickerPackStickerRef, query),
-        from: stickerPackStickerProvider,
+final class StickerPackStickerFamily extends $Family
+    with
+        $FunctionalFamilyOverride<FutureOr<SnSticker?>, StickerWithPackQuery?> {
+  const StickerPackStickerFamily._()
+    : super(
+        retry: null,
         name: r'stickerPackStickerProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$stickerPackStickerHash,
-        dependencies: StickerPackStickerFamily._dependencies,
-        allTransitiveDependencies:
-            StickerPackStickerFamily._allTransitiveDependencies,
-        query: query,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  StickerPackStickerProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.query,
-  }) : super.internal();
-
-  final StickerWithPackQuery? query;
+  StickerPackStickerProvider call(StickerWithPackQuery? query) =>
+      StickerPackStickerProvider._(argument: query, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnSticker?> Function(StickerPackStickerRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: StickerPackStickerProvider._internal(
-        (ref) => create(ref as StickerPackStickerRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        query: query,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnSticker?> createElement() {
-    return _StickerPackStickerProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is StickerPackStickerProvider && other.query == query;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, query.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'stickerPackStickerProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin StickerPackStickerRef on AutoDisposeFutureProviderRef<SnSticker?> {
-  /// The parameter `query` of this provider.
-  StickerWithPackQuery? get query;
-}
-
-class _StickerPackStickerProviderElement
-    extends AutoDisposeFutureProviderElement<SnSticker?>
-    with StickerPackStickerRef {
-  _StickerPackStickerProviderElement(super.provider);
-
-  @override
-  StickerWithPackQuery? get query =>
-      (origin as StickerPackStickerProvider).query;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -99,7 +99,7 @@ class PostActionableItem extends HookConsumerWidget {
       [user],
     );
 
-    final config = ref.watch(appSettingsNotifierProvider);
+    final config = ref.watch(appSettingsProvider);
 
     final widgetItem = InkWell(
       borderRadius:

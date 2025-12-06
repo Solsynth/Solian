@@ -6,25 +6,46 @@ part of 'relationship.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sentFriendRequestHash() => r'0c52813eb6f86c05f6e0b1e4e840d0d9c350aa9e';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [sentFriendRequest].
 @ProviderFor(sentFriendRequest)
-final sentFriendRequestProvider =
-    AutoDisposeFutureProvider<List<SnRelationship>>.internal(
-      sentFriendRequest,
-      name: r'sentFriendRequestProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$sentFriendRequestHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const sentFriendRequestProvider = SentFriendRequestProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef SentFriendRequestRef =
-    AutoDisposeFutureProviderRef<List<SnRelationship>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class SentFriendRequestProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnRelationship>>,
+          List<SnRelationship>,
+          FutureOr<List<SnRelationship>>
+        >
+    with
+        $FutureModifier<List<SnRelationship>>,
+        $FutureProvider<List<SnRelationship>> {
+  const SentFriendRequestProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sentFriendRequestProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sentFriendRequestHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnRelationship>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnRelationship>> create(Ref ref) {
+    return sentFriendRequest(ref);
+  }
+}
+
+String _$sentFriendRequestHash() => r'0c52813eb6f86c05f6e0b1e4e840d0d9c350aa9e';

@@ -21,10 +21,12 @@ final pollListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   PollListNotifier.new,
 );
 
-class PollListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPollWithStats>, String?>
-    with FamilyAsyncPaginationController<SnPollWithStats, String?> {
+class PollListNotifier extends AsyncNotifier<List<SnPollWithStats>>
+    with AsyncPaginationController<SnPollWithStats> {
   static const int pageSize = 20;
+
+  final String? arg;
+  PollListNotifier(this.arg);
 
   @override
   Future<List<SnPollWithStats>> fetch() async {

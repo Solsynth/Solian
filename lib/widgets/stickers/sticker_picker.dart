@@ -463,7 +463,6 @@ Future<void> showStickerPickerPopover(
           width: math.min(480, MediaQuery.of(context).size.width * 0.9),
           height: 480,
           child: ProviderScope(
-            parent: ProviderScope.containerOf(context),
             child: StickerPicker(
               onPick: (ph) {
                 onPick(ph);

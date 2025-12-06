@@ -17,8 +17,8 @@ import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_award_history_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
-import 'package:island/widgets/post/post_replies.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
+import 'package:island/widgets/post/post_replies.dart';
 import 'package:island/widgets/response.dart';
 import 'package:island/utils/share_utils.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
@@ -38,20 +38,21 @@ Future<SnPost?> post(Ref ref, String id) async {
 }
 
 final postStateProvider =
-    StateNotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
-      (ref, id) => PostState(ref, id),
+    NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
+      PostState.new,
     );
 
-class PostState extends StateNotifier<AsyncValue<SnPost?>> {
-  final Ref _ref;
-  final String _id;
+class PostState extends Notifier<AsyncValue<SnPost?>> {
+  final String arg;
+  PostState(this.arg);
 
-  PostState(this._ref, this._id) : super(const AsyncValue.loading()) {
-    // Initialize with the initial post data
-    _ref.listen<AsyncValue<SnPost?>>(
-      postProvider(_id),
+  @override
+  AsyncValue<SnPost?> build() {
+    ref.listen<AsyncValue<SnPost?>>(
+      postProvider(arg),
       (_, next) => state = next,
     );
+    return const AsyncValue.loading();
   }
 
   void updatePost(SnPost? newPost) {
@@ -460,7 +461,7 @@ class PostDetailScreen extends HookConsumerWidget {
               ExtendedRefreshIndicator(
                 onRefresh: () async {
                   ref.invalidate(postProvider(id));
-                  ref.invalidate(postRepliesNotifierProvider(id));
+                  ref.read(postRepliesProvider(id).notifier).refresh();
                 },
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -494,7 +495,9 @@ class PostDetailScreen extends HookConsumerWidget {
                             ),
                             onRefresh: () {
                               ref.invalidate(postProvider(id));
-                              ref.invalidate(postRepliesNotifierProvider(id));
+                              ref
+                                  .read(postRepliesProvider(id).notifier)
+                                  .refresh();
                             },
                             onUpdate: (newItem) {
                               ref
@@ -523,9 +526,9 @@ class PostDetailScreen extends HookConsumerWidget {
                               (post) => PostQuickReply(
                                 parent: post!,
                                 onPosted: () {
-                                  ref.invalidate(
-                                    postRepliesNotifierProvider(id),
-                                  );
+                                  ref
+                                      .read(postRepliesProvider(id).notifier)
+                                      .refresh();
                                 },
                               ),
                           loading: () => const SizedBox.shrink(),

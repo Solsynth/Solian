@@ -529,10 +529,12 @@ final realmMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
       RealmMemberListNotifier.new,
     );
 
-class RealmMemberListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnRealmMember>, String>
-    with FamilyAsyncPaginationController<SnRealmMember, String> {
-  static const int _pageSize = 20;
+class RealmMemberListNotifier extends AsyncNotifier<List<SnRealmMember>>
+    with AsyncPaginationController<SnRealmMember> {
+  String arg;
+  RealmMemberListNotifier(this.arg);
+
+  static const int pageSize = 20;
 
   @override
   Future<List<SnRealmMember>> fetch() async {
@@ -542,7 +544,7 @@ class RealmMemberListNotifier
       '/pass/realms/$arg/members',
       queryParameters: {
         'offset': fetchedCount,
-        'take': _pageSize,
+        'take': pageSize,
         'withStatus': true,
       },
     );

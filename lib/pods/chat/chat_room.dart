@@ -11,9 +11,32 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_room.g.dart';
 
-final isSyncingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final chatSyncingProvider = NotifierProvider<ChatSyncingNotifier, bool>(
+  ChatSyncingNotifier.new,
+);
 
-final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
+class ChatSyncingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
+final flashingMessagesProvider =
+    NotifierProvider<FlashingMessagesNotifier, Set<String>>(
+      FlashingMessagesNotifier.new,
+    );
+
+class FlashingMessagesNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void update(Set<String> Function(Set<String>) cb) {
+    state = cb(state);
+  }
+
+  void clear() => state = {};
+}
 
 @riverpod
 class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {

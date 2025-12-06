@@ -6,406 +6,229 @@ part of 'post_category_detail.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postCategoryHash() => r'0df2de729ba96819ee37377314615abef0c99547';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [postCategory].
 @ProviderFor(postCategory)
-const postCategoryProvider = PostCategoryFamily();
+const postCategoryProvider = PostCategoryFamily._();
 
-/// See also [postCategory].
-class PostCategoryFamily extends Family<AsyncValue<SnPostCategory>> {
-  /// See also [postCategory].
-  const PostCategoryFamily();
+final class PostCategoryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPostCategory>,
+          SnPostCategory,
+          FutureOr<SnPostCategory>
+        >
+    with $FutureModifier<SnPostCategory>, $FutureProvider<SnPostCategory> {
+  const PostCategoryProvider._({
+    required PostCategoryFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'postCategoryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [postCategory].
-  PostCategoryProvider call(String slug) {
-    return PostCategoryProvider(slug);
+  @override
+  String debugGetCreateSourceHash() => _$postCategoryHash();
+
+  @override
+  String toString() {
+    return r'postCategoryProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  PostCategoryProvider getProviderOverride(
-    covariant PostCategoryProvider provider,
-  ) {
-    return call(provider.slug);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<SnPostCategory> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'postCategoryProvider';
-}
-
-/// See also [postCategory].
-class PostCategoryProvider extends AutoDisposeFutureProvider<SnPostCategory> {
-  /// See also [postCategory].
-  PostCategoryProvider(String slug)
-    : this._internal(
-        (ref) => postCategory(ref as PostCategoryRef, slug),
-        from: postCategoryProvider,
-        name: r'postCategoryProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$postCategoryHash,
-        dependencies: PostCategoryFamily._dependencies,
-        allTransitiveDependencies:
-            PostCategoryFamily._allTransitiveDependencies,
-        slug: slug,
-      );
-
-  PostCategoryProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.slug,
-  }) : super.internal();
-
-  final String slug;
-
-  @override
-  Override overrideWith(
-    FutureOr<SnPostCategory> Function(PostCategoryRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PostCategoryProvider._internal(
-        (ref) => create(ref as PostCategoryRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        slug: slug,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnPostCategory> createElement() {
-    return _PostCategoryProviderElement(this);
+  FutureOr<SnPostCategory> create(Ref ref) {
+    final argument = this.argument as String;
+    return postCategory(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PostCategoryProvider && other.slug == slug;
+    return other is PostCategoryProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, slug.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PostCategoryRef on AutoDisposeFutureProviderRef<SnPostCategory> {
-  /// The parameter `slug` of this provider.
-  String get slug;
-}
+String _$postCategoryHash() => r'0df2de729ba96819ee37377314615abef0c99547';
 
-class _PostCategoryProviderElement
-    extends AutoDisposeFutureProviderElement<SnPostCategory>
-    with PostCategoryRef {
-  _PostCategoryProviderElement(super.provider);
+final class PostCategoryFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnPostCategory>, String> {
+  const PostCategoryFamily._()
+    : super(
+        retry: null,
+        name: r'postCategoryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PostCategoryProvider call(String slug) =>
+      PostCategoryProvider._(argument: slug, from: this);
 
   @override
-  String get slug => (origin as PostCategoryProvider).slug;
+  String toString() => r'postCategoryProvider';
+}
+
+@ProviderFor(postTag)
+const postTagProvider = PostTagFamily._();
+
+final class PostTagProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPostTag>,
+          SnPostTag,
+          FutureOr<SnPostTag>
+        >
+    with $FutureModifier<SnPostTag>, $FutureProvider<SnPostTag> {
+  const PostTagProvider._({
+    required PostTagFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'postTagProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$postTagHash();
+
+  @override
+  String toString() {
+    return r'postTagProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPostTag> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPostTag> create(Ref ref) {
+    final argument = this.argument as String;
+    return postTag(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PostTagProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$postTagHash() => r'e050fdf9af81a843a9abd9cf979dd2672e0a2b93';
 
-/// See also [postTag].
-@ProviderFor(postTag)
-const postTagProvider = PostTagFamily();
-
-/// See also [postTag].
-class PostTagFamily extends Family<AsyncValue<SnPostTag>> {
-  /// See also [postTag].
-  const PostTagFamily();
-
-  /// See also [postTag].
-  PostTagProvider call(String slug) {
-    return PostTagProvider(slug);
-  }
-
-  @override
-  PostTagProvider getProviderOverride(covariant PostTagProvider provider) {
-    return call(provider.slug);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'postTagProvider';
-}
-
-/// See also [postTag].
-class PostTagProvider extends AutoDisposeFutureProvider<SnPostTag> {
-  /// See also [postTag].
-  PostTagProvider(String slug)
-    : this._internal(
-        (ref) => postTag(ref as PostTagRef, slug),
-        from: postTagProvider,
+final class PostTagFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnPostTag>, String> {
+  const PostTagFamily._()
+    : super(
+        retry: null,
         name: r'postTagProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$postTagHash,
-        dependencies: PostTagFamily._dependencies,
-        allTransitiveDependencies: PostTagFamily._allTransitiveDependencies,
-        slug: slug,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  PostTagProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.slug,
-  }) : super.internal();
-
-  final String slug;
+  PostTagProvider call(String slug) =>
+      PostTagProvider._(argument: slug, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<SnPostTag> Function(PostTagRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PostTagProvider._internal(
-        (ref) => create(ref as PostTagRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        slug: slug,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<SnPostTag> createElement() {
-    return _PostTagProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is PostTagProvider && other.slug == slug;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, slug.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'postTagProvider';
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PostTagRef on AutoDisposeFutureProviderRef<SnPostTag> {
-  /// The parameter `slug` of this provider.
-  String get slug;
-}
-
-class _PostTagProviderElement
-    extends AutoDisposeFutureProviderElement<SnPostTag>
-    with PostTagRef {
-  _PostTagProviderElement(super.provider);
-
-  @override
-  String get slug => (origin as PostTagProvider).slug;
-}
-
-String _$postCategorySubscriptionStatusHash() =>
-    r'407dc7fcaeffc461b591b4ee2418811aa4f0a63f';
-
-/// See also [postCategorySubscriptionStatus].
 @ProviderFor(postCategorySubscriptionStatus)
 const postCategorySubscriptionStatusProvider =
-    PostCategorySubscriptionStatusFamily();
+    PostCategorySubscriptionStatusFamily._();
 
-/// See also [postCategorySubscriptionStatus].
-class PostCategorySubscriptionStatusFamily extends Family<AsyncValue<bool>> {
-  /// See also [postCategorySubscriptionStatus].
-  const PostCategorySubscriptionStatusFamily();
+final class PostCategorySubscriptionStatusProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  const PostCategorySubscriptionStatusProvider._({
+    required PostCategorySubscriptionStatusFamily super.from,
+    required (String, bool) super.argument,
+  }) : super(
+         retry: null,
+         name: r'postCategorySubscriptionStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [postCategorySubscriptionStatus].
-  PostCategorySubscriptionStatusProvider call(String slug, bool isCategory) {
-    return PostCategorySubscriptionStatusProvider(slug, isCategory);
+  @override
+  String debugGetCreateSourceHash() => _$postCategorySubscriptionStatusHash();
+
+  @override
+  String toString() {
+    return r'postCategorySubscriptionStatusProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  PostCategorySubscriptionStatusProvider getProviderOverride(
-    covariant PostCategorySubscriptionStatusProvider provider,
-  ) {
-    return call(provider.slug, provider.isCategory);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'postCategorySubscriptionStatusProvider';
-}
-
-/// See also [postCategorySubscriptionStatus].
-class PostCategorySubscriptionStatusProvider
-    extends AutoDisposeFutureProvider<bool> {
-  /// See also [postCategorySubscriptionStatus].
-  PostCategorySubscriptionStatusProvider(String slug, bool isCategory)
-    : this._internal(
-        (ref) => postCategorySubscriptionStatus(
-          ref as PostCategorySubscriptionStatusRef,
-          slug,
-          isCategory,
-        ),
-        from: postCategorySubscriptionStatusProvider,
-        name: r'postCategorySubscriptionStatusProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$postCategorySubscriptionStatusHash,
-        dependencies: PostCategorySubscriptionStatusFamily._dependencies,
-        allTransitiveDependencies:
-            PostCategorySubscriptionStatusFamily._allTransitiveDependencies,
-        slug: slug,
-        isCategory: isCategory,
-      );
-
-  PostCategorySubscriptionStatusProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.slug,
-    required this.isCategory,
-  }) : super.internal();
-
-  final String slug;
-  final bool isCategory;
-
-  @override
-  Override overrideWith(
-    FutureOr<bool> Function(PostCategorySubscriptionStatusRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PostCategorySubscriptionStatusProvider._internal(
-        (ref) => create(ref as PostCategorySubscriptionStatusRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        slug: slug,
-        isCategory: isCategory,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<bool> createElement() {
-    return _PostCategorySubscriptionStatusProviderElement(this);
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as (String, bool);
+    return postCategorySubscriptionStatus(ref, argument.$1, argument.$2);
   }
 
   @override
   bool operator ==(Object other) {
     return other is PostCategorySubscriptionStatusProvider &&
-        other.slug == slug &&
-        other.isCategory == isCategory;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, slug.hashCode);
-    hash = _SystemHash.combine(hash, isCategory.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PostCategorySubscriptionStatusRef on AutoDisposeFutureProviderRef<bool> {
-  /// The parameter `slug` of this provider.
-  String get slug;
+String _$postCategorySubscriptionStatusHash() =>
+    r'407dc7fcaeffc461b591b4ee2418811aa4f0a63f';
 
-  /// The parameter `isCategory` of this provider.
-  bool get isCategory;
-}
+final class PostCategorySubscriptionStatusFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, (String, bool)> {
+  const PostCategorySubscriptionStatusFamily._()
+    : super(
+        retry: null,
+        name: r'postCategorySubscriptionStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-class _PostCategorySubscriptionStatusProviderElement
-    extends AutoDisposeFutureProviderElement<bool>
-    with PostCategorySubscriptionStatusRef {
-  _PostCategorySubscriptionStatusProviderElement(super.provider);
+  PostCategorySubscriptionStatusProvider call(String slug, bool isCategory) =>
+      PostCategorySubscriptionStatusProvider._(
+        argument: (slug, isCategory),
+        from: this,
+      );
 
   @override
-  String get slug => (origin as PostCategorySubscriptionStatusProvider).slug;
-  @override
-  bool get isCategory =>
-      (origin as PostCategorySubscriptionStatusProvider).isCategory;
+  String toString() => r'postCategorySubscriptionStatusProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

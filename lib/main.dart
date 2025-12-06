@@ -211,7 +211,7 @@ class IslandApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     // Convert string theme mode to ThemeMode enum
     ThemeMode getThemeMode() {

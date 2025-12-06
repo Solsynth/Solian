@@ -16,14 +16,12 @@ final webFeedListProvider = FutureProvider.family<List<SnWebFeed>, String>((
       .toList();
 });
 
-class WebFeedNotifier
-    extends
-        AutoDisposeFamilyAsyncNotifier<
-          SnWebFeed,
-          ({String pubName, String? feedId})
-        > {
+class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
+  final ({String pubName, String? feedId}) arg;
+  WebFeedNotifier(this.arg);
+
   @override
-  FutureOr<SnWebFeed> build(({String pubName, String? feedId}) arg) async {
+  FutureOr<SnWebFeed> build() async {
     if (arg.feedId == null || arg.feedId!.isEmpty) {
       return SnWebFeed(
         id: '',

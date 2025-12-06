@@ -34,8 +34,8 @@ class AudioCallButton extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
-    final callState = ref.watch(callNotifierProvider);
-    final callNotifier = ref.read(callNotifierProvider.notifier);
+    final callState = ref.watch(callProvider);
+    final callNotifier = ref.read(callProvider.notifier);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
 

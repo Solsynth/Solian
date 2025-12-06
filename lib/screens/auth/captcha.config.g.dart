@@ -6,21 +6,38 @@ part of 'captcha.config.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$captchaUrlHash() => r'5d59de4f26a0544bf4fbd5209943f0b111959ce6';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [captchaUrl].
 @ProviderFor(captchaUrl)
-final captchaUrlProvider = AutoDisposeFutureProvider<String>.internal(
-  captchaUrl,
-  name: r'captchaUrlProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$captchaUrlHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const captchaUrlProvider = CaptchaUrlProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CaptchaUrlRef = AutoDisposeFutureProviderRef<String>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class CaptchaUrlProvider
+    extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
+    with $FutureModifier<String>, $FutureProvider<String> {
+  const CaptchaUrlProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'captchaUrlProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$captchaUrlHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<String> create(Ref ref) {
+    return captchaUrl(ref);
+  }
+}
+
+String _$captchaUrlHash() => r'5d59de4f26a0544bf4fbd5209943f0b111959ce6';

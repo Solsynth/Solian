@@ -272,7 +272,7 @@ class ComposeLogic {
         deletedAt: null,
       );
 
-      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+      await ref.read(composeStorageProvider.notifier).saveDraft(draft);
     } catch (e) {
       talker.error('[ComposeLogic] Failed to save draft, error: $e');
     }
@@ -345,7 +345,7 @@ class ComposeLogic {
         deletedAt: null,
       );
 
-      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+      await ref.read(composeStorageProvider.notifier).saveDraft(draft);
     } catch (e) {
       talker.error(
         '[ComposeLogic] Failed to save draft without upload, error: $e',
@@ -374,9 +374,7 @@ class ComposeLogic {
 
   static Future<void> deleteDraft(WidgetRef ref, String draftId) async {
     try {
-      await ref
-          .read(composeStorageNotifierProvider.notifier)
-          .deleteDraft(draftId);
+      await ref.read(composeStorageProvider.notifier).deleteDraft(draftId);
     } catch (e) {
       // Silently fail
     }
@@ -384,9 +382,7 @@ class ComposeLogic {
 
   static Future<SnPost?> loadDraft(WidgetRef ref, String draftId) async {
     try {
-      return ref
-          .read(composeStorageNotifierProvider.notifier)
-          .getDraft(draftId);
+      return ref.read(composeStorageProvider.notifier).getDraft(draftId);
     } catch (e) {
       return null;
     }
@@ -778,12 +774,12 @@ class ComposeLogic {
         if (state.postType == 1) {
           // Delete article draft
           await ref
-              .read(composeStorageNotifierProvider.notifier)
+              .read(composeStorageProvider.notifier)
               .deleteDraft(state.draftId);
         } else {
           // Delete regular post draft
           await ref
-              .read(composeStorageNotifierProvider.notifier)
+              .read(composeStorageProvider.notifier)
               .deleteDraft(state.draftId);
         }
 

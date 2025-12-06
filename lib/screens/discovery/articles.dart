@@ -22,10 +22,12 @@ final articlesListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   ArticlesListNotifier.new,
 );
 
-class ArticlesListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnWebArticle>, ArticleListQuery>
-    with FamilyAsyncPaginationController<SnWebArticle, ArticleListQuery> {
+class ArticlesListNotifier extends AsyncNotifier<List<SnWebArticle>>
+    with AsyncPaginationController<SnWebArticle> {
   static const int pageSize = 20;
+
+  final ArticleListQuery arg;
+  ArticlesListNotifier(this.arg);
 
   @override
   Future<List<SnWebArticle>> fetch() async {

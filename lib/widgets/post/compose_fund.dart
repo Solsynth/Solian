@@ -22,7 +22,7 @@ class ComposeFundSheet extends HookConsumerWidget {
     final isPushing = useState(false);
     final errorText = useState<String?>(null);
 
-    final fundsData = ref.watch(walletFundsNotifierProvider);
+    final fundsData = ref.watch(walletFundsProvider);
 
     return SheetScaffold(
       heightFactor: 0.6,
@@ -301,9 +301,7 @@ class ComposeFundSheet extends HookConsumerWidget {
                                           await Future.delayed(
                                             const Duration(seconds: 1),
                                           );
-                                          ref.invalidate(
-                                            walletFundsNotifierProvider,
-                                          );
+                                          ref.invalidate(walletFundsProvider);
 
                                           // Return the created fund
                                           final updatedResp = await client.get(

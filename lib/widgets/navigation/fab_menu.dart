@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/create_account_modal.dart';
@@ -19,9 +19,20 @@ import 'package:material_symbols_icons/symbols.dart';
 enum FabMenuType { main, compose, chat, realm }
 
 /// Global state provider for FAB menu type
-final fabMenuTypeProvider = StateProvider<FabMenuType>(
-  (ref) => FabMenuType.main,
+final fabMenuTypeProvider = NotifierProvider<FabMenuTypeNotifier, FabMenuType>(
+  FabMenuTypeNotifier.new,
 );
+
+class FabMenuTypeNotifier extends Notifier<FabMenuType> {
+  @override
+  FabMenuType build() {
+    return FabMenuType.main;
+  }
+
+  void setMenuType(FabMenuType menuType) {
+    state = menuType;
+  }
+}
 
 class FabMenu extends HookConsumerWidget {
   final double? elevation;
@@ -97,9 +108,7 @@ class FabMenu extends HookConsumerWidget {
         ),
       Consumer(
         builder: (context, ref, _) {
-          final notificationCount = ref.watch(
-            notificationUnreadCountNotifierProvider,
-          );
+          final notificationCount = ref.watch(notificationUnreadCountProvider);
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             leading: const Icon(Symbols.notifications),

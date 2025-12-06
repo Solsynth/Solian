@@ -6,171 +6,104 @@ part of 'chat_subscribe.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatSubscribeNotifierHash() =>
-    r'beec1ddf2e13f6d5af8a08c2c81eff740ae9b986';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$ChatSubscribeNotifier
-    extends BuildlessAutoDisposeNotifier<List<SnChatMember>> {
-  late final String roomId;
-
-  List<SnChatMember> build(String roomId);
-}
-
-/// See also [ChatSubscribeNotifier].
 @ProviderFor(ChatSubscribeNotifier)
-const chatSubscribeNotifierProvider = ChatSubscribeNotifierFamily();
+const chatSubscribeProvider = ChatSubscribeNotifierFamily._();
 
-/// See also [ChatSubscribeNotifier].
-class ChatSubscribeNotifierFamily extends Family<List<SnChatMember>> {
-  /// See also [ChatSubscribeNotifier].
-  const ChatSubscribeNotifierFamily();
+final class ChatSubscribeNotifierProvider
+    extends $NotifierProvider<ChatSubscribeNotifier, List<SnChatMember>> {
+  const ChatSubscribeNotifierProvider._({
+    required ChatSubscribeNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'chatSubscribeProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [ChatSubscribeNotifier].
-  ChatSubscribeNotifierProvider call(String roomId) {
-    return ChatSubscribeNotifierProvider(roomId);
+  @override
+  String debugGetCreateSourceHash() => _$chatSubscribeNotifierHash();
+
+  @override
+  String toString() {
+    return r'chatSubscribeProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  ChatSubscribeNotifierProvider getProviderOverride(
-    covariant ChatSubscribeNotifierProvider provider,
-  ) {
-    return call(provider.roomId);
-  }
+  ChatSubscribeNotifier create() => ChatSubscribeNotifier();
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'chatSubscribeNotifierProvider';
-}
-
-/// See also [ChatSubscribeNotifier].
-class ChatSubscribeNotifierProvider
-    extends
-        AutoDisposeNotifierProviderImpl<
-          ChatSubscribeNotifier,
-          List<SnChatMember>
-        > {
-  /// See also [ChatSubscribeNotifier].
-  ChatSubscribeNotifierProvider(String roomId)
-    : this._internal(
-        () => ChatSubscribeNotifier()..roomId = roomId,
-        from: chatSubscribeNotifierProvider,
-        name: r'chatSubscribeNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$chatSubscribeNotifierHash,
-        dependencies: ChatSubscribeNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            ChatSubscribeNotifierFamily._allTransitiveDependencies,
-        roomId: roomId,
-      );
-
-  ChatSubscribeNotifierProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.roomId,
-  }) : super.internal();
-
-  final String roomId;
-
-  @override
-  List<SnChatMember> runNotifierBuild(
-    covariant ChatSubscribeNotifier notifier,
-  ) {
-    return notifier.build(roomId);
-  }
-
-  @override
-  Override overrideWith(ChatSubscribeNotifier Function() create) {
-    return ProviderOverride(
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<SnChatMember> value) {
+    return $ProviderOverride(
       origin: this,
-      override: ChatSubscribeNotifierProvider._internal(
-        () => create()..roomId = roomId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        roomId: roomId,
-      ),
+      providerOverride: $SyncValueProvider<List<SnChatMember>>(value),
     );
   }
 
   @override
-  AutoDisposeNotifierProviderElement<ChatSubscribeNotifier, List<SnChatMember>>
-  createElement() {
-    return _ChatSubscribeNotifierProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is ChatSubscribeNotifierProvider && other.roomId == roomId;
+    return other is ChatSubscribeNotifierProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, roomId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ChatSubscribeNotifierRef
-    on AutoDisposeNotifierProviderRef<List<SnChatMember>> {
-  /// The parameter `roomId` of this provider.
-  String get roomId;
-}
+String _$chatSubscribeNotifierHash() =>
+    r'2b9fae96eb1f96a514a074985e5efa1c13d10aa4';
 
-class _ChatSubscribeNotifierProviderElement
-    extends
-        AutoDisposeNotifierProviderElement<
+final class ChatSubscribeNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
           ChatSubscribeNotifier,
-          List<SnChatMember>
-        >
-    with ChatSubscribeNotifierRef {
-  _ChatSubscribeNotifierProviderElement(super.provider);
+          List<SnChatMember>,
+          List<SnChatMember>,
+          List<SnChatMember>,
+          String
+        > {
+  const ChatSubscribeNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'chatSubscribeProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ChatSubscribeNotifierProvider call(String roomId) =>
+      ChatSubscribeNotifierProvider._(argument: roomId, from: this);
 
   @override
-  String get roomId => (origin as ChatSubscribeNotifierProvider).roomId;
+  String toString() => r'chatSubscribeProvider';
 }
 
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ChatSubscribeNotifier extends $Notifier<List<SnChatMember>> {
+  late final _$args = ref.$arg as String;
+  String get roomId => _$args;
+
+  List<SnChatMember> build(String roomId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(_$args);
+    final ref = this.ref as $Ref<List<SnChatMember>, List<SnChatMember>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<SnChatMember>, List<SnChatMember>>,
+              List<SnChatMember>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

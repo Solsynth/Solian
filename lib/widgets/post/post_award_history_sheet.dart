@@ -11,16 +11,18 @@ final postAwardListNotifierProvider = AsyncNotifierProvider.autoDispose
       PostAwardListNotifier.new,
     );
 
-class PostAwardListNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnPostAward>, String>
-    with FamilyAsyncPaginationController<SnPostAward, String> {
-  static const int _pageSize = 20;
+class PostAwardListNotifier extends AsyncNotifier<List<SnPostAward>>
+    with AsyncPaginationController<SnPostAward> {
+  static const int pageSize = 20;
+
+  final String arg;
+  PostAwardListNotifier(this.arg);
 
   @override
   Future<List<SnPostAward>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final queryParams = {'offset': fetchedCount, 'take': _pageSize};
+    final queryParams = {'offset': fetchedCount, 'take': pageSize};
 
     final response = await client.get(
       '/sphere/posts/$arg/awards',
@@ -50,7 +52,7 @@ class PostAwardHistorySheet extends HookConsumerWidget {
           return Column(
             children: [
               PostAwardItem(award: award),
-              if (index < (ref.read(provider).valueOrNull?.length ?? 0) - 1)
+              if (index < (ref.read(provider).value?.length ?? 0) - 1)
                 const Divider(height: 1),
             ],
           );

@@ -60,7 +60,7 @@ class ComposeStateUtils {
           repliedPost == null &&
           initialState == null) {
         // Try to load the most recent draft
-        final drafts = ref.read(composeStorageNotifierProvider);
+        final drafts = ref.read(composeStorageProvider);
         if (drafts.isNotEmpty) {
           final mostRecentDraft = drafts.values.reduce(
             (a, b) =>
@@ -128,7 +128,7 @@ class ComposeStateUtils {
               updatedAt: DateTime.now(),
             );
             ref
-                .read(composeStorageNotifierProvider.notifier)
+                .read(composeStorageProvider.notifier)
                 .saveDraft(draft)
                 .catchError((e) => debugPrint('Failed to save draft: $e'));
           }

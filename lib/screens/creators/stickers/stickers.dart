@@ -48,7 +48,7 @@ class StickersScreen extends HookConsumerWidget {
                 ),
           ).then((value) {
             if (value != null) {
-              ref.invalidate(stickerPacksNotifierProvider(pubName));
+              ref.invalidate(stickerPacksProvider(pubName));
             }
           });
         },
@@ -83,8 +83,8 @@ class SliverStickerPacksList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PaginationList(
-      provider: stickerPacksNotifierProvider(pubName),
-      notifier: stickerPacksNotifierProvider(pubName).notifier,
+      provider: stickerPacksProvider(pubName),
+      notifier: stickerPacksProvider(pubName).notifier,
       itemBuilder: (context, index, sticker) {
         return ListTile(
           shape: RoundedRectangleBorder(
@@ -139,14 +139,16 @@ class SliverStickerPacksList extends HookConsumerWidget {
   }
 }
 
-final stickerPacksNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+final stickerPacksProvider = AsyncNotifierProvider.family.autoDispose(
   StickerPacksNotifier.new,
 );
 
-class StickerPacksNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<SnStickerPack>, String>
-    with FamilyAsyncPaginationController<SnStickerPack, String> {
+class StickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
+    with AsyncPaginationController<SnStickerPack> {
   static const int pageSize = 20;
+
+  final String arg;
+  StickerPacksNotifier(this.arg);
 
   @override
   Future<List<SnStickerPack>> fetch() async {

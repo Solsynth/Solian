@@ -4,7 +4,7 @@ import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 
-final activityListNotifierProvider =
+final activityListProvider =
     AsyncNotifierProvider<ActivityListNotifier, List<SnTimelineEvent>>(
       ActivityListNotifier.new,
     );
@@ -22,8 +22,7 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
   Future<List<SnTimelineEvent>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final cursor =
-        state.valueOrNull?.lastOrNull?.createdAt.toUtc().toIso8601String();
+    final cursor = state.value?.lastOrNull?.createdAt.toUtc().toIso8601String();
 
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
@@ -46,15 +45,13 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
     final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
 
     totalCount =
-        (state.valueOrNull?.length ?? 0) +
-        items.length +
-        (hasMore ? pageSize : 0);
+        (state.value?.length ?? 0) + items.length + (hasMore ? pageSize : 0);
 
     return items;
   }
 
   void updateOne(int index, SnTimelineEvent activity) {
-    final currentState = state.valueOrNull;
+    final currentState = state.value;
     if (currentState == null) return;
 
     final updatedItems = [...currentState];

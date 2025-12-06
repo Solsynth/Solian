@@ -22,10 +22,14 @@ class WebAuthServerState {
   }
 }
 
-class WebAuthServerNotifier extends StateNotifier<WebAuthServerState> {
-  final WebAuthServer _server;
+class WebAuthServerNotifier extends Notifier<WebAuthServerState> {
+  late final WebAuthServer _server;
 
-  WebAuthServerNotifier(this._server) : super(WebAuthServerState());
+  @override
+  WebAuthServerState build() {
+    _server = ref.watch(webAuthServerProvider);
+    return WebAuthServerState();
+  }
 
   Future<void> start() async {
     try {
@@ -47,7 +51,6 @@ final webAuthServerProvider = Provider<WebAuthServer>((ref) {
 });
 
 final webAuthServerStateProvider =
-    StateNotifierProvider<WebAuthServerNotifier, WebAuthServerState>((ref) {
-  final server = ref.watch(webAuthServerProvider);
-  return WebAuthServerNotifier(server);
-});
+    NotifierProvider<WebAuthServerNotifier, WebAuthServerState>(
+      WebAuthServerNotifier.new,
+    );

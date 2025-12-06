@@ -293,7 +293,7 @@ class StickerPackActionMenu extends HookConsumerWidget {
                   if (confirm) {
                     final client = ref.watch(apiClientProvider);
                     client.delete('/sphere/stickers/$packId');
-                    ref.invalidate(stickerPacksNotifierProvider);
+                    ref.invalidate(stickerPacksProvider);
                     if (context.mounted) context.pop(true);
                   }
                 });

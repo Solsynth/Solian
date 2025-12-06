@@ -12,13 +12,12 @@ import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final postSearchNotifierProvider =
-    AsyncNotifierProvider.autoDispose<PostSearchNotifier, List<SnPost>>(
-      PostSearchNotifier.new,
-    );
+final postSearchProvider = AsyncNotifierProvider.autoDispose(
+  PostSearchNotifier.new,
+);
 
-class PostSearchNotifier extends AutoDisposeAsyncNotifier<List<SnPost>>
-    with AutoDisposeAsyncPaginationController<SnPost> {
+class PostSearchNotifier extends AsyncNotifier<List<SnPost>>
+    with AsyncPaginationController<SnPost> {
   static const int _pageSize = 20;
   String _currentQuery = '';
   String? _pubName;
@@ -131,7 +130,7 @@ class PostSearchScreen extends HookConsumerWidget {
       if (debounceTimer.value?.isActive ?? false) debounceTimer.value!.cancel();
 
       debounceTimer.value = Timer(debounce, () {
-        ref.read(postSearchNotifierProvider.notifier).search(query);
+        ref.read(postSearchProvider.notifier).search(query);
       });
     }
 
@@ -140,7 +139,7 @@ class PostSearchScreen extends HookConsumerWidget {
 
       debounceTimer.value = Timer(debounce, () {
         ref
-            .read(postSearchNotifierProvider.notifier)
+            .read(postSearchProvider.notifier)
             .search(
               query,
               pubName:
@@ -303,7 +302,7 @@ class PostSearchScreen extends HookConsumerWidget {
       ),
       body: Consumer(
         builder: (context, ref, child) {
-          final searchState = ref.watch(postSearchNotifierProvider);
+          final searchState = ref.watch(postSearchProvider);
 
           return CustomScrollView(
             slivers: [
@@ -318,8 +317,8 @@ class PostSearchScreen extends HookConsumerWidget {
                 ),
               // Use PaginationList with isSliver=true
               PaginationList(
-                provider: postSearchNotifierProvider,
-                notifier: postSearchNotifierProvider.notifier,
+                provider: postSearchProvider,
+                notifier: postSearchProvider.notifier,
                 isSliver: true,
                 isRefreshable:
                     false, // CustomScrollView handles refreshing usually, but here we don't have PullToRefresh
@@ -338,7 +337,7 @@ class PostSearchScreen extends HookConsumerWidget {
                   );
                 },
               ),
-              if (searchState.valueOrNull?.isEmpty == true &&
+              if (searchState.value?.isEmpty == true &&
                   searchController.text.isNotEmpty &&
                   !searchState.isLoading)
                 SliverFillRemaining(

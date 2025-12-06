@@ -6,287 +6,196 @@ part of 'hub.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$developerStatsHash() => r'45546f29ec7cd1a9c3a4e0f4e39275e78bf34755';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [developerStats].
 @ProviderFor(developerStats)
-const developerStatsProvider = DeveloperStatsFamily();
+const developerStatsProvider = DeveloperStatsFamily._();
 
-/// See also [developerStats].
-class DeveloperStatsFamily extends Family<AsyncValue<DeveloperStats?>> {
-  /// See also [developerStats].
-  const DeveloperStatsFamily();
+final class DeveloperStatsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DeveloperStats?>,
+          DeveloperStats?,
+          FutureOr<DeveloperStats?>
+        >
+    with $FutureModifier<DeveloperStats?>, $FutureProvider<DeveloperStats?> {
+  const DeveloperStatsProvider._({
+    required DeveloperStatsFamily super.from,
+    required String? super.argument,
+  }) : super(
+         retry: null,
+         name: r'developerStatsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [developerStats].
-  DeveloperStatsProvider call(String? uname) {
-    return DeveloperStatsProvider(uname);
+  @override
+  String debugGetCreateSourceHash() => _$developerStatsHash();
+
+  @override
+  String toString() {
+    return r'developerStatsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  DeveloperStatsProvider getProviderOverride(
-    covariant DeveloperStatsProvider provider,
-  ) {
-    return call(provider.uname);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<DeveloperStats?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'developerStatsProvider';
-}
-
-/// See also [developerStats].
-class DeveloperStatsProvider
-    extends AutoDisposeFutureProvider<DeveloperStats?> {
-  /// See also [developerStats].
-  DeveloperStatsProvider(String? uname)
-    : this._internal(
-        (ref) => developerStats(ref as DeveloperStatsRef, uname),
-        from: developerStatsProvider,
-        name: r'developerStatsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$developerStatsHash,
-        dependencies: DeveloperStatsFamily._dependencies,
-        allTransitiveDependencies:
-            DeveloperStatsFamily._allTransitiveDependencies,
-        uname: uname,
-      );
-
-  DeveloperStatsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.uname,
-  }) : super.internal();
-
-  final String? uname;
-
-  @override
-  Override overrideWith(
-    FutureOr<DeveloperStats?> Function(DeveloperStatsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DeveloperStatsProvider._internal(
-        (ref) => create(ref as DeveloperStatsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        uname: uname,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<DeveloperStats?> createElement() {
-    return _DeveloperStatsProviderElement(this);
+  FutureOr<DeveloperStats?> create(Ref ref) {
+    final argument = this.argument as String?;
+    return developerStats(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is DeveloperStatsProvider && other.uname == uname;
+    return other is DeveloperStatsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, uname.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DeveloperStatsRef on AutoDisposeFutureProviderRef<DeveloperStats?> {
-  /// The parameter `uname` of this provider.
-  String? get uname;
-}
+String _$developerStatsHash() => r'45546f29ec7cd1a9c3a4e0f4e39275e78bf34755';
 
-class _DeveloperStatsProviderElement
-    extends AutoDisposeFutureProviderElement<DeveloperStats?>
-    with DeveloperStatsRef {
-  _DeveloperStatsProviderElement(super.provider);
+final class DeveloperStatsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<DeveloperStats?>, String?> {
+  const DeveloperStatsFamily._()
+    : super(
+        retry: null,
+        name: r'developerStatsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  DeveloperStatsProvider call(String? uname) =>
+      DeveloperStatsProvider._(argument: uname, from: this);
 
   @override
-  String? get uname => (origin as DeveloperStatsProvider).uname;
+  String toString() => r'developerStatsProvider';
+}
+
+@ProviderFor(developers)
+const developersProvider = DevelopersProvider._();
+
+final class DevelopersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnDeveloper>>,
+          List<SnDeveloper>,
+          FutureOr<List<SnDeveloper>>
+        >
+    with
+        $FutureModifier<List<SnDeveloper>>,
+        $FutureProvider<List<SnDeveloper>> {
+  const DevelopersProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'developersProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$developersHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnDeveloper>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnDeveloper>> create(Ref ref) {
+    return developers(ref);
+  }
 }
 
 String _$developersHash() => r'252341098617ac398ce133994453f318dd3edbd2';
 
-/// See also [developers].
-@ProviderFor(developers)
-final developersProvider =
-    AutoDisposeFutureProvider<List<SnDeveloper>>.internal(
-      developers,
-      name: r'developersProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$developersHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DevelopersRef = AutoDisposeFutureProviderRef<List<SnDeveloper>>;
-String _$devProjectsHash() => r'715b395bebda785d38691ffee3b88e50b498c91a';
-
-/// See also [devProjects].
 @ProviderFor(devProjects)
-const devProjectsProvider = DevProjectsFamily();
+const devProjectsProvider = DevProjectsFamily._();
 
-/// See also [devProjects].
-class DevProjectsFamily extends Family<AsyncValue<List<DevProject>>> {
-  /// See also [devProjects].
-  const DevProjectsFamily();
+final class DevProjectsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DevProject>>,
+          List<DevProject>,
+          FutureOr<List<DevProject>>
+        >
+    with $FutureModifier<List<DevProject>>, $FutureProvider<List<DevProject>> {
+  const DevProjectsProvider._({
+    required DevProjectsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'devProjectsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [devProjects].
-  DevProjectsProvider call(String pubName) {
-    return DevProjectsProvider(pubName);
+  @override
+  String debugGetCreateSourceHash() => _$devProjectsHash();
+
+  @override
+  String toString() {
+    return r'devProjectsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  DevProjectsProvider getProviderOverride(
-    covariant DevProjectsProvider provider,
-  ) {
-    return call(provider.pubName);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<List<DevProject>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'devProjectsProvider';
-}
-
-/// See also [devProjects].
-class DevProjectsProvider extends AutoDisposeFutureProvider<List<DevProject>> {
-  /// See also [devProjects].
-  DevProjectsProvider(String pubName)
-    : this._internal(
-        (ref) => devProjects(ref as DevProjectsRef, pubName),
-        from: devProjectsProvider,
-        name: r'devProjectsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$devProjectsHash,
-        dependencies: DevProjectsFamily._dependencies,
-        allTransitiveDependencies: DevProjectsFamily._allTransitiveDependencies,
-        pubName: pubName,
-      );
-
-  DevProjectsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.pubName,
-  }) : super.internal();
-
-  final String pubName;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<DevProject>> Function(DevProjectsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DevProjectsProvider._internal(
-        (ref) => create(ref as DevProjectsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        pubName: pubName,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<DevProject>> createElement() {
-    return _DevProjectsProviderElement(this);
+  FutureOr<List<DevProject>> create(Ref ref) {
+    final argument = this.argument as String;
+    return devProjects(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is DevProjectsProvider && other.pubName == pubName;
+    return other is DevProjectsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, pubName.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DevProjectsRef on AutoDisposeFutureProviderRef<List<DevProject>> {
-  /// The parameter `pubName` of this provider.
-  String get pubName;
-}
+String _$devProjectsHash() => r'715b395bebda785d38691ffee3b88e50b498c91a';
 
-class _DevProjectsProviderElement
-    extends AutoDisposeFutureProviderElement<List<DevProject>>
-    with DevProjectsRef {
-  _DevProjectsProviderElement(super.provider);
+final class DevProjectsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<DevProject>>, String> {
+  const DevProjectsFamily._()
+    : super(
+        retry: null,
+        name: r'devProjectsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  DevProjectsProvider call(String pubName) =>
+      DevProjectsProvider._(argument: pubName, from: this);
 
   @override
-  String get pubName => (origin as DevProjectsProvider).pubName;
+  String toString() => r'devProjectsProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

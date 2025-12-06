@@ -11,14 +11,13 @@ import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 // Post Categories Notifier
-final postCategoriesNotifierProvider = AsyncNotifierProvider.autoDispose<
+final postCategoriesProvider = AsyncNotifierProvider.autoDispose<
   PostCategoriesNotifier,
   List<SnPostCategory>
 >(PostCategoriesNotifier.new);
 
-class PostCategoriesNotifier
-    extends AutoDisposeAsyncNotifier<List<SnPostCategory>>
-    with AutoDisposeAsyncPaginationController<SnPostCategory> {
+class PostCategoriesNotifier extends AsyncNotifier<List<SnPostCategory>>
+    with AsyncPaginationController<SnPostCategory> {
   @override
   Future<List<SnPostCategory>> fetch() async {
     final client = ref.read(apiClientProvider);
@@ -35,13 +34,13 @@ class PostCategoriesNotifier
 }
 
 // Post Tags Notifier
-final postTagsNotifierProvider =
+final postTagsProvider =
     AsyncNotifierProvider.autoDispose<PostTagsNotifier, List<SnPostTag>>(
       PostTagsNotifier.new,
     );
 
-class PostTagsNotifier extends AutoDisposeAsyncNotifier<List<SnPostTag>>
-    with AutoDisposeAsyncPaginationController<SnPostTag> {
+class PostTagsNotifier extends AsyncNotifier<List<SnPostTag>>
+    with AsyncPaginationController<SnPostTag> {
   @override
   Future<List<SnPostTag>> fetch() async {
     final client = ref.read(apiClientProvider);
@@ -65,8 +64,8 @@ class PostCategoriesListScreen extends ConsumerWidget {
     return AppScaffold(
       appBar: AppBar(title: const Text('categories').tr()),
       body: PaginationList(
-        provider: postCategoriesNotifierProvider,
-        notifier: postCategoriesNotifierProvider.notifier,
+        provider: postCategoriesProvider,
+        notifier: postCategoriesProvider.notifier,
         padding: EdgeInsets.zero,
         itemBuilder: (context, index, category) {
           return ListTile(
@@ -96,8 +95,8 @@ class PostTagsListScreen extends ConsumerWidget {
     return AppScaffold(
       appBar: AppBar(title: const Text('tags').tr()),
       body: PaginationList(
-        provider: postTagsNotifierProvider,
-        notifier: postTagsNotifierProvider.notifier,
+        provider: postTagsProvider,
+        notifier: postTagsProvider.notifier,
         padding: EdgeInsets.zero,
         itemBuilder: (context, index, tag) {
           return ListTile(

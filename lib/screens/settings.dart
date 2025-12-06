@@ -52,7 +52,7 @@ class SettingsScreen extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final prefs = ref.watch(sharedPreferencesProvider);
     final controller = TextEditingController(text: serverUrl);
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
     final isWide = isWideScreen(context);
@@ -137,9 +137,7 @@ class SettingsScreen extends HookConsumerWidget {
             value: settings.themeMode,
             onChanged: (String? value) {
               if (value != null) {
-                ref
-                    .read(appSettingsNotifierProvider.notifier)
-                    .setThemeMode(value);
+                ref.read(appSettingsProvider.notifier).setThemeMode(value);
                 showSnackBar('settingsApplied'.tr());
               }
             },
@@ -170,9 +168,7 @@ class SettingsScreen extends HookConsumerWidget {
               suffixIcon: IconButton(
                 icon: const Icon(Symbols.restart_alt),
                 onPressed: () {
-                  ref
-                      .read(appSettingsNotifierProvider.notifier)
-                      .setCustomFonts(null);
+                  ref.read(appSettingsProvider.notifier).setCustomFonts(null);
                   showSnackBar('settingsApplied'.tr());
                 },
               ),
@@ -183,7 +179,7 @@ class SettingsScreen extends HookConsumerWidget {
             ),
             onSubmitted: (value) {
               ref
-                  .read(appSettingsNotifierProvider.notifier)
+                  .read(appSettingsProvider.notifier)
                   .setCustomFonts(value.isEmpty ? null : value);
               showSnackBar('settingsApplied'.tr());
             },
@@ -218,7 +214,7 @@ class SettingsScreen extends HookConsumerWidget {
             onChanged: (String? value) {
               if (value != null) {
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setMessageDisplayStyle(value);
                 showSnackBar('settingsApplied'.tr());
               }
@@ -280,7 +276,7 @@ class SettingsScreen extends HookConsumerWidget {
                           TextButton(
                             onPressed: () {
                               ref
-                                  .read(appSettingsNotifierProvider.notifier)
+                                  .read(appSettingsProvider.notifier)
                                   .setAppColorScheme(selectedColor.value);
                               Navigator.of(context).pop();
                             },
@@ -330,7 +326,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(current.copyWith(primary: color?.value));
               },
             ),
@@ -344,7 +340,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(current.copyWith(secondary: color?.value));
               },
             ),
@@ -358,7 +354,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(current.copyWith(tertiary: color?.value));
               },
             ),
@@ -372,7 +368,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(current.copyWith(surface: color?.value));
               },
             ),
@@ -386,7 +382,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(
                       current.copyWith(background: color?.value),
                     );
@@ -402,7 +398,7 @@ class SettingsScreen extends HookConsumerWidget {
               onColorChanged: (color) {
                 final current = settings.customColors ?? ThemeColors();
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setCustomColors(current.copyWith(error: color?.value));
               },
             ),
@@ -412,9 +408,7 @@ class SettingsScreen extends HookConsumerWidget {
               trailing: const Icon(Symbols.restart_alt).padding(right: 2),
               contentPadding: EdgeInsets.symmetric(horizontal: 20),
               onTap: () {
-                ref
-                    .read(appSettingsNotifierProvider.notifier)
-                    .setCustomColors(null);
+                ref.read(appSettingsProvider.notifier).setCustomColors(null);
                 showSnackBar('settingsApplied'.tr());
               },
             ),
@@ -448,9 +442,7 @@ class SettingsScreen extends HookConsumerWidget {
             value: settings.fabPosition,
             onChanged: (String? value) {
               if (value != null) {
-                ref
-                    .read(appSettingsNotifierProvider.notifier)
-                    .setFabPosition(value);
+                ref.read(appSettingsProvider.notifier).setFabPosition(value);
                 showSnackBar('settingsApplied'.tr());
               }
             },
@@ -481,7 +473,7 @@ class SettingsScreen extends HookConsumerWidget {
             label: '${(settings.cardTransparency * 100).round()}%',
             onChanged: (value) {
               ref
-                  .read(appSettingsNotifierProvider.notifier)
+                  .read(appSettingsProvider.notifier)
                   .setAppTransparentBackground(value);
             },
           ),
@@ -533,7 +525,7 @@ class SettingsScreen extends HookConsumerWidget {
                 value: settings.showBackgroundImage,
                 onChanged: (value) {
                   ref
-                      .read(appSettingsNotifierProvider.notifier)
+                      .read(appSettingsProvider.notifier)
                       .setShowBackgroundImage(value);
                 },
               ),
@@ -609,7 +601,7 @@ class SettingsScreen extends HookConsumerWidget {
                         ? colorScheme.primary
                         : colorScheme.primary;
                 ref
-                    .read(appSettingsNotifierProvider.notifier)
+                    .read(appSettingsProvider.notifier)
                     .setAppColorScheme(color.value);
                 if (context.mounted) {
                   hideLoadingModal(context);
@@ -699,7 +691,7 @@ class SettingsScreen extends HookConsumerWidget {
                   value: currentPoolId,
                   onChanged: (value) {
                     ref
-                        .read(appSettingsNotifierProvider.notifier)
+                        .read(appSettingsProvider.notifier)
                         .setDefaultPoolId(value);
                     showSnackBar('settingsApplied'.tr());
                   },
@@ -738,9 +730,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.autoTranslate,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setAutoTranslate(value);
+            ref.read(appSettingsProvider.notifier).setAutoTranslate(value);
           },
         ),
       ),
@@ -754,9 +744,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.soundEffects,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setSoundEffects(value);
+            ref.read(appSettingsProvider.notifier).setSoundEffects(value);
           },
         ),
       ),
@@ -770,9 +758,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.aprilFoolFeatures,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setAprilFoolFeatures(value);
+            ref.read(appSettingsProvider.notifier).setAprilFoolFeatures(value);
           },
         ),
       ),
@@ -790,9 +776,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.enterToSend,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setEnterToSend(value);
+            ref.read(appSettingsProvider.notifier).setEnterToSend(value);
           },
         ),
       ),
@@ -806,9 +790,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.appBarTransparent,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setAppBarTransparent(value);
+            ref.read(appSettingsProvider.notifier).setAppBarTransparent(value);
           },
         ),
       ),
@@ -820,9 +802,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.dataSavingMode,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setDataSavingMode(value);
+            ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
           },
         ),
       ),
@@ -836,9 +816,7 @@ class SettingsScreen extends HookConsumerWidget {
         trailing: Switch(
           value: settings.disableAnimation,
           onChanged: (value) {
-            ref
-                .read(appSettingsNotifierProvider.notifier)
-                .setDisableAnimation(value);
+            ref.read(appSettingsProvider.notifier).setDisableAnimation(value);
           },
         ),
       ),
@@ -865,7 +843,7 @@ class SettingsScreen extends HookConsumerWidget {
                     label: '${(settings.windowOpacity * 100).round()}%',
                     onChanged: (value) {
                       ref
-                          .read(appSettingsNotifierProvider.notifier)
+                          .read(appSettingsProvider.notifier)
                           .setWindowOpacity(value);
                     },
                   ),

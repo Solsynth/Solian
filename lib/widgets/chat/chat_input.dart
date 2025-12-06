@@ -260,7 +260,7 @@ class ChatInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inputFocusNode = useFocusNode();
-    final chatSubscribe = ref.watch(chatSubscribeNotifierProvider(chatRoom.id));
+    final chatSubscribe = ref.watch(chatSubscribeProvider(chatRoom.id));
     final isExpanded = useState(false);
 
     void send() {
@@ -310,7 +310,7 @@ class ChatInput extends HookConsumerWidget {
       }
     }
 
-    final settings = ref.watch(appSettingsNotifierProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     inputFocusNode.onKeyEvent = (node, event) {
       if (event is! KeyDownEvent) return KeyEventResult.ignored;
