@@ -38,11 +38,10 @@ class MarketplaceWebFeedsNotifier extends AsyncNotifier<List<SnWebFeed>>
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final feeds =
-        response.data
-            .map((e) => SnWebFeed.fromJson(e))
-            .cast<SnWebFeed>()
-            .toList();
+    final feeds = response.data
+        .map((e) => SnWebFeed.fromJson(e))
+        .cast<SnWebFeed>()
+        .toList();
 
     return feeds;
   }
@@ -92,8 +91,8 @@ class MarketplaceWebFeedsScreen extends HookConsumerWidget {
               padding: WidgetStateProperty.all(
                 const EdgeInsets.symmetric(horizontal: 24),
               ),
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               trailing: [
                 if (query.value != null && query.value!.isNotEmpty)
                   IconButton(
@@ -128,6 +127,7 @@ class MarketplaceWebFeedsScreen extends HookConsumerWidget {
               padding: EdgeInsets.zero,
               itemBuilder: (context, index, feed) {
                 return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                   title: Text(feed.title),
                   subtitle: Text(feed.description ?? ''),
                   trailing: const Icon(Symbols.chevron_right),

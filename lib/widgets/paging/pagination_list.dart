@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
@@ -17,6 +18,8 @@ class PaginationList<T> extends HookConsumerWidget {
   final ProviderListenable<AsyncValue<List<T>>> provider;
   final Refreshable<PaginationController<T>> notifier;
   final Widget? Function(BuildContext, int, T) itemBuilder;
+  final Widget? Function(BuildContext, int, T)? seperatorBuilder;
+  final double? spacing;
   final bool isRefreshable;
   final bool isSliver;
   final bool showDefaultWidgets;
@@ -28,6 +31,8 @@ class PaginationList<T> extends HookConsumerWidget {
     required this.provider,
     required this.notifier,
     required this.itemBuilder,
+    this.seperatorBuilder,
+    this.spacing,
     this.isRefreshable = true,
     this.isSliver = false,
     this.showDefaultWidgets = true,
@@ -71,7 +76,7 @@ class PaginationList<T> extends HookConsumerWidget {
         return SliverFillRemaining(child: content);
       }
 
-      final listView = SuperSliverList.builder(
+      final listView = SuperSliverList.separated(
         itemCount: (data.value?.length ?? 0) + 1,
         itemBuilder: (context, idx) {
           if (idx == data.value?.length) {
@@ -85,6 +90,20 @@ class PaginationList<T> extends HookConsumerWidget {
           final entry = data.value?[idx];
           if (entry != null) return itemBuilder(context, idx, entry);
           return null;
+        },
+        separatorBuilder: (context, index) {
+          if (seperatorBuilder != null) {
+            final entry = data.value?[index];
+            if (entry != null) {
+              return seperatorBuilder!(context, index, entry) ??
+                  const SizedBox();
+            }
+            return const SizedBox();
+          }
+          if (spacing != null && spacing! > 0) {
+            return Gap(spacing!);
+          }
+          return const SizedBox();
         },
       );
 
@@ -126,7 +145,7 @@ class PaginationList<T> extends HookConsumerWidget {
         return SizedBox(key: const ValueKey('error'), child: content);
       }
 
-      final listView = SuperListView.builder(
+      final listView = SuperListView.separated(
         padding: padding,
         itemCount: (data.value?.length ?? 0) + 1,
         itemBuilder: (context, idx) {
@@ -141,6 +160,20 @@ class PaginationList<T> extends HookConsumerWidget {
           final entry = data.value?[idx];
           if (entry != null) return itemBuilder(context, idx, entry);
           return null;
+        },
+        separatorBuilder: (context, index) {
+          if (seperatorBuilder != null) {
+            final entry = data.value?[index];
+            if (entry != null) {
+              return seperatorBuilder!(context, index, entry) ??
+                  const SizedBox();
+            }
+            return const SizedBox();
+          }
+          if (spacing != null && spacing! > 0) {
+            return Gap(spacing!);
+          }
+          return const SizedBox();
         },
       );
 

@@ -33,7 +33,12 @@ class ArticlesListNotifier extends AsyncNotifier<List<SnWebArticle>>
   Future<List<SnWebArticle>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final queryParams = {'limit': pageSize, 'offset': fetchedCount.toString()};
+    final queryParams = {
+      'limit': pageSize,
+      'offset': fetchedCount.toString(),
+      'feedId': arg.feedId,
+      'publisherId': arg.publisherId,
+    }..removeWhere((key, value) => value == null);
 
     try {
       final response = await client.get(
@@ -41,13 +46,10 @@ class ArticlesListNotifier extends AsyncNotifier<List<SnWebArticle>>
         queryParameters: queryParams,
       );
 
-      final articles =
-          response.data
-              .map(
-                (json) => SnWebArticle.fromJson(json as Map<String, dynamic>),
-              )
-              .cast<SnWebArticle>()
-              .toList();
+      final articles = response.data
+          .map((json) => SnWebArticle.fromJson(json as Map<String, dynamic>))
+          .cast<SnWebArticle>()
+          .toList();
 
       totalCount = int.tryParse(response.headers.value('X-Total') ?? '0') ?? 0;
 
@@ -81,6 +83,7 @@ class SliverArticlesList extends ConsumerWidget {
       ArticleListQuery(feedId: feedId, publisherId: publisherId),
     );
     return PaginationList(
+      spacing: 12,
       provider: provider,
       notifier: provider.notifier,
       isRefreshable: false,
@@ -184,18 +187,16 @@ class ArticlesScreen extends ConsumerWidget {
           ),
         );
       },
-      loading:
-          () => AppScaffold(
-            isNoBackground: false,
-            appBar: AppBar(title: const Text('Articles')),
-            body: const Center(child: CircularProgressIndicator()),
-          ),
-      error:
-          (err, stack) => AppScaffold(
-            isNoBackground: false,
-            appBar: AppBar(title: const Text('Articles')),
-            body: Center(child: Text('Error: $err')),
-          ),
+      loading: () => AppScaffold(
+        isNoBackground: false,
+        appBar: AppBar(title: const Text('Articles')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => AppScaffold(
+        isNoBackground: false,
+        appBar: AppBar(title: const Text('Articles')),
+        body: Center(child: Text('Error: $err')),
+      ),
     );
   }
 }
