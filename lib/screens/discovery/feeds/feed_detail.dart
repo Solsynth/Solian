@@ -44,11 +44,10 @@ class MarketplaceWebFeedContentNotifier
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final articles =
-        response.data
-            .map((json) => SnWebArticle.fromJson(json))
-            .cast<SnWebArticle>()
-            .toList();
+    final articles = response.data
+        .map((json) => SnWebArticle.fromJson(json))
+        .cast<SnWebArticle>()
+        .toList();
 
     return articles;
   }
@@ -116,31 +115,30 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
           // Feed meta
           feed
               .when(
-                data:
-                    (data) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                data: (data) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(data.description ?? 'descriptionNone'.tr()),
+                    Row(
+                      spacing: 4,
                       children: [
-                        Text(data.description ?? 'descriptionNone'.tr()),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            const Icon(Symbols.rss_feed, size: 16),
-                            Text(
-                              'webFeedArticleCount'.plural(
-                                feedNotifier.totalCount ?? 0,
-                              ),
-                            ),
-                          ],
-                        ).opacity(0.85),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            const Icon(Symbols.link, size: 16),
-                            SelectableText(data.url),
-                          ],
-                        ).opacity(0.85),
+                        const Icon(Symbols.rss_feed, size: 16),
+                        Text(
+                          'webFeedArticleCount'.plural(
+                            feedNotifier.totalCount ?? 0,
+                          ),
+                        ),
                       ],
-                    ),
+                    ).opacity(0.85),
+                    Row(
+                      spacing: 4,
+                      children: [
+                        const Icon(Symbols.link, size: 16),
+                        SelectableText(data.url),
+                      ],
+                    ).opacity(0.85),
+                  ],
+                ),
                 error: (err, _) => Text(err.toString()),
                 loading: () => CircularProgressIndicator().center(),
               )
@@ -149,10 +147,12 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
           // Articles list
           Expanded(
             child: PaginationList(
+              spacing: 8,
+              padding: EdgeInsets.symmetric(vertical: 8),
               provider: marketplaceWebFeedContentNotifierProvider(id),
               notifier: marketplaceWebFeedContentNotifierProvider(id).notifier,
               itemBuilder: (context, index, article) {
-                return WebArticleCard(article: article);
+                return WebArticleCard(article: article).padding(horizontal: 12);
               },
             ),
           ),
@@ -165,29 +165,25 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
             ),
             color: Theme.of(context).colorScheme.surfaceContainer,
             child: subscribed.when(
-              data:
-                  (isSubscribed) => FilledButton.icon(
-                    onPressed:
-                        isSubscribed ? unsubscribeFromFeed : subscribeToFeed,
-                    icon: Icon(
-                      isSubscribed ? Symbols.remove_circle : Symbols.add_circle,
-                    ),
-                    label: Text(
-                      isSubscribed ? 'unsubscribe'.tr() : 'subscribe'.tr(),
-                    ),
-                  ),
-              loading:
-                  () => const SizedBox(
-                    height: 32,
-                    width: 32,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-              error:
-                  (_, _) => OutlinedButton.icon(
-                    onPressed: subscribeToFeed,
-                    icon: const Icon(Symbols.add_circle),
-                    label: Text('subscribe').tr(),
-                  ),
+              data: (isSubscribed) => FilledButton.icon(
+                onPressed: isSubscribed ? unsubscribeFromFeed : subscribeToFeed,
+                icon: Icon(
+                  isSubscribed ? Symbols.remove_circle : Symbols.add_circle,
+                ),
+                label: Text(
+                  isSubscribed ? 'unsubscribe'.tr() : 'subscribe'.tr(),
+                ),
+              ),
+              loading: () => const SizedBox(
+                height: 32,
+                width: 32,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ).center(),
+              error: (_, _) => OutlinedButton.icon(
+                onPressed: subscribeToFeed,
+                icon: const Icon(Symbols.add_circle),
+                label: Text('subscribe').tr(),
+              ),
             ),
           ),
         ],
