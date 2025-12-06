@@ -26,6 +26,14 @@ sealed class PostListQuery with _$PostListQuery {
   }) = _PostListQuery;
 }
 
+@freezed
+sealed class PostListQueryConfig with _$PostListQueryConfig {
+  const factory PostListQueryConfig({
+    String? id,
+    @Default(PostListQuery()) PostListQuery initialFilter,
+  }) = _PostListQueryConfig;
+}
+
 final postListProvider = AsyncNotifierProvider.autoDispose.family(
   PostListNotifier.new,
 );
@@ -37,10 +45,17 @@ class PostListNotifier extends AsyncNotifier<List<SnPost>>
   static const int pageSize = 20;
 
   final String? id;
-  PostListNotifier(this.id);
+  final PostListQueryConfig config;
+  PostListNotifier(this.config) : id = config.id;
 
   @override
-  PostListQuery currentFilter = PostListQuery();
+  late PostListQuery currentFilter;
+
+  @override
+  Future<List<SnPost>> build() async {
+    currentFilter = config.initialFilter;
+    return fetch();
+  }
 
   @override
   Future<List<SnPost>> fetch() async {
@@ -72,7 +87,9 @@ class PostListNotifier extends AsyncNotifier<List<SnPost>>
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    return data.map((json) => SnPost.fromJson(json)).toList();
+    return response.data
+        .map((json) => SnPost.fromJson(json))
+        .cast<SnPost>()
+        .toList();
   }
 }

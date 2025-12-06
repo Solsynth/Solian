@@ -34,7 +34,9 @@ class PostSearchScreen extends HookConsumerWidget {
     // Single query state
     final queryState = useState(const PostListQuery());
 
-    final noti = ref.read(postListProvider(kSearchPostListId).notifier);
+    final noti = ref.read(
+      postListProvider(PostListQueryConfig(id: kSearchPostListId)).notifier,
+    );
 
     useEffect(() {
       return () {
@@ -116,7 +118,9 @@ class PostSearchScreen extends HookConsumerWidget {
             ),
       body: Consumer(
         builder: (context, ref, child) {
-          final searchState = ref.watch(postListProvider(kSearchPostListId));
+          final searchState = ref.watch(
+            postListProvider(PostListQueryConfig(id: kSearchPostListId)),
+          );
 
           return isWideScreen(context)
               ? Row(
@@ -153,9 +157,11 @@ class PostSearchScreen extends HookConsumerWidget {
                               SliverToBoxAdapter(child: buildFilterPanel()),
                             // Use PaginationList with isSliver=true
                             PaginationList(
-                              provider: postListProvider(kSearchPostListId),
+                              provider: postListProvider(
+                                PostListQueryConfig(id: kSearchPostListId),
+                              ),
                               notifier: postListProvider(
-                                kSearchPostListId,
+                                PostListQueryConfig(id: kSearchPostListId),
                               ).notifier,
                               isSliver: true,
                               isRefreshable: false,
@@ -251,8 +257,12 @@ class PostSearchScreen extends HookConsumerWidget {
                       ),
                     // Use PaginationList with isSliver=true
                     PaginationList(
-                      provider: postListProvider(kSearchPostListId),
-                      notifier: postListProvider(kSearchPostListId).notifier,
+                      provider: postListProvider(
+                        PostListQueryConfig(id: kSearchPostListId),
+                      ),
+                      notifier: postListProvider(
+                        PostListQueryConfig(id: kSearchPostListId),
+                      ).notifier,
                       isSliver: true,
                       isRefreshable: false,
                       itemBuilder: (context, index, post) {

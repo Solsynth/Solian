@@ -17,15 +17,16 @@ class PostShuffleScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     const query = PostListQuery(shuffle: true);
-    final postListState = ref.watch(postListProvider(kShufflePostListId));
-    final postListNotifier = ref.watch(
-      postListProvider(kShufflePostListId).notifier,
+    final cfg = PostListQueryConfig(
+      id: kShufflePostListId,
+      initialFilter: query,
     );
+    final postListState = ref.watch(postListProvider(cfg));
+    final postListNotifier = ref.watch(postListProvider(cfg).notifier);
 
     final cardSwiperController = useMemoized(() => CardSwiperController(), []);
 
     useEffect(() {
-      postListNotifier.applyFilter(query);
       return cardSwiperController.dispose;
     }, []);
 

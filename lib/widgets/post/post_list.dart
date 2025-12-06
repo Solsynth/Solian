@@ -43,17 +43,26 @@ class SliverPostList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postListProvider(queryKey);
-    final notifier = provider.notifier;
+    final provider = postListProvider(
+      PostListQueryConfig(
+        id: queryKey,
+        initialFilter: query ?? PostListQuery(),
+      ),
+    );
+    final notifier = ref.watch(provider.notifier);
+
+    final currentFilter = useState(query ?? PostListQuery());
 
     useEffect(() {
-      ref.read(notifier).applyFilter(query!);
+      if (currentFilter.value != query) {
+        notifier.applyFilter(query ?? PostListQuery());
+      }
       return null;
-    }, [query]);
+    }, [query, queryKey]);
 
     return PaginationList(
       provider: provider,
-      notifier: notifier,
+      notifier: provider.notifier,
       isRefreshable: false,
       isSliver: true,
       footerSkeletonChild: const PostItemSkeleton(),
