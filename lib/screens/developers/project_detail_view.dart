@@ -24,6 +24,16 @@ class ProjectDetailView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 2);
+    final currentDest = useState(0);
+
+    useEffect(() {
+      tabController.addListener(() {
+        if (tabController.indexIsChanging) {
+          currentDest.value = tabController.index;
+        }
+      });
+      return null;
+    });
 
     final isWide = isWideScreen(context);
 
@@ -38,14 +48,13 @@ class ProjectDetailView extends HookConsumerWidget {
               child: NavigationRail(
                 extended: isWiderScreen(context),
                 scrollable: true,
-                labelType:
-                    isWiderScreen(context)
-                        ? null
-                        : NavigationRailLabelType.selected,
+                labelType: isWiderScreen(context)
+                    ? null
+                    : NavigationRailLabelType.selected,
                 backgroundColor: Colors.transparent,
-                selectedIndex: tabController.index,
-                onDestinationSelected:
-                    (index) => tabController.animateTo(index),
+                selectedIndex: currentDest.value,
+                onDestinationSelected: (index) =>
+                    tabController.animateTo(index),
                 destinations: [
                   NavigationRailDestination(
                     icon: Icon(Icons.apps),

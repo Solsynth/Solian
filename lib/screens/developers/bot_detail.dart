@@ -36,19 +36,18 @@ class BotDetailScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.edit),
-            onPressed:
-                botData.value == null
-                    ? null
-                    : () {
-                      context.pushNamed(
-                        'developerBotEdit',
-                        pathParameters: {
-                          'name': publisherName,
-                          'projectId': projectId,
-                          'id': botId,
-                        },
-                      );
-                    },
+            onPressed: botData.value == null
+                ? null
+                : () {
+                    context.pushNamed(
+                      'developerBotEdit',
+                      pathParameters: {
+                        'name': publisherName,
+                        'projectId': projectId,
+                        'id': botId,
+                      },
+                    );
+                  },
           ),
         ],
         bottom: TabBar(
@@ -84,24 +83,33 @@ class BotDetailScreen extends HookConsumerWidget {
             controller: tabController,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              _BotOverview(bot: bot),
-              BotKeysScreen(
-                publisherName: publisherName,
-                projectId: projectId,
-                botId: botId,
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: _BotOverview(bot: bot),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: BotKeysScreen(
+                    publisherName: publisherName,
+                    projectId: projectId,
+                    botId: botId,
+                  ),
+                ),
               ),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (err, stack) => ResponseErrorWidget(
-              error: err,
-              onRetry:
-                  () => ref.invalidate(
-                    botProvider(publisherName, projectId, botId),
-                  ),
-            ),
+        error: (err, stack) => ResponseErrorWidget(
+          error: err,
+          onRetry: () =>
+              ref.invalidate(botProvider(publisherName, projectId, botId)),
+        ),
       ),
     );
   }
@@ -124,13 +132,12 @@ class _BotOverview extends StatelessWidget {
               children: [
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainer,
-                  child:
-                      bot.account.profile.background != null
-                          ? CloudFileWidget(
-                            item: bot.account.profile.background!,
-                            fit: BoxFit.cover,
-                          )
-                          : const SizedBox.shrink(),
+                  child: bot.account.profile.background != null
+                      ? CloudFileWidget(
+                          item: bot.account.profile.background!,
+                          fit: BoxFit.cover,
+                        )
+                      : const SizedBox.shrink(),
                 ),
                 Positioned(
                   left: 20,

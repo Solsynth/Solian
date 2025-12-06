@@ -39,19 +39,18 @@ class AppDetailScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.edit),
-            onPressed:
-                appData.value == null
-                    ? null
-                    : () {
-                      context.pushNamed(
-                        'developerAppEdit',
-                        pathParameters: {
-                          'name': publisherName,
-                          'projectId': projectId,
-                          'id': appId,
-                        },
-                      );
-                    },
+            onPressed: appData.value == null
+                ? null
+                : () {
+                    context.pushNamed(
+                      'developerAppEdit',
+                      pathParameters: {
+                        'name': publisherName,
+                        'projectId': projectId,
+                        'id': appId,
+                      },
+                    );
+                  },
           ),
           const Gap(8),
         ],
@@ -85,24 +84,34 @@ class AppDetailScreen extends HookConsumerWidget {
             controller: tabController,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              _AppOverview(app: app),
-              AppSecretsScreen(
-                publisherName: publisherName,
-                projectId: projectId,
-                appId: appId,
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: _AppOverview(app: app),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: AppSecretsScreen(
+                    publisherName: publisherName,
+                    projectId: projectId,
+                    appId: appId,
+                  ),
+                ),
               ),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (err, stack) => ResponseErrorWidget(
-              error: err,
-              onRetry:
-                  () => ref.invalidate(
-                    customAppProvider(publisherName, projectId, appId),
-                  ),
-            ),
+        error: (err, stack) => ResponseErrorWidget(
+          error: err,
+          onRetry: () => ref.invalidate(
+            customAppProvider(publisherName, projectId, appId),
+          ),
+        ),
       ),
     );
   }
@@ -115,6 +124,7 @@ class _AppOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           AspectRatio(
@@ -125,13 +135,12 @@ class _AppOverview extends StatelessWidget {
               children: [
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainer,
-                  child:
-                      app.background != null
-                          ? CloudFileWidget(
-                            item: app.background!,
-                            fit: BoxFit.cover,
-                          )
-                          : const SizedBox.shrink(),
+                  child: app.background != null
+                      ? CloudFileWidget(
+                          item: app.background!,
+                          fit: BoxFit.cover,
+                        )
+                      : const SizedBox.shrink(),
                 ),
                 Positioned(
                   left: 20,
