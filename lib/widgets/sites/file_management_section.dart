@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -10,6 +11,7 @@ import 'package:island/pods/site_files.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/sites/file_upload_dialog.dart';
 import 'package:island/widgets/sites/file_item.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' as p;
 
@@ -53,6 +55,9 @@ class FileManagementSection extends HookConsumerWidget {
                     PopupMenuButton<String>(
                       icon: const Icon(Symbols.upload),
                       onSelected: (String choice) async {
+                        if (!kIsWeb) {
+                          await Permission.storage.request();
+                        }
                         List<File> files = [];
                         List<Map<String, dynamic>>? results;
                         if (choice == 'files') {
@@ -65,17 +70,17 @@ class FileManagementSection extends HookConsumerWidget {
                               selectedFiles.files.isEmpty) {
                             return; // User canceled
                           }
-                          files =
-                              selectedFiles.files
-                                  .map((f) => File(f.path!))
-                                  .toList();
+                          files = selectedFiles.files
+                              .map((f) => File(f.path!))
+                              .toList();
                         } else if (choice == 'folder') {
-                          final dirPath =
-                              await FilePicker.platform.getDirectoryPath();
+                          final dirPath = await FilePicker.platform
+                              .getDirectoryPath();
                           if (dirPath == null) return;
                           results = await _getFilesRecursive(dirPath);
-                          files =
-                              results.map((m) => m['file'] as File).toList();
+                          files = results
+                              .map((m) => m['file'] as File)
+                              .toList();
                           if (files.isEmpty) {
                             showSnackBar('noFilesFoundInFolder'.tr());
                             return;
@@ -88,51 +93,46 @@ class FileManagementSection extends HookConsumerWidget {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
-                          builder:
-                              (context) => FileUploadDialog(
-                                selectedFiles: files,
-                                site: site,
-                                relativePaths:
-                                    results
-                                        ?.map(
-                                          (m) => m['relativePath'] as String,
-                                        )
-                                        .toList(),
-                                onUploadComplete: () {
-                                  // Refresh file list
-                                  ref.invalidate(
-                                    siteFilesProvider(
-                                      siteId: site.id,
-                                      path: currentPath.value,
-                                    ),
-                                  );
-                                },
-                              ),
+                          builder: (context) => FileUploadDialog(
+                            selectedFiles: files,
+                            site: site,
+                            relativePaths: results
+                                ?.map((m) => m['relativePath'] as String)
+                                .toList(),
+                            onUploadComplete: () {
+                              // Refresh file list
+                              ref.invalidate(
+                                siteFilesProvider(
+                                  siteId: site.id,
+                                  path: currentPath.value,
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
-                      itemBuilder:
-                          (BuildContext context) => [
-                            PopupMenuItem<String>(
-                              value: 'files',
-                              child: Row(
-                                children: [
-                                  Icon(Symbols.file_copy),
-                                  Gap(12),
-                                  Text('siteFiles'.tr()),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'folder',
-                              child: Row(
-                                children: [
-                                  Icon(Symbols.folder),
-                                  Gap(12),
-                                  Text('siteFolder'.tr()),
-                                ],
-                              ),
-                            ),
-                          ],
+                      itemBuilder: (BuildContext context) => [
+                        PopupMenuItem<String>(
+                          value: 'files',
+                          child: Row(
+                            children: [
+                              Icon(Symbols.file_copy),
+                              Gap(12),
+                              Text('siteFiles'.tr()),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'folder',
+                          child: Row(
+                            children: [
+                              Icon(Symbols.folder),
+                              Gap(12),
+                              Text('siteFolder'.tr()),
+                            ],
+                          ),
+                        ),
+                      ],
                       style: ButtonStyle(
                         visualDensity: const VisualDensity(
                           horizontal: -4,
@@ -156,19 +156,17 @@ class FileManagementSection extends HookConsumerWidget {
                         IconButton(
                           icon: Icon(Symbols.arrow_back),
                           onPressed: () {
-                            final pathParts =
-                                currentPath.value!
-                                    .split('/')
-                                    .where((part) => part.isNotEmpty)
-                                    .toList();
+                            final pathParts = currentPath.value!
+                                .split('/')
+                                .where((part) => part.isNotEmpty)
+                                .toList();
                             if (pathParts.isEmpty) {
                               currentPath.value = null;
                             } else {
                               pathParts.removeLast();
-                              currentPath.value =
-                                  pathParts.isEmpty
-                                      ? null
-                                      : pathParts.join('/');
+                              currentPath.value = pathParts.isEmpty
+                                  ? null
+                                  : pathParts.join('/');
                             }
                           },
                           visualDensity: const VisualDensity(
@@ -185,11 +183,10 @@ class FileManagementSection extends HookConsumerWidget {
                                 child: Text('siteRoot'.tr()),
                               ),
                               ...() {
-                                final parts =
-                                    currentPath.value!
-                                        .split('/')
-                                        .where((part) => part.isNotEmpty)
-                                        .toList();
+                                final parts = currentPath.value!
+                                    .split('/')
+                                    .where((part) => part.isNotEmpty)
+                                    .toList();
                                 final widgets = <Widget>[];
                                 String currentBuilder = '';
                                 for (final part in parts) {
@@ -200,8 +197,8 @@ class FileManagementSection extends HookConsumerWidget {
                                   widgets.addAll([
                                     const Text(' / '),
                                     InkWell(
-                                      onTap:
-                                          () => currentPath.value = pathToSet,
+                                      onTap: () =>
+                                          currentPath.value = pathToSet,
                                       child: Text(part),
                                     ),
                                   ]);
@@ -253,33 +250,31 @@ class FileManagementSection extends HookConsumerWidget {
                         return FileItem(
                           file: file,
                           site: site,
-                          onNavigateDirectory:
-                              (path) => currentPath.value = path,
+                          onNavigateDirectory: (path) =>
+                              currentPath.value = path,
                         );
                       },
                     );
                   },
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error:
-                      (error, stack) => Center(
-                        child: Column(
-                          children: [
-                            Text('failedToLoadFiles'.tr()),
-                            const Gap(8),
-                            ElevatedButton(
-                              onPressed:
-                                  () => ref.invalidate(
-                                    siteFilesProvider(
-                                      siteId: site.id,
-                                      path: currentPath.value,
-                                    ),
-                                  ),
-                              child: Text('retry'.tr()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Column(
+                      children: [
+                        Text('failedToLoadFiles'.tr()),
+                        const Gap(8),
+                        ElevatedButton(
+                          onPressed: () => ref.invalidate(
+                            siteFilesProvider(
+                              siteId: site.id,
+                              path: currentPath.value,
                             ),
-                          ],
+                          ),
+                          child: Text('retry'.tr()),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

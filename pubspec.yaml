@@ -171,6 +171,7 @@ dependencies:
   http_parser: ^4.1.2
   flutter_code_editor: ^0.3.5
   skeletonizer: ^2.1.1
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
