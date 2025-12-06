@@ -167,22 +167,10 @@ class _CreatorSiteItem extends HookConsumerWidget {
                       ],
                     ),
                     onTap: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('deleteSite'.tr()),
-                          content: Text('deleteSiteConfirm'.tr()),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text('cancel'.tr()),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text('delete'.tr()),
-                            ),
-                          ],
-                        ),
+                      final confirmed = await showConfirmAlert(
+                        'publicationSiteDeleteConfirm'.tr(),
+                        'deleteSite'.tr(),
+                        isDanger: true,
                       );
                       if (confirmed == true) {
                         try {
