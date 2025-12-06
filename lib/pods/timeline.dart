@@ -1,13 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 
-final activityListProvider =
-    AsyncNotifierProvider<ActivityListNotifier, List<SnTimelineEvent>>(
-      ActivityListNotifier.new,
-    );
+final activityListProvider = AsyncNotifierProvider.autoDispose(
+  ActivityListNotifier.new,
+);
 
 class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
     with
@@ -28,8 +26,6 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
       if (currentFilter != null) 'filter': currentFilter,
-      if (kDebugMode)
-        'debugInclude': 'realms,publishers,articles,shuffledPosts',
     };
 
     final response = await client.get(
@@ -37,10 +33,9 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
       queryParameters: queryParameters,
     );
 
-    final List<SnTimelineEvent> items =
-        (response.data as List)
-            .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final List<SnTimelineEvent> items = (response.data as List)
+        .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
 
