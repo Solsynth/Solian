@@ -65,7 +65,10 @@ class SliverPostList extends HookConsumerWidget {
       notifier: provider.notifier,
       isRefreshable: false,
       isSliver: true,
-      footerSkeletonChild: const PostItemSkeleton(),
+      footerSkeletonChild: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: const PostItemSkeleton(),
+      ),
       itemBuilder: (context, index, post) {
         if (maxWidth != null) {
           return Center(
