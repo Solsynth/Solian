@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';
@@ -171,204 +172,180 @@ class RealmDetailScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar:
-          isWideScreen(context)
-              ? realmState.when(
-                data:
-                    (realm) => AppBar(
-                      foregroundColor: appbarColor.value,
-                      leading: PageBackButton(
-                        color: appbarColor.value,
-                        shadows: [iconShadow],
-                      ),
-                      flexibleSpace: Stack(
-                        children: [
-                          Positioned.fill(
-                            child:
-                                realm!.background?.id != null
-                                    ? CloudImageWidget(
-                                      fileId: realm.background!.id,
-                                    )
-                                    : Container(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).appBarTheme.backgroundColor,
-                                    ),
-                          ),
-                          FlexibleSpaceBar(
-                            title: Text(
-                              realm.name,
-                              style: TextStyle(
-                                color:
-                                    appbarColor.value ??
-                                    Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
-                                shadows: [iconShadow],
-                              ),
+      appBar: isWideScreen(context)
+          ? realmState.when(
+              data: (realm) => AppBar(
+                foregroundColor: appbarColor.value,
+                leading: PageBackButton(
+                  color: appbarColor.value,
+                  shadows: [iconShadow],
+                ),
+                flexibleSpace: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: realm!.background?.id != null
+                          ? CloudImageWidget(fileId: realm.background!.id)
+                          : Container(
+                              color: Theme.of(
+                                context,
+                              ).appBarTheme.backgroundColor,
                             ),
-                            background: Container(),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        IconButton(
-                          icon: Icon(Icons.people, shadows: [iconShadow]),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              isScrollControlled: true,
-                              context: context,
-                              builder:
-                                  (context) =>
-                                      _RealmMemberListSheet(realmSlug: slug),
-                            );
-                          },
-                        ),
-                        _RealmActionMenu(
-                          realmSlug: slug,
-                          iconShadow: iconShadow,
-                        ),
-                        const Gap(8),
-                      ],
                     ),
-                error: (_, _) => AppBar(leading: PageBackButton()),
-                loading: () => AppBar(leading: PageBackButton()),
-              )
-              : null,
+                    FlexibleSpaceBar(
+                      title: Text(
+                        realm.name,
+                        style: TextStyle(
+                          color:
+                              appbarColor.value ??
+                              Theme.of(context).appBarTheme.foregroundColor,
+                          shadows: [iconShadow],
+                        ),
+                      ),
+                      background: Container(),
+                    ),
+                  ],
+                ),
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.people, shadows: [iconShadow]),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) =>
+                            _RealmMemberListSheet(realmSlug: slug),
+                      );
+                    },
+                  ),
+                  _RealmActionMenu(realmSlug: slug, iconShadow: iconShadow),
+                  const Gap(8),
+                ],
+              ),
+              error: (_, _) => AppBar(leading: PageBackButton()),
+              loading: () => AppBar(leading: PageBackButton()),
+            )
+          : null,
       body: realmState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
-        data:
-            (realm) =>
-                isWideScreen(context)
-                    ? Row(
-                      children: [
-                        Flexible(
-                          flex: 3,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverPostList(realm: slug, pinned: true),
-                              SliverPostList(realm: slug, pinned: false),
-                            ],
-                          ),
-                        ),
-                        Flexible(
-                          flex: 2,
-                          child: Column(
-                            children: [
-                              realmIdentity.when(
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, _) => const SizedBox.shrink(),
-                                data:
-                                    (identity) => Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        realmDescriptionWidget(realm!),
-                                        if (identity == null &&
-                                            realm.isCommunity)
-                                          realmActionWidget(realm)
-                                        else
-                                          const SizedBox.shrink(),
-                                      ],
-                                    ),
-                              ),
-                              realmChatRoomListWidget(realm!),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ).padding(horizontal: 8, top: 8)
-                    : CustomScrollView(
+        data: (realm) => isWideScreen(context)
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 3,
+                    child: CustomScrollView(
                       slivers: [
-                        SliverAppBar(
-                          expandedHeight: 180,
-                          pinned: true,
-                          foregroundColor: appbarColor.value,
-                          leading: PageBackButton(
-                            color: appbarColor.value,
-                            shadows: [iconShadow],
-                          ),
-                          flexibleSpace: Stack(
-                            children: [
-                              Positioned.fill(
-                                child:
-                                    realm!.background?.id != null
-                                        ? CloudImageWidget(
-                                          fileId: realm.background!.id,
-                                        )
-                                        : Container(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).appBarTheme.backgroundColor,
-                                        ),
-                              ),
-                              FlexibleSpaceBar(
-                                title: Text(
-                                  realm.name,
-                                  style: TextStyle(
-                                    color:
-                                        appbarColor.value ??
-                                        Theme.of(
-                                          context,
-                                        ).appBarTheme.foregroundColor,
-                                    shadows: [iconShadow],
-                                  ),
-                                ),
-                                background:
-                                    Container(), // Empty container since background is handled by Stack
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            IconButton(
-                              icon: Icon(Icons.people, shadows: [iconShadow]),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder:
-                                      (context) => _RealmMemberListSheet(
-                                        realmSlug: slug,
-                                      ),
-                                );
-                              },
-                            ),
-                            _RealmActionMenu(
-                              realmSlug: slug,
-                              iconShadow: iconShadow,
-                            ),
-                            const Gap(8),
-                          ],
+                        SliverPostList(
+                          query: PostListQuery(realm: slug, pinned: true),
                         ),
-                        SliverGap(4),
-                        SliverToBoxAdapter(
-                          child: realmIdentity.when(
-                            loading: () => const SizedBox.shrink(),
-                            error: (_, _) => const SizedBox.shrink(),
-                            data:
-                                (identity) => Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    realmDescriptionWidget(realm),
-                                    if (identity == null && realm.isCommunity)
-                                      realmActionWidget(realm)
-                                    else
-                                      const SizedBox.shrink(),
-                                  ],
-                                ),
-                          ),
+                        SliverPostList(
+                          query: PostListQuery(realm: slug, pinned: false),
                         ),
-                        SliverToBoxAdapter(
-                          child: realmChatRoomListWidget(realm),
-                        ),
-                        SliverPostList(realm: slug, pinned: true),
-                        SliverPostList(realm: slug, pinned: false),
                       ],
                     ),
+                  ),
+                  Flexible(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        realmIdentity.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                          data: (identity) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              realmDescriptionWidget(realm!),
+                              if (identity == null && realm.isCommunity)
+                                realmActionWidget(realm)
+                              else
+                                const SizedBox.shrink(),
+                            ],
+                          ),
+                        ),
+                        realmChatRoomListWidget(realm!),
+                      ],
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 8, top: 8)
+            : CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 180,
+                    pinned: true,
+                    foregroundColor: appbarColor.value,
+                    leading: PageBackButton(
+                      color: appbarColor.value,
+                      shadows: [iconShadow],
+                    ),
+                    flexibleSpace: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: realm!.background?.id != null
+                              ? CloudImageWidget(fileId: realm.background!.id)
+                              : Container(
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.backgroundColor,
+                                ),
+                        ),
+                        FlexibleSpaceBar(
+                          title: Text(
+                            realm.name,
+                            style: TextStyle(
+                              color:
+                                  appbarColor.value ??
+                                  Theme.of(context).appBarTheme.foregroundColor,
+                              shadows: [iconShadow],
+                            ),
+                          ),
+                          background:
+                              Container(), // Empty container since background is handled by Stack
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.people, shadows: [iconShadow]),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            isScrollControlled: true,
+                            context: context,
+                            builder: (context) =>
+                                _RealmMemberListSheet(realmSlug: slug),
+                          );
+                        },
+                      ),
+                      _RealmActionMenu(realmSlug: slug, iconShadow: iconShadow),
+                      const Gap(8),
+                    ],
+                  ),
+                  SliverGap(4),
+                  SliverToBoxAdapter(
+                    child: realmIdentity.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (identity) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          realmDescriptionWidget(realm),
+                          if (identity == null && realm.isCommunity)
+                            realmActionWidget(realm)
+                          else
+                            const SizedBox.shrink(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: realmChatRoomListWidget(realm)),
+                  SliverPostList(
+                    query: PostListQuery(realm: slug, pinned: true),
+                  ),
+                  SliverPostList(
+                    query: PostListQuery(realm: slug, pinned: false),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -391,135 +368,125 @@ class _RealmActionMenu extends HookConsumerWidget {
 
     return PopupMenuButton(
       icon: Icon(Icons.more_vert, shadows: [iconShadow]),
-      itemBuilder:
-          (context) => [
-            if (isModerator)
-              PopupMenuItem(
-                onTap: () {
-                  context.pushReplacementNamed(
-                    'realmEdit',
-                    pathParameters: {'slug': realmSlug},
-                  );
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.edit,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                    const Gap(12),
-                    const Text('editRealm').tr(),
-                  ],
+      itemBuilder: (context) => [
+        if (isModerator)
+          PopupMenuItem(
+            onTap: () {
+              context.pushReplacementNamed(
+                'realmEdit',
+                pathParameters: {'slug': realmSlug},
+              );
+            },
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
                 ),
-              ),
-            realmIdentity.when(
-              data:
-                  (identity) =>
-                      (identity?.role ?? 0) >= 100
-                          ? PopupMenuItem(
-                            child: Row(
-                              children: [
-                                const Icon(Icons.delete, color: Colors.red),
-                                const Gap(12),
-                                const Text(
-                                  'deleteRealm',
-                                  style: TextStyle(color: Colors.red),
-                                ).tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              showConfirmAlert(
-                                'deleteRealmHint'.tr(),
-                                'deleteRealm'.tr(),
-                                isDanger: true,
-                              ).then((confirm) {
-                                if (confirm) {
-                                  final client = ref.watch(apiClientProvider);
-                                  client.delete('/pass/realms/$realmSlug');
-                                  ref.invalidate(realmsJoinedProvider);
-                                  if (context.mounted) {
-                                    context.pop(true);
-                                  }
-                                }
-                              });
-                            },
-                          )
-                          : PopupMenuItem(
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.exit_to_app,
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                                const Gap(12),
-                                Text(
-                                  'leaveRealm',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                ).tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              showConfirmAlert(
-                                'leaveRealmHint'.tr(),
-                                'leaveRealm'.tr(),
-                              ).then((confirm) async {
-                                if (confirm) {
-                                  final client = ref.watch(apiClientProvider);
-                                  await client.delete(
-                                    '/pass/realms/$realmSlug/members/me',
-                                  );
-                                  ref.invalidate(realmsJoinedProvider);
-                                  if (context.mounted) {
-                                    context.pop(true);
-                                  }
-                                }
-                              });
-                            },
-                          ),
-              loading:
-                  () => const PopupMenuItem(
-                    enabled: false,
-                    child: Center(child: CircularProgressIndicator()),
+                const Gap(12),
+                const Text('editRealm').tr(),
+              ],
+            ),
+          ),
+        realmIdentity.when(
+          data: (identity) => (identity?.role ?? 0) >= 100
+              ? PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete, color: Colors.red),
+                      const Gap(12),
+                      const Text(
+                        'deleteRealm',
+                        style: TextStyle(color: Colors.red),
+                      ).tr(),
+                    ],
                   ),
-              error:
-                  (_, _) => PopupMenuItem(
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.exit_to_app,
+                  onTap: () {
+                    showConfirmAlert(
+                      'deleteRealmHint'.tr(),
+                      'deleteRealm'.tr(),
+                      isDanger: true,
+                    ).then((confirm) {
+                      if (confirm) {
+                        final client = ref.watch(apiClientProvider);
+                        client.delete('/pass/realms/$realmSlug');
+                        ref.invalidate(realmsJoinedProvider);
+                        if (context.mounted) {
+                          context.pop(true);
+                        }
+                      }
+                    });
+                  },
+                )
+              : PopupMenuItem(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.exit_to_app,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const Gap(12),
+                      Text(
+                        'leaveRealm',
+                        style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                         ),
-                        const Gap(12),
-                        Text(
-                          'leaveRealm',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ).tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      showConfirmAlert(
-                        'leaveRealmHint'.tr(),
-                        'leaveRealm'.tr(),
-                      ).then((confirm) async {
-                        if (confirm) {
-                          final client = ref.watch(apiClientProvider);
-                          await client.delete(
-                            '/pass/realms/$realmSlug/members/me',
-                          );
-                          ref.invalidate(realmsJoinedProvider);
-                          if (context.mounted) {
-                            context.pop(true);
-                          }
-                        }
-                      });
-                    },
+                      ).tr(),
+                    ],
                   ),
+                  onTap: () {
+                    showConfirmAlert(
+                      'leaveRealmHint'.tr(),
+                      'leaveRealm'.tr(),
+                    ).then((confirm) async {
+                      if (confirm) {
+                        final client = ref.watch(apiClientProvider);
+                        await client.delete(
+                          '/pass/realms/$realmSlug/members/me',
+                        );
+                        ref.invalidate(realmsJoinedProvider);
+                        if (context.mounted) {
+                          context.pop(true);
+                        }
+                      }
+                    });
+                  },
+                ),
+          loading: () => const PopupMenuItem(
+            enabled: false,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, _) => PopupMenuItem(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.exit_to_app,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const Gap(12),
+                Text(
+                  'leaveRealm',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ).tr(),
+              ],
             ),
-          ],
+            onTap: () {
+              showConfirmAlert('leaveRealmHint'.tr(), 'leaveRealm'.tr()).then((
+                confirm,
+              ) async {
+                if (confirm) {
+                  final client = ref.watch(apiClientProvider);
+                  await client.delete('/pass/realms/$realmSlug/members/me');
+                  ref.invalidate(realmsJoinedProvider);
+                  if (context.mounted) {
+                    context.pop(true);
+                  }
+                }
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -684,11 +651,10 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                         showModalBottomSheet(
                           isScrollControlled: true,
                           context: context,
-                          builder:
-                              (context) => _RealmMemberRoleSheet(
-                                realmSlug: realmSlug,
-                                member: member,
-                              ),
+                          builder: (context) => _RealmMemberRoleSheet(
+                            realmSlug: realmSlug,
+                            member: member,
+                          ),
                         ).then((value) {
                           if (value != null) {
                             // Refresh the provider
@@ -809,23 +775,19 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
                   onSelected: (int selection) {
                     roleController.text = selection.toString();
                   },
-                  fieldViewBuilder: (
-                    context,
-                    controller,
-                    focusNode,
-                    onFieldSubmitted,
-                  ) {
-                    return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'memberRole'.tr(),
-                        helperText: 'memberRoleHint'.tr(),
-                      ),
-                      onTapOutside: (event) => focusNode.unfocus(),
-                    );
-                  },
+                  fieldViewBuilder:
+                      (context, controller, focusNode, onFieldSubmitted) {
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'memberRole'.tr(),
+                            helperText: 'memberRoleHint'.tr(),
+                          ),
+                          onTapOutside: (event) => focusNode.unfocus(),
+                        );
+                      },
                 ),
                 const Gap(16),
                 FilledButton.icon(

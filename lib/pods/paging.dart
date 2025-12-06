@@ -7,6 +7,7 @@ abstract class PaginationController<T> {
   int get fetchedCount;
 
   bool get fetchedAll;
+  bool get isLoading;
 
   FutureOr<List<T>> fetch();
 
@@ -33,10 +34,14 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   bool get fetchedAll => totalCount != null && fetchedCount >= totalCount!;
 
   @override
+  bool isLoading = false;
+
+  @override
   FutureOr<List<T>> build() async => fetch();
 
   @override
   Future<void> refresh() async {
+    isLoading = true;
     totalCount = null;
     state = AsyncData<List<T>>([]);
 
@@ -44,12 +49,14 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
       return await fetch();
     });
     state = newState;
+    isLoading = false;
   }
 
   @override
   Future<void> fetchFurther() async {
     if (fetchedAll) return;
 
+    isLoading = true;
     state = AsyncLoading<List<T>>();
 
     final newState = await AsyncValue.guard<List<T>>(() async {
@@ -58,6 +65,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
     });
 
     state = newState;
+    isLoading = false;
   }
 }
 
@@ -67,6 +75,7 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
   Future<void> applyFilter(F filter) async {
     if (currentFilter == filter) return;
     // Reset the data
+    isLoading = true;
     totalCount = null;
     state = AsyncData<List<T>>([]);
     currentFilter = filter;
@@ -75,5 +84,6 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
       return await fetch();
     });
     state = newState;
+    isLoading = false;
   }
 }

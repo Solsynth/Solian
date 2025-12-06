@@ -1,33 +1,88 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class PostFilterWidget extends StatelessWidget {
+class PostFilterWidget extends StatefulWidget {
   final TabController categoryTabController;
-  final ValueNotifier<bool?> includeReplies;
-  final ValueNotifier<bool> mediaOnly;
-  final ValueNotifier<String?> queryTerm;
-  final ValueNotifier<String?> order;
-  final ValueNotifier<bool> orderDesc;
-  final ValueNotifier<int?> periodStart;
-  final ValueNotifier<int?> periodEnd;
-  final ValueNotifier<bool> showAdvancedFilters;
+  final PostListQuery initialQuery;
+  final ValueChanged<PostListQuery> onQueryChanged;
   final bool hideSearch;
 
   const PostFilterWidget({
     super.key,
     required this.categoryTabController,
-    required this.includeReplies,
-    required this.mediaOnly,
-    required this.queryTerm,
-    required this.order,
-    required this.orderDesc,
-    required this.periodStart,
-    required this.periodEnd,
-    required this.showAdvancedFilters,
+    required this.initialQuery,
+    required this.onQueryChanged,
     this.hideSearch = false,
   });
+
+  @override
+  State<PostFilterWidget> createState() => _PostFilterWidgetState();
+}
+
+class _PostFilterWidgetState extends State<PostFilterWidget> {
+  late bool? _includeReplies;
+  late bool _mediaOnly;
+  late String? _queryTerm;
+  late String? _order;
+  late bool _orderDesc;
+  late int? _periodStart;
+  late int? _periodEnd;
+  late int? _type;
+  late bool _showAdvancedFilters;
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _includeReplies = widget.initialQuery.includeReplies;
+    _mediaOnly = widget.initialQuery.mediaOnly ?? false;
+    _queryTerm = widget.initialQuery.queryTerm;
+    _order = widget.initialQuery.order;
+    _orderDesc = widget.initialQuery.orderDesc;
+    _periodStart = widget.initialQuery.periodStart;
+    _periodEnd = widget.initialQuery.periodEnd;
+    _type = widget.initialQuery.type;
+    _showAdvancedFilters = false;
+    _searchController = TextEditingController(text: _queryTerm);
+
+    widget.categoryTabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.categoryTabController.removeListener(_onTabChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    final tabIndex = widget.categoryTabController.index;
+    setState(() {
+      _type = switch (tabIndex) {
+        1 => 0,
+        2 => 1,
+        _ => null,
+      };
+    });
+    _updateQuery();
+  }
+
+  void _updateQuery() {
+    final newQuery = widget.initialQuery.copyWith(
+      includeReplies: _includeReplies,
+      mediaOnly: _mediaOnly,
+      queryTerm: _queryTerm,
+      order: _order,
+      periodStart: _periodStart,
+      periodEnd: _periodEnd,
+      orderDesc: _orderDesc,
+      type: _type,
+    );
+    widget.onQueryChanged(newQuery);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +91,7 @@ class PostFilterWidget extends StatelessWidget {
       child: Column(
         children: [
           TabBar(
-            controller: categoryTabController,
+            controller: widget.categoryTabController,
             dividerColor: Colors.transparent,
             splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
             tabs: [
@@ -53,17 +108,20 @@ class PostFilterWidget extends StatelessWidget {
                   Expanded(
                     child: CheckboxListTile(
                       title: Text('reply'.tr()),
-                      value: includeReplies.value,
+                      value: _includeReplies,
                       tristate: true,
                       onChanged: (value) {
                         // Cycle through: null -> false -> true -> null
-                        if (includeReplies.value == null) {
-                          includeReplies.value = false;
-                        } else if (includeReplies.value == false) {
-                          includeReplies.value = true;
-                        } else {
-                          includeReplies.value = null;
-                        }
+                        setState(() {
+                          if (_includeReplies == null) {
+                            _includeReplies = false;
+                          } else if (_includeReplies == false) {
+                            _includeReplies = true;
+                          } else {
+                            _includeReplies = null;
+                          }
+                        });
+                        _updateQuery();
                       },
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -73,11 +131,14 @@ class PostFilterWidget extends StatelessWidget {
                   Expanded(
                     child: CheckboxListTile(
                       title: Text('attachments'.tr()),
-                      value: mediaOnly.value,
+                      value: _mediaOnly,
                       onChanged: (value) {
-                        if (value != null) {
-                          mediaOnly.value = value;
-                        }
+                        setState(() {
+                          if (value != null) {
+                            _mediaOnly = value;
+                          }
+                        });
+                        _updateQuery();
                       },
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -88,11 +149,14 @@ class PostFilterWidget extends StatelessWidget {
               ),
               CheckboxListTile(
                 title: Text('descendingOrder'.tr()),
-                value: orderDesc.value,
+                value: _orderDesc,
                 onChanged: (value) {
-                  if (value != null) {
-                    orderDesc.value = value;
-                  }
+                  setState(() {
+                    if (value != null) {
+                      _orderDesc = value;
+                    }
+                  });
+                  _updateQuery();
                 },
                 dense: true,
                 controlAffinity: ListTileControlAffinity.leading,
@@ -109,23 +173,24 @@ class PostFilterWidget extends StatelessWidget {
               borderRadius: BorderRadius.all(const Radius.circular(8)),
             ),
             trailing: Icon(
-              showAdvancedFilters.value
-                  ? Symbols.expand_less
-                  : Symbols.expand_more,
+              _showAdvancedFilters ? Symbols.expand_less : Symbols.expand_more,
             ),
             onTap: () {
-              showAdvancedFilters.value = !showAdvancedFilters.value;
+              setState(() {
+                _showAdvancedFilters = !_showAdvancedFilters;
+              });
             },
           ),
-          if (showAdvancedFilters.value) ...[
+          if (_showAdvancedFilters) ...[
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (!hideSearch)
+                  if (!widget.hideSearch)
                     TextField(
+                      controller: _searchController,
                       decoration: InputDecoration(
                         labelText: 'search'.tr(),
                         hintText: 'searchPosts'.tr(),
@@ -139,10 +204,13 @@ class PostFilterWidget extends StatelessWidget {
                         ),
                       ),
                       onChanged: (value) {
-                        queryTerm.value = value.isEmpty ? null : value;
+                        setState(() {
+                          _queryTerm = value.isEmpty ? null : value;
+                        });
+                        _updateQuery();
                       },
                     ),
-                  if (!hideSearch) const Gap(12),
+                  if (!widget.hideSearch) const Gap(12),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'sortBy'.tr(),
@@ -154,7 +222,7 @@ class PostFilterWidget extends StatelessWidget {
                         vertical: 8,
                       ),
                     ),
-                    value: order.value,
+                    value: _order,
                     items: [
                       DropdownMenuItem(value: 'date', child: Text('date'.tr())),
                       DropdownMenuItem(
@@ -163,7 +231,10 @@ class PostFilterWidget extends StatelessWidget {
                       ),
                     ],
                     onChanged: (value) {
-                      order.value = value;
+                      setState(() {
+                        _order = value;
+                      });
+                      _updateQuery();
                     },
                   ),
                   const Gap(12),
@@ -174,9 +245,9 @@ class PostFilterWidget extends StatelessWidget {
                           onTap: () async {
                             final pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: periodStart.value != null
+                              initialDate: _periodStart != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      periodStart.value! * 1000,
+                                      _periodStart! * 1000,
                                     )
                                   : DateTime.now(),
                               firstDate: DateTime(2000),
@@ -185,8 +256,11 @@ class PostFilterWidget extends StatelessWidget {
                               ),
                             );
                             if (pickedDate != null) {
-                              periodStart.value =
-                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              setState(() {
+                                _periodStart =
+                                    pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              });
+                              _updateQuery();
                             }
                           },
                           child: InputDecorator(
@@ -204,9 +278,9 @@ class PostFilterWidget extends StatelessWidget {
                               suffixIcon: const Icon(Symbols.calendar_today),
                             ),
                             child: Text(
-                              periodStart.value != null
+                              _periodStart != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      periodStart.value! * 1000,
+                                      _periodStart! * 1000,
                                     ).toString().split(' ')[0]
                                   : 'selectDate'.tr(),
                             ),
@@ -219,9 +293,9 @@ class PostFilterWidget extends StatelessWidget {
                           onTap: () async {
                             final pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: periodEnd.value != null
+                              initialDate: _periodEnd != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      periodEnd.value! * 1000,
+                                      _periodEnd! * 1000,
                                     )
                                   : DateTime.now(),
                               firstDate: DateTime(2000),
@@ -230,8 +304,11 @@ class PostFilterWidget extends StatelessWidget {
                               ),
                             );
                             if (pickedDate != null) {
-                              periodEnd.value =
-                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              setState(() {
+                                _periodEnd =
+                                    pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              });
+                              _updateQuery();
                             }
                           },
                           child: InputDecorator(
@@ -249,9 +326,9 @@ class PostFilterWidget extends StatelessWidget {
                               suffixIcon: const Icon(Symbols.calendar_today),
                             ),
                             child: Text(
-                              periodEnd.value != null
+                              _periodEnd != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      periodEnd.value! * 1000,
+                                      _periodEnd! * 1000,
                                     ).toString().split(' ')[0]
                                   : 'selectDate'.tr(),
                             ),

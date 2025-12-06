@@ -26,17 +26,21 @@ sealed class PostListQuery with _$PostListQuery {
   }) = _PostListQuery;
 }
 
-final postListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<PostListNotifier, List<SnPost>, PostListQuery>(
-      PostListNotifier.new,
-    );
+final postListProvider = AsyncNotifierProvider.autoDispose.family(
+  PostListNotifier.new,
+);
 
 class PostListNotifier extends AsyncNotifier<List<SnPost>>
-    with AsyncPaginationController<SnPost> {
-  final PostListQuery arg;
-  PostListNotifier(this.arg);
-
+    with
+        AsyncPaginationController<SnPost>,
+        AsyncPaginationFilter<PostListQuery, SnPost> {
   static const int pageSize = 20;
+
+  final String? id;
+  PostListNotifier(this.id);
+
+  @override
+  PostListQuery currentFilter = PostListQuery();
 
   @override
   Future<List<SnPost>> fetch() async {
@@ -45,20 +49,22 @@ class PostListNotifier extends AsyncNotifier<List<SnPost>>
     final queryParams = {
       'offset': fetchedCount,
       'take': pageSize,
-      'replies': arg.includeReplies,
-      'orderDesc': arg.orderDesc,
-      if (arg.shuffle) 'shuffle': arg.shuffle,
-      if (arg.pubName != null) 'pub': arg.pubName,
-      if (arg.realm != null) 'realm': arg.realm,
-      if (arg.type != null) 'type': arg.type,
-      if (arg.tags != null) 'tags': arg.tags,
-      if (arg.categories != null) 'categories': arg.categories,
-      if (arg.pinned != null) 'pinned': arg.pinned,
-      if (arg.order != null) 'order': arg.order,
-      if (arg.periodStart != null) 'periodStart': arg.periodStart,
-      if (arg.periodEnd != null) 'periodEnd': arg.periodEnd,
-      if (arg.queryTerm != null) 'query': arg.queryTerm,
-      if (arg.mediaOnly != null) 'media': arg.mediaOnly,
+      'replies': currentFilter.includeReplies,
+      'orderDesc': currentFilter.orderDesc,
+      if (currentFilter.shuffle) 'shuffle': currentFilter.shuffle,
+      if (currentFilter.pubName != null) 'pub': currentFilter.pubName,
+      if (currentFilter.realm != null) 'realm': currentFilter.realm,
+      if (currentFilter.type != null) 'type': currentFilter.type,
+      if (currentFilter.tags != null) 'tags': currentFilter.tags,
+      if (currentFilter.categories != null)
+        'categories': currentFilter.categories,
+      if (currentFilter.pinned != null) 'pinned': currentFilter.pinned,
+      if (currentFilter.order != null) 'order': currentFilter.order,
+      if (currentFilter.periodStart != null)
+        'periodStart': currentFilter.periodStart,
+      if (currentFilter.periodEnd != null) 'periodEnd': currentFilter.periodEnd,
+      if (currentFilter.queryTerm != null) 'query': currentFilter.queryTerm,
+      if (currentFilter.mediaOnly != null) 'media': currentFilter.mediaOnly,
     };
 
     final response = await client.get(

@@ -11,6 +11,7 @@ import 'package:island/models/account.dart';
 import 'package:island/models/heatmap.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:island/services/color.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -344,45 +345,6 @@ class _PublisherHeatmapWidget extends StatelessWidget {
   }
 }
 
-class _PublisherCategoryTabWidget extends StatelessWidget {
-  final TabController categoryTabController;
-  final ValueNotifier<bool?> includeReplies;
-  final ValueNotifier<bool> mediaOnly;
-  final ValueNotifier<String?> queryTerm;
-  final ValueNotifier<String?> order;
-  final ValueNotifier<bool> orderDesc;
-  final ValueNotifier<int?> periodStart;
-  final ValueNotifier<int?> periodEnd;
-  final ValueNotifier<bool> showAdvancedFilters;
-
-  const _PublisherCategoryTabWidget({
-    required this.categoryTabController,
-    required this.includeReplies,
-    required this.mediaOnly,
-    required this.queryTerm,
-    required this.order,
-    required this.orderDesc,
-    required this.periodStart,
-    required this.periodEnd,
-    required this.showAdvancedFilters,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PostFilterWidget(
-      categoryTabController: categoryTabController,
-      includeReplies: includeReplies,
-      mediaOnly: mediaOnly,
-      queryTerm: queryTerm,
-      order: order,
-      orderDesc: orderDesc,
-      periodStart: periodStart,
-      periodEnd: periodEnd,
-      showAdvancedFilters: showAdvancedFilters,
-    );
-  }
-}
-
 @riverpod
 Future<SnPublisher> publisher(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
@@ -454,23 +416,21 @@ class PublisherProfileScreen extends HookConsumerWidget {
     );
 
     final categoryTabController = useTabController(initialLength: 3);
-    final categoryTab = useState(0);
-    categoryTabController.addListener(() {
-      categoryTab.value = categoryTabController.index;
-    });
 
-    final includeReplies = useState<bool?>(null);
-    final mediaOnly = useState(false);
-    final queryTerm = useState<String?>(null);
-    final order = useState<String?>('date'); // 'popularity' or 'date'
-    final orderDesc = useState(
-      true,
-    ); // true for descending, false for ascending
-    final periodStart = useState<int?>(null);
-    final periodEnd = useState<int?>(null);
-    final showAdvancedFilters = useState(false);
+    final queryState = useState(PostListQuery(pubName: name));
+
     final subscribing = useState(false);
     final isPinnedExpanded = useState(true);
+
+    useEffect(() {
+      final index = switch (queryState.value.type) {
+        0 => 1,
+        1 => 2,
+        _ => 0,
+      };
+      categoryTabController.index = index;
+      return null;
+    }, []);
 
     Future<void> subscribe() async {
       final apiClient = ref.watch(apiClientProvider);
@@ -564,37 +524,22 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         ),
                         ...[
                           if (isPinnedExpanded.value)
-                            SliverPostList(pubName: name, pinned: true),
+                            SliverPostList(
+                              query: PostListQuery(pubName: name, pinned: true),
+                              queryKey: 'publisher-$name-pinned',
+                            ),
                         ],
                         SliverToBoxAdapter(
-                          child: _PublisherCategoryTabWidget(
+                          child: PostFilterWidget(
                             categoryTabController: categoryTabController,
-                            includeReplies: includeReplies,
-                            mediaOnly: mediaOnly,
-                            queryTerm: queryTerm,
-                            order: order,
-                            orderDesc: orderDesc,
-                            periodStart: periodStart,
-                            periodEnd: periodEnd,
-                            showAdvancedFilters: showAdvancedFilters,
+                            initialQuery: queryState.value,
+                            onQueryChanged: (newQuery) =>
+                                queryState.value = newQuery,
                           ),
                         ),
                         SliverPostList(
-                          key: ValueKey(
-                            '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
-                          ),
-                          pubName: name,
-                          pinned: false,
-                          type: categoryTab.value == 1
-                              ? 0
-                              : (categoryTab.value == 2 ? 1 : null),
-                          includeReplies: includeReplies.value,
-                          mediaOnly: mediaOnly.value,
-                          queryTerm: queryTerm.value,
-                          order: order.value,
-                          orderDesc: orderDesc.value,
-                          periodStart: periodStart.value,
-                          periodEnd: periodEnd.value,
+                          query: queryState.value,
+                          queryKey: 'publisher-$name',
                         ),
                         SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
@@ -704,37 +649,22 @@ class PublisherProfileScreen extends HookConsumerWidget {
                   ),
                   ...[
                     if (isPinnedExpanded.value)
-                      SliverPostList(pubName: name, pinned: true),
+                      SliverPostList(
+                        query: PostListQuery(pubName: name, pinned: true),
+                        queryKey: 'publisher-$name-pinned',
+                      ),
                   ],
                   SliverToBoxAdapter(
-                    child: _PublisherCategoryTabWidget(
+                    child: PostFilterWidget(
                       categoryTabController: categoryTabController,
-                      includeReplies: includeReplies,
-                      mediaOnly: mediaOnly,
-                      queryTerm: queryTerm,
-                      order: order,
-                      orderDesc: orderDesc,
-                      periodStart: periodStart,
-                      periodEnd: periodEnd,
-                      showAdvancedFilters: showAdvancedFilters,
+                      initialQuery: queryState.value,
+                      onQueryChanged: (newQuery) => queryState.value = newQuery,
                     ),
                   ),
                   SliverPostList(
-                    key: ValueKey(
-                      '${categoryTab.value}-${includeReplies.value}-${mediaOnly.value}-${queryTerm.value}-${order.value}-${orderDesc.value}-${periodStart.value}-${periodEnd.value}',
-                    ),
-                    pubName: name,
-                    pinned: false,
-                    type: categoryTab.value == 1
-                        ? 0
-                        : (categoryTab.value == 2 ? 1 : null),
-                    includeReplies: includeReplies.value,
-                    mediaOnly: mediaOnly.value,
-                    queryTerm: queryTerm.value,
-                    order: order.value,
-                    orderDesc: orderDesc.value,
-                    periodStart: periodStart.value,
-                    periodEnd: periodEnd.value,
+                    key: ValueKey(queryState.value),
+                    query: queryState.value,
+                    queryKey: 'publisher-$name',
                   ),
                   SliverGap(MediaQuery.of(context).padding.bottom + 16),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/post/post_list.dart';
@@ -17,21 +18,7 @@ enum PostItemType {
 }
 
 class SliverPostList extends HookConsumerWidget {
-  final String? pubName;
-  final String? realm;
-  final int? type;
-  final List<String>? categories;
-  final List<String>? tags;
-  final bool shuffle;
-  final bool? pinned;
-  final bool? includeReplies;
-  final bool? mediaOnly;
-  final String? queryTerm;
-  // Can be "populaurity", other value will be treated as "date"
-  final String? order;
-  final int? periodStart;
-  final int? periodEnd;
-  final bool? orderDesc;
+  final PostListQuery? query;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -39,23 +26,11 @@ class SliverPostList extends HookConsumerWidget {
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
   final double? maxWidth;
+  final String? queryKey;
 
   const SliverPostList({
     super.key,
-    this.pubName,
-    this.realm,
-    this.type,
-    this.categories,
-    this.tags,
-    this.shuffle = false,
-    this.pinned,
-    this.includeReplies,
-    this.mediaOnly,
-    this.queryTerm,
-    this.order,
-    this.orderDesc = true,
-    this.periodStart,
-    this.periodEnd,
+    this.query,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -63,28 +38,18 @@ class SliverPostList extends HookConsumerWidget {
     this.onRefresh,
     this.onUpdate,
     this.maxWidth,
+    this.queryKey,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final params = PostListQuery(
-      pubName: pubName,
-      realm: realm,
-      type: type,
-      categories: categories,
-      tags: tags,
-      shuffle: shuffle,
-      pinned: pinned,
-      includeReplies: includeReplies,
-      mediaOnly: mediaOnly,
-      queryTerm: queryTerm,
-      order: order,
-      periodStart: periodStart,
-      periodEnd: periodEnd,
-      orderDesc: orderDesc ?? true,
-    );
-    final provider = postListNotifierProvider(params);
+    final provider = postListProvider(queryKey);
     final notifier = provider.notifier;
+
+    useEffect(() {
+      ref.read(notifier).applyFilter(query!);
+      return null;
+    }, [query]);
 
     return PaginationList(
       provider: provider,

@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:island/widgets/response.dart';
@@ -82,17 +83,17 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postCategory =
-        isCategory ? ref.watch(postCategoryProvider(slug)) : null;
+    final postCategory = isCategory
+        ? ref.watch(postCategoryProvider(slug))
+        : null;
     final postTag = isCategory ? null : ref.watch(postTagProvider(slug));
     final subscriptionStatus = ref.watch(
       postCategorySubscriptionStatusProvider(slug, isCategory),
     );
 
-    final postFilterTitle =
-        isCategory
-            ? postCategory?.value?.categoryDisplayTitle ?? 'loading'
-            : postTag?.value?.name ?? postTag?.value?.slug ?? 'loading';
+    final postFilterTitle = isCategory
+        ? postCategory?.value?.categoryDisplayTitle ?? 'loading'
+        : postTag?.value?.name ?? postTag?.value?.slug ?? 'loading';
 
     return AppScaffold(
       isNoBackground: false,
@@ -108,63 +109,50 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                     child: Card(
                       margin: EdgeInsets.only(top: 8),
                       child: postCategory!.when(
-                        data:
-                            (category) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  category.categoryDisplayTitle,
-                                ).bold().fontSize(15),
-                                Text('A category'),
-                                const Gap(8),
-                                subscriptionStatus.when(
-                                  data:
-                                      (isSubscribed) =>
-                                          isSubscribed
-                                              ? FilledButton.icon(
-                                                onPressed: () async {
-                                                  await _unsubscribeFromCategoryOrTag(
-                                                    ref,
-                                                    slug: slug,
-                                                    isCategory: isCategory,
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                  Symbols.remove_circle,
-                                                ),
-                                                label: Text('unsubscribe'.tr()),
-                                              )
-                                              : FilledButton.icon(
-                                                onPressed: () async {
-                                                  await _subscribeToCategoryOrTag(
-                                                    ref,
-                                                    slug: slug,
-                                                    isCategory: isCategory,
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                  Symbols.add_circle,
-                                                ),
-                                                label: Text('subscribe'.tr()),
-                                              ),
-                                  error:
-                                      (error, _) => Text(
-                                        'Error loading subscription status',
-                                      ),
-                                  loading:
-                                      () =>
-                                          CircularProgressIndicator().center(),
-                                ),
-                              ],
-                            ).padding(horizontal: 24, vertical: 16),
-                        error:
-                            (error, _) => ResponseErrorWidget(
-                              error: error,
-                              onRetry:
-                                  () => ref.invalidate(
-                                    postCategoryProvider(slug),
-                                  ),
+                        data: (category) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              category.categoryDisplayTitle,
+                            ).bold().fontSize(15),
+                            Text('A category'),
+                            const Gap(8),
+                            subscriptionStatus.when(
+                              data: (isSubscribed) => isSubscribed
+                                  ? FilledButton.icon(
+                                      onPressed: () async {
+                                        await _unsubscribeFromCategoryOrTag(
+                                          ref,
+                                          slug: slug,
+                                          isCategory: isCategory,
+                                        );
+                                      },
+                                      icon: const Icon(Symbols.remove_circle),
+                                      label: Text('unsubscribe'.tr()),
+                                    )
+                                  : FilledButton.icon(
+                                      onPressed: () async {
+                                        await _subscribeToCategoryOrTag(
+                                          ref,
+                                          slug: slug,
+                                          isCategory: isCategory,
+                                        );
+                                      },
+                                      icon: const Icon(Symbols.add_circle),
+                                      label: Text('subscribe'.tr()),
+                                    ),
+                              error: (error, _) =>
+                                  Text('Error loading subscription status'),
+                              loading: () =>
+                                  CircularProgressIndicator().center(),
                             ),
+                          ],
+                        ).padding(horizontal: 24, vertical: 16),
+                        error: (error, _) => ResponseErrorWidget(
+                          error: error,
+                          onRetry: () =>
+                              ref.invalidate(postCategoryProvider(slug)),
+                        ),
                         loading: () => ResponseLoadingWidget(),
                       ),
                     ),
@@ -179,61 +167,49 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                     child: Card(
                       margin: EdgeInsets.only(top: 8),
                       child: postTag!.when(
-                        data:
-                            (tag) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  tag.name ?? '#${tag.slug}',
-                                ).bold().fontSize(15),
-                                Text('A tag'),
-                                const Gap(8),
-                                subscriptionStatus.when(
-                                  data:
-                                      (isSubscribed) =>
-                                          isSubscribed
-                                              ? FilledButton.icon(
-                                                onPressed: () async {
-                                                  await _unsubscribeFromCategoryOrTag(
-                                                    ref,
-                                                    slug: slug,
-                                                    isCategory: isCategory,
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                  Symbols.remove_circle,
-                                                ),
-                                                label: Text('unsubscribe'.tr()),
-                                              )
-                                              : FilledButton.icon(
-                                                onPressed: () async {
-                                                  await _subscribeToCategoryOrTag(
-                                                    ref,
-                                                    slug: slug,
-                                                    isCategory: isCategory,
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                  Symbols.add_circle,
-                                                ),
-                                                label: Text('subscribe'.tr()),
-                                              ),
-                                  error:
-                                      (error, _) => Text(
-                                        'Error loading subscription status',
-                                      ),
-                                  loading:
-                                      () =>
-                                          CircularProgressIndicator().center(),
-                                ),
-                              ],
-                            ).padding(horizontal: 24, vertical: 16),
-                        error:
-                            (error, _) => ResponseErrorWidget(
-                              error: error,
-                              onRetry:
-                                  () => ref.invalidate(postTagProvider(slug)),
+                        data: (tag) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              tag.name ?? '#${tag.slug}',
+                            ).bold().fontSize(15),
+                            Text('A tag'),
+                            const Gap(8),
+                            subscriptionStatus.when(
+                              data: (isSubscribed) => isSubscribed
+                                  ? FilledButton.icon(
+                                      onPressed: () async {
+                                        await _unsubscribeFromCategoryOrTag(
+                                          ref,
+                                          slug: slug,
+                                          isCategory: isCategory,
+                                        );
+                                      },
+                                      icon: const Icon(Symbols.remove_circle),
+                                      label: Text('unsubscribe'.tr()),
+                                    )
+                                  : FilledButton.icon(
+                                      onPressed: () async {
+                                        await _subscribeToCategoryOrTag(
+                                          ref,
+                                          slug: slug,
+                                          isCategory: isCategory,
+                                        );
+                                      },
+                                      icon: const Icon(Symbols.add_circle),
+                                      label: Text('subscribe'.tr()),
+                                    ),
+                              error: (error, _) =>
+                                  Text('Error loading subscription status'),
+                              loading: () =>
+                                  CircularProgressIndicator().center(),
                             ),
+                          ],
+                        ).padding(horizontal: 24, vertical: 16),
+                        error: (error, _) => ResponseErrorWidget(
+                          error: error,
+                          onRetry: () => ref.invalidate(postTagProvider(slug)),
+                        ),
                         loading: () => ResponseLoadingWidget(),
                       ),
                     ),
@@ -242,8 +218,11 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
               ),
             const SliverGap(4),
             SliverPostList(
-              categories: isCategory ? [slug] : null,
-              tags: isCategory ? null : [slug],
+              query: PostListQuery(
+                categories: isCategory ? [slug] : null,
+                tags: isCategory ? null : [slug],
+              ),
+
               maxWidth: 540 + 16,
             ),
             SliverGap(MediaQuery.of(context).padding.bottom + 8),

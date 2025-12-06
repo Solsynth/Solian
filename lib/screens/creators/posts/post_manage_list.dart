@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_list.dart';
 
@@ -20,7 +21,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
         key: ValueKey(refreshKey.value),
         slivers: [
           SliverPostList(
-            pubName: pubName,
+            query: PostListQuery(pubName: pubName),
             itemType: PostItemType.creator,
             maxWidth: 640,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainer,

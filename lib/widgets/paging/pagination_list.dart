@@ -39,7 +39,7 @@ class PaginationList<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if (data.isLoading && data.value?.isEmpty == true) {
+    if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
       final content = ResponseLoadingWidget();
       return isSliver ? SliverFillRemaining(child: content) : content;
     }
@@ -115,7 +115,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
-    if (data.isLoading && data.value?.isEmpty == true) {
+    if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
       final content = ResponseLoadingWidget();
       return isSliver ? SliverFillRemaining(child: content) : content;
     }

@@ -3,26 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/post/post_list.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:island/widgets/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+const kShufflePostListId = 'shuffle';
 
 class PostShuffleScreen extends HookConsumerWidget {
   const PostShuffleScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const params = PostListQuery(shuffle: true);
-    final postListState = ref.watch(postListNotifierProvider(params));
+    const query = PostListQuery(shuffle: true);
+    final postListState = ref.watch(postListProvider(kShufflePostListId));
     final postListNotifier = ref.watch(
-      postListNotifierProvider(params).notifier,
+      postListProvider(kShufflePostListId).notifier,
     );
 
     final cardSwiperController = useMemoized(() => CardSwiperController(), []);
 
     useEffect(() {
+      postListNotifier.applyFilter(query);
       return cardSwiperController.dispose;
     }, []);
 
@@ -46,29 +49,32 @@ class PostShuffleScreen extends HookConsumerWidget {
                     controller: cardSwiperController,
                     cardsCount: items.length,
                     isLoop: false,
-                    cardBuilder: (
-                      context,
-                      index,
-                      horizontalOffsetPercentage,
-                      verticalOffsetPercentage,
-                    ) {
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 540),
-                          child: SingleChildScrollView(
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(8),
+                    cardBuilder:
+                        (
+                          context,
+                          index,
+                          horizontalOffsetPercentage,
+                          verticalOffsetPercentage,
+                        ) {
+                          return Center(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: 540),
+                              child: SingleChildScrollView(
+                                child: Card(
+                                  margin: EdgeInsets.zero,
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    child: PostActionableItem(
+                                      item: items[index],
+                                    ),
+                                  ),
                                 ),
-                                child: PostActionableItem(item: items[index]),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        },
                     onEnd: () async {
                       if (!postListNotifier.fetchedAll) {
                         postListNotifier.fetchFurther();
@@ -91,24 +97,23 @@ class PostShuffleScreen extends HookConsumerWidget {
                 bottom: MediaQuery.of(context).padding.bottom,
               ),
               height: kBottomControlHeight,
-              child:
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          cardSwiperController.undo();
-                        },
-                        icon: const Icon(Symbols.arrow_left_alt),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          cardSwiperController.swipe(CardSwiperDirection.right);
-                        },
-                        icon: const Icon(Symbols.arrow_right_alt),
-                      ),
-                    ],
-                  ).padding(all: 8).center(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      cardSwiperController.undo();
+                    },
+                    icon: const Icon(Symbols.arrow_left_alt),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      cardSwiperController.swipe(CardSwiperDirection.right);
+                    },
+                    icon: const Icon(Symbols.arrow_right_alt),
+                  ),
+                ],
+              ).padding(all: 8).center(),
             ),
           ),
         ],
