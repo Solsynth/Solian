@@ -23,7 +23,7 @@ Future<double> socialCredits(Ref ref) async {
   return response.data?.toDouble() ?? 0.0;
 }
 
-final socialCreditHistoryNotifierProvider = AsyncNotifierProvider(
+final socialCreditHistoryNotifierProvider = AsyncNotifierProvider.autoDispose(
   SocialCreditHistoryNotifier.new,
 );
 
@@ -45,11 +45,10 @@ class SocialCreditHistoryNotifier
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
-    final records =
-        response.data
-            .map((json) => SnSocialCreditRecord.fromJson(json))
-            .cast<SnSocialCreditRecord>()
-            .toList();
+    final records = response.data
+        .map((json) => SnSocialCreditRecord.fromJson(json))
+        .cast<SnSocialCreditRecord>()
+        .toList();
 
     return records;
   }
@@ -68,39 +67,36 @@ class SocialCreditsTab extends HookConsumerWidget {
           margin: const EdgeInsets.only(left: 16, right: 16, top: 8),
           child: socialCredits
               .when(
-                data:
-                    (credits) => Stack(
+                data: (credits) => Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              credits < 100
-                                  ? 'socialCreditsLevelPoor'.tr()
-                                  : credits < 150
-                                  ? 'socialCreditsLevelNormal'.tr()
-                                  : credits < 200
-                                  ? 'socialCreditsLevelGood'.tr()
-                                  : 'socialCreditsLevelExcellent'.tr(),
-                            ).tr().bold().fontSize(20),
-                            Text(
-                              '${credits.toStringAsFixed(2)} pts',
-                            ).fontSize(14),
-                            const Gap(8),
-                            LinearProgressIndicator(value: credits / 200),
-                          ],
-                        ),
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Symbols.info),
-                            tooltip: 'socialCreditsDescription'.tr(),
-                          ),
-                        ),
+                        Text(
+                          credits < 100
+                              ? 'socialCreditsLevelPoor'.tr()
+                              : credits < 150
+                              ? 'socialCreditsLevelNormal'.tr()
+                              : credits < 200
+                              ? 'socialCreditsLevelGood'.tr()
+                              : 'socialCreditsLevelExcellent'.tr(),
+                        ).tr().bold().fontSize(20),
+                        Text('${credits.toStringAsFixed(2)} pts').fontSize(14),
+                        const Gap(8),
+                        LinearProgressIndicator(value: credits / 200),
                       ],
                     ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Symbols.info),
+                        tooltip: 'socialCreditsDescription'.tr(),
+                      ),
+                    ),
+                  ],
+                ),
                 error: (_, _) => Text('Error loading credits'),
                 loading: () => const LinearProgressIndicator(),
               )
@@ -119,15 +115,14 @@ class SocialCreditsTab extends HookConsumerWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 title: Text(
                   record.reason,
-                  style:
-                      isExpired
-                          ? TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withOpacity(0.8),
-                          )
-                          : null,
+                  style: isExpired
+                      ? TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.8),
+                        )
+                      : null,
                 ),
                 subtitle: Row(
                   spacing: 4,

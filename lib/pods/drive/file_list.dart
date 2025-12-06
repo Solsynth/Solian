@@ -14,7 +14,7 @@ Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
   return response.data;
 }
 
-final indexedCloudFileListProvider = AsyncNotifierProvider(
+final indexedCloudFileListProvider = AsyncNotifierProvider.autoDispose(
   IndexedCloudFileListNotifier.new,
 );
 
@@ -76,12 +76,12 @@ class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
       queryParameters: queryParameters,
     );
 
-    final List<String> folders =
-        (response.data['folders'] as List).map((e) => e as String).toList();
-    final List<SnCloudFileIndex> files =
-        (response.data['files'] as List)
-            .map((e) => SnCloudFileIndex.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final List<String> folders = (response.data['folders'] as List)
+        .map((e) => e as String)
+        .toList();
+    final List<SnCloudFileIndex> files = (response.data['files'] as List)
+        .map((e) => SnCloudFileIndex.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     final List<FileListItem> items = [
       ...folders.map((folderName) => FileListItem.folder(folderName)),
@@ -92,7 +92,7 @@ class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
   }
 }
 
-final unindexedFileListProvider = AsyncNotifierProvider(
+final unindexedFileListProvider = AsyncNotifierProvider.autoDispose(
   UnindexedFileListNotifier.new,
 );
 
@@ -165,13 +165,13 @@ class UnindexedFileListNotifier extends AsyncNotifier<List<FileListItem>>
 
     totalCount = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
 
-    final List<SnCloudFile> files =
-        (response.data as List)
-            .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final List<SnCloudFile> files = (response.data as List)
+        .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+        .toList();
 
-    final List<FileListItem> items =
-        files.map((file) => FileListItem.unindexedFile(file)).toList();
+    final List<FileListItem> items = files
+        .map((file) => FileListItem.unindexedFile(file))
+        .toList();
 
     return items;
   }

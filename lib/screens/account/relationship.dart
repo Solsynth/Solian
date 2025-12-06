@@ -29,7 +29,7 @@ Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
       .toList();
 }
 
-final relationshipListNotifierProvider = AsyncNotifierProvider(
+final relationshipListNotifierProvider = AsyncNotifierProvider.autoDispose(
   RelationshipListNotifier.new,
 );
 
@@ -45,11 +45,10 @@ class RelationshipListNotifier extends AsyncNotifier<List<SnRelationship>>
       queryParameters: {'offset': fetchedCount.toString(), 'take': take},
     );
 
-    final List<SnRelationship> items =
-        (response.data as List)
-            .map((e) => SnRelationship.fromJson(e as Map<String, dynamic>))
-            .cast<SnRelationship>()
-            .toList();
+    final List<SnRelationship> items = (response.data as List)
+        .map((e) => SnRelationship.fromJson(e as Map<String, dynamic>))
+        .cast<SnRelationship>()
+        .toList();
 
     totalCount = int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
 
@@ -83,8 +82,9 @@ class RelationshipListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final account =
-        showRelatedAccount ? relationship.related : relationship.account;
+    final account = showRelatedAccount
+        ? relationship.related
+        : relationship.account;
     final isPending =
         relationship.status == 0 && relationship.relatedId == currentUserId;
     final isWaiting =
@@ -138,64 +138,56 @@ class RelationshipListTile extends StatelessWidget {
         ],
       ),
       subtitle: Text('@${account.name}'),
-      trailing:
-          showActions
-              ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isPending && onAccept != null)
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: submitting ? null : onAccept,
-                      icon: const Icon(Symbols.check),
-                    ),
-                  if (isPending && onDecline != null)
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: submitting ? null : onDecline,
-                      icon: const Icon(Symbols.close),
-                    ),
-                  if (isWaiting && onCancel != null)
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: submitting ? null : onCancel,
-                      icon: const Icon(Symbols.close),
-                    ),
-                  if (isEstablished && onUpdateStatus != null)
-                    PopupMenuButton(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Symbols.more_vert),
-                      itemBuilder:
-                          (context) => [
-                            if (relationship.status >= 100) // If friend
-                              PopupMenuItem(
-                                child: ListTile(
-                                  leading: const Icon(Symbols.block),
-                                  title: Text('blockUser').tr(),
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                                onTap:
-                                    () => onUpdateStatus?.call(
-                                      relationship,
-                                      -100,
-                                    ),
-                              )
-                            else if (relationship.status <= -100) // If blocked
-                              PopupMenuItem(
-                                child: ListTile(
-                                  leading: const Icon(Symbols.person_add),
-                                  title: Text('unblockUser').tr(),
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                                onTap:
-                                    () =>
-                                        onUpdateStatus?.call(relationship, 100),
-                              ),
-                          ],
-                    ),
-                ],
-              )
-              : null,
+      trailing: showActions
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isPending && onAccept != null)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: submitting ? null : onAccept,
+                    icon: const Icon(Symbols.check),
+                  ),
+                if (isPending && onDecline != null)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: submitting ? null : onDecline,
+                    icon: const Icon(Symbols.close),
+                  ),
+                if (isWaiting && onCancel != null)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: submitting ? null : onCancel,
+                    icon: const Icon(Symbols.close),
+                  ),
+                if (isEstablished && onUpdateStatus != null)
+                  PopupMenuButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Symbols.more_vert),
+                    itemBuilder: (context) => [
+                      if (relationship.status >= 100) // If friend
+                        PopupMenuItem(
+                          child: ListTile(
+                            leading: const Icon(Symbols.block),
+                            title: Text('blockUser').tr(),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onTap: () => onUpdateStatus?.call(relationship, -100),
+                        )
+                      else if (relationship.status <= -100) // If blocked
+                        PopupMenuItem(
+                          child: ListTile(
+                            leading: const Icon(Symbols.person_add),
+                            title: Text('unblockUser').tr(),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onTap: () => onUpdateStatus?.call(relationship, 100),
+                        ),
+                    ],
+                  ),
+              ],
+            )
+          : null,
     );
   }
 }
@@ -299,6 +291,7 @@ class RelationshipScreen extends HookConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: PaginationList(
+              padding: EdgeInsets.zero,
               provider: relationshipListNotifierProvider,
               notifier: relationshipListNotifierProvider.notifier,
               itemBuilder: (context, index, relationship) {
@@ -380,28 +373,26 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: requests.when(
-              data:
-                  (items) =>
-                      items.isEmpty
-                          ? Center(
-                            child: Text(
-                              'friendSentRequestEmpty'.tr(),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                          : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final request = items[index];
-                              return RelationshipListTile(
-                                relationship: request,
-                                onCancel: () => cancelRequest(request),
-                                currentUserId: user.value?.id,
-                                showRelatedAccount: true,
-                              );
-                            },
-                          ),
+              data: (items) => items.isEmpty
+                  ? Center(
+                      child: Text(
+                        'friendSentRequestEmpty'.tr(),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final request = items[index];
+                        return RelationshipListTile(
+                          relationship: request,
+                          onCancel: () => cancelRequest(request),
+                          currentUserId: user.value?.id,
+                          showRelatedAccount: true,
+                        );
+                      },
+                    ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),

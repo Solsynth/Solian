@@ -14,7 +14,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final levelingHistoryNotifierProvider = AsyncNotifierProvider(
+final levelingHistoryNotifierProvider = AsyncNotifierProvider.autoDispose(
   LevelingHistoryNotifier.new,
 );
 
@@ -35,11 +35,10 @@ class LevelingHistoryNotifier extends AsyncNotifier<List<SnExperienceRecord>>
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
-    final List<SnExperienceRecord> records =
-        response.data
-            .map((json) => SnExperienceRecord.fromJson(json))
-            .cast<SnExperienceRecord>()
-            .toList();
+    final List<SnExperienceRecord> records = response.data
+        .map((json) => SnExperienceRecord.fromJson(json))
+        .cast<SnExperienceRecord>()
+        .toList();
 
     return records;
   }
@@ -162,8 +161,9 @@ class LevelingScreen extends HookConsumerWidget {
                       stopIndicatorRadius: 0,
                       trackGap: 0,
                       color: Theme.of(context).colorScheme.primary,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(32),
                     ),
                   ],
@@ -186,38 +186,35 @@ class LevelingScreen extends HookConsumerWidget {
               notifier: levelingHistoryNotifierProvider.notifier,
               isRefreshable: false,
               isSliver: true,
-              itemBuilder:
-                  (context, idx, record) => ListTile(
-                    title: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(record.reason),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Text(
-                              record.createdAt.formatRelative(context),
-                            ).fontSize(13),
-                            Text('·').fontSize(13).bold(),
-                            Text(record.createdAt.formatSystem()).fontSize(13),
-                          ],
-                        ).opacity(0.8),
-                      ],
-                    ),
-                    subtitle: Row(
-                      spacing: 8,
+              itemBuilder: (context, idx, record) => ListTile(
+                title: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(record.reason),
+                    Row(
+                      spacing: 4,
                       children: [
                         Text(
-                          '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
-                        ),
-                        if (record.bonusMultiplier != 1.0)
-                          Text('x${record.bonusMultiplier}'),
+                          record.createdAt.formatRelative(context),
+                        ).fontSize(13),
+                        Text('·').fontSize(13).bold(),
+                        Text(record.createdAt.formatSystem()).fontSize(13),
                       ],
-                    ),
-                    minTileHeight: 56,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 4),
-                  ),
+                    ).opacity(0.8),
+                  ],
+                ),
+                subtitle: Row(
+                  spacing: 8,
+                  children: [
+                    Text('${record.delta > 0 ? '+' : ''}${record.delta} EXP'),
+                    if (record.bonusMultiplier != 1.0)
+                      Text('x${record.bonusMultiplier}'),
+                  ],
+                ),
+                minTileHeight: 56,
+                contentPadding: EdgeInsets.symmetric(horizontal: 4),
+              ),
             ),
 
             SliverGap(20),
@@ -249,11 +246,10 @@ class LevelStairsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = surfaceColor.withOpacity(0.2)
-          ..strokeWidth = 1.5
-          ..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..color = surfaceColor.withOpacity(0.2)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
 
     // Draw connecting lines between stairs
     for (int i = 0; i < totalLevels - 1; i++) {

@@ -23,7 +23,7 @@ class DiscoveryRealmsScreen extends HookConsumerWidget {
         children: [
           CustomScrollView(
             slivers: [
-              SliverGap(80),
+              SliverGap(88),
               SliverRealmList(
                 query: currentQuery.value,
                 key: ValueKey(currentQuery.value),

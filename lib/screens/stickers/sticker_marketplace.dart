@@ -28,9 +28,8 @@ sealed class MarketplaceStickerQuery with _$MarketplaceStickerQuery {
   }) = _MarketplaceStickerQuery;
 }
 
-final marketplaceStickerPacksNotifierProvider = AsyncNotifierProvider(
-  MarketplaceStickerPacksNotifier.new,
-);
+final marketplaceStickerPacksNotifierProvider =
+    AsyncNotifierProvider.autoDispose(MarketplaceStickerPacksNotifier.new);
 
 class MarketplaceStickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
     with

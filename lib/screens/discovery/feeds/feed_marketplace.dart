@@ -12,7 +12,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-final marketplaceWebFeedsNotifierProvider = AsyncNotifierProvider(
+final marketplaceWebFeedsNotifierProvider = AsyncNotifierProvider.autoDispose(
   MarketplaceWebFeedsNotifier.new,
 );
 

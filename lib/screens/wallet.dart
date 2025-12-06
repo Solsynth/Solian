@@ -112,8 +112,8 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                         ),
                       ),
                     ),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
 
                   const Gap(16),
@@ -137,22 +137,21 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                         ),
                       ),
                     ),
-                    items:
-                        kCurrencyIconData.keys.map((currency) {
-                          return DropdownMenuItem(
-                            value: currency,
-                            child: Row(
-                              children: [
-                                Icon(kCurrencyIconData[currency]),
-                                const Gap(8),
-                                Text(
-                                  'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
-                                      .tr(),
-                                ),
-                              ],
+                    items: kCurrencyIconData.keys.map((currency) {
+                      return DropdownMenuItem(
+                        value: currency,
+                        child: Row(
+                          children: [
+                            Icon(kCurrencyIconData[currency]),
+                            const Gap(8),
+                            Text(
+                              'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                                  .tr(),
                             ),
-                          );
-                        }).toList(),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => selectedCurrency = value);
@@ -178,22 +177,21 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       labelText: 'enterNumberOfSplits'.tr(),
-                      hintText:
-                          selectedRecipients.isNotEmpty
-                              ? selectedRecipients.length.toString()
-                              : '1',
+                      hintText: selectedRecipients.isNotEmpty
+                          ? selectedRecipients.length.toString()
+                          : '1',
                       border: OutlineInputBorder(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(12),
                         ),
                       ),
                     ),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                     onChanged: (value) {
                       if (value.isEmpty && selectedRecipients.isNotEmpty) {
-                        splitsController.text =
-                            selectedRecipients.length.toString();
+                        splitsController.text = selectedRecipients.length
+                            .toString();
                       }
                     },
                   ),
@@ -261,93 +259,84 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                         ).colorScheme.outline.withOpacity(0.2),
                       ),
                     ),
-                    child:
-                        selectedRecipients.isNotEmpty
-                            ? Column(
-                              children: [
-                                ...selectedRecipients.map((recipient) {
-                                  return ListTile(
-                                    contentPadding: const EdgeInsets.only(
-                                      left: 20,
-                                      right: 12,
+                    child: selectedRecipients.isNotEmpty
+                        ? Column(
+                            children: [
+                              ...selectedRecipients.map((recipient) {
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 20,
+                                    right: 12,
+                                  ),
+                                  leading: ProfilePictureWidget(
+                                    file: recipient.profile.picture,
+                                  ),
+                                  title: Text(
+                                    recipient.nick,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    leading: ProfilePictureWidget(
-                                      file: recipient.profile.picture,
+                                  ),
+                                  subtitle: Text(
+                                    'selectedRecipient'.tr(),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                  trailing: IconButton(
+                                    onPressed: () => setState(
+                                      () =>
+                                          selectedRecipients.remove(recipient),
                                     ),
-                                    title: Text(
-                                      recipient.nick,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      'selectedRecipient'.tr(),
-                                      style: Theme.of(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: Theme.of(
                                         context,
-                                      ).textTheme.bodySmall?.copyWith(
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                      ),
+                                      ).colorScheme.error,
                                     ),
-                                    trailing: IconButton(
-                                      onPressed:
-                                          () => setState(
-                                            () => selectedRecipients.remove(
-                                              recipient,
-                                            ),
-                                          ),
-                                      icon: Icon(
-                                        Icons.clear,
-                                        color:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                      tooltip: 'Remove recipient',
-                                    ),
-                                  );
-                                }),
-                              ],
-                            )
-                            : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person_add_outlined,
-                                  size: 48,
-                                  color:
-                                      Theme.of(
+                                    tooltip: 'Remove recipient',
+                                  ),
+                                );
+                              }),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_add_outlined,
+                                size: 48,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'noRecipientsSelected'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  'noRecipientsSelected'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const Gap(4),
-                                Text(
-                                  'selectRecipientsToSendFund'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ).padding(vertical: 32),
+                                    ),
+                              ),
+                              const Gap(4),
+                              Text(
+                                'selectRecipientsToSendFund'.tr(),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ).padding(vertical: 32),
                   ),
                   const Gap(12),
                   OutlinedButton.icon(
@@ -399,8 +388,8 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                       ),
                     ),
                     maxLines: 3,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                 ],
               ),
@@ -441,92 +430,87 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SheetScaffold(
+            titleText: 'enterPin'.tr(),
+            heightFactor: 0.5,
             child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: SheetScaffold(
-                titleText: 'enterPin'.tr(),
-                heightFactor: 0.5,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'enterPinToConfirmPayment'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                          textAlign: TextAlign.center,
+                        ),
+                        const Gap(24),
+                        OtpTextField(
+                          numberOfFields: 6,
+                          borderColor: Theme.of(context).colorScheme.outline,
+                          focusedBorderColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          showFieldAsBox: true,
+                          obscureText: true,
+                          keyboardType: TextInputType.number,
+                          fieldWidth: 48,
+                          fieldHeight: 56,
+                          borderRadius: BorderRadius.circular(8),
+                          borderWidth: 1,
+                          textStyle: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                          onSubmit: (pin) {
+                            enteredPin = pin;
+                            Navigator.of(context).pop(pin);
+                          },
+                          onCodeChanged: (String code) {
+                            enteredPin = code;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(24),
+                  Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'enterPinToConfirmPayment'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                              textAlign: TextAlign.center,
-                            ),
-                            const Gap(24),
-                            OtpTextField(
-                              numberOfFields: 6,
-                              borderColor:
-                                  Theme.of(context).colorScheme.outline,
-                              focusedBorderColor:
-                                  Theme.of(context).colorScheme.primary,
-                              showFieldAsBox: true,
-                              obscureText: true,
-                              keyboardType: TextInputType.number,
-                              fieldWidth: 48,
-                              fieldHeight: 56,
-                              borderRadius: BorderRadius.circular(8),
-                              borderWidth: 1,
-                              textStyle: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              onSubmit: (pin) {
-                                enteredPin = pin;
-                                Navigator.of(context).pop(pin);
-                              },
-                              onCodeChanged: (String code) {
-                                enteredPin = code;
-                              },
-                            ),
-                          ],
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('cancel'.tr()),
                         ),
                       ),
-                      const Gap(24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('cancel'.tr()),
-                            ),
+                      if (enteredPin.length == 6) ...[
+                        const Gap(12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(enteredPin);
+                            },
+                            child: Text('confirm'.tr()),
                           ),
-                          if (enteredPin.length == 6) ...[
-                            const Gap(12),
-                            Expanded(
-                              child: FilledButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(enteredPin);
-                                },
-                                child: Text('confirm'.tr()),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
 
     return enteredPin.isNotEmpty ? enteredPin : null;
@@ -552,10 +536,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
       'split_type': selectedSplitType,
       'amount_of_splits': splits,
       'recipient_account_ids': selectedRecipients.map((r) => r.id).toList(),
-      'message':
-          messageController.text.trim().isEmpty
-              ? null
-              : messageController.text.trim(),
+      'message': messageController.text.trim().isEmpty
+          ? null
+          : messageController.text.trim(),
       'pin_code': '', // Will be filled by PIN verification
     };
 
@@ -632,8 +615,8 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                         ),
                       ),
                     ),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
 
                   const Gap(16),
@@ -657,22 +640,21 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                         ),
                       ),
                     ),
-                    items:
-                        kCurrencyIconData.keys.map((currency) {
-                          return DropdownMenuItem(
-                            value: currency,
-                            child: Row(
-                              children: [
-                                Icon(kCurrencyIconData[currency]),
-                                const Gap(8),
-                                Text(
-                                  'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
-                                      .tr(),
-                                ),
-                              ],
+                    items: kCurrencyIconData.keys.map((currency) {
+                      return DropdownMenuItem(
+                        value: currency,
+                        child: Row(
+                          children: [
+                            Icon(kCurrencyIconData[currency]),
+                            const Gap(8),
+                            Text(
+                              'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                                  .tr(),
                             ),
-                          );
-                        }).toList(),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => selectedCurrency = value);
@@ -702,82 +684,74 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                         ).colorScheme.outline.withOpacity(0.2),
                       ),
                     ),
-                    child:
-                        selectedPayee != null
-                            ? ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                left: 20,
-                                right: 12,
+                    child: selectedPayee != null
+                        ? ListTile(
+                            contentPadding: const EdgeInsets.only(
+                              left: 20,
+                              right: 12,
+                            ),
+                            leading: ProfilePictureWidget(
+                              file: selectedPayee!.profile.picture,
+                            ),
+                            title: Text(
+                              selectedPayee!.nick,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
-                              leading: ProfilePictureWidget(
-                                file: selectedPayee!.profile.picture,
+                            ),
+                            subtitle: Text(
+                              'selectedPayee'.tr(),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            trailing: IconButton(
+                              onPressed: () =>
+                                  setState(() => selectedPayee = null),
+                              icon: Icon(
+                                Icons.clear,
+                                color: Theme.of(context).colorScheme.error,
                               ),
-                              title: Text(
-                                selectedPayee!.nick,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              subtitle: Text(
-                                'selectedPayee'.tr(),
-                                style: Theme.of(
+                              tooltip: 'Remove payee',
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_add_outlined,
+                                size: 48,
+                                color: Theme.of(
                                   context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color:
-                                      Theme.of(
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'noPayeeSelected'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                ),
+                                    ),
                               ),
-                              trailing: IconButton(
-                                onPressed:
-                                    () => setState(() => selectedPayee = null),
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                                tooltip: 'Remove payee',
-                              ),
-                            )
-                            : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person_add_outlined,
-                                  size: 48,
-                                  color:
-                                      Theme.of(
+                              const Gap(4),
+                              Text(
+                                'selectPayeeToTransfer'.tr(),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  'noPayeeSelected'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const Gap(4),
-                                Text(
-                                  'selectPayeeToTransfer'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ).padding(vertical: 32),
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ).padding(vertical: 32),
                   ),
                   const Gap(12),
                   OutlinedButton.icon(
@@ -824,8 +798,8 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                       ),
                     ),
                     maxLines: 3,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                 ],
               ),
@@ -866,92 +840,87 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SheetScaffold(
+            titleText: 'enterPin'.tr(),
+            heightFactor: 0.5,
             child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: SheetScaffold(
-                titleText: 'enterPin'.tr(),
-                heightFactor: 0.5,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'enterPinToConfirmTransfer'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                          textAlign: TextAlign.center,
+                        ),
+                        const Gap(24),
+                        OtpTextField(
+                          numberOfFields: 6,
+                          borderColor: Theme.of(context).colorScheme.outline,
+                          focusedBorderColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          showFieldAsBox: true,
+                          obscureText: true,
+                          keyboardType: TextInputType.number,
+                          fieldWidth: 48,
+                          fieldHeight: 56,
+                          borderRadius: BorderRadius.circular(8),
+                          borderWidth: 1,
+                          textStyle: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                          onSubmit: (pin) {
+                            enteredPin = pin;
+                            Navigator.of(context).pop(pin);
+                          },
+                          onCodeChanged: (String code) {
+                            enteredPin = code;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(24),
+                  Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'enterPinToConfirmTransfer'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                              textAlign: TextAlign.center,
-                            ),
-                            const Gap(24),
-                            OtpTextField(
-                              numberOfFields: 6,
-                              borderColor:
-                                  Theme.of(context).colorScheme.outline,
-                              focusedBorderColor:
-                                  Theme.of(context).colorScheme.primary,
-                              showFieldAsBox: true,
-                              obscureText: true,
-                              keyboardType: TextInputType.number,
-                              fieldWidth: 48,
-                              fieldHeight: 56,
-                              borderRadius: BorderRadius.circular(8),
-                              borderWidth: 1,
-                              textStyle: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              onSubmit: (pin) {
-                                enteredPin = pin;
-                                Navigator.of(context).pop(pin);
-                              },
-                              onCodeChanged: (String code) {
-                                enteredPin = code;
-                              },
-                            ),
-                          ],
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('cancel'.tr()),
                         ),
                       ),
-                      const Gap(24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('cancel'.tr()),
-                            ),
+                      if (enteredPin.length == 6) ...[
+                        const Gap(12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(enteredPin);
+                            },
+                            child: Text('confirm'.tr()),
                           ),
-                          if (enteredPin.length == 6) ...[
-                            const Gap(12),
-                            Expanded(
-                              child: FilledButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(enteredPin);
-                                },
-                                child: Text('confirm'.tr()),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
 
     return enteredPin.isNotEmpty ? enteredPin : null;
@@ -974,10 +943,9 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
       'amount': amount,
       'currency': selectedCurrency,
       'payee_account_id': selectedPayee!.id,
-      'remark':
-          remarkController.text.trim().isEmpty
-              ? null
-              : remarkController.text.trim(),
+      'remark': remarkController.text.trim().isEmpty
+          ? null
+          : remarkController.text.trim(),
     };
 
     // Ask for PIN confirmation before creating transfer
@@ -991,7 +959,7 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
   }
 }
 
-final transactionListProvider = AsyncNotifierProvider(
+final transactionListProvider = AsyncNotifierProvider.autoDispose(
   TransactionListNotifier.new,
 );
 
@@ -1012,14 +980,17 @@ class TransactionListNotifier extends AsyncNotifier<List<SnTransaction>>
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final transactions =
-        data.map((json) => SnTransaction.fromJson(json)).toList();
+    final transactions = data
+        .map((json) => SnTransaction.fromJson(json))
+        .toList();
 
     return transactions;
   }
 }
 
-final walletFundsProvider = AsyncNotifierProvider(WalletFundsNotifier.new);
+final walletFundsProvider = AsyncNotifierProvider.autoDispose(
+  WalletFundsNotifier.new,
+);
 
 class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
     with AsyncPaginationController<SnWalletFund> {
@@ -1034,8 +1005,9 @@ class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
       '/pass/wallets/funds?offset=$offset&take=$pageSize',
     );
     // Assuming total count header is present or we just check if list is empty
-    final list =
-        (response.data as List).map((e) => SnWalletFund.fromJson(e)).toList();
+    final list = (response.data as List)
+        .map((e) => SnWalletFund.fromJson(e))
+        .toList();
     if (list.length < pageSize) {
       totalCount = fetchedCount + list.length;
     }
@@ -1043,7 +1015,7 @@ class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
   }
 }
 
-final walletFundRecipientsProvider = AsyncNotifierProvider(
+final walletFundRecipientsProvider = AsyncNotifierProvider.autoDispose(
   WalletFundRecipientsNotifier.new,
 );
 
@@ -1060,10 +1032,9 @@ class WalletFundRecipientsNotifier
     final response = await client.get(
       '/pass/wallets/funds/recipients?offset=$offset&take=$_pageSize',
     );
-    final list =
-        (response.data as List)
-            .map((e) => SnWalletFundRecipient.fromJson(e))
-            .toList();
+    final list = (response.data as List)
+        .map((e) => SnWalletFundRecipient.fromJson(e))
+        .toList();
 
     if (list.length < _pageSize) {
       totalCount = fetchedCount + list.length;
@@ -1312,16 +1283,15 @@ class WalletScreen extends HookConsumerWidget {
       return allCurrencies.map((currency) {
         final existingPocket = pockets.firstWhere(
           (p) => p.currency == currency,
-          orElse:
-              () => SnWalletPocket(
-                id: '',
-                currency: currency,
-                amount: 0.0,
-                walletId: '',
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-                deletedAt: null,
-              ),
+          orElse: () => SnWalletPocket(
+            id: '',
+            currency: currency,
+            amount: 0.0,
+            walletId: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            deletedAt: null,
+          ),
         );
         return existingPocket;
       }).toList();
@@ -1338,12 +1308,12 @@ class WalletScreen extends HookConsumerWidget {
                     ? Symbols.money_bag
                     : Symbols.swap_horiz,
               ),
-              onPressed:
-                  currentTabIndex.value == 1 ? createFund : createTransfer,
-              tooltip:
-                  currentTabIndex.value == 1
-                      ? 'createFund'.tr()
-                      : 'createTransfer'.tr(),
+              onPressed: currentTabIndex.value == 1
+                  ? createFund
+                  : createTransfer,
+              tooltip: currentTabIndex.value == 1
+                  ? 'createFund'.tr()
+                  : 'createTransfer'.tr(),
             ),
           const Gap(8),
         ],
@@ -1368,58 +1338,54 @@ class WalletScreen extends HookConsumerWidget {
           }
 
           return NestedScrollView(
-            headerSliverBuilder:
-                (context, innerBoxIsScrolled) => [
-                  // Wallet Overview
-                  SliverToBoxAdapter(
-                    child: Column(
-                      spacing: 8,
-                      children: [
-                        // Wallet Stats
-                        _buildCompactStatsWidget(context, ref),
-                        // Pockets
-                        Card(
-                          margin: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              ...getAllCurrencies(data.pockets).map(
-                                (pocket) => ListTile(
-                                  leading: Icon(
-                                    kCurrencyIconData[pocket.currency] ??
-                                        Symbols.universal_currency_alt,
-                                  ),
-                                  title:
-                                      Text(
-                                        getCurrencyTranslationKey(
-                                          pocket.currency,
-                                        ),
-                                      ).tr(),
-                                  subtitle: Text(
-                                    '${pocket.amount.toStringAsFixed(2)} ${getCurrencyTranslationKey(pocket.currency, isShort: true).tr()}',
-                                  ),
-                                ),
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              // Wallet Overview
+              SliverToBoxAdapter(
+                child: Column(
+                  spacing: 8,
+                  children: [
+                    // Wallet Stats
+                    _buildCompactStatsWidget(context, ref),
+                    // Pockets
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          ...getAllCurrencies(data.pockets).map(
+                            (pocket) => ListTile(
+                              leading: Icon(
+                                kCurrencyIconData[pocket.currency] ??
+                                    Symbols.universal_currency_alt,
                               ),
-                            ],
+                              title: Text(
+                                getCurrencyTranslationKey(pocket.currency),
+                              ).tr(),
+                              subtitle: Text(
+                                '${pocket.amount.toStringAsFixed(2)} ${getCurrencyTranslationKey(pocket.currency, isShort: true).tr()}',
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ).padding(horizontal: 12, top: 12),
-                  ),
-
-                  SliverGap(8),
-
-                  // Tab Bar
-                  SliverToBoxAdapter(
-                    child: TabBar(
-                      controller: tabController,
-                      tabs: [
-                        Tab(text: 'transactions'.tr()),
-                        Tab(text: 'myFunds'.tr()),
-                        Tab(text: 'lottery'.tr()),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ).padding(horizontal: 12, top: 12),
+              ),
+
+              SliverGap(8),
+
+              // Tab Bar
+              SliverToBoxAdapter(
+                child: TabBar(
+                  controller: tabController,
+                  tabs: [
+                    Tab(text: 'transactions'.tr()),
+                    Tab(text: 'myFunds'.tr()),
+                    Tab(text: 'lottery'.tr()),
+                  ],
+                ),
+              ),
+            ],
             body: TabBarView(
               controller: tabController,
               children: [
@@ -1438,10 +1404,8 @@ class WalletScreen extends HookConsumerWidget {
                           context: context,
                           useRootNavigator: true,
                           isScrollControlled: true,
-                          builder:
-                              (context) => TransactionDetailSheet(
-                                transaction: transaction,
-                              ),
+                          builder: (context) =>
+                              TransactionDetailSheet(transaction: transaction),
                         );
                       },
                       child: ListTile(
@@ -1479,11 +1443,10 @@ class WalletScreen extends HookConsumerWidget {
             ),
           );
         },
-        error:
-            (error, stackTrace) => ResponseErrorWidget(
-              error: error,
-              onRetry: () => ref.invalidate(walletCurrentProvider),
-            ),
+        error: (error, stackTrace) => ResponseErrorWidget(
+          error: error,
+          onRetry: () => ref.invalidate(walletCurrentProvider),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );
@@ -1554,8 +1517,9 @@ class WalletScreen extends HookConsumerWidget {
           itemCount: fundList.length,
           itemBuilder: (context, index) {
             final fund = fundList[index];
-            final claimedCount =
-                fund.recipients.where((r) => r.isReceived).length;
+            final claimedCount = fund.recipients
+                .where((r) => r.isReceived)
+                .length;
             final totalRecipients = fund.recipients.length;
 
             return Card(
@@ -1724,22 +1688,20 @@ class WalletScreen extends HookConsumerWidget {
           ),
         );
       },
-      loading:
-          () => Card(
-            margin: EdgeInsets.zero,
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ),
-      error:
-          (error, stack) => Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(child: Text('Error loading stats')),
-            ),
-          ),
+      loading: () => Card(
+        margin: EdgeInsets.zero,
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Center(child: Text('Error loading stats')),
+        ),
+      ),
     );
   }
 

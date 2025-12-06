@@ -163,7 +163,7 @@ class NotificationUnreadCountNotifier
   }
 }
 
-final notificationListProvider = AsyncNotifierProvider(
+final notificationListProvider = AsyncNotifierProvider.autoDispose(
   NotificationListNotifier.new,
 );
 

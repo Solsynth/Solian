@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
-import 'package:island/widgets/realm/realm_card.dart';
+import 'package:island/widgets/realm/realm_list_tile.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 final realmListNotifierProvider = AsyncNotifierProvider.autoDispose
@@ -51,25 +50,12 @@ class SliverRealmList extends HookConsumerWidget {
       notifier: provider.notifier,
       isSliver: true,
       isRefreshable: false,
+      spacing: 8,
       itemBuilder: (context, index, realm) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child:
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 540),
-                    child: RealmCard(realm: realm),
-                  ).center(),
-            ),
-            if (index <
-                (ref.read(provider).value?.length ?? 0) -
-                    1) // Add gap except for last item? Actually PaginationList handles loading indicator which might look like last item.
-              // Wait, ref.read(provider).value?.length might change.
-              // Simpler to just add bottom padding to all, or Gap.
-              const Gap(8),
-          ],
-        );
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: RealmListTile(realm: realm),
+        ).center();
       },
     );
   }
