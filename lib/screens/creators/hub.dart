@@ -98,11 +98,10 @@ class PublisherMemberListNotifier extends AsyncNotifier<List<SnPublisherMember>>
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final members =
-        response.data
-            .map((e) => SnPublisherMember.fromJson(e))
-            .cast<SnPublisherMember>()
-            .toList();
+    final members = response.data
+        .map((e) => SnPublisherMember.fromJson(e))
+        .cast<SnPublisherMember>()
+        .toList();
 
     return members;
   }
@@ -173,14 +172,12 @@ class PublisherSelector extends StatelessWidget {
         iconStyleData: IconStyleData(
           icon: Icon(Icons.arrow_drop_down),
           iconSize: 19,
-          iconEnabledColor:
-              isWideScreen(context)
-                  ? null
-                  : Theme.of(context).appBarTheme.foregroundColor!,
-          iconDisabledColor:
-              isWideScreen(context)
-                  ? null
-                  : Theme.of(context).appBarTheme.foregroundColor!,
+          iconEnabledColor: isWideScreen(context)
+              ? null
+              : Theme.of(context).appBarTheme.foregroundColor!,
+          iconDisabledColor: isWideScreen(context)
+              ? null
+              : Theme.of(context).appBarTheme.foregroundColor!,
         ),
       ),
     );
@@ -204,16 +201,24 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
       child: Column(
         children: [
           if (!hasPublishers) ...[
-            const Icon(
-              Symbols.info,
-              fill: 1,
-              size: 32,
-            ).padding(bottom: 6, top: 24),
-            Text(
-              'creatorHubUnselectedHint',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ).tr(),
+            if (publishers.isLoading)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: const CircularProgressIndicator(),
+              )
+            else
+              ...([
+                const Icon(
+                  Symbols.info,
+                  fill: 1,
+                  size: 32,
+                ).padding(bottom: 6, top: 24),
+                Text(
+                  'creatorHubUnselectedHint',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ).tr(),
+              ]),
             const Gap(24),
           ],
           if (hasPublishers)
@@ -288,14 +293,14 @@ class CreatorHubScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) =>
-                EditPublisherScreen(name: currentPublisher.value!.name),
+        builder: (context) =>
+            EditPublisherScreen(name: currentPublisher.value!.name),
       ).then((value) async {
         if (value == null) return;
         final data = await ref.refresh(publishersManagedProvider.future);
-        currentPublisher.value =
-            data.where((e) => e.id == currentPublisher.value!.id).firstOrNull;
+        currentPublisher.value = data
+            .where((e) => e.id == currentPublisher.value!.id)
+            .firstOrNull;
       });
     }
 
@@ -315,29 +320,26 @@ class CreatorHubScreen extends HookConsumerWidget {
     }
 
     final List<DropdownMenuItem<SnPublisher>> publishersMenu = publishers.when(
-      data:
-          (data) =>
-              data
-                  .map(
-                    (item) => DropdownMenuItem<SnPublisher>(
-                      value: item,
-                      child: ListTile(
-                        minTileHeight: 48,
-                        leading: ProfilePictureWidget(
-                          radius: 16,
-                          fileId: item.picture?.id,
-                        ),
-                        title: Text(item.nick),
-                        subtitle: Text('@${item.name}'),
-                        trailing:
-                            currentPublisher.value?.id == item.id
-                                ? const Icon(Icons.check)
-                                : null,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                    ),
-                  )
-                  .toList(),
+      data: (data) => data
+          .map(
+            (item) => DropdownMenuItem<SnPublisher>(
+              value: item,
+              child: ListTile(
+                minTileHeight: 48,
+                leading: ProfilePictureWidget(
+                  radius: 16,
+                  fileId: item.picture?.id,
+                ),
+                title: Text(item.nick),
+                subtitle: Text('@${item.name}'),
+                trailing: currentPublisher.value?.id == item.id
+                    ? const Icon(Icons.check)
+                    : null,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+              ),
+            ),
+          )
+          .toList(),
       loading: () => [],
       error: (_, _) => [],
     );
@@ -443,10 +445,9 @@ class CreatorHubScreen extends HookConsumerWidget {
             showModalBottomSheet(
               isScrollControlled: true,
               context: context,
-              builder:
-                  (context) => _PublisherMemberListSheet(
-                    publisherUname: currentPublisher.value!.name,
-                  ),
+              builder: (context) => _PublisherMemberListSheet(
+                publisherUname: currentPublisher.value!.name,
+              ),
             );
           },
         ),
@@ -567,51 +568,49 @@ class CreatorHubScreen extends HookConsumerWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: publisherStats.when(
-                data:
-                    (stats) => SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child:
-                          currentPublisher.value == null
-                              ? ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: 640),
-                                child: _PublisherUnselectedWidget(
-                                  onPublisherSelected: (publisher) {
-                                    currentPublisher.value = publisher;
-                                  },
-                                ),
-                              ).center()
-                              : isWide
-                              ? Column(
-                                spacing: 8,
-                                children: [
-                                  const SizedBox.shrink(),
-                                  PublisherSelector(
-                                    currentPublisher: currentPublisher.value,
-                                    publishersMenu: publishersMenu,
-                                    onChanged: (value) {
-                                      currentPublisher.value = value;
-                                    },
-                                  ),
-                                  if (stats != null)
-                                    _PublisherStatsWidget(
-                                      stats: stats,
-                                      heatmap: publisherHeatmap.value,
-                                    ).padding(horizontal: 12),
-                                  buildNavigationWidget(true),
-                                ],
-                              )
-                              : Column(
-                                spacing: 12,
-                                children: [
-                                  if (stats != null)
-                                    _PublisherStatsWidget(
-                                      stats: stats,
-                                      heatmap: publisherHeatmap.value,
-                                    ).padding(horizontal: 16),
-                                  buildNavigationWidget(false),
-                                ],
-                              ),
-                    ),
+                data: (stats) => SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: currentPublisher.value == null
+                      ? ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 640),
+                          child: _PublisherUnselectedWidget(
+                            onPublisherSelected: (publisher) {
+                              currentPublisher.value = publisher;
+                            },
+                          ),
+                        ).center()
+                      : isWide
+                      ? Column(
+                          spacing: 8,
+                          children: [
+                            const SizedBox.shrink(),
+                            PublisherSelector(
+                              currentPublisher: currentPublisher.value,
+                              publishersMenu: publishersMenu,
+                              onChanged: (value) {
+                                currentPublisher.value = value;
+                              },
+                            ),
+                            if (stats != null)
+                              _PublisherStatsWidget(
+                                stats: stats,
+                                heatmap: publisherHeatmap.value,
+                              ).padding(horizontal: 12),
+                            buildNavigationWidget(true),
+                          ],
+                        )
+                      : Column(
+                          spacing: 12,
+                          children: [
+                            if (stats != null)
+                              _PublisherStatsWidget(
+                                stats: stats,
+                                heatmap: publisherHeatmap.value,
+                              ).padding(horizontal: 16),
+                            buildNavigationWidget(false),
+                          ],
+                        ),
+                ),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, _) => const SizedBox.shrink(),
               ),
@@ -876,11 +875,10 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                             showModalBottomSheet(
                               isScrollControlled: true,
                               context: context,
-                              builder:
-                                  (context) => _PublisherMemberRoleSheet(
-                                    publisherUname: publisherUname,
-                                    member: member,
-                                  ),
+                              builder: (context) => _PublisherMemberRoleSheet(
+                                publisherUname: publisherUname,
+                                member: member,
+                              ),
                             ).then((value) {
                               if (value != null) {
                                 memberNotifier.refresh();
@@ -991,23 +989,19 @@ class _PublisherMemberRoleSheet extends HookConsumerWidget {
                   onSelected: (int selection) {
                     roleController.text = selection.toString();
                   },
-                  fieldViewBuilder: (
-                    context,
-                    controller,
-                    focusNode,
-                    onFieldSubmitted,
-                  ) {
-                    return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'memberRole'.tr(),
-                        helperText: 'memberRoleHint'.tr(),
-                      ),
-                      onTapOutside: (event) => focusNode.unfocus(),
-                    );
-                  },
+                  fieldViewBuilder:
+                      (context, controller, focusNode, onFieldSubmitted) {
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'memberRole'.tr(),
+                            helperText: 'memberRoleHint'.tr(),
+                          ),
+                          onTapOutside: (event) => focusNode.unfocus(),
+                        );
+                      },
                 ),
                 const Gap(16),
                 FilledButton.icon(
@@ -1085,57 +1079,49 @@ class _PublisherInviteSheet extends HookConsumerWidget {
         ),
       ],
       child: invites.when(
-        data:
-            (items) =>
-                items.isEmpty
-                    ? Center(
-                      child:
-                          Text(
-                            'invitesEmpty',
-                            textAlign: TextAlign.center,
-                          ).tr(),
-                    )
-                    : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final invite = items[index];
-                        return ListTile(
-                          leading: ProfilePictureWidget(
-                            fileId: invite.publisher!.picture?.id,
-                            fallbackIcon: Symbols.group,
-                          ),
-                          title: Text(invite.publisher!.nick),
-                          subtitle:
-                              Text(
-                                invite.role >= 100
-                                    ? 'permissionOwner'
-                                    : invite.role >= 50
-                                    ? 'permissionModerator'
-                                    : 'permissionMember',
-                              ).tr(),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Symbols.check),
-                                onPressed: () => acceptInvite(invite),
-                              ),
-                              IconButton(
-                                icon: const Icon(Symbols.close),
-                                onPressed: () => declineInvite(invite),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+        data: (items) => items.isEmpty
+            ? Center(
+                child: Text('invitesEmpty', textAlign: TextAlign.center).tr(),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final invite = items[index];
+                  return ListTile(
+                    leading: ProfilePictureWidget(
+                      fileId: invite.publisher!.picture?.id,
+                      fallbackIcon: Symbols.group,
                     ),
+                    title: Text(invite.publisher!.nick),
+                    subtitle: Text(
+                      invite.role >= 100
+                          ? 'permissionOwner'
+                          : invite.role >= 50
+                          ? 'permissionModerator'
+                          : 'permissionMember',
+                    ).tr(),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Symbols.check),
+                          onPressed: () => acceptInvite(invite),
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.close),
+                          onPressed: () => declineInvite(invite),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, _) => ResponseErrorWidget(
-              error: error,
-              onRetry: () => ref.invalidate(publisherInvitesProvider),
-            ),
+        error: (error, _) => ResponseErrorWidget(
+          error: error,
+          onRetry: () => ref.invalidate(publisherInvitesProvider),
+        ),
       ),
     );
   }
