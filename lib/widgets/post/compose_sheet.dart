@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
@@ -32,16 +33,21 @@ class PostComposeSheet extends HookConsumerWidget {
     SnPost? originalPost,
     PostComposeInitialState? initialState,
   }) {
+    // Check if editing an article
+    if (originalPost != null && originalPost.type == 1) {
+      context.pushNamed('articleEdit', pathParameters: {'id': originalPost.id});
+      return Future.value(true);
+    }
+
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder:
-          (context) => PostComposeSheet(
-            originalPost: originalPost,
-            initialState: initialState,
-            isBottomSheet: true,
-          ),
+      builder: (context) => PostComposeSheet(
+        originalPost: originalPost,
+        initialState: initialState,
+        isBottomSheet: true,
+      ),
     );
   }
 
@@ -52,10 +58,9 @@ class PostComposeSheet extends HookConsumerWidget {
     final prompted = useState(false);
 
     // Fetch full post data if we're editing a post
-    final fullPostData =
-        originalPost != null
-            ? ref.watch(postProvider(originalPost!.id))
-            : const AsyncValue.data(null);
+    final fullPostData = originalPost != null
+        ? ref.watch(postProvider(originalPost!.id))
+        : const AsyncValue.data(null);
 
     // Use the full post data if available, otherwise fall back to originalPost
     final effectiveOriginalPost = fullPostData.when(
@@ -115,7 +120,11 @@ class PostComposeSheet extends HookConsumerWidget {
     }, [drafts, prompted.value]);
 
     // Dispose state when widget is disposed
-    useEffect(() => () => ComposeLogic.dispose(state), []);
+    useEffect(
+      () =>
+          () => ComposeLogic.dispose(state),
+      [],
+    );
 
     // Helper methods for actions
     void showSettingsSheet() {
@@ -145,22 +154,20 @@ class PostComposeSheet extends HookConsumerWidget {
       IconButton(
         onPressed:
             (state.submitting.value || state.currentPublisher.value == null)
-                ? null
-                : performSubmit,
-        icon:
-            state.submitting.value
-                ? SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: const CircularProgressIndicator(strokeWidth: 2),
-                )
-                : Icon(
-                  effectiveOriginalPost != null ? Symbols.edit : Symbols.upload,
-                ),
-        tooltip:
-            effectiveOriginalPost != null
-                ? 'postUpdate'.tr()
-                : 'postPublish'.tr(),
+            ? null
+            : performSubmit,
+        icon: state.submitting.value
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                effectiveOriginalPost != null ? Symbols.edit : Symbols.upload,
+              ),
+        tooltip: effectiveOriginalPost != null
+            ? 'postUpdate'.tr()
+            : 'postPublish'.tr(),
       ),
     ];
 
@@ -192,29 +199,28 @@ class PostComposeSheet extends HookConsumerWidget {
       final restore = await showDialog<bool>(
         context: ref.context,
         useRootNavigator: true,
-        builder:
-            (context) => AlertDialog(
-              title: Text('restoreDraftTitle'.tr()),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('restoreDraftMessage'.tr()),
-                  const SizedBox(height: 16),
-                  _buildCompactDraftPreview(context, latestDraft),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('no'.tr()),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text('yes'.tr()),
-                ),
-              ],
+        builder: (context) => AlertDialog(
+          title: Text('restoreDraftTitle'.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('restoreDraftMessage'.tr()),
+              const SizedBox(height: 16),
+              _buildCompactDraftPreview(context, latestDraft),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('no'.tr()),
             ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('yes'.tr()),
+            ),
+          ],
+        ),
       );
       if (restore == true) {
         // Delete the old draft
@@ -226,10 +232,9 @@ class PostComposeSheet extends HookConsumerWidget {
           description: latestDraft.description,
           content: latestDraft.content,
           visibility: latestDraft.visibility,
-          attachments:
-              latestDraft.attachments
-                  .map((e) => UniversalFile.fromAttachment(e))
-                  .toList(),
+          attachments: latestDraft.attachments
+              .map((e) => UniversalFile.fromAttachment(e))
+              .toList(),
         );
       }
     }
