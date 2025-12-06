@@ -39,8 +39,8 @@ class PaginationList<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
+    // For sliver cases, avoid animation to prevent complex sliver issues
     if (isSliver) {
-      // For slivers, return widgets directly without animation
       if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
@@ -88,7 +88,7 @@ class PaginationList<T> extends HookConsumerWidget {
           : listView;
     }
 
-    // For non-slivers, use AnimatedSwitcher for smooth transitions
+    // For non-sliver cases, use AnimatedSwitcher for smooth transitions
     Widget buildContent() {
       if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
         final content = List<Widget>.generate(
@@ -175,8 +175,8 @@ class PaginationWidget<T> extends HookConsumerWidget {
     final data = ref.watch(provider);
     final noti = ref.watch(notifier);
 
+    // For sliver cases, avoid animation to prevent complex sliver issues
     if (isSliver) {
-      // For slivers, return widgets directly without animation
       if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
@@ -215,7 +215,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
           : content;
     }
 
-    // For non-slivers, use AnimatedSwitcher for smooth transitions
+    // For non-sliver cases, use AnimatedSwitcher for smooth transitions
     Widget buildContent() {
       if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
         final content = List<Widget>.generate(
