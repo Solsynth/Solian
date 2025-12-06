@@ -26,6 +26,7 @@ import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_item_skeleton.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
@@ -137,10 +138,9 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 tooltip: 'explore'.tr(),
                 isSelected: currentFilter.value == null,
-                color:
-                    currentFilter.value == null
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+                color: currentFilter.value == null
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
               ),
               IconButton(
                 onPressed: () => handleFilterChange('subscriptions'),
@@ -150,10 +150,9 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 tooltip: 'exploreFilterSubscriptions'.tr(),
                 isSelected: currentFilter.value == 'subscriptions',
-                color:
-                    currentFilter.value == 'subscriptions'
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+                color: currentFilter.value == 'subscriptions'
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
               ),
               IconButton(
                 onPressed: () => handleFilterChange('friends'),
@@ -163,10 +162,9 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 tooltip: 'exploreFilterFriends'.tr(),
                 isSelected: currentFilter.value == 'friends',
-                color:
-                    currentFilter.value == 'friends'
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+                color: currentFilter.value == 'friends'
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
               ),
             ],
           ),
@@ -179,57 +177,56 @@ class ExploreScreen extends HookConsumerWidget {
             tooltip: 'webArticlesStand'.tr(),
           ),
           PopupMenuButton(
-            itemBuilder:
-                (context) => [
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.category),
-                        const Gap(12),
-                        Text('categories').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.pushNamed('postCategories');
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.label),
-                        const Gap(12),
-                        Text('tags').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.pushNamed('postTags');
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.shuffle),
-                        const Gap(12),
-                        Text('postShuffle').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.pushNamed('postShuffle');
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.search),
-                        const Gap(12),
-                        Text('search').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.pushNamed('postSearch');
-                    },
-                  ),
-                ],
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.category),
+                    const Gap(12),
+                    Text('categories').tr(),
+                  ],
+                ),
+                onTap: () {
+                  context.pushNamed('postCategories');
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.label),
+                    const Gap(12),
+                    Text('tags').tr(),
+                  ],
+                ),
+                onTap: () {
+                  context.pushNamed('postTags');
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.shuffle),
+                    const Gap(12),
+                    Text('postShuffle').tr(),
+                  ],
+                ),
+                onTap: () {
+                  context.pushNamed('postShuffle');
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.search),
+                    const Gap(12),
+                    Text('search').tr(),
+                  ],
+                ),
+                onTap: () {
+                  context.pushNamed('postSearch');
+                },
+              ),
+            ],
             icon: Icon(Symbols.action_key),
             tooltip: 'search'.tr(),
           ),
@@ -237,10 +234,9 @@ class ExploreScreen extends HookConsumerWidget {
       ).padding(horizontal: 8, vertical: 4),
     );
 
-    final appBar =
-        isWide
-            ? null
-            : _buildAppBar(currentFilter.value, handleFilterChange, context);
+    final appBar = isWide
+        ? null
+        : _buildAppBar(currentFilter.value, handleFilterChange, context);
 
     final dragging = useState(false);
 
@@ -263,19 +259,18 @@ class ExploreScreen extends HookConsumerWidget {
           AppScaffold(
             isNoBackground: false,
             appBar: appBar,
-            body:
-                isWide
-                    ? _buildWideBody(
-                      context,
-                      ref,
-                      filterBar,
-                      user,
-                      notificationCount,
-                      query,
-                      events,
-                      selectedDay,
-                    )
-                    : _buildNarrowBody(context, ref, currentFilter.value),
+            body: isWide
+                ? _buildWideBody(
+                    context,
+                    ref,
+                    filterBar,
+                    user,
+                    notificationCount,
+                    query,
+                    events,
+                    selectedDay,
+                  )
+                : _buildNarrowBody(context, ref, currentFilter.value),
           ),
           if (dragging.value)
             Positioned.fill(
@@ -295,12 +290,11 @@ class ExploreScreen extends HookConsumerWidget {
                       const Gap(16),
                       Text(
                         'dropToShare'.tr(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -321,9 +315,9 @@ class ExploreScreen extends HookConsumerWidget {
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
-      contentBuilder:
-          (data, footer) =>
-              _ActivityListView(data: data, isWide: isWide, footer: footer),
+      footerSkeletonChild: const PostItemSkeleton(),
+      contentBuilder: (data, footer) =>
+          _ActivityListView(data: data, isWide: isWide, footer: footer),
     );
   }
 
@@ -393,39 +387,38 @@ class ExploreScreen extends HookConsumerWidget {
         else
           Flexible(
             flex: 2,
-            child:
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Icon(Symbols.emoji_people_rounded, size: 40),
-                    const Gap(8),
-                    Text(
-                      'Welcome to\nthe Solar Network',
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ).bold(),
-                    const Gap(2),
-                    Text(
-                      'Login to explore more!',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const Gap(4),
-                    TextButton.icon(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          useRootNavigator: true,
-                          isScrollControlled: true,
-                          builder: (context) => LoginModal(),
-                        );
-                      },
-                      icon: const Icon(Symbols.login),
-                      label: Text('login').tr(),
-                    ),
-                  ],
-                ).padding(horizontal: 36, vertical: 16).center(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Symbols.emoji_people_rounded, size: 40),
+                const Gap(8),
+                Text(
+                  'Welcome to\nthe Solar Network',
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ).bold(),
+                const Gap(2),
+                Text(
+                  'Login to explore more!',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const Gap(4),
+                TextButton.icon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      useRootNavigator: true,
+                      isScrollControlled: true,
+                      builder: (context) => LoginModal(),
+                    );
+                  },
+                  icon: const Icon(Symbols.login),
+                  label: Text('login').tr(),
+                ),
+              ],
+            ).padding(horizontal: 36, vertical: 16).center(),
           ),
       ],
     ).padding(horizontal: 12);
@@ -491,57 +484,56 @@ class ExploreScreen extends HookConsumerWidget {
               tooltip: 'webArticlesStand'.tr(),
             ),
             PopupMenuButton(
-              itemBuilder:
-                  (context) => [
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.category),
-                          const Gap(12),
-                          Text('categories').tr(),
-                        ],
-                      ),
-                      onTap: () {
-                        context.pushNamed('postCategories');
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.label),
-                          const Gap(12),
-                          Text('tags').tr(),
-                        ],
-                      ),
-                      onTap: () {
-                        context.pushNamed('postTags');
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.shuffle),
-                          const Gap(12),
-                          Text('postShuffle').tr(),
-                        ],
-                      ),
-                      onTap: () {
-                        context.pushNamed('postShuffle');
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.search),
-                          const Gap(12),
-                          Text('search').tr(),
-                        ],
-                      ),
-                      onTap: () {
-                        context.pushNamed('postSearch');
-                      },
-                    ),
-                  ],
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.category),
+                      const Gap(12),
+                      Text('categories').tr(),
+                    ],
+                  ),
+                  onTap: () {
+                    context.pushNamed('postCategories');
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.label),
+                      const Gap(12),
+                      Text('tags').tr(),
+                    ],
+                  ),
+                  onTap: () {
+                    context.pushNamed('postTags');
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.shuffle),
+                      const Gap(12),
+                      Text('postShuffle').tr(),
+                    ],
+                  ),
+                  onTap: () {
+                    context.pushNamed('postShuffle');
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.search),
+                      const Gap(12),
+                      Text('search').tr(),
+                    ],
+                  ),
+                  onTap: () {
+                    context.pushNamed('postSearch');
+                  },
+                ),
+              ],
               icon: Icon(Symbols.action_key, color: foregroundColor),
               tooltip: 'search'.tr(),
             ),

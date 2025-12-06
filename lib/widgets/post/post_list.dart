@@ -7,6 +7,7 @@ import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_creator.dart';
+import 'package:island/widgets/post/post_item_skeleton.dart';
 
 part 'post_list.freezed.dart';
 
@@ -159,6 +160,7 @@ class SliverPostList extends HookConsumerWidget {
       notifier: notifier,
       isRefreshable: false,
       isSliver: true,
+      footerSkeletonChild: const PostItemSkeleton(),
       itemBuilder: (context, index, post) {
         if (maxWidth != null) {
           return Center(
