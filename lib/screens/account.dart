@@ -16,7 +16,6 @@ import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/profile_decoration.dart';
 import 'package:island/widgets/debug_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -99,10 +98,6 @@ class AccountScreen extends HookConsumerWidget {
                             child: ProfilePictureWidget(
                               file: user.value?.profile.picture,
                               radius: 32,
-                              decoration: ProfileDecoration(
-                                text: '#OpenToWork',
-                                color: Colors.green,
-                              ),
                             ),
                             onTap: () {
                               context.pushNamed(
