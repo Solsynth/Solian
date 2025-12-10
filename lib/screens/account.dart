@@ -16,6 +16,7 @@ import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/profile_decoration.dart';
 import 'package:island/widgets/debug_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -98,6 +99,10 @@ class AccountScreen extends HookConsumerWidget {
                             child: ProfilePictureWidget(
                               file: user.value?.profile.picture,
                               radius: 32,
+                              decoration: ProfileDecoration(
+                                text: '#OpenToWork',
+                                color: Colors.green,
+                              ),
                             ),
                             onTap: () {
                               context.pushNamed(
@@ -331,23 +336,21 @@ class AccountScreen extends HookConsumerWidget {
                   if (availableWidth > totalMin) {
                     return Row(
                       spacing: 8,
-                      children:
-                          children
-                              .map((child) => Expanded(child: child))
-                              .toList(),
+                      children: children
+                          .map((child) => Expanded(child: child))
+                          .toList(),
                     ).padding(horizontal: 12).height(48);
                   } else {
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         spacing: 8,
-                        children:
-                            children
-                                .map(
-                                  (child) =>
-                                      SizedBox(width: minWidth, child: child),
-                                )
-                                .toList(),
+                        children: children
+                            .map(
+                              (child) =>
+                                  SizedBox(width: minWidth, child: child),
+                            )
+                            .toList(),
                       ).padding(horizontal: 12),
                     ).height(48);
                   }
@@ -495,97 +498,96 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppBar(title: const Text('account').tr()),
-      body:
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Card(
+                child: InkWell(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  onTap: () {
+                    context.pushNamed('createAccount');
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Icon(Symbols.person_add, size: 48),
+                        const SizedBox(height: 8),
+                        Text('createAccount').tr().bold(),
+                        Text('createAccountDescription').tr(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const Gap(8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Card(
+                child: InkWell(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  onTap: () {
+                    context.pushNamed('login');
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Icon(Symbols.login, size: 48),
+                        const SizedBox(height: 8),
+                        Text('login').tr().bold(),
+                        Text('loginDescription').tr(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const Gap(8),
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Card(
-                    child: InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      onTap: () {
-                        context.pushNamed('createAccount');
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Icon(Symbols.person_add, size: 48),
-                            const SizedBox(height: 8),
-                            Text('createAccount').tr().bold(),
-                            Text('createAccountDescription').tr(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+              children: [
+                IconButton(
+                  onPressed: () {
+                    context.pushNamed('about');
+                  },
+                  iconSize: 18,
+                  color: Theme.of(context).colorScheme.secondary,
+                  icon: const Icon(Icons.info, fill: 1),
+                  tooltip: 'about'.tr(),
                 ),
-                const Gap(8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Card(
-                    child: InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      onTap: () {
-                        context.pushNamed('login');
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Icon(Symbols.login, size: 48),
-                            const SizedBox(height: 8),
-                            Text('login').tr().bold(),
-                            Text('loginDescription').tr(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.bug_report, fill: 1),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => DebugSheet(),
+                    );
+                  },
+                  iconSize: 18,
+                  color: Theme.of(context).colorScheme.secondary,
+                  tooltip: 'debugOptions'.tr(),
                 ),
-                const Gap(8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        context.pushNamed('about');
-                      },
-                      iconSize: 18,
-                      color: Theme.of(context).colorScheme.secondary,
-                      icon: const Icon(Icons.info, fill: 1),
-                      tooltip: 'about'.tr(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.bug_report, fill: 1),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) => DebugSheet(),
-                        );
-                      },
-                      iconSize: 18,
-                      color: Theme.of(context).colorScheme.secondary,
-                      tooltip: 'debugOptions'.tr(),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        context.pushNamed('settings');
-                      },
-                      icon: const Icon(Icons.settings, fill: 1),
-                      iconSize: 18,
-                      color: Theme.of(context).colorScheme.secondary,
-                      tooltip: 'appSettings'.tr(),
-                    ),
-                  ],
+                IconButton(
+                  onPressed: () {
+                    context.pushNamed('settings');
+                  },
+                  icon: const Icon(Icons.settings, fill: 1),
+                  iconSize: 18,
+                  color: Theme.of(context).colorScheme.secondary,
+                  tooltip: 'appSettings'.tr(),
                 ),
               ],
             ),
-          ).center(),
+          ],
+        ),
+      ).center(),
     );
   }
 }

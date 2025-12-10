@@ -9,8 +9,11 @@ import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/services/time.dart';
 import 'package:island/utils/format.dart';
+import 'package:island/widgets/content/profile_decoration.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:island/widgets/data_saving_gate.dart';
 
 import 'file_viewer_contents.dart';
@@ -258,17 +261,15 @@ class CloudFileWidget extends HookConsumerWidget {
     var content = switch (item.mimeType?.split('/').firstOrNull) {
       'image' => AspectRatio(
         aspectRatio: ratio,
-        child:
-            (useInternalGate && dataSaving && !unlocked.value)
-                ? dataPlaceHolder(Symbols.image)
-                : cloudImage(),
+        child: (useInternalGate && dataSaving && !unlocked.value)
+            ? dataPlaceHolder(Symbols.image)
+            : cloudImage(),
       ),
       'video' => AspectRatio(
         aspectRatio: ratio,
-        child:
-            (useInternalGate && dataSaving && !unlocked.value)
-                ? dataPlaceHolder(Symbols.play_arrow)
-                : cloudVideo(),
+        child: (useInternalGate && dataSaving && !unlocked.value)
+            ? dataPlaceHolder(Symbols.play_arrow)
+            : cloudVideo(),
       ),
       'audio' => AudioFileContent(item: item, uri: uri),
       _ => Builder(
@@ -383,10 +384,9 @@ class CloudVideoWidget extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    var ratio =
-        item.fileMeta?['ratio'] is num
-            ? item.fileMeta!['ratio'].toDouble()
-            : 1.0;
+    var ratio = item.fileMeta?['ratio'] is num
+        ? item.fileMeta!['ratio'].toDouble()
+        : 1.0;
     if (ratio == 0) ratio = 1.0;
 
     if (open.value) {
@@ -533,10 +533,9 @@ class CloudImageWidget extends ConsumerWidget {
 
     return AspectRatio(
       aspectRatio: aspectRatio,
-      child:
-          file != null
-              ? CloudFileWidget(item: file!, fit: fit)
-              : UniversalImage(uri: uri, blurHash: blurHash, fit: fit),
+      child: file != null
+          ? CloudFileWidget(item: file!, fit: fit)
+          : UniversalImage(uri: uri, blurHash: blurHash, fit: fit),
     );
   }
 
@@ -545,10 +544,9 @@ class CloudImageWidget extends ConsumerWidget {
     required String serverUrl,
     bool original = false,
   }) {
-    final uri =
-        original
-            ? '$serverUrl/drive/files/$fileId?original=true'
-            : '$serverUrl/drive/files/$fileId';
+    final uri = original
+        ? '$serverUrl/drive/files/$fileId?original=true'
+        : '$serverUrl/drive/files/$fileId';
     return CachedNetworkImageProvider(uri);
   }
 }
@@ -560,6 +558,7 @@ class ProfilePictureWidget extends ConsumerWidget {
   final double? borderRadius;
   final IconData? fallbackIcon;
   final Color? fallbackColor;
+  final ProfileDecoration? decoration;
   const ProfilePictureWidget({
     super.key,
     this.fileId,
@@ -568,6 +567,7 @@ class ProfilePictureWidget extends ConsumerWidget {
     this.borderRadius,
     this.fallbackIcon,
     this.fallbackColor,
+    this.decoration,
   });
 
   @override
@@ -575,36 +575,49 @@ class ProfilePictureWidget extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final String? id = file?.id ?? fileId;
 
-    final fallback =
-        Icon(
-          fallbackIcon ?? Symbols.account_circle,
-          size: radius,
-          color:
-              fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-        ).center();
+    final fallback = Icon(
+      fallbackIcon ?? Symbols.account_circle,
+      size: radius,
+      color: fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
+    ).center();
+
+    final image = id == null
+        ? fallback
+        : DataSavingGate(
+            bypass: true,
+            placeholder: fallback,
+            content: () => UniversalImage(
+              uri: '$serverUrl/drive/files/$id',
+              fit: BoxFit.cover,
+            ),
+          );
+
+    Widget content = Container(
+      width: radius * 2,
+      height: radius * 2,
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: decoration != null
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                image,
+                CustomPaint(
+                  painter: _ProfileDecorationPainter(
+                    text: decoration!.text,
+                    color: decoration!.color,
+                    textColor: decoration!.textColor ?? Colors.white,
+                  ),
+                ),
+              ],
+            )
+          : image,
+    );
 
     return ClipRRect(
-      borderRadius:
-          borderRadius == null
-              ? BorderRadius.all(Radius.circular(radius))
-              : BorderRadius.all(Radius.circular(borderRadius!)),
-      child: Container(
-        width: radius * 2,
-        height: radius * 2,
-        color: Theme.of(context).colorScheme.primaryContainer,
-        child:
-            id == null
-                ? fallback
-                : DataSavingGate(
-                  bypass: true,
-                  placeholder: fallback,
-                  content:
-                      () => UniversalImage(
-                        uri: '$serverUrl/drive/files/$id',
-                        fit: BoxFit.cover,
-                      ),
-                ),
-      ),
+      borderRadius: borderRadius == null
+          ? BorderRadius.all(Radius.circular(radius))
+          : BorderRadius.all(Radius.circular(borderRadius!)),
+      child: content,
     );
   }
 }
@@ -716,32 +729,29 @@ class SplitAvatarWidget extends ConsumerWidget {
                           ),
                         ),
                         Expanded(
-                          child:
-                              filesId.length > 4
-                                  ? Container(
-                                    color:
-                                        Theme.of(
+                          child: filesId.length > 4
+                              ? Container(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  child: Center(
+                                    child: Text(
+                                      '+${filesId.length - 3}',
+                                      style: TextStyle(
+                                        fontSize: radius * 0.4,
+                                        color: Theme.of(
                                           context,
-                                        ).colorScheme.primaryContainer,
-                                    child: Center(
-                                      child: Text(
-                                        '+${filesId.length - 3}',
-                                        style: TextStyle(
-                                          fontSize: radius * 0.4,
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimaryContainer,
-                                        ),
+                                        ).colorScheme.onPrimaryContainer,
                                       ),
                                     ),
-                                  )
-                                  : _buildQuadrant(
-                                    context,
-                                    filesId[3],
-                                    ref,
-                                    radius,
                                   ),
+                                )
+                              : _buildQuadrant(
+                                  context,
+                                  filesId[3],
+                                  ref,
+                                  radius,
+                                ),
                         ),
                       ],
                     ),
@@ -765,14 +775,12 @@ class SplitAvatarWidget extends ConsumerWidget {
         width: radius,
         height: radius,
         color: Theme.of(context).colorScheme.primaryContainer,
-        child:
-            Icon(
-              fallbackIcon,
-              size: radius * 0.6,
-              color:
-                  fallbackColor ??
-                  Theme.of(context).colorScheme.onPrimaryContainer,
-            ).center(),
+        child: Icon(
+          fallbackIcon,
+          size: radius * 0.6,
+          color:
+              fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
+        ).center(),
       );
     }
 
@@ -784,5 +792,108 @@ class SplitAvatarWidget extends ConsumerWidget {
       height: radius,
       child: UniversalImage(uri: uri, fit: BoxFit.cover),
     );
+  }
+}
+
+class _ProfileDecorationPainter extends CustomPainter {
+  final String text;
+  final Color color;
+  final Color textColor;
+
+  _ProfileDecorationPainter({
+    required this.text,
+    required this.color,
+    required this.textColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (text.isEmpty) return;
+
+    final radius = size.width / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+
+    final strokeWidth = radius * 0.4; // Increased thickness
+    final centerAngle = 3 * math.pi / 4;
+    final sweepAngle = math.pi / 1;
+    final startAngle = centerAngle - (sweepAngle / 2);
+
+    final arcRadius = radius - (strokeWidth / 2);
+    final rect = Rect.fromCircle(center: center, radius: arcRadius);
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..shader = SweepGradient(
+        startAngle: startAngle,
+        endAngle: startAngle + sweepAngle,
+        colors: [color.withOpacity(0), color, color, color.withOpacity(0)],
+        stops: const [0.0, 0.25, 0.75, 1.0],
+      ).createShader(rect);
+
+    canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+
+    _drawTextOnArc(canvas, center, arcRadius, text, centerAngle);
+  }
+
+  void _drawTextOnArc(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    String text,
+    double centerAngle,
+  ) {
+    final textStyle = TextStyle(
+      color: textColor,
+      fontSize: radius * 0.28,
+      fontWeight: FontWeight.bold,
+    );
+
+    double totalAngle = 0;
+    List<double> charAngles = [];
+
+    // Calculate total angle occupied by text
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      final span = TextSpan(text: char, style: textStyle);
+      final tp = TextPainter(text: span, textDirection: ui.TextDirection.ltr);
+      tp.layout();
+      final charWidth = tp.width;
+      final angle = charWidth / radius;
+      charAngles.add(angle);
+      totalAngle += angle;
+    }
+
+    // Start from "Left" of the center (High angle)
+    // We want to traverse from centerAngle + total/2 to centerAngle - total/2
+    double currentAngle = centerAngle + (totalAngle / 2);
+
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      final span = TextSpan(text: char, style: textStyle);
+      final tp = TextPainter(text: span, textDirection: ui.TextDirection.ltr);
+      tp.layout();
+
+      final charAngle = charAngles[i];
+      final midCharAngle = currentAngle - charAngle / 2;
+
+      final x = center.dx + radius * math.cos(midCharAngle);
+      final y = center.dy + radius * math.sin(midCharAngle);
+
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(midCharAngle - math.pi / 2);
+
+      tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+
+      canvas.restore();
+
+      currentAngle -= charAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }
