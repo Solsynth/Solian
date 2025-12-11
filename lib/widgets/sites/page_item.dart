@@ -37,29 +37,28 @@ class PageItem extends HookConsumerWidget {
         title: Text(page.path ?? '/'),
         subtitle: Text(page.config?['title'] ?? 'Untitled'),
         trailing: PopupMenuButton<String>(
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.edit),
-                      const Gap(16),
-                      Text('edit'.tr()),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.delete, color: Colors.red),
-                      const Gap(16),
-                      Text('delete'.tr()).textColor(Colors.red),
-                    ],
-                  ),
-                ),
-              ],
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  const Icon(Symbols.edit),
+                  const Gap(16),
+                  Text('edit'.tr()),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  const Icon(Symbols.delete, color: Colors.red),
+                  const Gap(16),
+                  Text('delete'.tr()).textColor(Colors.red),
+                ],
+              ),
+            ),
+          ],
           onSelected: (value) async {
             switch (value) {
               case 'edit':
@@ -67,46 +66,27 @@ class PageItem extends HookConsumerWidget {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder:
-                      (context) =>
-                          PageForm(site: site, pubName: pubName, page: page),
+                  builder: (context) =>
+                      PageForm(site: site, pubName: pubName, page: page),
                 ).then((_) {
                   // Refresh pages after editing
                   ref.invalidate(sitePagesProvider(pubName, site.slug));
                 });
                 break;
               case 'delete':
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Delete Page'),
-                        content: const Text(
-                          'Are you sure you want to delete this page?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
+                final confirmed = await showConfirmAlert(
+                  'Are you sure you want to delete this page?',
+                  'Delete the Page',
                 );
 
-                if (confirmed == true) {
+                if (confirmed) {
                   try {
-                    await ref
-                        .read(
-                          sitePagesNotifierProvider((
-                            pubName: pubName,
-                            siteSlug: site.slug,
-                          )).notifier,
-                        )
-                        .deletePage(page.id);
+                    final provider = sitePagesNotifierProvider((
+                      pubName: pubName,
+                      siteSlug: site.slug,
+                    ));
+                    await ref.read(provider.notifier).deletePage(page.id);
+                    ref.invalidate(provider);
                     showSnackBar('Page deleted successfully');
                   } catch (e) {
                     showErrorAlert(e);

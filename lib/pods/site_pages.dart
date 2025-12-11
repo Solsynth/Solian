@@ -95,9 +95,6 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
     try {
       final apiClient = ref.read(apiClientProvider);
       await apiClient.delete('/zone/sites/pages/$pageId');
-
-      // Refresh the pages list
-      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -105,8 +102,9 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
   }
 }
 
-final sitePagesNotifierProvider = AsyncNotifierProvider.autoDispose.family<
-  SitePagesNotifier,
-  List<SnPublicationPage>,
-  ({String pubName, String siteSlug})
->(SitePagesNotifier.new);
+final sitePagesNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      SitePagesNotifier,
+      List<SnPublicationPage>,
+      ({String pubName, String siteSlug})
+    >(SitePagesNotifier.new);

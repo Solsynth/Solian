@@ -24,6 +24,10 @@ class PageForm extends HookConsumerWidget {
   int _getPageType(SnPublicationPage? page) {
     if (page == null) return 0; // Default to HTML
     // Check config structure to determine type
+    if (page.config?.containsKey('filter') == true ||
+        page.config?.containsKey('layout') == true) {
+      return 2; // Post Page
+    }
     return page.config?.containsKey('target') == true ? 1 : 0;
   }
 
@@ -48,6 +52,42 @@ class PageForm extends HookConsumerWidget {
       text: pageType.value == 1 ? (page?.config?['target'] ?? '') : '',
     );
 
+    // Post Page Controllers
+    final filterPubNameController = useTextEditingController(
+      text: pageType.value == 2
+          ? (page?.config?['filter']?['pub_name'] ?? '')
+          : '',
+    );
+    final filterOrderByController = useTextEditingController(
+      text: pageType.value == 2
+          ? (page?.config?['filter']?['order_by'] ?? '')
+          : '',
+    );
+    final filterOrderDesc = useState(
+      pageType.value == 2
+          ? (page?.config?['filter']?['order_desc'] ?? true)
+          : true,
+    );
+    final filterTypes = useState<List<int>>(
+      (page?.config?['filter']?['types'] as List?)?.cast<int>() ?? [0],
+    );
+
+    final layoutTitleController = useTextEditingController(
+      text: pageType.value == 2
+          ? (page?.config?['layout']?['title'] ?? '')
+          : '',
+    );
+    final layoutDescriptionController = useTextEditingController(
+      text: pageType.value == 2
+          ? (page?.config?['layout']?['description'] ?? '')
+          : '',
+    );
+    final layoutShowPub = useState(
+      pageType.value == 2
+          ? (page?.config?['layout']?['show_pub'] ?? true)
+          : true,
+    );
+
     final isLoading = useState(false);
 
     // Update controllers when page type changes
@@ -59,11 +99,36 @@ class PageForm extends HookConsumerWidget {
               page?.config?['html'] ?? page?.config?['content'] ?? '';
           titleController.text = page?.config?['title'] ?? '';
           targetController.clear();
-        } else {
+          filterPubNameController.clear();
+          filterOrderByController.clear();
+          layoutTitleController.clear();
+          layoutDescriptionController.clear();
+        } else if (pageType.value == 1) {
           // Redirect mode
           htmlController.clear();
           titleController.clear();
           targetController.text = page?.config?['target'] ?? '';
+          filterPubNameController.clear();
+          filterOrderByController.clear();
+          layoutTitleController.clear();
+          layoutDescriptionController.clear();
+        } else if (pageType.value == 2) {
+          // Post Page mode
+          htmlController.clear();
+          titleController.clear();
+          targetController.clear();
+          filterPubNameController.text =
+              page?.config?['filter']?['pub_name'] ?? '';
+          filterOrderByController.text =
+              page?.config?['filter']?['order_by'] ?? '';
+          filterOrderDesc.value =
+              page?.config?['filter']?['order_desc'] ?? true;
+          filterTypes.value =
+              (page?.config?['filter']?['types'] as List?)?.cast<int>() ?? [0];
+          layoutTitleController.text = page?.config?['layout']?['title'] ?? '';
+          layoutDescriptionController.text =
+              page?.config?['layout']?['description'] ?? '';
+          layoutShowPub.value = page?.config?['layout']?['show_pub'] ?? true;
         }
       });
       return null;
@@ -77,69 +142,116 @@ class PageForm extends HookConsumerWidget {
           htmlController.text =
               page!.config?['html'] ?? page!.config?['content'] ?? '';
           titleController.text = page!.config?['title'] ?? '';
-        } else {
+        } else if (pageType.value == 1) {
           targetController.text = page!.config?['target'] ?? '';
+        } else if (pageType.value == 2) {
+          filterPubNameController.text =
+              page!.config?['filter']?['pub_name'] ?? '';
+          filterOrderByController.text =
+              page!.config?['filter']?['order_by'] ?? '';
+          filterOrderDesc.value =
+              page!.config?['filter']?['order_desc'] ?? true;
+          filterTypes.value =
+              (page!.config?['filter']?['types'] as List?)?.cast<int>() ?? [0];
+          layoutTitleController.text = page!.config?['layout']?['title'] ?? '';
+          layoutDescriptionController.text =
+              page!.config?['layout']?['description'] ?? '';
+          layoutShowPub.value = page!.config?['layout']?['show_pub'] ?? true;
         }
       }
       return null;
     }, [page]);
 
-    final savePage = useCallback(() async {
-      if (!formKey.currentState!.validate()) return;
+    final savePage = useCallback(
+      () async {
+        if (!formKey.currentState!.validate()) return;
 
-      isLoading.value = true;
+        isLoading.value = true;
 
-      try {
-        final pagesNotifier = ref.read(
-          sitePagesNotifierProvider((
-            pubName: pubName,
-            siteSlug: site.slug,
-          )).notifier,
-        );
-
-        late final Map<String, dynamic> pageData;
-
-        if (pageType.value == 0) {
-          // HTML page
-          pageData = {
-            'type': 0,
-            'path': pathController.text,
-            'config': {
-              'title': titleController.text,
-              'html': htmlController.text,
-            },
-          };
-        } else {
-          // Redirect page
-          pageData = {
-            'type': 1,
-            'path': pathController.text,
-            'config': {'target': targetController.text},
-          };
-        }
-
-        if (page == null) {
-          // Create new page
-          await pagesNotifier.createPage(pageData);
-        } else {
-          // Update existing page
-          await pagesNotifier.updatePage(page!.id, pageData);
-        }
-
-        if (context.mounted) {
-          showSnackBar(
-            page == null
-                ? 'Page created successfully'
-                : 'Page updated successfully',
+        try {
+          final pagesNotifier = ref.read(
+            sitePagesNotifierProvider((
+              pubName: pubName,
+              siteSlug: site.slug,
+            )).notifier,
           );
-          Navigator.pop(context);
+
+          late final Map<String, dynamic> pageData;
+
+          if (pageType.value == 0) {
+            // HTML page
+            pageData = {
+              'type': 0,
+              'path': pathController.text,
+              'config': {
+                'title': titleController.text,
+                'html': htmlController.text,
+              },
+            };
+          } else if (pageType.value == 1) {
+            // Redirect page
+            pageData = {
+              'type': 1,
+              'path': pathController.text,
+              'config': {'target': targetController.text},
+            };
+          } else {
+            // Post Page
+            pageData = {
+              'type': 2,
+              'path': pathController.text,
+              'config': {
+                'filter': {
+                  if (filterPubNameController.text.isNotEmpty)
+                    'pub_name': filterPubNameController.text,
+                  if (filterOrderByController.text.isNotEmpty)
+                    'order_by': filterOrderByController.text,
+                  'order_desc': filterOrderDesc.value,
+                  'types': filterTypes.value,
+                },
+                'layout': {
+                  if (layoutTitleController.text.isNotEmpty)
+                    'title': layoutTitleController.text,
+                  if (layoutDescriptionController.text.isNotEmpty)
+                    'description': layoutDescriptionController.text,
+                  'show_pub': layoutShowPub.value,
+                },
+              },
+            };
+          }
+
+          if (page == null) {
+            // Create new page
+            await pagesNotifier.createPage(pageData);
+          } else {
+            // Update existing page
+            await pagesNotifier.updatePage(page!.id, pageData);
+          }
+
+          if (context.mounted) {
+            showSnackBar(
+              page == null
+                  ? 'Page created successfully'
+                  : 'Page updated successfully',
+            );
+            Navigator.pop(context);
+          }
+        } catch (e) {
+          showErrorAlert(e);
+        } finally {
+          isLoading.value = false;
         }
-      } catch (e) {
-        showErrorAlert(e);
-      } finally {
-        isLoading.value = false;
-      }
-    }, [pageType, pubName, site.slug, page]);
+      },
+      [
+        pageType,
+        pubName,
+        site.slug,
+        page,
+        filterOrderDesc.value,
+        filterTypes.value,
+        layoutShowPub.value,
+      ],
+    );
 
     final deletePage = useCallback(() async {
       if (page == null) return; // Shouldn't happen for editing
@@ -225,6 +337,16 @@ class PageForm extends HookConsumerWidget {
                           ],
                         ),
                       ),
+                      DropdownMenuItem(
+                        value: 2,
+                        child: Row(
+                          children: [
+                            Icon(Symbols.article, size: 20),
+                            Gap(8),
+                            Text('Post Page'),
+                          ],
+                        ),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -238,37 +360,40 @@ class PageForm extends HookConsumerWidget {
                       return null;
                     },
                   ).padding(all: 20),
+
+                  // Common "Path" field for all types
+                  TextFormField(
+                    controller: pathController,
+                    decoration: const InputDecoration(
+                      labelText: 'Page Path',
+                      hintText: '/about, /posts, etc.',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a page path';
+                      }
+                      if (!RegExp(r'^[a-zA-Z0-9\-/_]+$').hasMatch(value)) {
+                        return 'Page path can only contain letters, numbers, hyphens, underscores, and slashes';
+                      }
+                      if (!value.startsWith('/')) {
+                        return 'Page path must start with /';
+                      }
+                      if (value.contains('//')) {
+                        return 'Page path cannot have consecutive slashes';
+                      }
+                      return null;
+                    },
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                  ).padding(horizontal: 20),
+                  const SizedBox(height: 16),
+
                   // Conditional form fields based on page type
                   if (pageType.value == 0) ...[
                     // HTML Page fields
-                    TextFormField(
-                      controller: pathController,
-                      decoration: const InputDecoration(
-                        labelText: 'Page Path',
-                        hintText: '/about, /contact, etc.',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a page path';
-                        }
-                        if (!RegExp(r'^[a-zA-Z0-9\-/_]+$').hasMatch(value)) {
-                          return 'Page path can only contain letters, numbers, hyphens, underscores, and slashes';
-                        }
-                        if (!value.startsWith('/')) {
-                          return 'Page path must start with /';
-                        }
-                        if (value.contains('//')) {
-                          return 'Page path cannot have consecutive slashes';
-                        }
-                        return null;
-                      },
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                    ).padding(horizontal: 20),
-                    const SizedBox(height: 16),
                     TextFormField(
                       controller: titleController,
                       decoration: const InputDecoration(
@@ -309,36 +434,8 @@ class PageForm extends HookConsumerWidget {
                         return null;
                       },
                     ).padding(horizontal: 20),
-                  ] else ...[
+                  ] else if (pageType.value == 1) ...[
                     // Redirect Page fields
-                    TextFormField(
-                      controller: pathController,
-                      decoration: const InputDecoration(
-                        labelText: 'Page Path',
-                        hintText: '/old-page, /redirect, etc.',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a page path';
-                        }
-                        if (!RegExp(r'^[a-zA-Z0-9\-/_]+$').hasMatch(value)) {
-                          return 'Page path can only contain letters, numbers, hyphens, underscores, and slashes';
-                        }
-                        if (!value.startsWith('/')) {
-                          return 'Page path must start with /';
-                        }
-                        if (value.contains('//')) {
-                          return 'Page path cannot have consecutive slashes';
-                        }
-                        return null;
-                      },
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                    ).padding(horizontal: 20),
-                    const SizedBox(height: 16),
                     TextFormField(
                       controller: targetController,
                       decoration: const InputDecoration(
@@ -353,7 +450,9 @@ class PageForm extends HookConsumerWidget {
                           return 'Please enter a redirect target';
                         }
                         if (!value.startsWith('/') &&
+                            // ignore: use_string_starts_with_pattern
                             !value.startsWith('http://') &&
+                            // ignore: use_string_starts_with_pattern
                             !value.startsWith('https://')) {
                           return 'Target must be a relative path (/) or absolute URL (http/https)';
                         }
@@ -362,7 +461,138 @@ class PageForm extends HookConsumerWidget {
                       onTapOutside: (_) =>
                           FocusManager.instance.primaryFocus?.unfocus(),
                     ).padding(horizontal: 20),
+                  ] else if (pageType.value == 2) ...[
+                    // Post Page fields
+                    const Text(
+                      'Filter Settings',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).alignment(Alignment.centerLeft).padding(horizontal: 24),
+                    const Gap(8),
+                    TextFormField(
+                      controller: filterPubNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Publication Name (Optional)',
+                        hintText: 'Filter by publication name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                    ).padding(horizontal: 20),
+                    const Gap(16),
+                    TextFormField(
+                      controller: filterOrderByController,
+                      decoration: const InputDecoration(
+                        labelText: 'Order By (Optional)',
+                        hintText: 'e.g. published_at',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                    ).padding(horizontal: 20),
+                    const Gap(8),
+                    SwitchListTile(
+                      value: filterOrderDesc.value,
+                      onChanged: (value) => filterOrderDesc.value = value,
+                      title: const Text('Order Descending'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                    ),
+                    const Gap(8),
+                    const Text(
+                      'Content Types',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).alignment(Alignment.centerLeft).padding(horizontal: 24),
+                    const Gap(4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.start,
+                      runAlignment: WrapAlignment.start,
+                      children: [
+                        FilterChip(
+                          label: const Text('Regular Post'),
+                          selected: filterTypes.value.contains(0),
+                          onSelected: (selected) {
+                            final types = [...filterTypes.value];
+                            if (selected) {
+                              types.add(0);
+                            } else {
+                              types.remove(0);
+                            }
+                            filterTypes.value = types;
+                          },
+                        ),
+                        FilterChip(
+                          label: const Text('Article'),
+                          selected: filterTypes.value.contains(1),
+                          onSelected: (selected) {
+                            final types = [...filterTypes.value];
+                            if (selected) {
+                              types.add(1);
+                            } else {
+                              types.remove(1);
+                            }
+                            filterTypes.value = types;
+                          },
+                        ),
+                      ],
+                    ).padding(horizontal: 20),
+                    const Gap(24),
+                    const Text(
+                      'Layout Settings',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).alignment(Alignment.centerLeft).padding(horizontal: 24),
+                    const Gap(8),
+                    TextFormField(
+                      controller: layoutTitleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title (Optional)',
+                        hintText: 'Page Title',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                    ).padding(horizontal: 20),
+                    const Gap(16),
+                    TextFormField(
+                      controller: layoutDescriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description (Optional)',
+                        hintText: 'Page Description',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                    ).padding(horizontal: 20),
+                    const Gap(8),
+                    SwitchListTile(
+                      value: layoutShowPub.value,
+                      onChanged: (value) => layoutShowPub.value = value,
+                      title: const Text('Show Publication Info'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                    ),
                   ],
+
                   Row(
                     children: [
                       if (page != null) ...[
