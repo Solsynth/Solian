@@ -2,9 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/publication_site.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/sites/site_detail.dart';
 import 'package:island/screens/creators/sites/site_list.dart';
+import 'package:island/screens/creators/sites/widgets/site_config_form.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
@@ -23,6 +25,7 @@ class SiteForm extends HookConsumerWidget {
     TextEditingController nameController,
     TextEditingController descriptionController,
     ValueNotifier<int> modeController,
+    ValueNotifier<SnPublicationSiteConfig> configController,
     Function() saveSite,
     Function() deleteSite,
     String siteSlug,
@@ -103,38 +106,40 @@ class SiteForm extends HookConsumerWidget {
             }
           },
         ),
+        const SizedBox(height: 16),
+        SiteConfigForm(
+          initialConfig: configController.value,
+          onChanged: (value) => configController.value = value,
+        ),
       ],
     ).padding(all: 20);
 
     return SheetScaffold(
       titleText: 'editPublicationSite'.tr(),
       child: Builder(
-        builder:
-            (context) => SingleChildScrollView(
-              child: Column(
+        builder: (context) => SingleChildScrollView(
+          child: Column(
+            children: [
+              Form(key: formKey, child: formFields),
+              Row(
                 children: [
-                  Form(key: formKey, child: formFields),
-                  Row(
-                    children: [
-                      TextButton.icon(
-                        onPressed: deleteSite,
-                        icon: const Icon(Symbols.delete_forever),
-                        label: Text('deletePublicationSite'.tr()),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                      ).alignment(Alignment.centerRight),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: saveSite,
-                        icon: const Icon(Symbols.save),
-                        label: Text('saveChanges').tr(),
-                      ),
-                    ],
-                  ).padding(horizontal: 20, vertical: 12),
+                  TextButton.icon(
+                    onPressed: deleteSite,
+                    icon: const Icon(Symbols.delete_forever),
+                    label: Text('deletePublicationSite'.tr()),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  ).alignment(Alignment.centerRight),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: saveSite,
+                    icon: const Icon(Symbols.save),
+                    label: Text('saveChanges').tr(),
+                  ),
                 ],
-              ),
-            ),
+              ).padding(horizontal: 20, vertical: 12),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -146,6 +151,9 @@ class SiteForm extends HookConsumerWidget {
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final modeController = useState<int>(0); // Default to fully managed (0)
+    final configController = useState<SnPublicationSiteConfig>(
+      const SnPublicationSiteConfig(),
+    );
     final isLoading = useState(false);
 
     final saveSite = useCallback(() async {
@@ -162,6 +170,7 @@ class SiteForm extends HookConsumerWidget {
           'mode': modeController.value,
           if (descriptionController.text.isNotEmpty)
             'description': descriptionController.text,
+          'config': configController.value.toJson(),
         };
 
         if (siteSlug != null) {
@@ -229,40 +238,39 @@ class SiteForm extends HookConsumerWidget {
           nameController.text = site.name;
           descriptionController.text = site.description ?? '';
           modeController.value = site.mode ?? 0;
+          configController.value = site.config;
         }
         return null;
       }, [siteAsync]);
 
       // Handle loading and error states for editing using AsyncValue
       return siteAsync.when(
-        data:
-            (_) => _buildForm(
-              formKey,
-              slugController,
-              nameController,
-              descriptionController,
-              modeController,
-              saveSite,
-              deleteSite,
-              editingSiteSlug,
-            ),
-        loading:
-            () => SheetScaffold(
-              titleText: 'editPublicationSite'.tr(),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-        error:
-            (error, _) => SheetScaffold(
-              titleText: 'editPublicationSite'.tr(),
-              child: ResponseErrorWidget(
-                error: error.toString(),
-                onRetry: () {
-                  ref.invalidate(
-                    publicationSiteDetailProvider(pubName, editingSiteSlug),
-                  );
-                },
-              ),
-            ),
+        data: (_) => _buildForm(
+          formKey,
+          slugController,
+          nameController,
+          descriptionController,
+          modeController,
+          configController,
+          saveSite,
+          deleteSite,
+          editingSiteSlug,
+        ),
+        loading: () => SheetScaffold(
+          titleText: 'editPublicationSite'.tr(),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, _) => SheetScaffold(
+          titleText: 'editPublicationSite'.tr(),
+          child: ResponseErrorWidget(
+            error: error.toString(),
+            onRetry: () {
+              ref.invalidate(
+                publicationSiteDetailProvider(pubName, editingSiteSlug),
+              );
+            },
+          ),
+        ),
       );
     }
 
@@ -344,6 +352,11 @@ class SiteForm extends HookConsumerWidget {
             }
           },
         ),
+        const SizedBox(height: 16),
+        SiteConfigForm(
+          initialConfig: configController.value,
+          onChanged: (value) => configController.value = value,
+        ),
       ],
     ).padding(all: 20);
 
@@ -354,10 +367,9 @@ class SiteForm extends HookConsumerWidget {
     ).padding(horizontal: 20, vertical: 12);
 
     return SheetScaffold(
-      titleText:
-          siteSlug == null
-              ? 'newPublicationSite'.tr()
-              : 'editPublicationSite'.tr(),
+      titleText: siteSlug == null
+          ? 'newPublicationSite'.tr()
+          : 'editPublicationSite'.tr(),
       child: SingleChildScrollView(
         child: Column(
           children: [
