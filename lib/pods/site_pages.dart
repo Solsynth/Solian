@@ -57,9 +57,6 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
       );
       final newPage = SnPublicationPage.fromJson(resp.data);
 
-      // Refresh the pages list
-      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
-
       return newPage;
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -79,9 +76,6 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
         data: pageData,
       );
       final updatedPage = SnPublicationPage.fromJson(resp.data);
-
-      // Refresh the pages list
-      ref.invalidate(sitePagesProvider(arg.pubName, arg.siteSlug));
 
       return updatedPage;
     } catch (error, stackTrace) {

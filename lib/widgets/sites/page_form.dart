@@ -169,12 +169,11 @@ class PageForm extends HookConsumerWidget {
         isLoading.value = true;
 
         try {
-          final pagesNotifier = ref.read(
-            sitePagesNotifierProvider((
-              pubName: pubName,
-              siteSlug: site.slug,
-            )).notifier,
-          );
+          final provider = sitePagesNotifierProvider((
+            pubName: pubName,
+            siteSlug: site.slug,
+          ));
+          final pagesNotifier = ref.read(provider.notifier);
 
           late final Map<String, dynamic> pageData;
 
@@ -227,6 +226,7 @@ class PageForm extends HookConsumerWidget {
             // Update existing page
             await pagesNotifier.updatePage(page!.id, pageData);
           }
+          ref.invalidate(provider);
 
           if (context.mounted) {
             showSnackBar(
