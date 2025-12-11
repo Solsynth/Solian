@@ -37,10 +37,9 @@ class PageForm extends HookConsumerWidget {
     final pageType = useState(initialType);
 
     final htmlController = useTextEditingController(
-      text:
-          pageType.value == 0
-              ? (page?.config?['html'] ?? page?.config?['content'] ?? '')
-              : '',
+      text: pageType.value == 0
+          ? (page?.config?['html'] ?? page?.config?['content'] ?? '')
+          : '',
     );
     final titleController = useTextEditingController(
       text: pageType.value == 0 ? (page?.config?['title'] ?? '') : '',
@@ -147,21 +146,20 @@ class PageForm extends HookConsumerWidget {
 
       final confirmed = await showDialog<bool>(
         context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Delete Page'),
-              content: const Text('Are you sure you want to delete this page?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Delete'),
-                ),
-              ],
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Page'),
+          content: const Text('Are you sure you want to delete this page?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
             ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
       );
       if (confirmed != true) return;
 
@@ -267,8 +265,8 @@ class PageForm extends HookConsumerWidget {
                         }
                         return null;
                       },
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ).padding(horizontal: 20),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -286,8 +284,8 @@ class PageForm extends HookConsumerWidget {
                         }
                         return null;
                       },
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ).padding(horizontal: 20),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -302,8 +300,8 @@ class PageForm extends HookConsumerWidget {
                         alignLabelWithHint: true,
                       ),
                       maxLines: 10,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter HTML content for the page';
@@ -337,8 +335,8 @@ class PageForm extends HookConsumerWidget {
                         }
                         return null;
                       },
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ).padding(horizontal: 20),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -361,31 +359,31 @@ class PageForm extends HookConsumerWidget {
                         }
                         return null;
                       },
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ).padding(horizontal: 20),
-                    Row(
-                      children: [
-                        if (page != null) ...[
-                          TextButton.icon(
-                            onPressed: deletePage,
-                            icon: const Icon(Symbols.delete_forever),
-                            label: const Text('Delete Page'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
-                            ),
-                          ).alignment(Alignment.centerRight),
-                          const Spacer(),
-                        ] else
-                          const Spacer(),
-                        TextButton.icon(
-                          onPressed: savePage,
-                          icon: const Icon(Symbols.save),
-                          label: const Text('Save Page'),
-                        ),
-                      ],
-                    ).padding(horizontal: 20, vertical: 16),
                   ],
+                  Row(
+                    children: [
+                      if (page != null) ...[
+                        TextButton.icon(
+                          onPressed: deletePage,
+                          icon: const Icon(Symbols.delete_forever),
+                          label: const Text('Delete Page'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                        ).alignment(Alignment.centerRight),
+                        const Spacer(),
+                      ] else
+                        const Spacer(),
+                      TextButton.icon(
+                        onPressed: savePage,
+                        icon: const Icon(Symbols.save),
+                        label: const Text('Save Page'),
+                      ),
+                    ],
+                  ).padding(horizontal: 20, vertical: 16),
                 ],
               ),
             ),
