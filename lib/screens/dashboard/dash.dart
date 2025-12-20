@@ -1,0 +1,519 @@
+import 'dart:math' as math;
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/chat/chat_room.dart';
+import 'package:island/pods/event_calendar.dart';
+import 'package:island/screens/chat/chat.dart';
+import 'package:island/widgets/account/fortune_graph.dart';
+import 'package:island/widgets/account/friends_overview.dart';
+import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/notification_tile.dart';
+import 'package:island/widgets/post/post_featured.dart';
+import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/check_in.dart';
+import 'package:island/screens/notification.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:slide_countdown/slide_countdown.dart';
+import 'package:styled_widget/styled_widget.dart';
+import 'dart:async';
+
+class DashboardScreen extends HookConsumerWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppScaffold(body: Center(child: DashboardGrid()));
+  }
+}
+
+class DashboardGrid extends HookConsumerWidget {
+  const DashboardGrid({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: math.min(640, MediaQuery.sizeOf(context).height * 0.65),
+      ),
+      child: Column(
+        spacing: 16,
+        children: [
+          // Clock card spans full width
+          ClockCard().padding(horizontal: 24),
+          // Row with two cards side by side
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SearchBar(
+              hintText: 'Search Anything...',
+              constraints: const BoxConstraints(minHeight: 56),
+              leading: const Icon(Symbols.search).padding(horizontal: 24),
+              readOnly: true,
+            ),
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 16,
+                  children: [
+                    SizedBox(
+                      width: 400,
+                      child: Column(
+                        spacing: 16,
+                        children: [
+                          CheckInWidget(
+                            margin: EdgeInsets.zero,
+                            checkInOnly: true,
+                          ),
+                          Card(
+                            margin: EdgeInsets.zero,
+                            child: FortuneGraphWidget(
+                              events: ref.watch(
+                                eventCalendarProvider(
+                                  EventCalendarQuery(
+                                    uname: 'me',
+                                    year: DateTime.now().year,
+                                    month: DateTime.now().month,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(child: FortuneCard()),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 400, child: FeaturedPostCard()),
+                    SizedBox(
+                      width: 400,
+                      child: Column(
+                        spacing: 16,
+                        children: [
+                          FriendsOverviewWidget(),
+                          Expanded(child: NotificationsCard()),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 400,
+                      child: Column(
+                        spacing: 16,
+                        children: [Expanded(child: ChatListCard())],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ClockCard extends HookConsumerWidget {
+  const ClockCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final time = useState(DateTime.now());
+    final timer = useRef<Timer?>(null);
+    final nextNotableDay = ref.watch(nextNotableDayProvider);
+
+    useEffect(() {
+      timer.value = Timer.periodic(const Duration(seconds: 1), (_) {
+        time.value = DateTime.now();
+      });
+      return () => timer.value?.cancel();
+    }, []);
+
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Symbols.schedule,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.ideographic,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${time.value.hour.toString().padLeft(2, '0')}:${time.value.minute.toString().padLeft(2, '0')}:${time.value.second.toString().padLeft(2, '0')}',
+                              style: GoogleFonts.robotoMono(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              '${time.value.month.toString().padLeft(2, '0')}/${time.value.day.toString().padLeft(2, '0')}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 5,
+                        children: [
+                          Text('notableDayNext')
+                              .tr(
+                                args: [
+                                  nextNotableDay.value?.localName ?? 'idk',
+                                ],
+                              )
+                              .fontSize(12),
+                          if (nextNotableDay.value != null)
+                            SlideCountdown(
+                              decoration: const BoxDecoration(),
+                              style: const TextStyle(fontSize: 12),
+                              separatorStyle: const TextStyle(fontSize: 12),
+                              padding: EdgeInsets.zero,
+                              duration: nextNotableDay.value?.date.difference(
+                                DateTime.now(),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FeaturedPostCard extends HookConsumerWidget {
+  const FeaturedPostCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final featuredPostsAsync = ref.watch(featuredPostsProvider);
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: Card(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        margin: EdgeInsets.zero,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 48,
+              child: Row(
+                spacing: 8,
+                children: [
+                  const Icon(Symbols.highlight),
+                  Text('highlightPost').tr(),
+                  const Spacer(),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      // Navigation to previous post
+                    },
+                    icon: const Icon(Symbols.arrow_left),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      // Navigation to next post
+                    },
+                    icon: const Icon(Symbols.arrow_right),
+                  ),
+                ],
+              ).padding(horizontal: 16, vertical: 8),
+            ),
+            Expanded(
+              child: featuredPostsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data: (posts) {
+                  if (posts.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: Text('No featured posts available')),
+                    );
+                  }
+                  return PageView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      return SingleChildScrollView(
+                        child: PostActionableItem(
+                          item: posts[index],
+                          borderRadius: 8,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class NotificationsCard extends HookConsumerWidget {
+  const NotificationsCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifications = ref.watch(notificationListProvider);
+
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        onTap: () {
+          // Show notification sheet similar to explore.dart
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => const NotificationSheet(),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Symbols.notifications,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Notifications',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ).padding(horizontal: 16, vertical: 12),
+            Expanded(
+              child: notifications.when(
+                loading: () => const SkeletonNotificationTile(),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data: (notificationList) {
+                  if (notificationList.isEmpty) {
+                    return const Center(child: Text('No notifications yet'));
+                  }
+                  // Get the most recent notification (first in the list)
+                  final recentNotification = notificationList.first;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Most Recent',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ).padding(horizontal: 16),
+                      const SizedBox(height: 8),
+                      NotificationTile(
+                        notification: recentNotification,
+                        compact: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        avatarRadius: 16.0,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            Text(
+              'Tap to view all notifications',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ).padding(horizontal: 16, vertical: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChatListCard extends HookConsumerWidget {
+  const ChatListCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatRooms = ref.watch(chatRoomJoinedProvider);
+
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Symbols.chat,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Recent Chats',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ).padding(horizontal: 16, vertical: 16),
+          Expanded(
+            child: chatRooms.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+              data: (rooms) {
+                if (rooms.isEmpty) {
+                  return const Center(child: Text('No chat rooms available'));
+                }
+                // Take only the first 5 rooms
+                final recentRooms = rooms.take(5).toList();
+                return ListView.builder(
+                  itemCount: recentRooms.length,
+                  itemBuilder: (context, index) {
+                    final room = recentRooms[index];
+                    return ChatRoomListTile(
+                      room: room,
+                      isDirect: room.type == 1,
+                      onTap: () {
+                        context.pushNamed(
+                          'chatRoom',
+                          pathParameters: {'id': room.id},
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FortuneCard extends HookWidget {
+  const FortuneCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final fortune = useMemoized(() {
+      const fortunes = [
+        {'text': '有的人活着，但他已经死了。', 'author': '—— 鲁迅'},
+        {'text': '天行健，君子以自强不息。', 'author': '—— 《周易》'},
+        {'text': '路漫漫其修远兮，吾将上下而求索。', 'author': '—— 屈原'},
+        {'text': '学海无涯苦作舟。', 'author': '—— 韩愈'},
+        {'text': '天道酬勤。', 'author': '—— 古语'},
+        {'text': '书山有路勤为径，学海无涯苦作舟。', 'author': '—— 韩愈'},
+        {'text': '莫等闲，白了少年头，空悲切。', 'author': '—— 岳飞'},
+        {
+          'text': 'The best way to predict the future is to create it.',
+          'author': '— Peter Drucker',
+        },
+        {'text': 'Fortune favors the bold.', 'author': '— Virgil'},
+        {
+          'text': 'A journey of a thousand miles begins with a single step.',
+          'author': '— Lao Tzu',
+        },
+        {
+          'text': 'The only way to do great work is to love what you do.',
+          'author': '— Steve Jobs',
+        },
+        {
+          'text': 'Believe you can and you\'re halfway there.',
+          'author': '— Theodore Roosevelt',
+        },
+        {
+          'text':
+              'The future belongs to those who believe in the beauty of their dreams.',
+          'author': '— Eleanor Roosevelt',
+        },
+      ];
+      return fortunes[math.Random().nextInt(fortunes.length)];
+    });
+
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      child: Row(
+        spacing: 8,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: Text(fortune['text']!)),
+          Text(fortune['author']!).bold(),
+        ],
+      ).padding(horizontal: 24),
+    );
+  }
+}

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
+import 'package:island/screens/dashboard/dash.dart';
 import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
 import 'package:island/screens/developers/hub.dart';
@@ -185,10 +186,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               return TabsScreen(child: child);
             },
             routes: [
+              // Dashboard tab
+              GoRoute(
+                name: 'dashboard',
+                path: '/',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: const ValueKey('dashboard'),
+                  child: const DashboardScreen(),
+                  transitionsBuilder: _tabPagesTransitionBuilder,
+                ),
+              ),
               // Explore tab
               GoRoute(
                 name: 'explore',
-                path: '/',
+                path: '/explore',
                 pageBuilder: (context, state) => CustomTransitionPage(
                   key: const ValueKey('explore'),
                   child: const ExploreScreen(),

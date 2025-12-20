@@ -34,9 +34,10 @@ class CurrentRouteNotifier extends Notifier<String?> {
 const kWideScreenRouteStart = 4;
 const kTabRoutes = [
   '/',
+  '/explore',
   '/chat',
-  '/realms',
   '/account',
+  '/realms',
   '/files',
   '/thought',
   '/creators',
@@ -68,6 +69,10 @@ class TabsScreen extends HookConsumerWidget {
 
     final destinations = [
       NavigationDestination(
+        label: 'dashboard'.tr(),
+        icon: const Icon(Symbols.dashboard_rounded),
+      ),
+      NavigationDestination(
         label: 'explore'.tr(),
         icon: const Icon(Symbols.explore_rounded),
       ),
@@ -79,10 +84,7 @@ class TabsScreen extends HookConsumerWidget {
           child: const Icon(Symbols.forum_rounded),
         ),
       ),
-      NavigationDestination(
-        label: 'realms'.tr(),
-        icon: const Icon(Symbols.group_rounded),
-      ),
+
       NavigationDestination(
         label: 'account'.tr(),
         icon: Badge.count(
@@ -105,6 +107,10 @@ class TabsScreen extends HookConsumerWidget {
       ),
       if (wideScreen)
         ...([
+          NavigationDestination(
+            label: 'realms'.tr(),
+            icon: const Icon(Symbols.group_rounded),
+          ),
           NavigationDestination(
             label: 'files'.tr(),
             icon: const Icon(Symbols.folder_rounded),
@@ -154,15 +160,14 @@ class TabsScreen extends HookConsumerWidget {
           children: [
             NavigationRail(
               backgroundColor: Colors.transparent,
-              destinations:
-                  destinations
-                      .map(
-                        (e) => NavigationRailDestination(
-                          icon: e.icon,
-                          label: Text(e.label),
-                        ),
-                      )
-                      .toList(),
+              destinations: destinations
+                  .map(
+                    (e) => NavigationRailDestination(
+                      icon: e.icon,
+                      label: Text(e.label),
+                    ),
+                  )
+                  .toList(),
               selectedIndex: currentIndex,
               onDestinationSelected: onDestinationSelected,
               trailingAtBottom: true,
@@ -195,10 +200,9 @@ class TabsScreen extends HookConsumerWidget {
         child: child ?? const SizedBox.shrink(),
       ),
       floatingActionButton: shouldShowFab ? const FabMenu() : null,
-      floatingActionButtonLocation:
-          shouldShowFab
-              ? _DockedFabLocation(context, settings.fabPosition)
-              : null,
+      floatingActionButtonLocation: shouldShowFab
+          ? _DockedFabLocation(context, settings.fabPosition)
+          : null,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
           borderRadius: BorderRadius.only(
@@ -223,19 +227,19 @@ class TabsScreen extends HookConsumerWidget {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: () {
-                    final navItems =
-                        destinations.asMap().entries.map<Widget>((entry) {
-                          int index = entry.key;
-                          NavigationDestination dest = entry.value;
-                          return IconButton(
-                            icon: dest.icon,
-                            onPressed: () => onDestinationSelected(index),
-                            color:
-                                index == currentIndex
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
-                          );
-                        }).toList();
+                    final navItems = destinations.asMap().entries.map<Widget>((
+                      entry,
+                    ) {
+                      int index = entry.key;
+                      NavigationDestination dest = entry.value;
+                      return IconButton(
+                        icon: dest.icon,
+                        onPressed: () => onDestinationSelected(index),
+                        color: index == currentIndex
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      );
+                    }).toList();
                     // Add mock item to leave space for FAB based on position
                     final gapIndex = switch (settings.fabPosition) {
                       'left' => 0,
