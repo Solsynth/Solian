@@ -52,7 +52,13 @@ Future<SnNotableDay?> nextNotableDay(Ref ref) async {
 class CheckInWidget extends HookConsumerWidget {
   final EdgeInsets? margin;
   final VoidCallback? onChecked;
-  const CheckInWidget({super.key, this.margin, this.onChecked});
+  final bool checkInOnly;
+  const CheckInWidget({
+    super.key,
+    this.margin,
+    this.onChecked,
+    this.checkInOnly = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -122,57 +128,77 @@ class CheckInWidget extends HookConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  spacing: 6,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      switch (DateTime.now().weekday) {
-                        6 || 7 => Symbols.weekend,
-                        _ => isAdult ? Symbols.work : Symbols.school,
+                if (checkInOnly)
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: todayResult.when(
+                      data: (result) {
+                        return Text(
+                          result == null
+                              ? 'checkInNone'
+                              : 'checkInResultLevel${result.level}',
+                          textAlign: TextAlign.start,
+                        ).tr().fontSize(15).bold();
                       },
-                      fill: 1,
-                      size: 16,
-                    ).padding(right: 2),
-                    Text(
-                      DateFormat('EEE').format(DateTime.now()),
-                    ).fontSize(16).bold(),
-                    Text(
-                      DateFormat('MM/dd').format(DateTime.now()),
-                    ).fontSize(16),
-                    Tooltip(
-                      message: timeLeftFormatted,
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          trackGap: 0,
-                          value: progress,
-                          strokeWidth: 2,
-                        ),
-                      ),
+                      loading: () =>
+                          Text('checkInNone').tr().fontSize(15).bold(),
+                      error: (err, stack) =>
+                          Text('error').tr().fontSize(15).bold(),
                     ),
-                  ],
-                ),
-                Row(
-                  spacing: 5,
-                  children: [
-                    Text('notableDayNext')
-                        .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
-                        .fontSize(12),
-                    if (nextNotableDay.value != null)
-                      SlideCountdown(
-                        decoration: const BoxDecoration(),
-                        style: const TextStyle(fontSize: 12),
-                        separatorStyle: const TextStyle(fontSize: 12),
-                        padding: EdgeInsets.zero,
-                        duration: nextNotableDay.value?.date.difference(
-                          DateTime.now(),
+                  ).padding(right: 4),
+                if (!checkInOnly)
+                  Row(
+                    spacing: 6,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        switch (DateTime.now().weekday) {
+                          6 || 7 => Symbols.weekend,
+                          _ => isAdult ? Symbols.work : Symbols.school,
+                        },
+                        fill: 1,
+                        size: 16,
+                      ).padding(right: 2),
+                      Text(
+                        DateFormat('EEE').format(DateTime.now()),
+                      ).fontSize(16).bold(),
+                      Text(
+                        DateFormat('MM/dd').format(DateTime.now()),
+                      ).fontSize(16),
+                      Tooltip(
+                        message: timeLeftFormatted,
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            trackGap: 0,
+                            value: progress,
+                            strokeWidth: 2,
+                          ),
                         ),
                       ),
-                  ],
-                ),
+                    ],
+                  ),
+                if (!checkInOnly)
+                  Row(
+                    spacing: 5,
+                    children: [
+                      Text('notableDayNext')
+                          .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
+                          .fontSize(12),
+                      if (nextNotableDay.value != null)
+                        SlideCountdown(
+                          decoration: const BoxDecoration(),
+                          style: const TextStyle(fontSize: 12),
+                          separatorStyle: const TextStyle(fontSize: 12),
+                          padding: EdgeInsets.zero,
+                          duration: nextNotableDay.value?.date.difference(
+                            DateTime.now(),
+                          ),
+                        ),
+                    ],
+                  ),
                 const Gap(2),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -213,14 +239,13 @@ class CheckInWidget extends HookConsumerWidget {
                       );
                     },
                     loading: () => Text('checkInNoneHint').tr().fontSize(11),
-                    error:
-                        (err, stack) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('error').tr().fontSize(15).bold(),
-                            Text(err.toString()).fontSize(11),
-                          ],
-                        ),
+                    error: (err, stack) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('error').tr().fontSize(15).bold(),
+                        Text(err.toString()).fontSize(11),
+                      ],
+                    ),
                   ),
                 ).alignment(Alignment.centerLeft),
               ],
@@ -231,21 +256,23 @@ class CheckInWidget extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             spacing: 4,
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: todayResult.when(
-                  data: (result) {
-                    return Text(
-                      result == null
-                          ? 'checkInNone'
-                          : 'checkInResultLevel${result.level}',
-                      textAlign: TextAlign.start,
-                    ).tr().fontSize(15).bold();
-                  },
-                  loading: () => Text('checkInNone').tr().fontSize(15).bold(),
-                  error: (err, stack) => Text('error').tr().fontSize(15).bold(),
-                ),
-              ).padding(right: 4),
+              if (!checkInOnly)
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: todayResult.when(
+                    data: (result) {
+                      return Text(
+                        result == null
+                            ? 'checkInNone'
+                            : 'checkInResultLevel${result.level}',
+                        textAlign: TextAlign.start,
+                      ).tr().fontSize(15).bold();
+                    },
+                    loading: () => Text('checkInNone').tr().fontSize(15).bold(),
+                    error: (err, stack) =>
+                        Text('error').tr().fontSize(15).bold(),
+                  ),
+                ).padding(right: 4),
               IconButton.outlined(
                 iconSize: 16,
                 visualDensity: const VisualDensity(
@@ -259,27 +286,22 @@ class CheckInWidget extends HookConsumerWidget {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
-                      builder:
-                          (context) => SheetScaffold(
-                            titleText: 'eventCalendar'.tr(),
-                            child: EventCalendarContent(
-                              name: 'me',
-                              isSheet: true,
-                            ),
-                          ),
+                      builder: (context) => SheetScaffold(
+                        titleText: 'eventCalendar'.tr(),
+                        child: EventCalendarContent(name: 'me', isSheet: true),
+                      ),
                     );
                   }
                 },
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: todayResult.when(
-                    data:
-                        (result) => Icon(
-                          result == null
-                              ? Symbols.local_fire_department
-                              : Symbols.event,
-                          key: ValueKey(result != null),
-                        ),
+                    data: (result) => Icon(
+                      result == null
+                          ? Symbols.local_fire_department
+                          : Symbols.event,
+                      key: ValueKey(result != null),
+                    ),
                     loading: () => const Icon(Symbols.refresh),
                     error: (_, _) => const Icon(Symbols.error),
                   ),

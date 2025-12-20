@@ -4,23 +4,20 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/route.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/notification_tile.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 part 'notification.g.dart';
 
@@ -197,31 +194,6 @@ class NotificationListNotifier extends AsyncNotifier<List<SnNotification>>
 class NotificationSheet extends HookConsumerWidget {
   const NotificationSheet({super.key});
 
-  IconData _getNotificationIcon(String topic) {
-    switch (topic) {
-      case 'post.replies':
-        return Symbols.reply;
-      case 'wallet.transactions':
-        return Symbols.account_balance_wallet;
-      case 'relationships.friends.request':
-        return Symbols.person_add;
-      case 'invites.chat':
-        return Symbols.chat;
-      case 'invites.realm':
-        return Symbols.domain;
-      case 'auth.login':
-        return Symbols.login;
-      case 'posts.new':
-        return Symbols.post_add;
-      case 'wallet.orders.paid':
-        return Symbols.shopping_bag;
-      case 'posts.reactions.new':
-        return Symbols.add_reaction;
-      default:
-        return Symbols.notifications;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Refresh unread count when sheet opens to sync across devices
@@ -265,109 +237,7 @@ class NotificationSheet extends HookConsumerWidget {
               notifier: notificationListProvider.notifier,
               footerSkeletonChild: const SkeletonNotificationTile(),
               itemBuilder: (context, index, notification) {
-                final pfp = notification.meta['pfp'] as String?;
-                final images = notification.meta['images'] as List?;
-                final imageIds = images?.cast<String>() ?? [];
-
-                return ListTile(
-                  isThreeLine: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading: pfp != null
-                      ? ProfilePictureWidget(fileId: pfp, radius: 20)
-                      : CircleAvatar(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primaryContainer,
-                          child: Icon(
-                            _getNotificationIcon(notification.topic),
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                  title: Text(notification.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (notification.subtitle.isNotEmpty)
-                        Text(notification.subtitle).bold(),
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Text(
-                            DateFormat().format(
-                              notification.createdAt.toLocal(),
-                            ),
-                          ).fontSize(11),
-                          Text('·').fontSize(11).bold(),
-                          Text(
-                            RelativeTime(
-                              context,
-                            ).format(notification.createdAt.toLocal()),
-                          ).fontSize(11),
-                        ],
-                      ).opacity(0.75).padding(bottom: 4),
-                      MarkdownTextContent(
-                        content: notification.content,
-                        textStyle: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.8),
-                            ),
-                      ),
-                      if (imageIds.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: imageIds.map((imageId) {
-                              return SizedBox(
-                                width: 80,
-                                height: 80,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: CloudImageWidget(
-                                    fileId: imageId,
-                                    aspectRatio: 1,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                    ],
-                  ),
-                  trailing: notification.viewedAt != null
-                      ? null
-                      : Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                  onTap: () {
-                    if (notification.meta['action_uri'] != null) {
-                      var uri = notification.meta['action_uri'] as String;
-                      if (uri.startsWith('/')) {
-                        // In-app routes
-                        rootNavigatorKey.currentContext?.push(
-                          notification.meta['action_uri'],
-                        );
-                      } else {
-                        // External URLs
-                        launchUrlString(uri);
-                      }
-                    }
-                  },
-                );
+                return NotificationTile(notification: notification);
               },
             ),
           ),
