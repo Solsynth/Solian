@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/event_calendar.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
@@ -41,6 +42,8 @@ class DashboardGrid extends HookConsumerWidget {
     final isWide = isWideScreen(context);
     final devicePadding = MediaQuery.paddingOf(context);
 
+    final userInfo = ref.watch(userInfoProvider);
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: isWide
@@ -52,6 +55,7 @@ class DashboardGrid extends HookConsumerWidget {
           : EdgeInsets.only(top: 24 + devicePadding.top),
       child: Column(
         spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Clock card spans full width
           ClockCard().padding(horizontal: isWide ? 24 : 16),
@@ -68,23 +72,26 @@ class DashboardGrid extends HookConsumerWidget {
               },
             ),
           ),
-          Expanded(
-            child:
-                SingleChildScrollView(
-                      padding: isWide
-                          ? const EdgeInsets.symmetric(horizontal: 24)
-                          : const EdgeInsets.only(bottom: 64),
-                      scrollDirection: isWide ? Axis.horizontal : Axis.vertical,
-                      child: isWide
-                          ? _DashboardGridWide()
-                          : _DashboardGridNarrow(),
-                    )
-                    .clipRRect(
-                      topLeft: isWide ? 0 : 12,
-                      topRight: isWide ? 0 : 12,
-                    )
-                    .padding(horizontal: isWide ? 0 : 16),
-          ),
+          if (userInfo.value != null)
+            Expanded(
+              child:
+                  SingleChildScrollView(
+                        padding: isWide
+                            ? const EdgeInsets.symmetric(horizontal: 24)
+                            : const EdgeInsets.only(bottom: 64),
+                        scrollDirection: isWide
+                            ? Axis.horizontal
+                            : Axis.vertical,
+                        child: isWide
+                            ? _DashboardGridWide()
+                            : _DashboardGridNarrow(),
+                      )
+                      .clipRRect(
+                        topLeft: isWide ? 0 : 12,
+                        topRight: isWide ? 0 : 12,
+                      )
+                      .padding(horizontal: isWide ? 0 : 16),
+            ),
         ],
       ),
     );
@@ -365,9 +372,7 @@ class NotificationsCard extends HookConsumerWidget {
     final notifications = ref.watch(notificationListProvider);
 
     return Card(
-      elevation: 4,
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainer,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
@@ -454,9 +459,7 @@ class ChatListCard extends HookConsumerWidget {
     final chatRooms = ref.watch(chatRoomJoinedProvider);
 
     return Card(
-      elevation: 4,
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainer,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
@@ -490,11 +493,8 @@ class ChatListCard extends HookConsumerWidget {
               }
               // Take only the first 5 rooms
               final recentRooms = rooms.take(5).toList();
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: recentRooms.length,
-                itemBuilder: (context, index) {
-                  final room = recentRooms[index];
+              return Column(
+                children: recentRooms.map((room) {
                   return ChatRoomListTile(
                     room: room,
                     isDirect: room.type == 1,
@@ -505,7 +505,7 @@ class ChatListCard extends HookConsumerWidget {
                       );
                     },
                   );
-                },
+                }).toList(),
               );
             },
           ),
@@ -556,9 +556,7 @@ class FortuneCard extends HookWidget {
     });
 
     return Card(
-      elevation: 4,
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainer,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),

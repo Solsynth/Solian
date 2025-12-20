@@ -54,7 +54,7 @@ class SliverRealmList extends HookConsumerWidget {
       itemBuilder: (context, index, realm) {
         return ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 540),
-          child: RealmListTile(realm: realm),
+          child: RealmListTile(realm: realm).padding(horizontal: 8),
         ).center();
       },
     );
