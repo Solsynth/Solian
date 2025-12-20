@@ -388,61 +388,66 @@ class CommandPattleWidget extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SearchBar(
-                          controller: textController,
-                          focusNode: focusNode,
-                          hintText: 'Search chats and pages...',
-                          leading: CircleAvatar(
-                            child: const Icon(Symbols.keyboard_command_key),
-                          ).padding(horizontal: 8),
-                        ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                          child: allResults.isNotEmpty
-                              ? ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 300,
-                                  ),
-                                  child: ListView.builder(
-                                    controller: scrollController,
-                                    shrinkWrap: true,
-                                    itemCount: allResults.length,
-                                    itemBuilder: (context, index) {
-                                      final item = allResults[index];
-                                      if (item is SnChatRoom) {
-                                        return _ChatRoomSearchResult(
-                                          room: item,
-                                          isFocused:
-                                              index == focusedIndex.value,
-                                          onTap: () => _navigateToChat(
-                                            context,
-                                            ref,
-                                            item,
-                                          ),
-                                        );
-                                      } else if (item is RouteItem) {
-                                        return _RouteSearchResult(
-                                          route: item,
-                                          isFocused:
-                                              index == focusedIndex.value,
-                                          onTap: () => _navigateToRoute(
-                                            context,
-                                            ref,
-                                            item,
-                                          ),
-                                        );
-                                      }
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
+                    child: Material(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SearchBar(
+                            controller: textController,
+                            focusNode: focusNode,
+                            hintText: 'Search chats and pages...',
+                            leading: CircleAvatar(
+                              child: const Icon(Symbols.keyboard_command_key),
+                            ).padding(horizontal: 8),
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOut,
+                            child: allResults.isNotEmpty
+                                ? ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 300,
+                                    ),
+                                    child: ListView.builder(
+                                      padding: EdgeInsets.zero,
+                                      controller: scrollController,
+                                      shrinkWrap: true,
+                                      itemCount: allResults.length,
+                                      itemBuilder: (context, index) {
+                                        final item = allResults[index];
+                                        if (item is SnChatRoom) {
+                                          return _ChatRoomSearchResult(
+                                            room: item,
+                                            isFocused:
+                                                index == focusedIndex.value,
+                                            onTap: () => _navigateToChat(
+                                              context,
+                                              ref,
+                                              item,
+                                            ),
+                                          );
+                                        } else if (item is RouteItem) {
+                                          return _RouteSearchResult(
+                                            route: item,
+                                            isFocused:
+                                                index == focusedIndex.value,
+                                            onTap: () => _navigateToRoute(
+                                              context,
+                                              ref,
+                                              item,
+                                            ),
+                                          );
+                                        }
+                                        return const SizedBox.shrink();
+                                      },
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
