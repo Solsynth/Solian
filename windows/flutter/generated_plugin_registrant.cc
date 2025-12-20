@@ -18,6 +18,7 @@
 #include <flutter_udid/flutter_udid_plugin_c_api.h>
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 #include <gal/gal_plugin_c_api.h>
+#include <hotkey_manager_windows/hotkey_manager_windows_plugin_c_api.h>
 #include <irondash_engine_context/irondash_engine_context_plugin_c_api.h>
 #include <livekit_client/live_kit_plugin.h>
 #include <local_auth_windows/local_auth_plugin.h>
@@ -62,6 +63,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FlutterWebRTCPlugin"));
   GalPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GalPluginCApi"));
+  HotkeyManagerWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("HotkeyManagerWindowsPluginCApi"));
   IrondashEngineContextPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("IrondashEngineContextPluginCApi"));
   LiveKitPluginRegisterWithRegistrar(

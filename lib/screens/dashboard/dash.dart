@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/screens/chat/chat.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/friends_overview.dart';
@@ -59,16 +60,27 @@ class DashboardGrid extends HookConsumerWidget {
               constraints: const BoxConstraints(minHeight: 56),
               leading: const Icon(Symbols.search).padding(horizontal: 24),
               readOnly: true,
+              onTap: () {
+                eventBus.fire(CommandPaletteTriggerEvent());
+              },
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: isWide
-                  ? const EdgeInsets.symmetric(horizontal: 24)
-                  : const EdgeInsets.only(bottom: 64),
-              scrollDirection: isWide ? Axis.horizontal : Axis.vertical,
-              child: isWide ? _DashboardGridWide() : _DashboardGridNarrow(),
-            ).clipRRect(topLeft: 12, topRight: 12).padding(horizontal: 24),
+            child:
+                SingleChildScrollView(
+                      padding: isWide
+                          ? const EdgeInsets.symmetric(horizontal: 24)
+                          : const EdgeInsets.only(bottom: 64),
+                      scrollDirection: isWide ? Axis.horizontal : Axis.vertical,
+                      child: isWide
+                          ? _DashboardGridWide()
+                          : _DashboardGridNarrow(),
+                    )
+                    .clipRRect(
+                      topLeft: isWide ? 0 : 12,
+                      topRight: isWide ? 0 : 12,
+                    )
+                    .padding(horizontal: isWide ? 0 : 24),
           ),
         ],
       ),
@@ -545,16 +557,22 @@ class FortuneCard extends HookWidget {
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surfaceContainer,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Row(
         spacing: 8,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(fortune['text']!)),
+          Expanded(
+            child: Text(
+              fortune['text']!,
+              maxLines: 2,
+              overflow: TextOverflow.fade,
+            ),
+          ),
           Text(fortune['author']!).bold(),
         ],
-      ).padding(horizontal: 24),
+      ).padding(horizontal: 16),
     ).height(48);
   }
 }

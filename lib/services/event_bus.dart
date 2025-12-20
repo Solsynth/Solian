@@ -23,3 +23,8 @@ class OidcAuthCallbackEvent {
 
   const OidcAuthCallbackEvent(this.challengeId);
 }
+
+/// Event fired to trigger the command palette
+class CommandPaletteTriggerEvent {
+  const CommandPaletteTriggerEvent();
+}

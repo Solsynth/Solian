@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_timezone
   flutter_udid
   flutter_webrtc
+  hotkey_manager_linux
   irondash_engine_context
   livekit_client
   media_kit_libs_linux

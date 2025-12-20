@@ -12,8 +12,10 @@ import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/cmp/pattle.dart';
 import 'package:island/widgets/upload_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -36,6 +38,14 @@ class WindowScaffold extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMaximized = useState(false);
+    final showPalette = useState(false);
+    final lastShiftTime = useState<DateTime?>(null);
+    final keyboardFocusNode = useFocusNode();
+
+    useEffect(() {
+      keyboardFocusNode.requestFocus();
+      return null;
+    }, []);
 
     // Add window resize listener for desktop platforms
     useEffect(() {
@@ -68,6 +78,15 @@ class WindowScaffold extends HookConsumerWidget {
       return null;
     }, []);
 
+    // Event bus listener for command palette
+    final subscription = useMemoized(
+      () => eventBus.on<CommandPaletteTriggerEvent>().listen(
+        (_) => showPalette.value = true,
+      ),
+      [],
+    );
+    useEffect(() => subscription.cancel, [subscription]);
+
     final router = ref.watch(routerProvider);
 
     final pageActionsButton = [
@@ -98,19 +117,32 @@ class WindowScaffold extends HookConsumerWidget {
         shortcuts: <LogicalKeySet, Intent>{
           LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
         },
-        child: Actions(
-          actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
-          child: Material(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Column(
-                  children: [
-                    DragToMoveArea(
-                      child:
-                          Platform.isMacOS
-                              ? Stack(
+        child: KeyboardListener(
+          focusNode: keyboardFocusNode,
+          onKeyEvent: (event) {
+            if (event is KeyDownEvent &&
+                (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
+                    event.logicalKey == LogicalKeyboardKey.shiftRight)) {
+              final now = DateTime.now();
+              if (lastShiftTime.value != null &&
+                  now.difference(lastShiftTime.value!).inMilliseconds < 300) {
+                showPalette.value = true;
+              }
+              lastShiftTime.value = now;
+            }
+          },
+          child: Actions(
+            actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
+            child: Material(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Column(
+                    children: [
+                      DragToMoveArea(
+                        child: Platform.isMacOS
+                            ? Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   if (isWideScreen(context))
@@ -126,15 +158,14 @@ class WindowScaffold extends HookConsumerWidget {
                                     'Solar Network',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
                                     ),
                                   ),
                                 ],
                               )
-                              : Row(
+                            : Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
@@ -193,13 +224,18 @@ class WindowScaffold extends HookConsumerWidget {
                                   ),
                                 ],
                               ),
+                      ),
+                      Expanded(child: child),
+                    ],
+                  ),
+                  _WebSocketIndicator(),
+                  const UploadOverlay(),
+                  if (showPalette.value)
+                    CommandPattleWidget(
+                      onDismiss: () => showPalette.value = false,
                     ),
-                    Expanded(child: child),
-                  ],
-                ),
-                _WebSocketIndicator(),
-                const UploadOverlay(),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -210,15 +246,32 @@ class WindowScaffold extends HookConsumerWidget {
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
       },
-      child: Actions(
-        actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned.fill(child: child),
-            _WebSocketIndicator(),
-            const UploadOverlay(),
-          ],
+      child: KeyboardListener(
+        focusNode: keyboardFocusNode,
+        onKeyEvent: (event) {
+          if (event is KeyDownEvent &&
+              (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
+                  event.logicalKey == LogicalKeyboardKey.shiftRight)) {
+            final now = DateTime.now();
+            if (lastShiftTime.value != null &&
+                now.difference(lastShiftTime.value!).inMilliseconds < 300) {
+              showPalette.value = true;
+            }
+            lastShiftTime.value = now;
+          }
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(child: child),
+              _WebSocketIndicator(),
+              const UploadOverlay(),
+              if (showPalette.value)
+                CommandPattleWidget(onDismiss: () => showPalette.value = false),
+            ],
+          ),
         ),
       ),
     );
@@ -407,8 +460,8 @@ class PageBackButton extends StatelessWidget {
         color: color,
         context.canPop()
             ? (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
-                ? Symbols.arrow_back_ios_new
-                : Symbols.arrow_back
+                  ? Symbols.arrow_back_ios_new
+                  : Symbols.arrow_back
             : Symbols.home,
         shadows: shadows,
       ),
@@ -463,11 +516,10 @@ class AppBackground extends ConsumerWidget {
           );
         },
         loading: () => const SizedBox(),
-        error:
-            (_, _) => Material(
-              color: Theme.of(context).colorScheme.surface,
-              child: child,
-            ),
+        error: (_, _) => Material(
+          color: Theme.of(context).colorScheme.surface,
+          child: child,
+        ),
       );
     }
 
@@ -519,10 +571,10 @@ class _WebSocketIndicator extends HookConsumerWidget {
       duration: Duration(milliseconds: 1850),
       top:
           user.value == null ||
-                  user.value == null ||
-                  websocketState == WebSocketState.connected()
-              ? -indicatorHeight
-              : 0,
+              user.value == null ||
+              websocketState == WebSocketState.connected()
+          ? -indicatorHeight
+          : 0,
       curve: Curves.fastLinearToSlowEaseIn,
       left: 0,
       right: 0,
@@ -531,17 +583,16 @@ class _WebSocketIndicator extends HookConsumerWidget {
         child: Material(
           elevation:
               user.value == null || websocketState == WebSocketState.connected()
-                  ? 0
-                  : 4,
+              ? 0
+              : 4,
           child: AnimatedContainer(
             duration: Duration(milliseconds: 300),
             color: indicatorColor,
             child: Center(
-              child:
-                  Text(
-                    indicatorText,
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ).tr(),
+              child: Text(
+                indicatorText,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ).tr(),
             ).padding(top: MediaQuery.of(context).padding.top),
           ),
         ),

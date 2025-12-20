@@ -93,7 +93,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     // Set up periodic subscribe timer (every 5 minutes)
     _periodicSubscribeTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      final wsState = ref.read(websocketStateProvider.notifier);
       wsState.sendMessage(
         jsonEncode(
           WebSocketPacket(
