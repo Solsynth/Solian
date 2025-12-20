@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/models/route_item.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/userinfo.dart';
@@ -23,6 +24,171 @@ class CommandPattleWidget extends HookConsumerWidget {
 
   const CommandPattleWidget({super.key, required this.onDismiss});
 
+  static final List<RouteItem> _availableRoutes = [
+    RouteItem(
+      name: 'Dashboard',
+      path: '/',
+      description: 'Main dashboard',
+      icon: Symbols.home,
+    ),
+    RouteItem(
+      name: 'Explore',
+      path: '/explore',
+      description: 'Discover content',
+      icon: Symbols.explore,
+    ),
+    RouteItem(
+      name: 'Post Search',
+      path: '/posts/search',
+      description: 'Search posts',
+      icon: Symbols.search,
+    ),
+    RouteItem(
+      name: 'Post Shuffle',
+      path: '/posts/shuffle',
+      description: 'Random posts',
+      icon: Symbols.shuffle,
+    ),
+    RouteItem(
+      name: 'Post Categories',
+      path: '/posts/categories',
+      description: 'Browse categories',
+      icon: Symbols.category,
+    ),
+    RouteItem(
+      name: 'Discovery Realms',
+      path: '/discovery/realms',
+      description: 'Explore realms',
+      icon: Symbols.public,
+    ),
+    RouteItem(
+      name: 'Chat',
+      path: '/chat',
+      description: 'Messages and conversations',
+      icon: Symbols.chat,
+    ),
+    RouteItem(
+      name: 'Realms',
+      path: '/realms',
+      description: 'Community realms',
+      icon: Symbols.group,
+    ),
+    RouteItem(
+      name: 'Account',
+      path: '/account',
+      description: 'Your profile and settings',
+      icon: Symbols.person,
+    ),
+    RouteItem(
+      name: 'Sticker Marketplace',
+      path: '/stickers',
+      description: 'Browse sticker packs',
+      icon: Symbols.emoji_emotions,
+    ),
+    RouteItem(
+      name: 'Web Feeds',
+      path: '/feeds',
+      description: 'RSS and web feeds',
+      icon: Symbols.feed,
+    ),
+    RouteItem(
+      name: 'Wallet',
+      path: '/account/wallet',
+      description: 'Your digital wallet',
+      icon: Symbols.account_balance_wallet,
+    ),
+    RouteItem(
+      name: 'Relationships',
+      path: '/account/relationships',
+      description: 'Friends and connections',
+      icon: Symbols.people,
+    ),
+    RouteItem(
+      name: 'Update Profile',
+      path: '/account/me/update',
+      description: 'Edit your profile',
+      icon: Symbols.edit,
+    ),
+    RouteItem(
+      name: 'Leveling',
+      path: '/account/me/leveling',
+      description: 'Your progress and levels',
+      icon: Symbols.trending_up,
+    ),
+    RouteItem(
+      name: 'Account Settings',
+      path: '/account/me/settings',
+      description: 'App preferences',
+      icon: Symbols.settings,
+    ),
+    RouteItem(
+      name: 'Reports',
+      path: '/safety/reports/me',
+      description: 'Your abuse reports',
+      icon: Symbols.report,
+    ),
+    RouteItem(
+      name: 'Files',
+      path: '/files',
+      description: 'File manager',
+      icon: Symbols.folder,
+    ),
+    RouteItem(
+      name: 'Thought',
+      path: '/thought',
+      description: 'AI assistant',
+      icon: Symbols.psychology,
+    ),
+    RouteItem(
+      name: 'Creator Hub',
+      path: '/creators',
+      description: 'Content creation tools',
+      icon: Symbols.create,
+    ),
+    RouteItem(
+      name: 'Developer Hub',
+      path: '/developers',
+      description: 'Developer tools',
+      icon: Symbols.code,
+    ),
+    RouteItem(
+      name: 'Logs',
+      path: '/logs',
+      description: 'Application logs',
+      icon: Symbols.bug_report,
+    ),
+    RouteItem(
+      name: 'Articles',
+      path: '/feeds/articles',
+      description: 'Web articles',
+      icon: Symbols.article,
+    ),
+    RouteItem(
+      name: 'Login',
+      path: '/auth/login',
+      description: 'Sign in to your account',
+      icon: Symbols.login,
+    ),
+    RouteItem(
+      name: 'Create Account',
+      path: '/auth/create-account',
+      description: 'Create a new account',
+      icon: Symbols.person_add,
+    ),
+    RouteItem(
+      name: 'Settings',
+      path: '/settings',
+      description: 'Application settings',
+      icon: Symbols.settings,
+    ),
+    RouteItem(
+      name: 'About',
+      path: '/about',
+      description: 'About this app',
+      icon: Symbols.info,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
@@ -30,8 +196,23 @@ class CommandPattleWidget extends HookConsumerWidget {
     final searchQuery = useState('');
     final focusedIndex = useState<int?>(null);
 
+    final animationController = useAnimationController(
+      duration: const Duration(milliseconds: 200),
+    );
+    final scaleAnimation = useAnimation(
+      Tween<double>(begin: 0.8, end: 1.0).animate(
+        CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+      ),
+    );
+    final opacityAnimation = useAnimation(
+      Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+      ),
+    );
+
     useEffect(() {
       focusNode.requestFocus();
+      animationController.forward();
       return null;
     }, []);
 
@@ -47,14 +228,13 @@ class CommandPattleWidget extends HookConsumerWidget {
     }, [textController]);
 
     final chatRooms = ref.watch(chatRoomJoinedProvider);
-    final userInfo = ref.watch(userInfoProvider);
 
     bool isDesktop() =>
         kIsWeb ||
         (!kIsWeb &&
             (Platform.isWindows || Platform.isLinux || Platform.isMacOS));
 
-    final filteredRooms = chatRooms.maybeWhen(
+    final filteredChats = chatRooms.maybeWhen(
       data: (rooms) {
         if (searchQuery.value.isEmpty) return <SnChatRoom>[];
         return rooms
@@ -77,6 +257,20 @@ class CommandPattleWidget extends HookConsumerWidget {
       orElse: () => <SnChatRoom>[],
     );
 
+    final filteredRoutes = searchQuery.value.isEmpty
+        ? <RouteItem>[]
+        : _availableRoutes
+              .where((route) {
+                final query = searchQuery.value.toLowerCase();
+                return route.name.toLowerCase().contains(query) ||
+                    route.description.toLowerCase().contains(query);
+              })
+              .take(5) // Limit to 5 results
+              .toList();
+
+    // Combine results: chats first, then routes
+    final allResults = [...filteredChats, ...filteredRoutes];
+
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: (event) {
@@ -87,15 +281,16 @@ class CommandPattleWidget extends HookConsumerWidget {
             if (event.logicalKey == LogicalKeyboardKey.enter ||
                 event.logicalKey == LogicalKeyboardKey.numpadEnter) {
               if (focusedIndex.value != null &&
-                  focusedIndex.value! < filteredRooms.length) {
-                _navigateToRoom(
-                  context,
-                  ref,
-                  filteredRooms[focusedIndex.value!],
-                );
+                  focusedIndex.value! < allResults.length) {
+                final item = allResults[focusedIndex.value!];
+                if (item is SnChatRoom) {
+                  _navigateToChat(context, ref, item);
+                } else if (item is RouteItem) {
+                  _navigateToRoute(context, ref, item);
+                }
               }
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              if (filteredRooms.isNotEmpty) {
+              if (allResults.isNotEmpty) {
                 if (focusedIndex.value == null) {
                   focusedIndex.value = 0;
                 } else {
@@ -103,12 +298,12 @@ class CommandPattleWidget extends HookConsumerWidget {
                 }
               }
             } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              if (filteredRooms.isNotEmpty) {
+              if (allResults.isNotEmpty) {
                 if (focusedIndex.value == null) {
                   focusedIndex.value = 0;
                 } else {
                   focusedIndex.value = math.min(
-                    filteredRooms.length - 1,
+                    allResults.length - 1,
                     focusedIndex.value! + 1,
                   );
                 }
@@ -121,61 +316,87 @@ class CommandPattleWidget extends HookConsumerWidget {
         onTap: onDismiss,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: GestureDetector(
-                onTap: () {}, // Prevent tap from dismissing when tapping inside
-                child: Container(
-                  width: math.max(MediaQuery.of(context).size.width * 0.6, 320),
-                  constraints: const BoxConstraints(
-                    maxWidth: 600,
-                    maxHeight: 500,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SearchBar(
-                        controller: textController,
-                        focusNode: focusNode,
-                        hintText: 'Search chats...',
-                        leading: const Icon(
-                          Symbols.keyboard_command_key,
-                        ).padding(horizontal: 8),
-                        onSubmitted: (_) {
-                          if (filteredRooms.isNotEmpty) {
-                            _navigateToRoom(context, ref, filteredRooms.first);
-                          }
-                        },
-                      ),
-                      if (filteredRooms.isNotEmpty)
-                        Flexible(
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: filteredRooms.length,
-                            itemBuilder: (context, index) {
-                              final room = filteredRooms[index];
-                              return _ChatRoomSearchResult(
-                                room: room,
-                                isFocused: index == focusedIndex.value,
-                                onTap: () =>
-                                    _navigateToRoom(context, ref, room),
-                              );
-                            },
-                          ),
+          child: AnimatedBuilder(
+            animation: animationController,
+            builder: (context, child) => Opacity(
+              opacity: opacityAnimation,
+              child: Transform.scale(scale: scaleAnimation, child: child),
+            ),
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: GestureDetector(
+                  onTap:
+                      () {}, // Prevent tap from dismissing when tapping inside
+                  child: Container(
+                    width: math.max(
+                      MediaQuery.of(context).size.width * 0.6,
+                      320,
+                    ),
+                    constraints: const BoxConstraints(
+                      maxWidth: 600,
+                      maxHeight: 500,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
-                    ],
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SearchBar(
+                          controller: textController,
+                          focusNode: focusNode,
+                          hintText: 'Search chats and pages...',
+                          leading: const Icon(
+                            Symbols.keyboard_command_key,
+                          ).padding(horizontal: 8),
+                          onSubmitted: (_) {
+                            if (allResults.isNotEmpty) {
+                              final item = allResults.first;
+                              if (item is SnChatRoom) {
+                                _navigateToChat(context, ref, item);
+                              } else if (item is RouteItem) {
+                                _navigateToRoute(context, ref, item);
+                              }
+                            }
+                          },
+                        ),
+                        if (allResults.isNotEmpty)
+                          Flexible(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: allResults.length,
+                              itemBuilder: (context, index) {
+                                final item = allResults[index];
+                                if (item is SnChatRoom) {
+                                  return _ChatRoomSearchResult(
+                                    room: item,
+                                    isFocused: index == focusedIndex.value,
+                                    onTap: () =>
+                                        _navigateToChat(context, ref, item),
+                                  );
+                                } else if (item is RouteItem) {
+                                  return _RouteSearchResult(
+                                    route: item,
+                                    isFocused: index == focusedIndex.value,
+                                    onTap: () =>
+                                        _navigateToRoute(context, ref, item),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -186,7 +407,7 @@ class CommandPattleWidget extends HookConsumerWidget {
     );
   }
 
-  void _navigateToRoom(BuildContext context, WidgetRef ref, SnChatRoom room) {
+  void _navigateToChat(BuildContext context, WidgetRef ref, SnChatRoom room) {
     onDismiss();
     if (isWideScreen(context)) {
       ref
@@ -197,6 +418,40 @@ class CommandPattleWidget extends HookConsumerWidget {
           .read(routerProvider)
           .pushNamed('chatRoom', pathParameters: {'id': room.id});
     }
+  }
+
+  void _navigateToRoute(BuildContext context, WidgetRef ref, RouteItem route) {
+    onDismiss();
+    ref.read(routerProvider).go(route.path);
+  }
+}
+
+class _RouteSearchResult extends StatelessWidget {
+  final RouteItem route;
+  final bool isFocused;
+  final VoidCallback onTap;
+
+  const _RouteSearchResult({
+    required this.route,
+    required this.isFocused,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      tileColor: isFocused
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : null,
+      leading: CircleAvatar(
+        child: Icon(route.icon),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+      ),
+      title: Text(route.name),
+      subtitle: Text(route.description),
+      onTap: onTap,
+    );
   }
 }
 
