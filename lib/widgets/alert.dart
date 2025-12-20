@@ -96,28 +96,28 @@ void showLoadingModal(BuildContext context) {
   if (_loadingOverlay != null) return;
 
   _loadingOverlay = OverlayEntry(
-    builder:
-        (context) => _FadeOverlay(
-          key: _loadingOverlayKey,
-          child: Material(
-            color: Colors.black54,
-            child: Center(
-              child: Material(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                elevation: 4,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(year2023: false),
-                    const Gap(24),
-                    Text('loading'.tr()),
-                  ],
-                ).padding(all: 32),
-              ),
+    builder: (context) => _FadeOverlay(
+      key: _loadingOverlayKey,
+      child: Material(
+        color: Colors.black54,
+        child: Center(
+          child: AlertDialog(
+            content: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  year2023: false,
+                  padding: EdgeInsets.zero,
+                ).width(28).height(28).padding(horizontal: 8),
+                const Gap(16),
+                Text('loading'.tr()),
+              ],
             ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           ),
         ),
+      ),
+    ),
   );
 
   Overlay.of(context).insert(_loadingOverlay!);
@@ -187,40 +187,39 @@ Future<T?> showOverlayDialog<T>({
   }
 
   entry = OverlayEntry(
-    builder:
-        (context) => _FadeOverlay(
-          key: key,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          builder: (context, animation) {
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: GestureDetector(
-                      onTap: barrierDismissible ? () => close(null) : null,
-                      behavior: HitTestBehavior.opaque,
-                      child: const ColoredBox(color: Colors.black54),
-                    ),
-                  ),
+    builder: (context) => _FadeOverlay(
+      key: key,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      builder: (context, animation) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: animation,
+                child: GestureDetector(
+                  onTap: barrierDismissible ? () => close(null) : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: const ColoredBox(color: Colors.black54),
                 ),
-                Center(
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.05),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: builder(context, close),
-                    ),
-                  ),
+              ),
+            ),
+            Center(
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: FadeTransition(
+                  opacity: animation,
+                  child: builder(context, close),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
   );
 
   _activeOverlayDialogs.add(() => close(null));
@@ -252,77 +251,75 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
   };
 
   showOverlayDialog<void>(
-    builder:
-        (context, close) => ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
-          child: AlertDialog(
-            title: null,
-            titlePadding: EdgeInsets.zero,
-            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  icon ?? Icons.error_outline_rounded,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const Gap(16),
-                Text(
-                  'somethingWentWrong'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const Gap(8),
-                Text(text),
-                const Gap(8),
-              ],
+    builder: (context, close) => ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+      child: AlertDialog(
+        title: null,
+        titlePadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon ?? Icons.error_outline_rounded,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => close(null),
-                child: Text(MaterialLocalizations.of(context).okButtonLabel),
-              ),
-            ],
-          ),
+            const Gap(16),
+            Text(
+              'somethingWentWrong'.tr(),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const Gap(8),
+            Text(text),
+            const Gap(8),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => close(null),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    ),
   );
 }
 
 void showInfoAlert(String message, String title, {IconData? icon}) {
   showOverlayDialog<void>(
-    builder:
-        (context, close) => ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
-          child: AlertDialog(
-            title: null,
-            titlePadding: EdgeInsets.zero,
-            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  icon ?? Symbols.info_rounded,
-                  fill: 1,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const Gap(16),
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
-                const Gap(8),
-                Text(message),
-                const Gap(8),
-              ],
+    builder: (context, close) => ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+      child: AlertDialog(
+        title: null,
+        titlePadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon ?? Symbols.info_rounded,
+              fill: 1,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => close(null),
-                child: Text(MaterialLocalizations.of(context).okButtonLabel),
-              ),
-            ],
-          ),
+            const Gap(16),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const Gap(8),
+            Text(message),
+            const Gap(8),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => close(null),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    ),
   );
 }
 
@@ -333,50 +330,46 @@ Future<bool> showConfirmAlert(
   bool isDanger = false,
 }) async {
   final result = await showOverlayDialog<bool>(
-    builder:
-        (context, close) => ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
-          child: AlertDialog(
-            title: null,
-            titlePadding: EdgeInsets.zero,
-            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  icon ?? Symbols.help_rounded,
-                  size: 48,
-                  fill: 1,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const Gap(16),
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
-                const Gap(8),
-                Text(message),
-                const Gap(8),
-              ],
+    builder: (context, close) => ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+      child: AlertDialog(
+        title: null,
+        titlePadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon ?? Symbols.help_rounded,
+              size: 48,
+              fill: 1,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => close(false),
-                child: Text(
-                  MaterialLocalizations.of(context).cancelButtonLabel,
-                ),
-              ),
-              TextButton(
-                onPressed: () => close(true),
-                style:
-                    isDanger
-                        ? TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                        )
-                        : null,
-                child: Text(MaterialLocalizations.of(context).okButtonLabel),
-              ),
-            ],
-          ),
+            const Gap(16),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const Gap(8),
+            Text(message),
+            const Gap(8),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => close(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => close(true),
+            style: isDanger
+                ? TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  )
+                : null,
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    ),
   );
   return result ?? false;
 }

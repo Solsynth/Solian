@@ -30,7 +30,10 @@ class DashboardScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return AppScaffold(body: Center(child: DashboardGrid()));
+    return AppScaffold(
+      isNoBackground: false,
+      body: Center(child: DashboardGrid()),
+    );
   }
 }
 
