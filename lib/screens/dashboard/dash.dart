@@ -39,6 +39,7 @@ class DashboardGrid extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
+    final devicePadding = MediaQuery.paddingOf(context);
 
     return Container(
       constraints: BoxConstraints(
@@ -46,7 +47,9 @@ class DashboardGrid extends HookConsumerWidget {
             ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
             : MediaQuery.sizeOf(context).height,
       ),
-      padding: isWide ? null : EdgeInsets.only(top: 24),
+      padding: isWide
+          ? EdgeInsets.only(top: devicePadding.top)
+          : EdgeInsets.only(top: 24 + devicePadding.top),
       child: Column(
         spacing: 16,
         children: [
