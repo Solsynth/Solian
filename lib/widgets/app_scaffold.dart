@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
@@ -39,7 +40,6 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMaximized = useState(false);
     final showPalette = useState(false);
-    final lastShiftTime = useState<DateTime?>(null);
     final keyboardFocusNode = useFocusNode();
 
     useEffect(() {
@@ -111,169 +111,158 @@ class WindowScaffold extends HookConsumerWidget {
       const Gap(8),
     ];
 
+    final popHotKey = HotKey(
+      identifier: 'return_previous_page',
+      key: PhysicalKeyboardKey.escape,
+      scope: HotKeyScope.inapp,
+    );
+    final cmpHotKey = HotKey(
+      identifier: 'open_command_pattle',
+      key: PhysicalKeyboardKey.tab,
+      modifiers: [HotKeyModifier.shift],
+      scope: HotKeyScope.inapp,
+    );
+
+    useEffect(() {
+      hotKeyManager.register(
+        popHotKey,
+        keyDownHandler: (_) {
+          if (closeTopmostOverlayDialog()) {
+            return;
+          }
+
+          // If no overlay to close, pop the route
+          if (ref.watch(routerProvider).canPop()) {
+            ref.read(routerProvider).pop();
+          }
+        },
+      );
+
+      hotKeyManager.register(
+        cmpHotKey,
+        keyDownHandler: (_) {
+          showPalette.value = true;
+        },
+      );
+
+      return () {
+        hotKeyManager.unregister(popHotKey);
+      };
+    }, []);
+
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      return Shortcuts(
-        shortcuts: <LogicalKeySet, Intent>{
-          LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
-        },
-        child: KeyboardListener(
-          focusNode: keyboardFocusNode,
-          onKeyEvent: (event) {
-            if (event is KeyDownEvent &&
-                (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
-                    event.logicalKey == LogicalKeyboardKey.shiftRight)) {
-              final now = DateTime.now();
-              if (lastShiftTime.value != null &&
-                  now.difference(lastShiftTime.value!).inMilliseconds < 300) {
-                showPalette.value = true;
-              }
-              lastShiftTime.value = now;
-            }
-          },
-          child: Actions(
-            actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
-            child: Material(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Column(
-                    children: [
-                      DragToMoveArea(
-                        child: Platform.isMacOS
-                            ? Stack(
-                                alignment: Alignment.center,
+      return Material(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Column(
+              children: [
+                DragToMoveArea(
+                  child: Platform.isMacOS
+                      ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (isWideScreen(context))
+                              Row(
                                 children: [
-                                  if (isWideScreen(context))
-                                    Row(
-                                      children: [
-                                        const Spacer(),
-                                        ...pageActionsButton,
-                                      ],
-                                    )
-                                  else
-                                    SizedBox(height: 32),
-                                  Text(
-                                    'Solar Network',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                    ),
-                                  ),
+                                  const Spacer(),
+                                  ...pageActionsButton,
                                 ],
                               )
-                            : Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.start,
+                            else
+                              SizedBox(height: 32),
+                            Text(
+                              'Solar Network',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Row(
                                 children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Image.asset(
-                                          Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? 'assets/icons/icon-dark.png'
-                                              : 'assets/icons/icon.png',
-                                          width: 20,
-                                          height: 20,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Solar Network',
-                                          textAlign: TextAlign.start,
-                                        ),
-                                      ],
-                                    ).padding(horizontal: 12, vertical: 5),
+                                  Image.asset(
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? 'assets/icons/icon-dark.png'
+                                        : 'assets/icons/icon.png',
+                                    width: 20,
+                                    height: 20,
                                   ),
-                                  IconButton(
-                                    icon: Icon(Symbols.minimize),
-                                    onPressed: () => windowManager.minimize(),
-                                    iconSize: 16,
-                                    padding: EdgeInsets.all(8),
-                                    constraints: BoxConstraints(),
-                                    color: Theme.of(context).iconTheme.color,
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      isMaximized.value
-                                          ? Symbols.fullscreen_exit
-                                          : Symbols.fullscreen,
-                                    ),
-                                    onPressed: () async {
-                                      if (await windowManager.isMaximized()) {
-                                        windowManager.restore();
-                                      } else {
-                                        windowManager.maximize();
-                                      }
-                                    },
-                                    iconSize: 16,
-                                    padding: EdgeInsets.all(8),
-                                    constraints: BoxConstraints(),
-                                    color: Theme.of(context).iconTheme.color,
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Symbols.close),
-                                    onPressed: () => windowManager.hide(),
-                                    iconSize: 16,
-                                    padding: EdgeInsets.all(8),
-                                    constraints: BoxConstraints(),
-                                    color: Theme.of(context).iconTheme.color,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Solar Network',
+                                    textAlign: TextAlign.start,
                                   ),
                                 ],
+                              ).padding(horizontal: 12, vertical: 5),
+                            ),
+                            IconButton(
+                              icon: Icon(Symbols.minimize),
+                              onPressed: () => windowManager.minimize(),
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                isMaximized.value
+                                    ? Symbols.fullscreen_exit
+                                    : Symbols.fullscreen,
                               ),
-                      ),
-                      Expanded(child: child),
-                    ],
-                  ),
-                  _WebSocketIndicator(),
-                  const UploadOverlay(),
-                  if (showPalette.value)
-                    CommandPattleWidget(
-                      onDismiss: () => showPalette.value = false,
-                    ),
-                ],
-              ),
+                              onPressed: () async {
+                                if (await windowManager.isMaximized()) {
+                                  windowManager.restore();
+                                } else {
+                                  windowManager.maximize();
+                                }
+                              },
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            IconButton(
+                              icon: Icon(Symbols.close),
+                              onPressed: () => windowManager.hide(),
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                          ],
+                        ),
+                ),
+                Expanded(child: child),
+              ],
             ),
-          ),
+            _WebSocketIndicator(),
+            const UploadOverlay(),
+            if (showPalette.value)
+              CommandPattleWidget(onDismiss: () => showPalette.value = false),
+          ],
         ),
       );
     }
 
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
-      },
-      child: KeyboardListener(
-        focusNode: keyboardFocusNode,
-        onKeyEvent: (event) {
-          if (event is KeyDownEvent &&
-              (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
-                  event.logicalKey == LogicalKeyboardKey.shiftRight)) {
-            final now = DateTime.now();
-            if (lastShiftTime.value != null &&
-                now.difference(lastShiftTime.value!).inMilliseconds < 300) {
-              showPalette.value = true;
-            }
-            lastShiftTime.value = now;
-          }
-        },
-        child: Actions(
-          actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned.fill(child: child),
-              _WebSocketIndicator(),
-              const UploadOverlay(),
-              if (showPalette.value)
-                CommandPattleWidget(onDismiss: () => showPalette.value = false),
-            ],
-          ),
-        ),
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(child: child),
+        _WebSocketIndicator(),
+        const UploadOverlay(),
+        if (showPalette.value)
+          CommandPattleWidget(onDismiss: () => showPalette.value = false),
+      ],
     );
   }
 }
@@ -402,29 +391,6 @@ class AppScaffold extends HookConsumerWidget {
     return noBackground
         ? builtWidget
         : AppBackground(isRoot: true, child: builtWidget);
-  }
-}
-
-class PopIntent extends Intent {
-  const PopIntent();
-}
-
-class PopAction extends Action<PopIntent> {
-  final WidgetRef ref;
-
-  PopAction(this.ref);
-
-  @override
-  void invoke(PopIntent intent) {
-    // First, try to close any overlay dialogs
-    if (closeTopmostOverlayDialog()) {
-      return;
-    }
-
-    // If no overlay to close, pop the route
-    if (ref.watch(routerProvider).canPop()) {
-      ref.read(routerProvider).pop();
-    }
   }
 }
 

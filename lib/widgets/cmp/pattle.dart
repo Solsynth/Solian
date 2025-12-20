@@ -195,6 +195,7 @@ class CommandPattleWidget extends HookConsumerWidget {
     final focusNode = useFocusNode();
     final searchQuery = useState('');
     final focusedIndex = useState<int?>(null);
+    final scrollController = useScrollController();
 
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 200),
@@ -271,6 +272,48 @@ class CommandPattleWidget extends HookConsumerWidget {
     // Combine results: chats first, then routes
     final allResults = [...filteredChats, ...filteredRoutes];
 
+    // Update focused index when results change
+    useEffect(() {
+      if (allResults.isNotEmpty && focusedIndex.value == null) {
+        focusedIndex.value = 0;
+      } else if (allResults.isEmpty) {
+        focusedIndex.value = null;
+      }
+      return null;
+    }, [allResults]);
+
+    // Scroll to focused item
+    useEffect(() {
+      if (focusedIndex.value != null && allResults.isNotEmpty) {
+        // Wait for the next frame to ensure ScrollController is attached
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scrollController.hasClients) {
+            // Estimate item height (ListTile is typically around 72-88 pixels)
+            const double estimatedItemHeight = 80.0;
+            final double itemTopOffset =
+                focusedIndex.value! * estimatedItemHeight;
+            final double viewportHeight =
+                scrollController.position.viewportDimension;
+            final double centeredOffset =
+                itemTopOffset -
+                (viewportHeight / 2) +
+                (estimatedItemHeight / 2);
+
+            // Animate scroll to center the focused item
+            scrollController.animateTo(
+              centeredOffset.clamp(
+                0.0,
+                scrollController.position.maxScrollExtent,
+              ),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+      return null;
+    }, [focusedIndex.value]);
+
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: (event) {
@@ -280,14 +323,11 @@ class CommandPattleWidget extends HookConsumerWidget {
           } else if (isDesktop()) {
             if (event.logicalKey == LogicalKeyboardKey.enter ||
                 event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-              if (focusedIndex.value != null &&
-                  focusedIndex.value! < allResults.length) {
-                final item = allResults[focusedIndex.value!];
-                if (item is SnChatRoom) {
-                  _navigateToChat(context, ref, item);
-                } else if (item is RouteItem) {
-                  _navigateToRoute(context, ref, item);
-                }
+              final item = allResults[focusedIndex.value ?? 0];
+              if (item is SnChatRoom) {
+                _navigateToChat(context, ref, item);
+              } else if (item is RouteItem) {
+                _navigateToRoute(context, ref, item);
               }
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
               if (allResults.isNotEmpty) {
@@ -358,16 +398,6 @@ class CommandPattleWidget extends HookConsumerWidget {
                           leading: CircleAvatar(
                             child: const Icon(Symbols.keyboard_command_key),
                           ).padding(horizontal: 8),
-                          onSubmitted: (_) {
-                            if (allResults.isNotEmpty) {
-                              final item = allResults.first;
-                              if (item is SnChatRoom) {
-                                _navigateToChat(context, ref, item);
-                              } else if (item is RouteItem) {
-                                _navigateToRoute(context, ref, item);
-                              }
-                            }
-                          },
                         ),
                         AnimatedSize(
                           duration: const Duration(milliseconds: 200),
@@ -378,6 +408,7 @@ class CommandPattleWidget extends HookConsumerWidget {
                                     maxHeight: 300,
                                   ),
                                   child: ListView.builder(
+                                    controller: scrollController,
                                     shrinkWrap: true,
                                     itemCount: allResults.length,
                                     itemBuilder: (context, index) {
@@ -426,6 +457,7 @@ class CommandPattleWidget extends HookConsumerWidget {
   void _navigateToChat(BuildContext context, WidgetRef ref, SnChatRoom room) {
     onDismiss();
     if (isWideScreen(context)) {
+      debugPrint('${room.name}');
       ref
           .read(routerProvider)
           .replaceNamed('chatRoom', pathParameters: {'id': room.id});
@@ -455,18 +487,23 @@ class _RouteSearchResult extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      tileColor: isFocused
-          ? Theme.of(context).colorScheme.surfaceContainerHighest
-          : null,
-      leading: CircleAvatar(
-        child: Icon(route.icon),
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+    return Container(
+      decoration: BoxDecoration(
+        color: isFocused
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : null,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
       ),
-      title: Text(route.name),
-      subtitle: Text(route.description),
-      onTap: onTap,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+          foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+          child: Icon(route.icon),
+        ),
+        title: Text(route.name),
+        subtitle: Text(route.description),
+        onTap: onTap,
+      ),
     );
   }
 }
@@ -578,30 +615,35 @@ class _ChatRoomSearchResult extends HookConsumerWidget {
 
     final isDirect = room.type == 1;
 
-    return ListTile(
-      tileColor: isFocused
-          ? Theme.of(context).colorScheme.surfaceContainerHighest
-          : null,
-      leading: Badge(
-        isLabelVisible: summary.maybeWhen(
-          data: (data) => (data?.unreadCount ?? 0) > 0,
-          orElse: () => false,
-        ),
-        child: (isDirect && room.picture?.id == null)
-            ? SplitAvatarWidget(
-                filesId: validMembers
-                    .map((e) => e.account.profile.picture?.id)
-                    .toList(),
-              )
-            : room.picture?.id == null
-            ? CircleAvatar(child: Text((room.name ?? 'DM')[0].toUpperCase()))
-            : ProfilePictureWidget(
-                fileId: room.picture?.id,
-              ), // Placeholder for now
+    return Container(
+      decoration: BoxDecoration(
+        color: isFocused
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : null,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
       ),
-      title: Text(titleText),
-      subtitle: buildSubtitle(),
-      onTap: onTap,
+      child: ListTile(
+        leading: Badge(
+          isLabelVisible: summary.maybeWhen(
+            data: (data) => (data?.unreadCount ?? 0) > 0,
+            orElse: () => false,
+          ),
+          child: (isDirect && room.picture?.id == null)
+              ? SplitAvatarWidget(
+                  filesId: validMembers
+                      .map((e) => e.account.profile.picture?.id)
+                      .toList(),
+                )
+              : room.picture?.id == null
+              ? CircleAvatar(child: Text((room.name ?? 'DM')[0].toUpperCase()))
+              : ProfilePictureWidget(
+                  fileId: room.picture?.id,
+                ), // Placeholder for now
+        ),
+        title: Text(titleText),
+        subtitle: buildSubtitle(),
+        onTap: onTap,
+      ),
     );
   }
 }

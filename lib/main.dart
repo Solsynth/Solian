@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
@@ -53,7 +54,8 @@ void main() async {
 
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     talker.info("[SplashScreen] Initializing desktop window manager...");
-    await protocolHandler.register('myprotocol');
+    await protocolHandler.register('solian');
+    await hotKeyManager.unregisterAll();
     talker.info("[SplashScreen] Desktop window manager is ready!");
   }
 
