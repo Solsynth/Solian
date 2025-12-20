@@ -38,9 +38,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_hooks: ^0.21.3+1
   hooks_riverpod: ^3.0.3
-  go_router: ^17.0.0
+  go_router: ^17.0.1
   styled_widget: ^0.4.1
-  shared_preferences: ^2.5.3
+  shared_preferences: ^2.5.4
   flutter_riverpod: ^3.0.3
   path_provider: ^2.1.5
   dio: ^5.9.0
@@ -57,7 +57,7 @@ dependencies:
   cached_network_image: ^3.4.1
   web: ^1.1.1
   flutter_blurhash: ^0.9.1
-  media_kit: ^1.2.3
+  media_kit: ^1.2.6
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
   flutter_cache_manager: ^3.4.1
@@ -73,15 +73,15 @@ dependencies:
     git: https://github.com/LittleSheep2Code/tus_client.git
   cross_file: ^0.3.5+1
   image_picker: ^1.2.1
-  file_picker: ^10.3.7
+  file_picker: ^10.3.8
   riverpod_annotation: ^3.0.3
   image_picker_platform_interface: ^2.11.1
   image_picker_android: ^0.8.13+10
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
-  firebase_messaging: ^16.0.4
+  firebase_messaging: ^16.1.0
   flutter_udid: ^4.1.1
-  firebase_core: ^4.2.1
+  firebase_core: ^4.3.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2892.0
   drift: ^2.30.0
@@ -105,7 +105,7 @@ dependencies:
   livekit_client: ^2.5.4
   pasteboard: ^0.4.0
   flutter_colorpicker: ^1.1.0
-  image: ^4.5.4
+  image: ^4.7.1
   record: ^6.1.2
   qr_flutter: ^4.1.0
   flutter_otp_text_field: ^1.5.1+1
@@ -119,7 +119,7 @@ dependencies:
   flutter_svg: ^2.2.3
   native_exif: ^0.6.2
   local_auth: ^3.0.0
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.0.0
   flutter_math_fork: ^0.7.4
   share_plus: ^12.0.1
   # https://github.com/KasemJaffer/receive_sharing_intent/pull/333
@@ -135,8 +135,8 @@ dependencies:
   flutter_app_update: ^3.2.2
   archive: ^4.0.7
   process_run: ^1.2.4
-  firebase_crashlytics: ^5.0.5
-  firebase_analytics: ^12.0.4
+  firebase_crashlytics: ^5.0.6
+  firebase_analytics: ^12.1.0
   material_color_utilities: ^0.11.1
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
@@ -154,11 +154,11 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  talker: ^5.1.4
-  talker_flutter: ^5.1.4
-  talker_logger: ^5.1.4
-  talker_dio_logger: ^5.1.4
-  talker_riverpod_logger: ^5.1.4
+  talker: ^5.1.9
+  talker_flutter: ^5.1.9
+  talker_logger: ^5.1.9
+  talker_dio_logger: ^5.1.9
+  talker_riverpod_logger: ^5.1.9
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
   fl_heatmap: ^0.4.6
@@ -170,7 +170,7 @@ dependencies:
   flutter_animate: ^4.5.2
   http_parser: ^4.1.2
   flutter_code_editor: ^0.3.5
-  skeletonizer: ^2.1.1
+  skeletonizer: ^2.1.2
   permission_handler: ^12.0.1
 
 dev_dependencies:

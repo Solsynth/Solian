@@ -7,7 +7,7 @@
 		<key>BUNDLE_ID</key>
 		<string>dev.solsynth.solian</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
-		<true />
+		<true/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
@@ -52,16 +52,15 @@
 		<key>CLIENT_ID</key>
 		<string>961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com</string>
 		<key>ITSAppUsesNonExemptEncryption</key>
-		<false />
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
-		<true />
+		<true/>
 		<key>NSCalendarsUsageDescription</key>
 		<string>Grant access to Calander help us to shows Solar Calander with your own events.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Grant access to Camera will allow Solian take photo or video for your post.</string>
 		<key>NSFaceIDUsageDescription</key>
-		<string>Allow the Solar Network verify your ownership of the logged in account and continue
-			your action quickly.</string>
+		<string>Allow the Solar Network verify your ownership of the logged in account and continue your action quickly.</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>Grant access to Microphone will allow Solian record audio for your post.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
@@ -78,7 +77,7 @@
 		<key>REVERSED_CLIENT_ID</key>
 		<string>com.googleusercontent.apps.961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
-		<true />
+		<true/>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>
@@ -91,7 +90,7 @@
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
 		<key>UIStatusBarHidden</key>
-		<false />
+		<false/>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationLandscapeLeft</string>
