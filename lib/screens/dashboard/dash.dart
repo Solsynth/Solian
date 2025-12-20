@@ -51,10 +51,10 @@ class DashboardGrid extends HookConsumerWidget {
         spacing: 16,
         children: [
           // Clock card spans full width
-          ClockCard().padding(horizontal: 24),
+          ClockCard().padding(horizontal: isWide ? 24 : 16),
           // Row with two cards side by side
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
             child: SearchBar(
               hintText: 'Search Anything...',
               constraints: const BoxConstraints(minHeight: 56),
@@ -80,7 +80,7 @@ class DashboardGrid extends HookConsumerWidget {
                       topLeft: isWide ? 0 : 12,
                       topRight: isWide ? 0 : 12,
                     )
-                    .padding(horizontal: isWide ? 0 : 24),
+                    .padding(horizontal: isWide ? 0 : 16),
           ),
         ],
       ),
