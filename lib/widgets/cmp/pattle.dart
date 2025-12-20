@@ -316,15 +316,15 @@ class CommandPattleWidget extends HookConsumerWidget {
         onTap: onDismiss,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: AnimatedBuilder(
-            animation: animationController,
-            builder: (context, child) => Opacity(
-              opacity: opacityAnimation,
-              child: Transform.scale(scale: scaleAnimation, child: child),
-            ),
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Center(
+          child: Container(
+            color: Colors.black.withOpacity(0.5),
+            child: Center(
+              child: AnimatedBuilder(
+                animation: animationController,
+                builder: (context, child) => Opacity(
+                  opacity: opacityAnimation,
+                  child: Transform.scale(scale: scaleAnimation, child: child),
+                ),
                 child: GestureDetector(
                   onTap:
                       () {}, // Prevent tap from dismissing when tapping inside
@@ -355,8 +355,8 @@ class CommandPattleWidget extends HookConsumerWidget {
                           controller: textController,
                           focusNode: focusNode,
                           hintText: 'Search chats and pages...',
-                          leading: const Icon(
-                            Symbols.keyboard_command_key,
+                          leading: CircleAvatar(
+                            child: const Icon(Symbols.keyboard_command_key),
                           ).padding(horizontal: 8),
                           onSubmitted: (_) {
                             if (allResults.isNotEmpty) {
@@ -369,32 +369,48 @@ class CommandPattleWidget extends HookConsumerWidget {
                             }
                           },
                         ),
-                        if (allResults.isNotEmpty)
-                          Flexible(
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: allResults.length,
-                              itemBuilder: (context, index) {
-                                final item = allResults[index];
-                                if (item is SnChatRoom) {
-                                  return _ChatRoomSearchResult(
-                                    room: item,
-                                    isFocused: index == focusedIndex.value,
-                                    onTap: () =>
-                                        _navigateToChat(context, ref, item),
-                                  );
-                                } else if (item is RouteItem) {
-                                  return _RouteSearchResult(
-                                    route: item,
-                                    isFocused: index == focusedIndex.value,
-                                    onTap: () =>
-                                        _navigateToRoute(context, ref, item),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                          ),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                          child: allResults.isNotEmpty
+                              ? ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 300,
+                                  ),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: allResults.length,
+                                    itemBuilder: (context, index) {
+                                      final item = allResults[index];
+                                      if (item is SnChatRoom) {
+                                        return _ChatRoomSearchResult(
+                                          room: item,
+                                          isFocused:
+                                              index == focusedIndex.value,
+                                          onTap: () => _navigateToChat(
+                                            context,
+                                            ref,
+                                            item,
+                                          ),
+                                        );
+                                      } else if (item is RouteItem) {
+                                        return _RouteSearchResult(
+                                          route: item,
+                                          isFocused:
+                                              index == focusedIndex.value,
+                                          onTap: () => _navigateToRoute(
+                                            context,
+                                            ref,
+                                            item,
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
                       ],
                     ),
                   ),
