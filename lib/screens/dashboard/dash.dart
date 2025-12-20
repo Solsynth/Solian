@@ -309,25 +309,6 @@ class FeaturedPostCard extends HookConsumerWidget {
                 children: [
                   const Icon(Symbols.highlight),
                   Text('highlightPost').tr(),
-                  const Spacer(),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      // Navigation to previous post
-                    },
-                    icon: const Icon(Symbols.arrow_left),
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      // Navigation to next post
-                    },
-                    icon: const Icon(Symbols.arrow_right),
-                  ),
                 ],
               ).padding(horizontal: 16, vertical: 8),
             ),

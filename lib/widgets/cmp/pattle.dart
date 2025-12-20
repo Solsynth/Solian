@@ -18,6 +18,21 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/services/event_bus.dart';
+
+class SpecialAction {
+  final String name;
+  final String description;
+  final IconData icon;
+  final VoidCallback action;
+
+  const SpecialAction({
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.action,
+  });
+}
 
 class CommandPattleWidget extends HookConsumerWidget {
   final VoidCallback onDismiss;
@@ -189,6 +204,27 @@ class CommandPattleWidget extends HookConsumerWidget {
     ),
   ];
 
+  static List<SpecialAction> _getSpecialActions(BuildContext context) {
+    return [
+      SpecialAction(
+        name: 'Compose Post',
+        description: 'Create a new post',
+        icon: Symbols.edit,
+        action: () {
+          eventBus.fire(const ShowComposeSheetEvent());
+        },
+      ),
+      SpecialAction(
+        name: 'Notifications',
+        description: 'View your notifications',
+        icon: Symbols.notifications,
+        action: () {
+          eventBus.fire(const ShowNotificationSheetEvent());
+        },
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
@@ -269,8 +305,23 @@ class CommandPattleWidget extends HookConsumerWidget {
               .take(5) // Limit to 5 results
               .toList();
 
-    // Combine results: chats first, then routes
-    final allResults = [...filteredChats, ...filteredRoutes];
+    final filteredSpecialActions = searchQuery.value.isEmpty
+        ? <SpecialAction>[]
+        : _getSpecialActions(context)
+              .where((action) {
+                final query = searchQuery.value.toLowerCase();
+                return action.name.toLowerCase().contains(query) ||
+                    action.description.toLowerCase().contains(query);
+              })
+              .take(5) // Limit to 5 results
+              .toList();
+
+    // Combine results: chats first, then special actions, then routes
+    final allResults = [
+      ...filteredChats,
+      ...filteredSpecialActions,
+      ...filteredRoutes,
+    ];
 
     // Update focused index when results change
     useEffect(() {
@@ -326,6 +377,9 @@ class CommandPattleWidget extends HookConsumerWidget {
               final item = allResults[focusedIndex.value ?? 0];
               if (item is SnChatRoom) {
                 _navigateToChat(context, ref, item);
+              } else if (item is SpecialAction) {
+                onDismiss();
+                item.action();
               } else if (item is RouteItem) {
                 _navigateToRoute(context, ref, item);
               }
@@ -379,7 +433,7 @@ class CommandPattleWidget extends HookConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.3),
@@ -389,8 +443,9 @@ class CommandPattleWidget extends HookConsumerWidget {
                       ],
                     ),
                     child: Material(
+                      elevation: 0,
                       color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(28),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -427,6 +482,16 @@ class CommandPattleWidget extends HookConsumerWidget {
                                               ref,
                                               item,
                                             ),
+                                          );
+                                        } else if (item is SpecialAction) {
+                                          return _SpecialActionSearchResult(
+                                            action: item,
+                                            isFocused:
+                                                index == focusedIndex.value,
+                                            onTap: () {
+                                              onDismiss();
+                                              item.action();
+                                            },
                                           );
                                         } else if (item is RouteItem) {
                                           return _RouteSearchResult(
@@ -497,7 +562,7 @@ class _RouteSearchResult extends StatelessWidget {
         color: isFocused
             ? Theme.of(context).colorScheme.surfaceContainerHighest
             : null,
-        borderRadius: const BorderRadius.all(Radius.circular(24)),
+        borderRadius: const BorderRadius.all(Radius.circular(28)),
       ),
       child: ListTile(
         leading: CircleAvatar(
@@ -507,6 +572,40 @@ class _RouteSearchResult extends StatelessWidget {
         ),
         title: Text(route.name),
         subtitle: Text(route.description),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _SpecialActionSearchResult extends StatelessWidget {
+  final SpecialAction action;
+  final bool isFocused;
+  final VoidCallback onTap;
+
+  const _SpecialActionSearchResult({
+    required this.action,
+    required this.isFocused,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isFocused
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : null,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
+          foregroundColor: Theme.of(context).colorScheme.onTertiaryContainer,
+          child: Icon(action.icon),
+        ),
+        title: Text(action.name),
+        subtitle: Text(action.description),
         onTap: onTap,
       ),
     );

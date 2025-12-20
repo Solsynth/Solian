@@ -17,6 +17,9 @@ import 'package:island/services/sharing_intent.dart';
 import 'package:island/services/update_service.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
 import 'package:island/widgets/tour/tour.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
+import 'package:island/screens/notification.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -32,6 +35,9 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     with ProtocolListener, TrayListener {
   StreamSubscription? ntySubs;
   bool networkStateShowing = false;
+
+  StreamSubscription? composeSheetSubs;
+  StreamSubscription? notificationSheetSubs;
 
   @override
   void initState() {
@@ -49,6 +55,21 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       ref.read(rpcServerStateProvider.notifier).start();
       ref.read(webAuthServerStateProvider.notifier).start();
 
+      // Listen to special action events
+      composeSheetSubs = eventBus.on<ShowComposeSheetEvent>().listen((event) {
+        if (mounted) {
+          _showComposeSheet();
+        }
+      });
+
+      notificationSheetSubs = eventBus.on<ShowNotificationSheetEvent>().listen((
+        event,
+      ) {
+        if (mounted) {
+          _showNotificationSheet();
+        }
+      });
+
       final initialUrl = await protocolHandler.getInitialUrl();
       if (initialUrl != null && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,6 +85,8 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     ref.read(rpcServerProvider).stop();
     TrayService.instance.dispose(this);
     ntySubs?.cancel();
+    composeSheetSubs?.cancel();
+    notificationSheetSubs?.cancel();
     super.dispose();
   }
 
@@ -80,9 +103,8 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
             context: context,
             isScrollControlled: true,
             isDismissible: false,
-            builder:
-                (context) =>
-                    NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
+            builder: (context) =>
+                NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
           ).then((_) => setState(() => networkStateShowing = false));
         });
       }
@@ -119,6 +141,19 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     TrayService.instance.handleAction(menuItem);
   }
 
+  void _showComposeSheet() {
+    PostComposeSheet.show(context);
+  }
+
+  void _showNotificationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => const NotificationSheet(),
+    );
+  }
+
   void _handleDeepLink(Uri uri, WidgetRef ref) async {
     String path = '/${uri.host}${uri.path}';
 
@@ -153,10 +188,9 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
 
     final router = ref.read(routerProvider);
     if (uri.queryParameters.isNotEmpty) {
-      path =
-          Uri.parse(
-            path,
-          ).replace(queryParameters: uri.queryParameters).toString();
+      path = Uri.parse(
+        path,
+      ).replace(queryParameters: uri.queryParameters).toString();
     }
     router.push(path);
     if (!kIsWeb &&

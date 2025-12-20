@@ -179,7 +179,7 @@ class PostComposeSheet extends HookConsumerWidget {
     final isTablet =
         isWideScreen(context) &&
         !kIsWeb &&
-        (Platform.isAndroid || Platform.isAndroid);
+        (Platform.isAndroid || Platform.isIOS);
 
     return SheetScaffold(
       heightFactor: isTablet ? 0.95 : 0.8,

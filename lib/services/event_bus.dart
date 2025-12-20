@@ -28,3 +28,13 @@ class OidcAuthCallbackEvent {
 class CommandPaletteTriggerEvent {
   const CommandPaletteTriggerEvent();
 }
+
+/// Event fired to show the compose post sheet
+class ShowComposeSheetEvent {
+  const ShowComposeSheetEvent();
+}
+
+/// Event fired to show the notification sheet
+class ShowNotificationSheetEvent {
+  const ShowNotificationSheetEvent();
+}
