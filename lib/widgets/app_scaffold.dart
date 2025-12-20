@@ -20,6 +20,7 @@ import 'package:island/widgets/cmp/pattle.dart';
 import 'package:island/widgets/upload_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shake/shake.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -145,8 +146,16 @@ class WindowScaffold extends HookConsumerWidget {
         },
       );
 
+      ShakeDetector detector = ShakeDetector.autoStart(
+        onPhoneShake: (_) {
+          showPalette.value = true;
+        },
+      );
+
       return () {
         hotKeyManager.unregister(popHotKey);
+        hotKeyManager.unregister(cmpHotKey);
+        detector.stopListening();
       };
     }, []);
 
