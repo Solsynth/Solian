@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/screens/chat/chat.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -36,10 +37,15 @@ class DashboardGrid extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isWide = isWideScreen(context);
+
     return Container(
       constraints: BoxConstraints(
-        maxHeight: math.min(640, MediaQuery.sizeOf(context).height * 0.65),
+        maxHeight: isWide
+            ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
+            : MediaQuery.sizeOf(context).height,
       ),
+      padding: isWide ? null : EdgeInsets.only(top: 24),
       child: Column(
         spacing: 16,
         children: [
@@ -56,66 +62,104 @@ class DashboardGrid extends HookConsumerWidget {
             ),
           ),
           Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  spacing: 16,
-                  children: [
-                    SizedBox(
-                      width: 400,
-                      child: Column(
-                        spacing: 16,
-                        children: [
-                          CheckInWidget(
-                            margin: EdgeInsets.zero,
-                            checkInOnly: true,
-                          ),
-                          Card(
-                            margin: EdgeInsets.zero,
-                            child: FortuneGraphWidget(
-                              events: ref.watch(
-                                eventCalendarProvider(
-                                  EventCalendarQuery(
-                                    uname: 'me',
-                                    year: DateTime.now().year,
-                                    month: DateTime.now().month,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(child: FortuneCard()),
-                        ],
+            child: SingleChildScrollView(
+              padding: isWide
+                  ? const EdgeInsets.symmetric(horizontal: 24)
+                  : const EdgeInsets.only(bottom: 64),
+              scrollDirection: isWide ? Axis.horizontal : Axis.vertical,
+              child: isWide ? _DashboardGridWide() : _DashboardGridNarrow(),
+            ).clipRRect(topLeft: 12, topRight: 12).padding(horizontal: 24),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardGridWide extends HookConsumerWidget {
+  const _DashboardGridWide();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      spacing: 16,
+      children: [
+        SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [
+              CheckInWidget(margin: EdgeInsets.zero, checkInOnly: true),
+              Card(
+                margin: EdgeInsets.zero,
+                child: FortuneGraphWidget(
+                  events: ref.watch(
+                    eventCalendarProvider(
+                      EventCalendarQuery(
+                        uname: 'me',
+                        year: DateTime.now().year,
+                        month: DateTime.now().month,
                       ),
                     ),
-                    SizedBox(width: 400, child: FeaturedPostCard()),
-                    SizedBox(
-                      width: 400,
-                      child: Column(
-                        spacing: 16,
-                        children: [
-                          FriendsOverviewWidget(),
-                          Expanded(child: NotificationsCard()),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 400,
-                      child: Column(
-                        spacing: 16,
-                        children: [Expanded(child: ChatListCard())],
-                      ),
-                    ),
-                  ],
+                  ),
+                ),
+              ),
+              Expanded(child: FortuneCard()),
+            ],
+          ),
+        ),
+        SizedBox(width: 400, child: FeaturedPostCard()),
+        SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [
+              FriendsOverviewWidget(),
+              Expanded(child: NotificationsCard()),
+            ],
+          ),
+        ),
+        SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [Expanded(child: ChatListCard())],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DashboardGridNarrow extends HookConsumerWidget {
+  const _DashboardGridNarrow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      spacing: 16,
+      children: [
+        CheckInWidget(margin: EdgeInsets.zero, checkInOnly: true),
+        FortuneCard(),
+        SizedBox(height: 400, child: FeaturedPostCard()),
+        FriendsOverviewWidget(),
+        NotificationsCard(),
+        ChatListCard(),
+        Card(
+          margin: EdgeInsets.zero,
+          child: FortuneGraphWidget(
+            events: ref.watch(
+              eventCalendarProvider(
+                EventCalendarQuery(
+                  uname: 'me',
+                  year: DateTime.now().year,
+                  month: DateTime.now().month,
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -344,37 +388,35 @@ class NotificationsCard extends HookConsumerWidget {
                 ),
               ],
             ).padding(horizontal: 16, vertical: 12),
-            Expanded(
-              child: notifications.when(
-                loading: () => const SkeletonNotificationTile(),
-                error: (error, stack) => Center(child: Text('Error: $error')),
-                data: (notificationList) {
-                  if (notificationList.isEmpty) {
-                    return const Center(child: Text('No notifications yet'));
-                  }
-                  // Get the most recent notification (first in the list)
-                  final recentNotification = notificationList.first;
+            notifications.when(
+              loading: () => const SkeletonNotificationTile(),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+              data: (notificationList) {
+                if (notificationList.isEmpty) {
+                  return const Center(child: Text('No notifications yet'));
+                }
+                // Get the most recent notification (first in the list)
+                final recentNotification = notificationList.first;
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Most Recent',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ).padding(horizontal: 16),
-                      const SizedBox(height: 8),
-                      NotificationTile(
-                        notification: recentNotification,
-                        compact: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                        avatarRadius: 16.0,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Most Recent',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ).padding(horizontal: 16),
+                    const SizedBox(height: 8),
+                    NotificationTile(
+                      notification: recentNotification,
+                      compact: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      avatarRadius: 16.0,
+                    ),
+                  ],
+                );
+              },
             ),
             Text(
               'Tap to view all notifications',
@@ -424,34 +466,33 @@ class ChatListCard extends HookConsumerWidget {
               ),
             ],
           ).padding(horizontal: 16, vertical: 16),
-          Expanded(
-            child: chatRooms.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-              data: (rooms) {
-                if (rooms.isEmpty) {
-                  return const Center(child: Text('No chat rooms available'));
-                }
-                // Take only the first 5 rooms
-                final recentRooms = rooms.take(5).toList();
-                return ListView.builder(
-                  itemCount: recentRooms.length,
-                  itemBuilder: (context, index) {
-                    final room = recentRooms[index];
-                    return ChatRoomListTile(
-                      room: room,
-                      isDirect: room.type == 1,
-                      onTap: () {
-                        context.pushNamed(
-                          'chatRoom',
-                          pathParameters: {'id': room.id},
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
+          chatRooms.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('Error: $error')),
+            data: (rooms) {
+              if (rooms.isEmpty) {
+                return const Center(child: Text('No chat rooms available'));
+              }
+              // Take only the first 5 rooms
+              final recentRooms = rooms.take(5).toList();
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: recentRooms.length,
+                itemBuilder: (context, index) {
+                  final room = recentRooms[index];
+                  return ChatRoomListTile(
+                    room: room,
+                    isDirect: room.type == 1,
+                    onTap: () {
+                      context.pushNamed(
+                        'chatRoom',
+                        pathParameters: {'id': room.id},
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -514,6 +555,6 @@ class FortuneCard extends HookWidget {
           Text(fortune['author']!).bold(),
         ],
       ).padding(horizontal: 24),
-    );
+    ).height(48);
   }
 }
