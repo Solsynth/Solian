@@ -52,7 +52,7 @@ class TrayService {
         break;
       case 'exit_app':
         windowManager.destroy();
-        break;
+        exit(0);
     }
   }
 }
