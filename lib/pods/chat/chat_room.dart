@@ -47,6 +47,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
 
     try {
       final localRoomsData = await db.select(db.chatRooms).get();
+      final localRealmsData = await db.select(db.realms).get();
       if (localRoomsData.isNotEmpty) {
         final localRooms = await Future.wait(
           localRoomsData.map((row) async {
@@ -87,11 +88,15 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
                   : null,
               realmId: row.realmId,
               accountId: row.accountId,
-              realm: null,
+              realm: localRealmsData
+                  .where((e) => e.id == row.realmId)
+                  .map((e) => _buildRealmFromTableEntry(e))
+                  .firstOrNull,
               createdAt: row.createdAt,
               updatedAt: row.updatedAt,
               deletedAt: row.deletedAt,
               members: members,
+              isPinned: row.isPinned ?? false,
             );
           }),
         );
@@ -124,6 +129,29 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
         .toList();
     await db.saveChatRooms(rooms, override: true);
     return rooms;
+  }
+
+  SnRealm _buildRealmFromTableEntry(Realm localRealm) {
+    return SnRealm(
+      id: localRealm.id,
+      slug: localRealm.slug,
+      name: localRealm.name ?? localRealm.slug,
+      description: localRealm.description ?? '',
+      verifiedAs: localRealm.verifiedAs,
+      verifiedAt: localRealm.verifiedAt,
+      isCommunity: localRealm.isCommunity,
+      isPublic: localRealm.isPublic,
+      picture: localRealm.picture != null
+          ? SnCloudFile.fromJson(localRealm.picture!)
+          : null,
+      background: localRealm.background != null
+          ? SnCloudFile.fromJson(localRealm.background!)
+          : null,
+      accountId: localRealm.accountId ?? '',
+      createdAt: localRealm.createdAt,
+      updatedAt: localRealm.updatedAt,
+      deletedAt: localRealm.deletedAt,
+    );
   }
 
   Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
@@ -207,6 +235,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           updatedAt: row.updatedAt,
           deletedAt: row.deletedAt,
           members: members,
+          isPinned: row.isPinned ?? false,
         );
       }),
     );

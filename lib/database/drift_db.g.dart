@@ -17,6 +17,15 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _slugMeta = const VerificationMeta('slug');
+  @override
+  late final GeneratedColumn<String> slug = GeneratedColumn<String>(
+    'slug',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -36,6 +45,56 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+  );
+  static const VerificationMeta _verifiedAsMeta = const VerificationMeta(
+    'verifiedAs',
+  );
+  @override
+  late final GeneratedColumn<String> verifiedAs = GeneratedColumn<String>(
+    'verified_as',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isCommunityMeta = const VerificationMeta(
+    'isCommunity',
+  );
+  @override
+  late final GeneratedColumn<bool> isCommunity = GeneratedColumn<bool>(
+    'is_community',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_community" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _isPublicMeta = const VerificationMeta(
+    'isPublic',
+  );
+  @override
+  late final GeneratedColumn<bool> isPublic = GeneratedColumn<bool>(
+    'is_public',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_public" IN (0, 1))',
+    ),
   );
   @override
   late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
@@ -102,8 +161,13 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    slug,
     name,
     description,
+    verifiedAs,
+    verifiedAt,
+    isCommunity,
+    isPublic,
     picture,
     background,
     accountId,
@@ -128,6 +192,14 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
     } else if (isInserting) {
       context.missing(_idMeta);
     }
+    if (data.containsKey('slug')) {
+      context.handle(
+        _slugMeta,
+        slug.isAcceptableOrUnknown(data['slug']!, _slugMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_slugMeta);
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -142,6 +214,37 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
           _descriptionMeta,
         ),
       );
+    }
+    if (data.containsKey('verified_as')) {
+      context.handle(
+        _verifiedAsMeta,
+        verifiedAs.isAcceptableOrUnknown(data['verified_as']!, _verifiedAsMeta),
+      );
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
+    }
+    if (data.containsKey('is_community')) {
+      context.handle(
+        _isCommunityMeta,
+        isCommunity.isAcceptableOrUnknown(
+          data['is_community']!,
+          _isCommunityMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_isCommunityMeta);
+    }
+    if (data.containsKey('is_public')) {
+      context.handle(
+        _isPublicMeta,
+        isPublic.isAcceptableOrUnknown(data['is_public']!, _isPublicMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isPublicMeta);
     }
     if (data.containsKey('account_id')) {
       context.handle(
@@ -184,6 +287,10 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      slug: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}slug'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -192,6 +299,22 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
+      verifiedAs: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}verified_as'],
+      ),
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
+      isCommunity: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_community'],
+      )!,
+      isPublic: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_public'],
+      )!,
       picture: $RealmsTable.$converterpicturen.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -240,8 +363,13 @@ class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
 
 class Realm extends DataClass implements Insertable<Realm> {
   final String id;
+  final String slug;
   final String? name;
   final String? description;
+  final String? verifiedAs;
+  final DateTime? verifiedAt;
+  final bool isCommunity;
+  final bool isPublic;
   final Map<String, dynamic>? picture;
   final Map<String, dynamic>? background;
   final String? accountId;
@@ -250,8 +378,13 @@ class Realm extends DataClass implements Insertable<Realm> {
   final DateTime? deletedAt;
   const Realm({
     required this.id,
+    required this.slug,
     this.name,
     this.description,
+    this.verifiedAs,
+    this.verifiedAt,
+    required this.isCommunity,
+    required this.isPublic,
     this.picture,
     this.background,
     this.accountId,
@@ -263,12 +396,21 @@ class Realm extends DataClass implements Insertable<Realm> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    map['slug'] = Variable<String>(slug);
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
     }
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    if (!nullToAbsent || verifiedAs != null) {
+      map['verified_as'] = Variable<String>(verifiedAs);
+    }
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt);
+    }
+    map['is_community'] = Variable<bool>(isCommunity);
+    map['is_public'] = Variable<bool>(isPublic);
     if (!nullToAbsent || picture != null) {
       map['picture'] = Variable<String>(
         $RealmsTable.$converterpicturen.toSql(picture),
@@ -293,10 +435,19 @@ class Realm extends DataClass implements Insertable<Realm> {
   RealmsCompanion toCompanion(bool nullToAbsent) {
     return RealmsCompanion(
       id: Value(id),
+      slug: Value(slug),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      verifiedAs: verifiedAs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAs),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
+      isCommunity: Value(isCommunity),
+      isPublic: Value(isPublic),
       picture: picture == null && nullToAbsent
           ? const Value.absent()
           : Value(picture),
@@ -321,8 +472,13 @@ class Realm extends DataClass implements Insertable<Realm> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Realm(
       id: serializer.fromJson<String>(json['id']),
+      slug: serializer.fromJson<String>(json['slug']),
       name: serializer.fromJson<String?>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
+      verifiedAs: serializer.fromJson<String?>(json['verifiedAs']),
+      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
+      isCommunity: serializer.fromJson<bool>(json['isCommunity']),
+      isPublic: serializer.fromJson<bool>(json['isPublic']),
       picture: serializer.fromJson<Map<String, dynamic>?>(json['picture']),
       background: serializer.fromJson<Map<String, dynamic>?>(
         json['background'],
@@ -338,8 +494,13 @@ class Realm extends DataClass implements Insertable<Realm> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'slug': serializer.toJson<String>(slug),
       'name': serializer.toJson<String?>(name),
       'description': serializer.toJson<String?>(description),
+      'verifiedAs': serializer.toJson<String?>(verifiedAs),
+      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
+      'isCommunity': serializer.toJson<bool>(isCommunity),
+      'isPublic': serializer.toJson<bool>(isPublic),
       'picture': serializer.toJson<Map<String, dynamic>?>(picture),
       'background': serializer.toJson<Map<String, dynamic>?>(background),
       'accountId': serializer.toJson<String?>(accountId),
@@ -351,8 +512,13 @@ class Realm extends DataClass implements Insertable<Realm> {
 
   Realm copyWith({
     String? id,
+    String? slug,
     Value<String?> name = const Value.absent(),
     Value<String?> description = const Value.absent(),
+    Value<String?> verifiedAs = const Value.absent(),
+    Value<DateTime?> verifiedAt = const Value.absent(),
+    bool? isCommunity,
+    bool? isPublic,
     Value<Map<String, dynamic>?> picture = const Value.absent(),
     Value<Map<String, dynamic>?> background = const Value.absent(),
     Value<String?> accountId = const Value.absent(),
@@ -361,8 +527,13 @@ class Realm extends DataClass implements Insertable<Realm> {
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => Realm(
     id: id ?? this.id,
+    slug: slug ?? this.slug,
     name: name.present ? name.value : this.name,
     description: description.present ? description.value : this.description,
+    verifiedAs: verifiedAs.present ? verifiedAs.value : this.verifiedAs,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+    isCommunity: isCommunity ?? this.isCommunity,
+    isPublic: isPublic ?? this.isPublic,
     picture: picture.present ? picture.value : this.picture,
     background: background.present ? background.value : this.background,
     accountId: accountId.present ? accountId.value : this.accountId,
@@ -373,10 +544,21 @@ class Realm extends DataClass implements Insertable<Realm> {
   Realm copyWithCompanion(RealmsCompanion data) {
     return Realm(
       id: data.id.present ? data.id.value : this.id,
+      slug: data.slug.present ? data.slug.value : this.slug,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
           ? data.description.value
           : this.description,
+      verifiedAs: data.verifiedAs.present
+          ? data.verifiedAs.value
+          : this.verifiedAs,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
+      isCommunity: data.isCommunity.present
+          ? data.isCommunity.value
+          : this.isCommunity,
+      isPublic: data.isPublic.present ? data.isPublic.value : this.isPublic,
       picture: data.picture.present ? data.picture.value : this.picture,
       background: data.background.present
           ? data.background.value
@@ -392,8 +574,13 @@ class Realm extends DataClass implements Insertable<Realm> {
   String toString() {
     return (StringBuffer('Realm(')
           ..write('id: $id, ')
+          ..write('slug: $slug, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
+          ..write('verifiedAs: $verifiedAs, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('isCommunity: $isCommunity, ')
+          ..write('isPublic: $isPublic, ')
           ..write('picture: $picture, ')
           ..write('background: $background, ')
           ..write('accountId: $accountId, ')
@@ -407,8 +594,13 @@ class Realm extends DataClass implements Insertable<Realm> {
   @override
   int get hashCode => Object.hash(
     id,
+    slug,
     name,
     description,
+    verifiedAs,
+    verifiedAt,
+    isCommunity,
+    isPublic,
     picture,
     background,
     accountId,
@@ -421,8 +613,13 @@ class Realm extends DataClass implements Insertable<Realm> {
       identical(this, other) ||
       (other is Realm &&
           other.id == this.id &&
+          other.slug == this.slug &&
           other.name == this.name &&
           other.description == this.description &&
+          other.verifiedAs == this.verifiedAs &&
+          other.verifiedAt == this.verifiedAt &&
+          other.isCommunity == this.isCommunity &&
+          other.isPublic == this.isPublic &&
           other.picture == this.picture &&
           other.background == this.background &&
           other.accountId == this.accountId &&
@@ -433,8 +630,13 @@ class Realm extends DataClass implements Insertable<Realm> {
 
 class RealmsCompanion extends UpdateCompanion<Realm> {
   final Value<String> id;
+  final Value<String> slug;
   final Value<String?> name;
   final Value<String?> description;
+  final Value<String?> verifiedAs;
+  final Value<DateTime?> verifiedAt;
+  final Value<bool> isCommunity;
+  final Value<bool> isPublic;
   final Value<Map<String, dynamic>?> picture;
   final Value<Map<String, dynamic>?> background;
   final Value<String?> accountId;
@@ -444,8 +646,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
   final Value<int> rowid;
   const RealmsCompanion({
     this.id = const Value.absent(),
+    this.slug = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
+    this.verifiedAs = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.isCommunity = const Value.absent(),
+    this.isPublic = const Value.absent(),
     this.picture = const Value.absent(),
     this.background = const Value.absent(),
     this.accountId = const Value.absent(),
@@ -456,8 +663,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
   });
   RealmsCompanion.insert({
     required String id,
+    required String slug,
     this.name = const Value.absent(),
     this.description = const Value.absent(),
+    this.verifiedAs = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    required bool isCommunity,
+    required bool isPublic,
     this.picture = const Value.absent(),
     this.background = const Value.absent(),
     this.accountId = const Value.absent(),
@@ -466,12 +678,20 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
+       slug = Value(slug),
+       isCommunity = Value(isCommunity),
+       isPublic = Value(isPublic),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<Realm> custom({
     Expression<String>? id,
+    Expression<String>? slug,
     Expression<String>? name,
     Expression<String>? description,
+    Expression<String>? verifiedAs,
+    Expression<DateTime>? verifiedAt,
+    Expression<bool>? isCommunity,
+    Expression<bool>? isPublic,
     Expression<String>? picture,
     Expression<String>? background,
     Expression<String>? accountId,
@@ -482,8 +702,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (slug != null) 'slug': slug,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
+      if (verifiedAs != null) 'verified_as': verifiedAs,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
+      if (isCommunity != null) 'is_community': isCommunity,
+      if (isPublic != null) 'is_public': isPublic,
       if (picture != null) 'picture': picture,
       if (background != null) 'background': background,
       if (accountId != null) 'account_id': accountId,
@@ -496,8 +721,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
 
   RealmsCompanion copyWith({
     Value<String>? id,
+    Value<String>? slug,
     Value<String?>? name,
     Value<String?>? description,
+    Value<String?>? verifiedAs,
+    Value<DateTime?>? verifiedAt,
+    Value<bool>? isCommunity,
+    Value<bool>? isPublic,
     Value<Map<String, dynamic>?>? picture,
     Value<Map<String, dynamic>?>? background,
     Value<String?>? accountId,
@@ -508,8 +738,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
   }) {
     return RealmsCompanion(
       id: id ?? this.id,
+      slug: slug ?? this.slug,
       name: name ?? this.name,
       description: description ?? this.description,
+      verifiedAs: verifiedAs ?? this.verifiedAs,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
+      isCommunity: isCommunity ?? this.isCommunity,
+      isPublic: isPublic ?? this.isPublic,
       picture: picture ?? this.picture,
       background: background ?? this.background,
       accountId: accountId ?? this.accountId,
@@ -526,11 +761,26 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
+    if (slug.present) {
+      map['slug'] = Variable<String>(slug.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (verifiedAs.present) {
+      map['verified_as'] = Variable<String>(verifiedAs.value);
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
+    }
+    if (isCommunity.present) {
+      map['is_community'] = Variable<bool>(isCommunity.value);
+    }
+    if (isPublic.present) {
+      map['is_public'] = Variable<bool>(isPublic.value);
     }
     if (picture.present) {
       map['picture'] = Variable<String>(
@@ -564,8 +814,13 @@ class RealmsCompanion extends UpdateCompanion<Realm> {
   String toString() {
     return (StringBuffer('RealmsCompanion(')
           ..write('id: $id, ')
+          ..write('slug: $slug, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
+          ..write('verifiedAs: $verifiedAs, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('isCommunity: $isCommunity, ')
+          ..write('isPublic: $isPublic, ')
           ..write('picture: $picture, ')
           ..write('background: $background, ')
           ..write('accountId: $accountId, ')
@@ -695,6 +950,21 @@ class $ChatRoomsTable extends ChatRooms
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isPinnedMeta = const VerificationMeta(
+    'isPinned',
+  );
+  @override
+  late final GeneratedColumn<bool> isPinned = GeneratedColumn<bool>(
+    'is_pinned',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_pinned" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -740,6 +1010,7 @@ class $ChatRoomsTable extends ChatRooms
     background,
     realmId,
     accountId,
+    isPinned,
     createdAt,
     updatedAt,
     deletedAt,
@@ -809,6 +1080,12 @@ class $ChatRoomsTable extends ChatRooms
       context.handle(
         _accountIdMeta,
         accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    }
+    if (data.containsKey('is_pinned')) {
+      context.handle(
+        _isPinnedMeta,
+        isPinned.isAcceptableOrUnknown(data['is_pinned']!, _isPinnedMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -886,6 +1163,10 @@ class $ChatRoomsTable extends ChatRooms
         DriftSqlType.string,
         data['${effectivePrefix}account_id'],
       ),
+      isPinned: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_pinned'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -927,6 +1208,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   final Map<String, dynamic>? background;
   final String? realmId;
   final String? accountId;
+  final bool? isPinned;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -941,6 +1223,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     this.background,
     this.realmId,
     this.accountId,
+    this.isPinned,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -978,6 +1261,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     if (!nullToAbsent || accountId != null) {
       map['account_id'] = Variable<String>(accountId);
     }
+    if (!nullToAbsent || isPinned != null) {
+      map['is_pinned'] = Variable<bool>(isPinned);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -1012,6 +1298,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       accountId: accountId == null && nullToAbsent
           ? const Value.absent()
           : Value(accountId),
+      isPinned: isPinned == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isPinned),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -1038,6 +1327,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       ),
       realmId: serializer.fromJson<String?>(json['realmId']),
       accountId: serializer.fromJson<String?>(json['accountId']),
+      isPinned: serializer.fromJson<bool?>(json['isPinned']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -1057,6 +1347,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       'background': serializer.toJson<Map<String, dynamic>?>(background),
       'realmId': serializer.toJson<String?>(realmId),
       'accountId': serializer.toJson<String?>(accountId),
+      'isPinned': serializer.toJson<bool?>(isPinned),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -1074,6 +1365,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     Value<Map<String, dynamic>?> background = const Value.absent(),
     Value<String?> realmId = const Value.absent(),
     Value<String?> accountId = const Value.absent(),
+    Value<bool?> isPinned = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -1088,6 +1380,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     background: background.present ? background.value : this.background,
     realmId: realmId.present ? realmId.value : this.realmId,
     accountId: accountId.present ? accountId.value : this.accountId,
+    isPinned: isPinned.present ? isPinned.value : this.isPinned,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -1110,6 +1403,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           : this.background,
       realmId: data.realmId.present ? data.realmId.value : this.realmId,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      isPinned: data.isPinned.present ? data.isPinned.value : this.isPinned,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -1129,6 +1423,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           ..write('background: $background, ')
           ..write('realmId: $realmId, ')
           ..write('accountId: $accountId, ')
+          ..write('isPinned: $isPinned, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -1148,6 +1443,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     background,
     realmId,
     accountId,
+    isPinned,
     createdAt,
     updatedAt,
     deletedAt,
@@ -1166,6 +1462,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           other.background == this.background &&
           other.realmId == this.realmId &&
           other.accountId == this.accountId &&
+          other.isPinned == this.isPinned &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -1182,6 +1479,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   final Value<Map<String, dynamic>?> background;
   final Value<String?> realmId;
   final Value<String?> accountId;
+  final Value<bool?> isPinned;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -1197,6 +1495,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.background = const Value.absent(),
     this.realmId = const Value.absent(),
     this.accountId = const Value.absent(),
+    this.isPinned = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1213,6 +1512,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.background = const Value.absent(),
     this.realmId = const Value.absent(),
     this.accountId = const Value.absent(),
+    this.isPinned = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -1232,6 +1532,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Expression<String>? background,
     Expression<String>? realmId,
     Expression<String>? accountId,
+    Expression<bool>? isPinned,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -1248,6 +1549,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       if (background != null) 'background': background,
       if (realmId != null) 'realm_id': realmId,
       if (accountId != null) 'account_id': accountId,
+      if (isPinned != null) 'is_pinned': isPinned,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -1266,6 +1568,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Value<Map<String, dynamic>?>? background,
     Value<String?>? realmId,
     Value<String?>? accountId,
+    Value<bool?>? isPinned,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -1282,6 +1585,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       background: background ?? this.background,
       realmId: realmId ?? this.realmId,
       accountId: accountId ?? this.accountId,
+      isPinned: isPinned ?? this.isPinned,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -1326,6 +1630,9 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     if (accountId.present) {
       map['account_id'] = Variable<String>(accountId.value);
     }
+    if (isPinned.present) {
+      map['is_pinned'] = Variable<bool>(isPinned.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1354,6 +1661,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
           ..write('background: $background, ')
           ..write('realmId: $realmId, ')
           ..write('accountId: $accountId, ')
+          ..write('isPinned: $isPinned, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -3719,8 +4027,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$RealmsTableCreateCompanionBuilder =
     RealmsCompanion Function({
       required String id,
+      required String slug,
       Value<String?> name,
       Value<String?> description,
+      Value<String?> verifiedAs,
+      Value<DateTime?> verifiedAt,
+      required bool isCommunity,
+      required bool isPublic,
       Value<Map<String, dynamic>?> picture,
       Value<Map<String, dynamic>?> background,
       Value<String?> accountId,
@@ -3732,8 +4045,13 @@ typedef $$RealmsTableCreateCompanionBuilder =
 typedef $$RealmsTableUpdateCompanionBuilder =
     RealmsCompanion Function({
       Value<String> id,
+      Value<String> slug,
       Value<String?> name,
       Value<String?> description,
+      Value<String?> verifiedAs,
+      Value<DateTime?> verifiedAt,
+      Value<bool> isCommunity,
+      Value<bool> isPublic,
       Value<Map<String, dynamic>?> picture,
       Value<Map<String, dynamic>?> background,
       Value<String?> accountId,
@@ -3780,6 +4098,11 @@ class $$RealmsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get slug => $composableBuilder(
+    column: $table.slug,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -3787,6 +4110,26 @@ class $$RealmsTableFilterComposer
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get verifiedAs => $composableBuilder(
+    column: $table.verifiedAs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPublic => $composableBuilder(
+    column: $table.isPublic,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3870,6 +4213,11 @@ class $$RealmsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get slug => $composableBuilder(
+    column: $table.slug,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -3877,6 +4225,26 @@ class $$RealmsTableOrderingComposer
 
   ColumnOrderings<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get verifiedAs => $composableBuilder(
+    column: $table.verifiedAs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPublic => $composableBuilder(
+    column: $table.isPublic,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3923,6 +4291,9 @@ class $$RealmsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get slug =>
+      $composableBuilder(column: $table.slug, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -3930,6 +4301,24 @@ class $$RealmsTableAnnotationComposer
     column: $table.description,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get verifiedAs => $composableBuilder(
+    column: $table.verifiedAs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isCommunity => $composableBuilder(
+    column: $table.isCommunity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPublic =>
+      $composableBuilder(column: $table.isPublic, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String> get picture =>
       $composableBuilder(column: $table.picture, builder: (column) => column);
@@ -4007,8 +4396,13 @@ class $$RealmsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String> slug = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<String?> verifiedAs = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<bool> isCommunity = const Value.absent(),
+                Value<bool> isPublic = const Value.absent(),
                 Value<Map<String, dynamic>?> picture = const Value.absent(),
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> accountId = const Value.absent(),
@@ -4018,8 +4412,13 @@ class $$RealmsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => RealmsCompanion(
                 id: id,
+                slug: slug,
                 name: name,
                 description: description,
+                verifiedAs: verifiedAs,
+                verifiedAt: verifiedAt,
+                isCommunity: isCommunity,
+                isPublic: isPublic,
                 picture: picture,
                 background: background,
                 accountId: accountId,
@@ -4031,8 +4430,13 @@ class $$RealmsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                required String slug,
                 Value<String?> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<String?> verifiedAs = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                required bool isCommunity,
+                required bool isPublic,
                 Value<Map<String, dynamic>?> picture = const Value.absent(),
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> accountId = const Value.absent(),
@@ -4042,8 +4446,13 @@ class $$RealmsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => RealmsCompanion.insert(
                 id: id,
+                slug: slug,
                 name: name,
                 description: description,
+                verifiedAs: verifiedAs,
+                verifiedAt: verifiedAt,
+                isCommunity: isCommunity,
+                isPublic: isPublic,
                 picture: picture,
                 background: background,
                 accountId: accountId,
@@ -4110,6 +4519,7 @@ typedef $$ChatRoomsTableCreateCompanionBuilder =
       Value<Map<String, dynamic>?> background,
       Value<String?> realmId,
       Value<String?> accountId,
+      Value<bool?> isPinned,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -4127,6 +4537,7 @@ typedef $$ChatRoomsTableUpdateCompanionBuilder =
       Value<Map<String, dynamic>?> background,
       Value<String?> realmId,
       Value<String?> accountId,
+      Value<bool?> isPinned,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -4253,6 +4664,11 @@ class $$ChatRoomsTableFilterComposer
 
   ColumnFilters<String> get accountId => $composableBuilder(
     column: $table.accountId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPinned => $composableBuilder(
+    column: $table.isPinned,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4399,6 +4815,11 @@ class $$ChatRoomsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isPinned => $composableBuilder(
+    column: $table.isPinned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4480,6 +4901,9 @@ class $$ChatRoomsTableAnnotationComposer
 
   GeneratedColumn<String> get accountId =>
       $composableBuilder(column: $table.accountId, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPinned =>
+      $composableBuilder(column: $table.isPinned, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4606,6 +5030,7 @@ class $$ChatRoomsTableTableManager
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> realmId = const Value.absent(),
                 Value<String?> accountId = const Value.absent(),
+                Value<bool?> isPinned = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -4621,6 +5046,7 @@ class $$ChatRoomsTableTableManager
                 background: background,
                 realmId: realmId,
                 accountId: accountId,
+                isPinned: isPinned,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -4638,6 +5064,7 @@ class $$ChatRoomsTableTableManager
                 Value<Map<String, dynamic>?> background = const Value.absent(),
                 Value<String?> realmId = const Value.absent(),
                 Value<String?> accountId = const Value.absent(),
+                Value<bool?> isPinned = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -4653,6 +5080,7 @@ class $$ChatRoomsTableTableManager
                 background: background,
                 realmId: realmId,
                 accountId: accountId,
+                isPinned: isPinned,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
