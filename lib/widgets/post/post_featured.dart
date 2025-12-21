@@ -21,7 +21,8 @@ Future<List<SnPost>> featuredPosts(Ref ref) async {
 }
 
 class PostFeaturedList extends HookConsumerWidget {
-  const PostFeaturedList({super.key});
+  final bool collapsable;
+  const PostFeaturedList({super.key, this.collapsable = true});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,6 +87,7 @@ class PostFeaturedList extends HookConsumerWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
         margin: EdgeInsets.zero,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
               height: 48,
@@ -121,36 +123,37 @@ class PostFeaturedList extends HookConsumerWidget {
                     },
                     icon: const Icon(Symbols.arrow_right),
                   ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      isCollapsed.value = !isCollapsed.value;
-                      talker.info(
-                        'Manual toggle. isCollapsed set to ${isCollapsed.value}',
-                      );
-                      if (isCollapsed.value &&
-                          featuredPostsAsync.hasValue &&
-                          featuredPostsAsync.value!.isNotEmpty) {
-                        prefs.setString(
-                          kFeaturedPostsCollapsedId,
-                          featuredPostsAsync.value!.first.id,
-                        );
+                  if (collapsable)
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        isCollapsed.value = !isCollapsed.value;
                         talker.info(
-                          'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
+                          'Manual toggle. isCollapsed set to ${isCollapsed.value}',
                         );
-                      } else {
-                        prefs.remove(kFeaturedPostsCollapsedId);
-                        talker.info('Removed stored collapsed ID.');
-                      }
-                    },
-                    icon: Icon(
-                      isCollapsed.value
-                          ? Symbols.expand_more
-                          : Symbols.expand_less,
+                        if (isCollapsed.value &&
+                            featuredPostsAsync.hasValue &&
+                            featuredPostsAsync.value!.isNotEmpty) {
+                          prefs.setString(
+                            kFeaturedPostsCollapsedId,
+                            featuredPostsAsync.value!.first.id,
+                          );
+                          talker.info(
+                            'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
+                          );
+                        } else {
+                          prefs.remove(kFeaturedPostsCollapsedId);
+                          talker.info('Removed stored collapsed ID.');
+                        }
+                      },
+                      icon: Icon(
+                        isCollapsed.value
+                            ? Symbols.expand_more
+                            : Symbols.expand_less,
+                      ),
                     ),
-                  ),
                 ],
               ).padding(horizontal: 16, vertical: 8),
             ),
@@ -158,14 +161,14 @@ class PostFeaturedList extends HookConsumerWidget {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               child: Visibility(
-                visible: !isCollapsed.value,
+                visible: collapsable ? !isCollapsed.value : true,
                 child: featuredPostsAsync.when(
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(child: Text('Error: $error')),
                   data: (posts) {
                     return SizedBox(
-                      height: 320,
+                      height: 344,
                       child: PageView.builder(
                         controller: pageViewController,
                         scrollDirection: Axis.horizontal,
