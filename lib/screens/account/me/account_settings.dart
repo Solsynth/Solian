@@ -135,81 +135,73 @@ class AccountSettingsScreen extends HookConsumerWidget {
           ref
               .watch(accountConnectionsProvider)
               .when(
-                data:
-                    (connections) => Column(
-                      children: [
-                        for (final connection in connections)
-                          ListTile(
-                            minLeadingWidth: 48,
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              right: 17,
-                              top: 2,
-                              bottom: 4,
-                            ),
-                            title:
-                                Text(
-                                  getLocalizedProviderName(connection.provider),
-                                ).tr(),
-                            subtitle:
-                                connection.meta['email'] != null
-                                    ? Text(connection.meta['email'])
-                                    : Text(connection.providedIdentifier),
-                            leading: CircleAvatar(
-                              child: getProviderIcon(
-                                connection.provider,
-                                size: 16,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                              ),
-                            ).padding(top: 4),
-                            trailing: const Icon(Symbols.chevron_right),
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder:
-                                    (context) => AccountConnectionSheet(
-                                      connection: connection,
-                                    ),
-                              ).then((value) {
-                                if (value == true) {
-                                  ref.invalidate(accountConnectionsProvider);
-                                }
-                              });
-                            },
-                          ),
-                        if (connections.isNotEmpty) const Divider(height: 1),
-                        ListTile(
-                          minLeadingWidth: 48,
-                          contentPadding: const EdgeInsets.only(
-                            left: 24,
-                            right: 17,
-                          ),
-                          title: Text('accountConnectionAdd').tr(),
-                          leading: const Icon(Symbols.add),
-                          trailing: const Icon(Symbols.chevron_right),
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder:
-                                  (context) =>
-                                      const AccountConnectionNewSheet(),
-                            ).then((value) {
-                              if (value == true) {
-                                ref.invalidate(accountConnectionsProvider);
-                              }
-                            });
-                          },
+                data: (connections) => Column(
+                  children: [
+                    for (final connection in connections)
+                      ListTile(
+                        minLeadingWidth: 48,
+                        contentPadding: const EdgeInsets.only(
+                          left: 16,
+                          right: 17,
+                          top: 2,
+                          bottom: 4,
                         ),
-                      ],
+                        title: Text(
+                          getLocalizedProviderName(connection.provider),
+                        ).tr(),
+                        subtitle: connection.meta['email'] != null
+                            ? Text(connection.meta['email'])
+                            : Text(connection.providedIdentifier),
+                        leading: CircleAvatar(
+                          child: getProviderIcon(
+                            connection.provider,
+                            size: 16,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                        ).padding(top: 4),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) =>
+                                AccountConnectionSheet(connection: connection),
+                          ).then((value) {
+                            if (value == true) {
+                              ref.invalidate(accountConnectionsProvider);
+                            }
+                          });
+                        },
+                      ),
+                    if (connections.isNotEmpty) const Divider(height: 1),
+                    ListTile(
+                      minLeadingWidth: 48,
+                      contentPadding: const EdgeInsets.only(
+                        left: 24,
+                        right: 17,
+                      ),
+                      title: Text('accountConnectionAdd').tr(),
+                      leading: const Icon(Symbols.add),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) =>
+                              const AccountConnectionNewSheet(),
+                        ).then((value) {
+                          if (value == true) {
+                            ref.invalidate(accountConnectionsProvider);
+                          }
+                        });
+                      },
                     ),
-                error:
-                    (err, _) => ResponseErrorWidget(
-                      error: err,
-                      onRetry: () => ref.invalidate(accountConnectionsProvider),
-                    ),
+                  ],
+                ),
+                error: (err, _) => ResponseErrorWidget(
+                  error: err,
+                  onRetry: () => ref.invalidate(accountConnectionsProvider),
+                ),
                 loading: () => const ResponseLoadingWidget(),
               ),
         ],
@@ -223,95 +215,76 @@ class AccountSettingsScreen extends HookConsumerWidget {
         tilePadding: const EdgeInsets.only(left: 24, right: 17),
         children: [
           authFactors.when(
-            data:
-                (factors) => Column(
-                  children: [
-                    for (final factor in factors)
-                      ListTile(
-                        minLeadingWidth: 48,
-                        contentPadding: const EdgeInsets.only(
-                          left: 16,
-                          right: 17,
-                          top: 2,
-                          bottom: 4,
-                        ),
-                        title:
-                            Text(
-                              kFactorTypes[factor.type]!.$1,
-                              style:
-                                  factor.enabledAt == null
-                                      ? TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                      )
-                                      : null,
-                            ).tr(),
-                        subtitle:
-                            Text(
-                              kFactorTypes[factor.type]!.$2,
-                              style:
-                                  factor.enabledAt == null
-                                      ? TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                      )
-                                      : null,
-                            ).tr(),
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              factor.enabledAt == null
-                                  ? Theme.of(
-                                    context,
-                                  ).colorScheme.secondaryContainer
-                                  : Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                          child: Icon(kFactorTypes[factor.type]!.$3),
-                        ).padding(top: 4),
-                        trailing: const Icon(Symbols.chevron_right),
-                        isThreeLine: true,
-                        onTap: () {
-                          if (factor.type == 0) {
-                            requestResetPassword();
-                            return;
-                          }
-                          showModalBottomSheet(
-                            context: context,
-                            builder:
-                                (context) => AuthFactorSheet(factor: factor),
-                          ).then((value) {
-                            if (value == true) {
-                              ref.invalidate(authFactorsProvider);
-                            }
-                          });
-                        },
-                      ),
-                    if (factors.isNotEmpty) Divider(height: 1),
-                    ListTile(
-                      minLeadingWidth: 48,
-                      contentPadding: const EdgeInsets.only(
-                        left: 24,
-                        right: 17,
-                      ),
-                      title: Text('authFactorNew').tr(),
-                      leading: const Icon(Symbols.add),
-                      trailing: const Icon(Symbols.chevron_right),
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) => const AuthFactorNewSheet(),
-                        ).then((value) {
-                          if (value == true) {
-                            ref.invalidate(authFactorsProvider);
-                          }
-                        });
-                      },
+            data: (factors) => Column(
+              children: [
+                for (final factor in factors)
+                  ListTile(
+                    minLeadingWidth: 48,
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      right: 17,
+                      top: 2,
+                      bottom: 4,
                     ),
-                  ],
+                    title: Text(
+                      kFactorTypes[factor.type]!.$1,
+                      style: factor.enabledAt == null
+                          ? TextStyle(decoration: TextDecoration.lineThrough)
+                          : null,
+                    ).tr(),
+                    subtitle: Text(
+                      kFactorTypes[factor.type]!.$2,
+                      style: factor.enabledAt == null
+                          ? TextStyle(decoration: TextDecoration.lineThrough)
+                          : null,
+                    ).tr(),
+                    leading: CircleAvatar(
+                      backgroundColor: factor.enabledAt == null
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(kFactorTypes[factor.type]!.$3),
+                    ).padding(top: 4),
+                    trailing: const Icon(Symbols.chevron_right),
+                    isThreeLine: true,
+                    onTap: () {
+                      if (factor.type == 0) {
+                        requestResetPassword();
+                        return;
+                      }
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) => AuthFactorSheet(factor: factor),
+                      ).then((value) {
+                        if (value == true) {
+                          ref.invalidate(authFactorsProvider);
+                        }
+                      });
+                    },
+                  ),
+                if (factors.isNotEmpty) Divider(height: 1),
+                ListTile(
+                  minLeadingWidth: 48,
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  title: Text('authFactorNew').tr(),
+                  leading: const Icon(Symbols.add),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => const AuthFactorNewSheet(),
+                    ).then((value) {
+                      if (value == true) {
+                        ref.invalidate(authFactorsProvider);
+                      }
+                    });
+                  },
                 ),
-            error:
-                (err, _) => ResponseErrorWidget(
-                  error: err,
-                  onRetry: () => ref.invalidate(authFactorsProvider),
-                ),
+              ],
+            ),
+            error: (err, _) => ResponseErrorWidget(
+              error: err,
+              onRetry: () => ref.invalidate(authFactorsProvider),
+            ),
             loading: () => ResponseLoadingWidget(),
           ),
         ],
@@ -327,97 +300,84 @@ class AccountSettingsScreen extends HookConsumerWidget {
           ref
               .watch(contactMethodsProvider)
               .when(
-                data:
-                    (contacts) => Column(
-                      children: [
-                        for (final contact in contacts)
-                          ListTile(
-                            minLeadingWidth: 48,
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              right: 17,
-                              top: 2,
-                              bottom: 4,
-                            ),
-                            title: Text(
-                              contact.content,
-                              style:
-                                  contact.verifiedAt == null
-                                      ? TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                      )
-                                      : null,
-                            ),
-                            subtitle: Text(
-                              contact.type == 0
-                                  ? 'contactMethodTypeEmail'.tr()
-                                  : 'contactMethodTypePhone'.tr(),
-                              style:
-                                  contact.verifiedAt == null
-                                      ? TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                      )
-                                      : null,
-                            ),
-                            leading: CircleAvatar(
-                              backgroundColor:
-                                  contact.verifiedAt == null
-                                      ? Theme.of(
-                                        context,
-                                      ).colorScheme.secondaryContainer
-                                      : Theme.of(
-                                        context,
-                                      ).colorScheme.primaryContainer,
-                              child: Icon(
-                                contact.type == 0
-                                    ? Symbols.mail
-                                    : Symbols.phone,
-                              ),
-                            ).padding(top: 4),
-                            trailing: const Icon(Symbols.chevron_right),
-                            isThreeLine: false,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder:
-                                    (context) =>
-                                        ContactMethodSheet(contact: contact),
-                              ).then((value) {
-                                if (value == true) {
-                                  ref.invalidate(contactMethodsProvider);
-                                }
-                              });
-                            },
-                          ),
-                        if (contacts.isNotEmpty) const Divider(height: 1),
-                        ListTile(
-                          minLeadingWidth: 48,
-                          contentPadding: const EdgeInsets.only(
-                            left: 24,
-                            right: 17,
-                          ),
-                          title: Text('contactMethodNew').tr(),
-                          leading: const Icon(Symbols.add),
-                          trailing: const Icon(Symbols.chevron_right),
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder:
-                                  (context) => const ContactMethodNewSheet(),
-                            ).then((value) {
-                              if (value == true) {
-                                ref.invalidate(contactMethodsProvider);
-                              }
-                            });
-                          },
+                data: (contacts) => Column(
+                  children: [
+                    for (final contact in contacts)
+                      ListTile(
+                        minLeadingWidth: 48,
+                        contentPadding: const EdgeInsets.only(
+                          left: 16,
+                          right: 17,
+                          top: 2,
+                          bottom: 4,
                         ),
-                      ],
+                        title: Text(
+                          contact.content,
+                          style: contact.verifiedAt == null
+                              ? TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                )
+                              : null,
+                        ),
+                        subtitle: Text(
+                          contact.type == 0
+                              ? 'contactMethodTypeEmail'.tr()
+                              : 'contactMethodTypePhone'.tr(),
+                          style: contact.verifiedAt == null
+                              ? TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                )
+                              : null,
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: contact.verifiedAt == null
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          child: Icon(
+                            contact.type == 0 ? Symbols.mail : Symbols.phone,
+                          ),
+                        ).padding(top: 4),
+                        trailing: const Icon(Symbols.chevron_right),
+                        isThreeLine: false,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) =>
+                                ContactMethodSheet(contact: contact),
+                          ).then((value) {
+                            if (value == true) {
+                              ref.invalidate(contactMethodsProvider);
+                            }
+                          });
+                        },
+                      ),
+                    if (contacts.isNotEmpty) const Divider(height: 1),
+                    ListTile(
+                      minLeadingWidth: 48,
+                      contentPadding: const EdgeInsets.only(
+                        left: 24,
+                        right: 17,
+                      ),
+                      title: Text('contactMethodNew').tr(),
+                      leading: const Icon(Symbols.add),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => const ContactMethodNewSheet(),
+                        ).then((value) {
+                          if (value == true) {
+                            ref.invalidate(contactMethodsProvider);
+                          }
+                        });
+                      },
                     ),
-                error:
-                    (err, _) => ResponseErrorWidget(
-                      error: err,
-                      onRetry: () => ref.invalidate(contactMethodsProvider),
-                    ),
+                  ],
+                ),
+                error: (err, _) => ResponseErrorWidget(
+                  error: err,
+                  onRetry: () => ref.invalidate(contactMethodsProvider),
+                ),
                 loading: () => const ResponseLoadingWidget(),
               ),
         ],
@@ -439,6 +399,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {
       return Column(
+        spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SettingsSection(
@@ -450,38 +411,36 @@ class AccountSettingsScreen extends HookConsumerWidget {
             children: dangerZoneSettings,
           ),
         ],
-      );
+      ).padding(horizontal: 16);
     }
 
     return AppScaffold(
       appBar: AppBar(
         title: Text('accountSettings').tr(),
-        actions:
-            isDesktop
-                ? [
-                  IconButton(
-                    icon: const Icon(Symbols.help_outline),
-                    onPressed: () {
-                      // Show help dialog
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: Text('accountSettingsHelp').tr(),
-                              content: Text('accountSettingsHelpContent').tr(),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('Close').tr(),
-                                ),
-                              ],
-                            ),
-                      );
-                    },
-                  ),
-                  const Gap(8),
-                ]
-                : null,
+        actions: isDesktop
+            ? [
+                IconButton(
+                  icon: const Icon(Symbols.help_outline),
+                  onPressed: () {
+                    // Show help dialog
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('accountSettingsHelp').tr(),
+                        content: Text('accountSettingsHelpContent').tr(),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('Close').tr(),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const Gap(8),
+              ]
+            : null,
       ),
       body: Focus(
         autofocus: true,
@@ -513,22 +472,25 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-          child: Text(
-            title.tr(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Text(
+              title.tr(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-        ...children,
-        const SizedBox(height: 16),
-      ],
+          ...children,
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }
