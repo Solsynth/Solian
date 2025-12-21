@@ -19,6 +19,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CommandPattleWidget extends HookConsumerWidget {
   final VoidCallback onDismiss;
@@ -143,22 +144,21 @@ class CommandPattleWidget extends HookConsumerWidget {
               .take(5) // Limit to 5 results
               .toList();
 
-    // Combine results: chats first, then special actions, then routes
+    final filteredFallbacks =
+        searchQuery.value.isNotEmpty &&
+            filteredChats.isEmpty &&
+            filteredSpecialActions.isEmpty &&
+            filteredRoutes.isEmpty
+        ? _getFallbackActions(searchQuery.value)
+        : <FallbackAction>[];
+
+    // Combine results: fallbacks first, then chats, special actions, routes
     final allResults = [
+      ...filteredFallbacks,
       ...filteredChats,
       ...filteredSpecialActions,
       ...filteredRoutes,
     ];
-
-    // Update focused index when results change
-    useEffect(() {
-      if (allResults.isNotEmpty && focusedIndex.value == null) {
-        focusedIndex.value = 0;
-      } else if (allResults.isEmpty) {
-        focusedIndex.value = null;
-      }
-      return null;
-    }, [allResults]);
 
     // Scroll to focused item
     useEffect(() {
@@ -209,6 +209,9 @@ class CommandPattleWidget extends HookConsumerWidget {
                 item.action();
               } else if (item is RouteItem) {
                 _navigateToRoute(context, ref, item);
+              } else if (item is FallbackAction) {
+                onDismiss();
+                item.action();
               }
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
               if (allResults.isNotEmpty) {
@@ -239,106 +242,122 @@ class CommandPattleWidget extends HookConsumerWidget {
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Container(
             color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: AnimatedBuilder(
-                animation: animationController,
-                builder: (context, child) => Opacity(
-                  opacity: opacityAnimation,
-                  child: Transform.scale(scale: scaleAnimation, child: child),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height * 0.2,
                 ),
-                child: GestureDetector(
-                  onTap:
-                      () {}, // Prevent tap from dismissing when tapping inside
-                  child: Container(
-                    width: math.max(
-                      MediaQuery.of(context).size.width * 0.6,
-                      320,
-                    ),
-                    constraints: const BoxConstraints(
-                      maxWidth: 600,
-                      maxHeight: 500,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      elevation: 0,
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SearchBar(
-                            controller: textController,
-                            focusNode: focusNode,
-                            hintText: 'searchChatsAndPages'.tr(),
-                            leading: CircleAvatar(
-                              child: const Icon(Symbols.keyboard_command_key),
-                            ).padding(horizontal: 8),
-                          ),
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOut,
-                            child: allResults.isNotEmpty
-                                ? ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 300,
-                                    ),
-                                    child: ListView.builder(
-                                      padding: EdgeInsets.zero,
-                                      controller: scrollController,
-                                      shrinkWrap: true,
-                                      itemCount: allResults.length,
-                                      itemBuilder: (context, index) {
-                                        final item = allResults[index];
-                                        if (item is SnChatRoom) {
-                                          return _ChatRoomSearchResult(
-                                            room: item,
-                                            isFocused:
-                                                index == focusedIndex.value,
-                                            onTap: () => _navigateToChat(
-                                              context,
-                                              ref,
-                                              item,
-                                            ),
-                                          );
-                                        } else if (item is SpecialAction) {
-                                          return _SpecialActionSearchResult(
-                                            action: item,
-                                            isFocused:
-                                                index == focusedIndex.value,
-                                            onTap: () {
-                                              onDismiss();
-                                              item.action();
-                                            },
-                                          );
-                                        } else if (item is RouteItem) {
-                                          return _RouteSearchResult(
-                                            route: item,
-                                            isFocused:
-                                                index == focusedIndex.value,
-                                            onTap: () => _navigateToRoute(
-                                              context,
-                                              ref,
-                                              item,
-                                            ),
-                                          );
-                                        }
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
+                child: AnimatedBuilder(
+                  animation: animationController,
+                  builder: (context, child) => Opacity(
+                    opacity: opacityAnimation,
+                    child: Transform.scale(scale: scaleAnimation, child: child),
+                  ),
+                  child: GestureDetector(
+                    onTap:
+                        () {}, // Prevent tap from dismissing when tapping inside
+                    child: Container(
+                      width: math.max(
+                        MediaQuery.of(context).size.width * 0.6,
+                        320,
+                      ),
+                      constraints: const BoxConstraints(
+                        maxWidth: 600,
+                        maxHeight: 500,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
                           ),
                         ],
+                      ),
+                      child: Material(
+                        elevation: 0,
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SearchBar(
+                              controller: textController,
+                              focusNode: focusNode,
+                              hintText: 'searchChatsAndPages'.tr(),
+                              leading: CircleAvatar(
+                                child: const Icon(Symbols.keyboard_command_key),
+                              ).padding(horizontal: 8),
+                            ),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              child: allResults.isNotEmpty
+                                  ? ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 300,
+                                      ),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        controller: scrollController,
+                                        shrinkWrap: true,
+                                        itemCount: allResults.length,
+                                        itemBuilder: (context, index) {
+                                          final item = allResults[index];
+                                          if (item is SnChatRoom) {
+                                            return _ChatRoomSearchResult(
+                                              room: item,
+                                              isFocused:
+                                                  index == focusedIndex.value,
+                                              onTap: () => _navigateToChat(
+                                                context,
+                                                ref,
+                                                item,
+                                              ),
+                                            );
+                                          } else if (item is SpecialAction) {
+                                            return _SpecialActionSearchResult(
+                                              action: item,
+                                              isFocused:
+                                                  index == focusedIndex.value,
+                                              onTap: () {
+                                                onDismiss();
+                                                item.action();
+                                              },
+                                            );
+                                          } else if (item is RouteItem) {
+                                            return _RouteSearchResult(
+                                              route: item,
+                                              isFocused:
+                                                  index == focusedIndex.value,
+                                              onTap: () => _navigateToRoute(
+                                                context,
+                                                ref,
+                                                item,
+                                              ),
+                                            );
+                                          } else if (item is FallbackAction) {
+                                            return _FallbackSearchResult(
+                                              action: item,
+                                              isFocused:
+                                                  index == focusedIndex.value,
+                                              onTap: () {
+                                                onDismiss();
+                                                item.action();
+                                              },
+                                            );
+                                          }
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -369,6 +388,62 @@ class CommandPattleWidget extends HookConsumerWidget {
     onDismiss();
     ref.read(routerProvider).go(route.path);
   }
+
+  static List<FallbackAction> _getFallbackActions(String query) {
+    final List<FallbackAction> actions = [];
+
+    // Check if query is a URL
+    final Uri? uri = Uri.tryParse(query);
+    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+      actions.add(
+        FallbackAction(
+          name: 'Open URL',
+          description: 'Open $query in browser',
+          icon: Symbols.open_in_new,
+          action: () async {
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+        ),
+      );
+    } else {
+      // Search the web
+      actions.add(
+        FallbackAction(
+          name: 'Search the web',
+          description: 'Search "$query" on Google',
+          icon: Symbols.search,
+          action: () async {
+            final searchUri = Uri.https('www.google.com', '/search', {
+              'q': query,
+            });
+            if (await canLaunchUrl(searchUri)) {
+              await launchUrl(searchUri, mode: LaunchMode.externalApplication);
+            }
+          },
+        ),
+      );
+    }
+
+    return actions;
+  }
+}
+
+class FallbackAction {
+  final String name;
+  final String description;
+  final IconData icon;
+  final VoidCallback action;
+  final List<String> searchableAliases;
+
+  const FallbackAction({
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.action,
+    this.searchableAliases = const [],
+  });
 }
 
 class _RouteSearchResult extends StatelessWidget {
@@ -429,6 +504,40 @@ class _SpecialActionSearchResult extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
           foregroundColor: Theme.of(context).colorScheme.onTertiaryContainer,
+          child: Icon(action.icon),
+        ),
+        title: Text(action.name),
+        subtitle: Text(action.description),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _FallbackSearchResult extends StatelessWidget {
+  final FallbackAction action;
+  final bool isFocused;
+  final VoidCallback onTap;
+
+  const _FallbackSearchResult({
+    required this.action,
+    required this.isFocused,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isFocused
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : null,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
           child: Icon(action.icon),
         ),
         title: Text(action.name),
