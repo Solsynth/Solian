@@ -99,7 +99,9 @@ class DashboardGrid extends HookConsumerWidget {
                   SingleChildScrollView(
                         padding: isWide
                             ? const EdgeInsets.symmetric(horizontal: 24)
-                            : const EdgeInsets.only(bottom: 64),
+                            : EdgeInsets.only(
+                                bottom: 64 + devicePadding.bottom,
+                              ),
                         scrollDirection: isWide
                             ? Axis.horizontal
                             : Axis.vertical,
@@ -136,7 +138,7 @@ class _DashboardGridWide extends HookConsumerWidget {
           child: Column(
             spacing: 16,
             children: [
-              CheckInWidget(margin: EdgeInsets.zero, checkInOnly: true),
+              CheckInWidget(margin: EdgeInsets.zero),
               Card(
                 margin: EdgeInsets.zero,
                 child: FortuneGraphWidget(
@@ -190,7 +192,7 @@ class _DashboardGridNarrow extends HookConsumerWidget {
       children: [
         if (userInfo.value != null && userInfo.value?.activatedAt == null)
           AccountUnactivatedCard(),
-        CheckInWidget(margin: EdgeInsets.zero, checkInOnly: true),
+        CheckInWidget(margin: EdgeInsets.zero),
         FortuneCard(),
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 400),
