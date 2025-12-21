@@ -386,6 +386,17 @@ class AccountScreen extends HookConsumerWidget {
                   context.goNamed('files');
                 },
               ),
+            if (!isWideScreen(context))
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Symbols.group),
+                trailing: const Icon(Symbols.chevron_right),
+                contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                title: Text('realms').tr(),
+                onTap: () {
+                  context.goNamed('realmList');
+                },
+              ),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.wallet),
@@ -408,7 +419,7 @@ class AccountScreen extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.emoji_emotions),
+              leading: const Icon(Symbols.sticker_rounded),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('stickers').tr(),

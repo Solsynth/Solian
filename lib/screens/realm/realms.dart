@@ -63,6 +63,7 @@ class RealmListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: const PageBackButton(backTo: '/account'),
         title: const Text('realms').tr(),
         actions: [
           IconButton(
@@ -99,33 +100,31 @@ class RealmListScreen extends HookConsumerWidget {
       ),
       body: ExtendedRefreshIndicator(
         child: realms.when(
-          data:
-              (value) => Column(
-                children: [
-                  Expanded(
-                    child: ListView.separated(
-                      padding: EdgeInsets.only(
-                        top: 8,
-                        bottom: MediaQuery.of(context).padding.bottom + 8,
-                      ),
-                      itemCount: value.length,
-                      itemBuilder: (context, item) {
-                        return ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 540),
-                          child: RealmListTile(realm: value[item]),
-                        ).padding(horizontal: 8).center();
-                      },
-                      separatorBuilder: (_, _) => const Gap(8),
-                    ),
+          data: (value) => Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  padding: EdgeInsets.only(
+                    top: 8,
+                    bottom: MediaQuery.of(context).padding.bottom + 8,
                   ),
-                ],
+                  itemCount: value.length,
+                  itemBuilder: (context, item) {
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 540),
+                      child: RealmListTile(realm: value[item]),
+                    ).padding(horizontal: 8).center();
+                  },
+                  separatorBuilder: (_, _) => const Gap(8),
+                ),
               ),
+            ],
+          ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error:
-              (e, _) => ResponseErrorWidget(
-                error: e,
-                onRetry: () => ref.invalidate(realmsJoinedProvider),
-              ),
+          error: (e, _) => ResponseErrorWidget(
+            error: e,
+            onRetry: () => ref.invalidate(realmsJoinedProvider),
+          ),
         ),
         onRefresh: () => ref.refresh(realmsJoinedProvider.future),
       ),
@@ -183,57 +182,49 @@ class _RealmInviteSheet extends HookConsumerWidget {
         ),
       ],
       child: invites.when(
-        data:
-            (items) =>
-                items.isEmpty
-                    ? Center(
-                      child:
-                          Text(
-                            'invitesEmpty',
-                            textAlign: TextAlign.center,
-                          ).tr(),
-                    )
-                    : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final invite = items[index];
-                        return ListTile(
-                          leading: ProfilePictureWidget(
-                            fileId: invite.realm!.picture?.id,
-                            fallbackIcon: Symbols.group,
-                          ),
-                          title: Text(invite.realm!.name),
-                          subtitle:
-                              Text(
-                                invite.role >= 100
-                                    ? 'permissionOwner'
-                                    : invite.role >= 50
-                                    ? 'permissionModerator'
-                                    : 'permissionMember',
-                              ).tr(),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Symbols.check),
-                                onPressed: () => acceptInvite(invite),
-                              ),
-                              IconButton(
-                                icon: const Icon(Symbols.close),
-                                onPressed: () => declineInvite(invite),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+        data: (items) => items.isEmpty
+            ? Center(
+                child: Text('invitesEmpty', textAlign: TextAlign.center).tr(),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final invite = items[index];
+                  return ListTile(
+                    leading: ProfilePictureWidget(
+                      fileId: invite.realm!.picture?.id,
+                      fallbackIcon: Symbols.group,
                     ),
+                    title: Text(invite.realm!.name),
+                    subtitle: Text(
+                      invite.role >= 100
+                          ? 'permissionOwner'
+                          : invite.role >= 50
+                          ? 'permissionModerator'
+                          : 'permissionMember',
+                    ).tr(),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Symbols.check),
+                          onPressed: () => acceptInvite(invite),
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.close),
+                          onPressed: () => declineInvite(invite),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, _) => ResponseErrorWidget(
-              error: error,
-              onRetry: () => ref.invalidate(realmInvitesProvider),
-            ),
+        error: (error, _) => ResponseErrorWidget(
+          error: error,
+          onRetry: () => ref.invalidate(realmInvitesProvider),
+        ),
       ),
     );
   }
