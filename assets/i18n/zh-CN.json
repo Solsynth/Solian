@@ -1486,7 +1486,7 @@
   "createAccountAgreeTerms": "我已阅读并同意服务条款。",
   "createAccountProfile": "创建您的个人资料",
   "createAccountToS": "查看条款与条件",
-  "accountActivationAlert": "请记住激活您的账户",
+  "accountActivationAlert": "激活您的账户",
   "accountActivationAlertHint": "未激活的账户可能会导致各种权限问题，请点击我们发送到您邮箱收件箱的链接来激活您的账户。",
   "accountActivationResendHint": "没收到？请尝试点击下方按钮重新发送。如果您在账户未激活期间需要更新邮箱，请随时联系我们的客服。",
   "accountActivationResend": "重新发送",

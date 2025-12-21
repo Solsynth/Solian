@@ -346,29 +346,7 @@ class ExploreScreen extends HookConsumerWidget {
             child: Align(
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
-                child: Column(
-                  spacing: 8,
-                  children: [
-                    const Gap(4),
-                    if (user.value?.activatedAt == null)
-                      AccountUnactivatedCard(),
-                    CheckInWidget(
-                      margin: EdgeInsets.zero,
-                      onChecked: () {
-                        ref.invalidate(eventCalendarProvider(query.value));
-                      },
-                    ),
-                    if (notificationCount.value != null &&
-                        notificationCount.value! > 0)
-                      notificationIndicatorWidget(
-                        context,
-                        count: notificationCount.value ?? 0,
-                        margin: EdgeInsets.zero,
-                      ),
-                    PostFeaturedList(),
-                    FriendsOverviewWidget(),
-                  ],
-                ),
+                child: Column(spacing: 8, children: [const Gap(4)]),
               ),
             ),
           )

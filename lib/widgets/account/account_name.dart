@@ -219,20 +219,20 @@ class AccountName extends StatelessWidget {
                 if (account.automatedId != null)
                   hideOverlay
                       ? Icon(
-                        Symbols.smart_toy,
-                        size: 16,
-                        color: nameStyle.color,
-                        fill: 1,
-                      )
-                      : Tooltip(
-                        message: 'accountAutomated'.tr(),
-                        child: Icon(
                           Symbols.smart_toy,
                           size: 16,
                           color: nameStyle.color,
                           fill: 1,
+                        )
+                      : Tooltip(
+                          message: 'accountAutomated'.tr(),
+                          child: Icon(
+                            Symbols.smart_toy,
+                            size: 16,
+                            color: nameStyle.color,
+                            fill: 1,
+                          ),
                         ),
-                      ),
               ],
             );
           }
@@ -275,20 +275,20 @@ class AccountName extends StatelessWidget {
         if (account.automatedId != null)
           hideOverlay
               ? Icon(
-                Symbols.smart_toy,
-                size: 16,
-                color: nameStyle.color,
-                fill: 1,
-              )
-              : Tooltip(
-                message: 'accountAutomated'.tr(),
-                child: Icon(
                   Symbols.smart_toy,
                   size: 16,
                   color: nameStyle.color,
                   fill: 1,
+                )
+              : Tooltip(
+                  message: 'accountAutomated'.tr(),
+                  child: Icon(
+                    Symbols.smart_toy,
+                    size: 16,
+                    color: nameStyle.color,
+                    fill: 1,
+                  ),
                 ),
-              ),
       ],
     );
   }
@@ -310,29 +310,28 @@ class VerificationMark extends StatelessWidget {
           ? kVerificationMarkIcons[mark.type]
           : Symbols.verified,
       size: 16,
-      color:
-          (kVerificationMarkColors.length > mark.type && mark.type >= 0)
-              ? kVerificationMarkColors[mark.type]
-              : Colors.blue,
+      color: (kVerificationMarkColors.length > mark.type && mark.type >= 0)
+          ? kVerificationMarkColors[mark.type]
+          : Colors.blue,
       fill: 1,
     );
 
     return hideOverlay
         ? icon
         : Tooltip(
-          richMessage: TextSpan(
-            text: mark.title ?? 'No title',
-            children: [
-              TextSpan(text: '\n'),
-              TextSpan(
-                text: mark.description ?? 'descriptionNone'.tr(),
-                style: TextStyle(fontWeight: FontWeight.normal),
-              ),
-            ],
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          child: icon,
-        );
+            richMessage: TextSpan(
+              text: mark.title ?? 'No title',
+              children: [
+                TextSpan(text: '\n'),
+                TextSpan(
+                  text: mark.description ?? 'descriptionNone'.tr(),
+                  style: TextStyle(fontWeight: FontWeight.normal),
+                ),
+              ],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            child: icon,
+          );
   }
 }
 
@@ -384,19 +383,19 @@ class StellarMembershipMark extends StatelessWidget {
     return hideOverlay
         ? icon
         : Tooltip(
-          richMessage: TextSpan(
-            text: 'stellarMembership'.tr(),
-            children: [
-              TextSpan(text: '\n'),
-              TextSpan(
-                text: 'currentMembershipMember'.tr(args: [tierName]),
-                style: TextStyle(fontWeight: FontWeight.normal),
-              ),
-            ],
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          child: icon,
-        );
+            richMessage: TextSpan(
+              text: 'stellarMembership'.tr(),
+              children: [
+                TextSpan(text: '\n'),
+                TextSpan(
+                  text: 'currentMembershipMember'.tr(args: [tierName]),
+                  style: TextStyle(fontWeight: FontWeight.normal),
+                ),
+              ],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            child: icon,
+          );
   }
 }
 
@@ -414,10 +413,9 @@ class VerificationStatusCard extends StatelessWidget {
               ? kVerificationMarkIcons[mark.type]
               : Symbols.verified,
           size: 32,
-          color:
-              (kVerificationMarkColors.length > mark.type && mark.type >= 0)
-                  ? kVerificationMarkColors[mark.type]
-                  : Colors.blue,
+          color: (kVerificationMarkColors.length > mark.type && mark.type >= 0)
+              ? kVerificationMarkColors[mark.type]
+              : Colors.blue,
           fill: 1,
         ).alignment(Alignment.centerLeft),
         const Gap(8),

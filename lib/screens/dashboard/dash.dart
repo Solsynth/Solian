@@ -13,12 +13,12 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/notification_tile.dart';
 import 'package:island/widgets/post/post_featured.dart';
-import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/screens/notification.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -124,9 +124,13 @@ class _DashboardGridWide extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
     return Row(
       spacing: 16,
       children: [
+        if (userInfo.value != null && userInfo.value?.activatedAt == null)
+          SizedBox(width: 400, child: AccountUnactivatedCard()),
         SizedBox(
           width: 400,
           child: Column(
@@ -151,7 +155,7 @@ class _DashboardGridWide extends HookConsumerWidget {
             ],
           ),
         ),
-        SizedBox(width: 400, child: FeaturedPostCard()),
+        SizedBox(width: 400, child: PostFeaturedList(collapsable: false)),
         SizedBox(
           width: 400,
           child: Column(
@@ -179,12 +183,19 @@ class _DashboardGridNarrow extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
     return Column(
       spacing: 16,
       children: [
+        if (userInfo.value != null && userInfo.value?.activatedAt == null)
+          AccountUnactivatedCard(),
         CheckInWidget(margin: EdgeInsets.zero, checkInOnly: true),
         FortuneCard(),
-        SizedBox(height: 400, child: FeaturedPostCard()),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 400),
+          child: PostFeaturedList(),
+        ),
         FriendsOverviewWidget(),
         NotificationsCard(),
         ChatListCard(),
@@ -310,65 +321,6 @@ class ClockCard extends HookConsumerWidget {
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class FeaturedPostCard extends HookConsumerWidget {
-  const FeaturedPostCard({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final featuredPostsAsync = ref.watch(featuredPostsProvider);
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Card(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        margin: EdgeInsets.zero,
-        child: Column(
-          children: [
-            SizedBox(
-              height: 48,
-              child: Row(
-                spacing: 8,
-                children: [
-                  const Icon(Symbols.highlight),
-                  Text('highlightPost').tr(),
-                ],
-              ).padding(horizontal: 16, vertical: 8),
-            ),
-            Expanded(
-              child: featuredPostsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
-                data: (posts) {
-                  if (posts.isEmpty) {
-                    return Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Center(
-                        child: Text('noFeaturedPostsAvailable').tr(),
-                      ),
-                    );
-                  }
-                  return PageView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: posts.length,
-                    itemBuilder: (context, index) {
-                      return SingleChildScrollView(
-                        child: PostActionableItem(
-                          item: posts[index],
-                          borderRadius: 8,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
             ),
           ],
         ),
