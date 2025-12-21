@@ -362,7 +362,6 @@ class ExploreScreen extends HookConsumerWidget {
     final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
 
     return AppBar(
-      toolbarHeight: 48,
       flexibleSpace: Container(
         height: 48,
         margin: EdgeInsets.only(
@@ -371,91 +370,94 @@ class ExploreScreen extends HookConsumerWidget {
           top: 4 + MediaQuery.of(context).padding.top,
           bottom: 4,
         ),
-        child: Row(
-          spacing: 8,
-          children: [
-            IconButton(
-              onPressed: () => handleFilterChange(null),
-              icon: Icon(
-                Symbols.explore,
-                color: foregroundColor,
-                fill: currentFilter == null ? 1 : null,
-              ),
-              tooltip: 'explore'.tr(),
-              isSelected: currentFilter == null,
-              color: currentFilter == null ? foregroundColor : null,
-            ),
-            IconButton(
-              onPressed: () => handleFilterChange('subscriptions'),
-              icon: Icon(
-                Symbols.subscriptions,
-                color: foregroundColor,
-                fill: currentFilter == 'subscription' ? 1 : null,
-              ),
-              tooltip: 'exploreFilterSubscriptions'.tr(),
-              isSelected: currentFilter == 'subscriptions',
-            ),
-            IconButton(
-              onPressed: () => handleFilterChange('friends'),
-              icon: Icon(
-                Symbols.people,
-                color: foregroundColor,
-                fill: currentFilter == 'friends' ? 1 : null,
-              ),
-              tooltip: 'exploreFilterFriends'.tr(),
-              isSelected: currentFilter == 'friends',
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () {
-                context.pushNamed('articles');
-              },
-              icon: Icon(Symbols.auto_stories, color: foregroundColor),
-              tooltip: 'webArticlesStand'.tr(),
-            ),
-            PopupMenuButton(
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.category),
-                      const Gap(12),
-                      Text('categoriesAndTags').tr(),
-                    ],
-                  ),
-                  onTap: () {
-                    context.pushNamed('postCategories');
-                  },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            spacing: 8,
+            children: [
+              IconButton(
+                onPressed: () => handleFilterChange(null),
+                icon: Icon(
+                  Symbols.explore,
+                  color: foregroundColor,
+                  fill: currentFilter == null ? 1 : null,
                 ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.shuffle),
-                      const Gap(12),
-                      Text('postShuffle').tr(),
-                    ],
-                  ),
-                  onTap: () {
-                    context.pushNamed('postShuffle');
-                  },
+                tooltip: 'explore'.tr(),
+                isSelected: currentFilter == null,
+                color: currentFilter == null ? foregroundColor : null,
+              ),
+              IconButton(
+                onPressed: () => handleFilterChange('subscriptions'),
+                icon: Icon(
+                  Symbols.subscriptions,
+                  color: foregroundColor,
+                  fill: currentFilter == 'subscription' ? 1 : null,
                 ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.search),
-                      const Gap(12),
-                      Text('search').tr(),
-                    ],
-                  ),
-                  onTap: () {
-                    context.pushNamed('postSearch');
-                  },
+                tooltip: 'exploreFilterSubscriptions'.tr(),
+                isSelected: currentFilter == 'subscriptions',
+              ),
+              IconButton(
+                onPressed: () => handleFilterChange('friends'),
+                icon: Icon(
+                  Symbols.people,
+                  color: foregroundColor,
+                  fill: currentFilter == 'friends' ? 1 : null,
                 ),
-              ],
-              icon: Icon(Symbols.action_key, color: foregroundColor),
-              tooltip: 'search'.tr(),
-            ),
-          ],
+                tooltip: 'exploreFilterFriends'.tr(),
+                isSelected: currentFilter == 'friends',
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  context.pushNamed('articles');
+                },
+                icon: Icon(Symbols.auto_stories, color: foregroundColor),
+                tooltip: 'webArticlesStand'.tr(),
+              ),
+              PopupMenuButton(
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.category),
+                        const Gap(12),
+                        Text('categoriesAndTags').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('postCategories');
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.shuffle),
+                        const Gap(12),
+                        Text('postShuffle').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('postShuffle');
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.search),
+                        const Gap(12),
+                        Text('search').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('postSearch');
+                    },
+                  ),
+                ],
+                icon: Icon(Symbols.action_key, color: foregroundColor),
+                tooltip: 'search'.tr(),
+              ),
+            ],
+          ),
         ),
       ),
     );

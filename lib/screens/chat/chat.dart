@@ -468,70 +468,84 @@ class ChatListScreen extends HookConsumerWidget {
       return const EmptyPageHolder();
     }
 
+    final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
+
     return AppScaffold(
       extendBody: false, // Prevent conflicts with tabs navigation
       appBar: AppBar(
-        title: const Text('chat').tr(),
-        bottom: TabBar(
-          controller: tabController,
-          tabs: [
-            Tab(
-              child: Text(
-                'chatTabAll'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
-                ),
-              ),
-            ),
-            Tab(
-              child: Text(
-                'chatTabDirect'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
-                ),
-              ),
-            ),
-            Tab(
-              child: Text(
-                'chatTabGroup'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Badge(
-              label: Text(
-                chatInvites.when(
-                  data: (invites) => invites.length.toString(),
-                  error: (_, _) => '0',
-                  loading: () => '0',
-                ),
-              ),
-              isLabelVisible: chatInvites.when(
-                data: (invites) => invites.isNotEmpty,
-                error: (_, _) => false,
-                loading: () => false,
-              ),
-              child: const Icon(Symbols.email),
-            ),
-            onPressed: () {
-              showModalBottomSheet(
-                useRootNavigator: true,
-                isScrollControlled: true,
-                context: context,
-                builder: (context) => const _ChatInvitesSheet(),
-              );
-            },
+        flexibleSpace: Container(
+          height: 48,
+          margin: EdgeInsets.only(
+            left: 8,
+            right: 8,
+            top: 4 + MediaQuery.of(context).padding.top,
+            bottom: 4,
           ),
-          const Gap(8),
-        ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Symbols.inbox,
+                          fill: tabController.index == 0 ? 1 : 0,
+                        ),
+                        color: appbarFeColor,
+                        onPressed: () => tabController.animateTo(0),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Symbols.person,
+                          fill: tabController.index == 1 ? 1 : 0,
+                        ),
+                        color: appbarFeColor,
+                        onPressed: () => tabController.animateTo(1),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Symbols.group,
+                          fill: tabController.index == 2 ? 1 : 0,
+                        ),
+                        color: appbarFeColor,
+                        onPressed: () => tabController.animateTo(2),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Badge(
+                    label: Text(
+                      chatInvites.when(
+                        data: (invites) => invites.length.toString(),
+                        error: (_, _) => '0',
+                        loading: () => '0',
+                      ),
+                    ),
+                    isLabelVisible: chatInvites.when(
+                      data: (invites) => invites.isNotEmpty,
+                      error: (_, _) => false,
+                      loading: () => false,
+                    ),
+                    child: const Icon(Symbols.email),
+                  ),
+                  color: appbarFeColor,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      useRootNavigator: true,
+                      isScrollControlled: true,
+                      context: context,
+                      builder: (context) => const _ChatInvitesSheet(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: ChatListBodyWidget(
         isFloating: false,
