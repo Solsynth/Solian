@@ -10,17 +10,20 @@ import "package:island/widgets/thought/thought_shared.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 
 class ThoughtSheet extends HookConsumerWidget {
+  final String? initialMessage;
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
 
   const ThoughtSheet({
     super.key,
+    this.initialMessage,
     this.attachedMessages = const [],
     this.attachedPosts = const [],
   });
 
   static Future<void> show(
     BuildContext context, {
+    String? initialMessage,
     List<Map<String, dynamic>> attachedMessages = const [],
     List<String> attachedPosts = const [],
   }) {
@@ -28,11 +31,11 @@ class ThoughtSheet extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder:
-          (context) => ThoughtSheet(
-            attachedMessages: attachedMessages,
-            attachedPosts: attachedPosts,
-          ),
+      builder: (context) => ThoughtSheet(
+        initialMessage: initialMessage,
+        attachedMessages: attachedMessages,
+        attachedPosts: attachedPosts,
+      ),
     );
   }
 
@@ -40,6 +43,7 @@ class ThoughtSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatState = useThoughtChat(
       ref,
+      initialMessage: initialMessage,
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
@@ -75,31 +79,30 @@ class ThoughtSheet extends HookConsumerWidget {
           return status
               ? chatInterface
               : Column(
-                children: [
-                  MaterialBanner(
-                    leading: const Icon(Symbols.error),
-                    content: const Text(
-                      'You have unpaid orders. Please settle your payment to continue using the service.',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          retry();
-                        },
-                        child: Text('retry'.tr()),
+                  children: [
+                    MaterialBanner(
+                      leading: const Icon(Symbols.error),
+                      content: const Text(
+                        'You have unpaid orders. Please settle your payment to continue using the service.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ],
-                  ),
-                  Expanded(child: chatInterface),
-                ],
-              );
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            retry();
+                          },
+                          child: Text('retry'.tr()),
+                        ),
+                      ],
+                    ),
+                    Expanded(child: chatInterface),
+                  ],
+                );
         },
-        orElse:
-            () => ThoughtChatInterface(
-              attachedMessages: attachedMessages,
-              attachedPosts: attachedPosts,
-            ),
+        orElse: () => ThoughtChatInterface(
+          attachedMessages: attachedMessages,
+          attachedPosts: attachedPosts,
+        ),
       ),
     );
   }

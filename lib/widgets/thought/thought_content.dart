@@ -28,93 +28,45 @@ class ThoughtContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isStreaming) {
-      // Streaming text with spinner
-      if (streamingText.isNotEmpty) {
-        final isStreamingError = streamingText.startsWith('Error:');
-        return Container(
-          padding: isStreamingError ? const EdgeInsets.all(8) : EdgeInsets.zero,
-          decoration:
-              isStreamingError
-                  ? BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.error,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  )
-                  : null,
-          child: MarkdownTextContent(
-            isSelectable: true,
-            content: streamingText,
-            extraBlockSyntaxList: [ProposalBlockSyntax()],
-            textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-              color:
-                  isStreamingError ? Theme.of(context).colorScheme.error : null,
-            ),
-            extraGenerators: [
-              ProposalGenerator(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                foregroundColor:
-                    Theme.of(context).colorScheme.onSecondaryContainer,
-                borderColor: Theme.of(context).colorScheme.outline,
+    final content = streamingText.isNotEmpty
+        ? streamingText
+        : thought != null
+        ? thought!.parts
+              .where((p) => p.type == ThinkingMessagePartType.text)
+              .map((p) => p.text ?? '')
+              .join('')
+        : '';
+
+    if (content.isEmpty) return const SizedBox.shrink();
+
+    final isError = content.startsWith('Error:') || _isErrorMessage;
+
+    return Container(
+      padding: isError ? const EdgeInsets.all(8) : EdgeInsets.zero,
+      decoration: isError
+          ? BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.error,
+                width: 1,
               ),
-            ],
+              borderRadius: BorderRadius.circular(8),
+            )
+          : null,
+      child: MarkdownTextContent(
+        isSelectable: true,
+        content: content,
+        extraBlockSyntaxList: [ProposalBlockSyntax()],
+        textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: isError ? Theme.of(context).colorScheme.error : null,
+        ),
+        extraGenerators: [
+          ProposalGenerator(
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+            borderColor: Theme.of(context).colorScheme.outline,
           ),
-        );
-      }
-      return const SizedBox.shrink();
-    } else {
-      // Regular thought content - render parts
-      if (thought!.parts.isNotEmpty) {
-        final textParts = thought!.parts
-            .where((p) => p.type == ThinkingMessagePartType.text)
-            .map((p) => p.text ?? '')
-            .join('');
-        if (textParts.isNotEmpty) {
-          return Container(
-            padding:
-                _isErrorMessage
-                    ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-                    : EdgeInsets.zero,
-            decoration:
-                _isErrorMessage
-                    ? BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.error.withOpacity(0.1),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.error,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    )
-                    : null,
-            child: MarkdownTextContent(
-              isSelectable: true,
-              content: textParts,
-              extraBlockSyntaxList: [ProposalBlockSyntax()],
-              textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color:
-                    _isErrorMessage
-                        ? Theme.of(context).colorScheme.error
-                        : null,
-              ),
-              extraGenerators: [
-                ProposalGenerator(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onSecondaryContainer,
-                  borderColor: Theme.of(context).colorScheme.outline,
-                ),
-              ],
-            ),
-          );
-        }
-      }
-      return const SizedBox.shrink();
-    }
+        ],
+      ),
+    );
   }
 }

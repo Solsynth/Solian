@@ -29,16 +29,17 @@ class CommandPattleWidget extends HookConsumerWidget {
   static List<SpecialAction> _getSpecialActions(BuildContext context) {
     return [
       SpecialAction(
-        name: 'Compose Post',
-        description: 'Create a new post',
+        name: 'postCompose'.tr(),
+        description: 'postComposeDescription'.tr(),
         icon: Symbols.edit,
         action: () {
           eventBus.fire(const ShowComposeSheetEvent());
         },
       ),
       SpecialAction(
-        name: 'Notifications',
-        description: 'View your notifications',
+        name: 'notifications'.tr(),
+        description: 'notificationsDescription'.tr(),
+        searchableAliases: ['notifications', 'alert', 'bell'],
         icon: Symbols.notifications,
         action: () {
           eventBus.fire(const ShowNotificationSheetEvent());
@@ -149,7 +150,7 @@ class CommandPattleWidget extends HookConsumerWidget {
             filteredChats.isEmpty &&
             filteredSpecialActions.isEmpty &&
             filteredRoutes.isEmpty
-        ? _getFallbackActions(searchQuery.value)
+        ? _getFallbackActions(context, searchQuery.value)
         : <FallbackAction>[];
 
     // Combine results: fallbacks first, then chats, special actions, routes
@@ -202,17 +203,7 @@ class CommandPattleWidget extends HookConsumerWidget {
             if (event.logicalKey == LogicalKeyboardKey.enter ||
                 event.logicalKey == LogicalKeyboardKey.numpadEnter) {
               final item = allResults[focusedIndex.value ?? 0];
-              if (item is SnChatRoom) {
-                _navigateToChat(context, ref, item);
-              } else if (item is SpecialAction) {
-                onDismiss();
-                item.action();
-              } else if (item is RouteItem) {
-                _navigateToRoute(context, ref, item);
-              } else if (item is FallbackAction) {
-                onDismiss();
-                item.action();
-              }
+              _executeItem(context, ref, item);
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
               if (allResults.isNotEmpty) {
                 if (focusedIndex.value == null) {
@@ -291,6 +282,13 @@ class CommandPattleWidget extends HookConsumerWidget {
                               leading: CircleAvatar(
                                 child: const Icon(Symbols.keyboard_command_key),
                               ).padding(horizontal: 8),
+                              onSubmitted: !isDesktop() && allResults.isNotEmpty
+                                  ? (value) => _executeItem(
+                                      context,
+                                      ref,
+                                      allResults[0],
+                                    )
+                                  : null,
                             ),
                             AnimatedSize(
                               duration: const Duration(milliseconds: 200),
@@ -389,42 +387,79 @@ class CommandPattleWidget extends HookConsumerWidget {
     ref.read(routerProvider).go(route.path);
   }
 
-  static List<FallbackAction> _getFallbackActions(String query) {
+  void _executeItem(BuildContext context, WidgetRef ref, dynamic item) {
+    if (item is SnChatRoom) {
+      _navigateToChat(context, ref, item);
+    } else if (item is SpecialAction) {
+      onDismiss();
+      item.action();
+    } else if (item is RouteItem) {
+      _navigateToRoute(context, ref, item);
+    } else if (item is FallbackAction) {
+      onDismiss();
+      item.action();
+    }
+  }
+
+  static List<FallbackAction> _getFallbackActions(
+    BuildContext context,
+    String query,
+  ) {
     final List<FallbackAction> actions = [];
 
     // Check if query is a URL
     final Uri? uri = Uri.tryParse(query);
-    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+    final isValidUrl =
+        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+    final isDomain = RegExp(
+      r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$',
+    ).hasMatch(query);
+
+    if (isValidUrl || isDomain) {
+      final finalUri = isDomain ? Uri.parse('https://$query') : uri!;
       actions.add(
         FallbackAction(
           name: 'Open URL',
-          description: 'Open $query in browser',
+          description: 'Open ${finalUri.toString()} in browser',
           icon: Symbols.open_in_new,
           action: () async {
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-        ),
-      );
-    } else {
-      // Search the web
-      actions.add(
-        FallbackAction(
-          name: 'Search the web',
-          description: 'Search "$query" on Google',
-          icon: Symbols.search,
-          action: () async {
-            final searchUri = Uri.https('www.google.com', '/search', {
-              'q': query,
-            });
-            if (await canLaunchUrl(searchUri)) {
-              await launchUrl(searchUri, mode: LaunchMode.externalApplication);
+            if (await canLaunchUrl(finalUri)) {
+              await launchUrl(finalUri, mode: LaunchMode.externalApplication);
             }
           },
         ),
       );
     }
+
+    // Ask the AI
+    // Bugged, DO NOT USE
+    // actions.add(
+    //   FallbackAction(
+    //     name: 'Ask the AI',
+    //     description: 'Ask "$query" to the AI',
+    //     icon: Symbols.bubble_chart,
+    //     action: () {
+    //       eventBus.fire(ShowThoughtSheetEvent(initialMessage: query));
+    //     },
+    //   ),
+    // );
+
+    // Search the web
+    actions.add(
+      FallbackAction(
+        name: 'Search the web',
+        description: 'Search "$query" on Google',
+        icon: Symbols.search,
+        action: () async {
+          final searchUri = Uri.https('www.google.com', '/search', {
+            'q': query,
+          });
+          if (await canLaunchUrl(searchUri)) {
+            await launchUrl(searchUri, mode: LaunchMode.externalApplication);
+          }
+        },
+      ),
+    );
 
     return actions;
   }

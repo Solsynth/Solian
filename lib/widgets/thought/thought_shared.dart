@@ -74,6 +74,7 @@ ThoughtChatState useThoughtChat(
   String? initialSequenceId,
   List<SnThinkingThought>? initialThoughts,
   String? initialTopic,
+  String? initialMessage,
   List<Map<String, dynamic>> attachedMessages = const [],
   List<String> attachedPosts = const [],
   VoidCallback? onSequenceIdChanged,
@@ -117,11 +118,13 @@ ThoughtChatState useThoughtChat(
   useEffect(() {
     if (localThoughts.value.isNotEmpty || isStreaming.value) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
     }
     return null;
@@ -141,10 +144,12 @@ ThoughtChatState useThoughtChat(
     return () => scrollController.removeListener(onScroll);
   }, [scrollController]);
 
-  Future<void> sendMessage() async {
-    if (messageController.text.trim().isEmpty) return;
+  Future<void> sendMessage({String? message}) async {
+    if (message == null && messageController.text.trim().isEmpty) {
+      return;
+    }
 
-    final userMessage = messageController.text.trim();
+    final userMessage = message ?? messageController.text.trim();
 
     // Add user message to local thoughts
     final userInfo = ref.read(userInfoProvider);
@@ -177,8 +182,9 @@ ThoughtChatState useThoughtChat(
       accpetProposals: ['post_create'],
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
-      serviceId:
-          selectedServiceId.value.isNotEmpty ? selectedServiceId.value : null,
+      serviceId: selectedServiceId.value.isNotEmpty
+          ? selectedServiceId.value
+          : null,
     );
 
     try {
@@ -309,8 +315,8 @@ ThoughtChatState useThoughtChat(
           final now = DateTime.now();
           final errorMessage =
               error is DioException && error.response?.data is ResponseBody
-                  ? 'toughtParseError'.tr()
-                  : error.toString();
+              ? 'toughtParseError'.tr()
+              : error.toString();
           final errorThought = SnThinkingThought(
             id: 'error-${DateTime.now().millisecondsSinceEpoch}',
             parts: [
@@ -368,6 +374,15 @@ ThoughtChatState useThoughtChat(
     }
   }
 
+  useEffect(() {
+    if (initialMessage?.isNotEmpty ?? false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        sendMessage(message: initialMessage);
+      });
+    }
+    return null;
+  }, [initialMessage]);
+
   return ThoughtChatState(
     sequenceId: sequenceId,
     localThoughts: localThoughts,
@@ -388,6 +403,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
   final List<SnThinkingThought>? initialThoughts;
   final String? initialSequenceId;
   final String? initialTopic;
+  final String? initialMessage;
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
   final bool isDisabled;
@@ -397,6 +413,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
     this.initialThoughts,
     this.initialSequenceId,
     this.initialTopic,
+    this.initialMessage,
     this.attachedMessages = const [],
     this.attachedPosts = const [],
     this.isDisabled = false,
@@ -415,6 +432,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
       initialSequenceId: initialSequenceId,
       initialThoughts: initialThoughts,
       initialTopic: initialTopic,
+      initialMessage: initialMessage,
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
@@ -445,84 +463,78 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 Expanded(
                   child:
                       previousInputHeight != null &&
-                              previousInputHeight != inputHeight.value
-                          ? TweenAnimationBuilder<double>(
-                            tween: Tween<double>(
-                              begin: previousInputHeight,
-                              end: inputHeight.value,
-                            ),
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOut,
-                            builder:
-                                (context, height, child) =>
-                                    SuperListView.builder(
-                                      listController: chatState.listController,
-                                      controller: chatState.scrollController,
-                                      padding: EdgeInsets.only(
-                                        top: 16,
-                                        bottom:
-                                            MediaQuery.of(
-                                              context,
-                                            ).padding.bottom +
-                                            8 +
-                                            height,
-                                      ),
-                                      reverse: true,
-                                      itemCount:
-                                          chatState.localThoughts.value.length +
-                                          (chatState.isStreaming.value ? 1 : 0),
-                                      itemBuilder: (context, index) {
-                                        if (chatState.isStreaming.value &&
-                                            index == 0) {
-                                          return ThoughtItem(
-                                            isStreaming: true,
-                                            streamingItems:
-                                                chatState.streamingItems.value,
-                                          );
-                                        }
-                                        final thoughtIndex =
-                                            chatState.isStreaming.value
-                                                ? index - 1
-                                                : index;
-                                        final thought =
-                                            chatState
-                                                .localThoughts
-                                                .value[thoughtIndex];
-                                        return ThoughtItem(thought: thought);
-                                      },
-                                    ),
-                          )
-                          : SuperListView.builder(
-                            listController: chatState.listController,
-                            controller: chatState.scrollController,
-                            padding: EdgeInsets.only(
-                              top: 16,
-                              bottom:
-                                  MediaQuery.of(context).padding.bottom +
-                                  8 +
-                                  inputHeight.value,
-                            ),
-                            reverse: true,
-                            itemCount:
-                                chatState.localThoughts.value.length +
-                                (chatState.isStreaming.value ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (chatState.isStreaming.value && index == 0) {
-                                return ThoughtItem(
-                                  isStreaming: true,
-                                  streamingItems:
-                                      chatState.streamingItems.value,
-                                );
-                              }
-                              final thoughtIndex =
-                                  chatState.isStreaming.value
+                          previousInputHeight != inputHeight.value
+                      ? TweenAnimationBuilder<double>(
+                          tween: Tween<double>(
+                            begin: previousInputHeight,
+                            end: inputHeight.value,
+                          ),
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                          builder: (context, height, child) =>
+                              SuperListView.builder(
+                                listController: chatState.listController,
+                                controller: chatState.scrollController,
+                                padding: EdgeInsets.only(
+                                  top: 16,
+                                  bottom:
+                                      MediaQuery.of(context).padding.bottom +
+                                      8 +
+                                      height,
+                                ),
+                                reverse: true,
+                                itemCount:
+                                    chatState.localThoughts.value.length +
+                                    (chatState.isStreaming.value ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  if (chatState.isStreaming.value &&
+                                      index == 0) {
+                                    return ThoughtItem(
+                                      isStreaming: true,
+                                      streamingItems:
+                                          chatState.streamingItems.value,
+                                    );
+                                  }
+                                  final thoughtIndex =
+                                      chatState.isStreaming.value
                                       ? index - 1
                                       : index;
-                              final thought =
-                                  chatState.localThoughts.value[thoughtIndex];
-                              return ThoughtItem(thought: thought);
-                            },
+                                  final thought = chatState
+                                      .localThoughts
+                                      .value[thoughtIndex];
+                                  return ThoughtItem(thought: thought);
+                                },
+                              ),
+                        )
+                      : SuperListView.builder(
+                          listController: chatState.listController,
+                          controller: chatState.scrollController,
+                          padding: EdgeInsets.only(
+                            top: 16,
+                            bottom:
+                                MediaQuery.of(context).padding.bottom +
+                                8 +
+                                inputHeight.value,
                           ),
+                          reverse: true,
+                          itemCount:
+                              chatState.localThoughts.value.length +
+                              (chatState.isStreaming.value ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (chatState.isStreaming.value && index == 0) {
+                              return ThoughtItem(
+                                isStreaming: true,
+                                streamingItems: chatState.streamingItems.value,
+                              );
+                            }
+                            final thoughtIndex = chatState.isStreaming.value
+                                ? index - 1
+                                : index;
+                            final thought =
+                                chatState.localThoughts.value[thoughtIndex];
+                            return ThoughtItem(thought: thought);
+                          },
+                        ),
                 ),
               ],
             ),
@@ -531,35 +543,31 @@ class ThoughtChatInterface extends HookConsumerWidget {
         // Bottom gradient - appears when scrolling towards newer thoughts (behind thought input)
         AnimatedBuilder(
           animation: chatState.bottomGradientNotifier.value,
-          builder:
-              (context, child) => Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Opacity(
-                  opacity: chatState.bottomGradientNotifier.value.value,
-                  child: Container(
-                    height: math.min(
-                      MediaQuery.of(context).size.height * 0.1,
-                      128,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainer.withOpacity(0.8),
-                          Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainer.withOpacity(0.0),
-                        ],
-                      ),
-                    ),
+          builder: (context, child) => Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Opacity(
+              opacity: chatState.bottomGradientNotifier.value.value,
+              child: Container(
+                height: math.min(MediaQuery.of(context).size.height * 0.1, 128),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withOpacity(0.8),
+                      Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withOpacity(0.0),
+                    ],
                   ),
                 ),
               ),
+            ),
+          ),
         ),
         // Thought Input positioned above gradient (higher z-index)
         Positioned(
@@ -746,58 +754,42 @@ class ThoughtInput extends HookWidget {
                       maxLines: 5,
                       minLines: 1,
                       textInputAction: TextInputAction.send,
-                      onSubmitted:
-                          (!isStreaming && !isDisabled)
-                              ? (_) => onSend()
-                              : null,
+                      onSubmitted: (!isStreaming && !isDisabled)
+                          ? (_) => onSend()
+                          : null,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(isStreaming ? Symbols.stop : Icons.send),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: (!isStreaming && !isDisabled) ? onSend : null,
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                child: Row(
-                  children: [
-                    if (services.isNotEmpty)
-                      DropdownButtonHideUnderline(
-                        child: DropdownButton2<String>(
-                          value:
-                              selectedServiceId.value.isEmpty
+                  Row(
+                    children: [
+                      if (services.isNotEmpty)
+                        SizedBox(
+                          height: 40,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton2<String>(
+                              value: selectedServiceId.value.isEmpty
                                   ? null
                                   : selectedServiceId.value,
-                          customButton: Container(
-                            padding: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              border: BoxBorder.all(
-                                color: Theme.of(context).colorScheme.outline,
-                                width: 1,
-                              ),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(16),
-                              ),
-                            ),
-                            child: Row(
-                              spacing: 8,
-                              children: [
-                                const Icon(
-                                  Symbols.network_intelligence,
-                                  size: 20,
+                              customButton: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
                                 ),
-                                Text(selectedServiceId.value),
-                                const Icon(
-                                  Symbols.keyboard_arrow_down,
-                                  size: 14,
-                                ).padding(right: 4),
-                              ],
-                            ).padding(vertical: 2, horizontal: 6),
-                          ),
-                          items:
-                              services
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(24),
+                                  ),
+                                ),
+                                child: Row(
+                                  spacing: 8,
+                                  children: [
+                                    Text(selectedServiceId.value),
+                                    const Icon(
+                                      Symbols.keyboard_arrow_down,
+                                      size: 14,
+                                    ).padding(right: 4),
+                                  ],
+                                ).padding(vertical: 2, horizontal: 6),
+                              ),
+                              items: services
                                   .map(
                                     (service) => DropdownMenuItem<String>(
                                       value: service.serviceId,
@@ -807,61 +799,66 @@ class ThoughtInput extends HookWidget {
                                         children: [
                                           Text(
                                             service.serviceId,
-                                            style: DefaultTextStyle.of(
-                                              context,
-                                            ).style.copyWith(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                            style: DefaultTextStyle.of(context)
+                                                .style
+                                                .copyWith(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
                                           Text(
-                                            'Rate: ${service.billingMultiplier}x, Level: P${service.perkLevel}',
-                                            style: DefaultTextStyle.of(
-                                              context,
-                                            ).style.copyWith(
-                                              fontSize: 12,
-                                              color:
-                                                  Theme.of(context)
+                                            '${service.billingMultiplier}x, T${service.perkLevel}',
+                                            style: DefaultTextStyle.of(context)
+                                                .style
+                                                .copyWith(
+                                                  fontSize: 12,
+                                                  color: Theme.of(context)
                                                       .colorScheme
                                                       .onSurfaceVariant,
-                                            ),
+                                                ),
                                           ),
                                         ],
                                       ),
                                     ),
                                   )
                                   .toList(),
-                          onChanged:
-                              !isStreaming && !isDisabled
+                              onChanged: !isStreaming && !isDisabled
                                   ? (value) {
-                                    if (value != null) {
-                                      selectedServiceId.value = value;
+                                      if (value != null) {
+                                        selectedServiceId.value = value;
+                                      }
                                     }
-                                  }
                                   : null,
-                          hint: const Text('Select Service'),
-                          isDense: true,
-                          buttonStyleData: ButtonStyleData(
-                            decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(16),
+                              hint: const Text('Select Service'),
+                              isDense: true,
+                              buttonStyleData: ButtonStyleData(
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(24),
+                                  ),
+                                ),
+                              ),
+                              menuItemStyleData: MenuItemStyleData(
+                                selectedMenuItemBuilder: (context, child) {
+                                  return child;
+                                },
+                                height: 56,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
+                                ),
                               ),
                             ),
                           ),
-                          menuItemStyleData: MenuItemStyleData(
-                            selectedMenuItemBuilder: (context, child) {
-                              return child;
-                            },
-                            height: 56,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 8,
-                            ),
-                          ),
                         ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: Icon(isStreaming ? Symbols.stop : Icons.send),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: (!isStreaming && !isDisabled) ? onSend : null,
+                  ),
+                ],
               ),
             ],
           ),
@@ -923,42 +920,40 @@ class ThoughtItem extends StatelessWidget {
   }
 
   List<Widget> buildWidgetsList() {
-    final List<StreamItem> items =
-        isStreaming
-            ? (streamingItems ?? [])
-            : thought!.parts.map((p) {
-              String type;
-              switch (p.type) {
-                case ThinkingMessagePartType.text:
-                  type = 'text';
-                  break;
-                case ThinkingMessagePartType.functionCall:
-                  type = 'function_call';
-                  break;
-                case ThinkingMessagePartType.functionResult:
-                  type = 'function_result';
-                  break;
-              }
-              return StreamItem(
-                type,
-                p.type == ThinkingMessagePartType.text
-                    ? p.text ?? ''
-                    : p.functionCall ?? p.functionResult,
-              );
-            }).toList();
+    final List<StreamItem> items = isStreaming
+        ? (streamingItems ?? [])
+        : thought!.parts.map((p) {
+            String type;
+            switch (p.type) {
+              case ThinkingMessagePartType.text:
+                type = 'text';
+                break;
+              case ThinkingMessagePartType.functionCall:
+                type = 'function_call';
+                break;
+              case ThinkingMessagePartType.functionResult:
+                type = 'function_result';
+                break;
+            }
+            return StreamItem(
+              type,
+              p.type == ThinkingMessagePartType.text
+                  ? p.text ?? ''
+                  : p.functionCall ?? p.functionResult,
+            );
+          }).toList();
 
     final isAI =
         isStreaming ||
         (!isStreaming && thought!.role == ThinkingThoughtRole.assistant);
-    final List<Map<String, String>> proposals =
-        !isStreaming
-            ? _extractProposals(
-              thought!.parts
-                  .where((p) => p.type == ThinkingMessagePartType.text)
-                  .map((p) => p.text ?? '')
-                  .join(),
-            )
-            : [];
+    final List<Map<String, String>> proposals = !isStreaming
+        ? _extractProposals(
+            thought!.parts
+                .where((p) => p.type == ThinkingMessagePartType.text)
+                .map((p) => p.text ?? '')
+                .join(),
+          )
+        : [];
 
     final List<Widget> widgets = [];
     String currentText = '';
@@ -986,10 +981,9 @@ class ThoughtItem extends StatelessWidget {
             isFinish: result != null,
             isStreaming: isStreaming,
             callData: JsonEncoder.withIndent('  ').convert(item.data.toJson()),
-            resultData:
-                result != null
-                    ? JsonEncoder.withIndent('  ').convert(result.data.toJson())
-                    : null,
+            resultData: result != null
+                ? JsonEncoder.withIndent('  ').convert(result.data.toJson())
+                : null,
           ),
         );
       } else if (item.type == 'function_result') {

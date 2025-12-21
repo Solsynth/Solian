@@ -38,3 +38,16 @@ class ShowComposeSheetEvent {
 class ShowNotificationSheetEvent {
   const ShowNotificationSheetEvent();
 }
+
+/// Event fired to show the thought sheet
+class ShowThoughtSheetEvent {
+  final String? initialMessage;
+  final List<Map<String, dynamic>> attachedMessages;
+  final List<String> attachedPosts;
+
+  const ShowThoughtSheetEvent({
+    this.initialMessage,
+    this.attachedMessages = const [],
+    this.attachedPosts = const [],
+  });
+}
