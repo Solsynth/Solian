@@ -16,15 +16,11 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/account/account_name.dart';
-import 'package:island/widgets/account/friends_overview.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
-import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
-import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_skeleton.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -35,38 +31,6 @@ import 'package:island/services/event_bus.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
-
-Widget notificationIndicatorWidget(
-  BuildContext context, {
-  required int count,
-  EdgeInsets? margin,
-}) => Card(
-  margin: margin,
-  child: ListTile(
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-    ),
-    minTileHeight: 48,
-    leading: const Icon(Symbols.notifications),
-    title: Row(
-      children: [
-        Text('notifications').tr().fontSize(14),
-        const Gap(8),
-        Badge(label: Text(count.toString())),
-      ],
-    ),
-    trailing: const Icon(Symbols.chevron_right),
-    contentPadding: EdgeInsets.only(left: 16, right: 15),
-    onTap: () {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (context) => const NotificationSheet(),
-      );
-    },
-  ),
-);
 
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
@@ -502,9 +466,6 @@ class ExploreScreen extends HookConsumerWidget {
     WidgetRef ref,
     String? currentFilter,
   ) {
-    final user = ref.watch(userInfoProvider);
-    final notificationCount = ref.watch(notificationUnreadCountProvider);
-
     final bodyView = _buildActivityList(context, ref);
 
     final notifier = ref.watch(activityListProvider.notifier);
@@ -516,38 +477,7 @@ class ExploreScreen extends HookConsumerWidget {
           onRefresh: notifier.refresh,
           child: CustomScrollView(
             slivers: [
-              const SliverGap(8),
-              if (user.value?.activatedAt == null)
-                SliverToBoxAdapter(
-                  child: AccountUnactivatedCard().padding(bottom: 8),
-                ),
-              if (user.value != null)
-                SliverToBoxAdapter(
-                  child: CheckInWidget(
-                    margin: const EdgeInsets.only(bottom: 8),
-                  ),
-                ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: PostFeaturedList(),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: FriendsOverviewWidget(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  hideWhenEmpty: true,
-                ),
-              ),
-              if (notificationCount.value != null &&
-                  notificationCount.value! > 0)
-                SliverToBoxAdapter(
-                  child: notificationIndicatorWidget(
-                    context,
-                    count: notificationCount.value ?? 0,
-                    margin: const EdgeInsets.only(bottom: 8),
-                  ),
-                ),
+              SliverGap(8 + MediaQuery.paddingOf(context).top),
               bodyView,
             ],
           ),

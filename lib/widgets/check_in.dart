@@ -17,7 +17,6 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/account/event_calendar_content.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'check_in.g.dart';
@@ -52,18 +51,11 @@ Future<SnNotableDay?> nextNotableDay(Ref ref) async {
 class CheckInWidget extends HookConsumerWidget {
   final EdgeInsets? margin;
   final VoidCallback? onChecked;
-  final bool checkInOnly;
-  const CheckInWidget({
-    super.key,
-    this.margin,
-    this.onChecked,
-    this.checkInOnly = false,
-  });
+  const CheckInWidget({super.key, this.margin, this.onChecked});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
-    final nextNotableDay = ref.watch(nextNotableDayProvider);
 
     // Update time every second for live progress
     final currentTime = useState(DateTime.now());
@@ -73,28 +65,6 @@ class CheckInWidget extends HookConsumerWidget {
       });
       return timer.cancel;
     }, []);
-
-    final now = currentTime.value;
-
-    final userinfo = ref.watch(userInfoProvider);
-    final isAdult = useMemoized(() {
-      final birthday = userinfo.value?.profile.birthday;
-      if (birthday == null) return false;
-      final age =
-          now.year -
-          birthday.year -
-          ((now.month < birthday.month ||
-                  (now.month == birthday.month && now.day < birthday.day))
-              ? 1
-              : 0);
-      return age >= 18;
-    }, [userinfo]);
-
-    final progress = (now.hour * 60.0 + now.minute) / (24 * 60);
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    final timeLeft = endOfDay.difference(now);
-    final timeLeftFormatted =
-        '${timeLeft.inHours.toString().padLeft(2, '0')}:${(timeLeft.inMinutes % 60).toString().padLeft(2, '0')}:${(timeLeft.inSeconds % 60).toString().padLeft(2, '0')}';
 
     Future<void> checkIn({String? captchatTk}) async {
       final client = ref.read(apiClientProvider);
@@ -128,78 +98,22 @@ class CheckInWidget extends HookConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (checkInOnly)
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: todayResult.when(
-                      data: (result) {
-                        return Text(
-                          result == null
-                              ? 'checkInNone'
-                              : 'checkInResultLevel${result.level}',
-                          textAlign: TextAlign.start,
-                        ).tr().fontSize(15).bold();
-                      },
-                      loading: () =>
-                          Text('checkInNone').tr().fontSize(15).bold(),
-                      error: (err, stack) =>
-                          Text('error').tr().fontSize(15).bold(),
-                    ),
-                  ).padding(right: 4),
-                if (!checkInOnly)
-                  Row(
-                    spacing: 6,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        switch (DateTime.now().weekday) {
-                          6 || 7 => Symbols.weekend,
-                          _ => isAdult ? Symbols.work : Symbols.school,
-                        },
-                        fill: 1,
-                        size: 16,
-                      ).padding(right: 2),
-                      Text(
-                        DateFormat('EEE').format(DateTime.now()),
-                      ).fontSize(16).bold(),
-                      Text(
-                        DateFormat('MM/dd').format(DateTime.now()),
-                      ).fontSize(16),
-                      Tooltip(
-                        message: timeLeftFormatted,
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            trackGap: 0,
-                            value: progress,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      ),
-                    ],
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: todayResult.when(
+                    data: (result) {
+                      return Text(
+                        result == null
+                            ? 'checkInNone'
+                            : 'checkInResultLevel${result.level}',
+                        textAlign: TextAlign.start,
+                      ).tr().fontSize(15).bold();
+                    },
+                    loading: () => Text('checkInNone').tr().fontSize(15).bold(),
+                    error: (err, stack) =>
+                        Text('error').tr().fontSize(15).bold(),
                   ),
-                if (!checkInOnly)
-                  Row(
-                    spacing: 5,
-                    children: [
-                      Text('notableDayNext')
-                          .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
-                          .fontSize(12),
-                      if (nextNotableDay.value != null)
-                        SlideCountdown(
-                          decoration: const BoxDecoration(),
-                          style: const TextStyle(fontSize: 12),
-                          separatorStyle: const TextStyle(fontSize: 12),
-                          padding: EdgeInsets.zero,
-                          duration: nextNotableDay.value?.date.difference(
-                            DateTime.now(),
-                          ),
-                        ),
-                    ],
-                  ),
-                const Gap(2),
+                ).padding(right: 4),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: todayResult.when(
@@ -256,23 +170,6 @@ class CheckInWidget extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             spacing: 4,
             children: [
-              if (!checkInOnly)
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: todayResult.when(
-                    data: (result) {
-                      return Text(
-                        result == null
-                            ? 'checkInNone'
-                            : 'checkInResultLevel${result.level}',
-                        textAlign: TextAlign.start,
-                      ).tr().fontSize(15).bold();
-                    },
-                    loading: () => Text('checkInNone').tr().fontSize(15).bold(),
-                    error: (err, stack) =>
-                        Text('error').tr().fontSize(15).bold(),
-                  ),
-                ).padding(right: 4),
               IconButton.outlined(
                 iconSize: 16,
                 visualDensity: const VisualDensity(
