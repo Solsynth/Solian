@@ -32,6 +32,7 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   members: (json['members'] as List<dynamic>?)
       ?.map((e) => SnChatMember.fromJson(e as Map<String, dynamic>))
       .toList(),
+  isPinned: json['is_pinned'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
@@ -51,6 +52,7 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'members': instance.members?.map((e) => e.toJson()).toList(),
+      'is_pinned': instance.isPinned,
     };
 
 _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>

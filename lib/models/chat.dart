@@ -24,6 +24,8 @@ sealed class SnChatRoom with _$SnChatRoom {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     required List<SnChatMember>? members,
+    // Frontend data
+    @Default(false) bool isPinned,
   }) = _SnChatRoom;
 
   factory SnChatRoom.fromJson(Map<String, dynamic> json) =>

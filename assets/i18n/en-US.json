@@ -697,9 +697,9 @@
   "articleAttachmentHint": "Attachments must be uploaded and inserted into the article body to be visible.",
   "postVisibility": "Post Visibility",
   "currentMembershipMember": "A member of Stellar Program · {}",
-  "membershipPriceStellar": "1200 NSP per month, level 3+ required",
-  "membershipPriceNova": "2400 NSP per month, level 6+ required",
-  "membershipPriceSupernova": "3600 NSP per month, level 9+ required",
+  "membershipPriceStellar": "1200 NSP per month, level 20+ required",
+  "membershipPriceNova": "2400 NSP per month, level 40+ required",
+  "membershipPriceSupernova": "3600 NSP per month, level 60+ required",
   "sharePostPhoto": "Share Post as Photo",
   "wouldYouLikeToNavigateToChat": "Would You like to navigate to the chat?",
   "abuseReports": "Abuse Reports",
@@ -1528,5 +1528,10 @@
   "postTagsCategories": "Post Tags and Categories",
   "postTagsCategoriesDescription": "Browse posts by category and tags.",
   "debugLogs": "Debug Logs",
-  "debugLogsDescription": "View debug logs for troubleshooting."
+  "debugLogsDescription": "View debug logs for troubleshooting.",
+  "pinChatRoom": "Pin Chat Room",
+  "pinChatRoomDescription": "Pin this chat room to the top.",
+  "chatRoomPinned": "Chat room pinned successfully.",
+  "chatRoomUnpinned": "Chat room unpinned successfully.",
+  "pinnedChatRoom": "Pinned Rooms"
 }

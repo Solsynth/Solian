@@ -17,7 +17,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -78,6 +78,30 @@ class AppDatabase extends _$AppDatabase {
         // Add realms table and update chat_rooms foreign key
         await m.createTable(realms);
         // The realmId column in chat_rooms already exists, just need to ensure the foreign key constraint
+      }
+      if (from < 11) {
+        // Add isPinned column to chat_rooms table
+        await customStatement(
+          'ALTER TABLE chat_rooms ADD COLUMN is_pinned INTEGER DEFAULT 0',
+        );
+      }
+      if (from < 12) {
+        // Add new columns to realms table
+        await customStatement(
+          'ALTER TABLE realms ADD COLUMN slug TEXT NOT NULL DEFAULT \'\'',
+        );
+        await customStatement(
+          'ALTER TABLE realms ADD COLUMN verified_as TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE realms ADD COLUMN verified_at DATETIME NULL',
+        );
+        await customStatement(
+          'ALTER TABLE realms ADD COLUMN is_community INTEGER NOT NULL DEFAULT 0',
+        );
+        await customStatement(
+          'ALTER TABLE realms ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0',
+        );
       }
     },
   );
@@ -341,6 +365,7 @@ class AppDatabase extends _$AppDatabase {
       picture: Value(room.picture?.toJson()),
       background: Value(room.background?.toJson()),
       realmId: Value(room.realmId),
+      accountId: Value(room.accountId),
       createdAt: Value(room.createdAt),
       updatedAt: Value(room.updatedAt),
       deletedAt: Value(room.deletedAt),
@@ -367,8 +392,13 @@ class AppDatabase extends _$AppDatabase {
   RealmsCompanion companionFromRealm(SnRealm realm) {
     return RealmsCompanion(
       id: Value(realm.id),
+      slug: Value(realm.slug),
       name: Value(realm.name),
       description: Value(realm.description),
+      verifiedAs: Value(realm.verifiedAs),
+      verifiedAt: Value(realm.verifiedAt),
+      isCommunity: Value(realm.isCommunity),
+      isPublic: Value(realm.isPublic),
       picture: Value(realm.picture?.toJson()),
       background: Value(realm.background?.toJson()),
       accountId: Value(realm.accountId),
@@ -422,11 +452,17 @@ class AppDatabase extends _$AppDatabase {
       });
 
       // 3. Upsert remote rooms
-      await batch((batch) {
+      await batch((batch) async {
         for (final room in rooms) {
+          // Preserve local isPinned status
+          final currentRoom = await (select(
+            chatRooms,
+          )..where((r) => r.id.equals(room.id))).getSingleOrNull();
+          final isPinned = currentRoom?.isPinned ?? false;
+
           batch.insert(
             chatRooms,
-            companionFromRoom(room),
+            companionFromRoom(room).copyWith(isPinned: Value(isPinned)),
             mode: InsertMode.insertOrReplace,
           );
           for (final member in room.members ?? []) {
@@ -501,5 +537,17 @@ class AppDatabase extends _$AppDatabase {
     }
     // Then save the message
     return await saveMessage(messageToCompanion(message));
+  }
+
+  Future<void> toggleChatRoomPinned(String roomId) async {
+    final room = await (select(
+      chatRooms,
+    )..where((r) => r.id.equals(roomId))).getSingleOrNull();
+    if (room != null) {
+      final newPinnedStatus = !(room.isPinned ?? false);
+      await (update(chatRooms)..where((r) => r.id.equals(roomId))).write(
+        ChatRoomsCompanion(isPinned: Value(newPinnedStatus)),
+      );
+    }
   }
 }

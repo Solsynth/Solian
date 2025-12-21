@@ -38,8 +38,13 @@ class ListMapConverter
 
 class Realms extends Table {
   TextColumn get id => text()();
+  TextColumn get slug => text()();
   TextColumn get name => text().nullable()();
   TextColumn get description => text().nullable()();
+  TextColumn get verifiedAs => text().nullable()();
+  DateTimeColumn get verifiedAt => dateTime().nullable()();
+  BoolColumn get isCommunity => boolean()();
+  BoolColumn get isPublic => boolean()();
   TextColumn get picture => text().map(const MapConverter()).nullable()();
   TextColumn get background => text().map(const MapConverter()).nullable()();
   TextColumn get accountId => text().nullable()();
@@ -64,6 +69,8 @@ class ChatRooms extends Table {
   TextColumn get background => text().map(const MapConverter()).nullable()();
   TextColumn get realmId => text().references(Realms, #id).nullable()();
   TextColumn get accountId => text().nullable()();
+  BoolColumn get isPinned =>
+      boolean().nullable().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();

@@ -20,8 +20,8 @@ import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/pods/chat/chat_room.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
@@ -55,50 +55,95 @@ class ChatListBodyWidget extends HookConsumerWidget {
         ),
         Expanded(
           child: chats.when(
-            data: (items) => RefreshIndicator(
-              onRefresh: () => Future.sync(() {
-                ref.invalidate(chatRoomJoinedProvider);
-              }),
-              child: SuperListView.builder(
-                padding: EdgeInsets.only(bottom: 96),
-                itemCount: items
-                    .where(
-                      (item) =>
-                          selectedTab.value == 0 ||
-                          (selectedTab.value == 1 && item.type == 1) ||
-                          (selectedTab.value == 2 && item.type != 1),
-                    )
-                    .length,
-                itemBuilder: (context, index) {
-                  final filteredItems = items
-                      .where(
-                        (item) =>
-                            selectedTab.value == 0 ||
-                            (selectedTab.value == 1 && item.type == 1) ||
-                            (selectedTab.value == 2 && item.type != 1),
-                      )
-                      .toList();
-                  final item = filteredItems[index];
-                  return ChatRoomListTile(
-                    room: item,
-                    isDirect: item.type == 1,
-                    onTap: () {
-                      if (isWideScreen(context)) {
-                        context.replaceNamed(
-                          'chatRoom',
-                          pathParameters: {'id': item.id},
-                        );
-                      } else {
-                        context.pushNamed(
-                          'chatRoom',
-                          pathParameters: {'id': item.id},
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
+            data: (items) {
+              final filteredItems = items.where(
+                (item) =>
+                    selectedTab.value == 0 ||
+                    (selectedTab.value == 1 && item.type == 1) ||
+                    (selectedTab.value == 2 && item.type != 1),
+              );
+              final pinnedItems = filteredItems
+                  .where((item) => item.isPinned)
+                  .toList();
+              final unpinnedItems = filteredItems
+                  .where((item) => !item.isPinned)
+                  .toList();
+
+              return RefreshIndicator(
+                onRefresh: () => Future.sync(() {
+                  ref.invalidate(chatRoomJoinedProvider);
+                }),
+                child: Column(
+                  children: [
+                    ExpansionTile(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withOpacity(0.5),
+                      collapsedBackgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withOpacity(0.5),
+                      title: Text('pinnedChatRoom'.tr()),
+                      leading: const Icon(Symbols.keep, fill: 1),
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 24),
+                      initiallyExpanded: true,
+                      children: [
+                        for (final item in pinnedItems)
+                          ChatRoomListTile(
+                            room: item,
+                            isDirect: item.type == 1,
+                            onTap: () {
+                              if (isWideScreen(context)) {
+                                context.replaceNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': item.id},
+                                );
+                              } else {
+                                context.pushNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': item.id},
+                                );
+                              }
+                            },
+                          ),
+                      ],
+                    ),
+                    Expanded(
+                      child: SuperListView.builder(
+                        padding: EdgeInsets.only(bottom: 96),
+                        itemCount: unpinnedItems
+                            .where(
+                              (item) =>
+                                  selectedTab.value == 0 ||
+                                  (selectedTab.value == 1 && item.type == 1) ||
+                                  (selectedTab.value == 2 && item.type != 1),
+                            )
+                            .length,
+                        itemBuilder: (context, index) {
+                          final item = unpinnedItems[index];
+                          return ChatRoomListTile(
+                            room: item,
+                            isDirect: item.type == 1,
+                            onTap: () {
+                              if (isWideScreen(context)) {
+                                context.replaceNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': item.id},
+                                );
+                              } else {
+                                context.pushNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': item.id},
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => ResponseErrorWidget(
               error: error,
