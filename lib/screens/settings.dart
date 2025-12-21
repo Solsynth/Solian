@@ -449,24 +449,33 @@ class SettingsScreen extends HookConsumerWidget {
 
       // Card background opacity settings
       ListTile(
+        isThreeLine: true,
         minLeadingWidth: 48,
         title: Text('settingsCardBackgroundOpacity').tr(),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.opacity),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Slider(
-            value: settings.cardTransparency,
-            min: 0.0,
-            max: 1.0,
-            year2023: true,
-            padding: EdgeInsets.only(right: 24),
-            label: '${(settings.cardTransparency * 100).round()}%',
-            onChanged: (value) {
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setAppTransparentBackground(value);
-            },
+          child: SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 2,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
+              trackShape: RoundedRectSliderTrackShape(),
+            ),
+            child: Slider(
+              value: settings.cardTransparency,
+              min: 0.0,
+              max: 1.0,
+              year2023: true,
+              padding: EdgeInsets.only(right: 24),
+              label: '${(settings.cardTransparency * 100).round()}%',
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setAppTransparentBackground(value);
+              },
+            ),
           ),
         ),
       ),
@@ -512,7 +521,7 @@ class SettingsScreen extends HookConsumerWidget {
               minLeadingWidth: 48,
               title: Text('settingsBackgroundImageEnable').tr(),
               contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.image),
+              leading: const Icon(Symbols.hide_image),
               trailing: Switch(
                 value: settings.showBackgroundImage,
                 onChanged: (value) {
@@ -821,20 +830,33 @@ class SettingsScreen extends HookConsumerWidget {
               title: Text('settingsWindowOpacity').tr(),
               contentPadding: const EdgeInsets.only(left: 24, right: 17),
               leading: const Icon(Symbols.opacity),
+              isThreeLine: true,
               subtitle: Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Slider(
-                  value: settings.windowOpacity,
-                  min: 0.1,
-                  max: 1.0,
-                  year2023: true,
-                  padding: EdgeInsets.only(right: 24),
-                  label: '${(settings.windowOpacity * 100).round()}%',
-                  onChanged: (value) {
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .setWindowOpacity(value);
-                  },
+                child: SliderTheme(
+                  data: SliderThemeData(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 8,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 24,
+                    ),
+                    trackShape: RoundedRectSliderTrackShape(),
+                  ),
+                  child: Slider(
+                    value: settings.windowOpacity,
+                    min: 0.1,
+                    max: 1.0,
+                    year2023: true,
+                    padding: EdgeInsets.only(right: 24),
+                    label: '${(settings.windowOpacity * 100).round()}%',
+                    onChanged: (value) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setWindowOpacity(value);
+                    },
+                  ),
                 ),
               ),
             ),
@@ -844,45 +866,52 @@ class SettingsScreen extends HookConsumerWidget {
     Widget buildSettingsList() {
       if (isWide) {
         // Two-column layout for wide screens
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SettingsSection(
-                    title: 'settingsAppearance'.tr(),
-                    children: appearanceSettings,
-                  ),
-                  _SettingsSection(
-                    title: 'settingsServer'.tr(),
-                    children: serverSettings,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SettingsSection(
-                    title: 'settingsBehavior'.tr(),
-                    children: behaviorSettings,
-                  ),
-                  if (desktopSettings.isNotEmpty)
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: Row(
+            spacing: 16,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  spacing: 16,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     _SettingsSection(
-                      title: 'settingsDesktop'.tr(),
-                      children: desktopSettings,
+                      title: 'settingsAppearance'.tr(),
+                      children: appearanceSettings,
                     ),
-                ],
+                    _SettingsSection(
+                      title: 'settingsServer'.tr(),
+                      children: serverSettings,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
+              Expanded(
+                child: Column(
+                  spacing: 16,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SettingsSection(
+                      title: 'settingsBehavior'.tr(),
+                      children: behaviorSettings,
+                    ),
+                    if (desktopSettings.isNotEmpty)
+                      _SettingsSection(
+                        title: 'settingsDesktop'.tr(),
+                        children: desktopSettings,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ).padding(horizontal: 16),
+        ).center();
       } else {
         // Single column layout for narrow screens
         return Column(
+          spacing: 16,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SettingsSection(
@@ -903,7 +932,7 @@ class SettingsScreen extends HookConsumerWidget {
                 children: desktopSettings,
               ),
           ],
-        );
+        ).padding(horizontal: 16);
       }
     }
 
@@ -940,22 +969,25 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-        ...children,
-        const SizedBox(height: 16),
-      ],
+          ...children,
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }
