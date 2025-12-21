@@ -705,7 +705,7 @@
   "aboutScreenDeveloperSectionTitle": "开发者",
   "aboutScreenContactUsTitle": "联系我们",
   "aboutScreenLicenseTitle": "许可",
-  "aboutScreenLicenseContent": "无法翻译",
+  "aboutScreenLicenseContent": "AGPLv3",
   "aboutScreenCopyright": "版权所有 © Solsynth {}",
   "aboutScreenMadeWith": "由 Solar Network 团队用 ❤︎️ 制作",
   "aboutScreenFailedToLoadPackageInfo": "无法加载包信息：{error}",
