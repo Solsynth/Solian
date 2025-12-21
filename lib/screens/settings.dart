@@ -819,6 +819,20 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
       ),
+
+      // Grouped chat list settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsGroupedChatList').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.chat),
+        trailing: Switch(
+          value: settings.groupedChatList,
+          onChanged: (value) {
+            ref.read(appSettingsProvider.notifier).setGroupedChatList(value);
+          },
+        ),
+      ),
     ];
 
     // Desktop-specific settings

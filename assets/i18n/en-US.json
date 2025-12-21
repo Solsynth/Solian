@@ -1533,5 +1533,6 @@
   "pinChatRoomDescription": "Pin this chat room to the top.",
   "chatRoomPinned": "Chat room pinned successfully.",
   "chatRoomUnpinned": "Chat room unpinned successfully.",
-  "pinnedChatRoom": "Pinned Rooms"
+  "pinnedChatRoom": "Pinned Rooms",
+  "settingsGroupedChatList": "Grouped Chat List"
 }
