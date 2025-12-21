@@ -496,6 +496,7 @@ class ChatListScreen extends HookConsumerWidget {
                         ),
                         color: appbarFeColor,
                         onPressed: () => tabController.animateTo(0),
+                        tooltip: 'chatTabAll'.tr(),
                       ),
                       IconButton(
                         icon: Icon(
@@ -504,6 +505,7 @@ class ChatListScreen extends HookConsumerWidget {
                         ),
                         color: appbarFeColor,
                         onPressed: () => tabController.animateTo(1),
+                        tooltip: 'chatTabDirect'.tr(),
                       ),
                       IconButton(
                         icon: Icon(
@@ -512,6 +514,7 @@ class ChatListScreen extends HookConsumerWidget {
                         ),
                         color: appbarFeColor,
                         onPressed: () => tabController.animateTo(2),
+                        tooltip: 'chatTabGroup'.tr(),
                       ),
                     ],
                   ),
