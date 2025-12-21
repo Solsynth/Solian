@@ -12,7 +12,6 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:island/services/update_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -97,232 +96,213 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(title: Text('about'.tr()), elevation: 0),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
-              : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 540),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 24),
-                        // App Icon and Name
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: theme.colorScheme.primary
-                              .withOpacity(0.1),
-                          child: Image.asset(
-                            'assets/icons/icon.png',
-                            width: 56,
-                            height: 56,
-                          ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 540),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 24),
+                      // App Icon and Name
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: theme.colorScheme.primary.withOpacity(
+                          0.1,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _packageInfo.appName,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Image.asset(
+                          'assets/icons/icon.png',
+                          width: 56,
+                          height: 56,
                         ),
-                        Text(
-                          'aboutScreenVersionInfo'.tr(
-                            args: [
-                              _packageInfo.version,
-                              _packageInfo.buildNumber,
-                            ],
-                          ),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.textTheme.bodySmall?.color,
-                          ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _packageInfo.appName,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 32),
-
-                        // App Info Card
-                        _buildSection(
-                          context,
-                          title: 'aboutScreenAppInfoSectionTitle'.tr(),
-                          children: [
-                            _buildInfoItem(
-                              context,
-                              icon: Symbols.info,
-                              label: 'aboutScreenPackageNameLabel'.tr(),
-                              value: _packageInfo.packageName,
-                            ),
-                            _buildInfoItem(
-                              context,
-                              icon: Symbols.update,
-                              label: 'aboutScreenVersionLabel'.tr(),
-                              value: _packageInfo.version,
-                            ),
-                            _buildInfoItem(
-                              context,
-                              icon: Symbols.build,
-                              label: 'aboutScreenBuildNumberLabel'.tr(),
-                              value: _packageInfo.buildNumber,
-                            ),
+                      ),
+                      Text(
+                        'aboutScreenVersionInfo'.tr(
+                          args: [
+                            _packageInfo.version,
+                            _packageInfo.buildNumber,
                           ],
                         ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodySmall?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                        if (_deviceInfo != null) const SizedBox(height: 16),
-
-                        if (_deviceInfo != null)
-                          _buildSection(
+                      // App Info Card
+                      _buildSection(
+                        context,
+                        title: 'aboutScreenAppInfoSectionTitle'.tr(),
+                        children: [
+                          _buildInfoItem(
                             context,
-                            title: 'Device Information',
-                            children: [
-                              FutureBuilder<String>(
-                                future: udid.getDeviceName(),
-                                builder: (context, snapshot) {
-                                  final value =
-                                      snapshot.hasData
-                                          ? snapshot.data!
-                                          : 'unknown'.tr();
-                                  return _buildInfoItem(
-                                    context,
-                                    icon: Symbols.label,
-                                    label: 'aboutDeviceName'.tr(),
-                                    value: value,
-                                  );
-                                },
-                              ),
-                              _buildInfoItem(
-                                context,
-                                icon: Symbols.fingerprint,
-                                label: 'aboutDeviceIdentifier'.tr(),
-                                value: _deviceUdid ?? 'N/A',
-                                copyable: true,
-                              ),
-                            ],
+                            icon: Symbols.info,
+                            label: 'aboutScreenPackageNameLabel'.tr(),
+                            value: _packageInfo.packageName,
                           ),
+                          _buildInfoItem(
+                            context,
+                            icon: Symbols.update,
+                            label: 'aboutScreenVersionLabel'.tr(),
+                            value: _packageInfo.version,
+                          ),
+                          _buildInfoItem(
+                            context,
+                            icon: Symbols.build,
+                            label: 'aboutScreenBuildNumberLabel'.tr(),
+                            value: _packageInfo.buildNumber,
+                          ),
+                        ],
+                      ),
 
-                        const SizedBox(height: 16),
+                      if (_deviceInfo != null) const SizedBox(height: 16),
 
-                        // Links Card
+                      if (_deviceInfo != null)
                         _buildSection(
                           context,
-                          title: 'aboutScreenLinksSectionTitle'.tr(),
+                          title: 'Device Information',
                           children: [
-                            _buildListTile(
-                              context,
-                              icon: Symbols.system_update,
-                              title: 'Check for updates',
-                              onTap: () async {
-                                final svc = UpdateService();
-                                showLoadingModal(context);
-                                svc.checkForUpdates(context);
-                                if (!context.mounted) return;
-                                hideLoadingModal(context);
-                              },
-                            ),
-                            _buildListTile(
-                              context,
-                              icon: Symbols.privacy_tip,
-                              title: 'aboutScreenPrivacyPolicyTitle'.tr(),
-                              onTap:
-                                  () => _launchURL(
-                                    'https://solsynth.dev/terms/privacy-policy',
-                                  ),
-                            ),
-                            _buildListTile(
-                              context,
-                              icon: Symbols.description,
-                              title: 'aboutScreenTermsOfServiceTitle'.tr(),
-                              onTap:
-                                  () => _launchURL(
-                                    'https://solsynth.dev/terms/user-agreement',
-                                  ),
-                            ),
-                            _buildListTile(
-                              context,
-                              icon: Symbols.code,
-                              title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
-                              onTap: () {
-                                showLicensePage(
-                                  context: context,
-                                  applicationName: _packageInfo.appName,
-                                  applicationVersion:
-                                      'Version ${_packageInfo.version}',
+                            FutureBuilder<String>(
+                              future: udid.getDeviceName(),
+                              builder: (context, snapshot) {
+                                final value = snapshot.hasData
+                                    ? snapshot.data!
+                                    : 'unknown'.tr();
+                                return _buildInfoItem(
+                                  context,
+                                  icon: Symbols.label,
+                                  label: 'aboutDeviceName'.tr(),
+                                  value: value,
                                 );
                               },
                             ),
+                            _buildInfoItem(
+                              context,
+                              icon: Symbols.fingerprint,
+                              label: 'aboutDeviceIdentifier'.tr(),
+                              value: _deviceUdid ?? 'N/A',
+                              copyable: true,
+                            ),
                           ],
                         ),
 
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        // Developer Info
-                        _buildSection(
-                          context,
-                          title: 'aboutScreenDeveloperSectionTitle'.tr(),
-                          children: [
-                            _buildListTile(
-                              context,
-                              icon: Symbols.email,
-                              title: 'aboutScreenContactUsTitle'.tr(),
-                              subtitle: 'lily@solsynth.dev',
-                              onTap:
-                                  () => _launchURL('mailto:lily@solsynth.dev'),
+                      // Links Card
+                      _buildSection(
+                        context,
+                        title: 'aboutScreenLinksSectionTitle'.tr(),
+                        children: [
+                          _buildListTile(
+                            context,
+                            icon: Symbols.privacy_tip,
+                            title: 'aboutScreenPrivacyPolicyTitle'.tr(),
+                            onTap: () => _launchURL(
+                              'https://solsynth.dev/terms/privacy-policy',
                             ),
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Symbols.description,
+                            title: 'aboutScreenTermsOfServiceTitle'.tr(),
+                            onTap: () => _launchURL(
+                              'https://solsynth.dev/terms/user-agreement',
+                            ),
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Symbols.code,
+                            title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
+                            onTap: () {
+                              showLicensePage(
+                                context: context,
+                                applicationName: _packageInfo.appName,
+                                applicationVersion:
+                                    'Version ${_packageInfo.version}',
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Developer Info
+                      _buildSection(
+                        context,
+                        title: 'aboutScreenDeveloperSectionTitle'.tr(),
+                        children: [
+                          _buildListTile(
+                            context,
+                            icon: Symbols.email,
+                            title: 'aboutScreenContactUsTitle'.tr(),
+                            subtitle: 'lily@solsynth.dev',
+                            onTap: () => _launchURL('mailto:lily@solsynth.dev'),
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Symbols.copyright,
+                            title: 'aboutScreenLicenseTitle'.tr(),
+                            subtitle: 'aboutScreenLicenseContent'.tr(),
+                            onTap: () => _launchURL(
+                              'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
+                            ),
+                          ),
+                          if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
                             _buildListTile(
                               context,
-                              icon: Symbols.copyright,
-                              title: 'aboutScreenLicenseTitle'.tr(),
-                              subtitle: 'aboutScreenLicenseContent'.tr(
+                              icon: Symbols.favorite,
+                              title: 'donate'.tr(),
+                              subtitle: 'donateDescription'.tr(),
+                              onTap: () {
+                                launchUrlString(
+                                  'https://afdian.com/@littlesheep',
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Copyright
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'aboutScreenCopyright'.tr(
                                 args: [DateTime.now().year.toString()],
                               ),
-                              onTap:
-                                  () => _launchURL(
-                                    'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
-                                  ),
+                              style: theme.textTheme.bodySmall,
+                              textAlign: TextAlign.center,
                             ),
-                            if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
-                              _buildListTile(
-                                context,
-                                icon: Symbols.favorite,
-                                title: 'donate'.tr(),
-                                subtitle: 'donateDescription'.tr(),
-                                onTap: () {
-                                  launchUrlString(
-                                    'https://afdian.com/@littlesheep',
-                                  );
-                                },
-                              ),
+                            const Gap(1),
+                            Text(
+                              'aboutScreenMadeWith'.tr(),
+                              textAlign: TextAlign.center,
+                            ).fontSize(10).opacity(0.8),
                           ],
                         ),
+                      ),
 
-                        const SizedBox(height: 32),
-
-                        // Copyright
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              Text(
-                                'aboutScreenCopyright'.tr(
-                                  args: [DateTime.now().year.toString()],
-                                ),
-                                style: theme.textTheme.bodySmall,
-                                textAlign: TextAlign.center,
-                              ),
-                              const Gap(1),
-                              Text(
-                                'aboutScreenMadeWith'.tr(),
-                                textAlign: TextAlign.center,
-                              ).fontSize(10).opacity(0.8),
-                            ],
-                          ),
-                        ),
-
-                        Gap(MediaQuery.of(context).padding.bottom + 16),
-                      ],
-                    ),
+                      Gap(MediaQuery.of(context).padding.bottom + 16),
+                    ],
                   ),
                 ),
               ),
+            ),
     );
   }
 

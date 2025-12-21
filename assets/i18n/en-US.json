@@ -720,7 +720,7 @@
   "aboutScreenDeveloperSectionTitle": "Developer",
   "aboutScreenContactUsTitle": "Contact Us",
   "aboutScreenLicenseTitle": "License",
-  "aboutScreenLicenseContent": "GNU Affero General Public License v3.0",
+  "aboutScreenLicenseContent": "AGPLv3",
   "aboutScreenCopyright": "All rights reserved © Solsynth {}",
   "aboutScreenMadeWith": "Made with ❤︎️ by Solar Network Team",
   "aboutScreenFailedToLoadPackageInfo": "Failed to load package info: {error}",

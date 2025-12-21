@@ -352,98 +352,112 @@ class AccountScreen extends HookConsumerWidget {
                 },
               ),
             ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.notifications),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Row(
-                children: [
-                  Expanded(child: Text('notifications').tr()),
-                  Badge.count(
-                    count: notificationUnreadCount.value ?? 0,
-                    isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
+            Builder(
+              builder: (context) {
+                final menuItems = [
+                  {
+                    'icon': Symbols.notifications,
+                    'title': 'notifications',
+                    'badgeCount': notificationUnreadCount.value ?? 0,
+                    'onTap': () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useRootNavigator: true,
+                        builder: (context) => const NotificationSheet(),
+                      );
+                    },
+                  },
+                  {
+                    'icon': Symbols.files,
+                    'title': 'files',
+                    'onTap': () {
+                      context.goNamed('files');
+                    },
+                  },
+                  {
+                    'icon': Symbols.group,
+                    'title': 'realms',
+                    'onTap': () {
+                      context.goNamed('realmList');
+                    },
+                  },
+                  {
+                    'icon': Symbols.wallet,
+                    'title': 'wallet',
+                    'onTap': () {
+                      context.pushNamed('wallet');
+                    },
+                  },
+                  {
+                    'icon': Symbols.people,
+                    'title': 'relationships',
+                    'onTap': () {
+                      context.pushNamed('relationships');
+                    },
+                  },
+                  {
+                    'icon': Symbols.sticker_rounded,
+                    'title': 'stickers',
+                    'onTap': () {
+                      context.pushNamed('stickerMarketplace');
+                    },
+                  },
+                  {
+                    'icon': Symbols.rss_feed,
+                    'title': 'webFeeds',
+                    'onTap': () {
+                      context.pushNamed('webFeedMarketplace');
+                    },
+                  },
+                  {
+                    'icon': Symbols.gavel,
+                    'title': 'abuseReport',
+                    'onTap': () {
+                      context.pushNamed('reportList');
+                    },
+                  },
+                ];
+                return GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 80,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
                   ),
-                ],
-              ),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (context) => const NotificationSheet(),
+                  itemCount: menuItems.length,
+                  itemBuilder: (context, index) {
+                    final item = menuItems[index];
+                    final icon = item['icon'] as IconData;
+                    final title = item['title'] as String;
+                    final badgeCount = item['badgeCount'] as int?;
+                    final onTap = item['onTap'] as VoidCallback?;
+                    return Card(
+                      margin: EdgeInsets.zero,
+                      child: Tooltip(
+                        message: title.tr(),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: onTap,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(icon, size: 28),
+                                if (badgeCount != null && badgeCount > 0)
+                                  Badge.count(count: badgeCount),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
-            ),
-            if (!isWideScreen(context))
-              ListTile(
-                minTileHeight: 48,
-                leading: const Icon(Symbols.files),
-                trailing: const Icon(Symbols.chevron_right),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                title: Text('files').tr(),
-                onTap: () {
-                  context.goNamed('files');
-                },
-              ),
-            if (!isWideScreen(context))
-              ListTile(
-                minTileHeight: 48,
-                leading: const Icon(Symbols.group),
-                trailing: const Icon(Symbols.chevron_right),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                title: Text('realms').tr(),
-                onTap: () {
-                  context.goNamed('realmList');
-                },
-              ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.wallet),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('wallet').tr(),
-              onTap: () {
-                context.pushNamed('wallet');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.people),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('relationships').tr(),
-              onTap: () {
-                context.pushNamed('relationships');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.sticker_rounded),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('stickers').tr(),
-              onTap: () {
-                context.pushNamed('stickerMarketplace');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.rss_feed),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('webFeeds').tr(),
-              onTap: () {
-                context.pushNamed('webFeedMarketplace');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              title: Text('abuseReport').tr(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Symbols.gavel),
-              trailing: const Icon(Symbols.chevron_right),
-              onTap: () => context.pushNamed('reportList'),
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
