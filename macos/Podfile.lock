@@ -173,6 +173,8 @@ PODS:
   - hotkey_manager_macos (0.0.1):
     - FlutterMacOS
     - HotKey
+  - in_app_review (2.0.0):
+    - FlutterMacOS
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
   - KeychainAccess (4.2.2)
@@ -279,6 +281,7 @@ DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
   - hotkey_manager_macos (from `Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos`)
+  - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
@@ -367,6 +370,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
   hotkey_manager_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos
+  in_app_review:
+    :path: Flutter/ephemeral/.symlinks/plugins/in_app_review/macos
   irondash_engine_context:
     :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
   livekit_client:
@@ -447,6 +452,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
   hotkey_manager_macos: a4317849af96d2430fa89944d3c58977ca089fbe
+  in_app_review: 66e7680752b632d83f4f0e88b34d52ed303fbff4
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb

@@ -20,189 +20,10 @@ import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/services/event_bus.dart';
 
-class SpecialAction {
-  final String name;
-  final String description;
-  final IconData icon;
-  final VoidCallback action;
-
-  const SpecialAction({
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.action,
-  });
-}
-
 class CommandPattleWidget extends HookConsumerWidget {
   final VoidCallback onDismiss;
 
   const CommandPattleWidget({super.key, required this.onDismiss});
-
-  static final List<RouteItem> _availableRoutes = [
-    RouteItem(
-      name: 'Dashboard',
-      path: '/',
-      description: 'Main dashboard',
-      icon: Symbols.home,
-    ),
-    RouteItem(
-      name: 'Explore',
-      path: '/explore',
-      description: 'Discover content',
-      icon: Symbols.explore,
-    ),
-    RouteItem(
-      name: 'Post Search',
-      path: '/posts/search',
-      description: 'Search posts',
-      icon: Symbols.search,
-    ),
-    RouteItem(
-      name: 'Post Shuffle',
-      path: '/posts/shuffle',
-      description: 'Random posts',
-      icon: Symbols.shuffle,
-    ),
-    RouteItem(
-      name: 'Post Categories',
-      path: '/posts/categories',
-      description: 'Browse categories',
-      icon: Symbols.category,
-    ),
-    RouteItem(
-      name: 'Discovery Realms',
-      path: '/discovery/realms',
-      description: 'Explore realms',
-      icon: Symbols.public,
-    ),
-    RouteItem(
-      name: 'Chat',
-      path: '/chat',
-      description: 'Messages and conversations',
-      icon: Symbols.chat,
-    ),
-    RouteItem(
-      name: 'Realms',
-      path: '/realms',
-      description: 'Community realms',
-      icon: Symbols.group,
-    ),
-    RouteItem(
-      name: 'Account',
-      path: '/account',
-      description: 'Your profile and settings',
-      icon: Symbols.person,
-    ),
-    RouteItem(
-      name: 'Sticker Marketplace',
-      path: '/stickers',
-      description: 'Browse sticker packs',
-      icon: Symbols.emoji_emotions,
-    ),
-    RouteItem(
-      name: 'Web Feeds',
-      path: '/feeds',
-      description: 'RSS and web feeds',
-      icon: Symbols.feed,
-    ),
-    RouteItem(
-      name: 'Wallet',
-      path: '/account/wallet',
-      description: 'Your digital wallet',
-      icon: Symbols.account_balance_wallet,
-    ),
-    RouteItem(
-      name: 'Relationships',
-      path: '/account/relationships',
-      description: 'Friends and connections',
-      icon: Symbols.people,
-    ),
-    RouteItem(
-      name: 'Update Profile',
-      path: '/account/me/update',
-      description: 'Edit your profile',
-      icon: Symbols.edit,
-    ),
-    RouteItem(
-      name: 'Leveling',
-      path: '/account/me/leveling',
-      description: 'Your progress and levels',
-      icon: Symbols.trending_up,
-    ),
-    RouteItem(
-      name: 'Account Settings',
-      path: '/account/me/settings',
-      description: 'App preferences',
-      icon: Symbols.settings,
-    ),
-    RouteItem(
-      name: 'Reports',
-      path: '/safety/reports/me',
-      description: 'Your abuse reports',
-      icon: Symbols.report,
-    ),
-    RouteItem(
-      name: 'Files',
-      path: '/files',
-      description: 'File manager',
-      icon: Symbols.folder,
-    ),
-    RouteItem(
-      name: 'Thought',
-      path: '/thought',
-      description: 'AI assistant',
-      icon: Symbols.psychology,
-    ),
-    RouteItem(
-      name: 'Creator Hub',
-      path: '/creators',
-      description: 'Content creation tools',
-      icon: Symbols.create,
-    ),
-    RouteItem(
-      name: 'Developer Hub',
-      path: '/developers',
-      description: 'Developer tools',
-      icon: Symbols.code,
-    ),
-    RouteItem(
-      name: 'Logs',
-      path: '/logs',
-      description: 'Application logs',
-      icon: Symbols.bug_report,
-    ),
-    RouteItem(
-      name: 'Articles',
-      path: '/feeds/articles',
-      description: 'Web articles',
-      icon: Symbols.article,
-    ),
-    RouteItem(
-      name: 'Login',
-      path: '/auth/login',
-      description: 'Sign in to your account',
-      icon: Symbols.login,
-    ),
-    RouteItem(
-      name: 'Create Account',
-      path: '/auth/create-account',
-      description: 'Create a new account',
-      icon: Symbols.person_add,
-    ),
-    RouteItem(
-      name: 'Settings',
-      path: '/settings',
-      description: 'Application settings',
-      icon: Symbols.settings,
-    ),
-    RouteItem(
-      name: 'About',
-      path: '/about',
-      description: 'About this app',
-      icon: Symbols.info,
-    ),
-  ];
 
   static List<SpecialAction> _getSpecialActions(BuildContext context) {
     return [
@@ -296,11 +117,14 @@ class CommandPattleWidget extends HookConsumerWidget {
 
     final filteredRoutes = searchQuery.value.isEmpty
         ? <RouteItem>[]
-        : _availableRoutes
+        : kAvailableRoutes
               .where((route) {
                 final query = searchQuery.value.toLowerCase();
                 return route.name.toLowerCase().contains(query) ||
-                    route.description.toLowerCase().contains(query);
+                    route.description.toLowerCase().contains(query) ||
+                    route.searchableAliases.any(
+                      (e) => e.toLowerCase().contains(query),
+                    );
               })
               .take(5) // Limit to 5 results
               .toList();
@@ -311,7 +135,10 @@ class CommandPattleWidget extends HookConsumerWidget {
               .where((action) {
                 final query = searchQuery.value.toLowerCase();
                 return action.name.toLowerCase().contains(query) ||
-                    action.description.toLowerCase().contains(query);
+                    action.description.toLowerCase().contains(query) ||
+                    action.searchableAliases.any(
+                      (e) => e.toLowerCase().contains(query),
+                    );
               })
               .take(5) // Limit to 5 results
               .toList();
@@ -452,7 +279,7 @@ class CommandPattleWidget extends HookConsumerWidget {
                           SearchBar(
                             controller: textController,
                             focusNode: focusNode,
-                            hintText: 'Search chats and pages...',
+                            hintText: 'searchChatsAndPages'.tr(),
                             leading: CircleAvatar(
                               child: const Icon(Symbols.keyboard_command_key),
                             ).padding(horizontal: 8),

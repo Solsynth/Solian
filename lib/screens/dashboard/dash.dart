@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -61,20 +62,37 @@ class DashboardGrid extends HookConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Clock card spans full width
-          ClockCard().padding(horizontal: isWide ? 24 : 16),
+          if (isWide)
+            ClockCard().padding(horizontal: 24)
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Gap(8),
+                Expanded(child: ClockCard(compact: true)),
+                IconButton(
+                  onPressed: () {
+                    eventBus.fire(CommandPaletteTriggerEvent());
+                  },
+                  icon: const Icon(Symbols.search),
+                  tooltip: 'searchAnything'.tr(),
+                ),
+              ],
+            ).padding(horizontal: 24),
           // Row with two cards side by side
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
-            child: SearchBar(
-              hintText: 'Search Anything...',
-              constraints: const BoxConstraints(minHeight: 56),
-              leading: const Icon(Symbols.search).padding(horizontal: 24),
-              readOnly: true,
-              onTap: () {
-                eventBus.fire(CommandPaletteTriggerEvent());
-              },
+          if (isWide)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
+              child: SearchBar(
+                hintText: 'searchAnything'.tr(),
+                constraints: const BoxConstraints(minHeight: 56),
+                leading: const Icon(Symbols.search).padding(horizontal: 24),
+                readOnly: true,
+                onTap: () {
+                  eventBus.fire(CommandPaletteTriggerEvent());
+                },
+              ),
             ),
-          ),
           if (userInfo.value != null)
             Expanded(
               child:
@@ -190,13 +208,20 @@ class _DashboardGridNarrow extends HookConsumerWidget {
 }
 
 class ClockCard extends HookConsumerWidget {
-  const ClockCard({super.key});
+  final bool compact;
+  const ClockCard({super.key, this.compact = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final time = useState(DateTime.now());
     final timer = useRef<Timer?>(null);
     final nextNotableDay = ref.watch(nextNotableDayProvider);
+
+    // Determine icon based on time of day
+    final int hour = time.value.hour;
+    final IconData timeIcon = (hour >= 6 && hour < 18)
+        ? Symbols.sunny_rounded
+        : Symbols.dark_mode_rounded;
 
     useEffect(() {
       timer.value = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -213,14 +238,16 @@ class ClockCard extends HookConsumerWidget {
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: compact
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(
-                  Symbols.schedule,
+                  timeIcon,
                   size: 32,
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -321,9 +348,11 @@ class FeaturedPostCard extends HookConsumerWidget {
                 error: (error, stack) => Center(child: Text('Error: $error')),
                 data: (posts) {
                   if (posts.isEmpty) {
-                    return const Padding(
+                    return Padding(
                       padding: EdgeInsets.all(16),
-                      child: Center(child: Text('No featured posts available')),
+                      child: Center(
+                        child: Text('noFeaturedPostsAvailable').tr(),
+                      ),
                     );
                   }
                   return PageView.builder(
@@ -384,7 +413,7 @@ class NotificationsCard extends HookConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Notifications',
+                    'notifications'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -397,7 +426,7 @@ class NotificationsCard extends HookConsumerWidget {
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (notificationList) {
                 if (notificationList.isEmpty) {
-                  return const Center(child: Text('No notifications yet'));
+                  return Center(child: Text('noNotificationsYet').tr());
                 }
                 // Get the most recent notification (first in the list)
                 final recentNotification = notificationList.first;
@@ -406,7 +435,7 @@ class NotificationsCard extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Most Recent',
+                      'mostRecent'.tr(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -423,7 +452,7 @@ class NotificationsCard extends HookConsumerWidget {
               },
             ),
             Text(
-              'Tap to view all notifications',
+              'tapToViewAllNotifications'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -460,7 +489,7 @@ class ChatListCard extends HookConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Recent Chats',
+                  'recentChats'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
