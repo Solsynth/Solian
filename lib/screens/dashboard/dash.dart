@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/chat_room.dart';
+import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/chat/chat.dart';
@@ -337,6 +338,7 @@ class NotificationsCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifications = ref.watch(notificationListProvider);
+    final notificationsUnreadCount = ref.watch(notificationUnreadCountProvider);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -372,6 +374,10 @@ class NotificationsCard extends HookConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
+                Badge.count(
+                  count: notificationsUnreadCount.value ?? 0,
+                  isLabelVisible: (notificationsUnreadCount.value ?? 0) > 0,
                 ),
               ],
             ).padding(horizontal: 16, vertical: 12),
@@ -424,6 +430,7 @@ class ChatListCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRooms = ref.watch(chatRoomJoinedProvider);
+    final chatUnreadCount = ref.watch(chatUnreadCountProvider);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -448,6 +455,10 @@ class ChatListCard extends HookConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+              Badge.count(
+                count: chatUnreadCount.value ?? 0,
+                isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
               ),
             ],
           ).padding(horizontal: 16, vertical: 16),

@@ -446,9 +446,12 @@ class AccountScreen extends HookConsumerWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(icon, size: 28),
-                                if (badgeCount != null && badgeCount > 0)
-                                  Badge.count(count: badgeCount),
+                                Badge(
+                                  isLabelVisible:
+                                      badgeCount != null && badgeCount > 0,
+                                  label: Text(badgeCount.toString()),
+                                  child: Icon(icon, size: 28),
+                                ),
                               ],
                             ),
                           ),
