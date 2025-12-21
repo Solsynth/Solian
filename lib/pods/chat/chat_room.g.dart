@@ -34,7 +34,7 @@ final class ChatRoomJoinedNotifierProvider
 }
 
 String _$chatRoomJoinedNotifierHash() =>
-    r'c8092225ba0d9c08b2b5bca6f800f1877303b4ff';
+    r'65961aac28b5188900c4b25308f6fd080a14d5ab';
 
 abstract class _$ChatRoomJoinedNotifier
     extends $AsyncNotifier<List<SnChatRoom>> {

@@ -14,207 +14,14 @@ import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/chat_room_widgets.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:relative_time/relative_time.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/pods/chat/chat_room.dart';
-
-class ChatRoomListTile extends HookConsumerWidget {
-  final SnChatRoom room;
-  final bool isDirect;
-  final Widget? subtitle;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const ChatRoomListTile({
-    super.key,
-    required this.room,
-    this.isDirect = false,
-    this.subtitle,
-    this.trailing,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref
-        .watch(chatSummaryProvider)
-        .whenData((summaries) => summaries[room.id]);
-
-    var validMembers = room.members ?? [];
-    if (validMembers.isNotEmpty) {
-      final userInfo = ref.watch(userInfoProvider);
-      if (userInfo.value != null) {
-        validMembers = validMembers
-            .where((e) => e.accountId != userInfo.value!.id)
-            .toList();
-      }
-    }
-
-    Widget buildSubtitle() {
-      if (subtitle != null) return subtitle!;
-
-      return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        layoutBuilder: (currentChild, previousChildren) => Stack(
-          alignment: Alignment.centerLeft,
-          children: [
-            ...previousChildren,
-            if (currentChild != null) currentChild,
-          ],
-        ),
-        child: summary.when(
-          data: (data) => Container(
-            key: const ValueKey('data'),
-            child: data == null
-                ? isDirect && room.description == null
-                      ? Text(
-                          validMembers
-                              .map((e) => '@${e.account.name}')
-                              .join(', '),
-                          maxLines: 1,
-                        )
-                      : Text(
-                          room.description ?? 'descriptionNone'.tr(),
-                          maxLines: 1,
-                        )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (data.unreadCount > 0)
-                        Text(
-                          'unreadMessages'.plural(data.unreadCount),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                      if (data.lastMessage == null)
-                        Text(
-                          room.description ?? 'descriptionNone'.tr(),
-                          maxLines: 1,
-                        )
-                      else
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Badge(
-                              label: Text(
-                                data.lastMessage!.sender.account.nick,
-                              ),
-                              textColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                            ),
-                            Expanded(
-                              child: Text(
-                                (data.lastMessage!.content?.isNotEmpty ?? false)
-                                    ? data.lastMessage!.content!
-                                    : 'messageNone'.tr(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                RelativeTime(
-                                  context,
-                                ).format(data.lastMessage!.createdAt),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-          ),
-          loading: () => Container(
-            key: const ValueKey('loading'),
-            child: Builder(
-              builder: (context) {
-                final seed = DateTime.now().microsecondsSinceEpoch;
-                final len = 4 + (seed % 17); // 4..20 inclusive
-                const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-                var s = seed;
-                final buffer = StringBuffer();
-                for (var i = 0; i < len; i++) {
-                  s = (s * 1103515245 + 12345) & 0x7fffffff;
-                  buffer.write(chars[s % chars.length]);
-                }
-                return Skeletonizer(
-                  enabled: true,
-                  child: Text(buffer.toString()),
-                );
-              },
-            ),
-          ),
-          error: (_, _) => Container(
-            key: const ValueKey('error'),
-            child: isDirect && room.description == null
-                ? Text(
-                    validMembers.map((e) => '@${e.account.name}').join(', '),
-                    maxLines: 1,
-                  )
-                : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1),
-          ),
-        ),
-      );
-    }
-
-    String titleText;
-    if (isDirect && room.name == null) {
-      if (room.members?.isNotEmpty ?? false) {
-        titleText = validMembers.map((e) => e.account.nick).join(', ');
-      } else {
-        titleText = 'Direct Message';
-      }
-    } else {
-      titleText = room.name ?? '';
-    }
-
-    return ListTile(
-      leading: Badge(
-        isLabelVisible: summary.when(
-          data: (data) => (data?.unreadCount ?? 0) > 0,
-          loading: () => false,
-          error: (_, _) => false,
-        ),
-        child: (isDirect && room.picture?.id == null)
-            ? SplitAvatarWidget(
-                filesId: validMembers
-                    .map((e) => e.account.profile.picture?.id)
-                    .toList(),
-              )
-            : room.picture?.id == null
-            ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
-            : ProfilePictureWidget(fileId: room.picture?.id),
-      ),
-      title: Text(titleText),
-      subtitle: buildSubtitle(),
-      trailing: trailing, // Add this line
-      onTap: () async {
-        // Clear unread count if there are unread messages
-        ref.read(chatSummaryProvider.future).then((summary) {
-          if ((summary[room.id]?.unreadCount ?? 0) > 0) {
-            ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
-          }
-        });
-        onTap?.call();
-      },
-    );
-  }
-}
 
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
@@ -645,6 +452,78 @@ class _ChatInvitesSheet extends HookConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
+    );
+  }
+}
+
+class ChatRoomListTile extends HookConsumerWidget {
+  final SnChatRoom room;
+  final bool isDirect;
+  final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const ChatRoomListTile({
+    super.key,
+    required this.room,
+    this.isDirect = false,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref
+        .watch(chatSummaryProvider)
+        .whenData((summaries) => summaries[room.id]);
+
+    var validMembers = room.members ?? [];
+    if (validMembers.isNotEmpty) {
+      final userInfo = ref.watch(userInfoProvider);
+      if (userInfo.value != null) {
+        validMembers = validMembers
+            .where((e) => e.accountId != userInfo.value!.id)
+            .toList();
+      }
+    }
+
+    String titleText;
+    if (isDirect && room.name == null) {
+      if (room.members?.isNotEmpty ?? false) {
+        titleText = validMembers.map((e) => e.account.nick).join(', ');
+      } else {
+        titleText = 'Direct Message';
+      }
+    } else {
+      titleText = room.name ?? '';
+    }
+
+    return ListTile(
+      leading: ChatRoomAvatar(
+        room: room,
+        isDirect: isDirect,
+        summary: summary,
+        validMembers: validMembers,
+      ),
+      title: Text(titleText),
+      subtitle: ChatRoomSubtitle(
+        room: room,
+        isDirect: isDirect,
+        validMembers: validMembers,
+        summary: summary,
+        subtitle: subtitle,
+      ),
+      trailing: trailing, // Add this line
+      onTap: () async {
+        // Clear unread count if there are unread messages
+        ref.read(chatSummaryProvider.future).then((summary) {
+          if ((summary[room.id]?.unreadCount ?? 0) > 0) {
+            ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
+          }
+        });
+        onTap?.call();
+      },
     );
   }
 }

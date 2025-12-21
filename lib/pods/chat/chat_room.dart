@@ -4,6 +4,7 @@ import 'package:island/database/drift_db.dart';
 import 'package:island/models/account.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/database.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -49,96 +50,10 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       if (localRoomsData.isNotEmpty) {
         final localRooms = await Future.wait(
           localRoomsData.map((row) async {
-            final membersRows =
-                await (db.select(db.chatMembers)
-                  ..where((m) => m.chatRoomId.equals(row.id))).get();
-            final members =
-                membersRows.map((mRow) {
-                  final account = SnAccount.fromJson(mRow.account);
-                  return SnChatMember(
-                    id: mRow.id,
-                    chatRoomId: mRow.chatRoomId,
-                    accountId: mRow.accountId,
-                    account: account,
-                    nick: mRow.nick,
-                    notify: mRow.notify,
-                    joinedAt: mRow.joinedAt,
-                    breakUntil: mRow.breakUntil,
-                    timeoutUntil: mRow.timeoutUntil,
-                    status: null,
-                    createdAt: mRow.createdAt,
-                    updatedAt: mRow.updatedAt,
-                    deletedAt: mRow.deletedAt,
-                    chatRoom: null,
-                  );
-                }).toList();
-            return SnChatRoom(
-              id: row.id,
-              name: row.name,
-              description: row.description,
-              type: row.type,
-              isPublic: row.isPublic!,
-              isCommunity: row.isCommunity!,
-              picture:
-                  row.picture != null
-                      ? SnCloudFile.fromJson(row.picture!)
-                      : null,
-              background:
-                  row.background != null
-                      ? SnCloudFile.fromJson(row.background!)
-                      : null,
-              realmId: row.realmId,
-              accountId: row.accountId,
-              realm: null,
-              createdAt: row.createdAt,
-              updatedAt: row.updatedAt,
-              deletedAt: row.deletedAt,
-              members: members,
-            );
-          }),
-        );
-
-        // Background sync
-        Future(() async {
-          try {
-            final client = ref.read(apiClientProvider);
-            final resp = await client.get('/sphere/chat');
-            final remoteRooms =
-                resp.data
-                    .map((e) => SnChatRoom.fromJson(e))
-                    .cast<SnChatRoom>()
-                    .toList();
-            await db.saveChatRooms(remoteRooms, override: true);
-            // Update state with fresh data
-            state = AsyncData(await _buildRoomsFromDb(db));
-          } catch (_) {}
-        }).ignore();
-
-        return localRooms;
-      }
-    } catch (_) {}
-
-    // Fallback to API
-    final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/sphere/chat');
-    final rooms =
-        resp.data
-            .map((e) => SnChatRoom.fromJson(e))
-            .cast<SnChatRoom>()
-            .toList();
-    await db.saveChatRooms(rooms, override: true);
-    return rooms;
-  }
-
-  Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
-    final localRoomsData = await db.select(db.chatRooms).get();
-    return Future.wait(
-      localRoomsData.map((row) async {
-        final membersRows =
-            await (db.select(db.chatMembers)
-              ..where((m) => m.chatRoomId.equals(row.id))).get();
-        final members =
-            membersRows.map((mRow) {
+            final membersRows = await (db.select(
+              db.chatMembers,
+            )..where((m) => m.chatRoomId.equals(row.id))).get();
+            final members = membersRows.map((mRow) {
               final account = SnAccount.fromJson(mRow.account);
               return SnChatMember(
                 id: mRow.id,
@@ -157,6 +72,121 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
                 chatRoom: null,
               );
             }).toList();
+            return SnChatRoom(
+              id: row.id,
+              name: row.name,
+              description: row.description,
+              type: row.type,
+              isPublic: row.isPublic!,
+              isCommunity: row.isCommunity!,
+              picture: row.picture != null
+                  ? SnCloudFile.fromJson(row.picture!)
+                  : null,
+              background: row.background != null
+                  ? SnCloudFile.fromJson(row.background!)
+                  : null,
+              realmId: row.realmId,
+              accountId: row.accountId,
+              realm: null,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+              deletedAt: row.deletedAt,
+              members: members,
+            );
+          }),
+        );
+
+        // Background sync
+        Future(() async {
+          try {
+            final client = ref.read(apiClientProvider);
+            final resp = await client.get('/sphere/chat');
+            final remoteRooms = resp.data
+                .map((e) => SnChatRoom.fromJson(e))
+                .cast<SnChatRoom>()
+                .toList();
+            await db.saveChatRooms(remoteRooms, override: true);
+            // Update state with fresh data
+            state = AsyncData(await _buildRoomsFromDb(db));
+          } catch (_) {}
+        }).ignore();
+
+        return localRooms;
+      }
+    } catch (_) {}
+
+    // Fallback to API
+    final client = ref.watch(apiClientProvider);
+    final resp = await client.get('/sphere/chat');
+    final rooms = resp.data
+        .map((e) => SnChatRoom.fromJson(e))
+        .cast<SnChatRoom>()
+        .toList();
+    await db.saveChatRooms(rooms, override: true);
+    return rooms;
+  }
+
+  Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
+    final localRoomsData = await db.select(db.chatRooms).get();
+    return Future.wait(
+      localRoomsData.map((row) async {
+        final membersRows = await (db.select(
+          db.chatMembers,
+        )..where((m) => m.chatRoomId.equals(row.id))).get();
+        final members = membersRows.map((mRow) {
+          final account = SnAccount.fromJson(mRow.account);
+          return SnChatMember(
+            id: mRow.id,
+            chatRoomId: mRow.chatRoomId,
+            accountId: mRow.accountId,
+            account: account,
+            nick: mRow.nick,
+            notify: mRow.notify,
+            joinedAt: mRow.joinedAt,
+            breakUntil: mRow.breakUntil,
+            timeoutUntil: mRow.timeoutUntil,
+            status: null,
+            createdAt: mRow.createdAt,
+            updatedAt: mRow.updatedAt,
+            deletedAt: mRow.deletedAt,
+            chatRoom: null,
+          );
+        }).toList();
+
+        // Load realm if it exists
+        SnRealm? realm;
+        if (row.realmId != null) {
+          try {
+            final realmRow = await (db.select(
+              db.realms,
+            )..where((r) => r.id.equals(row.realmId!))).getSingleOrNull();
+            if (realmRow != null) {
+              realm = SnRealm(
+                id: realmRow.id,
+                slug: '', // Not stored in DB
+                name: realmRow.name ?? '',
+                description: realmRow.description ?? '',
+                verifiedAs: null, // Not stored in DB
+                verifiedAt: null, // Not stored in DB
+                isCommunity: false, // Not stored in DB
+                isPublic: true, // Not stored in DB
+                picture: realmRow.picture != null
+                    ? SnCloudFile.fromJson(realmRow.picture!)
+                    : null,
+                background: realmRow.background != null
+                    ? SnCloudFile.fromJson(realmRow.background!)
+                    : null,
+                accountId: realmRow.accountId ?? '',
+                createdAt: realmRow.createdAt,
+                updatedAt: realmRow.updatedAt,
+                deletedAt: realmRow.deletedAt,
+              );
+            }
+          } catch (_) {
+            // Realm not found, keep as null
+          }
+        }
+
         return SnChatRoom(
           id: row.id,
           name: row.name,
@@ -164,15 +194,15 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           type: row.type,
           isPublic: row.isPublic!,
           isCommunity: row.isCommunity!,
-          picture:
-              row.picture != null ? SnCloudFile.fromJson(row.picture!) : null,
-          background:
-              row.background != null
-                  ? SnCloudFile.fromJson(row.background!)
-                  : null,
+          picture: row.picture != null
+              ? SnCloudFile.fromJson(row.picture!)
+              : null,
+          background: row.background != null
+              ? SnCloudFile.fromJson(row.background!)
+              : null,
           realmId: row.realmId,
           accountId: row.accountId,
-          realm: null,
+          realm: realm,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           deletedAt: row.deletedAt,
@@ -192,35 +222,34 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
     try {
       // Try to get from local database first
-      final localRoomData =
-          await (db.select(db.chatRooms)
-            ..where((r) => r.id.equals(identifier))).getSingleOrNull();
+      final localRoomData = await (db.select(
+        db.chatRooms,
+      )..where((r) => r.id.equals(identifier))).getSingleOrNull();
 
       if (localRoomData != null) {
         // Fetch members for this room
-        final membersRows =
-            await (db.select(db.chatMembers)
-              ..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
-        final members =
-            membersRows.map((mRow) {
-              final account = SnAccount.fromJson(mRow.account);
-              return SnChatMember(
-                id: mRow.id,
-                chatRoomId: mRow.chatRoomId,
-                accountId: mRow.accountId,
-                account: account,
-                nick: mRow.nick,
-                notify: mRow.notify,
-                joinedAt: mRow.joinedAt,
-                breakUntil: mRow.breakUntil,
-                timeoutUntil: mRow.timeoutUntil,
-                status: null,
-                createdAt: mRow.createdAt,
-                updatedAt: mRow.updatedAt,
-                deletedAt: mRow.deletedAt,
-                chatRoom: null,
-              );
-            }).toList();
+        final membersRows = await (db.select(
+          db.chatMembers,
+        )..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
+        final members = membersRows.map((mRow) {
+          final account = SnAccount.fromJson(mRow.account);
+          return SnChatMember(
+            id: mRow.id,
+            chatRoomId: mRow.chatRoomId,
+            accountId: mRow.accountId,
+            account: account,
+            nick: mRow.nick,
+            notify: mRow.notify,
+            joinedAt: mRow.joinedAt,
+            breakUntil: mRow.breakUntil,
+            timeoutUntil: mRow.timeoutUntil,
+            status: null,
+            createdAt: mRow.createdAt,
+            updatedAt: mRow.updatedAt,
+            deletedAt: mRow.deletedAt,
+            chatRoom: null,
+          );
+        }).toList();
 
         final localRoom = SnChatRoom(
           id: localRoomData.id,
@@ -229,14 +258,12 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           type: localRoomData.type,
           isPublic: localRoomData.isPublic!,
           isCommunity: localRoomData.isCommunity!,
-          picture:
-              localRoomData.picture != null
-                  ? SnCloudFile.fromJson(localRoomData.picture!)
-                  : null,
-          background:
-              localRoomData.background != null
-                  ? SnCloudFile.fromJson(localRoomData.background!)
-                  : null,
+          picture: localRoomData.picture != null
+              ? SnCloudFile.fromJson(localRoomData.picture!)
+              : null,
+          background: localRoomData.background != null
+              ? SnCloudFile.fromJson(localRoomData.background!)
+              : null,
           realmId: localRoomData.realmId,
           accountId: localRoomData.accountId,
           realm: null,

@@ -36,6 +36,21 @@ class ListMapConverter
   String toSql(List<Map<String, dynamic>> value) => json.encode(value);
 }
 
+class Realms extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get picture => text().map(const MapConverter()).nullable()();
+  TextColumn get background => text().map(const MapConverter()).nullable()();
+  TextColumn get accountId => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class ChatRooms extends Table {
   TextColumn get id => text()();
   TextColumn get name => text().nullable()();
@@ -47,7 +62,7 @@ class ChatRooms extends Table {
       boolean().nullable().withDefault(const Constant(false))();
   TextColumn get picture => text().map(const MapConverter()).nullable()();
   TextColumn get background => text().map(const MapConverter()).nullable()();
-  TextColumn get realmId => text().nullable()();
+  TextColumn get realmId => text().references(Realms, #id).nullable()();
   TextColumn get accountId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -91,10 +106,9 @@ class ChatMessages extends Table {
   TextColumn get type => text().withDefault(const Constant('text'))();
   TextColumn get meta =>
       text().map(const MapConverter()).withDefault(const Constant('{}'))();
-  TextColumn get membersMentioned =>
-      text()
-          .map(const ListStringConverter())
-          .withDefault(const Constant('[]'))();
+  TextColumn get membersMentioned => text()
+      .map(const ListStringConverter())
+      .withDefault(const Constant('[]'))();
   DateTimeColumn get editedAt => dateTime().nullable()();
   TextColumn get attachments =>
       text().map(const ListMapConverter()).withDefault(const Constant('[]'))();

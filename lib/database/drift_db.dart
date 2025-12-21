@@ -5,16 +5,19 @@ import 'package:island/database/draft.dart';
 import 'package:island/models/account.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/realm.dart';
 
 part 'drift_db.g.dart';
 
 // Define the database
-@DriftDatabase(tables: [ChatRooms, ChatMembers, ChatMessages, PostDrafts])
+@DriftDatabase(
+  tables: [Realms, ChatRooms, ChatMembers, ChatMessages, PostDrafts],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +74,11 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE chat_members DROP COLUMN last_typed',
         );
       }
+      if (from < 10) {
+        // Add realms table and update chat_rooms foreign key
+        await m.createTable(realms);
+        // The realmId column in chat_rooms already exists, just need to ensure the foreign key constraint
+      }
     },
   );
 
@@ -92,11 +100,10 @@ class AppDatabase extends _$AppDatabase {
 
     // Migrate existing data if any
     try {
-      final oldDrafts =
-          await customSelect(
-            'SELECT id, post, lastModified FROM post_drafts_old',
-            readsFrom: {postDrafts},
-          ).get();
+      final oldDrafts = await customSelect(
+        'SELECT id, post, lastModified FROM post_drafts_old',
+        readsFrom: {postDrafts},
+      ).get();
 
       for (final row in oldDrafts) {
         final postJson = row.read<String>('post');
@@ -150,9 +157,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<int> updateMessageStatus(String id, MessageStatus status) {
-    return (update(chatMessages)..where(
-      (m) => m.id.equals(id),
-    )).write(ChatMessagesCompanion(status: Value(status)));
+    return (update(chatMessages)..where((m) => m.id.equals(id))).write(
+      ChatMessagesCompanion(status: Value(status)),
+    );
   }
 
   Future<int> deleteMessage(String id) {
@@ -176,29 +183,28 @@ class AppDatabase extends _$AppDatabase {
 
     if (query.isNotEmpty) {
       final searchTerm = '%$query%';
-      selectStatement =
-          selectStatement..where(
-            (m) =>
-                m.content.like(searchTerm) |
-                m.meta.like(searchTerm) |
-                m.attachments.like(searchTerm) |
-                m.type.like(searchTerm),
-          );
+      selectStatement = selectStatement
+        ..where(
+          (m) =>
+              m.content.like(searchTerm) |
+              m.meta.like(searchTerm) |
+              m.attachments.like(searchTerm) |
+              m.type.like(searchTerm),
+        );
     }
 
     if (withAttachments == true) {
-      selectStatement =
-          selectStatement..where((m) => m.attachments.equals('[]').not());
+      selectStatement = selectStatement
+        ..where((m) => m.attachments.equals('[]').not());
     }
 
     final messages =
         await (selectStatement
               ..orderBy([(m) => OrderingTerm.desc(m.createdAt)]))
             .get();
-    final messageFutures =
-        messages
-            .map((msg) => companionToMessage(msg, fetchAccount: fetchAccount))
-            .toList();
+    final messageFutures = messages
+        .map((msg) => companionToMessage(msg, fetchAccount: fetchAccount))
+        .toList();
     return await Future.wait(messageFutures);
   }
 
@@ -234,9 +240,9 @@ class AppDatabase extends _$AppDatabase {
     final data = jsonDecode(dbMessage.data);
     SnChatMember? sender;
     try {
-      final senderRow =
-          await (select(chatMembers)
-            ..where((m) => m.id.equals(dbMessage.senderId))).getSingle();
+      final senderRow = await (select(
+        chatMembers,
+      )..where((m) => m.id.equals(dbMessage.senderId))).getSingle();
       SnAccount senderAccount;
       senderAccount = SnAccount.fromJson(senderRow.account);
 
@@ -358,6 +364,20 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  RealmsCompanion companionFromRealm(SnRealm realm) {
+    return RealmsCompanion(
+      id: Value(realm.id),
+      name: Value(realm.name),
+      description: Value(realm.description),
+      picture: Value(realm.picture?.toJson()),
+      background: Value(realm.background?.toJson()),
+      accountId: Value(realm.accountId),
+      createdAt: Value(realm.createdAt),
+      updatedAt: Value(realm.updatedAt),
+      deletedAt: Value(realm.deletedAt),
+    );
+  }
+
   Future<void> saveChatRooms(
     List<SnChatRoom> rooms, {
     bool override = false,
@@ -373,17 +393,35 @@ class AppDatabase extends _$AppDatabase {
         if (idsToRemove.isNotEmpty) {
           final idsList = idsToRemove.toList();
           // Remove messages
-          await (delete(chatMessages)
-            ..where((t) => t.roomId.isIn(idsList))).go();
+          await (delete(
+            chatMessages,
+          )..where((t) => t.roomId.isIn(idsList))).go();
           // Remove members
-          await (delete(chatMembers)
-            ..where((t) => t.chatRoomId.isIn(idsList))).go();
+          await (delete(
+            chatMembers,
+          )..where((t) => t.chatRoomId.isIn(idsList))).go();
           // Remove rooms
           await (delete(chatRooms)..where((t) => t.id.isIn(idsList))).go();
         }
       }
 
-      // 2. Upsert remote rooms
+      // 2. Upsert realms first
+      final realmsToSave = rooms
+          .where((room) => room.realm != null)
+          .map((room) => room.realm!)
+          .toSet()
+          .toList();
+      await batch((batch) {
+        for (final realm in realmsToSave) {
+          batch.insert(
+            realms,
+            companionFromRealm(realm),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      });
+
+      // 3. Upsert remote rooms
       await batch((batch) {
         for (final room in rooms) {
           batch.insert(
@@ -445,8 +483,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<PostDraft?> getPostDraftById(String id) async {
-    return await (select(postDrafts)
-      ..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+    return await (select(
+      postDrafts,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<void> saveMember(SnChatMember member) async {

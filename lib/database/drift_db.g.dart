@@ -3,6 +3,581 @@
 part of 'drift_db.dart';
 
 // ignore_for_file: type=lint
+class $RealmsTable extends Realms with TableInfo<$RealmsTable, Realm> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RealmsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  picture = GeneratedColumn<String>(
+    'picture',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Map<String, dynamic>?>($RealmsTable.$converterpicturen);
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  background = GeneratedColumn<String>(
+    'background',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Map<String, dynamic>?>($RealmsTable.$converterbackgroundn);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    picture,
+    background,
+    accountId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'realms';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Realm> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Realm map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Realm(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      picture: $RealmsTable.$converterpicturen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}picture'],
+        ),
+      ),
+      background: $RealmsTable.$converterbackgroundn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}background'],
+        ),
+      ),
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $RealmsTable createAlias(String alias) {
+    return $RealmsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Map<String, dynamic>, String> $converterpicture =
+      const MapConverter();
+  static TypeConverter<Map<String, dynamic>?, String?> $converterpicturen =
+      NullAwareTypeConverter.wrap($converterpicture);
+  static TypeConverter<Map<String, dynamic>, String> $converterbackground =
+      const MapConverter();
+  static TypeConverter<Map<String, dynamic>?, String?> $converterbackgroundn =
+      NullAwareTypeConverter.wrap($converterbackground);
+}
+
+class Realm extends DataClass implements Insertable<Realm> {
+  final String id;
+  final String? name;
+  final String? description;
+  final Map<String, dynamic>? picture;
+  final Map<String, dynamic>? background;
+  final String? accountId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const Realm({
+    required this.id,
+    this.name,
+    this.description,
+    this.picture,
+    this.background,
+    this.accountId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(
+        $RealmsTable.$converterpicturen.toSql(picture),
+      );
+    }
+    if (!nullToAbsent || background != null) {
+      map['background'] = Variable<String>(
+        $RealmsTable.$converterbackgroundn.toSql(background),
+      );
+    }
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  RealmsCompanion toCompanion(bool nullToAbsent) {
+    return RealmsCompanion(
+      id: Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      picture: picture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(picture),
+      background: background == null && nullToAbsent
+          ? const Value.absent()
+          : Value(background),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory Realm.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Realm(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String?>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      picture: serializer.fromJson<Map<String, dynamic>?>(json['picture']),
+      background: serializer.fromJson<Map<String, dynamic>?>(
+        json['background'],
+      ),
+      accountId: serializer.fromJson<String?>(json['accountId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String?>(name),
+      'description': serializer.toJson<String?>(description),
+      'picture': serializer.toJson<Map<String, dynamic>?>(picture),
+      'background': serializer.toJson<Map<String, dynamic>?>(background),
+      'accountId': serializer.toJson<String?>(accountId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  Realm copyWith({
+    String? id,
+    Value<String?> name = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    Value<Map<String, dynamic>?> picture = const Value.absent(),
+    Value<Map<String, dynamic>?> background = const Value.absent(),
+    Value<String?> accountId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => Realm(
+    id: id ?? this.id,
+    name: name.present ? name.value : this.name,
+    description: description.present ? description.value : this.description,
+    picture: picture.present ? picture.value : this.picture,
+    background: background.present ? background.value : this.background,
+    accountId: accountId.present ? accountId.value : this.accountId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  Realm copyWithCompanion(RealmsCompanion data) {
+    return Realm(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      picture: data.picture.present ? data.picture.value : this.picture,
+      background: data.background.present
+          ? data.background.value
+          : this.background,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Realm(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('picture: $picture, ')
+          ..write('background: $background, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    picture,
+    background,
+    accountId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Realm &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.picture == this.picture &&
+          other.background == this.background &&
+          other.accountId == this.accountId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class RealmsCompanion extends UpdateCompanion<Realm> {
+  final Value<String> id;
+  final Value<String?> name;
+  final Value<String?> description;
+  final Value<Map<String, dynamic>?> picture;
+  final Value<Map<String, dynamic>?> background;
+  final Value<String?> accountId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const RealmsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.background = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RealmsCompanion.insert({
+    required String id,
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.background = const Value.absent(),
+    this.accountId = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Realm> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? picture,
+    Expression<String>? background,
+    Expression<String>? accountId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (picture != null) 'picture': picture,
+      if (background != null) 'background': background,
+      if (accountId != null) 'account_id': accountId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RealmsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? name,
+    Value<String?>? description,
+    Value<Map<String, dynamic>?>? picture,
+    Value<Map<String, dynamic>?>? background,
+    Value<String?>? accountId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return RealmsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      picture: picture ?? this.picture,
+      background: background ?? this.background,
+      accountId: accountId ?? this.accountId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(
+        $RealmsTable.$converterpicturen.toSql(picture.value),
+      );
+    }
+    if (background.present) {
+      map['background'] = Variable<String>(
+        $RealmsTable.$converterbackgroundn.toSql(background.value),
+      );
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RealmsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('picture: $picture, ')
+          ..write('background: $background, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ChatRoomsTable extends ChatRooms
     with TableInfo<$ChatRoomsTable, ChatRoom> {
   @override
@@ -105,6 +680,9 @@ class $ChatRoomsTable extends ChatRooms
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES realms (id)',
+    ),
   );
   static const VerificationMeta _accountIdMeta = const VerificationMeta(
     'accountId',
@@ -3120,6 +3698,7 @@ class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $RealmsTable realms = $RealmsTable(this);
   late final $ChatRoomsTable chatRooms = $ChatRoomsTable(this);
   late final $ChatMembersTable chatMembers = $ChatMembersTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
@@ -3129,6 +3708,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    realms,
     chatRooms,
     chatMembers,
     chatMessages,
@@ -3136,6 +3716,388 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
+typedef $$RealmsTableCreateCompanionBuilder =
+    RealmsCompanion Function({
+      required String id,
+      Value<String?> name,
+      Value<String?> description,
+      Value<Map<String, dynamic>?> picture,
+      Value<Map<String, dynamic>?> background,
+      Value<String?> accountId,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$RealmsTableUpdateCompanionBuilder =
+    RealmsCompanion Function({
+      Value<String> id,
+      Value<String?> name,
+      Value<String?> description,
+      Value<Map<String, dynamic>?> picture,
+      Value<Map<String, dynamic>?> background,
+      Value<String?> accountId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$RealmsTableReferences
+    extends BaseReferences<_$AppDatabase, $RealmsTable, Realm> {
+  $$RealmsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ChatRoomsTable, List<ChatRoom>>
+  _chatRoomsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.chatRooms,
+    aliasName: $_aliasNameGenerator(db.realms.id, db.chatRooms.realmId),
+  );
+
+  $$ChatRoomsTableProcessedTableManager get chatRoomsRefs {
+    final manager = $$ChatRoomsTableTableManager(
+      $_db,
+      $_db.chatRooms,
+    ).filter((f) => f.realmId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_chatRoomsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$RealmsTableFilterComposer
+    extends Composer<_$AppDatabase, $RealmsTable> {
+  $$RealmsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>?,
+    Map<String, dynamic>,
+    String
+  >
+  get picture => $composableBuilder(
+    column: $table.picture,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>?,
+    Map<String, dynamic>,
+    String
+  >
+  get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+    column: $table.accountId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> chatRoomsRefs(
+    Expression<bool> Function($$ChatRoomsTableFilterComposer f) f,
+  ) {
+    final $$ChatRoomsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.realmId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableFilterComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RealmsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RealmsTable> {
+  $$RealmsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get picture => $composableBuilder(
+    column: $table.picture,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accountId => $composableBuilder(
+    column: $table.accountId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RealmsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RealmsTable> {
+  $$RealmsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String> get picture =>
+      $composableBuilder(column: $table.picture, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
+  get background => $composableBuilder(
+    column: $table.background,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> chatRoomsRefs<T extends Object>(
+    Expression<T> Function($$ChatRoomsTableAnnotationComposer a) f,
+  ) {
+    final $$ChatRoomsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.chatRooms,
+      getReferencedColumn: (t) => t.realmId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChatRoomsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.chatRooms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RealmsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RealmsTable,
+          Realm,
+          $$RealmsTableFilterComposer,
+          $$RealmsTableOrderingComposer,
+          $$RealmsTableAnnotationComposer,
+          $$RealmsTableCreateCompanionBuilder,
+          $$RealmsTableUpdateCompanionBuilder,
+          (Realm, $$RealmsTableReferences),
+          Realm,
+          PrefetchHooks Function({bool chatRoomsRefs})
+        > {
+  $$RealmsTableTableManager(_$AppDatabase db, $RealmsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RealmsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RealmsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RealmsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<Map<String, dynamic>?> picture = const Value.absent(),
+                Value<Map<String, dynamic>?> background = const Value.absent(),
+                Value<String?> accountId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RealmsCompanion(
+                id: id,
+                name: name,
+                description: description,
+                picture: picture,
+                background: background,
+                accountId: accountId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<Map<String, dynamic>?> picture = const Value.absent(),
+                Value<Map<String, dynamic>?> background = const Value.absent(),
+                Value<String?> accountId = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RealmsCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                picture: picture,
+                background: background,
+                accountId: accountId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$RealmsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({chatRoomsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (chatRoomsRefs) db.chatRooms],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (chatRoomsRefs)
+                    await $_getPrefetchedData<Realm, $RealmsTable, ChatRoom>(
+                      currentTable: table,
+                      referencedTable: $$RealmsTableReferences
+                          ._chatRoomsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$RealmsTableReferences(db, table, p0).chatRoomsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.realmId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RealmsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RealmsTable,
+      Realm,
+      $$RealmsTableFilterComposer,
+      $$RealmsTableOrderingComposer,
+      $$RealmsTableAnnotationComposer,
+      $$RealmsTableCreateCompanionBuilder,
+      $$RealmsTableUpdateCompanionBuilder,
+      (Realm, $$RealmsTableReferences),
+      Realm,
+      PrefetchHooks Function({bool chatRoomsRefs})
+    >;
 typedef $$ChatRoomsTableCreateCompanionBuilder =
     ChatRoomsCompanion Function({
       required String id,
@@ -3174,6 +4136,24 @@ typedef $$ChatRoomsTableUpdateCompanionBuilder =
 final class $$ChatRoomsTableReferences
     extends BaseReferences<_$AppDatabase, $ChatRoomsTable, ChatRoom> {
   $$ChatRoomsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $RealmsTable _realmIdTable(_$AppDatabase db) => db.realms.createAlias(
+    $_aliasNameGenerator(db.chatRooms.realmId, db.realms.id),
+  );
+
+  $$RealmsTableProcessedTableManager? get realmId {
+    final $_column = $_itemColumn<String>('realm_id');
+    if ($_column == null) return null;
+    final manager = $$RealmsTableTableManager(
+      $_db,
+      $_db.realms,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_realmIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<$ChatMembersTable, List<ChatMember>>
   _chatMembersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -3271,11 +4251,6 @@ class $$ChatRoomsTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<String> get realmId => $composableBuilder(
-    column: $table.realmId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get accountId => $composableBuilder(
     column: $table.accountId,
     builder: (column) => ColumnFilters(column),
@@ -3295,6 +4270,29 @@ class $$ChatRoomsTableFilterComposer
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$RealmsTableFilterComposer get realmId {
+    final $$RealmsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.realmId,
+      referencedTable: $db.realms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RealmsTableFilterComposer(
+            $db: $db,
+            $table: $db.realms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> chatMembersRefs(
     Expression<bool> Function($$ChatMembersTableFilterComposer f) f,
@@ -3396,11 +4394,6 @@ class $$ChatRoomsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get realmId => $composableBuilder(
-    column: $table.realmId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get accountId => $composableBuilder(
     column: $table.accountId,
     builder: (column) => ColumnOrderings(column),
@@ -3420,6 +4413,29 @@ class $$ChatRoomsTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$RealmsTableOrderingComposer get realmId {
+    final $$RealmsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.realmId,
+      referencedTable: $db.realms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RealmsTableOrderingComposer(
+            $db: $db,
+            $table: $db.realms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ChatRoomsTableAnnotationComposer
@@ -3462,9 +4478,6 @@ class $$ChatRoomsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get realmId =>
-      $composableBuilder(column: $table.realmId, builder: (column) => column);
-
   GeneratedColumn<String> get accountId =>
       $composableBuilder(column: $table.accountId, builder: (column) => column);
 
@@ -3476,6 +4489,29 @@ class $$ChatRoomsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$RealmsTableAnnotationComposer get realmId {
+    final $$RealmsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.realmId,
+      referencedTable: $db.realms,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RealmsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.realms,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> chatMembersRefs<T extends Object>(
     Expression<T> Function($$ChatMembersTableAnnotationComposer a) f,
@@ -3541,7 +4577,11 @@ class $$ChatRoomsTableTableManager
           $$ChatRoomsTableUpdateCompanionBuilder,
           (ChatRoom, $$ChatRoomsTableReferences),
           ChatRoom,
-          PrefetchHooks Function({bool chatMembersRefs, bool chatMessagesRefs})
+          PrefetchHooks Function({
+            bool realmId,
+            bool chatMembersRefs,
+            bool chatMessagesRefs,
+          })
         > {
   $$ChatRoomsTableTableManager(_$AppDatabase db, $ChatRoomsTable table)
     : super(
@@ -3627,14 +4667,49 @@ class $$ChatRoomsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({chatMembersRefs = false, chatMessagesRefs = false}) {
+              ({
+                realmId = false,
+                chatMembersRefs = false,
+                chatMessagesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (chatMembersRefs) db.chatMembers,
                     if (chatMessagesRefs) db.chatMessages,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (realmId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.realmId,
+                                    referencedTable: $$ChatRoomsTableReferences
+                                        ._realmIdTable(db),
+                                    referencedColumn: $$ChatRoomsTableReferences
+                                        ._realmIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (chatMembersRefs)
@@ -3699,7 +4774,11 @@ typedef $$ChatRoomsTableProcessedTableManager =
       $$ChatRoomsTableUpdateCompanionBuilder,
       (ChatRoom, $$ChatRoomsTableReferences),
       ChatRoom,
-      PrefetchHooks Function({bool chatMembersRefs, bool chatMessagesRefs})
+      PrefetchHooks Function({
+        bool realmId,
+        bool chatMembersRefs,
+        bool chatMessagesRefs,
+      })
     >;
 typedef $$ChatMembersTableCreateCompanionBuilder =
     ChatMembersCompanion Function({
@@ -5229,6 +6308,8 @@ typedef $$PostDraftsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$RealmsTableTableManager get realms =>
+      $$RealmsTableTableManager(_db, _db.realms);
   $$ChatRoomsTableTableManager get chatRooms =>
       $$ChatRoomsTableTableManager(_db, _db.chatRooms);
   $$ChatMembersTableTableManager get chatMembers =>

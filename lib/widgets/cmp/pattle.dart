@@ -14,7 +14,7 @@ import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/chat_room_widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -698,22 +698,11 @@ class _ChatRoomSearchResult extends HookConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(24)),
       ),
       child: ListTile(
-        leading: Badge(
-          isLabelVisible: summary.maybeWhen(
-            data: (data) => (data?.unreadCount ?? 0) > 0,
-            orElse: () => false,
-          ),
-          child: (isDirect && room.picture?.id == null)
-              ? SplitAvatarWidget(
-                  filesId: validMembers
-                      .map((e) => e.account.profile.picture?.id)
-                      .toList(),
-                )
-              : room.picture?.id == null
-              ? CircleAvatar(child: Text((room.name ?? 'DM')[0].toUpperCase()))
-              : ProfilePictureWidget(
-                  fileId: room.picture?.id,
-                ), // Placeholder for now
+        leading: ChatRoomAvatar(
+          room: room,
+          isDirect: isDirect,
+          summary: summary,
+          validMembers: validMembers,
         ),
         title: Text(titleText),
         subtitle: buildSubtitle(),

@@ -2635,6 +2635,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  snow_fall_animation:
+    dependency: "direct main"
+    description:
+      name: snow_fall_animation
+      sha256: "41b97ec1e5c47aeb5886924346f95b1b12e917b85b03d394c925e98a67d8f90e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1+3"
   source_gen:
     dependency: transitive
     description:
