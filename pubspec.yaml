@@ -44,7 +44,6 @@ dependencies:
   flutter_riverpod: ^3.0.3
   path_provider: ^2.1.5
   dio: ^5.9.0
-  very_good_infinite_list: ^0.9.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   flutter_markdown_latex: ^0.3.4
@@ -69,8 +68,6 @@ dependencies:
   package_info_plus: ^9.0.0
   device_info_plus: ^11.3.0
   protocol_handler: ^0.2.0
-  tus_client_dart:
-    git: https://github.com/LittleSheep2Code/tus_client.git
   cross_file: ^0.3.5+1
   image_picker: ^1.2.1
   file_picker: ^10.3.8
@@ -174,6 +171,7 @@ dependencies:
   permission_handler: ^12.0.1
   hotkey_manager: ^0.2.3
   shake: ^3.0.0
+  in_app_review: ^2.0.11
 
 dev_dependencies:
   flutter_test:
