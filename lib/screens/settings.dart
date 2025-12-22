@@ -846,7 +846,7 @@ class SettingsScreen extends HookConsumerWidget {
           child: TextField(
             controller: TextEditingController(text: settings.dashSearchEngine),
             decoration: InputDecoration(
-              hintText: 'https://duckduckgo.com/?q=%s',
+              hintText: 'https://google.com/?q=%s',
               helperText: 'settingsDashSearchEngineHelper'.tr(),
               suffixIcon: IconButton(
                 icon: const Icon(Symbols.restart_alt),

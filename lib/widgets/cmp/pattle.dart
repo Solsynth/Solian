@@ -11,6 +11,7 @@ import 'package:island/models/chat.dart';
 import 'package:island/models/route_item.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/pods/chat/chat_summary.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.dart';
 import 'package:island/services/responsive.dart';
@@ -150,7 +151,7 @@ class CommandPattleWidget extends HookConsumerWidget {
             filteredChats.isEmpty &&
             filteredSpecialActions.isEmpty &&
             filteredRoutes.isEmpty
-        ? _getFallbackActions(context, searchQuery.value)
+        ? _getFallbackActions(ref, context, searchQuery.value)
         : <FallbackAction>[];
 
     // Combine results: fallbacks first, then chats, special actions, routes
@@ -402,9 +403,12 @@ class CommandPattleWidget extends HookConsumerWidget {
   }
 
   static List<FallbackAction> _getFallbackActions(
+    WidgetRef ref,
     BuildContext context,
     String query,
   ) {
+    final settings = ref.watch(appSettingsProvider);
+
     final List<FallbackAction> actions = [];
 
     // Check if query is a URL
@@ -448,12 +452,14 @@ class CommandPattleWidget extends HookConsumerWidget {
     actions.add(
       FallbackAction(
         name: 'Search the web',
-        description: 'Search "$query" on Google',
+        description: 'Search "$query" on the Internet',
         icon: Symbols.search,
         action: () async {
-          final searchUri = Uri.https('www.google.com', '/search', {
-            'q': query,
-          });
+          final searchUri = Uri.parse(
+            settings.dashSearchEngine != null
+                ? settings.dashSearchEngine!.replaceFirst('%s', query)
+                : 'https://www.google.com/search?q=$query',
+          );
           if (await canLaunchUrl(searchUri)) {
             await launchUrl(searchUri, mode: LaunchMode.externalApplication);
           }
