@@ -50,10 +50,10 @@ final class PublishersManagedProvider
 
 String _$publishersManagedHash() => r'ea83759fed9bd5119738b4d09f12b4476959e0a3';
 
-@ProviderFor(publisher)
-const publisherProvider = PublisherFamily._();
+@ProviderFor(publisherNullable)
+const publisherNullableProvider = PublisherNullableFamily._();
 
-final class PublisherProvider
+final class PublisherNullableProvider
     extends
         $FunctionalProvider<
           AsyncValue<SnPublisher?>,
@@ -61,23 +61,23 @@ final class PublisherProvider
           FutureOr<SnPublisher?>
         >
     with $FutureModifier<SnPublisher?>, $FutureProvider<SnPublisher?> {
-  const PublisherProvider._({
-    required PublisherFamily super.from,
+  const PublisherNullableProvider._({
+    required PublisherNullableFamily super.from,
     required String? super.argument,
   }) : super(
          retry: null,
-         name: r'publisherProvider',
+         name: r'publisherNullableProvider',
          isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$publisherHash();
+  String debugGetCreateSourceHash() => _$publisherNullableHash();
 
   @override
   String toString() {
-    return r'publisherProvider'
+    return r'publisherNullableProvider'
         ''
         '($argument)';
   }
@@ -91,12 +91,12 @@ final class PublisherProvider
   @override
   FutureOr<SnPublisher?> create(Ref ref) {
     final argument = this.argument as String?;
-    return publisher(ref, argument);
+    return publisherNullable(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PublisherProvider && other.argument == argument;
+    return other is PublisherNullableProvider && other.argument == argument;
   }
 
   @override
@@ -105,22 +105,22 @@ final class PublisherProvider
   }
 }
 
-String _$publisherHash() => r'18fb5c6b3d79dd8af4fbee108dec1a0e8a034038';
+String _$publisherNullableHash() => r'49b28083a2f351c5e5cde0b1a97f6c7503969041';
 
-final class PublisherFamily extends $Family
+final class PublisherNullableFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisher?>, String?> {
-  const PublisherFamily._()
+  const PublisherNullableFamily._()
     : super(
         retry: null,
-        name: r'publisherProvider',
+        name: r'publisherNullableProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  PublisherProvider call(String? identifier) =>
-      PublisherProvider._(argument: identifier, from: this);
+  PublisherNullableProvider call(String? identifier) =>
+      PublisherNullableProvider._(argument: identifier, from: this);
 
   @override
-  String toString() => r'publisherProvider';
+  String toString() => r'publisherNullableProvider';
 }

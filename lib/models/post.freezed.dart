@@ -856,72 +856,81 @@ as int,
 
 
 /// @nodoc
-mixin _$SnSubscriptionStatus {
+mixin _$SnPublisherSubscription {
 
- bool get isSubscribed; String get publisherId; String get publisherName;
-/// Create a copy of SnSubscriptionStatus
+ String get accountId; String get publisherId; SnPublisher get publisher;
+/// Create a copy of SnPublisherSubscription
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnSubscriptionStatusCopyWith<SnSubscriptionStatus> get copyWith => _$SnSubscriptionStatusCopyWithImpl<SnSubscriptionStatus>(this as SnSubscriptionStatus, _$identity);
+$SnPublisherSubscriptionCopyWith<SnPublisherSubscription> get copyWith => _$SnPublisherSubscriptionCopyWithImpl<SnPublisherSubscription>(this as SnPublisherSubscription, _$identity);
 
-  /// Serializes this SnSubscriptionStatus to a JSON map.
+  /// Serializes this SnPublisherSubscription to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionStatus&&(identical(other.isSubscribed, isSubscribed) || other.isSubscribed == isSubscribed)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisherName, publisherName) || other.publisherName == publisherName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscription&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isSubscribed,publisherId,publisherName);
+int get hashCode => Object.hash(runtimeType,accountId,publisherId,publisher);
 
 @override
 String toString() {
-  return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
+  return 'SnPublisherSubscription(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnSubscriptionStatusCopyWith<$Res>  {
-  factory $SnSubscriptionStatusCopyWith(SnSubscriptionStatus value, $Res Function(SnSubscriptionStatus) _then) = _$SnSubscriptionStatusCopyWithImpl;
+abstract mixin class $SnPublisherSubscriptionCopyWith<$Res>  {
+  factory $SnPublisherSubscriptionCopyWith(SnPublisherSubscription value, $Res Function(SnPublisherSubscription) _then) = _$SnPublisherSubscriptionCopyWithImpl;
 @useResult
 $Res call({
- bool isSubscribed, String publisherId, String publisherName
+ String accountId, String publisherId, SnPublisher publisher
 });
 
 
-
+$SnPublisherCopyWith<$Res> get publisher;
 
 }
 /// @nodoc
-class _$SnSubscriptionStatusCopyWithImpl<$Res>
-    implements $SnSubscriptionStatusCopyWith<$Res> {
-  _$SnSubscriptionStatusCopyWithImpl(this._self, this._then);
+class _$SnPublisherSubscriptionCopyWithImpl<$Res>
+    implements $SnPublisherSubscriptionCopyWith<$Res> {
+  _$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
 
-  final SnSubscriptionStatus _self;
-  final $Res Function(SnSubscriptionStatus) _then;
+  final SnPublisherSubscription _self;
+  final $Res Function(SnPublisherSubscription) _then;
 
-/// Create a copy of SnSubscriptionStatus
+/// Create a copy of SnPublisherSubscription
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isSubscribed = null,Object? publisherId = null,Object? publisherName = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? publisherId = null,Object? publisher = null,}) {
   return _then(_self.copyWith(
-isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
-as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
-as String,
+accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,publisher: null == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher,
   ));
 }
-
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res> get publisher {
+  
+  return $SnPublisherCopyWith<$Res>(_self.publisher, (value) {
+    return _then(_self.copyWith(publisher: value));
+  });
+}
 }
 
 
-/// Adds pattern-matching-related methods to [SnSubscriptionStatus].
-extension SnSubscriptionStatusPatterns on SnSubscriptionStatus {
+/// Adds pattern-matching-related methods to [SnPublisherSubscription].
+extension SnPublisherSubscriptionPatterns on SnPublisherSubscription {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -934,10 +943,10 @@ extension SnSubscriptionStatusPatterns on SnSubscriptionStatus {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSubscriptionStatus value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus() when $default != null:
+case _SnPublisherSubscription() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -956,10 +965,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSubscriptionStatus value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus():
+case _SnPublisherSubscription():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -974,10 +983,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSubscriptionStatus value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherSubscription value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus() when $default != null:
+case _SnPublisherSubscription() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -995,10 +1004,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isSubscribed,  String publisherId,  String publisherName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountId,  String publisherId,  SnPublisher publisher)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus() when $default != null:
-return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);case _:
+case _SnPublisherSubscription() when $default != null:
+return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
   return orElse();
 
 }
@@ -1016,10 +1025,10 @@ return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isSubscribed,  String publisherId,  String publisherName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountId,  String publisherId,  SnPublisher publisher)  $default,) {final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus():
-return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);}
+case _SnPublisherSubscription():
+return $default(_that.accountId,_that.publisherId,_that.publisher);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1033,10 +1042,10 @@ return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isSubscribed,  String publisherId,  String publisherName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountId,  String publisherId,  SnPublisher publisher)?  $default,) {final _that = this;
 switch (_that) {
-case _SnSubscriptionStatus() when $default != null:
-return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);case _:
+case _SnPublisherSubscription() when $default != null:
+return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
   return null;
 
 }
@@ -1047,74 +1056,83 @@ return $default(_that.isSubscribed,_that.publisherId,_that.publisherName);case _
 /// @nodoc
 @JsonSerializable()
 
-class _SnSubscriptionStatus implements SnSubscriptionStatus {
-  const _SnSubscriptionStatus({required this.isSubscribed, required this.publisherId, required this.publisherName});
-  factory _SnSubscriptionStatus.fromJson(Map<String, dynamic> json) => _$SnSubscriptionStatusFromJson(json);
+class _SnPublisherSubscription implements SnPublisherSubscription {
+  const _SnPublisherSubscription({required this.accountId, required this.publisherId, required this.publisher});
+  factory _SnPublisherSubscription.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriptionFromJson(json);
 
-@override final  bool isSubscribed;
+@override final  String accountId;
 @override final  String publisherId;
-@override final  String publisherName;
+@override final  SnPublisher publisher;
 
-/// Create a copy of SnSubscriptionStatus
+/// Create a copy of SnPublisherSubscription
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnSubscriptionStatusCopyWith<_SnSubscriptionStatus> get copyWith => __$SnSubscriptionStatusCopyWithImpl<_SnSubscriptionStatus>(this, _$identity);
+_$SnPublisherSubscriptionCopyWith<_SnPublisherSubscription> get copyWith => __$SnPublisherSubscriptionCopyWithImpl<_SnPublisherSubscription>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnSubscriptionStatusToJson(this, );
+  return _$SnPublisherSubscriptionToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionStatus&&(identical(other.isSubscribed, isSubscribed) || other.isSubscribed == isSubscribed)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisherName, publisherName) || other.publisherName == publisherName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscription&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isSubscribed,publisherId,publisherName);
+int get hashCode => Object.hash(runtimeType,accountId,publisherId,publisher);
 
 @override
 String toString() {
-  return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
+  return 'SnPublisherSubscription(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnSubscriptionStatusCopyWith<$Res> implements $SnSubscriptionStatusCopyWith<$Res> {
-  factory _$SnSubscriptionStatusCopyWith(_SnSubscriptionStatus value, $Res Function(_SnSubscriptionStatus) _then) = __$SnSubscriptionStatusCopyWithImpl;
+abstract mixin class _$SnPublisherSubscriptionCopyWith<$Res> implements $SnPublisherSubscriptionCopyWith<$Res> {
+  factory _$SnPublisherSubscriptionCopyWith(_SnPublisherSubscription value, $Res Function(_SnPublisherSubscription) _then) = __$SnPublisherSubscriptionCopyWithImpl;
 @override @useResult
 $Res call({
- bool isSubscribed, String publisherId, String publisherName
+ String accountId, String publisherId, SnPublisher publisher
 });
 
 
-
+@override $SnPublisherCopyWith<$Res> get publisher;
 
 }
 /// @nodoc
-class __$SnSubscriptionStatusCopyWithImpl<$Res>
-    implements _$SnSubscriptionStatusCopyWith<$Res> {
-  __$SnSubscriptionStatusCopyWithImpl(this._self, this._then);
+class __$SnPublisherSubscriptionCopyWithImpl<$Res>
+    implements _$SnPublisherSubscriptionCopyWith<$Res> {
+  __$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
 
-  final _SnSubscriptionStatus _self;
-  final $Res Function(_SnSubscriptionStatus) _then;
+  final _SnPublisherSubscription _self;
+  final $Res Function(_SnPublisherSubscription) _then;
 
-/// Create a copy of SnSubscriptionStatus
+/// Create a copy of SnPublisherSubscription
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isSubscribed = null,Object? publisherId = null,Object? publisherName = null,}) {
-  return _then(_SnSubscriptionStatus(
-isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
-as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
-as String,
+@override @pragma('vm:prefer-inline') $Res call({Object? accountId = null,Object? publisherId = null,Object? publisher = null,}) {
+  return _then(_SnPublisherSubscription(
+accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,publisher: null == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher,
   ));
 }
 
-
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res> get publisher {
+  
+  return $SnPublisherCopyWith<$Res>(_self.publisher, (value) {
+    return _then(_self.copyWith(publisher: value));
+  });
+}
 }
 
 /// @nodoc

@@ -74,15 +74,15 @@ sealed class SnPublisherStats with _$SnPublisherStats {
 }
 
 @freezed
-sealed class SnSubscriptionStatus with _$SnSubscriptionStatus {
-  const factory SnSubscriptionStatus({
-    required bool isSubscribed,
+sealed class SnPublisherSubscription with _$SnPublisherSubscription {
+  const factory SnPublisherSubscription({
+    required String accountId,
     required String publisherId,
-    required String publisherName,
-  }) = _SnSubscriptionStatus;
+    required SnPublisher publisher,
+  }) = _SnPublisherSubscription;
 
-  factory SnSubscriptionStatus.fromJson(Map<String, dynamic> json) =>
-      _$SnSubscriptionStatusFromJson(json);
+  factory SnPublisherSubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherSubscriptionFromJson(json);
 }
 
 @freezed
@@ -92,8 +92,9 @@ sealed class ReactInfo with _$ReactInfo {
 
   static String getTranslationKey(String templateKey) {
     final parts = templateKey.split('_');
-    final camelCase =
-        parts.map((p) => p[0].toUpperCase() + p.substring(1)).join();
+    final camelCase = parts
+        .map((p) => p[0].toUpperCase() + p.substring(1))
+        .join();
     return 'reaction$camelCase';
   }
 }

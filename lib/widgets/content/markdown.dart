@@ -12,7 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/screens/account/profile.dart';
-import 'package:island/screens/creators/publishers_form.dart';
+import 'package:island/screens/posts/publisher_profile.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/cloud_file_lightbox.dart';
@@ -64,14 +64,16 @@ class MarkdownTextContent extends HookConsumerWidget {
       final matches = stickerPattern.allMatches(content);
 
       // Content should only contain one sticker and nothing else (except whitespace)
-      final contentWithoutStickers =
-          content.replaceAll(stickerPattern, '').trim();
+      final contentWithoutStickers = content
+          .replaceAll(stickerPattern, '')
+          .trim();
       return matches.length == 1 && contentWithoutStickers.isEmpty;
     }, [content]);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final config =
-        isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
+    final config = isDark
+        ? MarkdownConfig.darkConfig
+        : MarkdownConfig.defaultConfig;
 
     final onMentionTap = useCallback((String type, String id) {
       final fullPath = '/$type/$id';
@@ -128,11 +130,10 @@ class MarkdownTextContent extends HookConsumerWidget {
             ),
           ),
           TableConfig(
-            wrapper:
-                (child) => SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: child,
-                ),
+            wrapper: (child) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: child,
+            ),
           ),
           LinkConfig(
             style:
@@ -203,8 +204,9 @@ class MarkdownTextContent extends HookConsumerWidget {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
                             ),
@@ -288,11 +290,10 @@ class _MetionInlineSyntax extends markdown.InlineSyntax {
       "c" => 'chat',
       _ => '',
     };
-    final element =
-        markdown.Element('mention-chip', [markdown.Text(alias)])
-          ..attributes['alias'] = alias
-          ..attributes['type'] = type
-          ..attributes['id'] = parts.last;
+    final element = markdown.Element('mention-chip', [markdown.Text(alias)])
+      ..attributes['alias'] = alias
+      ..attributes['type'] = type
+      ..attributes['id'] = parts.last;
     parser.addNode(element);
 
     return true;
@@ -373,18 +374,19 @@ class MentionChipGenerator extends SpanNodeGeneratorWithTag {
     required void Function(String type, String id) onTap,
   }) : super(
          tag: 'mention-chip',
-         generator: (
-           markdown.Element element,
-           MarkdownConfig config,
-           WidgetVisitor visitor,
-         ) {
-           return MentionChipSpanNode(
-             attributes: element.attributes,
-             backgroundColor: backgroundColor,
-             foregroundColor: foregroundColor,
-             onTap: onTap,
-           );
-         },
+         generator:
+             (
+               markdown.Element element,
+               MarkdownConfig config,
+               WidgetVisitor visitor,
+             ) {
+               return MentionChipSpanNode(
+                 attributes: element.attributes,
+                 backgroundColor: backgroundColor,
+                 foregroundColor: foregroundColor,
+                 onTap: onTap,
+               );
+             },
        );
 }
 
@@ -440,19 +442,17 @@ class MentionChipSpanNode extends SpanNode {
                     builder: (context, ref, _) {
                       final userData = ref.watch(accountProvider(parts.last));
                       return userData.when(
-                        data:
-                            (data) => ProfilePictureWidget(
-                              file: data.profile.picture,
-                              fallbackIcon: Symbols.person_rounded,
-                              radius: 9,
-                            ),
+                        data: (data) => ProfilePictureWidget(
+                          file: data.profile.picture,
+                          fallbackIcon: Symbols.person_rounded,
+                          radius: 9,
+                        ),
                         error: (_, _) => const Icon(Symbols.close),
-                        loading:
-                            () => const SizedBox(
-                              width: 9,
-                              height: 9,
-                              child: CircularProgressIndicator(),
-                            ),
+                        loading: () => const SizedBox(
+                          width: 9,
+                          height: 9,
+                          child: CircularProgressIndicator(),
+                        ),
                       );
                     },
                   ),
@@ -460,19 +460,17 @@ class MentionChipSpanNode extends SpanNode {
                     builder: (context, ref, _) {
                       final pubData = ref.watch(publisherProvider(parts.last));
                       return pubData.when(
-                        data:
-                            (data) => ProfilePictureWidget(
-                              file: data?.picture,
-                              fallbackIcon: Symbols.design_services_rounded,
-                              radius: 9,
-                            ),
+                        data: (data) => ProfilePictureWidget(
+                          file: data.picture,
+                          fallbackIcon: Symbols.design_services_rounded,
+                          radius: 9,
+                        ),
                         error: (_, _) => const Icon(Symbols.close),
-                        loading:
-                            () => const SizedBox(
-                              width: 9,
-                              height: 9,
-                              child: CircularProgressIndicator(),
-                            ),
+                        loading: () => const SizedBox(
+                          width: 9,
+                          height: 9,
+                          child: CircularProgressIndicator(),
+                        ),
                       );
                     },
                   ),
@@ -508,16 +506,17 @@ class HighlightGenerator extends SpanNodeGeneratorWithTag {
   HighlightGenerator({required Color highlightColor})
     : super(
         tag: 'highlight',
-        generator: (
-          markdown.Element element,
-          MarkdownConfig config,
-          WidgetVisitor visitor,
-        ) {
-          return HighlightSpanNode(
-            text: element.textContent,
-            highlightColor: highlightColor,
-          );
-        },
+        generator:
+            (
+              markdown.Element element,
+              MarkdownConfig config,
+              WidgetVisitor visitor,
+            ) {
+              return HighlightSpanNode(
+                text: element.textContent,
+                highlightColor: highlightColor,
+              );
+            },
       );
 }
 
@@ -545,20 +544,21 @@ class SpoilerGenerator extends SpanNodeGeneratorWithTag {
     required VoidCallback onToggle,
   }) : super(
          tag: 'spoiler',
-         generator: (
-           markdown.Element element,
-           MarkdownConfig config,
-           WidgetVisitor visitor,
-         ) {
-           return SpoilerSpanNode(
-             text: element.textContent,
-             backgroundColor: backgroundColor,
-             foregroundColor: foregroundColor,
-             outlineColor: outlineColor,
-             revealed: revealed,
-             onToggle: onToggle,
-           );
-         },
+         generator:
+             (
+               markdown.Element element,
+               MarkdownConfig config,
+               WidgetVisitor visitor,
+             ) {
+               return SpoilerSpanNode(
+                 text: element.textContent,
+                 backgroundColor: backgroundColor,
+                 foregroundColor: foregroundColor,
+                 outlineColor: outlineColor,
+                 revealed: revealed,
+                 onToggle: onToggle,
+               );
+             },
        );
 }
 
@@ -591,35 +591,33 @@ class SpoilerSpanNode extends SpanNode {
             border: revealed ? Border.all(color: outlineColor, width: 1) : null,
             borderRadius: BorderRadius.circular(4),
           ),
-          child:
-              revealed
-                  ? Row(
-                    spacing: 6,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Symbols.visibility, size: 18).padding(top: 1),
-                      Flexible(child: Text(text)),
-                    ],
-                  )
-                  : Row(
-                    spacing: 6,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.visibility_off,
-                        color: foregroundColor,
-                        size: 18,
-                      ),
-                      Flexible(
-                        child:
-                            Text(
-                              'spoiler',
-                              style: TextStyle(color: foregroundColor),
-                            ).tr(),
-                      ),
-                    ],
-                  ),
+          child: revealed
+              ? Row(
+                  spacing: 6,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Symbols.visibility, size: 18).padding(top: 1),
+                    Flexible(child: Text(text)),
+                  ],
+                )
+              : Row(
+                  spacing: 6,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.visibility_off,
+                      color: foregroundColor,
+                      size: 18,
+                    ),
+                    Flexible(
+                      child: Text(
+                        'spoiler',
+                        style: TextStyle(color: foregroundColor),
+                      ).tr(),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -634,19 +632,20 @@ class StickerGenerator extends SpanNodeGeneratorWithTag {
     required String baseUrl,
   }) : super(
          tag: 'sticker',
-         generator: (
-           markdown.Element element,
-           MarkdownConfig config,
-           WidgetVisitor visitor,
-         ) {
-           return StickerSpanNode(
-             placeholder: element.textContent,
-             backgroundColor: backgroundColor,
-             foregroundColor: foregroundColor,
-             isEnlarged: isEnlarged,
-             baseUrl: baseUrl,
-           );
-         },
+         generator:
+             (
+               markdown.Element element,
+               MarkdownConfig config,
+               WidgetVisitor visitor,
+             ) {
+               return StickerSpanNode(
+                 placeholder: element.textContent,
+                 backgroundColor: backgroundColor,
+                 foregroundColor: foregroundColor,
+                 isEnlarged: isEnlarged,
+                 baseUrl: baseUrl,
+               );
+             },
        );
 }
 

@@ -33,7 +33,7 @@ part 'publisher_profile.g.dart';
 
 class _PublisherBasisWidget extends StatelessWidget {
   final SnPublisher data;
-  final AsyncValue<SnSubscriptionStatus> subStatus;
+  final AsyncValue<SnPublisherSubscription?> subStatus;
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
   final VoidCallback unsubscribe;
@@ -208,16 +208,16 @@ class _PublisherBasisWidget extends StatelessWidget {
                                   data: (status) => FilledButton.icon(
                                     onPressed: subscribing.value
                                         ? null
-                                        : (status.isSubscribed
+                                        : (status != null
                                               ? unsubscribe
                                               : subscribe),
                                     icon: Icon(
-                                      status.isSubscribed
+                                      status != null
                                           ? Symbols.remove_circle
                                           : Symbols.add_circle,
                                     ),
                                     label: Text(
-                                      status.isSubscribed
+                                      status != null
                                           ? 'unsubscribe'
                                           : 'subscribe',
                                     ).tr(),
@@ -366,13 +366,16 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
 }
 
 @riverpod
-Future<SnSubscriptionStatus> publisherSubscriptionStatus(
+Future<SnPublisherSubscription?> publisherSubscriptionStatus(
   Ref ref,
   String pubName,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get("/sphere/publishers/$pubName/subscription");
-  return SnSubscriptionStatus.fromJson(resp.data);
+  if (resp.statusCode == 200) {
+    return SnPublisherSubscription.fromJson(resp.data);
+  }
+  return null;
 }
 
 @riverpod

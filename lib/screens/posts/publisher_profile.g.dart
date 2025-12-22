@@ -168,13 +168,13 @@ const publisherSubscriptionStatusProvider =
 final class PublisherSubscriptionStatusProvider
     extends
         $FunctionalProvider<
-          AsyncValue<SnSubscriptionStatus>,
-          SnSubscriptionStatus,
-          FutureOr<SnSubscriptionStatus>
+          AsyncValue<SnPublisherSubscription?>,
+          SnPublisherSubscription?,
+          FutureOr<SnPublisherSubscription?>
         >
     with
-        $FutureModifier<SnSubscriptionStatus>,
-        $FutureProvider<SnSubscriptionStatus> {
+        $FutureModifier<SnPublisherSubscription?>,
+        $FutureProvider<SnPublisherSubscription?> {
   const PublisherSubscriptionStatusProvider._({
     required PublisherSubscriptionStatusFamily super.from,
     required String super.argument,
@@ -198,12 +198,12 @@ final class PublisherSubscriptionStatusProvider
 
   @$internal
   @override
-  $FutureProviderElement<SnSubscriptionStatus> $createElement(
+  $FutureProviderElement<SnPublisherSubscription?> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<SnSubscriptionStatus> create(Ref ref) {
+  FutureOr<SnPublisherSubscription?> create(Ref ref) {
     final argument = this.argument as String;
     return publisherSubscriptionStatus(ref, argument);
   }
@@ -221,10 +221,10 @@ final class PublisherSubscriptionStatusProvider
 }
 
 String _$publisherSubscriptionStatusHash() =>
-    r'634262ce519e1c8288267df11e08e1d4acaa4a44';
+    r'accf6a0cdf98f8b0474d94ac575e8b20448adc79';
 
 final class PublisherSubscriptionStatusFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<SnSubscriptionStatus>, String> {
+    with $FunctionalFamilyOverride<FutureOr<SnPublisherSubscription?>, String> {
   const PublisherSubscriptionStatusFamily._()
     : super(
         retry: null,

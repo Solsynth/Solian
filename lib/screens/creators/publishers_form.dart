@@ -35,7 +35,7 @@ Future<List<SnPublisher>> publishersManaged(Ref ref) async {
 }
 
 @riverpod
-Future<SnPublisher?> publisher(Ref ref, String? identifier) async {
+Future<SnPublisher?> publisherNullable(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/sphere/publishers/$identifier');
@@ -93,14 +93,10 @@ class EditPublisherScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: UniversalFile(data: result, type: UniversalFileType.image),
+        ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -118,7 +114,7 @@ class EditPublisherScreen extends HookConsumerWidget {
       }
     }
 
-    final publisher = ref.watch(publisherProvider(name));
+    final publisher = ref.watch(publisherNullableProvider(name));
 
     final formKey = useMemoized(GlobalKey<FormState>.new, const []);
     final nameController = useTextEditingController(
@@ -155,8 +151,8 @@ class EditPublisherScreen extends HookConsumerWidget {
         final resp = await client.request(
           '/sphere${name == null
               ? currentRealm.value == null
-                  ? '/publishers/individual'
-                  : '/publishers/organization/${currentRealm.value!.slug}'
+                    ? '/publishers/individual'
+                    : '/publishers/organization/${currentRealm.value!.slug}'
               : '/publishers/$name'}',
           data: {
             'name': nameController.text,
@@ -194,13 +190,12 @@ class EditPublisherScreen extends HookConsumerWidget {
                   GestureDetector(
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      child:
-                          background.value != null
-                              ? CloudImageWidget(
-                                fileId: background.value!,
-                                fit: BoxFit.cover,
-                              )
-                              : const SizedBox.shrink(),
+                      child: background.value != null
+                          ? CloudImageWidget(
+                              fileId: background.value!,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     onTap: () {
                       setPicture('background');
@@ -238,14 +233,14 @@ class EditPublisherScreen extends HookConsumerWidget {
                         prefixText: '@',
                       ),
                       readOnly: name != null,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     TextFormField(
                       controller: nickController,
                       decoration: InputDecoration(labelText: 'nickname'.tr()),
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     TextFormField(
                       controller: bioController,
@@ -255,8 +250,8 @@ class EditPublisherScreen extends HookConsumerWidget {
                       ),
                       minLines: 3,
                       maxLines: null,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     DropdownButtonFormField<SnRealm>(
                       value: currentRealm.value,
@@ -267,22 +262,20 @@ class EditPublisherScreen extends HookConsumerWidget {
                           child: Text('individual'.tr()),
                         ),
                         ...joinedRealms.maybeWhen(
-                          data:
-                              (realms) => realms.map(
-                                (realm) => DropdownMenuItem(
-                                  value: realm,
-                                  child: Text(realm.name),
-                                ),
-                              ),
+                          data: (realms) => realms.map(
+                            (realm) => DropdownMenuItem(
+                              value: realm,
+                              child: Text(realm.name),
+                            ),
+                          ),
                           orElse: () => [],
                         ),
                       ],
-                      onChanged:
-                          joinedRealms.isLoading
-                              ? null
-                              : (SnRealm? value) {
-                                currentRealm.value = value;
-                              },
+                      onChanged: joinedRealms.isLoading
+                          ? null
+                          : (SnRealm? value) {
+                              currentRealm.value = value;
+                            },
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -307,20 +300,18 @@ class EditPublisherScreen extends HookConsumerWidget {
                                   currentRealm.value!.background?.id;
                             }
                           },
-                          label:
-                              Text(
-                                currentRealm.value == null
-                                    ? 'syncPublisher'
-                                    : 'syncPublisherRealm',
-                              ).tr(),
+                          label: Text(
+                            currentRealm.value == null
+                                ? 'syncPublisher'
+                                : 'syncPublisherRealm',
+                          ).tr(),
                           icon: const Icon(Symbols.link),
                         ),
                         TextButton.icon(
                           onPressed: submitting.value ? null : performAction,
-                          label:
-                              Text(
-                                name == null ? 'create' : 'saveChanges',
-                              ).tr(),
+                          label: Text(
+                            name == null ? 'create' : 'saveChanges',
+                          ).tr(),
                           icon: const Icon(Symbols.save),
                         ),
                       ],

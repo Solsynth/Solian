@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class PostFilterWidget extends StatefulWidget {
+class PostFilterWidget extends HookConsumerWidget {
   final TabController categoryTabController;
   final PostListQuery initialQuery;
   final ValueChanged<PostListQuery> onQueryChanged;
@@ -19,79 +21,55 @@ class PostFilterWidget extends StatefulWidget {
   });
 
   @override
-  State<PostFilterWidget> createState() => _PostFilterWidgetState();
-}
-
-class _PostFilterWidgetState extends State<PostFilterWidget> {
-  late bool? _includeReplies;
-  late bool _mediaOnly;
-  late String? _queryTerm;
-  late String? _order;
-  late bool _orderDesc;
-  late int? _periodStart;
-  late int? _periodEnd;
-  late int? _type;
-  late bool _showAdvancedFilters;
-  late TextEditingController _searchController;
-
-  @override
-  void initState() {
-    super.initState();
-    _includeReplies = widget.initialQuery.includeReplies;
-    _mediaOnly = widget.initialQuery.mediaOnly ?? false;
-    _queryTerm = widget.initialQuery.queryTerm;
-    _order = widget.initialQuery.order;
-    _orderDesc = widget.initialQuery.orderDesc;
-    _periodStart = widget.initialQuery.periodStart;
-    _periodEnd = widget.initialQuery.periodEnd;
-    _type = widget.initialQuery.type;
-    _showAdvancedFilters = false;
-    _searchController = TextEditingController(text: _queryTerm);
-
-    widget.categoryTabController.addListener(_onTabChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.categoryTabController.removeListener(_onTabChanged);
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onTabChanged() {
-    final tabIndex = widget.categoryTabController.index;
-    setState(() {
-      _type = switch (tabIndex) {
-        1 => 0,
-        2 => 1,
-        _ => null,
-      };
-    });
-    _updateQuery();
-  }
-
-  void _updateQuery() {
-    final newQuery = widget.initialQuery.copyWith(
-      includeReplies: _includeReplies,
-      mediaOnly: _mediaOnly,
-      queryTerm: _queryTerm,
-      order: _order,
-      periodStart: _periodStart,
-      periodEnd: _periodEnd,
-      orderDesc: _orderDesc,
-      type: _type,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final includeReplies = useState<bool?>(initialQuery.includeReplies);
+    final mediaOnly = useState<bool>(initialQuery.mediaOnly ?? false);
+    final queryTerm = useState<String?>(initialQuery.queryTerm);
+    final order = useState<String?>(initialQuery.order);
+    final orderDesc = useState<bool>(initialQuery.orderDesc);
+    final periodStart = useState<int?>(initialQuery.periodStart);
+    final periodEnd = useState<int?>(initialQuery.periodEnd);
+    final type = useState<int?>(initialQuery.type);
+    final showAdvancedFilters = useState<bool>(false);
+    final searchController = useTextEditingController(
+      text: initialQuery.queryTerm,
     );
-    widget.onQueryChanged(newQuery);
-  }
 
-  @override
-  Widget build(BuildContext context) {
+    void updateQuery() {
+      final newQuery = initialQuery.copyWith(
+        includeReplies: includeReplies.value,
+        mediaOnly: mediaOnly.value,
+        queryTerm: queryTerm.value,
+        order: order.value,
+        periodStart: periodStart.value,
+        periodEnd: periodEnd.value,
+        orderDesc: orderDesc.value,
+        type: type.value,
+      );
+      onQueryChanged(newQuery);
+    }
+
+    useEffect(() {
+      void onTabChanged() {
+        final tabIndex = categoryTabController.index;
+        type.value = switch (tabIndex) {
+          1 => 0,
+          2 => 1,
+          _ => null,
+        };
+        updateQuery();
+      }
+
+      categoryTabController.addListener(onTabChanged);
+      return () => categoryTabController.removeListener(onTabChanged);
+    }, [categoryTabController]);
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Column(
         children: [
           TabBar(
-            controller: widget.categoryTabController,
+            controller: categoryTabController,
             dividerColor: Colors.transparent,
             splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
             tabs: [
@@ -108,20 +86,18 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                   Expanded(
                     child: CheckboxListTile(
                       title: Text('reply'.tr()),
-                      value: _includeReplies,
+                      value: includeReplies.value,
                       tristate: true,
                       onChanged: (value) {
-                        // Cycle through: null -> false -> true -> null
-                        setState(() {
-                          if (_includeReplies == null) {
-                            _includeReplies = false;
-                          } else if (_includeReplies == false) {
-                            _includeReplies = true;
-                          } else {
-                            _includeReplies = null;
-                          }
-                        });
-                        _updateQuery();
+                        final current = includeReplies.value;
+                        if (current == null) {
+                          includeReplies.value = false;
+                        } else if (current == false) {
+                          includeReplies.value = true;
+                        } else {
+                          includeReplies.value = null;
+                        }
+                        updateQuery();
                       },
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -131,14 +107,12 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                   Expanded(
                     child: CheckboxListTile(
                       title: Text('attachments'.tr()),
-                      value: _mediaOnly,
+                      value: mediaOnly.value,
                       onChanged: (value) {
-                        setState(() {
-                          if (value != null) {
-                            _mediaOnly = value;
-                          }
-                        });
-                        _updateQuery();
+                        if (value != null) {
+                          mediaOnly.value = value;
+                        }
+                        updateQuery();
                       },
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -149,14 +123,12 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
               ),
               CheckboxListTile(
                 title: Text('descendingOrder'.tr()),
-                value: _orderDesc,
+                value: orderDesc.value,
                 onChanged: (value) {
-                  setState(() {
-                    if (value != null) {
-                      _orderDesc = value;
-                    }
-                  });
-                  _updateQuery();
+                  if (value != null) {
+                    orderDesc.value = value;
+                  }
+                  updateQuery();
                 },
                 dense: true,
                 controlAffinity: ListTileControlAffinity.leading,
@@ -173,24 +145,24 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
               borderRadius: BorderRadius.all(const Radius.circular(8)),
             ),
             trailing: Icon(
-              _showAdvancedFilters ? Symbols.expand_less : Symbols.expand_more,
+              showAdvancedFilters.value
+                  ? Symbols.expand_less
+                  : Symbols.expand_more,
             ),
             onTap: () {
-              setState(() {
-                _showAdvancedFilters = !_showAdvancedFilters;
-              });
+              showAdvancedFilters.value = !showAdvancedFilters.value;
             },
           ),
-          if (_showAdvancedFilters) ...[
+          if (showAdvancedFilters.value) ...[
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (!widget.hideSearch)
+                  if (!hideSearch)
                     TextField(
-                      controller: _searchController,
+                      controller: searchController,
                       decoration: InputDecoration(
                         labelText: 'search'.tr(),
                         hintText: 'searchPosts'.tr(),
@@ -204,13 +176,11 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                         ),
                       ),
                       onChanged: (value) {
-                        setState(() {
-                          _queryTerm = value.isEmpty ? null : value;
-                        });
-                        _updateQuery();
+                        queryTerm.value = value.isEmpty ? null : value;
+                        updateQuery();
                       },
                     ),
-                  if (!widget.hideSearch) const Gap(12),
+                  if (!hideSearch) const Gap(12),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'sortBy'.tr(),
@@ -222,7 +192,7 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                         vertical: 8,
                       ),
                     ),
-                    value: _order,
+                    value: order.value,
                     items: [
                       DropdownMenuItem(value: 'date', child: Text('date'.tr())),
                       DropdownMenuItem(
@@ -231,10 +201,8 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                       ),
                     ],
                     onChanged: (value) {
-                      setState(() {
-                        _order = value;
-                      });
-                      _updateQuery();
+                      order.value = value;
+                      updateQuery();
                     },
                   ),
                   const Gap(12),
@@ -245,9 +213,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                           onTap: () async {
                             final pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: _periodStart != null
+                              initialDate: periodStart.value != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      _periodStart! * 1000,
+                                      periodStart.value! * 1000,
                                     )
                                   : DateTime.now(),
                               firstDate: DateTime(2000),
@@ -256,11 +224,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                               ),
                             );
                             if (pickedDate != null) {
-                              setState(() {
-                                _periodStart =
-                                    pickedDate.millisecondsSinceEpoch ~/ 1000;
-                              });
-                              _updateQuery();
+                              periodStart.value =
+                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              updateQuery();
                             }
                           },
                           child: InputDecorator(
@@ -278,9 +244,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                               suffixIcon: const Icon(Symbols.calendar_today),
                             ),
                             child: Text(
-                              _periodStart != null
+                              periodStart.value != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      _periodStart! * 1000,
+                                      periodStart.value! * 1000,
                                     ).toString().split(' ')[0]
                                   : 'selectDate'.tr(),
                             ),
@@ -293,9 +259,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                           onTap: () async {
                             final pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: _periodEnd != null
+                              initialDate: periodEnd.value != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      _periodEnd! * 1000,
+                                      periodEnd.value! * 1000,
                                     )
                                   : DateTime.now(),
                               firstDate: DateTime(2000),
@@ -304,11 +270,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                               ),
                             );
                             if (pickedDate != null) {
-                              setState(() {
-                                _periodEnd =
-                                    pickedDate.millisecondsSinceEpoch ~/ 1000;
-                              });
-                              _updateQuery();
+                              periodEnd.value =
+                                  pickedDate.millisecondsSinceEpoch ~/ 1000;
+                              updateQuery();
                             }
                           },
                           child: InputDecorator(
@@ -326,9 +290,9 @@ class _PostFilterWidgetState extends State<PostFilterWidget> {
                               suffixIcon: const Icon(Symbols.calendar_today),
                             ),
                             child: Text(
-                              _periodEnd != null
+                              periodEnd.value != null
                                   ? DateTime.fromMillisecondsSinceEpoch(
-                                      _periodEnd! * 1000,
+                                      periodEnd.value! * 1000,
                                     ).toString().split(' ')[0]
                                   : 'selectDate'.tr(),
                             ),
