@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/pods/activity/activity_rpc.dart';
 import 'package:island/pods/config.dart';
@@ -35,7 +36,6 @@ class AppWrapper extends HookConsumerWidget {
     final wsNotifier = ref.watch(websocketStateProvider.notifier);
     final websocketState = ref.watch(websocketStateProvider);
     final showSnow = useState(false);
-    final isSnowGone = useState(false);
 
     // Handle network status modal
     if (websocketState == WebSocketState.duplicateDevice() &&
@@ -124,22 +124,40 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     final settings = ref.watch(appSettingsProvider);
+    final settingsNotifier = ref.watch(appSettingsProvider.notifier);
 
     final now = DateTime.now();
     final doesShowSnow =
         settings.festivalFeatures &&
         now.month == 12 &&
         (now.day >= 22 && now.day <= 28);
-    if (doesShowSnow && !isSnowGone.value) {
+    if (doesShowSnow) {
       showSnow.value = true;
-      isSnowGone.value = true;
       Future.delayed(const Duration(seconds: 10), () {
         showSnow.value = false;
       });
     }
 
+    if (settings.firstLaunchAt == null) {
+      settingsNotifier.setFirstLaunchAt(now.toIso8601String());
+    } else if (!settings.askedReview) {
+      final launchAt = DateTime.parse(settings.firstLaunchAt!);
+      final daysSinceFirstLaunch = now.difference(launchAt).inDays;
+      if (daysSinceFirstLaunch >= 3 &&
+          !kIsWeb &&
+          (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+        final InAppReview inAppReview = InAppReview.instance;
+        Future(() async {
+          if (await inAppReview.isAvailable()) {
+            inAppReview.requestReview();
+          }
+        });
+        settingsNotifier.setAskedReview(true);
+      }
+    }
+
     return TourTriggerWidget(
-      key: UniqueKey(),
+      key: const Key("app_tour_trigger"),
       child: Stack(
         children: [
           child,

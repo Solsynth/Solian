@@ -819,6 +819,58 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
       ),
+
+      // Haptic feedback settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsNotifyWithHaptic').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.vibration),
+        trailing: Switch(
+          value: settings.notifyWithHaptic,
+          onChanged: (value) {
+            ref.read(appSettingsProvider.notifier).setNotifyWithHaptic(value);
+          },
+        ),
+      ),
+
+      // Dash search engine settings
+      ListTile(
+        isThreeLine: true,
+        minLeadingWidth: 48,
+        title: Text('settingsDashSearchEngine').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.search),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: TextField(
+            controller: TextEditingController(text: settings.dashSearchEngine),
+            decoration: InputDecoration(
+              hintText: 'https://duckduckgo.com/?q=%s',
+              helperText: 'settingsDashSearchEngineHelper'.tr(),
+              suffixIcon: IconButton(
+                icon: const Icon(Symbols.restart_alt),
+                onPressed: () {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setDashSearchEngine(null);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              isDense: true,
+            ),
+            onSubmitted: (value) {
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setDashSearchEngine(value.isEmpty ? null : value);
+              showSnackBar('settingsApplied'.tr());
+            },
+          ),
+        ),
+      ),
     ];
 
     // Desktop-specific settings

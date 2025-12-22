@@ -364,7 +364,7 @@ class PaginationListFooter<T> extends HookConsumerWidget {
       onVisibilityChanged: (VisibilityInfo info) {
         hasBeenVisible.value = true;
         if (!noti.fetchedAll && !data.isLoading && !data.hasError) {
-          noti.fetchFurther();
+          if (context.mounted) noti.fetchFurther();
         }
       },
       child: isSliver ? SliverToBoxAdapter(child: child) : child,

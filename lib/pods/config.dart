@@ -38,6 +38,9 @@ const kAppFabPosition = 'app_fab_position';
 const kAppGroupedChatList = 'app_grouped_chat_list';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
+const kAppFirstLaunchAt = 'app_first_launch_at';
+const kAppAskedReview = 'app_asked_review';
+const kAppDashSearchEngine = 'app_dash_search_engine';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
@@ -87,6 +90,7 @@ sealed class AppSettings with _$AppSettings {
     required bool enterToSend,
     required bool appBarTransparent,
     required bool showBackgroundImage,
+    required bool notifyWithHaptic,
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required ThemeColors? customColors,
@@ -100,6 +104,9 @@ sealed class AppSettings with _$AppSettings {
     required bool disableAnimation,
     required String fabPosition,
     required bool groupedChatList,
+    required String? firstLaunchAt,
+    required bool askedReview,
+    required String? dashSearchEngine,
   }) = _AppSettings;
 }
 
@@ -115,6 +122,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
       appBarTransparent: prefs.getBool(kAppbarTransparentStoreKey) ?? false,
       showBackgroundImage: prefs.getBool(kAppShowBackgroundImage) ?? true,
+      notifyWithHaptic: prefs.getBool(kAppNotifyWithHaptic) ?? true,
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       customColors: _getThemeColorsFromPrefs(prefs),
@@ -128,6 +136,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
       fabPosition: prefs.getString(kAppFabPosition) ?? 'center',
       groupedChatList: prefs.getBool(kAppGroupedChatList) ?? false,
+      askedReview: prefs.getBool(kAppAskedReview) ?? false,
+      firstLaunchAt: prefs.getString(kAppFirstLaunchAt),
+      dashSearchEngine: prefs.getString(kAppDashSearchEngine),
     );
   }
 
@@ -204,6 +215,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppShowBackgroundImage, value);
     state = state.copyWith(showBackgroundImage: value);
+  }
+
+  void setNotifyWithHaptic(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppNotifyWithHaptic, value);
+    state = state.copyWith(notifyWithHaptic: value);
   }
 
   void setCustomFonts(String? value) {
@@ -290,6 +307,32 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppGroupedChatList, value);
     state = state.copyWith(groupedChatList: value);
+  }
+
+  void setFirstLaunchAt(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      prefs.setString(kAppFirstLaunchAt, value);
+    } else {
+      prefs.remove(kAppFirstLaunchAt);
+    }
+    state = state.copyWith(firstLaunchAt: value);
+  }
+
+  void setAskedReview(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppAskedReview, value);
+    state = state.copyWith(askedReview: value);
+  }
+
+  void setDashSearchEngine(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      prefs.setString(kAppDashSearchEngine, value);
+    } else {
+      prefs.remove(kAppDashSearchEngine);
+    }
+    state = state.copyWith(dashSearchEngine: value);
   }
 }
 
