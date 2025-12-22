@@ -79,38 +79,39 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 child: Column(
                   children: [
                     // Always show pinned chats in their own section
-                    ExpansionTile(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer.withOpacity(0.5),
-                      collapsedBackgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer.withOpacity(0.5),
-                      title: Text('pinnedChatRoom'.tr()),
-                      leading: const Icon(Symbols.keep, fill: 1),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 24),
-                      initiallyExpanded: true,
-                      children: [
-                        for (final item in pinnedItems)
-                          ChatRoomListTile(
-                            room: item,
-                            isDirect: item.type == 1,
-                            onTap: () {
-                              if (isWideScreen(context)) {
-                                context.replaceNamed(
-                                  'chatRoom',
-                                  pathParameters: {'id': item.id},
-                                );
-                              } else {
-                                context.pushNamed(
-                                  'chatRoom',
-                                  pathParameters: {'id': item.id},
-                                );
-                              }
-                            },
-                          ),
-                      ],
-                    ),
+                    if (pinnedItems.isNotEmpty)
+                      ExpansionTile(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainer.withOpacity(0.5),
+                        collapsedBackgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainer.withOpacity(0.5),
+                        title: Text('pinnedChatRoom'.tr()),
+                        leading: const Icon(Symbols.keep, fill: 1),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 24),
+                        initiallyExpanded: true,
+                        children: [
+                          for (final item in pinnedItems)
+                            ChatRoomListTile(
+                              room: item,
+                              isDirect: item.type == 1,
+                              onTap: () {
+                                if (isWideScreen(context)) {
+                                  context.replaceNamed(
+                                    'chatRoom',
+                                    pathParameters: {'id': item.id},
+                                  );
+                                } else {
+                                  context.pushNamed(
+                                    'chatRoom',
+                                    pathParameters: {'id': item.id},
+                                  );
+                                }
+                              },
+                            ),
+                        ],
+                      ),
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, _) {
