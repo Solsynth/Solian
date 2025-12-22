@@ -212,48 +212,60 @@ class TabsScreen extends HookConsumerWidget {
           child: MediaQuery.removePadding(
             context: context,
             removeTop: true,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: BottomAppBar(
-                height: 56,
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                shape: AutomaticNotchedShape(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                ),
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: () {
-                    final navItems = destinations.asMap().entries.map<Widget>((
-                      entry,
-                    ) {
-                      int index = entry.key;
-                      NavigationDestination dest = entry.value;
-                      return IconButton(
-                        icon: dest.icon,
-                        onPressed: () => onDestinationSelected(index),
-                        color: index == currentIndex
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
+                ],
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: BottomAppBar(
+                  height: 56,
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  shape: AutomaticNotchedShape(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                    ),
+                  ),
+                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: () {
+                      final navItems = destinations.asMap().entries.map<Widget>(
+                        (entry) {
+                          int index = entry.key;
+                          NavigationDestination dest = entry.value;
+                          return IconButton(
+                            icon: dest.icon,
+                            onPressed: () => onDestinationSelected(index),
+                            color: index == currentIndex
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          );
+                        },
+                      ).toList();
+                      // Add mock item to leave space for FAB based on position
+                      final gapIndex = switch (settings.fabPosition) {
+                        'left' => 0,
+                        'right' => navItems.length,
+                        _ => navItems.length ~/ 2, // center
+                      };
+                      navItems.insert(
+                        gapIndex,
+                        SizedBox(
+                          width: settings.fabPosition == 'center' ? 72 : 48,
+                        ),
                       );
-                    }).toList();
-                    // Add mock item to leave space for FAB based on position
-                    final gapIndex = switch (settings.fabPosition) {
-                      'left' => 0,
-                      'right' => navItems.length,
-                      _ => navItems.length ~/ 2, // center
-                    };
-                    navItems.insert(
-                      gapIndex,
-                      SizedBox(
-                        width: settings.fabPosition == 'center' ? 72 : 48,
-                      ),
-                    );
-                    return navItems;
-                  }(),
+                      return navItems;
+                    }(),
+                  ),
                 ),
               ),
             ),

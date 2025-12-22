@@ -81,14 +81,14 @@ class NotificationTile extends StatelessWidget {
         style: compact
             ? Theme.of(context).textTheme.bodySmall
             : Theme.of(context).textTheme.titleMedium,
-        maxLines: compact ? 2 : null,
+        maxLines: compact ? 1 : null,
         overflow: compact ? TextOverflow.ellipsis : null,
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (notification.subtitle.isNotEmpty && !compact)
-            Text(notification.subtitle).bold(),
+            Text(notification.subtitle, maxLines: compact ? 3 : null).bold(),
           Row(
             spacing: 6,
             children: [
@@ -114,7 +114,9 @@ class NotificationTile extends StatelessWidget {
             ],
           ).opacity(0.75).padding(bottom: compact ? 2 : 4),
           MarkdownTextContent(
-            content: notification.content,
+            content: (compact && notification.content.length > 60)
+                ? '${notification.content.substring(0, 60).replaceAll('\n', ' ')}...'
+                : notification.content,
             textStyle:
                 (compact
                         ? Theme.of(context).textTheme.bodySmall

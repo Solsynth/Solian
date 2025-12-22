@@ -35,7 +35,8 @@ class AppWrapper extends HookConsumerWidget {
     final networkStateShowing = useState(false);
     final wsNotifier = ref.watch(websocketStateProvider.notifier);
     final websocketState = ref.watch(websocketStateProvider);
-    final showSnow = useState(false);
+    final isShowSnow = useState(false);
+    final isSnowGone = useState(false);
 
     // Handle network status modal
     if (websocketState == WebSocketState.duplicateDevice() &&
@@ -131,41 +132,56 @@ class AppWrapper extends HookConsumerWidget {
         settings.festivalFeatures &&
         now.month == 12 &&
         (now.day >= 22 && now.day <= 28);
-    if (doesShowSnow) {
-      showSnow.value = true;
-      Future.delayed(const Duration(seconds: 10), () {
-        showSnow.value = false;
-      });
-    }
 
-    if (settings.firstLaunchAt == null) {
-      settingsNotifier.setFirstLaunchAt(now.toIso8601String());
-    } else if (!settings.askedReview) {
-      final launchAt = DateTime.parse(settings.firstLaunchAt!);
-      final daysSinceFirstLaunch = now.difference(launchAt).inDays;
-      if (daysSinceFirstLaunch >= 3 &&
-          !kIsWeb &&
-          (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
-        final InAppReview inAppReview = InAppReview.instance;
-        Future(() async {
-          if (await inAppReview.isAvailable()) {
-            inAppReview.requestReview();
-          }
+    useEffect(() {
+      final now = DateTime.now();
+      if (doesShowSnow) {
+        isShowSnow.value = true;
+        Future.delayed(const Duration(seconds: 60), () {
+          if (!context.mounted) return;
+          isShowSnow.value = false;
+          Future.delayed(const Duration(seconds: 3), () {
+            if (!context.mounted) return;
+            isSnowGone.value = true;
+          });
         });
-        settingsNotifier.setAskedReview(true);
       }
-    }
+
+      if (settings.firstLaunchAt == null) {
+        settingsNotifier.setFirstLaunchAt(now.toIso8601String());
+      } else if (!settings.askedReview) {
+        final launchAt = DateTime.parse(settings.firstLaunchAt!);
+        final daysSinceFirstLaunch = now.difference(launchAt).inDays;
+        if (daysSinceFirstLaunch >= 3 &&
+            !kIsWeb &&
+            (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+          final InAppReview inAppReview = InAppReview.instance;
+          Future(() async {
+            if (await inAppReview.isAvailable()) {
+              inAppReview.requestReview();
+            }
+          });
+          settingsNotifier.setAskedReview(true);
+        }
+      }
+
+      return null;
+    }, []);
 
     return TourTriggerWidget(
       key: const Key("app_tour_trigger"),
       child: Stack(
         children: [
           child,
-          if (showSnow.value)
+          if (doesShowSnow && !isSnowGone.value)
             IgnorePointer(
-              child: SnowFallAnimation(
-                key: const Key("app_snow_animation"),
-                config: SnowfallConfig(numberOfSnowflakes: 50, speed: 1.0),
+              child: AnimatedOpacity(
+                opacity: isShowSnow.value ? 1 : 00,
+                duration: const Duration(seconds: 3),
+                child: SnowFallAnimation(
+                  key: const Key("app_snow_animation"),
+                  config: SnowfallConfig(numberOfSnowflakes: 50, speed: 1.0),
+                ),
               ),
             ),
         ],
