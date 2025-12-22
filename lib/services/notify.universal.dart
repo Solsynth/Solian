@@ -4,10 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
@@ -89,6 +91,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   BuildContext context,
   WidgetRef ref,
 ) {
+  final settings = ref.watch(appSettingsProvider);
   final ws = ref.watch(websocketProvider);
   return ws.dataStream.listen((pkt) async {
     if (pkt.type == "notifications.new") {
@@ -98,6 +101,9 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
+        if (settings.notifyWithHaptic) {
+          HapticFeedback.heavyImpact();
+        }
         showTopSnackBar(
           globalOverlay.currentState!,
           Center(
@@ -115,12 +121,12 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             right: 16,
             top:
                 (!kIsWeb &&
-                        (Platform.isMacOS ||
-                            Platform.isWindows ||
-                            Platform.isLinux))
-                    ? 28
-                    // ignore: use_build_context_synchronously
-                    : MediaQuery.of(context).padding.top + 16,
+                    (Platform.isMacOS ||
+                        Platform.isWindows ||
+                        Platform.isLinux))
+                ? 28
+                // ignore: use_build_context_synchronously
+                : MediaQuery.of(context).padding.top + 16,
             bottom: 16,
           ),
         );
