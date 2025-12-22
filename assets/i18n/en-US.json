@@ -1534,5 +1534,8 @@
   "chatRoomPinned": "Chat room pinned successfully.",
   "chatRoomUnpinned": "Chat room unpinned successfully.",
   "pinnedChatRoom": "Pinned Rooms",
-  "settingsGroupedChatList": "Grouped Chat List"
+  "settingsGroupedChatList": "Grouped Chat List",
+  "settingsNotifyWithHaptic": "Notification with Haptic Feedback",
+  "settingsDashSearchEngine": "Search Engine for web",
+  "settingsDashSearchEngineHelper": "Use %s as the placeholder for the query."
 }
