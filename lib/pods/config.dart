@@ -22,10 +22,9 @@ const kAppColorSchemeStoreKey = 'app_color_scheme';
 const kAppCustomColorsStoreKey = 'app_custom_colors';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
-const kAppAutoTranslate = 'app_auto_translate';
 const kAppDataSavingMode = 'app_data_saving_mode';
 const kAppSoundEffects = 'app_sound_effects';
-const kAppAprilFoolFeatures = 'app_april_fool_features';
+const kAppFestivalFeatures = 'app_feastival_features';
 const kAppWindowSize = 'app_window_size';
 const kAppWindowOpacity = 'app_window_opacity';
 const kAppCardTransparent = 'app_card_transparent';
@@ -82,10 +81,9 @@ sealed class ThemeColors with _$ThemeColors {
 @freezed
 sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
-    required bool autoTranslate,
     required bool dataSavingMode,
     required bool soundEffects,
-    required bool aprilFoolFeatures,
+    required bool festivalFeatures,
     required bool enterToSend,
     required bool appBarTransparent,
     required bool showBackgroundImage,
@@ -111,10 +109,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   AppSettings build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     return AppSettings(
-      autoTranslate: prefs.getBool(kAppAutoTranslate) ?? false,
       dataSavingMode: prefs.getBool(kAppDataSavingMode) ?? false,
       soundEffects: prefs.getBool(kAppSoundEffects) ?? true,
-      aprilFoolFeatures: prefs.getBool(kAppAprilFoolFeatures) ?? true,
+      festivalFeatures: prefs.getBool(kAppFestivalFeatures) ?? true,
       enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
       appBarTransparent: prefs.getBool(kAppbarTransparentStoreKey) ?? false,
       showBackgroundImage: prefs.getBool(kAppShowBackgroundImage) ?? true,
@@ -173,12 +170,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(defaultPoolId: value);
   }
 
-  void setAutoTranslate(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppAutoTranslate, value);
-    state = state.copyWith(autoTranslate: value);
-  }
-
   void setDataSavingMode(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppDataSavingMode, value);
@@ -191,10 +182,10 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(soundEffects: value);
   }
 
-  void setAprilFoolFeatures(bool value) {
+  void setFeativalFeatures(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppAprilFoolFeatures, value);
-    state = state.copyWith(aprilFoolFeatures: value);
+    prefs.setBool(kAppFestivalFeatures, value);
+    state = state.copyWith(festivalFeatures: value);
   }
 
   void setEnterToSend(bool value) {

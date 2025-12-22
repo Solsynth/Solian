@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/pods/activity/activity_rpc.dart';
 import 'package:island/pods/config.dart';
@@ -21,140 +21,145 @@ import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/screens/thought/think_sheet.dart';
 import 'package:island/services/event_bus.dart';
+import 'package:snow_fall_animation/snow_fall_animation.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-class AppWrapper extends ConsumerStatefulWidget {
+class AppWrapper extends HookConsumerWidget {
   final Widget child;
   const AppWrapper({super.key, required this.child});
 
   @override
-  ConsumerState<AppWrapper> createState() => _AppWrapperState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final networkStateShowing = useState(false);
+    final wsNotifier = ref.watch(websocketStateProvider.notifier);
+    final websocketState = ref.watch(websocketStateProvider);
+    final showSnow = useState(false);
+    final isSnowGone = useState(false);
 
-class _AppWrapperState extends ConsumerState<AppWrapper>
-    with ProtocolListener, TrayListener {
-  StreamSubscription? ntySubs;
-  bool networkStateShowing = false;
+    // Handle network status modal
+    if (websocketState == WebSocketState.duplicateDevice() &&
+        !networkStateShowing.value) {
+      networkStateShowing.value = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          builder: (context) =>
+              NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
+        ).then((_) => networkStateShowing.value = false);
+      });
+    }
 
-  StreamSubscription? composeSheetSubs;
-  StreamSubscription? notificationSheetSubs;
-  StreamSubscription? thoughtSheetSubs;
-
-  @override
-  void initState() {
-    super.initState();
-    protocolHandler.addListener(this);
-    Future(() async {
-      if (mounted) ntySubs = setupNotificationListener(context, ref);
-
+    // Initialize services and listeners
+    useEffect(() {
+      final ntySubs = setupNotificationListener(context, ref);
       final sharingService = SharingIntentService();
-      if (mounted) sharingService.initialize(context);
-      if (mounted) UpdateService().checkForUpdates(context);
+      sharingService.initialize(context);
+      UpdateService().checkForUpdates(context);
 
-      TrayService.instance.initialize(this);
+      final trayService = TrayService.instance;
+      trayService.initialize(
+        _TrayListenerImpl(
+          onTrayIconMouseDown: () => windowManager.show(),
+          onTrayIconRightMouseUp: () => trayManager.popUpContextMenu(),
+          onTrayMenuItemClick: (menuItem) => trayService.handleAction(menuItem),
+        ),
+      );
 
       ref.read(rpcServerStateProvider.notifier).start();
       ref.read(webAuthServerStateProvider.notifier).start();
 
       // Listen to special action events
-      composeSheetSubs = eventBus.on<ShowComposeSheetEvent>().listen((event) {
-        if (mounted) {
-          _showComposeSheet();
-        }
-      });
-
-      notificationSheetSubs = eventBus.on<ShowNotificationSheetEvent>().listen((
+      final composeSheetSubs = eventBus.on<ShowComposeSheetEvent>().listen((
         event,
       ) {
-        if (mounted) {
-          _showNotificationSheet();
+        if (context.mounted) _showComposeSheet(context);
+      });
+
+      final notificationSheetSubs = eventBus
+          .on<ShowNotificationSheetEvent>()
+          .listen((event) {
+            if (context.mounted) _showNotificationSheet(context);
+          });
+
+      final thoughtSheetSubs = eventBus.on<ShowThoughtSheetEvent>().listen((
+        event,
+      ) {
+        if (context.mounted) _showThoughtSheet(context, event);
+      });
+
+      // Protocol handler listener
+      final protocolListener = _ProtocolListenerImpl(
+        onProtocolUrlReceived: (url) =>
+            _handleDeepLink(Uri.parse(url), ref, context),
+      );
+      protocolHandler.addListener(protocolListener);
+
+      // Handle initial URL
+      protocolHandler.getInitialUrl().then((initialUrl) {
+        if (initialUrl != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleDeepLink(Uri.parse(initialUrl), ref, context);
+          });
         }
       });
 
-      thoughtSheetSubs = eventBus.on<ShowThoughtSheetEvent>().listen((event) {
-        if (mounted) {
-          _showThoughtSheet(event);
-        }
+      return () {
+        protocolHandler.removeListener(protocolListener);
+        ref.read(rpcServerProvider).stop();
+        trayService.dispose(
+          _TrayListenerImpl(
+            onTrayIconMouseDown: () => {},
+            onTrayIconRightMouseUp: () => {},
+            onTrayMenuItemClick: (menuItem) => {},
+          ),
+        );
+        ntySubs?.cancel();
+        composeSheetSubs.cancel();
+        notificationSheetSubs.cancel();
+        thoughtSheetSubs.cancel();
+      };
+    }, []);
+
+    final settings = ref.watch(appSettingsProvider);
+
+    final now = DateTime.now();
+    final doesShowSnow =
+        settings.festivalFeatures &&
+        now.month == 12 &&
+        (now.day >= 22 && now.day <= 28);
+    if (doesShowSnow && !isSnowGone.value) {
+      showSnow.value = true;
+      isSnowGone.value = true;
+      Future.delayed(const Duration(seconds: 10), () {
+        showSnow.value = false;
       });
-
-      final initialUrl = await protocolHandler.getInitialUrl();
-      if (initialUrl != null && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _handleDeepLink(Uri.parse(initialUrl), ref);
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    protocolHandler.removeListener(this);
-    ref.read(rpcServerProvider).stop();
-    TrayService.instance.dispose(this);
-    ntySubs?.cancel();
-    composeSheetSubs?.cancel();
-    notificationSheetSubs?.cancel();
-    thoughtSheetSubs?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final wsNotifier = ref.watch(websocketStateProvider.notifier);
-    final websocketState = ref.watch(websocketStateProvider);
-
-    if (websocketState == WebSocketState.duplicateDevice()) {
-      if (!networkStateShowing) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() => networkStateShowing = true);
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            isDismissible: false,
-            builder: (context) =>
-                NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
-          ).then((_) => setState(() => networkStateShowing = false));
-        });
-      }
     }
 
-    return TourTriggerWidget(key: UniqueKey(), child: widget.child);
+    return TourTriggerWidget(
+      key: UniqueKey(),
+      child: Stack(
+        children: [
+          child,
+          if (showSnow.value)
+            IgnorePointer(
+              child: SnowFallAnimation(
+                key: const Key("app_snow_animation"),
+                config: SnowfallConfig(numberOfSnowflakes: 50, speed: 1.0),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
-  @override
-  void onProtocolUrlReceived(String url) {
-    _handleDeepLink(Uri.parse(url), ref);
-  }
-
-  void _trayIconPrimaryAction() {
-    windowManager.show();
-  }
-
-  void _trayIconSecondaryAction() {
-    trayManager.popUpContextMenu();
-  }
-
-  @override
-  void onTrayIconMouseUp() {
-    _trayIconPrimaryAction();
-  }
-
-  @override
-  void onTrayIconRightMouseDown() {
-    _trayIconSecondaryAction();
-  }
-
-  @override
-  void onTrayMenuItemClick(MenuItem menuItem) {
-    TrayService.instance.handleAction(menuItem);
-  }
-
-  void _showComposeSheet() {
+  void _showComposeSheet(BuildContext context) {
     PostComposeSheet.show(context);
   }
 
-  void _showNotificationSheet() {
+  void _showNotificationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -163,7 +168,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     );
   }
 
-  void _showThoughtSheet(ShowThoughtSheetEvent event) {
+  void _showThoughtSheet(BuildContext context, ShowThoughtSheetEvent event) {
     ThoughtSheet.show(
       context,
       initialMessage: event.initialMessage,
@@ -172,7 +177,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     );
   }
 
-  void _handleDeepLink(Uri uri, WidgetRef ref) async {
+  void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {
     String path = '/${uri.host}${uri.path}';
 
     // Special handling for OIDC auth callback
@@ -182,9 +187,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       ref.invalidate(tokenProvider);
 
       // Do post login tasks
-      if (mounted) {
-        await performPostLogin(context, ref);
-      }
+      await performPostLogin(context, ref);
 
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
@@ -216,4 +219,43 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       windowManager.show();
     }
   }
+}
+
+class _TrayListenerImpl implements TrayListener {
+  final VoidCallback _primaryAction;
+  final VoidCallback _secondaryAction;
+  final void Function(MenuItem) _onTrayMenuItemClick;
+
+  _TrayListenerImpl({
+    required VoidCallback onTrayIconMouseDown,
+    required VoidCallback onTrayIconRightMouseUp,
+    required void Function(MenuItem) onTrayMenuItemClick,
+  }) : _primaryAction = onTrayIconMouseDown,
+       _secondaryAction = onTrayIconRightMouseUp,
+       _onTrayMenuItemClick = onTrayMenuItemClick;
+
+  @override
+  void onTrayIconMouseDown() => _primaryAction();
+
+  @override
+  void onTrayIconRightMouseUp() => _secondaryAction();
+
+  @override
+  void onTrayIconMouseUp() => _primaryAction();
+
+  @override
+  void onTrayIconRightMouseDown() => _secondaryAction();
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) => _onTrayMenuItemClick(menuItem);
+}
+
+class _ProtocolListenerImpl implements ProtocolListener {
+  final void Function(String) _onProtocolUrlReceived;
+
+  _ProtocolListenerImpl({required void Function(String) onProtocolUrlReceived})
+    : _onProtocolUrlReceived = onProtocolUrlReceived;
+
+  @override
+  void onProtocolUrlReceived(String url) => _onProtocolUrlReceived(url);
 }
