@@ -22,6 +22,7 @@ class SliverPostList extends HookConsumerWidget {
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
+  final EdgeInsets? itemPadding;
   final bool isOpenable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -34,6 +35,7 @@ class SliverPostList extends HookConsumerWidget {
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
+    this.itemPadding,
     this.isOpenable = true,
     this.onRefresh,
     this.onUpdate,
@@ -74,17 +76,17 @@ class SliverPostList extends HookConsumerWidget {
           return Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth!),
-              child: _buildPostItem(post),
+              child: _buildPostItem(post, itemPadding),
             ),
           );
         }
 
-        return _buildPostItem(post);
+        return _buildPostItem(post, itemPadding);
       },
     );
   }
 
-  Widget _buildPostItem(SnPost post) {
+  Widget _buildPostItem(SnPost post, EdgeInsets? padding) {
     switch (itemType) {
       case PostItemType.creator:
         return PostItemCreator(
@@ -97,7 +99,8 @@ class SliverPostList extends HookConsumerWidget {
         );
       case PostItemType.regular:
         return Card(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          margin:
+              itemPadding ?? EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: PostActionableItem(item: post, borderRadius: 8),
         );
     }

@@ -23,6 +23,7 @@ import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_skeleton.dart';
+import 'package:island/widgets/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
@@ -31,6 +32,8 @@ import 'package:island/services/event_bus.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:island/widgets/posts/post_subscription_filter.dart';
+import 'package:island/pods/post/post_list.dart';
 
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
@@ -38,6 +41,7 @@ class ExploreScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFilter = useState<String?>(null);
+    final selectedPublisherNames = useState<List<String>>([]);
     final notifier = ref.watch(activityListProvider.notifier);
 
     useEffect(() {
@@ -87,6 +91,8 @@ class ExploreScreen extends HookConsumerWidget {
 
     final isWide = isWideScreen(context);
 
+    final hasSubscriptionsSelected = selectedPublisherNames.value.isNotEmpty;
+
     final filterBar = Card(
       margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       child: Row(
@@ -95,7 +101,9 @@ class ExploreScreen extends HookConsumerWidget {
             spacing: 8,
             children: [
               IconButton(
-                onPressed: () => handleFilterChange(null),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange(null),
                 icon: Icon(
                   Symbols.explore,
                   fill: currentFilter.value == null ? 1 : null,
@@ -107,7 +115,9 @@ class ExploreScreen extends HookConsumerWidget {
                     : null,
               ),
               IconButton(
-                onPressed: () => handleFilterChange('subscriptions'),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange('subscriptions'),
                 icon: Icon(
                   Symbols.subscriptions,
                   fill: currentFilter.value == 'subscriptions' ? 1 : null,
@@ -119,7 +129,9 @@ class ExploreScreen extends HookConsumerWidget {
                     : null,
               ),
               IconButton(
-                onPressed: () => handleFilterChange('friends'),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange('friends'),
                 icon: Icon(
                   Symbols.people,
                   fill: currentFilter.value == 'friends' ? 1 : null,
@@ -188,7 +200,12 @@ class ExploreScreen extends HookConsumerWidget {
 
     final appBar = isWide
         ? null
-        : _buildAppBar(currentFilter.value, handleFilterChange, context);
+        : _buildAppBar(
+            currentFilter.value,
+            handleFilterChange,
+            context,
+            hasSubscriptionsSelected,
+          );
 
     final dragging = useState(false);
 
@@ -221,6 +238,8 @@ class ExploreScreen extends HookConsumerWidget {
                     query,
                     events,
                     selectedDay,
+                    currentFilter.value,
+                    selectedPublisherNames,
                   )
                 : _buildNarrowBody(context, ref, currentFilter.value),
           ),
@@ -273,6 +292,19 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
+  Widget _buildPostList(
+    BuildContext context,
+    WidgetRef ref,
+    List<String> selectedPublisherIds,
+  ) {
+    return SliverPostList(
+      queryKey: 'explore_filtered',
+      query: PostListQuery(publishers: selectedPublisherIds),
+      padding: EdgeInsets.zero,
+      itemPadding: EdgeInsets.zero,
+    );
+  }
+
   Widget _buildWideBody(
     BuildContext context,
     WidgetRef ref,
@@ -282,10 +314,18 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<EventCalendarQuery> query,
     AsyncValue<List<dynamic>> events,
     ValueNotifier<DateTime> selectedDay,
+    String? currentFilter,
+    ValueNotifier<List<String>> selectedPublisherNames,
   ) {
-    final bodyView = _buildActivityList(context, ref);
+    // Use post list when subscription filter is active and publishers are selected
+    final usePostList = selectedPublisherNames.value.isNotEmpty;
+    final bodyView = usePostList
+        ? _buildPostList(context, ref, selectedPublisherNames.value)
+        : _buildActivityList(context, ref);
 
-    final notifier = ref.watch(activityListProvider.notifier);
+    final notifier = usePostList
+        ? null // Post list handles its own refreshing
+        : ref.watch(activityListProvider.notifier);
 
     return Row(
       spacing: 12,
@@ -293,7 +333,9 @@ class ExploreScreen extends HookConsumerWidget {
         Flexible(
           flex: 3,
           child: ExtendedRefreshIndicator(
-            onRefresh: notifier.refresh,
+            onRefresh: () async {
+              await notifier?.refresh();
+            },
             child: CustomScrollView(
               slivers: [
                 const SliverGap(12),
@@ -310,7 +352,19 @@ class ExploreScreen extends HookConsumerWidget {
             child: Align(
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
-                child: Column(spacing: 8, children: [const Gap(4)]),
+                child: Column(
+                  spacing: 8,
+                  children: [
+                    Gap(4 + MediaQuery.paddingOf(context).top),
+                    PostSubscriptionFilterWidget(
+                      initialSelectedPublisherNames:
+                          selectedPublisherNames.value,
+                      onSelectedPublishersChanged: (names) {
+                        selectedPublisherNames.value = names;
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           )
@@ -358,6 +412,7 @@ class ExploreScreen extends HookConsumerWidget {
     String? currentFilter,
     void Function(String?) handleFilterChange,
     BuildContext context,
+    bool hasSubscriptionsSelected,
   ) {
     final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
 
@@ -376,7 +431,9 @@ class ExploreScreen extends HookConsumerWidget {
             spacing: 8,
             children: [
               IconButton(
-                onPressed: () => handleFilterChange(null),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange(null),
                 icon: Icon(
                   Symbols.explore,
                   color: foregroundColor,
@@ -387,7 +444,9 @@ class ExploreScreen extends HookConsumerWidget {
                 color: currentFilter == null ? foregroundColor : null,
               ),
               IconButton(
-                onPressed: () => handleFilterChange('subscriptions'),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange('subscriptions'),
                 icon: Icon(
                   Symbols.subscriptions,
                   color: foregroundColor,
@@ -397,7 +456,9 @@ class ExploreScreen extends HookConsumerWidget {
                 isSelected: currentFilter == 'subscriptions',
               ),
               IconButton(
-                onPressed: () => handleFilterChange('friends'),
+                onPressed: hasSubscriptionsSelected
+                    ? null
+                    : () => handleFilterChange('friends'),
                 icon: Icon(
                   Symbols.people,
                   color: foregroundColor,
@@ -477,12 +538,7 @@ class ExploreScreen extends HookConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: ExtendedRefreshIndicator(
           onRefresh: notifier.refresh,
-          child: CustomScrollView(
-            slivers: [
-              SliverGap(8 + MediaQuery.paddingOf(context).top),
-              bodyView,
-            ],
-          ),
+          child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
         ),
       ).padding(horizontal: 8),
     );
