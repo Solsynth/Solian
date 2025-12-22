@@ -724,20 +724,6 @@ class SettingsScreen extends HookConsumerWidget {
     final behaviorSettings = [
       ListTile(
         minLeadingWidth: 48,
-        title: Text('settingsAutoTranslate').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.translate),
-        trailing: Switch(
-          value: settings.autoTranslate,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setAutoTranslate(value);
-          },
-        ),
-      ),
-
-      // Sound effects settings
-      ListTile(
-        minLeadingWidth: 48,
         title: Text('settingsSoundEffects').tr(),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.volume_up),
@@ -752,13 +738,13 @@ class SettingsScreen extends HookConsumerWidget {
       // April Fool features settings
       ListTile(
         minLeadingWidth: 48,
-        title: Text('settingsAprilFoolFeatures').tr(),
+        title: Text('settingsFestivalFeatures').tr(),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.celebration),
         trailing: Switch(
-          value: settings.aprilFoolFeatures,
+          value: settings.festivalFeatures,
           onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setAprilFoolFeatures(value);
+            ref.read(appSettingsProvider.notifier).setFeativalFeatures(value);
           },
         ),
       ),

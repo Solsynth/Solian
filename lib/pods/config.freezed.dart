@@ -286,7 +286,7 @@ as int?,
 /// @nodoc
 mixin _$AppSettings {
 
- bool get autoTranslate; bool get dataSavingMode; bool get soundEffects; bool get aprilFoolFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
+ bool get dataSavingMode; bool get soundEffects; bool get festivalFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
  ThemeColors? get customColors; Size? get windowSize;// The window size for desktop platforms
  double get windowOpacity;// The window opacity for desktop platforms
  double get cardTransparency;// The card background opacity
@@ -301,16 +301,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.useMaterial3, useMaterial3) || other.useMaterial3 == useMaterial3)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.fabPosition, fabPosition) || other.fabPosition == fabPosition)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.useMaterial3, useMaterial3) || other.useMaterial3 == useMaterial3)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.fabPosition, fabPosition) || other.fabPosition == fabPosition)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,useMaterial3,disableAnimation,fabPosition,groupedChatList]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,useMaterial3,disableAnimation,fabPosition,groupedChatList]);
 
 @override
 String toString() {
-  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, useMaterial3: $useMaterial3, disableAnimation: $disableAnimation, fabPosition: $fabPosition, groupedChatList: $groupedChatList)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, useMaterial3: $useMaterial3, disableAnimation: $disableAnimation, fabPosition: $fabPosition, groupedChatList: $groupedChatList)';
 }
 
 
@@ -321,7 +321,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool useMaterial3, bool disableAnimation, String fabPosition, bool groupedChatList
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool useMaterial3, bool disableAnimation, String fabPosition, bool groupedChatList
 });
 
 
@@ -338,12 +338,11 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? useMaterial3 = null,Object? disableAnimation = null,Object? fabPosition = null,Object? groupedChatList = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? useMaterial3 = null,Object? disableAnimation = null,Object? fabPosition = null,Object? groupedChatList = null,}) {
   return _then(_self.copyWith(
-autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
-as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
+dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
-as bool,aprilFoolFeatures: null == aprilFoolFeatures ? _self.aprilFoolFeatures : aprilFoolFeatures // ignore: cast_nullable_to_non_nullable
+as bool,festivalFeatures: null == festivalFeatures ? _self.festivalFeatures : festivalFeatures // ignore: cast_nullable_to_non_nullable
 as bool,enterToSend: null == enterToSend ? _self.enterToSend : enterToSend // ignore: cast_nullable_to_non_nullable
 as bool,appBarTransparent: null == appBarTransparent ? _self.appBarTransparent : appBarTransparent // ignore: cast_nullable_to_non_nullable
 as bool,showBackgroundImage: null == showBackgroundImage ? _self.showBackgroundImage : showBackgroundImage // ignore: cast_nullable_to_non_nullable
@@ -454,10 +453,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);case _:
   return orElse();
 
 }
@@ -475,10 +474,10 @@ return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);}
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -492,10 +491,10 @@ return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool useMaterial3,  bool disableAnimation,  String fabPosition,  bool groupedChatList)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.useMaterial3,_that.disableAnimation,_that.fabPosition,_that.groupedChatList);case _:
   return null;
 
 }
@@ -507,13 +506,12 @@ return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_tha
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({required this.autoTranslate, required this.dataSavingMode, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.themeMode, required this.useMaterial3, required this.disableAnimation, required this.fabPosition, required this.groupedChatList});
+  const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.themeMode, required this.useMaterial3, required this.disableAnimation, required this.fabPosition, required this.groupedChatList});
   
 
-@override final  bool autoTranslate;
 @override final  bool dataSavingMode;
 @override final  bool soundEffects;
-@override final  bool aprilFoolFeatures;
+@override final  bool festivalFeatures;
 @override final  bool enterToSend;
 @override final  bool appBarTransparent;
 @override final  bool showBackgroundImage;
@@ -545,16 +543,16 @@ _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.useMaterial3, useMaterial3) || other.useMaterial3 == useMaterial3)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.fabPosition, fabPosition) || other.fabPosition == fabPosition)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.useMaterial3, useMaterial3) || other.useMaterial3 == useMaterial3)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.fabPosition, fabPosition) || other.fabPosition == fabPosition)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,useMaterial3,disableAnimation,fabPosition,groupedChatList]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,useMaterial3,disableAnimation,fabPosition,groupedChatList]);
 
 @override
 String toString() {
-  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, useMaterial3: $useMaterial3, disableAnimation: $disableAnimation, fabPosition: $fabPosition, groupedChatList: $groupedChatList)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, useMaterial3: $useMaterial3, disableAnimation: $disableAnimation, fabPosition: $fabPosition, groupedChatList: $groupedChatList)';
 }
 
 
@@ -565,7 +563,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool useMaterial3, bool disableAnimation, String fabPosition, bool groupedChatList
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool useMaterial3, bool disableAnimation, String fabPosition, bool groupedChatList
 });
 
 
@@ -582,12 +580,11 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? useMaterial3 = null,Object? disableAnimation = null,Object? fabPosition = null,Object? groupedChatList = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? useMaterial3 = null,Object? disableAnimation = null,Object? fabPosition = null,Object? groupedChatList = null,}) {
   return _then(_AppSettings(
-autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
-as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
+dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
-as bool,aprilFoolFeatures: null == aprilFoolFeatures ? _self.aprilFoolFeatures : aprilFoolFeatures // ignore: cast_nullable_to_non_nullable
+as bool,festivalFeatures: null == festivalFeatures ? _self.festivalFeatures : festivalFeatures // ignore: cast_nullable_to_non_nullable
 as bool,enterToSend: null == enterToSend ? _self.enterToSend : enterToSend // ignore: cast_nullable_to_non_nullable
 as bool,appBarTransparent: null == appBarTransparent ? _self.appBarTransparent : appBarTransparent // ignore: cast_nullable_to_non_nullable
 as bool,showBackgroundImage: null == showBackgroundImage ? _self.showBackgroundImage : showBackgroundImage // ignore: cast_nullable_to_non_nullable
