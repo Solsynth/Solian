@@ -38,27 +38,42 @@ Future<List<SnCategorySubscription>> categoriesSubscriptions(Ref ref) async {
 }
 
 class PostSubscriptionFilterWidget extends HookConsumerWidget {
-  final List<String> initialSelectedPublisherNames;
+  final List<String> initialSelectedPublishers;
+  final List<String> initialSelectedCategories;
+  final List<String> initialSelectedTags;
   final ValueChanged<List<String>> onSelectedPublishersChanged;
+  final ValueChanged<List<String>> onSelectedCategoriesChanged;
+  final ValueChanged<List<String>> onSelectedTagsChanged;
   final bool hideSearch;
 
   const PostSubscriptionFilterWidget({
     super.key,
-    required this.initialSelectedPublisherNames,
+    required this.initialSelectedPublishers,
+    required this.initialSelectedCategories,
+    required this.initialSelectedTags,
     required this.onSelectedPublishersChanged,
+    required this.onSelectedCategoriesChanged,
+    required this.onSelectedTagsChanged,
     this.hideSearch = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedPublisherNames = useState<List<String>>(
-      initialSelectedPublisherNames,
+    final selectedPublishers = useState<List<String>>(
+      initialSelectedPublishers,
     );
+    final selectedCategories = useState<List<String>>(
+      initialSelectedCategories,
+    );
+    final selectedTags = useState<List<String>>(initialSelectedTags);
 
-    final subscriptionsAsync = ref.watch(publishersSubscriptionsProvider);
+    final publishersAsync = ref.watch(publishersSubscriptionsProvider);
+    final categoriesAsync = ref.watch(categoriesSubscriptionsProvider);
 
     void updateSelection() {
-      onSelectedPublishersChanged(selectedPublisherNames.value);
+      onSelectedPublishersChanged(selectedPublishers.value);
+      onSelectedCategoriesChanged(selectedCategories.value);
+      onSelectedTagsChanged(selectedTags.value);
     }
 
     return Card(
@@ -77,7 +92,9 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
             ],
           ).padding(horizontal: 16, top: 12),
           const Gap(12),
-          subscriptionsAsync.when(
+
+          // Publishers Section
+          publishersAsync.when(
             data: (subscriptions) {
               if (subscriptions.isEmpty) {
                 return Center(
@@ -89,43 +106,53 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
               }
 
               return Column(
-                children: subscriptions.map((subscription) {
-                  final isSelected = selectedPublisherNames.value.contains(
-                    subscription.publisher.name,
-                  );
-                  final publisher = subscription.publisher;
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'publishers'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ).padding(bottom: 8, horizontal: 16),
+                  ...subscriptions.map((subscription) {
+                    final isSelected = selectedPublishers.value.contains(
+                      subscription.publisher.name,
+                    );
+                    final publisher = subscription.publisher;
 
-                  return CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    title: Text(publisher.nick),
-                    subtitle: Text('@${publisher.name}'),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    value: isSelected,
-                    onChanged: (value) {
-                      if (value == true) {
-                        selectedPublisherNames.value = [
-                          ...selectedPublisherNames.value,
-                          subscription.publisher.name,
-                        ];
-                      } else {
-                        selectedPublisherNames.value = selectedPublisherNames
-                            .value
-                            .where(
-                              (name) => name != subscription.publisher.name,
-                            )
-                            .toList();
-                      }
-                      updateSelection();
-                    },
-                    dense: true,
-                    secondary: ProfilePictureWidget(
-                      file: subscription.publisher.picture,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  );
-                }).toList(),
+                    return CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      title: Text(publisher.nick),
+                      subtitle: Text('@${publisher.name}'),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      ),
+                      value: isSelected,
+                      onChanged: (value) {
+                        if (value == true) {
+                          selectedPublishers.value = [
+                            ...selectedPublishers.value,
+                            subscription.publisher.name,
+                          ];
+                        } else {
+                          selectedPublishers.value = selectedPublishers.value
+                              .where(
+                                (name) => name != subscription.publisher.name,
+                              )
+                              .toList();
+                        }
+                        updateSelection();
+                      },
+                      dense: true,
+                      secondary: ProfilePictureWidget(
+                        file: subscription.publisher.picture,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    );
+                  }),
+                ],
               );
             },
             loading: () => const Center(
@@ -140,6 +167,85 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                 child: Text('errorLoadingSubscriptions'.tr()),
               ),
             ),
+          ),
+
+          const Divider(height: 1).padding(vertical: 8),
+
+          // Categories Section
+          categoriesAsync.when(
+            data: (subscriptions) {
+              if (subscriptions.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'categoriesAndTags'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ).padding(bottom: 8, horizontal: 16),
+                  ...subscriptions.map((subscription) {
+                    final category = subscription.category;
+                    final tag = subscription.tag;
+                    final slug = category?.slug ?? tag?.slug;
+                    final displayTitle =
+                        category?.categoryDisplayTitle ??
+                        tag?.name ??
+                        slug ??
+                        '';
+                    final isCategorySelected = selectedCategories.value
+                        .contains(slug);
+                    final isTagSelected = selectedTags.value.contains(slug);
+
+                    return CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      title: Text(displayTitle),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      ),
+                      secondary: category != null
+                          ? Icon(Symbols.category)
+                          : Icon(Symbols.tag),
+                      value: category != null
+                          ? isCategorySelected
+                          : isTagSelected,
+                      onChanged: (value) {
+                        if (value == true) {
+                          if (category != null) {
+                            selectedCategories.value = [
+                              ...selectedCategories.value,
+                              slug!,
+                            ];
+                          } else if (tag != null) {
+                            selectedTags.value = [...selectedTags.value, slug!];
+                          }
+                        } else {
+                          if (category != null) {
+                            selectedCategories.value = selectedCategories.value
+                                .where((id) => id != slug)
+                                .toList();
+                          } else if (tag != null) {
+                            selectedTags.value = selectedTags.value
+                                .where((id) => id != slug)
+                                .toList();
+                          }
+                        }
+                        updateSelection();
+                      },
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    );
+                  }).toList(),
+                ],
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (error, stack) => const SizedBox.shrink(),
           ),
         ],
       ),
