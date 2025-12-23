@@ -75,6 +75,7 @@ class PostRepliesList extends HookConsumerWidget {
             isShowReference: false,
             isEmbedOpenable: true,
             onOpen: onOpen,
+            onUpdate: (newPost) {},
           ),
         );
 

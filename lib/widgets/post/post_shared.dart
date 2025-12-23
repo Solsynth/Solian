@@ -139,7 +139,9 @@ class PostReplyPreview extends HookConsumerWidget {
                             spacing: 8,
                             children: [
                               ProfilePictureWidget(
-                                file: post.publisher.picture,
+                                file:
+                                    post.publisher.picture ??
+                                    post.publisher.account?.profile.picture,
                                 radius: 12,
                               ).padding(top: 4),
                               if (post.content?.isNotEmpty ?? false)
@@ -218,7 +220,9 @@ class PostReplyPreview extends HookConsumerWidget {
                   spacing: 8,
                   children: [
                     ProfilePictureWidget(
-                      file: data.value?.publisher.picture,
+                      file:
+                          data.value?.publisher.picture ??
+                          data.value?.publisher.account?.profile.picture,
                       radius: 12,
                     ).padding(top: 4),
                     if (data.value?.content?.isNotEmpty ?? false)
