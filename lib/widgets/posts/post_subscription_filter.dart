@@ -4,14 +4,17 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/post_category.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final subscriptionsProvider = FutureProvider<List<SnPublisherSubscription>>((
-  ref,
-) async {
+part 'post_subscription_filter.g.dart';
+
+@riverpod
+Future<List<SnPublisherSubscription>> publishersSubscriptions(Ref ref) async {
   final client = ref.read(apiClientProvider);
 
   final response = await client.get('/sphere/publishers/subscriptions');
@@ -20,7 +23,19 @@ final subscriptionsProvider = FutureProvider<List<SnPublisherSubscription>>((
       .map((json) => SnPublisherSubscription.fromJson(json))
       .cast<SnPublisherSubscription>()
       .toList();
-});
+}
+
+@riverpod
+Future<List<SnCategorySubscription>> categoriesSubscriptions(Ref ref) async {
+  final client = ref.read(apiClientProvider);
+
+  final response = await client.get('/sphere/categories/subscriptions');
+
+  return response.data
+      .map((json) => SnCategorySubscription.fromJson(json))
+      .cast<SnCategorySubscription>()
+      .toList();
+}
 
 class PostSubscriptionFilterWidget extends HookConsumerWidget {
   final List<String> initialSelectedPublisherNames;
@@ -40,7 +55,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
       initialSelectedPublisherNames,
     );
 
-    final subscriptionsAsync = ref.watch(subscriptionsProvider);
+    final subscriptionsAsync = ref.watch(publishersSubscriptionsProvider);
 
     void updateSelection() {
       onSelectedPublishersChanged(selectedPublisherNames.value);

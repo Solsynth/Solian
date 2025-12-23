@@ -158,48 +158,55 @@ final class PostTagFamily extends $Family
   String toString() => r'postTagProvider';
 }
 
-@ProviderFor(postCategorySubscriptionStatus)
-const postCategorySubscriptionStatusProvider =
-    PostCategorySubscriptionStatusFamily._();
+@ProviderFor(postCategorySubscription)
+const postCategorySubscriptionProvider = PostCategorySubscriptionFamily._();
 
-final class PostCategorySubscriptionStatusProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
-    with $FutureModifier<bool>, $FutureProvider<bool> {
-  const PostCategorySubscriptionStatusProvider._({
-    required PostCategorySubscriptionStatusFamily super.from,
+final class PostCategorySubscriptionProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnCategorySubscription?>,
+          SnCategorySubscription?,
+          FutureOr<SnCategorySubscription?>
+        >
+    with
+        $FutureModifier<SnCategorySubscription?>,
+        $FutureProvider<SnCategorySubscription?> {
+  const PostCategorySubscriptionProvider._({
+    required PostCategorySubscriptionFamily super.from,
     required (String, bool) super.argument,
   }) : super(
          retry: null,
-         name: r'postCategorySubscriptionStatusProvider',
+         name: r'postCategorySubscriptionProvider',
          isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$postCategorySubscriptionStatusHash();
+  String debugGetCreateSourceHash() => _$postCategorySubscriptionHash();
 
   @override
   String toString() {
-    return r'postCategorySubscriptionStatusProvider'
+    return r'postCategorySubscriptionProvider'
         ''
         '$argument';
   }
 
   @$internal
   @override
-  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<SnCategorySubscription?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<bool> create(Ref ref) {
+  FutureOr<SnCategorySubscription?> create(Ref ref) {
     final argument = this.argument as (String, bool);
-    return postCategorySubscriptionStatus(ref, argument.$1, argument.$2);
+    return postCategorySubscription(ref, argument.$1, argument.$2);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PostCategorySubscriptionStatusProvider &&
+    return other is PostCategorySubscriptionProvider &&
         other.argument == argument;
   }
 
@@ -209,26 +216,30 @@ final class PostCategorySubscriptionStatusProvider
   }
 }
 
-String _$postCategorySubscriptionStatusHash() =>
-    r'407dc7fcaeffc461b591b4ee2418811aa4f0a63f';
+String _$postCategorySubscriptionHash() =>
+    r'60fe0a68ab3d8d493eac3577187d7adcfc0244b9';
 
-final class PostCategorySubscriptionStatusFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<bool>, (String, bool)> {
-  const PostCategorySubscriptionStatusFamily._()
+final class PostCategorySubscriptionFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<SnCategorySubscription?>,
+          (String, bool)
+        > {
+  const PostCategorySubscriptionFamily._()
     : super(
         retry: null,
-        name: r'postCategorySubscriptionStatusProvider',
+        name: r'postCategorySubscriptionProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  PostCategorySubscriptionStatusProvider call(String slug, bool isCategory) =>
-      PostCategorySubscriptionStatusProvider._(
+  PostCategorySubscriptionProvider call(String slug, bool isCategory) =>
+      PostCategorySubscriptionProvider._(
         argument: (slug, isCategory),
         from: this,
       );
 
   @override
-  String toString() => r'postCategorySubscriptionStatusProvider';
+  String toString() => r'postCategorySubscriptionProvider';
 }

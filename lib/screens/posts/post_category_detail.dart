@@ -30,7 +30,7 @@ Future<SnPostTag> postTag(Ref ref, String slug) async {
 }
 
 @riverpod
-Future<bool> postCategorySubscriptionStatus(
+Future<SnCategorySubscription?> postCategorySubscription(
   Ref ref,
   String slug,
   bool isCategory,
@@ -40,9 +40,10 @@ Future<bool> postCategorySubscriptionStatus(
     final resp = await apiClient.get(
       '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/subscription',
     );
-    return resp.statusCode == 200;
+    if (resp.data == 200) return SnCategorySubscription.fromJson(resp.data);
+    return null;
   } catch (_) {
-    return false;
+    return null;
   }
 }
 
@@ -56,7 +57,7 @@ Future<void> _subscribeToCategoryOrTag(
     '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/subscribe',
   );
   // Invalidate the subscription status to refresh it
-  ref.invalidate(postCategorySubscriptionStatusProvider(slug, isCategory));
+  ref.invalidate(postCategorySubscriptionProvider(slug, isCategory));
 }
 
 Future<void> _unsubscribeFromCategoryOrTag(
@@ -69,7 +70,7 @@ Future<void> _unsubscribeFromCategoryOrTag(
     '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/unsubscribe',
   );
   // Invalidate the subscription status to refresh it
-  ref.invalidate(postCategorySubscriptionStatusProvider(slug, isCategory));
+  ref.invalidate(postCategorySubscriptionProvider(slug, isCategory));
 }
 
 class PostCategoryDetailScreen extends HookConsumerWidget {
@@ -88,7 +89,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
         : null;
     final postTag = isCategory ? null : ref.watch(postTagProvider(slug));
     final subscriptionStatus = ref.watch(
-      postCategorySubscriptionStatusProvider(slug, isCategory),
+      postCategorySubscriptionProvider(slug, isCategory),
     );
 
     final postFilterTitle = isCategory
@@ -118,7 +119,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                             Text('A category'),
                             const Gap(8),
                             subscriptionStatus.when(
-                              data: (isSubscribed) => isSubscribed
+                              data: (subscription) => subscription != null
                                   ? FilledButton.icon(
                                       onPressed: () async {
                                         await _unsubscribeFromCategoryOrTag(
@@ -176,7 +177,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                             Text('A tag'),
                             const Gap(8),
                             subscriptionStatus.when(
-                              data: (isSubscribed) => isSubscribed
+                              data: (subscription) => subscription != null
                                   ? FilledButton.icon(
                                       onPressed: () async {
                                         await _unsubscribeFromCategoryOrTag(
