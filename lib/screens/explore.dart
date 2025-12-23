@@ -42,6 +42,8 @@ class ExploreScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFilter = useState<String?>(null);
     final selectedPublisherNames = useState<List<String>>([]);
+    final selectedCategoryIds = useState<List<String>>([]);
+    final selectedTagIds = useState<List<String>>([]);
     final notifier = ref.watch(activityListProvider.notifier);
 
     useEffect(() {
@@ -240,6 +242,8 @@ class ExploreScreen extends HookConsumerWidget {
                     selectedDay,
                     currentFilter.value,
                     selectedPublisherNames,
+                    selectedCategoryIds,
+                    selectedTagIds,
                   )
                 : _buildNarrowBody(context, ref, currentFilter.value),
           ),
@@ -295,13 +299,19 @@ class ExploreScreen extends HookConsumerWidget {
   Widget _buildPostList(
     BuildContext context,
     WidgetRef ref,
-    List<String> selectedPublisherIds,
+    List<String> selectedPublishers,
+    List<String> selectedCategories,
+    List<String> selectedTags,
   ) {
     return SliverPostList(
       queryKey: 'explore_filtered',
-      query: PostListQuery(publishers: selectedPublisherIds),
+      query: PostListQuery(
+        publishers: selectedPublishers,
+        categories: selectedCategories,
+        tags: selectedTags,
+      ),
       padding: EdgeInsets.zero,
-      itemPadding: EdgeInsets.zero,
+      itemPadding: const EdgeInsets.only(bottom: 8),
     );
   }
 
@@ -315,12 +325,23 @@ class ExploreScreen extends HookConsumerWidget {
     AsyncValue<List<dynamic>> events,
     ValueNotifier<DateTime> selectedDay,
     String? currentFilter,
-    ValueNotifier<List<String>> selectedPublisherNames,
+    ValueNotifier<List<String>> selectedPublishers,
+    ValueNotifier<List<String>> selectedCategories,
+    ValueNotifier<List<String>> selectedTags,
   ) {
     // Use post list when subscription filter is active and publishers are selected
-    final usePostList = selectedPublisherNames.value.isNotEmpty;
+    final usePostList =
+        selectedPublishers.value.isNotEmpty ||
+        selectedCategories.value.isNotEmpty ||
+        selectedTags.value.isNotEmpty;
     final bodyView = usePostList
-        ? _buildPostList(context, ref, selectedPublisherNames.value)
+        ? _buildPostList(
+            context,
+            ref,
+            selectedPublishers.value,
+            selectedCategories.value,
+            selectedTags.value,
+          )
         : _buildActivityList(context, ref);
 
     final notifier = usePostList
@@ -357,10 +378,17 @@ class ExploreScreen extends HookConsumerWidget {
                   children: [
                     Gap(4 + MediaQuery.paddingOf(context).top),
                     PostSubscriptionFilterWidget(
-                      initialSelectedPublisherNames:
-                          selectedPublisherNames.value,
+                      initialSelectedPublishers: selectedPublishers.value,
+                      initialSelectedCategories: selectedCategories.value,
+                      initialSelectedTags: selectedTags.value,
                       onSelectedPublishersChanged: (names) {
-                        selectedPublisherNames.value = names;
+                        selectedPublishers.value = names;
+                      },
+                      onSelectedCategoriesChanged: (ids) {
+                        selectedCategories.value = ids;
+                      },
+                      onSelectedTagsChanged: (ids) {
+                        selectedTags.value = ids;
                       },
                     ),
                   ],
