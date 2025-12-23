@@ -628,15 +628,15 @@ class _DiscoveryActivityItem extends StatelessWidget {
         children: [
           for (final item in items)
             switch (type) {
-              'realm' => RealmCard(
+              'realm' => RealmDiscoveryCard(
                 realm: SnRealm.fromJson(item['data']),
                 maxWidth: 280,
               ),
-              'publisher' => PublisherCard(
+              'publisher' => PublisherDiscoveryCard(
                 publisher: SnPublisher.fromJson(item['data']),
                 maxWidth: 280,
               ),
-              'article' => WebArticleCard(
+              'article' => WebArticleDiscoveryCard(
                 article: SnWebArticle.fromJson(item['data']),
                 maxWidth: 280,
               ),

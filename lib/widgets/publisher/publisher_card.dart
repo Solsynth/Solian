@@ -5,11 +5,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 
-class PublisherCard extends ConsumerWidget {
+class PublisherDiscoveryCard extends ConsumerWidget {
   final SnPublisher publisher;
   final double? maxWidth;
 
-  const PublisherCard({super.key, required this.publisher, this.maxWidth});
+  const PublisherDiscoveryCard({
+    super.key,
+    required this.publisher,
+    this.maxWidth,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

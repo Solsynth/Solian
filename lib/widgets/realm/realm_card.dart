@@ -6,21 +6,20 @@ import 'package:island/models/realm.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class RealmCard extends ConsumerWidget {
+class RealmDiscoveryCard extends ConsumerWidget {
   final SnRealm realm;
   final double? maxWidth;
 
-  const RealmCard({super.key, required this.realm, this.maxWidth});
+  const RealmDiscoveryCard({super.key, required this.realm, this.maxWidth});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Widget imageWidget;
     if (realm.picture != null) {
-      imageWidget =
-          imageWidget = CloudImageWidget(
-            file: realm.background,
-            fit: BoxFit.cover,
-          );
+      imageWidget = imageWidget = CloudImageWidget(
+        file: realm.background,
+        fit: BoxFit.cover,
+      );
     } else {
       imageWidget = ColoredBox(
         color: Theme.of(context).colorScheme.secondaryContainer,
