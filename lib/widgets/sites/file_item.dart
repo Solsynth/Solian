@@ -78,28 +78,24 @@ class FileItem extends HookConsumerWidget {
     if (context.mounted) {
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder:
-              (context) => Scaffold(
-                appBar: AppBar(
-                  title: Text(file.relativePath),
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                ),
-                extendBodyBehindAppBar: true,
-                backgroundColor: Colors.black,
-                body: PhotoView(
-                  imageProvider: CachedNetworkImageProvider(
-                    imageUrl,
-                    headers:
-                        token != null
-                            ? {'Authorization': 'AtField $token'}
-                            : null,
-                  ),
-                  heroAttributes: PhotoViewHeroAttributes(
-                    tag: file.relativePath,
-                  ),
-                ),
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: Text(file.relativePath),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+            extendBodyBehindAppBar: true,
+            backgroundColor: Colors.black,
+            body: PhotoView(
+              imageProvider: CachedNetworkImageProvider(
+                imageUrl,
+                headers: token != null
+                    ? {'Authorization': 'AtField $token'}
+                    : null,
               ),
+              heroAttributes: PhotoViewHeroAttributes(tag: file.relativePath),
+            ),
+          ),
         ),
       );
     }
@@ -107,7 +103,16 @@ class FileItem extends HookConsumerWidget {
 
   Future<void> _openFile(BuildContext context, WidgetRef ref) async {
     final ext = file.relativePath.split('.').last.toLowerCase();
-    final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].contains(ext);
+    final isImage = [
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'webp',
+      'bmp',
+      'ico',
+      'svg',
+    ].contains(ext);
 
     if (isImage) {
       await _showImageViewer(context, ref);
@@ -182,41 +187,40 @@ class FileItem extends HookConsumerWidget {
               : '${(file.size / 1024).toStringAsFixed(1)} KB',
         ),
         trailing: PopupMenuButton<String>(
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  value: 'download',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.download),
-                      const Gap(16),
-                      Text('Download'),
-                    ],
-                  ),
-                ),
-                if (!file.isDirectory) ...[
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.edit),
-                        const Gap(16),
-                        Text('Open'),
-                      ],
-                    ),
-                  ),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'download',
+              child: Row(
+                children: [
+                  const Icon(Symbols.download),
+                  const Gap(16),
+                  Text('Download'),
                 ],
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.delete, color: Colors.red),
-                      const Gap(16),
-                      Text('Delete').textColor(Colors.red),
-                    ],
-                  ),
+              ),
+            ),
+            if (!file.isDirectory) ...[
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    const Icon(Symbols.edit),
+                    const Gap(16),
+                    Text('Open'),
+                  ],
                 ),
-              ],
+              ),
+            ],
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  const Icon(Symbols.delete, color: Colors.red),
+                  const Gap(16),
+                  Text('Delete').textColor(Colors.red),
+                ],
+              ),
+            ),
+          ],
           onSelected: (value) async {
             switch (value) {
               case 'download':
@@ -228,23 +232,22 @@ class FileItem extends HookConsumerWidget {
               case 'delete':
                 final confirmed = await showDialog<bool>(
                   context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Delete File'),
-                        content: Text(
-                          'Are you sure you want to delete "${file.relativePath}"?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete File'),
+                    content: Text(
+                      'Are you sure you want to delete "${file.relativePath}"?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
                       ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
                 );
 
                 if (confirmed == true) {
