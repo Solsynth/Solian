@@ -530,6 +530,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
 
     Color indicatorColor;
     String indicatorText;
+    bool isInteractive = false;
 
     if (websocketState == WebSocketState.connected()) {
       indicatorColor = Colors.green;
@@ -537,12 +538,16 @@ class _WebSocketIndicator extends HookConsumerWidget {
     } else if (websocketState == WebSocketState.connecting()) {
       indicatorColor = Colors.teal;
       indicatorText = 'connectionReconnecting';
+    } else if (websocketState == WebSocketState.serverDown()) {
+      indicatorColor = Colors.red;
+      indicatorText = 'connectionServerDown';
+      isInteractive = true;
     } else {
       indicatorColor = Colors.red;
       indicatorText = 'connectionDisconnected';
     }
 
-    return AnimatedPositioned(
+    final widget = AnimatedPositioned(
       duration: Duration(milliseconds: 1850),
       top:
           user.value == null ||
@@ -554,15 +559,20 @@ class _WebSocketIndicator extends HookConsumerWidget {
       left: 0,
       right: 0,
       height: indicatorHeight,
-      child: IgnorePointer(
-        child: Material(
-          elevation:
-              user.value == null || websocketState == WebSocketState.connected()
-              ? 0
-              : 4,
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            color: indicatorColor,
+      child: Material(
+        elevation:
+            user.value == null || websocketState == WebSocketState.connected()
+            ? 0
+            : 4,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 300),
+          color: indicatorColor,
+          child: InkWell(
+            onTap: isInteractive
+                ? () {
+                    ref.read(websocketStateProvider.notifier).manualReconnect();
+                  }
+                : null,
             child: Center(
               child: Text(
                 indicatorText,
@@ -573,5 +583,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
         ),
       ),
     );
+
+    return isInteractive ? widget : IgnorePointer(child: widget);
   }
 }

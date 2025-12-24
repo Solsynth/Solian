@@ -52,6 +52,11 @@ class WebSocketService {
   DateTime? _heartbeatAt;
   Duration? heartbeatDelay;
 
+  // Reconnection tracking
+  int _reconnectCount = 0;
+  DateTime? _reconnectWindowStart;
+  static const int _maxReconnectsPerMinute = 5;
+
   Stream<WebSocketPacket> get dataStream => _streamController.stream;
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
 
@@ -79,8 +84,9 @@ class WebSocketService {
       _scheduleHeartbeat();
       _channel!.stream.listen(
         (data) {
-          final dataStr =
-              data is Uint8List ? utf8.decode(data) : data.toString();
+          final dataStr = data is Uint8List
+              ? utf8.decode(data)
+              : data.toString();
           final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
           if (packet.type == 'error.dupe') {
             _statusStreamController.sink.add(WebSocketState.duplicateDevice());
@@ -123,6 +129,34 @@ class WebSocketService {
   }
 
   void _scheduleReconnect() {
+    // Check if we've exceeded the reconnect limit
+    final now = DateTime.now();
+    if (_reconnectWindowStart == null ||
+        now.difference(_reconnectWindowStart!).inMinutes >= 1) {
+      // Reset window if it's been more than 1 minute since the window started
+      _reconnectWindowStart = now;
+      _reconnectCount = 0;
+    }
+
+    _reconnectCount++;
+
+    if (_reconnectCount > _maxReconnectsPerMinute) {
+      talker.error(
+        '[WebSocket] Reconnect limit exceeded: $_maxReconnectsPerMinute reconnections in the last minute. Stopping auto-reconnect.',
+      );
+      _statusStreamController.sink.add(WebSocketState.serverDown());
+      return;
+    }
+
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
+      _statusStreamController.sink.add(WebSocketState.connecting());
+      connect(_ref);
+    });
+  }
+
+  void manualReconnect() {
+    talker.info('[WebSocket] Manual reconnect triggered by user');
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
       _statusStreamController.sink.add(WebSocketState.connecting());
@@ -203,5 +237,10 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
     service.close();
     _reconnectTimer?.cancel();
     state = const WebSocketState.disconnected();
+  }
+
+  void manualReconnect() {
+    final service = ref.read(websocketProvider);
+    service.manualReconnect();
   }
 }
