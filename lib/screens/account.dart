@@ -376,7 +376,7 @@ class AccountScreen extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.group,
+                    'icon': Symbols.groups_3,
                     'title': 'realms',
                     'onTap': () {
                       context.goNamed('realmList');
@@ -418,67 +418,47 @@ class AccountScreen extends HookConsumerWidget {
                     },
                   },
                 ];
-                return GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 80,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: menuItems.length,
-                  itemBuilder: (context, index) {
-                    final item = menuItems[index];
+                return Column(
+                  children: menuItems.map((item) {
                     final icon = item['icon'] as IconData;
                     final title = item['title'] as String;
                     final badgeCount = item['badgeCount'] as int?;
                     final onTap = item['onTap'] as VoidCallback?;
-                    return Card(
-                      margin: EdgeInsets.zero,
-                      child: Tooltip(
-                        message: title.tr(),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: onTap,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Badge(
-                                  isLabelVisible:
-                                      badgeCount != null && badgeCount > 0,
-                                  label: Text(badgeCount.toString()),
-                                  child: Icon(icon, size: 28),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
                       ),
+                      trailing: const Icon(Symbols.chevron_right),
+                      dense: true,
+                      leading: Badge(
+                        isLabelVisible: badgeCount != null && badgeCount > 0,
+                        label: Text(badgeCount.toString()),
+                        child: Icon(icon, size: 24),
+                      ),
+                      title: Text(title).tr(),
+                      onTap: onTap,
                     );
-                  },
+                  }).toList(),
                 );
               },
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
-              minTileHeight: 48,
               leading: const Icon(Symbols.info),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
               title: Text('about').tr(),
               onTap: () {
                 context.pushNamed('about');
               },
             ),
             ListTile(
-              minTileHeight: 48,
               leading: const Icon(Symbols.bug_report),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('debugOptions').tr(),
+              dense: true,
               onTap: () {
                 showModalBottomSheet(
                   useRootNavigator: true,
@@ -489,11 +469,11 @@ class AccountScreen extends HookConsumerWidget {
               },
             ),
             ListTile(
-              minTileHeight: 48,
               leading: const Icon(Symbols.logout),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('logout').tr(),
+              dense: true,
               onTap: () async {
                 final ws = ref.watch(websocketStateProvider.notifier);
                 final apiClient = ref.watch(apiClientProvider);
