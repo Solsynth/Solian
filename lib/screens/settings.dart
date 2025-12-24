@@ -834,6 +834,50 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Default screen settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsDefaultScreen').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.home),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: 'dashboard',
+                child: Text('dashboard').tr().fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'explore',
+                child: Text('explore').tr().fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'chat',
+                child: Text('chat').tr().fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'account',
+                child: Text('account').tr().fontSize(14),
+              ),
+            ],
+            value: settings.defaultScreen ?? 'dashboard',
+            onChanged: (String? value) {
+              if (value != null) {
+                ref.read(appSettingsProvider.notifier).setDefaultScreen(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
+          ),
+        ),
+      ),
+
       // Dash search engine settings
       ListTile(
         isThreeLine: true,

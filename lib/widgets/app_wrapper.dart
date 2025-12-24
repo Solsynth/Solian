@@ -145,6 +145,16 @@ class AppWrapper extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final settingsNotifier = ref.watch(appSettingsProvider.notifier);
 
+    useEffect(() {
+      if (settings.defaultScreen != null &&
+          settings.defaultScreen != 'dashboard') {
+        Future(() {
+          ref.read(routerProvider).goNamed(settings.defaultScreen!);
+        });
+      }
+      return null;
+    }, []);
+
     final now = DateTime.now();
     final doesShowSnow =
         settings.festivalFeatures &&

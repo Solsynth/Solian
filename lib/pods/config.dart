@@ -32,7 +32,6 @@ const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppThemeMode = 'app_theme_mode';
-const kMaterialYouToggleStoreKey = 'app_theme_material_you';
 const kAppDisableAnimation = 'app_disable_animation';
 const kAppFabPosition = 'app_fab_position';
 const kAppGroupedChatList = 'app_grouped_chat_list';
@@ -41,24 +40,11 @@ const kFeaturedPostsCollapsedId =
 const kAppFirstLaunchAt = 'app_first_launch_at';
 const kAppAskedReview = 'app_asked_review';
 const kAppDashSearchEngine = 'app_dash_search_engine';
+const kAppDefaultScreen = 'app_default_screen';
 
-const Map<String, FilterQuality> kImageQualityLevel = {
-  'settingsImageQualityLowest': FilterQuality.none,
-  'settingsImageQualityLow': FilterQuality.low,
-  'settingsImageQualityMedium': FilterQuality.medium,
-  'settingsImageQualityHigh': FilterQuality.high,
-};
-
+// Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
-});
-
-final imageQualityProvider = Provider<FilterQuality>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return kImageQualityLevel.values.elementAtOrNull(
-        prefs.getInt('app_image_quality') ?? 3,
-      ) ??
-      FilterQuality.high;
 });
 
 final serverUrlProvider = Provider<String>((ref) {
@@ -100,13 +86,13 @@ sealed class AppSettings with _$AppSettings {
     required String? defaultPoolId,
     required String messageDisplayStyle,
     required String? themeMode,
-    required bool useMaterial3,
     required bool disableAnimation,
     required String fabPosition,
     required bool groupedChatList,
     required String? firstLaunchAt,
     required bool askedReview,
     required String? dashSearchEngine,
+    required String? defaultScreen,
   }) = _AppSettings;
 }
 
@@ -132,13 +118,13 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
-      useMaterial3: prefs.getBool(kMaterialYouToggleStoreKey) ?? true,
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
       fabPosition: prefs.getString(kAppFabPosition) ?? 'center',
       groupedChatList: prefs.getBool(kAppGroupedChatList) ?? false,
       askedReview: prefs.getBool(kAppAskedReview) ?? false,
       firstLaunchAt: prefs.getString(kAppFirstLaunchAt),
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
+      defaultScreen: prefs.getString(kAppDefaultScreen),
     );
   }
 
@@ -229,6 +215,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(customFonts: value);
   }
 
+  void setDefaultScreen(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppDefaultScreen, value ?? 'dashboard');
+    state = state.copyWith(defaultScreen: value);
+  }
+
   void setAppColorScheme(int? value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setInt(kAppColorSchemeStoreKey, value ?? 0);
@@ -272,12 +264,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setDouble(kAppCardTransparent, value);
     state = state.copyWith(cardTransparency: value);
-  }
-
-  void setUseMaterial3(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kMaterialYouToggleStoreKey, value);
-    state = state.copyWith(useMaterial3: value);
   }
 
   void setCustomColors(ThemeColors? value) {
