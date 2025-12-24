@@ -42,7 +42,7 @@ final class NetworkStatusNotifierProvider
 }
 
 String _$networkStatusNotifierHash() =>
-    r'ca968c342be79cb97349fb95eee5c575d7076a99';
+    r'6f08e3067fa5265432f28f64e10775e3039506c3';
 
 abstract class _$NetworkStatusNotifier extends $Notifier<NetworkStatus> {
   NetworkStatus build();

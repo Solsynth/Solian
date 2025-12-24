@@ -25,10 +25,9 @@ ThemeSet createAppThemeSet(AppSettings settings) {
 }
 
 ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
-  final seedColor =
-      settings.appColorScheme != null
-          ? Color(settings.appColorScheme!)
-          : Colors.indigo;
+  final seedColor = settings.appColorScheme != null
+      ? Color(settings.appColorScheme!)
+      : Colors.indigo;
 
   var colorScheme = ColorScheme.fromSeed(
     seedColor: seedColor,
@@ -38,33 +37,33 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
   final customColors = settings.customColors;
   if (customColors != null) {
     colorScheme = colorScheme.copyWith(
-      primary:
-          customColors.primary != null ? Color(customColors.primary!) : null,
-      secondary:
-          customColors.secondary != null
-              ? Color(customColors.secondary!)
-              : null,
-      tertiary:
-          customColors.tertiary != null ? Color(customColors.tertiary!) : null,
-      surface:
-          customColors.surface != null ? Color(customColors.surface!) : null,
-      background:
-          customColors.background != null
-              ? Color(customColors.background!)
-              : null,
+      primary: customColors.primary != null
+          ? Color(customColors.primary!)
+          : null,
+      secondary: customColors.secondary != null
+          ? Color(customColors.secondary!)
+          : null,
+      tertiary: customColors.tertiary != null
+          ? Color(customColors.tertiary!)
+          : null,
+      surface: customColors.surface != null
+          ? Color(customColors.surface!)
+          : null,
+      background: customColors.background != null
+          ? Color(customColors.background!)
+          : null,
       error: customColors.error != null ? Color(customColors.error!) : null,
     );
   }
 
   final hasAppBarTransparent = settings.appBarTransparent;
-  final useM3 = settings.useMaterial3;
 
   final inUseFonts =
       settings.customFonts?.split(',').map((ele) => ele.trim()).toList() ??
       ['Nunito'];
 
   return ThemeData(
-    useMaterial3: useM3,
+    useMaterial3: true,
     colorScheme: colorScheme,
     brightness: brightness,
     fontFamily: inUseFonts.firstOrNull,
@@ -78,10 +77,12 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
     appBarTheme: AppBarTheme(
       centerTitle: true,
       elevation: hasAppBarTransparent ? 0 : null,
-      backgroundColor:
-          hasAppBarTransparent ? Colors.transparent : colorScheme.primary,
-      foregroundColor:
-          hasAppBarTransparent ? colorScheme.onSurface : colorScheme.onPrimary,
+      backgroundColor: hasAppBarTransparent
+          ? Colors.transparent
+          : colorScheme.primary,
+      foregroundColor: hasAppBarTransparent
+          ? colorScheme.onSurface
+          : colorScheme.onPrimary,
     ),
     cardTheme: CardThemeData(
       color: colorScheme.surfaceContainer.withOpacity(
