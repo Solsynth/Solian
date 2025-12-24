@@ -5,7 +5,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/websocket.dart';
 import 'package:island/services/update_service.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
@@ -67,8 +66,6 @@ class DebugSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wsNotifier = ref.watch(websocketStateProvider.notifier);
-
     return SheetScaffold(
       titleText: 'Debug',
       heightFactor: 0.6,
@@ -111,10 +108,7 @@ class DebugSheet extends HookConsumerWidget {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder:
-                      (context) => NetworkStatusSheet(
-                        onReconnect: () => wsNotifier.connect(),
-                      ),
+                  builder: (context) => NetworkStatusSheet(),
                 );
               },
             ),

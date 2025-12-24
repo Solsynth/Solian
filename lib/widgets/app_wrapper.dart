@@ -33,7 +33,6 @@ class AppWrapper extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final networkStateShowing = useState(false);
-    final wsNotifier = ref.watch(websocketStateProvider.notifier);
     final websocketState = ref.watch(websocketStateProvider);
     final isShowSnow = useState(false);
     final isSnowGone = useState(false);
@@ -47,8 +46,7 @@ class AppWrapper extends HookConsumerWidget {
           context: context,
           isScrollControlled: true,
           isDismissible: false,
-          builder: (context) =>
-              NetworkStatusSheet(onReconnect: () => wsNotifier.connect()),
+          builder: (context) => NetworkStatusSheet(autoClose: true),
         ).then((_) => networkStateShowing.value = false);
       });
     }

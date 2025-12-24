@@ -143,6 +143,7 @@
   "connectionConnected": "Connected",
   "connectionDisconnected": "Disconnected",
   "connectionReconnecting": "Reconnecting",
+  "connectionServerDown": "Unable to Connect",
   "accountConnections": "Account Connections",
   "accountConnectionsDescription": "Manage your external account connections",
   "accountConnectionAdd": "Add Connection",
