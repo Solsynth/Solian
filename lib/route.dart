@@ -19,6 +19,7 @@ import 'package:island/screens/files/file_detail.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:island/screens/explore.dart';
@@ -121,7 +122,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             name: 'logs',
             path: '/logs',
-            builder: (context, state) => TalkerScreen(talker: talker),
+            builder: (context, state) => TalkerScreen(
+              talker: talker,
+              appBarTitle: 'Debug Logs',
+              appBarLeading: const PageBackButton(),
+              theme: TalkerScreenTheme.fromTheme(Theme.of(context)),
+            ),
           ),
 
           // Web articles
