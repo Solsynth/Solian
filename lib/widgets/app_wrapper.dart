@@ -34,22 +34,43 @@ class AppWrapper extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final networkStateShowing = useState(false);
     final websocketState = ref.watch(websocketStateProvider);
+    final apiState = ref.watch(networkStatusProvider);
     final isShowSnow = useState(false);
     final isSnowGone = useState(false);
 
     // Handle network status modal
-    if (websocketState == WebSocketState.duplicateDevice() &&
-        !networkStateShowing.value) {
-      networkStateShowing.value = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          isDismissible: false,
-          builder: (context) => NetworkStatusSheet(autoClose: true),
-        ).then((_) => networkStateShowing.value = false);
-      });
-    }
+    useEffect(() {
+      bool triedOpen = false;
+      if (websocketState == WebSocketState.duplicateDevice() &&
+          !networkStateShowing.value &&
+          !triedOpen) {
+        networkStateShowing.value = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            isDismissible: false,
+            builder: (context) => NetworkStatusSheet(autoClose: true),
+          ).then((_) => networkStateShowing.value = false);
+        });
+        triedOpen = true;
+      }
+
+      if (apiState != NetworkStatus.online &&
+          !networkStateShowing.value &&
+          !triedOpen) {
+        networkStateShowing.value = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const NetworkStatusSheet(),
+          ).then((_) => networkStateShowing.value = false);
+        });
+        triedOpen = true;
+      }
+      return null;
+    }, [websocketState, apiState]);
 
     // Initialize services and listeners
     useEffect(() {

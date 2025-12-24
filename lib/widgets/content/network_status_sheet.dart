@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -18,6 +19,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
     final ws = ref.watch(websocketProvider);
     final wsState = ref.watch(websocketStateProvider);
     final apiState = ref.watch(networkStatusProvider);
+    final serverUrl = ref.watch(serverUrlProvider);
 
     final wsNotifier = ref.watch(websocketStateProvider.notifier);
 
@@ -163,6 +165,8 @@ class NetworkStatusSheet extends HookConsumerWidget {
                 Text(
                   apiState == NetworkStatus.online
                       ? 'Online'
+                      : apiState == NetworkStatus.notReady
+                      ? 'Not Ready'
                       : apiState == NetworkStatus.maintenance
                       ? 'Under Maintenance'
                       : 'Offline',
@@ -174,6 +178,13 @@ class NetworkStatusSheet extends HookConsumerWidget {
                           Symbols.check_circle,
                           key: ValueKey(NetworkStatus.online),
                           color: Colors.green,
+                          size: 16,
+                        )
+                      : apiState == NetworkStatus.notReady
+                      ? Icon(
+                          Symbols.warning,
+                          key: ValueKey(NetworkStatus.notReady),
+                          color: Colors.orange,
                           size: 16,
                         )
                       : apiState == NetworkStatus.maintenance
@@ -190,6 +201,13 @@ class NetworkStatusSheet extends HookConsumerWidget {
                           size: 16,
                         ),
                 ),
+              ],
+            ),
+            Row(
+              spacing: 8,
+              children: [
+                Text('API Server').bold(),
+                Expanded(child: Text(serverUrl)),
               ],
             ),
             Row(

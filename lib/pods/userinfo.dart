@@ -36,71 +36,41 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
       }
       return user;
     } catch (error, stackTrace) {
-      if (!kIsWeb) {
-        if (error is DioException) {
-          showOverlayDialog<bool>(
-            builder:
-                (context, close) => AlertDialog(
-                  title: Text('failedToLoadUserInfo'.tr()),
-                  content: Text(
-                    [
-                      (error.response?.statusCode == 401
-                              ? 'failedToLoadUserInfoUnauthorized'
-                              : 'failedToLoadUserInfoNetwork')
-                          .tr()
-                          .trim(),
-                      '',
-                      '${error.response?.statusCode ?? 'Network Error'}',
-                      if (error.response?.headers != null)
-                        error.response?.headers,
-                      if (error.response?.data != null)
-                        jsonEncode(error.response?.data),
-                    ].join('\n'),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => close(false),
-                      child: Text('okay'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () => close(true),
-                      child: Text('retry'.tr()),
-                    ),
-                  ],
-                ),
-          ).then((value) {
-            if (value == true) {
-              ref.invalidateSelf();
-            }
-          });
-        } else {
-          showOverlayDialog<bool>(
-            builder:
-                (context, close) => AlertDialog(
-                  title: Text('failedToLoadUserInfo'.tr()),
-                  content: Text(
-                    [
-                      'failedToLoadUserInfoNetwork'.tr(),
-                      error.toString(),
-                    ].join('\n\n').trim(),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => close(false),
-                      child: Text('okay'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () => close(true),
-                      child: Text('retry'.tr()),
-                    ),
-                  ],
-                ),
-          ).then((value) {
-            if (value == true) {
-              ref.invalidateSelf();
-            }
-          });
-        }
+      if (error is DioException) {
+        if (error.response?.statusCode == 503) return null;
+        showOverlayDialog<bool>(
+          builder: (context, close) => AlertDialog(
+            title: Text('failedToLoadUserInfo'.tr()),
+            content: Text(
+              [
+                (error.response?.statusCode == 401
+                        ? 'failedToLoadUserInfoUnauthorized'
+                        : 'failedToLoadUserInfoNetwork')
+                    .tr()
+                    .trim(),
+                '',
+                '${error.response?.statusCode ?? 'Network Error'}',
+                if (error.response?.headers != null) error.response?.headers,
+                if (error.response?.data != null)
+                  jsonEncode(error.response?.data),
+              ].join('\n'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => close(false),
+                child: Text('okay'.tr()),
+              ),
+              TextButton(
+                onPressed: () => close(true),
+                child: Text('retry'.tr()),
+              ),
+            ],
+          ),
+        ).then((value) {
+          if (value == true) {
+            ref.invalidateSelf();
+          }
+        });
       }
       talker.error(
         "[UserInfo] Failed to fetch user info...",

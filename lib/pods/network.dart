@@ -20,7 +20,7 @@ import 'config.dart';
 part 'network.g.dart';
 
 // Network status enum to track different states
-enum NetworkStatus { online, maintenance, offline }
+enum NetworkStatus { online, notReady, maintenance, offline }
 
 // Provider for network status using Riverpod v3 annotation
 @riverpod
@@ -40,6 +40,10 @@ class NetworkStatusNotifier extends _$NetworkStatusNotifier {
 
   void setOffline() {
     state = NetworkStatus.offline;
+  }
+
+  void setNotReady() {
+    state = NetworkStatus.notReady;
   }
 }
 
@@ -130,7 +134,11 @@ final apiClientProvider = Provider<Dio>((ref) {
           final networkStatusNotifier = ref.read(
             networkStatusProvider.notifier,
           );
-          networkStatusNotifier.setMaintenance();
+          if (response.headers.value('X-NotReady') != null) {
+            networkStatusNotifier.setNotReady();
+          } else {
+            networkStatusNotifier.setMaintenance();
+          }
         } else if (response.statusCode != null &&
             response.statusCode! >= 200 &&
             response.statusCode! < 300) {
@@ -156,7 +164,11 @@ final apiClientProvider = Provider<Dio>((ref) {
           final networkStatusNotifier = ref.read(
             networkStatusProvider.notifier,
           );
-          networkStatusNotifier.setMaintenance();
+          if (error.response?.headers.value('X-NotReady') != null) {
+            networkStatusNotifier.setNotReady();
+          } else {
+            networkStatusNotifier.setMaintenance();
+          }
         }
         return handler.next(error);
       },
