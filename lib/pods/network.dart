@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -15,6 +16,32 @@ import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:island/talker.dart';
 
 import 'config.dart';
+
+part 'network.g.dart';
+
+// Network status enum to track different states
+enum NetworkStatus { online, maintenance, offline }
+
+// Provider for network status using Riverpod v3 annotation
+@riverpod
+class NetworkStatusNotifier extends _$NetworkStatusNotifier {
+  @override
+  NetworkStatus build() {
+    return NetworkStatus.online;
+  }
+
+  void setOnline() {
+    state = NetworkStatus.online;
+  }
+
+  void setMaintenance() {
+    state = NetworkStatus.maintenance;
+  }
+
+  void setOffline() {
+    state = NetworkStatus.offline;
+  }
+}
 
 final imagePickerProvider = Provider((ref) => ImagePicker());
 
@@ -80,24 +107,58 @@ final apiClientProvider = Provider<Dio>((ref) {
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
-      onRequest: (
-        RequestOptions options,
-        RequestInterceptorHandler handler,
-      ) async {
-        try {
-          final token = await getToken(ref.watch(tokenProvider));
-          if (token != null) {
-            options.headers['Authorization'] = 'AtField $token';
-          }
-        } catch (err) {
-          // ignore
-        }
+      onRequest:
+          (RequestOptions options, RequestInterceptorHandler handler) async {
+            try {
+              final token = await getToken(ref.watch(tokenProvider));
+              if (token != null) {
+                options.headers['Authorization'] = 'AtField $token';
+              }
+            } catch (err) {
+              // ignore
+            }
 
-        final userAgent = ref.read(userAgentProvider);
-        if (userAgent.value != null) {
-          options.headers['User-Agent'] = userAgent.value;
+            final userAgent = ref.read(userAgentProvider);
+            if (userAgent.value != null) {
+              options.headers['User-Agent'] = userAgent.value;
+            }
+            return handler.next(options);
+          },
+      onResponse: (response, handler) {
+        // Check for 503 status code (Service Unavailable/Maintenance)
+        if (response.statusCode == 503) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          networkStatusNotifier.setMaintenance();
+        } else if (response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300) {
+          // Set online status for successful responses
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          networkStatusNotifier.setOnline();
         }
-        return handler.next(options);
+        return handler.next(response);
+      },
+      onError: (error, handler) {
+        // Handle network errors and set offline status
+        if (error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout ||
+            error.type == DioExceptionType.connectionError) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          networkStatusNotifier.setOffline();
+        } else if (error.response?.statusCode == 503) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          networkStatusNotifier.setMaintenance();
+        }
+        return handler.next(error);
       },
     ),
     TalkerDioLogger(
