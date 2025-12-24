@@ -523,67 +523,118 @@ class _WebSocketIndicator extends HookConsumerWidget {
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
+    final devicePadding = MediaQuery.of(context).padding;
+
     final user = ref.watch(userInfoProvider);
     final websocketState = ref.watch(websocketStateProvider);
-    final indicatorHeight =
-        MediaQuery.of(context).padding.top + (isDesktop ? 27.5 : 25);
 
     Color indicatorColor;
     String indicatorText;
+    Widget indicatorIcon;
     bool isInteractive = false;
+    double opacity = 0.0;
 
     if (websocketState == WebSocketState.connected()) {
       indicatorColor = Colors.green;
       indicatorText = 'connectionConnected';
+      indicatorIcon = Icon(
+        key: ValueKey('ws_connected'),
+        Symbols.power,
+        color: Colors.white,
+        size: 16,
+      );
+      opacity = 0.0;
     } else if (websocketState == WebSocketState.connecting()) {
       indicatorColor = Colors.teal;
       indicatorText = 'connectionReconnecting';
+      indicatorIcon = SizedBox(
+        key: ValueKey('ws_connecting'),
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          strokeWidth: 2,
+          padding: EdgeInsets.zero,
+        ),
+      );
+      opacity = 1.0;
     } else if (websocketState == WebSocketState.serverDown()) {
       indicatorColor = Colors.red;
       indicatorText = 'connectionServerDown';
       isInteractive = true;
+      indicatorIcon = Icon(
+        key: ValueKey('ws_server_down'),
+        Symbols.power_off,
+        color: Colors.white,
+        size: 16,
+      );
+      opacity = 1.0;
     } else {
       indicatorColor = Colors.red;
       indicatorText = 'connectionDisconnected';
+      indicatorIcon = Icon(
+        key: ValueKey('ws_disconnected'),
+        Symbols.power_off,
+        color: Colors.white,
+        size: 16,
+      );
+      opacity = 1.0;
     }
 
-    final widget = AnimatedPositioned(
-      duration: Duration(milliseconds: 1850),
-      top:
-          user.value == null ||
-              user.value == null ||
-              websocketState == WebSocketState.connected()
-          ? -indicatorHeight
-          : 0,
-      curve: Curves.fastLinearToSlowEaseIn,
+    return Positioned(
+      top: devicePadding.top + (isDesktop ? 27.5 : 25),
       left: 0,
       right: 0,
-      height: indicatorHeight,
-      child: Material(
-        elevation:
-            user.value == null || websocketState == WebSocketState.connected()
-            ? 0
-            : 4,
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          color: indicatorColor,
-          child: InkWell(
-            onTap: isInteractive
-                ? () {
-                    ref.read(websocketStateProvider.notifier).manualReconnect();
-                  }
-                : null,
-            child: Center(
-              child: Text(
-                indicatorText,
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ).tr(),
-            ).padding(top: MediaQuery.of(context).padding.top),
+      child: IgnorePointer(
+        ignoring: !isInteractive,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: AnimatedOpacity(
+            duration: Duration(milliseconds: 300),
+            opacity: opacity,
+            child: Material(
+              elevation:
+                  user.value == null ||
+                      websocketState == WebSocketState.connected()
+                  ? 0
+                  : 4,
+              borderRadius: BorderRadius.circular(999),
+              child: InkWell(
+                onTap: isInteractive
+                    ? () {
+                        ref
+                            .read(websocketStateProvider.notifier)
+                            .manualReconnect();
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: indicatorColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 300),
+                        child: indicatorIcon,
+                      ),
+                      Text(
+                        indicatorText,
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ).tr(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
-
-    return isInteractive ? widget : IgnorePointer(child: widget);
   }
 }
