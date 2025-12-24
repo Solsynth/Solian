@@ -368,20 +368,22 @@ class AccountScreen extends HookConsumerWidget {
                       );
                     },
                   },
-                  {
-                    'icon': Symbols.files,
-                    'title': 'files',
-                    'onTap': () {
-                      context.goNamed('files');
+                  if (!isWideScreen(context))
+                    {
+                      'icon': Symbols.files,
+                      'title': 'files',
+                      'onTap': () {
+                        context.goNamed('files');
+                      },
                     },
-                  },
-                  {
-                    'icon': Symbols.groups_3,
-                    'title': 'realms',
-                    'onTap': () {
-                      context.goNamed('realmList');
+                  if (!isWideScreen(context))
+                    {
+                      'icon': Symbols.groups_3,
+                      'title': 'realms',
+                      'onTap': () {
+                        context.goNamed('realmList');
+                      },
                     },
-                  },
                   {
                     'icon': Symbols.wallet,
                     'title': 'wallet',
