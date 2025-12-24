@@ -531,7 +531,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
     Color indicatorColor;
     String indicatorText;
     Widget indicatorIcon;
-    bool isInteractive = false;
+    bool isInteractive = true;
     double opacity = 0.0;
 
     if (websocketState == WebSocketState.connected()) {
@@ -544,6 +544,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
         size: 16,
       );
       opacity = 0.0;
+      isInteractive = false;
     } else if (websocketState == WebSocketState.connecting()) {
       indicatorColor = Colors.teal;
       indicatorText = 'connectionReconnecting';
@@ -558,6 +559,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
         ),
       );
       opacity = 1.0;
+      isInteractive = false;
     } else if (websocketState == WebSocketState.serverDown()) {
       indicatorColor = Colors.red;
       indicatorText = 'connectionServerDown';
@@ -579,6 +581,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
         size: 16,
       );
       opacity = 1.0;
+      isInteractive = false;
     }
 
     return Positioned(
@@ -599,15 +602,10 @@ class _WebSocketIndicator extends HookConsumerWidget {
                   ? 0
                   : 4,
               borderRadius: BorderRadius.circular(999),
-              child: InkWell(
-                onTap: isInteractive
-                    ? () {
-                        ref
-                            .read(websocketStateProvider.notifier)
-                            .manualReconnect();
-                      }
-                    : null,
-                borderRadius: BorderRadius.circular(999),
+              child: GestureDetector(
+                onTap: () {
+                  ref.read(websocketStateProvider.notifier).manualReconnect();
+                },
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(

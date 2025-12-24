@@ -156,6 +156,7 @@ class WebSocketService {
   }
 
   void manualReconnect() {
+    _statusStreamController.sink.add(WebSocketState.connecting());
     talker.info('[WebSocket] Manual reconnect triggered by user');
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
