@@ -1021,6 +1021,7 @@
   "noResultsFound": "No results found",
   "toggleFilters": "Toggle filters",
   "notableDayNext": "{} is in",
+  "notableDayToday": "{} is today!",
   "expandPoll": "Expand Poll",
   "collapsePoll": "Collapse Poll",
   "embedView": "Embed View",
@@ -1539,5 +1540,7 @@
   "settingsNotifyWithHaptic": "Notification with Haptic Feedback",
   "settingsDashSearchEngine": "Search Engine for web",
   "settingsDashSearchEngineHelper": "Use %s as the placeholder for the query.",
-  "settingsDefaultScreen": "Default Screen"
+  "settingsDefaultScreen": "Default Screen",
+  "notableDayChristmas": "Christmas",
+  "notableDayNewYear": "New Year"
 }

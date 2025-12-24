@@ -999,6 +999,7 @@
   "noResultsFound": "未找到结果",
   "toggleFilters": "切换过滤器",
   "notableDayNext": "距离 {} 还有",
+  "notableDayToday": "今天是 {}!",
   "expandPoll": "展开投票",
   "collapsePoll": "折叠投票",
   "embedView": "嵌入视图",

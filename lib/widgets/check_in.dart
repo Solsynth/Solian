@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/models/fortune.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/captcha.dart';
@@ -42,10 +43,48 @@ Future<SnNotableDay?> nextNotableDay(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
     final resp = await client.get('/pass/notable/me/next');
-    return SnNotableDay.fromJson(resp.data);
+    final day = SnNotableDay.fromJson(resp.data);
+    if (day.localizableKey != null) {
+      final key = 'notableDay${day.localizableKey}';
+      if (key.trExists()) {
+        return day.copyWith(
+          localName: key.tr(),
+          date: day.date.toLocal().copyWith(hour: 0, second: 0),
+        );
+      }
+    }
+    return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
   } catch (err) {
     return null;
   }
+}
+
+@riverpod
+Future<SnNotableDay?> recentNotableDay(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final resp = await client.get('/pass/notable/me/recent');
+    final day = SnNotableDay.fromJson(resp.data[0]);
+    if (day.localizableKey != null) {
+      final key = 'notableDay${day.localizableKey}';
+      if (key.trExists()) {
+        return day.copyWith(
+          localName: key.tr(),
+          date: day.date.toLocal().copyWith(hour: 0, second: 0),
+        );
+      }
+    }
+    return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
+  } catch (err) {
+    return null;
+  }
+}
+
+@riverpod
+Future<SnFortuneSaying> randomFortuneSaying(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/pass/fortune/random');
+  return SnFortuneSaying.fromJson(resp.data[0]);
 }
 
 class CheckInWidget extends HookConsumerWidget {

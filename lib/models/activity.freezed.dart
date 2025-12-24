@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnNotableDay {
 
- DateTime get date; String get localName; String get globalName; String get countryCode; List<int> get holidays;
+ DateTime get date; String get localName; String get globalName; String? get countryCode; String? get localizableKey; List<int> get holidays;
 /// Create a copy of SnNotableDay
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnNotableDayCopyWith<SnNotableDay> get copyWith => _$SnNotableDayCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&const DeepCollectionEquality().equals(other.holidays, holidays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.localizableKey, localizableKey) || other.localizableKey == localizableKey)&&const DeepCollectionEquality().equals(other.holidays, holidays));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,const DeepCollectionEquality().hash(holidays));
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,localizableKey,const DeepCollectionEquality().hash(holidays));
 
 @override
 String toString() {
-  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, holidays: $holidays)';
+  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, localizableKey: $localizableKey, holidays: $holidays)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnNotableDayCopyWith<$Res>  {
   factory $SnNotableDayCopyWith(SnNotableDay value, $Res Function(SnNotableDay) _then) = _$SnNotableDayCopyWithImpl;
 @useResult
 $Res call({
- DateTime date, String localName, String globalName, String countryCode, List<int> holidays
+ DateTime date, String localName, String globalName, String? countryCode, String? localizableKey, List<int> holidays
 });
 
 
@@ -65,13 +65,14 @@ class _$SnNotableDayCopyWithImpl<$Res>
 
 /// Create a copy of SnNotableDay
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = null,Object? holidays = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = freezed,Object? localizableKey = freezed,Object? holidays = null,}) {
   return _then(_self.copyWith(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
 as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
-as String,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
-as String,holidays: null == holidays ? _self.holidays : holidays // ignore: cast_nullable_to_non_nullable
+as String,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,localizableKey: freezed == localizableKey ? _self.localizableKey : localizableKey // ignore: cast_nullable_to_non_nullable
+as String?,holidays: null == holidays ? _self.holidays : holidays // ignore: cast_nullable_to_non_nullable
 as List<int>,
   ));
 }
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String? countryCode,  String? localizableKey,  List<int> holidays)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnNotableDay() when $default != null:
-return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);case _:
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.localizableKey,_that.holidays);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String? countryCode,  String? localizableKey,  List<int> holidays)  $default,) {final _that = this;
 switch (_that) {
 case _SnNotableDay():
-return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);}
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.localizableKey,_that.holidays);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -192,10 +193,10 @@ return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  String localName,  String globalName,  String? countryCode,  String? localizableKey,  List<int> holidays)?  $default,) {final _that = this;
 switch (_that) {
 case _SnNotableDay() when $default != null:
-return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);case _:
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.localizableKey,_that.holidays);case _:
   return null;
 
 }
@@ -207,13 +208,14 @@ return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_t
 @JsonSerializable()
 
 class _SnNotableDay implements SnNotableDay {
-  const _SnNotableDay({required this.date, required this.localName, required this.globalName, required this.countryCode, required final  List<int> holidays}): _holidays = holidays;
+  const _SnNotableDay({required this.date, required this.localName, required this.globalName, required this.countryCode, required this.localizableKey, required final  List<int> holidays}): _holidays = holidays;
   factory _SnNotableDay.fromJson(Map<String, dynamic> json) => _$SnNotableDayFromJson(json);
 
 @override final  DateTime date;
 @override final  String localName;
 @override final  String globalName;
-@override final  String countryCode;
+@override final  String? countryCode;
+@override final  String? localizableKey;
  final  List<int> _holidays;
 @override List<int> get holidays {
   if (_holidays is EqualUnmodifiableListView) return _holidays;
@@ -235,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&const DeepCollectionEquality().equals(other._holidays, _holidays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.localizableKey, localizableKey) || other.localizableKey == localizableKey)&&const DeepCollectionEquality().equals(other._holidays, _holidays));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,const DeepCollectionEquality().hash(_holidays));
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,localizableKey,const DeepCollectionEquality().hash(_holidays));
 
 @override
 String toString() {
-  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, holidays: $holidays)';
+  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, localizableKey: $localizableKey, holidays: $holidays)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$SnNotableDayCopyWith<$Res> implements $SnNotableDayCopyWi
   factory _$SnNotableDayCopyWith(_SnNotableDay value, $Res Function(_SnNotableDay) _then) = __$SnNotableDayCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime date, String localName, String globalName, String countryCode, List<int> holidays
+ DateTime date, String localName, String globalName, String? countryCode, String? localizableKey, List<int> holidays
 });
 
 
@@ -272,13 +274,14 @@ class __$SnNotableDayCopyWithImpl<$Res>
 
 /// Create a copy of SnNotableDay
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = null,Object? holidays = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = freezed,Object? localizableKey = freezed,Object? holidays = null,}) {
   return _then(_SnNotableDay(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
 as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
-as String,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
-as String,holidays: null == holidays ? _self._holidays : holidays // ignore: cast_nullable_to_non_nullable
+as String,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,localizableKey: freezed == localizableKey ? _self.localizableKey : localizableKey // ignore: cast_nullable_to_non_nullable
+as String?,holidays: null == holidays ? _self._holidays : holidays // ignore: cast_nullable_to_non_nullable
 as List<int>,
   ));
 }

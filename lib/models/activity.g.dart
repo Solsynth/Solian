@@ -11,7 +11,8 @@ _SnNotableDay _$SnNotableDayFromJson(Map<String, dynamic> json) =>
       date: DateTime.parse(json['date'] as String),
       localName: json['local_name'] as String,
       globalName: json['global_name'] as String,
-      countryCode: json['country_code'] as String,
+      countryCode: json['country_code'] as String?,
+      localizableKey: json['localizable_key'] as String?,
       holidays: (json['holidays'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
@@ -23,6 +24,7 @@ Map<String, dynamic> _$SnNotableDayToJson(_SnNotableDay instance) =>
       'local_name': instance.localName,
       'global_name': instance.globalName,
       'country_code': instance.countryCode,
+      'localizable_key': instance.localizableKey,
       'holidays': instance.holidays,
     };
 

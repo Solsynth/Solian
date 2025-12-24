@@ -10,7 +10,8 @@ sealed class SnNotableDay with _$SnNotableDay {
     required DateTime date,
     required String localName,
     required String globalName,
-    required String countryCode,
+    required String? countryCode,
+    required String? localizableKey,
     required List<int> holidays,
   }) = _SnNotableDay;
 

@@ -21,6 +21,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/notification_tile.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/check_in.dart';
+import 'package:island/models/activity.dart';
 import 'package:island/screens/notification.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:slide_countdown/slide_countdown.dart';
@@ -229,7 +230,7 @@ class ClockCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final time = useState(DateTime.now());
     final timer = useRef<Timer?>(null);
-    final nextNotableDay = ref.watch(nextNotableDayProvider);
+    final notableDay = ref.watch(recentNotableDayProvider);
 
     // Determine icon based on time of day
     final int hour = time.value.hour;
@@ -301,23 +302,13 @@ class ClockCard extends HookConsumerWidget {
                       Row(
                         spacing: 5,
                         children: [
-                          Text('notableDayNext')
-                              .tr(
-                                args: [
-                                  nextNotableDay.value?.localName ?? 'idk',
-                                ],
-                              )
-                              .fontSize(12),
-                          if (nextNotableDay.value != null)
-                            SlideCountdown(
-                              decoration: const BoxDecoration(),
-                              style: const TextStyle(fontSize: 12),
-                              separatorStyle: const TextStyle(fontSize: 12),
-                              padding: EdgeInsets.zero,
-                              duration: nextNotableDay.value?.date.difference(
-                                DateTime.now(),
-                              ),
-                            ),
+                          notableDay.when(
+                            data: (day) => _buildNotableDayText(context, day!),
+                            error: (err, _) =>
+                                Text(err.toString()).fontSize(12),
+                            loading: () =>
+                                const Text('loading').tr().fontSize(12),
+                          ),
                         ],
                       ),
                     ],
@@ -329,6 +320,42 @@ class ClockCard extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildNotableDayText(BuildContext context, SnNotableDay notableDay) {
+    final today = DateTime.now();
+    final isToday =
+        notableDay.date.year == today.year &&
+        notableDay.date.month == today.month &&
+        notableDay.date.day == today.day;
+
+    if (isToday) {
+      return Row(
+        spacing: 5,
+        children: [
+          Text('notableDayToday').tr(args: [notableDay.localName]).fontSize(12),
+          Icon(
+            Symbols.celebration_rounded,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        spacing: 5,
+        children: [
+          Text('notableDayNext').tr(args: [notableDay.localName]).fontSize(12),
+          SlideCountdown(
+            decoration: const BoxDecoration(),
+            style: const TextStyle(fontSize: 12),
+            separatorStyle: const TextStyle(fontSize: 12),
+            padding: EdgeInsets.zero,
+            duration: notableDay.date.difference(DateTime.now()),
+          ),
+        ],
+      );
+    }
   }
 }
 
@@ -493,65 +520,38 @@ class ChatListCard extends HookConsumerWidget {
   }
 }
 
-class FortuneCard extends HookWidget {
+class FortuneCard extends HookConsumerWidget {
   const FortuneCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final fortune = useMemoized(() {
-      const fortunes = [
-        {'text': '有的人活着，但他已经死了。', 'author': '—— 鲁迅'},
-        {'text': '天行健，君子以自强不息。', 'author': '—— 《周易》'},
-        {'text': '路漫漫其修远兮，吾将上下而求索。', 'author': '—— 屈原'},
-        {'text': '学海无涯苦作舟。', 'author': '—— 韩愈'},
-        {'text': '天道酬勤。', 'author': '—— 古语'},
-        {'text': '书山有路勤为径，学海无涯苦作舟。', 'author': '—— 韩愈'},
-        {'text': '莫等闲，白了少年头，空悲切。', 'author': '—— 岳飞'},
-        {
-          'text': 'The best way to predict the future is to create it.',
-          'author': '— Peter Drucker',
-        },
-        {'text': 'Fortune favors the bold.', 'author': '— Virgil'},
-        {
-          'text': 'A journey of a thousand miles begins with a single step.',
-          'author': '— Lao Tzu',
-        },
-        {
-          'text': 'The only way to do great work is to love what you do.',
-          'author': '— Steve Jobs',
-        },
-        {
-          'text': 'Believe you can and you\'re halfway there.',
-          'author': '— Theodore Roosevelt',
-        },
-        {
-          'text':
-              'The future belongs to those who believe in the beauty of their dreams.',
-          'author': '— Eleanor Roosevelt',
-        },
-      ];
-      return fortunes[math.Random().nextInt(fortunes.length)];
-    });
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fortuneAsync = ref.watch(randomFortuneSayingProvider);
 
     return Card(
       margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      child: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              fortune['text']!,
-              maxLines: 2,
-              overflow: TextOverflow.fade,
-            ),
-          ),
-          Text(fortune['author']!).bold(),
-        ],
-      ).padding(horizontal: 16),
+      child: fortuneAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data: (fortune) {
+          return Row(
+            spacing: 8,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  fortune.content,
+                  maxLines: 2,
+                  overflow: TextOverflow.fade,
+                ),
+              ),
+              Text('—— ${fortune.source}').bold(),
+            ],
+          ).padding(horizontal: 16);
+        },
+      ),
     ).height(48);
   }
 }
