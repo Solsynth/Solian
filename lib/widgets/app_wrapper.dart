@@ -49,7 +49,6 @@ class AppWrapper extends HookConsumerWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            isDismissible: false,
             builder: (context) => NetworkStatusSheet(autoClose: true),
           ).then((_) => networkStateShowing.value = false);
         });
