@@ -78,8 +78,8 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
               name: row.name,
               description: row.description,
               type: row.type,
-              isPublic: row.isPublic!,
-              isCommunity: row.isCommunity!,
+              isPublic: row.isPublic ?? false,
+              isCommunity: row.isCommunity ?? false,
               picture: row.picture != null
                   ? SnCloudFile.fromJson(row.picture!)
                   : null,
@@ -220,8 +220,8 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           name: row.name,
           description: row.description,
           type: row.type,
-          isPublic: row.isPublic!,
-          isCommunity: row.isCommunity!,
+          isPublic: row.isPublic ?? false,
+          isCommunity: row.isCommunity ?? false,
           picture: row.picture != null
               ? SnCloudFile.fromJson(row.picture!)
               : null,
@@ -285,8 +285,8 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           name: localRoomData.name,
           description: localRoomData.description,
           type: localRoomData.type,
-          isPublic: localRoomData.isPublic!,
-          isCommunity: localRoomData.isCommunity!,
+          isPublic: localRoomData.isPublic ?? false,
+          isCommunity: localRoomData.isCommunity ?? false,
           picture: localRoomData.picture != null
               ? SnCloudFile.fromJson(localRoomData.picture!)
               : null,

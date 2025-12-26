@@ -29,7 +29,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatRoom _room;
-  late SnChatMember _identity;
+  SnChatMember? _identityOrNull;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -71,7 +71,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
-      _identity = identity;
+      _identityOrNull = identity;
     }
 
     talker.log('MessagesNotifier built for room $roomId');
@@ -530,18 +530,26 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
+    // Ensure user is a member before sending
+    final identity = _identityOrNull;
+    if (identity == null) {
+      talker.warning('Cannot send message: user is not a member of this chat room');
+      showErrorAlert(StateError('You must be a member to send messages'));
+      return;
+    }
+    
     final nonce = const Uuid().v4();
     talker.log('Sending message with nonce $nonce');
 
     final mockMessage = SnChatMessage(
       id: 'pending_$nonce',
       chatRoomId: roomId,
-      senderId: _identity.id,
+      senderId: identity.id,
       content: content,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       nonce: nonce,
-      sender: _identity,
+      sender: identity,
     );
 
     final localMessage = LocalChatMessage.fromRemoteMessage(

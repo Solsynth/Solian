@@ -183,7 +183,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       return;
     }
 
-    final message = SnChatMessage.fromJson(pkt.data!);
+    final data = pkt.data;\r\n    if (data == null) return;\r\n    \r\n    final message = SnChatMessage.fromJson(data);
     if (message.chatRoomId != _chatRoom.id) return;
     switch (pkt.type) {
       case 'messages.new':

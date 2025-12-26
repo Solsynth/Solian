@@ -399,18 +399,15 @@ class CallNotifier extends _$CallNotifier {
   }
 
   void setParticipantVolume(CallParticipantLive live, double volume) {
-    if (participantsVolumes[live.remoteParticipant.sid] == null) {
-      participantsVolumes[live.remoteParticipant.sid] = 1;
+    final audioPublication = live.remoteParticipant.audioTrackPublications.firstOrNull;
+    final audioTrack = audioPublication?.track;
+    if (audioTrack == null) {
+      talker.warning('[Call] Cannot set volume: no audio track available for participant ${live.remoteParticipant.sid}');
+      return;
     }
-    Helper.setVolume(
-      volume,
-      live
-          .remoteParticipant
-          .audioTrackPublications
-          .first
-          .track!
-          .mediaStreamTrack,
-    );
+    
+    participantsVolumes[live.remoteParticipant.sid] ??= 1;
+    Helper.setVolume(volume, audioTrack.mediaStreamTrack);
     participantsVolumes[live.remoteParticipant.sid] = volume;
   }
 
