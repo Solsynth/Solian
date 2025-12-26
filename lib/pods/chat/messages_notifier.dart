@@ -30,6 +30,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late AppDatabase _database;
   late SnChatRoom _room;
   SnChatMember? _identityOrNull;
+  bool _disposed = false;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -48,8 +49,12 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
-  @override
+@override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
+    ref.onDispose(() {
+      _disposed = true;
+    });
+
     _apiClient = ref.watch(apiClientProvider);
     _database = ref.watch(databaseProvider);
     final room = await ref.watch(chatRoomProvider(roomId).future);
@@ -57,8 +62,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     // Initialize fetch account method for corrupted data recovery
     _fetchAccount = (String accountId) async {
+      if (_disposed) return null; 
       try {
-        return await ref.watch(accountProvider(accountId).future);
+        return await ref.read(accountProvider(accountId).future);
       } catch (_) {
         return null;
       }
