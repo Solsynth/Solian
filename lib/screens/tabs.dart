@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -83,7 +84,7 @@ class TabsScreen extends HookConsumerWidget {
       ),
       NavigationDestination(
         label: 'realms'.tr(),
-        icon: const Icon(Symbols.group_rounded),
+        icon: const Icon(Symbols.groups_3),
       ),
       NavigationDestination(
         label: 'account'.tr(),
@@ -149,14 +150,21 @@ class TabsScreen extends HookConsumerWidget {
           children: [
             NavigationRail(
               backgroundColor: Colors.transparent,
-              destinations: destinations
-                  .map(
-                    (e) => NavigationRailDestination(
-                      icon: e.icon,
-                      label: Text(e.label),
+              destinations: destinations.mapIndexed((idx, d) {
+                if (d.icon is Icon) {
+                  return NavigationRailDestination(
+                    icon: Icon(
+                      (d.icon as Icon).icon,
+                      fill: currentIndex == idx ? 1 : null,
                     ),
-                  )
-                  .toList(),
+                    label: Text(d.label),
+                  );
+                }
+                return NavigationRailDestination(
+                  icon: d.icon,
+                  label: Text(d.label),
+                );
+              }).toList(),
               selectedIndex: currentIndex,
               onDestinationSelected: onDestinationSelected,
             ),
@@ -208,7 +216,18 @@ class TabsScreen extends HookConsumerWidget {
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: NavigationBar(
                   height: 56,
-                  destinations: destinations,
+                  destinations: destinations.mapIndexed((idx, d) {
+                    if (d.icon is Icon) {
+                      return NavigationDestination(
+                        icon: Icon(
+                          (d.icon as Icon).icon,
+                          fill: currentIndex == idx ? 1 : null,
+                        ),
+                        label: d.label,
+                      );
+                    }
+                    return d;
+                  }).toList(),
                   selectedIndex: currentIndex,
                   onDestinationSelected: onDestinationSelected,
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,

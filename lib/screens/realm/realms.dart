@@ -48,7 +48,6 @@ class RealmListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/account'),
         title: const Text('realms').tr(),
         actions: [
           IconButton(
