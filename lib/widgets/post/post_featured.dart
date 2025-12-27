@@ -94,9 +94,19 @@ class PostFeaturedList extends HookConsumerWidget {
               child: Row(
                 spacing: 8,
                 children: [
-                  const Icon(Symbols.highlight),
-                  const Text('highlightPost').tr(),
-                  Spacer(),
+                  Icon(
+                    Symbols.highlight,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  Expanded(
+                    child: Text(
+                      'highlightPost'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                   IconButton(
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,

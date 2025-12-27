@@ -102,7 +102,7 @@ dependencies:
   livekit_client: ^2.5.4
   pasteboard: ^0.4.0
   flutter_colorpicker: ^1.1.0
-  image: ^4.7.1
+  image: ^4.7.2
   record: ^6.1.2
   qr_flutter: ^4.1.0
   flutter_otp_text_field: ^1.5.1+1
