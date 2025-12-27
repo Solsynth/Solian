@@ -169,7 +169,8 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
             ),
           ),
 
-          const Divider(height: 1).padding(vertical: 8),
+          if (publishersAsync.value?.isNotEmpty ?? false)
+            const Divider(height: 1).padding(vertical: 8),
 
           // Categories Section
           categoriesAsync.when(

@@ -1541,5 +1541,6 @@
     "settingsDashSearchEngineHelper": "Use %s as the placeholder for the query.",
     "settingsDefaultScreen": "Default Screen",
     "notableDayChristmas": "Christmas",
-    "notableDayNewYear": "New Year"
+    "notableDayNewYear": "New Year",
+    "noSubscription": "No subscriptions"
 }
