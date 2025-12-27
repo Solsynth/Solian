@@ -146,7 +146,7 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
                       itemBuilder: (context, index) {
                         final sticker = stickers[index];
                         return Tooltip(
-                          message: ':${p?.prefix ?? ''}${sticker.slug}:',
+                          message: ':${p?.prefix ?? ''}+${sticker.slug}:',
                           child: ClipRRect(
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
