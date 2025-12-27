@@ -78,119 +78,151 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 onRefresh: () => Future.sync(() {
                   ref.invalidate(chatRoomJoinedProvider);
                 }),
-                child: Column(
-                  children: [
-                    // Always show pinned chats in their own section
-                    if (pinnedItems.isNotEmpty)
-                      ExpansionTile(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainer.withOpacity(0.5),
-                        collapsedBackgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainer.withOpacity(0.5),
-                        title: Text('pinnedChatRoom'.tr()),
-                        leading: const Icon(Symbols.keep, fill: 1),
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 24),
-                        initiallyExpanded: true,
-                        children: [
-                          for (final item in pinnedItems)
-                            ChatRoomListTile(
-                              room: item,
-                              isDirect: item.type == 1,
-                              onTap: () {
-                                if (isWideScreen(context)) {
-                                  context.replaceNamed(
-                                    'chatRoom',
-                                    pathParameters: {'id': item.id},
-                                  );
-                                } else {
-                                  context.pushNamed(
-                                    'chatRoom',
-                                    pathParameters: {'id': item.id},
-                                  );
+                child: Theme(
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
+                  child: Column(
+                    children: [
+                      // Always show pinned chats in their own section
+                      if (pinnedItems.isNotEmpty)
+                        ExpansionTile(
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withOpacity(0.5),
+                          collapsedBackgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainer.withOpacity(0.5),
+                          title: Text('pinnedChatRoom'.tr()),
+                          leading: const Icon(Symbols.keep, fill: 1),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          initiallyExpanded: true,
+                          children: [
+                            for (final item in pinnedItems)
+                              ChatRoomListTile(
+                                room: item,
+                                isDirect: item.type == 1,
+                                onTap: () {
+                                  if (isWideScreen(context)) {
+                                    context.replaceNamed(
+                                      'chatRoom',
+                                      pathParameters: {'id': item.id},
+                                    );
+                                  } else {
+                                    context.pushNamed(
+                                      'chatRoom',
+                                      pathParameters: {'id': item.id},
+                                    );
+                                  }
+                                },
+                              ),
+                          ],
+                        ),
+                      Expanded(
+                        child: Consumer(
+                          builder: (context, ref, _) {
+                            final summaries =
+                                ref
+                                    .watch(chatSummaryProvider)
+                                    .whenData((data) => data)
+                                    .value ??
+                                {};
+
+                            if (settings.groupedChatList &&
+                                selectedTab.value == 0) {
+                              // Group by realm (include both pinned and unpinned)
+                              final realmGroups = <String?, List<SnChatRoom>>{};
+                              final ungrouped = <SnChatRoom>[];
+
+                              for (final item in filteredItems) {
+                                if (item.realmId != null) {
+                                  realmGroups
+                                      .putIfAbsent(item.realmId, () => [])
+                                      .add(item);
+                                } else if (!item.isPinned) {
+                                  // Only unpinned chats without realm go to ungrouped
+                                  ungrouped.add(item);
                                 }
-                              },
-                            ),
-                        ],
-                      ),
-                    Expanded(
-                      child: Consumer(
-                        builder: (context, ref, _) {
-                          final summaries =
-                              ref
-                                  .watch(chatSummaryProvider)
-                                  .whenData((data) => data)
-                                  .value ??
-                              {};
-
-                          if (settings.groupedChatList &&
-                              selectedTab.value == 0) {
-                            // Group by realm (include both pinned and unpinned)
-                            final realmGroups = <String?, List<SnChatRoom>>{};
-                            final ungrouped = <SnChatRoom>[];
-
-                            for (final item in filteredItems) {
-                              if (item.realmId != null) {
-                                realmGroups
-                                    .putIfAbsent(item.realmId, () => [])
-                                    .add(item);
-                              } else if (!item.isPinned) {
-                                // Only unpinned chats without realm go to ungrouped
-                                ungrouped.add(item);
                               }
-                            }
 
-                            final children = <Widget>[];
+                              final children = <Widget>[];
 
-                            // Add realm groups
-                            for (final entry in realmGroups.entries) {
-                              final rooms = entry.value;
-                              final realm = rooms.first.realm;
-                              final realmName = realm?.name ?? 'Unknown Realm';
+                              // Add realm groups
+                              for (final entry in realmGroups.entries) {
+                                final rooms = entry.value;
+                                final realm = rooms.first.realm;
+                                final realmName =
+                                    realm?.name ?? 'Unknown Realm';
 
-                              // Calculate total unread count for this realm
-                              final totalUnread = rooms.fold<int>(
-                                0,
-                                (sum, room) =>
-                                    sum +
-                                    (summaries[room.id]?.unreadCount ?? 0),
-                              );
+                                // Calculate total unread count for this realm
+                                final totalUnread = rooms.fold<int>(
+                                  0,
+                                  (sum, room) =>
+                                      sum +
+                                      (summaries[room.id]?.unreadCount ?? 0),
+                                );
 
-                              children.add(
-                                ExpansionTile(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainer
-                                      .withOpacity(0.5),
-                                  collapsedBackgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainer
-                                      .withOpacity(0.5),
-                                  title: Row(
-                                    children: [
-                                      Expanded(child: Text(realmName)),
-                                      Badge(
-                                        isLabelVisible: totalUnread > 0,
-                                        label: Text(totalUnread.toString()),
-                                        backgroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        textColor: Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimary,
-                                      ),
-                                    ],
+                                children.add(
+                                  ExpansionTile(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withOpacity(0.5),
+                                    collapsedBackgroundColor:
+                                        Colors.transparent,
+                                    title: Row(
+                                      children: [
+                                        Expanded(child: Text(realmName)),
+                                        Badge(
+                                          isLabelVisible: totalUnread > 0,
+                                          label: Text(totalUnread.toString()),
+                                          backgroundColor: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          textColor: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                      ],
+                                    ),
+                                    leading: ProfilePictureWidget(
+                                      file: realm?.picture,
+                                      radius: 16,
+                                    ),
+                                    tilePadding: const EdgeInsets.only(
+                                      left: 20,
+                                      right: 24,
+                                    ),
+                                    children: rooms.map((room) {
+                                      return ChatRoomListTile(
+                                        room: room,
+                                        isDirect: room.type == 1,
+                                        onTap: () {
+                                          if (isWideScreen(context)) {
+                                            context.replaceNamed(
+                                              'chatRoom',
+                                              pathParameters: {'id': room.id},
+                                            );
+                                          } else {
+                                            context.pushNamed(
+                                              'chatRoom',
+                                              pathParameters: {'id': room.id},
+                                            );
+                                          }
+                                        },
+                                      );
+                                    }).toList(),
                                   ),
-                                  leading: ProfilePictureWidget(
-                                    file: realm?.picture,
-                                    radius: 16,
-                                  ),
-                                  tilePadding: const EdgeInsets.only(
-                                    left: 20,
-                                    right: 24,
-                                  ),
-                                  children: rooms.map((room) {
+                                );
+                              }
+
+                              // Add ungrouped chats
+                              if (ungrouped.isNotEmpty) {
+                                children.addAll(
+                                  ungrouped.map((room) {
                                     return ChatRoomListTile(
                                       room: room,
                                       isDirect: room.type == 1,
@@ -208,80 +240,55 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                         }
                                       },
                                     );
-                                  }).toList(),
-                                ),
-                              );
-                            }
+                                  }),
+                                );
+                              }
 
-                            // Add ungrouped chats
-                            if (ungrouped.isNotEmpty) {
-                              children.addAll(
-                                ungrouped.map((room) {
+                              return ListView(
+                                padding: EdgeInsets.only(bottom: 96),
+                                children: children,
+                              );
+                            } else {
+                              // Normal list view
+                              return SuperListView.builder(
+                                padding: EdgeInsets.only(bottom: 96),
+                                itemCount: unpinnedItems
+                                    .where(
+                                      (item) =>
+                                          selectedTab.value == 0 ||
+                                          (selectedTab.value == 1 &&
+                                              item.type == 1) ||
+                                          (selectedTab.value == 2 &&
+                                              item.type != 1),
+                                    )
+                                    .length,
+                                itemBuilder: (context, index) {
+                                  final item = unpinnedItems[index];
                                   return ChatRoomListTile(
-                                    room: room,
-                                    isDirect: room.type == 1,
+                                    room: item,
+                                    isDirect: item.type == 1,
                                     onTap: () {
                                       if (isWideScreen(context)) {
                                         context.replaceNamed(
                                           'chatRoom',
-                                          pathParameters: {'id': room.id},
+                                          pathParameters: {'id': item.id},
                                         );
                                       } else {
                                         context.pushNamed(
                                           'chatRoom',
-                                          pathParameters: {'id': room.id},
+                                          pathParameters: {'id': item.id},
                                         );
                                       }
                                     },
                                   );
-                                }),
+                                },
                               );
                             }
-
-                            return ListView(
-                              padding: EdgeInsets.only(bottom: 96),
-                              children: children,
-                            );
-                          } else {
-                            // Normal list view
-                            return SuperListView.builder(
-                              padding: EdgeInsets.only(bottom: 96),
-                              itemCount: unpinnedItems
-                                  .where(
-                                    (item) =>
-                                        selectedTab.value == 0 ||
-                                        (selectedTab.value == 1 &&
-                                            item.type == 1) ||
-                                        (selectedTab.value == 2 &&
-                                            item.type != 1),
-                                  )
-                                  .length,
-                              itemBuilder: (context, index) {
-                                final item = unpinnedItems[index];
-                                return ChatRoomListTile(
-                                  room: item,
-                                  isDirect: item.type == 1,
-                                  onTap: () {
-                                    if (isWideScreen(context)) {
-                                      context.replaceNamed(
-                                        'chatRoom',
-                                        pathParameters: {'id': item.id},
-                                      );
-                                    } else {
-                                      context.pushNamed(
-                                        'chatRoom',
-                                        pathParameters: {'id': item.id},
-                                      );
-                                    }
-                                  },
-                                );
-                              },
-                            );
-                          }
-                        },
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
