@@ -20,8 +20,6 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
   Future<List<SnTimelineEvent>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final cursor = state.value?.lastOrNull?.createdAt.toUtc().toIso8601String();
-
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
@@ -37,10 +35,16 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
         .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
-
-    totalCount =
-        (state.value?.length ?? 0) + items.length + (hasMore ? pageSize : 0);
+    hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
+    // Find the latest createdAt timestamp from all items for cursor-based pagination
+    // This ensures we get items created before this timestamp, regardless of sort order
+    if (items.isNotEmpty) {
+      final latestCreatedAt = items
+          .where((e) => e.type.startsWith('posts.'))
+          .map((e) => e.createdAt)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      cursor = latestCreatedAt.toUtc().toIso8601String();
+    }
 
     return items;
   }
