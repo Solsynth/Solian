@@ -43,6 +43,7 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.post('/sphere/chat/realtime/${room.id}');
+        ref.invalidate(ongoingCallProvider(room.id));
         // Just join the room, the overlay will handle the UI
         await callNotifier.joinRoom(room);
       } catch (e) {

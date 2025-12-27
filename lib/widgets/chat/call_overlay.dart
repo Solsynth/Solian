@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/account.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/userinfo.dart';
@@ -18,6 +17,7 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:collection/collection.dart';
 
 class CallControlsBar extends HookConsumerWidget {
   final bool isCompact;
@@ -321,21 +321,66 @@ class CallOverlayBar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final callState = ref.watch(callProvider);
+    // Use selective watching to reduce rebuilds
+    final isConnected = ref.watch(
+      callProvider.select((state) => state.isConnected),
+    );
+    final duration = ref.watch(callProvider.select((state) => state.duration));
+    final isMicrophoneEnabled = ref.watch(
+      callProvider.select((state) => state.isMicrophoneEnabled),
+    );
     final callNotifier = ref.read(callProvider.notifier);
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
+
+    // Memoize expensive computations
+    final lastSpeaker = useMemoized(() {
+      final participants = callNotifier.participants;
+      if (participants.isEmpty) return null;
+
+      final speakers = participants.where(
+        (element) => element.remoteParticipant.lastSpokeAt != null,
+      );
+
+      if (speakers.isEmpty) return participants.first;
+
+      return speakers.fold<CallParticipantLive?>(null, (previous, current) {
+        if (previous == null) return current;
+        return current.remoteParticipant.lastSpokeAt!.compareTo(
+                  previous.remoteParticipant.lastSpokeAt!,
+                ) >
+                0
+            ? current
+            : previous;
+      });
+    }, [callNotifier.participants]);
+
+    final userInfo = ref.watch(userInfoProvider).value!;
+
+    // Memoize chat room name
+    final chatRoomName = useMemoized(() {
+      final room = callNotifier.chatRoom;
+      if (room == null) return 'unnamed'.tr();
+      return room.name ??
+          (room.members ?? [])
+              .where((element) => element.id != userInfo.id)
+              .map((element) => element.account.nick)
+              .first;
+    }, [callNotifier.chatRoom, userInfo]);
 
     // State for overlay mode: compact or preview
     // Default to true (preview mode) so user sees video immediately after joining
     final isExpanded = useState(true);
 
     Widget child;
-    if (callState.isConnected) {
+    if (isConnected) {
       child = _buildActiveCallOverlay(
         context,
         ref,
-        callState,
+        duration,
+        isMicrophoneEnabled,
         callNotifier,
+        lastSpeaker,
+        chatRoomName,
         isExpanded,
       );
     } else if (ongoingCall.value != null) {
@@ -425,47 +470,19 @@ class CallOverlayBar extends HookConsumerWidget {
     );
   }
 
-  String _getChatRoomName(SnChatRoom? room, SnAccount currentUser) {
-    if (room == null) return 'unnamed'.tr();
-    return room.name ??
-        (room.members ?? [])
-            .where((element) => element.id != currentUser.id)
-            .map((element) => element.account.nick)
-            .first;
-  }
-
   Widget _buildActiveCallOverlay(
     BuildContext context,
     WidgetRef ref,
-    CallState callState,
+    Duration duration,
+    bool isMicrophoneEnabled,
     CallNotifier callNotifier,
+    CallParticipantLive? lastSpeaker,
+    String chatRoomName,
     ValueNotifier<bool> isExpanded,
   ) {
-    final lastSpeaker =
-        callNotifier.participants
-            .where((element) => element.remoteParticipant.lastSpokeAt != null)
-            .isEmpty
-        ? callNotifier.participants.firstOrNull
-        : callNotifier.participants
-              .where((element) => element.remoteParticipant.lastSpokeAt != null)
-              .fold(
-                callNotifier.participants.firstOrNull,
-                (value, element) =>
-                    element.remoteParticipant.lastSpokeAt != null &&
-                        (value?.remoteParticipant.lastSpokeAt == null ||
-                            element.remoteParticipant.lastSpokeAt!.compareTo(
-                                  value!.remoteParticipant.lastSpokeAt!,
-                                ) >
-                                0)
-                    ? element
-                    : value,
-              );
-
     if (lastSpeaker == null) {
       return const SizedBox.shrink(key: ValueKey('active_waiting'));
     }
-
-    final userInfo = ref.watch(userInfoProvider).value!;
 
     // Preview Mode (Expanded)
     if (isExpanded.value) {
@@ -480,9 +497,9 @@ class CallOverlayBar extends HookConsumerWidget {
             Row(
               children: [
                 const Gap(4),
-                Text(_getChatRoomName(callNotifier.chatRoom, userInfo)),
+                Text(chatRoomName),
                 const Gap(4),
-                Text(formatDuration(callState.duration)).bold(),
+                Text(formatDuration(duration)).bold(),
                 const Spacer(),
                 OpenContainer(
                   closedElevation: 0,
@@ -555,11 +572,11 @@ class CallOverlayBar extends HookConsumerWidget {
                         spacing: 4,
                         children: [
                           Text(
-                            _getChatRoomName(callNotifier.chatRoom, userInfo),
+                            chatRoomName,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           Text(
-                            formatDuration(callState.duration),
+                            formatDuration(duration),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -571,7 +588,7 @@ class CallOverlayBar extends HookConsumerWidget {
             ),
             IconButton(
               icon: Icon(
-                callState.isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
+                isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
                 size: 20,
               ),
               onPressed: () {
