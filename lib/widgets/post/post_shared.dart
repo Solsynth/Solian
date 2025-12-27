@@ -24,6 +24,46 @@ part 'post_shared.g.dart';
 
 const kMessageEnableEmbedTypes = ['text', 'messages.new'];
 
+class RepliesState {
+  final List<SnPost> posts;
+  final bool loading;
+
+  RepliesState({required this.posts, required this.loading});
+
+  RepliesState copyWith({List<SnPost>? posts, bool? loading}) {
+    return RepliesState(
+      posts: posts ?? this.posts,
+      loading: loading ?? this.loading,
+    );
+  }
+}
+
+@riverpod
+class RepliesNotifier extends _$RepliesNotifier {
+  @override
+  RepliesState build(String parentId) {
+    return RepliesState(posts: [], loading: false);
+  }
+
+  Future<void> fetchMore(int pageSize) async {
+    state = state.copyWith(loading: true);
+
+    final client = ref.read(apiClientProvider);
+
+    final response = await client.get(
+      '/sphere/posts/$parentId/replies',
+      queryParameters: {'offset': state.posts.length, 'take': pageSize},
+    );
+
+    if (!ref.mounted) return;
+
+    state = state.copyWith(
+      posts: [...state.posts, ...response.data.map((e) => SnPost.fromJson(e))],
+      loading: false,
+    );
+  }
+}
+
 @riverpod
 Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
   final client = ref.watch(apiClientProvider);
@@ -82,39 +122,18 @@ class PostReplyPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final posts = useState<List<SnPost>>([]);
-    final loading = useState(false);
-
-    Future<void> fetchMoreReplies({int pageSize = 3}) async {
-      final client = ref.read(apiClientProvider);
-      loading.value = true;
-
-      try {
-        final response = await client.get(
-          '/sphere/posts/${parent.id}/replies',
-          queryParameters: {'offset': posts.value.length, 'take': pageSize},
-        );
-        try {
-          posts.value = [
-            ...posts.value,
-            ...response.data.map((e) => SnPost.fromJson(e)),
-          ];
-        } catch (_) {
-          // ignore disposed
-        }
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        try {
-          loading.value = false;
-        } catch (_) {
-          // ignore disposed
-        }
-      }
-    }
+    final repliesState = ref.watch(repliesProvider(parent.id));
 
     useEffect(() {
-      if (isAutoload) fetchMoreReplies();
+      if (isAutoload) {
+        Future(() async {
+          try {
+            await ref.read(repliesProvider(parent.id).notifier).fetchMore(3);
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        });
+      }
       return null;
     }, [parent]);
 
@@ -127,7 +146,7 @@ class PostReplyPreview extends HookConsumerWidget {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final post in posts.value)
+                for (final post in repliesState.posts)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -183,7 +202,7 @@ class PostReplyPreview extends HookConsumerWidget {
                         ).padding(left: 24),
                     ],
                   ),
-                if (loading.value)
+                if (repliesState.loading)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 8,
@@ -196,7 +215,7 @@ class PostReplyPreview extends HookConsumerWidget {
                       Text('loading').tr(),
                     ],
                   )
-                else if (posts.value.length < parent.repliesCount)
+                else if (repliesState.posts.length < parent.repliesCount)
                   GestureDetector(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -206,8 +225,14 @@ class PostReplyPreview extends HookConsumerWidget {
                         Text('repliesLoadMore').tr(),
                       ],
                     ),
-                    onTap: () {
-                      fetchMoreReplies();
+                    onTap: () async {
+                      try {
+                        await ref
+                            .read(repliesProvider(parent.id).notifier)
+                            .fetchMore(3);
+                      } catch (err) {
+                        showErrorAlert(err);
+                      }
                     },
                   ),
               ],

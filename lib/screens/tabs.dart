@@ -13,6 +13,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/pods/chat/chat_summary.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String?>(
   CurrentRouteNotifier.new,
@@ -237,7 +238,7 @@ class TabsScreen extends HookConsumerWidget {
                   indicatorColor: Theme.of(
                     context,
                   ).colorScheme.primary.withOpacity(0.2),
-                ),
+                ).padding(horizontal: 12),
               ),
             ),
           ),

@@ -221,7 +221,7 @@ final class PublisherSubscriptionStatusProvider
 }
 
 String _$publisherSubscriptionStatusHash() =>
-    r'accf6a0cdf98f8b0474d94ac575e8b20448adc79';
+    r'688bf38554afea9e68b2cb59c5f08c6e8dd31b62';
 
 final class PublisherSubscriptionStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisherSubscription?>, String> {

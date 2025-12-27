@@ -9,6 +9,104 @@ part of 'post_shared.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(RepliesNotifier)
+const repliesProvider = RepliesNotifierFamily._();
+
+final class RepliesNotifierProvider
+    extends $NotifierProvider<RepliesNotifier, RepliesState> {
+  const RepliesNotifierProvider._({
+    required RepliesNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'repliesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$repliesNotifierHash();
+
+  @override
+  String toString() {
+    return r'repliesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  RepliesNotifier create() => RepliesNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RepliesState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RepliesState>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RepliesNotifierProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$repliesNotifierHash() => r'2fa51bc3b8cc640e68fa316f61d00f8a0a3740ed';
+
+final class RepliesNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          RepliesNotifier,
+          RepliesState,
+          RepliesState,
+          RepliesState,
+          String
+        > {
+  const RepliesNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'repliesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RepliesNotifierProvider call(String parentId) =>
+      RepliesNotifierProvider._(argument: parentId, from: this);
+
+  @override
+  String toString() => r'repliesProvider';
+}
+
+abstract class _$RepliesNotifier extends $Notifier<RepliesState> {
+  late final _$args = ref.$arg as String;
+  String get parentId => _$args;
+
+  RepliesState build(String parentId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(_$args);
+    final ref = this.ref as $Ref<RepliesState, RepliesState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<RepliesState, RepliesState>,
+              RepliesState,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(postFeaturedReply)
 const postFeaturedReplyProvider = PostFeaturedReplyFamily._();
 

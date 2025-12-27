@@ -185,7 +185,9 @@ class NotificationListNotifier extends AsyncNotifier<List<SnNotification>>
         .toList();
 
     final unreadCount = notifications.where((n) => n.viewedAt == null).length;
-    ref.read(notificationUnreadCountProvider.notifier).decrement(unreadCount);
+    if (ref.mounted) {
+      ref.read(notificationUnreadCountProvider.notifier).decrement(unreadCount);
+    }
 
     return notifications;
   }
