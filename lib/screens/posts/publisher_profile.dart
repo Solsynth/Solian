@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -371,9 +372,16 @@ Future<SnPublisherSubscription?> publisherSubscriptionStatus(
   String pubName,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/sphere/publishers/$pubName/subscription");
-  if (resp.statusCode == 200) {
+  try {
+    final resp = await apiClient.get(
+      "/sphere/publishers/$pubName/subscription",
+    );
     return SnPublisherSubscription.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException) {
+      if (err.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
   return null;
 }
