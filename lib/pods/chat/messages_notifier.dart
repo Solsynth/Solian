@@ -332,9 +332,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     _allRemoteMessagesFetched = false;
 
     talker.log('Starting message sync');
-    if (!_disposed) {
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
-    }
+    // Use Future.microtask to set syncing state, but check disposal to avoid errors
+    Future.microtask(() {
+      if (!_disposed) {
+        ref.read(chatSyncingProvider.notifier).set(true);
+      }
+    });
     try {
       final dbMessages = await _database.getMessagesForRoom(
         _room.id,
@@ -411,11 +414,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       talker.log('Finished message sync');
-      if (!_disposed) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(false),
-        );
-      }
+      // Always reset global syncing state, regardless of disposal
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
       _isSyncing = false;
     }
   }
@@ -537,11 +537,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       showErrorAlert(err);
     } finally {
-      if (!_disposed) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(false),
-        );
-      }
+      // Always reset global syncing state, regardless of disposal
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
     }
   }
 
