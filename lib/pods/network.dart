@@ -152,15 +152,7 @@ final apiClientProvider = Provider<Dio>((ref) {
       },
       onError: (error, handler) {
         // Handle network errors and set offline status
-        if (error.type == DioExceptionType.connectionTimeout ||
-            error.type == DioExceptionType.receiveTimeout ||
-            error.type == DioExceptionType.sendTimeout ||
-            error.type == DioExceptionType.connectionError) {
-          final networkStatusNotifier = ref.read(
-            networkStatusProvider.notifier,
-          );
-          networkStatusNotifier.setOffline();
-        } else if (error.response?.statusCode == 503) {
+        if (error.response?.statusCode == 503) {
           final networkStatusNotifier = ref.read(
             networkStatusProvider.notifier,
           );
