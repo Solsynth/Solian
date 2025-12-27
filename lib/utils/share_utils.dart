@@ -7,6 +7,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/post_item_screenshot.dart';
+import 'package:island/widgets/post/post_shared.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -29,6 +30,9 @@ Future<void> sharePostAsScreenshot(
             sharedPreferencesProvider.overrideWithValue(
               ref.watch(sharedPreferencesProvider),
             ),
+            repliesProvider(
+              post.id,
+            ).overrideWithValue(ref.watch(repliesProvider(post.id))),
           ],
           child: Directionality(
             textDirection: TextDirection.ltr,

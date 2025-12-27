@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/foundation.dart';
@@ -15,10 +13,10 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/utils/share_utils.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/content/image.dart';
-import 'package:island/widgets/post/post_item_screenshot.dart';
 import 'package:island/widgets/post/post_award_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_shared.dart';
@@ -28,9 +26,6 @@ import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
@@ -102,10 +97,9 @@ class PostActionableItem extends HookConsumerWidget {
     final config = ref.watch(appSettingsProvider);
 
     final widgetItem = InkWell(
-      borderRadius:
-          borderRadius != null
-              ? BorderRadius.all(Radius.circular(borderRadius!))
-              : null,
+      borderRadius: borderRadius != null
+          ? BorderRadius.all(Radius.circular(borderRadius!))
+          : null,
       child: PostItem(
         key: key,
         item: item,
@@ -125,51 +119,6 @@ class PostActionableItem extends HookConsumerWidget {
         context.pushNamed('postDetail', pathParameters: {'id': item.id});
       },
     );
-
-    final screenshotController = useMemoized(() => ScreenshotController(), []);
-
-    void shareAsScreenshot() async {
-      if (kIsWeb) return;
-      showLoadingModal(context);
-      await screenshotController
-          .captureFromWidget(
-            ProviderScope(
-              overrides: [
-                sharedPreferencesProvider.overrideWithValue(
-                  ref.watch(sharedPreferencesProvider),
-                ),
-              ],
-              child: Directionality(
-                textDirection: TextDirection.ltr,
-                child: SizedBox(
-                  width: 520,
-                  child: PostItemScreenshot(item: item, isFullPost: isFullPost),
-                ),
-              ),
-            ),
-            context: context,
-            pixelRatio: MediaQuery.of(context).devicePixelRatio,
-            delay: const Duration(seconds: 1),
-          )
-          .then((Uint8List? image) async {
-            if (image == null) return;
-            final directory = await getTemporaryDirectory();
-            final imagePath =
-                await File('${directory.path}/image.png').create();
-            await imagePath.writeAsBytes(image);
-
-            if (!context.mounted) return;
-            hideLoadingModal(context);
-            final box = context.findRenderObject() as RenderBox?;
-            await Share.shareXFiles([
-              XFile(imagePath.path),
-            ], sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
-          })
-          .catchError((err) {
-            if (context.mounted) hideLoadingModal(context);
-            showErrorAlert(err);
-          });
-    }
 
     return ContextMenuWidget(
       menuProvider: (_) {
@@ -319,7 +268,7 @@ class PostActionableItem extends HookConsumerWidget {
                 title: 'sharePostPhoto'.tr(),
                 image: MenuImage.icon(Symbols.share_reviews),
                 callback: () {
-                  shareAsScreenshot();
+                  sharePostAsScreenshot(context, ref, item);
                 },
               ),
             MenuSeparator(),
@@ -329,7 +278,7 @@ class PostActionableItem extends HookConsumerWidget {
               callback: () {
                 showAbuseReportSheet(
                   context,
-                  resourceIdentifier: 'post/${item.id}',
+                  resourceIdentifier: 'post:${item.id}',
                 );
               },
             ),
@@ -337,14 +286,12 @@ class PostActionableItem extends HookConsumerWidget {
         );
       },
       child: Material(
-        color:
-            config.cardTransparency < 1
-                ? Colors.transparent
-                : Theme.of(context).cardTheme.color,
-        borderRadius:
-            borderRadius != null
-                ? BorderRadius.all(Radius.circular(borderRadius!))
-                : null,
+        color: config.cardTransparency < 1
+            ? Colors.transparent
+            : Theme.of(context).cardTheme.color,
+        borderRadius: borderRadius != null
+            ? BorderRadius.all(Radius.circular(borderRadius!))
+            : null,
         child: widgetItem,
       ),
     );
@@ -417,24 +364,21 @@ class PostItem extends HookConsumerWidget {
       reacting.value = false;
     }
 
-    final mostReaction =
-        item.reactionsCount.isEmpty
-            ? null
-            : item.reactionsCount.entries
-                .sortedBy((e) => e.value)
-                .map((e) => e.key)
-                .last;
+    final mostReaction = item.reactionsCount.isEmpty
+        ? null
+        : item.reactionsCount.entries
+              .sortedBy((e) => e.value)
+              .map((e) => e.key)
+              .last;
 
-    final postLanguage =
-        item.content != null && isTranslatable
-            ? ref.watch(detectStringLanguageProvider(item.content!))
-            : null;
+    final postLanguage = item.content != null && isTranslatable
+        ? ref.watch(detectStringLanguageProvider(item.content!))
+        : null;
 
     final currentLanguage = isTranslatable ? context.locale.toString() : null;
-    final translatableLanguage =
-        postLanguage != null && isTranslatable
-            ? postLanguage.substring(0, 2) != currentLanguage!.substring(0, 2)
-            : false;
+    final translatableLanguage = postLanguage != null && isTranslatable
+        ? postLanguage.substring(0, 2) != currentLanguage!.substring(0, 2)
+        : false;
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
@@ -466,55 +410,49 @@ class PostItem extends HookConsumerWidget {
       }
     }
 
-    final translatedWidget =
-        (translatedText.value?.isNotEmpty ?? false)
-            ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    const Gap(8),
-                    const Text('translated').tr().fontSize(11).opacity(0.75),
-                  ],
-                ),
-                MarkdownTextContent(
-                  content: translatedText.value!,
-                  isSelectable: isTextSelectable,
-                  attachments: item.attachments,
-                ),
-              ],
-            )
-            : null;
-
-    final translatableWidget =
-        (isTranslatable && translatableLanguage)
-            ? Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: translating.value ? null : translate,
-                style: ButtonStyle(
-                  padding: const WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 2),
-                  ),
-                  visualDensity: const VisualDensity(
-                    horizontal: 0,
-                    vertical: -4,
-                  ),
-                  foregroundColor: WidgetStatePropertyAll(
-                    translatedText.value == null ? null : Colors.grey,
-                  ),
-                ),
-                icon: const Icon(Symbols.translate),
-                label:
-                    translatedText.value != null
-                        ? const Text('translated').tr()
-                        : translating.value
-                        ? const Text('translating').tr()
-                        : const Text('translate').tr(),
+    final translatedWidget = (translatedText.value?.isNotEmpty ?? false)
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  const Gap(8),
+                  const Text('translated').tr().fontSize(11).opacity(0.75),
+                ],
               ),
-            )
-            : null;
+              MarkdownTextContent(
+                content: translatedText.value!,
+                isSelectable: isTextSelectable,
+                attachments: item.attachments,
+              ),
+            ],
+          )
+        : null;
+
+    final translatableWidget = (isTranslatable && translatableLanguage)
+        ? Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: translating.value ? null : translate,
+              style: ButtonStyle(
+                padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(horizontal: 2),
+                ),
+                visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+                foregroundColor: WidgetStatePropertyAll(
+                  translatedText.value == null ? null : Colors.grey,
+                ),
+              ),
+              icon: const Icon(Symbols.translate),
+              label: translatedText.value != null
+                  ? const Text('translated').tr()
+                  : translating.value
+                  ? const Text('translating').tr()
+                  : const Text('translate').tr(),
+            ),
+          )
+        : null;
 
     final translationSection = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -534,97 +472,87 @@ class PostItem extends HookConsumerWidget {
           isFullPost: isFullPost,
           isCompact: isCompact,
           renderingPadding: renderingPadding,
-          trailing:
-              isCompact
-                  ? null
-                  : SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: IconButton(
-                      icon:
-                          mostReaction == null
-                              ? const Icon(Symbols.add_reaction)
-                              : Badge(
-                                label: Center(
-                                  child: Text(
-                                    'x${item.reactionsCount[mostReaction]}',
-                                    style: const TextStyle(fontSize: 11),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                offset: const Offset(4, 20),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.75),
-                                textColor:
-                                    Theme.of(context).colorScheme.onPrimary,
-                                child:
-                                    mostReaction.contains('+')
-                                        ? HookConsumer(
-                                          builder: (context, ref, child) {
-                                            final baseUrl = ref.watch(
-                                              serverUrlProvider,
-                                            );
-                                            final stickerUri =
-                                                '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
-                                            return SizedBox(
-                                              width: 32,
-                                              height: 32,
-                                              child:
-                                                  UniversalImage(
-                                                    uri: stickerUri,
-                                                    width: 28,
-                                                    height: 28,
-                                                    fit: BoxFit.contain,
-                                                  ).center(),
-                                            );
-                                          },
-                                        )
-                                        : _buildReactionIcon(
-                                          mostReaction,
-                                          32,
-                                        ).padding(
-                                          bottom:
-                                              _getReactionImageAvailable(
-                                                    mostReaction,
-                                                  )
-                                                  ? 2
-                                                  : 0,
-                                        ),
+          trailing: isCompact
+              ? null
+              : SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: IconButton(
+                    icon: mostReaction == null
+                        ? const Icon(Symbols.add_reaction)
+                        : Badge(
+                            label: Center(
+                              child: Text(
+                                'x${item.reactionsCount[mostReaction]}',
+                                style: const TextStyle(fontSize: 11),
+                                textAlign: TextAlign.center,
                               ),
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                          (item.reactionsMade[mostReaction] ?? false)
-                              ? Theme.of(
+                            ),
+                            offset: const Offset(4, 20),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.75),
+                            textColor: Theme.of(context).colorScheme.onPrimary,
+                            child: mostReaction.contains('+')
+                                ? HookConsumer(
+                                    builder: (context, ref, child) {
+                                      final baseUrl = ref.watch(
+                                        serverUrlProvider,
+                                      );
+                                      final stickerUri =
+                                          '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
+                                      return SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: UniversalImage(
+                                          uri: stickerUri,
+                                          width: 28,
+                                          height: 28,
+                                          fit: BoxFit.contain,
+                                        ).center(),
+                                      );
+                                    },
+                                  )
+                                : _buildReactionIcon(mostReaction, 32).padding(
+                                    bottom:
+                                        _getReactionImageAvailable(mostReaction)
+                                        ? 2
+                                        : 0,
+                                  ),
+                          ),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        (item.reactionsMade[mostReaction] ?? false)
+                            ? Theme.of(
                                 context,
                               ).colorScheme.primary.withOpacity(0.5)
-                              : null,
-                        ),
-                      ),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          useRootNavigator: true,
-                          isScrollControlled: true,
-                          builder: (BuildContext context) {
-                            return PostReactionSheet(
-                              reactionsCount: item.reactionsCount,
-                              reactionsMade: item.reactionsMade,
-                              onReact: (symbol, attitude) {
-                                reactPost(symbol, attitude);
-                              },
-                              postId: item.id,
-                            );
-                          },
-                        );
-                      },
-                      padding: EdgeInsets.zero,
-                      visualDensity: const VisualDensity(
-                        horizontal: -3,
-                        vertical: -3,
+                            : null,
                       ),
                     ),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        builder: (BuildContext context) {
+                          return PostReactionSheet(
+                            reactionsCount: item.reactionsCount,
+                            reactionsMade: item.reactionsMade,
+                            onReact: (symbol, attitude) {
+                              reactPost(symbol, attitude);
+                            },
+                            postId: item.id,
+                          );
+                        },
+                      );
+                    },
+                    padding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(
+                      horizontal: -3,
+                      vertical: -3,
+                    ),
                   ),
+                ),
         ),
         PostBody(
           item: item,
@@ -708,25 +636,24 @@ class PostReactionList extends HookConsumerWidget {
                   horizontal: VisualDensity.minimumDensity,
                   vertical: VisualDensity.minimumDensity,
                 ),
-                onPressed:
-                    submitting.value
-                        ? null
-                        : () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (BuildContext context) {
-                              return PostReactionSheet(
-                                reactionsCount: reactions,
-                                reactionsMade: reactionsMade,
-                                onReact: (symbol, attitude) {
-                                  reactPost(symbol, attitude);
-                                },
-                                postId: parentId,
-                              );
-                            },
-                          );
-                        },
+                onPressed: submitting.value
+                    ? null
+                    : () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (BuildContext context) {
+                            return PostReactionSheet(
+                              reactionsCount: reactions,
+                              reactionsMade: reactionsMade,
+                              onReact: (symbol, attitude) {
+                                reactPost(symbol, attitude);
+                              },
+                              postId: parentId,
+                            );
+                          },
+                        );
+                      },
               ),
             ),
           for (final symbol in reactions.keys)
@@ -741,15 +668,14 @@ class PostReactionList extends HookConsumerWidget {
                     Text('x${reactions[symbol]}').bold(),
                   ],
                 ),
-                onPressed:
-                    submitting.value
-                        ? null
-                        : () {
-                          reactPost(
-                            symbol,
-                            kReactionTemplates[symbol]?.attitude ?? 0,
-                          );
-                        },
+                onPressed: submitting.value
+                    ? null
+                    : () {
+                        reactPost(
+                          symbol,
+                          kReactionTemplates[symbol]?.attitude ?? 0,
+                        );
+                      },
                 visualDensity: const VisualDensity(
                   horizontal: VisualDensity.minimumDensity,
                   vertical: VisualDensity.minimumDensity,

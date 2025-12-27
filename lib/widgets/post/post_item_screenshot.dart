@@ -4,9 +4,43 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/widgets/post/post_shared.dart';
+import 'package:island/widgets/content/image.dart';
+import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+const kAvailableStickers = {
+  'angry',
+  'clap',
+  'confuse',
+  'pray',
+  'thumb_up',
+  'party',
+};
+
+bool _getReactionImageAvailable(String symbol) {
+  return kAvailableStickers.contains(symbol);
+}
+
+Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
+  if (_getReactionImageAvailable(symbol)) {
+    return Image.asset(
+      'assets/images/stickers/$symbol.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+    );
+  } else {
+    return Text(
+      kReactionTemplates[symbol]?.icon ?? '',
+      style: TextStyle(fontSize: iconSize),
+    );
+  }
+}
 
 class PostItemScreenshot extends ConsumerWidget {
   final SnPost item;
@@ -51,18 +85,42 @@ class PostItemScreenshot extends ConsumerWidget {
             renderingPadding: renderingPadding,
             isRelativeTime: false,
             trailing: mostReaction != null
-                ? Row(
-                    children: [
-                      Text(
-                        kReactionTemplates[mostReaction]?.icon ?? '',
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const Gap(4),
-                      Text(
+                ? Badge(
+                    label: Center(
+                      child: Text(
                         'x${item.reactionsCount[mostReaction]}',
                         style: const TextStyle(fontSize: 11),
+                        textAlign: TextAlign.center,
                       ),
-                    ],
+                    ),
+                    offset: const Offset(4, 20),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.75),
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                    child: mostReaction.contains('+')
+                        ? Consumer(
+                            builder: (context, ref, child) {
+                              final baseUrl = ref.watch(serverUrlProvider);
+                              final stickerUri =
+                                  '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
+                              return SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: UniversalImage(
+                                  uri: stickerUri,
+                                  width: 28,
+                                  height: 28,
+                                  fit: BoxFit.contain,
+                                ).center(),
+                              );
+                            },
+                          )
+                        : _buildReactionIcon(mostReaction, 32).padding(
+                            bottom: _getReactionImageAvailable(mostReaction)
+                                ? 2
+                                : 0,
+                          ),
                   )
                 : null,
           ),
@@ -80,6 +138,93 @@ class PostItemScreenshot extends ConsumerWidget {
               item: item,
               isInteractive: false,
               renderingPadding: renderingPadding,
+            ),
+          if (item.repliesCount > 0)
+            Consumer(
+              builder: (context, ref, child) {
+                final repliesState = ref.watch(repliesProvider(item.id));
+                final posts = repliesState.posts;
+
+                return Container(
+                  margin: EdgeInsets.only(
+                    left: renderingPadding.horizontal,
+                    right: renderingPadding.horizontal,
+                    top: 8,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor.withOpacity(0.5),
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  ),
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 4,
+                    children: [
+                      Text(
+                        'repliesCount',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).plural(item.repliesCount).padding(horizontal: 5),
+                      if (posts.isEmpty && repliesState.loading)
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const Gap(8),
+                            const Text('loading').tr(),
+                          ],
+                        ).padding(horizontal: 5),
+                      if (posts.isNotEmpty)
+                        ...posts.map(
+                          (post) => ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 8,
+                              children: [
+                                ProfilePictureWidget(
+                                  file:
+                                      post.publisher.picture ??
+                                      post.publisher.account?.profile.picture,
+                                  radius: 12,
+                                ).padding(top: 4),
+                                if (post.content?.isNotEmpty ?? false)
+                                  Expanded(
+                                    child: MarkdownTextContent(
+                                      content: post.content!,
+                                      attachments: post.attachments,
+                                    ).padding(top: 2),
+                                  )
+                                else
+                                  Expanded(
+                                    child:
+                                        Text(
+                                              'postHasAttachments',
+                                              style: const TextStyle(height: 2),
+                                            )
+                                            .plural(post.attachments.length)
+                                            .padding(top: 2),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           Container(
             color: Theme.of(context).colorScheme.surfaceContainerLow,
