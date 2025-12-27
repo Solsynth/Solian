@@ -1,16 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -43,22 +43,7 @@ class RealmListScreen extends HookConsumerWidget {
     final realms = ref.watch(realmsJoinedProvider);
     final realmInvites = ref.watch(realmInvitesProvider);
 
-    useEffect(() {
-      // Set FAB type to realm
-      final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
-      Future(() {
-        fabMenuNotifier.setMenuType(FabMenuType.realm);
-      });
-      return () {
-        // Clean up: reset FAB type to main
-        final fabMenu = ref.read(fabMenuTypeProvider);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (fabMenu == FabMenuType.realm) {
-            fabMenuNotifier.setMenuType(FabMenuType.main);
-          }
-        });
-      };
-    }, []);
+    final userInfo = ref.watch(userInfoProvider);
 
     return AppScaffold(
       isNoBackground: false,
@@ -98,6 +83,41 @@ class RealmListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
+      floatingActionButton: userInfo.value != null
+          ? FloatingActionButton(
+              child: const Icon(Symbols.add),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Gap(40),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        leading: const Icon(Symbols.group_add),
+                        title: Text('createRealm').tr(),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.pushNamed('realmNew').then((value) {
+                            if (value != null) {
+                              // Fire realm refresh event if needed
+                              // eventBus.fire(const RealmsRefreshEvent());
+                            }
+                          });
+                        },
+                      ),
+                      const Gap(16),
+                    ],
+                  ),
+                );
+              },
+            ).padding(bottom: isWideScreen(context) ? null : 56)
+          : null,
       body: ExtendedRefreshIndicator(
         child: realms.when(
           data: (value) => Column(

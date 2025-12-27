@@ -19,8 +19,8 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
-import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_skeleton.dart';
 import 'package:island/widgets/post/post_list.dart';
@@ -45,24 +45,6 @@ class ExploreScreen extends HookConsumerWidget {
     final selectedCategoryIds = useState<List<String>>([]);
     final selectedTagIds = useState<List<String>>([]);
     final notifier = ref.watch(activityListProvider.notifier);
-
-    useEffect(() {
-      // Set FAB type to chat
-
-      final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
-      Future(() {
-        fabMenuNotifier.setMenuType(FabMenuType.compose);
-      });
-      return () {
-        // Clean up: reset FAB type to main
-        final fabMenu = ref.read(fabMenuTypeProvider);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (fabMenu == FabMenuType.compose) {
-            fabMenuNotifier.setMenuType(FabMenuType.main);
-          }
-        });
-      };
-    }, []);
 
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
@@ -200,6 +182,8 @@ class ExploreScreen extends HookConsumerWidget {
       ).padding(horizontal: 8, vertical: 4),
     );
 
+    final userInfo = ref.watch(userInfoProvider);
+
     final appBar = isWide
         ? null
         : _buildAppBar(
@@ -230,6 +214,49 @@ class ExploreScreen extends HookConsumerWidget {
           AppScaffold(
             isNoBackground: false,
             appBar: appBar,
+            floatingActionButton: userInfo.value != null
+                ? FloatingActionButton(
+                    child: const Icon(Symbols.create),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useRootNavigator: true,
+                        builder: (context) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Gap(40),
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              leading: const Icon(Symbols.post_add_rounded),
+                              title: Text('postCompose').tr(),
+                              onTap: () async {
+                                Navigator.of(context).pop();
+                                await PostComposeSheet.show(context);
+                              },
+                            ),
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              leading: const Icon(Symbols.article),
+                              title: Text('articleCompose').tr(),
+                              onTap: () async {
+                                Navigator.of(context).pop();
+                                GoRouter.of(
+                                  context,
+                                ).pushNamed('articleCompose');
+                              },
+                            ),
+                            const Gap(16),
+                          ],
+                        ),
+                      );
+                    },
+                  ).padding(bottom: isWideScreen(context) ? null : 56)
+                : null,
             body: isWide
                 ? _buildWideBody(
                     context,
