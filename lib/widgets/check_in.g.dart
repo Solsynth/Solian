@@ -125,7 +125,7 @@ final class RecentNotableDayProvider
   }
 }
 
-String _$recentNotableDayHash() => r'780d0f0747d753c5d535d9c2413f8e68d457d974';
+String _$recentNotableDayHash() => r'e0cc4a0e8016afe1c469a7c744dbab41e0d54c2d';
 
 @ProviderFor(randomFortuneSaying)
 const randomFortuneSayingProvider = RandomFortuneSayingProvider._();

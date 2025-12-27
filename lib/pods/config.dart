@@ -33,7 +33,6 @@ const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppThemeMode = 'app_theme_mode';
 const kAppDisableAnimation = 'app_disable_animation';
-const kAppFabPosition = 'app_fab_position';
 const kAppGroupedChatList = 'app_grouped_chat_list';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
@@ -87,7 +86,6 @@ sealed class AppSettings with _$AppSettings {
     required String messageDisplayStyle,
     required String? themeMode,
     required bool disableAnimation,
-    required String fabPosition,
     required bool groupedChatList,
     required String? firstLaunchAt,
     required bool askedReview,
@@ -119,7 +117,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
-      fabPosition: prefs.getString(kAppFabPosition) ?? 'center',
       groupedChatList: prefs.getBool(kAppGroupedChatList) ?? false,
       askedReview: prefs.getBool(kAppAskedReview) ?? false,
       firstLaunchAt: prefs.getString(kAppFirstLaunchAt),
@@ -281,12 +278,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppDisableAnimation, value);
     state = state.copyWith(disableAnimation: value);
-  }
-
-  void setFabPosition(String value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setString(kAppFabPosition, value);
-    state = state.copyWith(fabPosition: value);
   }
 
   void setGroupedChatList(bool value) {

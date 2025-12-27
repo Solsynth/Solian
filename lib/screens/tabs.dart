@@ -10,10 +10,7 @@ import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
-import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 
 final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String?>(
@@ -31,13 +28,13 @@ class CurrentRouteNotifier extends Notifier<String?> {
   }
 }
 
-const kWideScreenRouteStart = 4;
+const kWideScreenRouteStart = 5;
 const kTabRoutes = [
   '/',
   '/explore',
   '/chat',
-  '/account',
   '/realms',
+  '/account',
   '/files',
   '/thought',
   '/creators',
@@ -84,7 +81,10 @@ class TabsScreen extends HookConsumerWidget {
           child: const Icon(Symbols.forum_rounded),
         ),
       ),
-
+      NavigationDestination(
+        label: 'realms'.tr(),
+        icon: const Icon(Symbols.group_rounded),
+      ),
       NavigationDestination(
         label: 'account'.tr(),
         icon: Badge.count(
@@ -107,10 +107,6 @@ class TabsScreen extends HookConsumerWidget {
       ),
       if (wideScreen)
         ...([
-          NavigationDestination(
-            label: 'realms'.tr(),
-            icon: const Icon(Symbols.group_rounded),
-          ),
           NavigationDestination(
             label: 'files'.tr(),
             icon: const Icon(Symbols.folder_rounded),
@@ -146,13 +142,6 @@ class TabsScreen extends HookConsumerWidget {
 
     final currentIndex = getCurrentIndex();
 
-    final routes = kTabRoutes.sublist(
-      0,
-      isWideScreen(context) ? null : kWideScreenRouteStart,
-    );
-    final shouldShowFab = routes.contains(currentLocation) && !wideScreen;
-    final settings = ref.watch(appSettingsProvider);
-
     if (isWideScreen(context)) {
       return Container(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -170,10 +159,6 @@ class TabsScreen extends HookConsumerWidget {
                   .toList(),
               selectedIndex: currentIndex,
               onDestinationSelected: onDestinationSelected,
-              trailingAtBottom: true,
-              trailing: const FabMenu(
-                elevation: 0,
-              ).padding(bottom: MediaQuery.of(context).padding.bottom + 16),
             ),
             Expanded(
               child: ClipRRect(
@@ -199,10 +184,6 @@ class TabsScreen extends HookConsumerWidget {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
-      floatingActionButton: shouldShowFab ? const FabMenu() : null,
-      floatingActionButtonLocation: shouldShowFab
-          ? _DockedFabLocation(context, settings.fabPosition)
-          : null,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
           borderRadius: BorderRadius.only(
@@ -225,47 +206,18 @@ class TabsScreen extends HookConsumerWidget {
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: BottomAppBar(
+                child: NavigationBar(
                   height: 56,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: AutomaticNotchedShape(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                    ),
-                  ),
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: () {
-                      final navItems = destinations.asMap().entries.map<Widget>(
-                        (entry) {
-                          int index = entry.key;
-                          NavigationDestination dest = entry.value;
-                          return IconButton(
-                            icon: dest.icon,
-                            onPressed: () => onDestinationSelected(index),
-                            color: index == currentIndex
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          );
-                        },
-                      ).toList();
-                      // Add mock item to leave space for FAB based on position
-                      final gapIndex = switch (settings.fabPosition) {
-                        'left' => 0,
-                        'right' => navItems.length,
-                        _ => navItems.length ~/ 2, // center
-                      };
-                      navItems.insert(
-                        gapIndex,
-                        SizedBox(
-                          width: settings.fabPosition == 'center' ? 72 : 48,
-                        ),
-                      );
-                      return navItems;
-                    }(),
-                  ),
+                  destinations: destinations,
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: onDestinationSelected,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surface.withOpacity(0.8),
+                  indicatorColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withOpacity(0.2),
                 ),
               ),
             ),
@@ -273,42 +225,5 @@ class TabsScreen extends HookConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-class _DockedFabLocation extends FloatingActionButtonLocation {
-  final BuildContext context;
-  final String fabPosition;
-
-  const _DockedFabLocation(this.context, this.fabPosition);
-
-  @override
-  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    final mediaQuery = MediaQuery.of(context);
-    final safeAreaPadding = mediaQuery.padding;
-
-    // Position horizontally based on setting
-    final double fabX = switch (fabPosition) {
-      'left' => scaffoldGeometry.minInsets.left + 24,
-      'right' =>
-        scaffoldGeometry.scaffoldSize.width -
-            scaffoldGeometry.floatingActionButtonSize.width -
-            scaffoldGeometry.minInsets.right -
-            24,
-      _ =>
-        (scaffoldGeometry.scaffoldSize.width -
-                scaffoldGeometry.floatingActionButtonSize.width) /
-            2, // center
-    };
-
-    // Position closer to bottom with reduced padding
-    final double fabY =
-        scaffoldGeometry.scaffoldSize.height -
-        scaffoldGeometry.floatingActionButtonSize.height -
-        scaffoldGeometry.bottomSheetSize.height -
-        safeAreaPadding.bottom -
-        16;
-
-    return Offset(fabX, fabY);
   }
 }

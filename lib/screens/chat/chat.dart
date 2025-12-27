@@ -9,15 +9,16 @@ import 'package:island/models/chat.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/chat/chat_form.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat_room_widgets.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -372,23 +373,6 @@ class ChatListScreen extends HookConsumerWidget {
       };
     }, [tabController]);
 
-    useEffect(() {
-      // Set FAB type to chat
-      final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
-      Future(() {
-        fabMenuNotifier.setMenuType(FabMenuType.chat);
-      });
-      return () {
-        // Clean up: reset FAB type to main
-        final fabMenu = ref.read(fabMenuTypeProvider);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (fabMenu == FabMenuType.chat) {
-            fabMenuNotifier.setMenuType(FabMenuType.main);
-          }
-        });
-      };
-    }, []);
-
     if (isAside) {
       return Card(
         margin: EdgeInsets.zero,
@@ -461,8 +445,74 @@ class ChatListScreen extends HookConsumerWidget {
 
     final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
 
+    final userInfo = ref.watch(userInfoProvider);
+
     return AppScaffold(
       extendBody: false, // Prevent conflicts with tabs navigation
+      floatingActionButton: userInfo.value != null
+          ? FloatingActionButton(
+              child: const Icon(Symbols.add),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Gap(40),
+                      ListTile(
+                        title: const Text('createChatRoom').tr(),
+                        leading: const Icon(Symbols.add),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            useRootNavigator: true,
+                            isScrollControlled: true,
+                            builder: (context) => const EditChatScreen(),
+                          ).then((value) {
+                            if (value != null) {
+                              eventBus.fire(const ChatRoomsRefreshEvent());
+                            }
+                          });
+                        },
+                      ),
+                      ListTile(
+                        title: const Text('createDirectMessage').tr(),
+                        leading: const Icon(Symbols.person),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        onTap: () async {
+                          final result = await showModalBottomSheet(
+                            context: context,
+                            useRootNavigator: true,
+                            isScrollControlled: true,
+                            builder: (context) => const AccountPickerSheet(),
+                          );
+                          if (result == null) return;
+                          final client = ref.read(apiClientProvider);
+                          try {
+                            await client.post(
+                              '/sphere/chat/direct',
+                              data: {'related_user_id': result.id},
+                            );
+                            eventBus.fire(const ChatRoomsRefreshEvent());
+                          } catch (err) {
+                            showErrorAlert(err);
+                          }
+                        },
+                      ),
+                      const Gap(16),
+                    ],
+                  ),
+                );
+              },
+            ).padding(bottom: isWideScreen(context) ? null : 56)
+          : null,
       appBar: AppBar(
         flexibleSpace: Container(
           height: 48,
