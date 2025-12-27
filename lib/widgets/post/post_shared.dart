@@ -816,17 +816,7 @@ class PostBody extends ConsumerWidget {
         Row(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Symbols.edit, size: 16),
-            hideOverlay
-                ? text
-                : Tooltip(
-                    message: !isFullPost && isRelativeTime
-                        ? item.editedAt!.formatSystem()
-                        : item.editedAt!.formatRelative(context),
-                    child: text,
-                  ),
-          ],
+          children: [const Icon(Symbols.edit, size: 16), text],
         ),
       );
     }

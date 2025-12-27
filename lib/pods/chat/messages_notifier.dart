@@ -48,6 +48,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
+  // Disposal handling
+  bool _disposed = false;
+
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
@@ -76,10 +79,17 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('MessagesNotifier built for room $roomId');
 
+    // Set up disposal handling
+    ref.onDispose(() {
+      _disposed = true;
+      talker.log('MessagesNotifier disposed for room $roomId');
+    });
+
     // Only setup sync and lifecycle listeners if user is a member
     if (identity != null) {
       ref.listen(appLifecycleStateProvider, (_, next) {
         next.whenData((state) {
+          if (_disposed) return; // Check disposal before accessing ref
           if (state == AppLifecycleState.paused) {
             _lastPauseTime = DateTime.now();
             talker.log('App paused, recording time');
@@ -88,7 +98,9 @@ class MessagesNotifier extends _$MessagesNotifier {
               final diff = DateTime.now().difference(_lastPauseTime!);
               if (diff > const Duration(minutes: 1)) {
                 talker.log('App resumed after >1 min, syncing messages');
-                syncMessages();
+                if (!_disposed) {
+                  syncMessages(); // Check disposal before calling syncMessages
+                }
               } else {
                 talker.log('App resumed within 1 min, skipping sync');
               }
@@ -167,15 +179,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     List<LocalChatMessage> filteredMessages = dbMessages;
 
     if (withLinks == true) {
-      filteredMessages =
-          filteredMessages.where((msg) => _hasLink(msg)).toList();
+      filteredMessages = filteredMessages
+          .where((msg) => _hasLink(msg))
+          .toList();
     }
 
     if (withAttachments == true) {
-      filteredMessages =
-          filteredMessages
-              .where((msg) => msg.toRemoteMessage().attachments.isNotEmpty)
-              .toList();
+      filteredMessages = filteredMessages
+          .where((msg) => msg.toRemoteMessage().attachments.isNotEmpty)
+          .toList();
     }
 
     final dbLocalMessages = filteredMessages;
@@ -190,8 +202,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     if (offset == 0) {
-      final pendingForRoom =
-          _pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
+      final pendingForRoom = _pendingMessages.values
+          .where((msg) => msg.roomId == roomId)
+          .toList();
 
       final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages); // Use the helper function
@@ -239,8 +252,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     if (offset == 0) {
-      final pendingForRoom =
-          _pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
+      final pendingForRoom = _pendingMessages.values
+          .where((msg) => msg.roomId == roomId)
+          .toList();
 
       final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages);
@@ -284,14 +298,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     final List<dynamic> data = response.data;
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
-    final messages =
-        data.map((json) {
-          final remoteMessage = SnChatMessage.fromJson(json);
-          return LocalChatMessage.fromRemoteMessage(
-            remoteMessage,
-            MessageStatus.sent,
-          );
-        }).toList();
+    final messages = data.map((json) {
+      final remoteMessage = SnChatMessage.fromJson(json);
+      return LocalChatMessage.fromRemoteMessage(
+        remoteMessage,
+        MessageStatus.sent,
+      );
+    }).toList();
 
     for (final message in messages) {
       await _database.saveMessageWithSender(message);
@@ -319,20 +332,21 @@ class MessagesNotifier extends _$MessagesNotifier {
     _allRemoteMessagesFetched = false;
 
     talker.log('Starting message sync');
-    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
+    if (!_disposed) {
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
+    }
     try {
       final dbMessages = await _database.getMessagesForRoom(
         _room.id,
         offset: 0,
         limit: 1,
       );
-      final lastMessage =
-          dbMessages.isEmpty
-              ? null
-              : await _database.companionToMessage(
-                dbMessages.first,
-                fetchAccount: _fetchAccount,
-              );
+      final lastMessage = dbMessages.isEmpty
+          ? null
+          : await _database.companionToMessage(
+              dbMessages.first,
+              fetchAccount: _fetchAccount,
+            );
 
       if (lastMessage == null) {
         talker.log('No local messages, fetching from network');
@@ -347,8 +361,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Sync with pagination support using timestamp-based cursor
       int? totalMessages;
       int syncedCount = 0;
-      int lastSyncTimestamp =
-          lastMessage.toRemoteMessage().updatedAt.millisecondsSinceEpoch;
+      int lastSyncTimestamp = lastMessage
+          .toRemoteMessage()
+          .updatedAt
+          .millisecondsSinceEpoch;
 
       do {
         final resp = await _apiClient.post(
@@ -395,7 +411,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       talker.log('Finished message sync');
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
+      if (!_disposed) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(false),
+        );
+      }
       _isSyncing = false;
     }
   }
@@ -492,7 +512,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_hasMore || state is AsyncLoading) return;
     talker.log('Loading more messages');
 
-    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
+    if (!_disposed) {
+      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
+    }
     try {
       final currentMessages = state.value ?? [];
       final offset = currentMessages.length;
@@ -515,7 +537,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       showErrorAlert(err);
     } finally {
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
+      if (!_disposed) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(false),
+        );
+      }
     }
   }
 
@@ -559,18 +585,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: attachments[idx],
-              onProgress: (progress, _) {
-                _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
-                onProgress?.call(
-                  localMessage.id,
-                  _fileUploadProgress[localMessage.id] ?? {},
-                );
-              },
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: attachments[idx],
+          onProgress: (progress, _) {
+            _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
+            onProgress?.call(
+              localMessage.id,
+              _fileUploadProgress[localMessage.id] ?? {},
+            );
+          },
+        ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -606,22 +631,20 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final currentMessages = state.value ?? [];
       if (editingTo != null) {
-        final newMessages =
-            currentMessages
-                .where((m) => m.id != localMessage.id) // remove pending message
-                .map(
-                  (m) => m.id == editingTo.id ? updatedMessage : m,
-                ) // update original message
-                .toList();
+        final newMessages = currentMessages
+            .where((m) => m.id != localMessage.id) // remove pending message
+            .map(
+              (m) => m.id == editingTo.id ? updatedMessage : m,
+            ) // update original message
+            .toList();
         state = AsyncValue.data(newMessages);
       } else {
-        final newMessages =
-            currentMessages.map((m) {
-              if (m.id == localMessage.id) {
-                return updatedMessage;
-              }
-              return m;
-            }).toList();
+        final newMessages = currentMessages.map((m) {
+          if (m.id == localMessage.id) {
+            return updatedMessage;
+          }
+          return m;
+        }).toList();
         state = AsyncValue.data(newMessages);
       }
       talker.log('Message with nonce $nonce sent successfully');
@@ -638,13 +661,12 @@ class MessagesNotifier extends _$MessagesNotifier {
         localMessage.id,
         MessageStatus.failed,
       );
-      final newMessages =
-          (state.value ?? []).map((m) {
-            if (m.id == localMessage.id) {
-              return m..status = MessageStatus.failed;
-            }
-            return m;
-          }).toList();
+      final newMessages = (state.value ?? []).map((m) {
+        if (m.id == localMessage.id) {
+          return m..status = MessageStatus.failed;
+        }
+        return m;
+      }).toList();
       state = AsyncValue.data(newMessages);
       showErrorAlert(e);
     }
@@ -686,13 +708,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(pendingMessageId);
       await _database.saveMessageWithSender(updatedMessage);
 
-      final newMessages =
-          (state.value ?? []).map((m) {
-            if (m.id == pendingMessageId) {
-              return updatedMessage;
-            }
-            return m;
-          }).toList();
+      final newMessages = (state.value ?? []).map((m) {
+        if (m.id == pendingMessageId) {
+          return updatedMessage;
+        }
+        return m;
+      }).toList();
       state = AsyncValue.data(newMessages);
     } catch (e, stackTrace) {
       talker.log(
@@ -707,13 +728,12 @@ class MessagesNotifier extends _$MessagesNotifier {
         pendingMessageId,
         MessageStatus.failed,
       );
-      final newMessages =
-          (state.value ?? []).map((m) {
-            if (m.id == pendingMessageId) {
-              return m..status = MessageStatus.failed;
-            }
-            return m;
-          }).toList();
+      final newMessages = (state.value ?? []).map((m) {
+        if (m.id == pendingMessageId) {
+          return m..status = MessageStatus.failed;
+        }
+        return m;
+      }).toList();
       state = AsyncValue.data(_sortMessages(newMessages));
       showErrorAlert(e);
     }
@@ -865,8 +885,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(messageId);
 
       final currentMessages = state.value ?? [];
-      final newMessages =
-          currentMessages.where((m) => m.id != messageId).toList();
+      final newMessages = currentMessages
+          .where((m) => m.id != messageId)
+          .toList();
       state = AsyncValue.data(newMessages);
       return;
     }
@@ -969,9 +990,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     talker.log('Fetching message by id $messageId');
     try {
-      final localMessage =
-          await (_database.select(_database.chatMessages)
-            ..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
+      final localMessage = await (_database.select(
+        _database.chatMessages,
+      )..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
       if (localMessage != null) {
         return _database.companionToMessage(
           localMessage,
@@ -1005,7 +1026,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isJumping = true;
 
     // Clear flashing messages when starting a new jump
-    ref.read(flashingMessagesProvider.notifier).state = {};
+    if (!_disposed) {
+      ref.read(flashingMessagesProvider.notifier).state = {};
+    }
 
     try {
       talker.log('Fetching message $messageId');
@@ -1047,8 +1070,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       // Calculate offset to position target message in the middle of the loaded chunk
       const chunkSize = 100; // Load 100 messages around the target
-      final offset =
-          (newerCount - chunkSize ~/ 2).clamp(0, double.infinity).toInt();
+      final offset = (newerCount - chunkSize ~/ 2)
+          .clamp(0, double.infinity)
+          .toInt();
       talker.log(
         'Calculated offset $offset for target message (newer: $newerCount, chunk: $chunkSize)',
       );
@@ -1060,8 +1084,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       // Check if loaded messages are already in current state
       final currentIds = currentMessages.map((m) => m.id).toSet();
-      final newMessages =
-          loadedMessages.where((m) => !currentIds.contains(m.id)).toList();
+      final newMessages = loadedMessages
+          .where((m) => !currentIds.contains(m.id))
+          .toList();
       talker.log(
         'Loaded ${loadedMessages.length} messages, ${newMessages.length} are new',
       );
