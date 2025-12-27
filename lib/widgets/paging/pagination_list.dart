@@ -133,7 +133,7 @@ class PaginationList<T> extends HookConsumerWidget {
         );
         return SizedBox(
           key: const ValueKey('loading'),
-          child: ListView(children: content),
+          child: ListView(padding: padding, children: content),
         );
       }
 

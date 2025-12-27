@@ -91,7 +91,6 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
       if (query.value.query == null || query.value.query!.isEmpty) {
         searchController.clear();
       }
-      notifier.applyFilter(query.value);
       return null;
     }, [query]);
 
@@ -109,6 +108,7 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
           IconButton(
             onPressed: () {
               query.value = query.value.copyWith(byUsage: !query.value.byUsage);
+              notifier.applyFilter(query.value);
             },
             icon: query.value.byUsage
                 ? const Icon(Symbols.local_fire_department)
@@ -141,6 +141,7 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
                     icon: const Icon(Symbols.close),
                     onPressed: () {
                       query.value = query.value.copyWith(query: null);
+                      notifier.applyFilter(query.value);
                       searchController.clear();
                       focusNode.unfocus();
                     },
@@ -153,11 +154,13 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
                   const Duration(milliseconds: 500),
                   () {
                     query.value = query.value.copyWith(query: value);
+                    notifier.applyFilter(query.value);
                   },
                 );
               },
               onSubmitted: (value) {
                 query.value = query.value.copyWith(query: value);
+                notifier.applyFilter(query.value);
                 focusNode.unfocus();
               },
             ),
