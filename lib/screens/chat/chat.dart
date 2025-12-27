@@ -19,6 +19,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat_room_widgets.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -73,7 +74,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   .where((item) => !item.isPinned)
                   .toList();
 
-              return RefreshIndicator(
+              return ExtendedRefreshIndicator(
                 onRefresh: () => Future.sync(() {
                   ref.invalidate(chatRoomJoinedProvider);
                 }),
