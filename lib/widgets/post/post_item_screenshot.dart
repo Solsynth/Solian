@@ -26,13 +26,12 @@ class PostItemScreenshot extends ConsumerWidget {
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
-    final mostReaction =
-        item.reactionsCount.isEmpty
-            ? null
-            : item.reactionsCount.entries
-                .sortedBy((e) => e.value)
-                .map((e) => e.key)
-                .last;
+    final mostReaction = item.reactionsCount.isEmpty
+        ? null
+        : item.reactionsCount.entries
+              .sortedBy((e) => e.value)
+              .map((e) => e.key)
+              .last;
 
     final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
 
@@ -51,27 +50,27 @@ class PostItemScreenshot extends ConsumerWidget {
             isInteractive: false,
             renderingPadding: renderingPadding,
             isRelativeTime: false,
-            trailing:
-                mostReaction != null
-                    ? Row(
-                      children: [
-                        Text(
-                          kReactionTemplates[mostReaction]?.icon ?? '',
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const Gap(4),
-                        Text(
-                          'x${item.reactionsCount[mostReaction]}',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ],
-                    )
-                    : null,
+            trailing: mostReaction != null
+                ? Row(
+                    children: [
+                      Text(
+                        kReactionTemplates[mostReaction]?.icon ?? '',
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const Gap(4),
+                      Text(
+                        'x${item.reactionsCount[mostReaction]}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
+                  )
+                : null,
           ),
           PostBody(
             item: item,
             renderingPadding: renderingPadding,
             isFullPost: isFullPost,
+            isRelativeTime: false,
             isTextSelectable: false,
             isInteractive: false,
             hideOverlay: true,

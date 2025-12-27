@@ -240,7 +240,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                         horizontal: 16,
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               );
             },
