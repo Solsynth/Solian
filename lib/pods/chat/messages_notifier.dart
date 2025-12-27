@@ -24,6 +24,8 @@ import "package:island/screens/account/profile.dart";
 
 part 'messages_notifier.g.dart';
 
+const Set<String> kSilentMessageTypes = {'messages.update.links'};
+
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
@@ -747,6 +749,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('Received new message ${remoteMessage.id}');
 
+    final isSilentMessage = kSilentMessageTypes.contains(remoteMessage.type);
+
     final localMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage,
       MessageStatus.sent,
@@ -758,23 +762,25 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
     }
 
-    await _database.saveMessageWithSender(localMessage);
+    if (!isSilentMessage) {
+      await _database.saveMessageWithSender(localMessage);
 
-    final currentMessages = state.value ?? [];
-    final existingIndex = currentMessages.indexWhere(
-      (m) =>
-          m.id == localMessage.id ||
-          (localMessage.nonce != null && m.nonce == localMessage.nonce),
-    );
-
-    if (existingIndex >= 0) {
-      final newList = [...currentMessages];
-      newList[existingIndex] = localMessage;
-      state = AsyncValue.data(_sortMessages(newList));
-    } else {
-      state = AsyncValue.data(
-        _sortMessages([localMessage, ...currentMessages]),
+      final currentMessages = state.value ?? [];
+      final existingIndex = currentMessages.indexWhere(
+        (m) =>
+            m.id == localMessage.id ||
+            (localMessage.nonce != null && m.nonce == localMessage.nonce),
       );
+
+      if (existingIndex >= 0) {
+        final newList = [...currentMessages];
+        newList[existingIndex] = localMessage;
+        state = AsyncValue.data(_sortMessages(newList));
+      } else {
+        state = AsyncValue.data(
+          _sortMessages([localMessage, ...currentMessages]),
+        );
+      }
     }
 
     switch (remoteMessage.type) {
@@ -800,15 +806,44 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Received message update ${remoteMessage.id}');
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
-    final updatedMessage = LocalChatMessage.fromRemoteMessage(
-      remoteMessage.copyWith(
-        id: targetId,
-        meta: Map.of(remoteMessage.meta)..remove('message_id'),
-        type: 'text',
+
+    LocalChatMessage updatedMessage;
+
+    if (remoteMessage.type == 'messages.update.links') {
+      // For link updates, merge meta with existing message instead of creating new one
+      final existingMessage = await fetchMessageById(targetId);
+      if (existingMessage == null) {
+        talker.log('Cannot update links for non-existent message $targetId');
+        return;
+      }
+
+      final existingRemote = existingMessage.toRemoteMessage();
+      final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
+      mergedMeta.addAll(remoteMessage.meta);
+      mergedMeta.remove('message_id'); // Remove the target message ID from meta
+
+      final updatedRemote = existingRemote.copyWith(
+        meta: mergedMeta,
         editedAt: remoteMessage.createdAt,
-      ),
-      MessageStatus.sent,
-    );
+      );
+
+      updatedMessage = LocalChatMessage.fromRemoteMessage(
+        updatedRemote,
+        existingMessage.status,
+      );
+    } else {
+      // For regular updates, create new message as before
+      updatedMessage = LocalChatMessage.fromRemoteMessage(
+        remoteMessage.copyWith(
+          id: targetId,
+          meta: Map.of(remoteMessage.meta)..remove('message_id'),
+          type: 'text',
+          editedAt: remoteMessage.createdAt,
+        ),
+        MessageStatus.sent,
+      );
+    }
+
     await _database.updateMessage(_database.messageToCompanion(updatedMessage));
 
     final currentMessages = state.value ?? [];
