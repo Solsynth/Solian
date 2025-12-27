@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/utils/mapping.dart';
@@ -24,14 +25,15 @@ class EmbedListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalizedEmbeds =
-        embeds
-            .map((e) => convertMapKeysToSnakeCase(e as Map<String, dynamic>))
-            .toList();
-    final linkEmbeds =
-        normalizedEmbeds.where((e) => e['type'] == 'link').toList();
-    final otherEmbeds =
-        normalizedEmbeds.where((e) => e['type'] != 'link').toList();
+    final normalizedEmbeds = embeds
+        .map((e) => convertMapKeysToSnakeCase(e as Map<String, dynamic>))
+        .toList();
+    final linkEmbeds = normalizedEmbeds
+        .where((e) => e['type'] == 'link')
+        .toList();
+    final otherEmbeds = normalizedEmbeds
+        .where((e) => e['type'] != 'link')
+        .toList();
 
     return Column(
       children: [
@@ -43,7 +45,9 @@ class EmbedListWidget extends StatelessWidget {
               right: renderingPadding.horizontal,
             ),
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Theme(
@@ -54,36 +58,32 @@ class EmbedListWidget extends StatelessWidget {
                 initiallyExpanded: true,
                 dense: true,
                 leading: const Icon(Symbols.link),
-                title: Text('${linkEmbeds.length} links'),
+                title: Text('embedLinks'.plural(linkEmbeds.length)),
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    child:
-                        linkEmbeds.length == 1
-                            ? EmbedLinkWidget(
-                              link: SnScrappedLink.fromJson(linkEmbeds.first),
-                            )
-                            : SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children:
-                                    linkEmbeds
-                                        .map(
-                                          (embedData) => EmbedLinkWidget(
-                                            link: SnScrappedLink.fromJson(
-                                              embedData,
-                                            ),
-                                            maxWidth:
-                                                200, // Fixed width for horizontal scroll
-                                            margin: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                              ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: linkEmbeds.length == 1
+                        ? EmbedLinkWidget(
+                            link: SnScrappedLink.fromJson(linkEmbeds.first),
+                          )
+                        : SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: linkEmbeds
+                                  .map(
+                                    (embedData) => EmbedLinkWidget(
+                                      link: SnScrappedLink.fromJson(embedData),
+                                      maxWidth:
+                                          200, // Fixed width for horizontal scroll
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
+                          ),
                   ),
                 ],
               ),
@@ -101,27 +101,26 @@ class EmbedListWidget extends StatelessWidget {
                   horizontal: 16,
                   vertical: 12,
                 ),
-                child:
-                    embedData['id'] == null
-                        ? const Text('Poll was unavailable...')
-                        : PollSubmit(
-                          pollId: embedData['id'],
-                          onSubmit: (_) {},
-                          isReadonly: !isInteractive,
-                          isInitiallyExpanded: isFullPost,
-                        ),
+                child: embedData['id'] == null
+                    ? const Text('Poll was unavailable...')
+                    : PollSubmit(
+                        pollId: embedData['id'],
+                        onSubmit: (_) {},
+                        isReadonly: !isInteractive,
+                        isInitiallyExpanded: isFullPost,
+                      ),
               ),
             ),
             'fund' =>
               embedData['id'] == null
                   ? const Text('Fund envelope was unavailable...')
                   : FundEnvelopeWidget(
-                    fundId: embedData['id'],
-                    margin: EdgeInsets.symmetric(
-                      horizontal: renderingPadding.horizontal,
-                      vertical: 8,
+                      fundId: embedData['id'],
+                      margin: EdgeInsets.symmetric(
+                        horizontal: renderingPadding.horizontal,
+                        vertical: 8,
+                      ),
                     ),
-                  ),
             _ => Text('Unable show embed: ${embedData['type']}'),
           },
         ),

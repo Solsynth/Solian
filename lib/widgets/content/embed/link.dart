@@ -102,15 +102,13 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
             children: [
               // Sqaure open graph image
               if (_isSquare == true) ...[
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 120),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: UniversalImage(
-                        uri: widget.link.imageUrl!,
-                        fit: BoxFit.cover,
-                      ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: UniversalImage(
+                      uri: widget.link.imageUrl!,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -127,8 +125,9 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                         _isSquare != true)
                       Container(
                         width: double.infinity,
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
                         child: IntrinsicHeight(
                           child: UniversalImage(
                             uri: widget.link.imageUrl!,
@@ -154,12 +153,13 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                                   child: UniversalImage(
                                     uri:
                                         widget.link.faviconUrl!.startsWith('//')
-                                            ? 'https:${widget.link.faviconUrl!}'
-                                            : widget.link.faviconUrl!
-                                                .startsWith('/')
-                                            ? _getBaseUrl(widget.link.url) +
-                                                widget.link.faviconUrl!
-                                            : widget.link.faviconUrl!,
+                                        ? 'https:${widget.link.faviconUrl!}'
+                                        : widget.link.faviconUrl!.startsWith(
+                                            '/',
+                                          )
+                                        ? _getBaseUrl(widget.link.url) +
+                                              widget.link.faviconUrl!
+                                        : widget.link.faviconUrl!,
                                     width: 16,
                                     height: 16,
                                     fit: BoxFit.cover,
