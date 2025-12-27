@@ -16,6 +16,8 @@ import 'package:island/talker.dart';
 part 'call.g.dart';
 part 'call.freezed.dart';
 
+enum ViewMode { grid, stage }
+
 String formatDuration(Duration duration) {
   String negativeSign = duration.isNegative ? '-' : '';
   String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -33,6 +35,7 @@ sealed class CallState with _$CallState {
     required bool isScreenSharing,
     required bool isSpeakerphone,
     @Default(Duration(seconds: 0)) Duration duration,
+    @Default(ViewMode.grid) ViewMode viewMode,
     String? error,
   }) = _CallState;
 }
@@ -84,6 +87,7 @@ class CallNotifier extends _$CallNotifier {
       isCameraEnabled: false,
       isScreenSharing: false,
       isSpeakerphone: true,
+      viewMode: ViewMode.grid,
     );
   }
 
@@ -258,8 +262,8 @@ class CallNotifier extends _$CallNotifier {
             duration: Duration(
               milliseconds:
                   (DateTime.now().millisecondsSinceEpoch -
-                      (ongoingCall?.createdAt.millisecondsSinceEpoch ??
-                          DateTime.now().millisecondsSinceEpoch)),
+                  (ongoingCall?.createdAt.millisecondsSinceEpoch ??
+                      DateTime.now().millisecondsSinceEpoch)),
             ),
           );
         });
@@ -416,6 +420,14 @@ class CallNotifier extends _$CallNotifier {
 
   double getParticipantVolume(CallParticipantLive live) {
     return participantsVolumes[live.remoteParticipant.sid] ?? 1;
+  }
+
+  void toggleViewMode() {
+    state = state.copyWith(
+      viewMode: state.viewMode == ViewMode.grid
+          ? ViewMode.stage
+          : ViewMode.grid,
+    );
   }
 
   void dispose() {

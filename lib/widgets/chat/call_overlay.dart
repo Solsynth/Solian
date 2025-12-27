@@ -21,7 +21,12 @@ import 'package:livekit_client/livekit_client.dart';
 
 class CallControlsBar extends HookConsumerWidget {
   final bool isCompact;
-  const CallControlsBar({super.key, this.isCompact = false});
+  final bool popOnLeaves;
+  const CallControlsBar({
+    super.key,
+    this.isCompact = false,
+    this.popOnLeaves = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,91 +46,97 @@ class CallControlsBar extends HookConsumerWidget {
           _buildCircularButtonWithDropdown(
             context: context,
             ref: ref,
-            icon:
-                callState.isCameraEnabled ? Icons.videocam : Icons.videocam_off,
+            icon: callState.isCameraEnabled
+                ? Symbols.videocam
+                : Symbols.videocam_off,
             onPressed: () => callNotifier.toggleCamera(),
             backgroundColor: const Color(0xFF424242),
             hasDropdown: true,
             deviceType: 'videoinput',
           ),
           _buildCircularButton(
-            icon:
-                callState.isScreenSharing
-                    ? Icons.stop_screen_share
-                    : Icons.screen_share,
+            icon: callState.isScreenSharing
+                ? Symbols.stop_screen_share
+                : Symbols.screen_share,
             onPressed: () => callNotifier.toggleScreenShare(context),
             backgroundColor: const Color(0xFF424242),
           ),
           _buildCircularButtonWithDropdown(
             context: context,
             ref: ref,
-            icon: callState.isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
+            icon: callState.isMicrophoneEnabled ? Symbols.mic : Symbols.mic_off,
             onPressed: () => callNotifier.toggleMicrophone(),
             backgroundColor: const Color(0xFF424242),
             hasDropdown: true,
             deviceType: 'audioinput',
           ),
           _buildCircularButton(
-            icon:
-                callState.isSpeakerphone
-                    ? Symbols.mobile_speaker
-                    : Symbols.ear_sound,
+            icon: callState.isSpeakerphone
+                ? Symbols.mobile_speaker
+                : Symbols.ear_sound,
             onPressed: () => callNotifier.toggleSpeakerphone(),
             backgroundColor: const Color(0xFF424242),
           ),
           _buildCircularButton(
+            icon: callState.viewMode == ViewMode.grid
+                ? Symbols.grid_view
+                : Symbols.view_list,
+            onPressed: () => callNotifier.toggleViewMode(),
+            backgroundColor: const Color(0xFF424242),
+          ),
+          _buildCircularButton(
             icon: Icons.call_end,
-            onPressed:
-                () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder:
-                      (innerContext) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Gap(24),
-                          ListTile(
-                            leading: const Icon(Symbols.logout, fill: 1),
-                            title: Text('callLeave').tr(),
-                            onTap: () {
-                              callNotifier.disconnect();
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              }
-                              Navigator.of(innerContext).pop();
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Symbols.call_end, fill: 1),
-                            iconColor: Colors.red,
-                            title: Text('callEnd').tr(),
-                            onTap: () async {
-                              callNotifier.disconnect();
-                              final apiClient = ref.watch(apiClientProvider);
-                              try {
-                                showLoadingModal(context);
-                                await apiClient.delete(
-                                  '/sphere/chat/realtime/${callNotifier.roomId}',
-                                );
-                                callNotifier.dispose();
-                                if (context.mounted) {
-                                  if (Navigator.of(context).canPop()) {
-                                    Navigator.of(context).pop();
-                                  }
-                                  Navigator.of(innerContext).pop();
-                                }
-                              } catch (err) {
-                                showErrorAlert(err);
-                              } finally {
-                                if (context.mounted) hideLoadingModal(context);
-                              }
-                            },
-                          ),
-                          Gap(MediaQuery.of(context).padding.bottom),
-                        ],
-                      ),
-                ),
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (innerContext) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Gap(24),
+                  ListTile(
+                    leading: const Icon(Symbols.logout, fill: 1),
+                    title: Text('callLeave').tr(),
+                    onTap: () {
+                      callNotifier.disconnect();
+                      if (popOnLeaves) {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        }
+                        Navigator.of(innerContext).pop();
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Symbols.call_end, fill: 1),
+                    iconColor: Colors.red,
+                    title: Text('callEnd').tr(),
+                    onTap: () async {
+                      callNotifier.disconnect();
+                      final apiClient = ref.watch(apiClientProvider);
+                      try {
+                        showLoadingModal(context);
+                        await apiClient.delete(
+                          '/sphere/chat/realtime/${callNotifier.roomId}',
+                        );
+                        callNotifier.dispose();
+                        if (context.mounted && popOnLeaves) {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                          Navigator.of(innerContext).pop();
+                        }
+                      } catch (err) {
+                        showErrorAlert(err);
+                      } finally {
+                        if (context.mounted) hideLoadingModal(context);
+                      }
+                    },
+                  ),
+                  Gap(MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+            ),
             backgroundColor: const Color(0xFFE53E3E),
             iconColor: Colors.white,
           ),
@@ -185,12 +196,11 @@ class CallControlsBar extends HookConsumerWidget {
             bottom: 0,
             right: isCompact ? 0 : -4,
             child: Material(
-              color:
-                  Colors
-                      .transparent, // Make Material transparent to show underlying color
+              color: Colors
+                  .transparent, // Make Material transparent to show underlying color
               child: InkWell(
-                onTap:
-                    () => _showDeviceSelectionDialog(context, ref, deviceType),
+                onTap: () =>
+                    _showDeviceSelectionDialog(context, ref, deviceType),
                 borderRadius: BorderRadius.circular((isCompact ? 16 : 24) / 2),
                 child: Container(
                   width: isCompact ? 16 : 24,
@@ -232,10 +242,9 @@ class CallControlsBar extends HookConsumerWidget {
         context: context,
         builder: (BuildContext dialogContext) {
           return SheetScaffold(
-            titleText:
-                deviceType == 'videoinput'
-                    ? 'selectCamera'.tr()
-                    : 'selectMicrophone'.tr(),
+            titleText: deviceType == 'videoinput'
+                ? 'selectCamera'.tr()
+                : 'selectMicrophone'.tr(),
             child: ListView.builder(
               itemCount: devices.length,
               itemBuilder: (context, index) {
@@ -434,30 +443,23 @@ class CallOverlayBar extends HookConsumerWidget {
   ) {
     final lastSpeaker =
         callNotifier.participants
-                .where(
-                  (element) => element.remoteParticipant.lastSpokeAt != null,
-                )
-                .isEmpty
-            ? callNotifier.participants.firstOrNull
-            : callNotifier.participants
-                .where(
-                  (element) => element.remoteParticipant.lastSpokeAt != null,
-                )
-                .fold(
-                  callNotifier.participants.firstOrNull,
-                  (value, element) =>
-                      element.remoteParticipant.lastSpokeAt != null &&
-                              (value?.remoteParticipant.lastSpokeAt == null ||
-                                  element.remoteParticipant.lastSpokeAt!
-                                          .compareTo(
-                                            value!
-                                                .remoteParticipant
-                                                .lastSpokeAt!,
-                                          ) >
-                                      0)
-                          ? element
-                          : value,
-                );
+            .where((element) => element.remoteParticipant.lastSpokeAt != null)
+            .isEmpty
+        ? callNotifier.participants.firstOrNull
+        : callNotifier.participants
+              .where((element) => element.remoteParticipant.lastSpokeAt != null)
+              .fold(
+                callNotifier.participants.firstOrNull,
+                (value, element) =>
+                    element.remoteParticipant.lastSpokeAt != null &&
+                        (value?.remoteParticipant.lastSpokeAt == null ||
+                            element.remoteParticipant.lastSpokeAt!.compareTo(
+                                  value!.remoteParticipant.lastSpokeAt!,
+                                ) >
+                                0)
+                    ? element
+                    : value,
+              );
 
     if (lastSpeaker == null) {
       return const SizedBox.shrink(key: ValueKey('active_waiting'));
@@ -488,16 +490,15 @@ class CallOverlayBar extends HookConsumerWidget {
                   openColor: Theme.of(context).scaffoldBackgroundColor,
                   middleColor: Theme.of(context).scaffoldBackgroundColor,
                   openBuilder: (context, action) => CallScreen(room: room),
-                  closedBuilder:
-                      (context, openContainer) => IconButton(
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                        icon: const Icon(Icons.fullscreen),
-                        onPressed: openContainer,
-                        tooltip: 'Full Screen',
-                      ),
+                  closedBuilder: (context, openContainer) => IconButton(
+                    visualDensity: const VisualDensity(
+                      horizontal: -4,
+                      vertical: -4,
+                    ),
+                    icon: const Icon(Icons.fullscreen),
+                    onPressed: openContainer,
+                    tooltip: 'Full Screen',
+                  ),
                 ),
                 IconButton(
                   visualDensity: const VisualDensity(
@@ -512,10 +513,10 @@ class CallOverlayBar extends HookConsumerWidget {
             ).padding(horizontal: 12, vertical: 8),
             // Video Preview
             Container(
-              height: 200,
+              height: 320,
               width: double.infinity,
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const CallContent(),
+              child: const CallContent(outerMaxHeight: 320),
             ),
             const CallControlsBar(
               isCompact: true,
@@ -540,11 +541,10 @@ class CallOverlayBar extends HookConsumerWidget {
                   SizedBox(
                     width: 40,
                     height: 40,
-                    child:
-                        SpeakingRippleAvatar(
-                          live: lastSpeaker,
-                          size: 36,
-                        ).center(),
+                    child: SpeakingRippleAvatar(
+                      live: lastSpeaker,
+                      size: 36,
+                    ).center(),
                   ),
                   const Gap(8),
                   Column(

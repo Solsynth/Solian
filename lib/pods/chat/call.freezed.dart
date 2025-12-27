@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CallState implements DiagnosticableTreeMixin {
 
- bool get isConnected; bool get isMicrophoneEnabled; bool get isCameraEnabled; bool get isScreenSharing; bool get isSpeakerphone; Duration get duration; String? get error;
+ bool get isConnected; bool get isMicrophoneEnabled; bool get isCameraEnabled; bool get isScreenSharing; bool get isSpeakerphone; Duration get duration; ViewMode get viewMode; String? get error;
 /// Create a copy of CallState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $CallStateCopyWith<CallState> get copyWith => _$CallStateCopyWithImpl<CallState>
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CallState'))
-    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('error', error));
+    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('viewMode', viewMode))..add(DiagnosticsProperty('error', error));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.isSpeakerphone, isSpeakerphone) || other.isSpeakerphone == isSpeakerphone)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.isSpeakerphone, isSpeakerphone) || other.isSpeakerphone == isSpeakerphone)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,error);
+int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,viewMode,error);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, error: $error)';
+  return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, viewMode: $viewMode, error: $error)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $CallStateCopyWith<$Res>  {
   factory $CallStateCopyWith(CallState value, $Res Function(CallState) _then) = _$CallStateCopyWithImpl;
 @useResult
 $Res call({
- bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, bool isSpeakerphone, Duration duration, String? error
+ bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, bool isSpeakerphone, Duration duration, ViewMode viewMode, String? error
 });
 
 
@@ -68,7 +68,7 @@ class _$CallStateCopyWithImpl<$Res>
 
 /// Create a copy of CallState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isConnected = null,Object? isMicrophoneEnabled = null,Object? isCameraEnabled = null,Object? isScreenSharing = null,Object? isSpeakerphone = null,Object? duration = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isConnected = null,Object? isMicrophoneEnabled = null,Object? isCameraEnabled = null,Object? isScreenSharing = null,Object? isSpeakerphone = null,Object? duration = null,Object? viewMode = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,isMicrophoneEnabled: null == isMicrophoneEnabled ? _self.isMicrophoneEnabled : isMicrophoneEnabled // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,8 @@ as bool,isCameraEnabled: null == isCameraEnabled ? _self.isCameraEnabled : isCam
 as bool,isScreenSharing: null == isScreenSharing ? _self.isScreenSharing : isScreenSharing // ignore: cast_nullable_to_non_nullable
 as bool,isSpeakerphone: null == isSpeakerphone ? _self.isSpeakerphone : isSpeakerphone // ignore: cast_nullable_to_non_nullable
 as bool,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as Duration,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as Duration,viewMode: null == viewMode ? _self.viewMode : viewMode // ignore: cast_nullable_to_non_nullable
+as ViewMode,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  ViewMode viewMode,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CallState() when $default != null:
-return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.error);case _:
+return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.viewMode,_that.error);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnable
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  ViewMode viewMode,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _CallState():
-return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.error);}
+return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.viewMode,_that.error);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -197,10 +198,10 @@ return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnable
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isConnected,  bool isMicrophoneEnabled,  bool isCameraEnabled,  bool isScreenSharing,  bool isSpeakerphone,  Duration duration,  ViewMode viewMode,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _CallState() when $default != null:
-return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.error);case _:
+return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnabled,_that.isScreenSharing,_that.isSpeakerphone,_that.duration,_that.viewMode,_that.error);case _:
   return null;
 
 }
@@ -212,7 +213,7 @@ return $default(_that.isConnected,_that.isMicrophoneEnabled,_that.isCameraEnable
 
 
 class _CallState with DiagnosticableTreeMixin implements CallState {
-  const _CallState({required this.isConnected, required this.isMicrophoneEnabled, required this.isCameraEnabled, required this.isScreenSharing, required this.isSpeakerphone, this.duration = const Duration(seconds: 0), this.error});
+  const _CallState({required this.isConnected, required this.isMicrophoneEnabled, required this.isCameraEnabled, required this.isScreenSharing, required this.isSpeakerphone, this.duration = const Duration(seconds: 0), this.viewMode = ViewMode.grid, this.error});
   
 
 @override final  bool isConnected;
@@ -221,6 +222,7 @@ class _CallState with DiagnosticableTreeMixin implements CallState {
 @override final  bool isScreenSharing;
 @override final  bool isSpeakerphone;
 @override@JsonKey() final  Duration duration;
+@override@JsonKey() final  ViewMode viewMode;
 @override final  String? error;
 
 /// Create a copy of CallState
@@ -234,21 +236,21 @@ _$CallStateCopyWith<_CallState> get copyWith => __$CallStateCopyWithImpl<_CallSt
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CallState'))
-    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('error', error));
+    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('viewMode', viewMode))..add(DiagnosticsProperty('error', error));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.isSpeakerphone, isSpeakerphone) || other.isSpeakerphone == isSpeakerphone)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.isSpeakerphone, isSpeakerphone) || other.isSpeakerphone == isSpeakerphone)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,error);
+int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,viewMode,error);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, error: $error)';
+  return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, viewMode: $viewMode, error: $error)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$CallStateCopyWith<$Res> implements $CallStateCopyWith<$Re
   factory _$CallStateCopyWith(_CallState value, $Res Function(_CallState) _then) = __$CallStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, bool isSpeakerphone, Duration duration, String? error
+ bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, bool isSpeakerphone, Duration duration, ViewMode viewMode, String? error
 });
 
 
@@ -276,7 +278,7 @@ class __$CallStateCopyWithImpl<$Res>
 
 /// Create a copy of CallState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isConnected = null,Object? isMicrophoneEnabled = null,Object? isCameraEnabled = null,Object? isScreenSharing = null,Object? isSpeakerphone = null,Object? duration = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isConnected = null,Object? isMicrophoneEnabled = null,Object? isCameraEnabled = null,Object? isScreenSharing = null,Object? isSpeakerphone = null,Object? duration = null,Object? viewMode = null,Object? error = freezed,}) {
   return _then(_CallState(
 isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,isMicrophoneEnabled: null == isMicrophoneEnabled ? _self.isMicrophoneEnabled : isMicrophoneEnabled // ignore: cast_nullable_to_non_nullable
@@ -284,7 +286,8 @@ as bool,isCameraEnabled: null == isCameraEnabled ? _self.isCameraEnabled : isCam
 as bool,isScreenSharing: null == isScreenSharing ? _self.isScreenSharing : isScreenSharing // ignore: cast_nullable_to_non_nullable
 as bool,isSpeakerphone: null == isSpeakerphone ? _self.isSpeakerphone : isSpeakerphone // ignore: cast_nullable_to_non_nullable
 as bool,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as Duration,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as Duration,viewMode: null == viewMode ? _self.viewMode : viewMode // ignore: cast_nullable_to_non_nullable
+as ViewMode,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

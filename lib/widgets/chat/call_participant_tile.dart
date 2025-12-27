@@ -83,24 +83,21 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
             alignment: Alignment.center,
             decoration: const BoxDecoration(shape: BoxShape.circle),
             child: account.when(
-              data:
-                  (value) => CallParticipantGestureDetector(
-                    participant: live,
-                    child: ProfilePictureWidget(
-                      file: value.profile.picture,
-                      radius: size / 2,
-                    ),
-                  ),
-              error:
-                  (_, _) => CircleAvatar(
-                    radius: size / 2,
-                    child: const Icon(Symbols.person_remove),
-                  ),
-              loading:
-                  () => CircleAvatar(
-                    radius: size / 2,
-                    child: CircularProgressIndicator(),
-                  ),
+              data: (value) => CallParticipantGestureDetector(
+                participant: live,
+                child: ProfilePictureWidget(
+                  file: value.profile.picture,
+                  radius: size / 2,
+                ),
+              ),
+              error: (_, _) => CircleAvatar(
+                radius: size / 2,
+                child: const Icon(Symbols.question_mark),
+              ),
+              loading: () => CircleAvatar(
+                radius: size / 2,
+                child: CircularProgressIndicator(),
+              ),
             ),
           ),
           if (live.remoteParticipant.isMuted)
@@ -130,12 +127,20 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
 
 class CallParticipantTile extends HookConsumerWidget {
   final CallParticipantLive live;
+  final bool allTiles;
+  final double radius;
 
-  const CallParticipantTile({super.key, required this.live});
+  const CallParticipantTile({
+    super.key,
+    required this.live,
+    this.allTiles = false,
+    this.radius = 48,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(accountProvider(live.participant.name));
+    final account = ref.watch(accountProvider(live.participant.identity));
 
     final hasVideo =
         live.hasVideo &&
@@ -143,7 +148,7 @@ class CallParticipantTile extends HookConsumerWidget {
             .where((pub) => pub.track != null && pub.kind == TrackType.VIDEO)
             .isNotEmpty;
 
-    if (hasVideo) {
+    if (hasVideo || allTiles) {
       return Padding(
         padding: const EdgeInsets.all(8),
         child: LayoutBuilder(
@@ -166,12 +171,11 @@ class CallParticipantTile extends HookConsumerWidget {
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color:
-                      isSpeaking
-                          ? Colors.green.withOpacity(
-                            0.5 + 0.5 * audioLevel.clamp(0.0, 1.0),
-                          )
-                          : Theme.of(context).colorScheme.outlineVariant,
+                  color: isSpeaking
+                      ? Colors.green.withOpacity(
+                          0.5 + 0.5 * audioLevel.clamp(0.0, 1.0),
+                        )
+                      : Theme.of(context).colorScheme.outlineVariant,
                   width: isSpeaking ? 4 : 1,
                 ),
               ),
@@ -182,14 +186,37 @@ class CallParticipantTile extends HookConsumerWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      VideoTrackRenderer(
-                        live.remoteParticipant.trackPublications.values
-                                .where((track) => track.kind == TrackType.VIDEO)
-                                .first
-                                .track
-                            as VideoTrack,
-                        renderMode: VideoRenderMode.platformView,
-                      ),
+                      if (hasVideo)
+                        VideoTrackRenderer(
+                          live.remoteParticipant.trackPublications.values
+                                  .where(
+                                    (track) => track.kind == TrackType.VIDEO,
+                                  )
+                                  .first
+                                  .track
+                              as VideoTrack,
+                          renderMode: VideoRenderMode.platformView,
+                        )
+                      else
+                        Center(
+                          child: account.when(
+                            data: (value) => CallParticipantGestureDetector(
+                              participant: live,
+                              child: ProfilePictureWidget(
+                                file: value.profile.picture,
+                                radius: radius,
+                              ),
+                            ),
+                            error: (_, _) => CircleAvatar(
+                              radius: radius,
+                              child: const Icon(Symbols.question_mark),
+                            ),
+                            loading: () => CircleAvatar(
+                              radius: radius,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
                       Positioned(
                         left: 8,
                         bottom: 8,

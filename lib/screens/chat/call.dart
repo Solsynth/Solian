@@ -69,11 +69,11 @@ class CallScreen extends HookConsumerWidget {
               callState.isConnected
                   ? formatDuration(callState.duration)
                   : (switch (callNotifier.room?.connectionState) {
-                    ConnectionState.connected => 'connected',
-                    ConnectionState.connecting => 'connecting',
-                    ConnectionState.reconnecting => 'reconnecting',
-                    _ => 'disconnected',
-                  }).tr(),
+                      ConnectionState.connected => 'connected',
+                      ConnectionState.connecting => 'connecting',
+                      ConnectionState.reconnecting => 'reconnecting',
+                      _ => 'disconnected',
+                    }).tr(),
               style: const TextStyle(fontSize: 14),
             ),
           ],
@@ -92,40 +92,40 @@ class CallScreen extends HookConsumerWidget {
             ),
         ],
       ),
-      body:
-          callState.error != null
-              ? Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 320),
-                  child: Column(
-                    children: [
-                      const Icon(Symbols.error_outline, size: 48),
-                      const Gap(4),
-                      Text(
-                        callState.error!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Color(0xFF757575)),
-                      ),
-                      const Gap(8),
-                      TextButton(
-                        onPressed: () {
-                          callNotifier.disconnect();
-                          callNotifier.dispose();
-                          callNotifier.joinRoom(room);
-                        },
-                        child: Text('retry').tr(),
-                      ),
-                    ],
-                  ),
+      body: callState.error != null
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Column(
+                  children: [
+                    const Icon(Symbols.error_outline, size: 48),
+                    const Gap(4),
+                    Text(
+                      callState.error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFF757575)),
+                    ),
+                    const Gap(8),
+                    TextButton(
+                      onPressed: () {
+                        callNotifier.disconnect();
+                        callNotifier.dispose();
+                        callNotifier.joinRoom(room);
+                      },
+                      child: Text('retry').tr(),
+                    ),
+                  ],
                 ),
-              )
-              : Column(
-                children: [
-                  Expanded(child: CallContent()),
-                  CallControlsBar(),
-                  Gap(MediaQuery.of(context).padding.bottom + 16),
-                ],
               ),
+            )
+          : Column(
+              children: [
+                const SizedBox(width: double.infinity),
+                Expanded(child: CallContent()),
+                CallControlsBar(popOnLeaves: true),
+                Gap(MediaQuery.of(context).padding.bottom + 16),
+              ],
+            ),
     );
   }
 }
