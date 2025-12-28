@@ -62,7 +62,7 @@ class ApSearchScreen extends HookConsumerWidget {
       try {
         followingUris.value = {...followingUris.value, actor.id};
         final service = ref.read(activityPubServiceProvider);
-        await service.followRemoteUser(actor.id);
+        await service.followRemoteUser(actor.uri);
         showSnackBar(
           'followedUser'.tr(
             args: [
@@ -81,10 +81,10 @@ class ApSearchScreen extends HookConsumerWidget {
     Future<void> handleUnfollow(SnActivityPubActor actor) async {
       try {
         followingUris.value = followingUris.value
-            .where((uri) => uri != actor.id)
+            .where((uri) => uri != actor.uri)
             .toSet();
         final service = ref.read(activityPubServiceProvider);
-        await service.unfollowRemoteUser(actor.id);
+        await service.unfollowRemoteUser(actor.uri);
         showSnackBar(
           'unfollowedUser'.tr(
             args: [
@@ -99,6 +99,7 @@ class ApSearchScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(title: Text('searchFediverse'.tr()), elevation: 0),
       body: Column(
         children: [
@@ -156,12 +157,17 @@ class ApSearchScreen extends HookConsumerWidget {
                         final isFollowing = followingUris.value.contains(
                           actor.id,
                         );
-                        return ApActorListItem(
-                          actor: actor,
-                          isFollowing: isFollowing,
-                          isLoading: false,
-                          onFollow: () => handleFollow(actor),
-                          onUnfollow: () => handleUnfollow(actor),
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: ApActorListItem(
+                              actor: actor,
+                              isFollowing: isFollowing,
+                              isLoading: false,
+                              onFollow: () => handleFollow(actor),
+                              onUnfollow: () => handleUnfollow(actor),
+                            ),
+                          ),
                         );
                       },
                     ),

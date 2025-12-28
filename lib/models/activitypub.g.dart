@@ -6,6 +6,58 @@ part of 'activitypub.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_SnActivityPubInstance _$SnActivityPubInstanceFromJson(
+  Map<String, dynamic> json,
+) => _SnActivityPubInstance(
+  id: json['id'] as String,
+  domain: json['domain'] as String,
+  name: json['name'] as String?,
+  description: json['description'] as String?,
+  software: json['software'] as String?,
+  version: json['version'] as String?,
+  iconUrl: json['icon_url'] as String?,
+  thumbnailUrl: json['thumbnail_url'] as String?,
+  contactEmail: json['contact_email'] as String?,
+  contactAccountUsername: json['contact_account_username'] as String?,
+  activeUsers: (json['active_users'] as num?)?.toInt(),
+  isBlocked: json['is_blocked'] as bool? ?? false,
+  isSilenced: json['is_silenced'] as bool? ?? false,
+  blockReason: json['block_reason'] as String?,
+  metadata: json['metadata'] as Map<String, dynamic>?,
+  lastFetchedAt: json['last_fetched_at'] == null
+      ? null
+      : DateTime.parse(json['last_fetched_at'] as String),
+  lastActivityAt: json['last_activity_at'] == null
+      ? null
+      : DateTime.parse(json['last_activity_at'] as String),
+  metadataFetchedAt: json['metadata_fetched_at'] == null
+      ? null
+      : DateTime.parse(json['metadata_fetched_at'] as String),
+);
+
+Map<String, dynamic> _$SnActivityPubInstanceToJson(
+  _SnActivityPubInstance instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'domain': instance.domain,
+  'name': instance.name,
+  'description': instance.description,
+  'software': instance.software,
+  'version': instance.version,
+  'icon_url': instance.iconUrl,
+  'thumbnail_url': instance.thumbnailUrl,
+  'contact_email': instance.contactEmail,
+  'contact_account_username': instance.contactAccountUsername,
+  'active_users': instance.activeUsers,
+  'is_blocked': instance.isBlocked,
+  'is_silenced': instance.isSilenced,
+  'block_reason': instance.blockReason,
+  'metadata': instance.metadata,
+  'last_fetched_at': instance.lastFetchedAt?.toIso8601String(),
+  'last_activity_at': instance.lastActivityAt?.toIso8601String(),
+  'metadata_fetched_at': instance.metadataFetchedAt?.toIso8601String(),
+};
+
 _SnActivityPubUser _$SnActivityPubUserFromJson(Map<String, dynamic> json) =>
     _SnActivityPubUser(
       actorUri: json['actor_uri'] as String,
@@ -33,6 +85,7 @@ Map<String, dynamic> _$SnActivityPubUserToJson(_SnActivityPubUser instance) =>
 _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
     _SnActivityPubActor(
       id: json['id'] as String,
+      uri: json['uri'] as String,
       type: json['type'] as String? ?? '',
       displayName: json['display_name'] as String?,
       username: json['username'] as String?,
@@ -42,8 +95,8 @@ _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
       followersUri: json['followers_uri'] as String?,
       followingUri: json['following_uri'] as String?,
       featuredUri: json['featured_uri'] as String?,
-      icon: json['icon'] as String?,
-      image: json['image'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+      headerUrl: json['header_url'] as String?,
       publicKeyId: json['public_key_id'] as String?,
       publicKey: json['public_key'] as String?,
       isBot: json['is_bot'] as bool? ?? false,
@@ -60,11 +113,16 @@ _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
       lastActivityAt: json['last_activity_at'] == null
           ? null
           : DateTime.parse(json['last_activity_at'] as String),
+      instance: SnActivityPubInstance.fromJson(
+        json['instance'] as Map<String, dynamic>,
+      ),
+      instanceId: json['instance_id'] as String,
     );
 
 Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'uri': instance.uri,
       'type': instance.type,
       'display_name': instance.displayName,
       'username': instance.username,
@@ -74,8 +132,8 @@ Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
       'followers_uri': instance.followersUri,
       'following_uri': instance.followingUri,
       'featured_uri': instance.featuredUri,
-      'icon': instance.icon,
-      'image': instance.image,
+      'avatar_url': instance.avatarUrl,
+      'header_url': instance.headerUrl,
       'public_key_id': instance.publicKeyId,
       'public_key': instance.publicKey,
       'is_bot': instance.isBot,
@@ -87,6 +145,8 @@ Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
       'metadata': instance.metadata,
       'last_fetched_at': instance.lastFetchedAt?.toIso8601String(),
       'last_activity_at': instance.lastActivityAt?.toIso8601String(),
+      'instance': instance.instance.toJson(),
+      'instance_id': instance.instanceId,
     };
 
 _SnActivityPubFollowResponse _$SnActivityPubFollowResponseFromJson(

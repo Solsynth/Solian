@@ -4,8 +4,8 @@ import 'package:island/models/activitypub.dart';
 import 'package:island/pods/network.dart';
 
 final activityPubServiceProvider = Provider<ActivityPubService>((ref) {
-  final dio = ref.watch(apiClientProvider);
-  return ActivityPubService(dio);
+  final client = ref.watch(apiClientProvider);
+  return ActivityPubService(client);
 });
 
 class ActivityPubService {
@@ -16,7 +16,7 @@ class ActivityPubService {
   Future<void> followRemoteUser(String targetActorUri) async {
     final response = await _client.post(
       '/sphere/activitypub/follow',
-      data: {'targetActorUri': targetActorUri},
+      data: {'target_actor_uri': targetActorUri},
     );
     final followResponse = SnActivityPubFollowResponse.fromJson(response.data);
     if (!followResponse.success) {
@@ -27,7 +27,7 @@ class ActivityPubService {
   Future<void> unfollowRemoteUser(String targetActorUri) async {
     final response = await _client.post(
       '/sphere/activitypub/unfollow',
-      data: {'targetActorUri': targetActorUri},
+      data: {'target_actor_uri': targetActorUri},
     );
     final followResponse = SnActivityPubFollowResponse.fromJson(response.data);
     if (!followResponse.success) {

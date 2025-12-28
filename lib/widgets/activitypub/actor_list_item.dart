@@ -64,12 +64,12 @@ class ApActorListItem extends StatelessWidget {
       leading: Stack(
         children: [
           CircleAvatar(
-            backgroundImage: actor.icon != null
-                ? CachedNetworkImageProvider(actor.icon!)
+            backgroundImage: actor.avatarUrl != null
+                ? CachedNetworkImageProvider(actor.avatarUrl!)
                 : null,
             radius: 24,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-            child: actor.icon == null
+            child: actor.avatarUrl == null
                 ? Icon(
                     Symbols.person,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -116,14 +116,12 @@ class ApActorListItem extends StatelessWidget {
             ),
         ],
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      subtitle: Row(
+        spacing: 8,
         children: [
           Text(username),
           if (actor.summary?.isNotEmpty ?? false)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
+            Expanded(
               child: Text(
                 actor.summary!,
                 maxLines: 2,
@@ -131,16 +129,7 @@ class ApActorListItem extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-          if (actor.type.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                actor.type,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
+          if (actor.type.isNotEmpty) Text(actor.type),
         ],
       ),
       trailing: isLoading

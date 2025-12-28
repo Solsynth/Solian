@@ -4,6 +4,33 @@ part 'activitypub.freezed.dart';
 part 'activitypub.g.dart';
 
 @freezed
+sealed class SnActivityPubInstance with _$SnActivityPubInstance {
+  const factory SnActivityPubInstance({
+    required String id,
+    required String domain,
+    String? name,
+    String? description,
+    String? software,
+    String? version,
+    String? iconUrl,
+    String? thumbnailUrl,
+    String? contactEmail,
+    String? contactAccountUsername,
+    int? activeUsers,
+    @Default(false) bool isBlocked,
+    @Default(false) bool isSilenced,
+    String? blockReason,
+    Map<String, dynamic>? metadata,
+    DateTime? lastFetchedAt,
+    DateTime? lastActivityAt,
+    DateTime? metadataFetchedAt,
+  }) = _SnActivityPubInstance;
+
+  factory SnActivityPubInstance.fromJson(Map<String, dynamic> json) =>
+      _$SnActivityPubInstanceFromJson(json);
+}
+
+@freezed
 sealed class SnActivityPubUser with _$SnActivityPubUser {
   const factory SnActivityPubUser({
     required String actorUri,
@@ -24,6 +51,7 @@ sealed class SnActivityPubUser with _$SnActivityPubUser {
 sealed class SnActivityPubActor with _$SnActivityPubActor {
   const factory SnActivityPubActor({
     required String id,
+    required String uri,
     @Default('') String type,
     String? displayName,
     String? username,
@@ -33,8 +61,8 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     String? followersUri,
     String? followingUri,
     String? featuredUri,
-    String? icon,
-    String? image,
+    String? avatarUrl,
+    String? headerUrl,
     String? publicKeyId,
     String? publicKey,
     @Default(false) bool isBot,
@@ -46,6 +74,8 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     Map<String, dynamic>? metadata,
     DateTime? lastFetchedAt,
     DateTime? lastActivityAt,
+    required SnActivityPubInstance instance,
+    required String instanceId,
   }) = _SnActivityPubActor;
 
   factory SnActivityPubActor.fromJson(Map<String, dynamic> json) =>
