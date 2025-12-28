@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -11,15 +10,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/file_download.dart';
 import 'package:island/utils/format.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/audio.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
+import 'package:island/widgets/content/image_control_overlay.dart';
 import 'package:island/widgets/content/video.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:path/path.dart' show extension;
-import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
@@ -140,10 +138,6 @@ class ImageFileContent extends HookConsumerWidget {
     final rotation = useState(0);
     final showOriginal = useState(false);
 
-    final shadow = [
-      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
-    ];
-
     return Stack(
       children: [
         Positioned.fill(
@@ -156,8 +150,9 @@ class ImageFileContent extends HookConsumerWidget {
                 if (delta != null && delta != 0) {
                   final currentScale = photoViewController.scale ?? 1.0;
                   // Adjust scale based on scroll direction (invert for natural zoom)
-                  final newScale =
-                      delta > 0 ? currentScale * 0.9 : currentScale * 1.1;
+                  final newScale = delta > 0
+                      ? currentScale * 0.9
+                      : currentScale * 1.1;
                   // Clamp scale to reasonable bounds
                   final clampedScale = newScale.clamp(0.1, 10.0);
                   photoViewController.scale = clampedScale;
@@ -182,63 +177,13 @@ class ImageFileContent extends HookConsumerWidget {
             ),
           ),
         ),
-        // Controls overlay
-        Positioned(
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-          left: 16,
-          right: 16,
-          child: Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.remove, color: Colors.white, shadows: shadow),
-                onPressed: () {
-                  photoViewController.scale =
-                      (photoViewController.scale ?? 1) - 0.05;
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.add, color: Colors.white, shadows: shadow),
-                onPressed: () {
-                  photoViewController.scale =
-                      (photoViewController.scale ?? 1) + 0.05;
-                },
-              ),
-              const Gap(8),
-              IconButton(
-                icon: Icon(
-                  Icons.rotate_left,
-                  color: Colors.white,
-                  shadows: shadow,
-                ),
-                onPressed: () {
-                  rotation.value = (rotation.value - 1) % 4;
-                  photoViewController.rotation = rotation.value * -math.pi / 2;
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.rotate_right,
-                  color: Colors.white,
-                  shadows: shadow,
-                ),
-                onPressed: () {
-                  rotation.value = (rotation.value + 1) % 4;
-                  photoViewController.rotation = rotation.value * -math.pi / 2;
-                },
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  showOriginal.value = !showOriginal.value;
-                },
-                icon: Icon(
-                  showOriginal.value ? Symbols.hd : Symbols.sd,
-                  color: Colors.white,
-                  shadows: shadow,
-                ),
-              ),
-            ],
-          ),
+        ImageControlOverlay(
+          photoViewController: photoViewController,
+          rotation: rotation,
+          showOriginal: showOriginal.value,
+          onToggleQuality: () {
+            showOriginal.value = !showOriginal.value;
+          },
         ),
       ],
     );
@@ -253,10 +198,9 @@ class VideoFileContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var ratio =
-        item.fileMeta?['ratio'] is num
-            ? item.fileMeta!['ratio'].toDouble()
-            : 1.0;
+    var ratio = item.fileMeta?['ratio'] is num
+        ? item.fileMeta!['ratio'].toDouble()
+        : 1.0;
     if (ratio == 0) ratio = 1.0;
 
     return Center(
@@ -294,34 +238,6 @@ class GenericFileContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> downloadFile() async {
-      try {
-        showSnackBar('Downloading file...');
-
-        final client = ref.read(apiClientProvider);
-        final tempDir = await getTemporaryDirectory();
-        var extName = extension(item.name).trim();
-        if (extName.isEmpty) {
-          extName = item.mimeType?.split('/').lastOrNull ?? 'bin';
-        }
-        final filePath = '${tempDir.path}/${item.id}.$extName';
-
-        await client.download(
-          '/drive/files/${item.id}',
-          filePath,
-          queryParameters: {'original': true},
-        );
-
-        await FileSaver.instance.saveFile(
-          name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-          file: File(filePath),
-        );
-        showSnackBar('File saved to downloads');
-      } catch (e) {
-        showErrorAlert(e);
-      }
-    }
-
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -354,7 +270,7 @@ class GenericFileContent extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               FilledButton.icon(
-                onPressed: downloadFile,
+                onPressed: () => FileDownloadService(ref).downloadFile(item),
                 icon: const Icon(Symbols.download),
                 label: Text('download').tr(),
               ),

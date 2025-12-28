@@ -1,28 +1,19 @@
-import 'dart:io';
-
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gal/gal.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/drive/file_references.dart';
-import 'package:island/pods/network.dart';
-import 'package:island/pods/drive/upload_tasks.dart';
-import 'package:island/models/drive_task.dart';
+import 'package:island/services/file_download.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 import 'package:island/widgets/content/file_viewer_contents.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:path/path.dart' show extension;
-import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class FileDetailScreen extends HookConsumerWidget {
@@ -155,7 +146,7 @@ class FileDetailScreen extends HookConsumerWidget {
           actions.add(
             IconButton(
               icon: Icon(Icons.save_alt),
-              onPressed: () async => _saveToGallery(ref),
+              onPressed: () => FileDownloadService(ref).saveToGallery(item),
             ),
           );
         }
@@ -166,7 +157,8 @@ class FileDetailScreen extends HookConsumerWidget {
           actions.add(
             IconButton(
               icon: Icon(Icons.save_alt),
-              onPressed: () async => _downloadFile(ref),
+              onPressed: () =>
+                  FileDownloadService(ref).downloadWithProgress(item),
             ),
           );
         }
@@ -197,80 +189,6 @@ class FileDetailScreen extends HookConsumerWidget {
     actions.add(const Gap(8));
 
     return actions;
-  }
-
-  Future<void> _saveToGallery(WidgetRef ref) async {
-    try {
-      showSnackBar('Saving image...');
-
-      final client = ref.read(apiClientProvider);
-      final tempDir = await getTemporaryDirectory();
-      var extName = extension(item.name).trim();
-      if (extName.isEmpty) {
-        extName = item.mimeType?.split('/').lastOrNull ?? 'jpeg';
-      }
-      final filePath = '${tempDir.path}/${item.id}.$extName';
-
-      await client.download(
-        '/drive/files/${item.id}',
-        filePath,
-        queryParameters: {'original': true},
-      );
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        await Gal.putImage(filePath, album: 'Solar Network');
-        showSnackBar('Image saved to gallery');
-      } else {
-        await FileSaver.instance.saveFile(
-          name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-          file: File(filePath),
-        );
-        showSnackBar('Image saved to $filePath');
-      }
-    } catch (e) {
-      showErrorAlert(e);
-    }
-  }
-
-  Future<void> _downloadFile(WidgetRef ref) async {
-    final taskNotifier = ref.read(uploadTasksProvider.notifier);
-    final taskId = taskNotifier.addLocalDownloadTask(item);
-    try {
-      showSnackBar('Downloading file...');
-
-      final client = ref.read(apiClientProvider);
-      final tempDir = await getTemporaryDirectory();
-      var extName = extension(item.name).trim();
-      if (extName.isEmpty) {
-        extName = item.mimeType?.split('/').lastOrNull ?? 'bin';
-      }
-      final filePath = '${tempDir.path}/${item.id}.$extName';
-
-      await client.download(
-        '/drive/files/${item.id}',
-        filePath,
-        queryParameters: {'original': true},
-        onReceiveProgress: (count, total) {
-          if (total > 0) {
-            taskNotifier.updateDownloadProgress(taskId, count, total);
-            taskNotifier.updateTransmissionProgress(taskId, count / total);
-          }
-        },
-      );
-
-      await FileSaver.instance.saveFile(
-        name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
-        file: File(filePath),
-      );
-      taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
-      showSnackBar('File saved to downloads');
-    } catch (e) {
-      taskNotifier.updateTaskStatus(
-        taskId,
-        DriveTaskStatus.failed,
-        errorMessage: e.toString(),
-      );
-      showErrorAlert(e);
-    }
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, String serverUrl) {
