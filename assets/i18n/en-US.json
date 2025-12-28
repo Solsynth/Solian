@@ -1546,5 +1546,18 @@
     "embedLinks": {
         "one": "{} link",
         "other": "{} links"
-    }
+    },
+    "searchFediverse": "Search Fediverse",
+    "searchFediverseHint": "Search by address, e.g. {}",
+    "searchFediverseEmpty": "Search for users on other ActivityPub instances",
+    "searchFediverseNoResults": "No users found for this search",
+    "following": "Following",
+    "followers": "Followers",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "followedUser": "Followed @{}",
+    "unfollowedUser": "Unfollowed @{}",
+    "followingEmpty": "You're not following anyone yet",
+    "followersEmpty": "No followers yet",
+    "followingEmptyHint": "Start by searching for users or explore other instances"
 }

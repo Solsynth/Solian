@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
+import 'package:island/screens/activitypub/list.dart';
+import 'package:island/screens/activitypub/search.dart';
 import 'package:island/screens/dashboard/dash.dart';
 import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
@@ -183,6 +185,24 @@ final routerProvider = Provider<GoRouter>((ref) {
               Navigator.of(context).pop();
               return const SizedBox.shrink();
             },
+          ),
+
+          GoRoute(
+            name: 'activitypubSearch',
+            path: '/activitypub/search',
+            builder: (context, state) => const ApSearchScreen(),
+          ),
+          GoRoute(
+            name: 'activitypubFollowing',
+            path: '/activitypub/following',
+            builder: (context, state) =>
+                const ApListScreen(type: ActivityPubListType.following),
+          ),
+          GoRoute(
+            name: 'activitypubFollowers',
+            path: '/activitypub/followers',
+            builder: (context, state) =>
+                const ApListScreen(type: ActivityPubListType.followers),
           ),
 
           // Main tabs with TabsScreen shell

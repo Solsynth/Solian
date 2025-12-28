@@ -141,6 +141,18 @@ class ExploreScreen extends HookConsumerWidget {
               PopupMenuItem(
                 child: Row(
                   children: [
+                    const Icon(Symbols.linked_services),
+                    const Gap(12),
+                    Text('searchFediverse').tr(),
+                  ],
+                ),
+                onTap: () {
+                  context.pushNamed('activitypubSearch');
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
                     const Icon(Symbols.category),
                     const Gap(12),
                     Text('categoriesAndTags').tr(),
