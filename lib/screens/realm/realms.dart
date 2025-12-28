@@ -115,7 +115,11 @@ class RealmListScreen extends HookConsumerWidget {
                   ),
                 );
               },
-            ).padding(bottom: isWideScreen(context) ? null : 56)
+            ).padding(
+              bottom:
+                  (isWideScreen(context) ? 0 : 56) +
+                  MediaQuery.of(context).padding.bottom,
+            )
           : null,
       body: ExtendedRefreshIndicator(
         child: realms.when(
