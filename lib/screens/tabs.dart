@@ -204,7 +204,7 @@ class TabsScreen extends HookConsumerWidget {
             removeTop: true,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.transparent,
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -232,9 +232,7 @@ class TabsScreen extends HookConsumerWidget {
                   selectedIndex: currentIndex,
                   onDestinationSelected: onDestinationSelected,
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surface.withOpacity(0.8),
+                  backgroundColor: Colors.transparent,
                   indicatorColor: Theme.of(
                     context,
                   ).colorScheme.primary.withOpacity(0.2),
