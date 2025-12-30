@@ -76,6 +76,7 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     DateTime? lastActivityAt,
     required SnActivityPubInstance instance,
     required String instanceId,
+    bool? isFollowing,
   }) = _SnActivityPubActor;
 
   factory SnActivityPubActor.fromJson(Map<String, dynamic> json) =>
@@ -87,7 +88,6 @@ sealed class SnActivityPubFollowResponse with _$SnActivityPubFollowResponse {
   const factory SnActivityPubFollowResponse({
     required bool success,
     required String message,
-    required String targetActorUri,
   }) = _SnActivityPubFollowResponse;
 
   factory SnActivityPubFollowResponse.fromJson(Map<String, dynamic> json) =>

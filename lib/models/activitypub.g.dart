@@ -117,6 +117,7 @@ _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
         json['instance'] as Map<String, dynamic>,
       ),
       instanceId: json['instance_id'] as String,
+      isFollowing: json['is_following'] as bool?,
     );
 
 Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
@@ -147,6 +148,7 @@ Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
       'last_activity_at': instance.lastActivityAt?.toIso8601String(),
       'instance': instance.instance.toJson(),
       'instance_id': instance.instanceId,
+      'is_following': instance.isFollowing,
     };
 
 _SnActivityPubFollowResponse _$SnActivityPubFollowResponseFromJson(
@@ -154,7 +156,6 @@ _SnActivityPubFollowResponse _$SnActivityPubFollowResponseFromJson(
 ) => _SnActivityPubFollowResponse(
   success: json['success'] as bool,
   message: json['message'] as String,
-  targetActorUri: json['target_actor_uri'] as String,
 );
 
 Map<String, dynamic> _$SnActivityPubFollowResponseToJson(
@@ -162,5 +163,4 @@ Map<String, dynamic> _$SnActivityPubFollowResponseToJson(
 ) => <String, dynamic>{
   'success': instance.success,
   'message': instance.message,
-  'target_actor_uri': instance.targetActorUri,
 };

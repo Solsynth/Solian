@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activitypub.dart';
 import 'package:island/services/activitypub_service.dart';
@@ -22,7 +23,6 @@ class ApSearchScreen extends HookConsumerWidget {
     final debounceTimer = useRef<Timer?>(null);
     final searchResults = useState<List<SnActivityPubActor>>([]);
     final isSearching = useState(false);
-    final followingUris = useState<Set<String>>({});
 
     useEffect(() {
       return () {
@@ -58,43 +58,47 @@ class ApSearchScreen extends HookConsumerWidget {
       });
     }
 
+    void updateActorIsFollowing(String actorId, bool isFollowing) {
+      searchResults.value = searchResults.value
+          .map(
+            (a) => a.id == actorId ? a.copyWith(isFollowing: isFollowing) : a,
+          )
+          .toList();
+    }
+
     Future<void> handleFollow(SnActivityPubActor actor) async {
       try {
-        followingUris.value = {...followingUris.value, actor.id};
+        updateActorIsFollowing(actor.id, true);
         final service = ref.read(activityPubServiceProvider);
         await service.followRemoteUser(actor.uri);
         showSnackBar(
           'followedUser'.tr(
             args: [
-              '@${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
+              '${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
             ],
           ),
         );
       } catch (err) {
         showErrorAlert(err);
-        followingUris.value = followingUris.value
-            .where((uri) => uri != actor.id)
-            .toSet();
+        updateActorIsFollowing(actor.id, false);
       }
     }
 
     Future<void> handleUnfollow(SnActivityPubActor actor) async {
       try {
-        followingUris.value = followingUris.value
-            .where((uri) => uri != actor.uri)
-            .toSet();
+        updateActorIsFollowing(actor.id, false);
         final service = ref.read(activityPubServiceProvider);
         await service.unfollowRemoteUser(actor.uri);
         showSnackBar(
           'unfollowedUser'.tr(
             args: [
-              '@${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
+              '${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
             ],
           ),
         );
       } catch (err) {
         showErrorAlert(err);
-        followingUris.value = {...followingUris.value, actor.id};
+        updateActorIsFollowing(actor.id, true);
       }
     }
 
@@ -150,19 +154,15 @@ class ApSearchScreen extends HookConsumerWidget {
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: searchResults.value.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
+                      separatorBuilder: (context, index) => const Gap(8),
                       itemBuilder: (context, index) {
                         final actor = searchResults.value[index];
-                        final isFollowing = followingUris.value.contains(
-                          actor.id,
-                        );
                         return Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 560),
                             child: ApActorListItem(
                               actor: actor,
-                              isFollowing: isFollowing,
+                              isFollowing: actor.isFollowing ?? false,
                               isLoading: false,
                               onFollow: () => handleFollow(actor),
                               onUnfollow: () => handleUnfollow(actor),

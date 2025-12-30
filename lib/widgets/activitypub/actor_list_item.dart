@@ -33,7 +33,7 @@ class ApActorListItem extends StatelessWidget {
 
   String _getUsername() {
     if (actor.username?.isNotEmpty ?? false) {
-      return '@${actor.username}';
+      return '${actor.username}@${actor.instance.domain}';
     }
     return actor.id;
   }
@@ -80,17 +80,19 @@ class ApActorListItem extends StatelessWidget {
             Positioned(
               right: 0,
               bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Symbols.public,
-                  size: 12,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+              child: CircleAvatar(
+                backgroundImage: actor.instance.iconUrl != null
+                    ? CachedNetworkImageProvider(actor.instance.iconUrl!)
+                    : null,
+                radius: 8,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: actor.instance.iconUrl == null
+                    ? Icon(
+                        Symbols.public,
+                        size: 12,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      )
+                    : null,
               ),
             ),
         ],
