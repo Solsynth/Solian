@@ -293,7 +293,7 @@ final class PublisherAppbarForcegroundColorProvider
 }
 
 String _$publisherAppbarForcegroundColorHash() =>
-    r'cd9a9816177a6eecc2bc354acebbbd48892ffdd7';
+    r'a7c9795c68a29beb611d2c258022c9a5640f2061';
 
 final class PublisherAppbarForcegroundColorFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Color?>, String> {

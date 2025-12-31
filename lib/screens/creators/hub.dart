@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/activitypub.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/heatmap.dart';
@@ -15,6 +16,7 @@ import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/utils/text.dart';
 import 'package:island/widgets/account/account_picker.dart';
+import 'package:island/widgets/activitypub/actor_profile.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -76,6 +78,19 @@ Future<List<SnPublisherMember>> publisherInvites(Ref ref) async {
       .map((e) => SnPublisherMember.fromJson(e))
       .cast<SnPublisherMember>()
       .toList();
+}
+
+@riverpod
+Future<SnActorStatusResponse> publisherActorStatus(
+  Ref ref,
+  String? publisherName,
+) async {
+  if (publisherName == null) throw Exception('Publisher name is required');
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get(
+    '/sphere/publishers/$publisherName/fediverse',
+  );
+  return SnActorStatusResponse.fromJson(response.data);
 }
 
 final publisherMemberListNotifierProvider = AsyncNotifierProvider.family
@@ -500,6 +515,24 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.edit),
           onTap: updatePublisher,
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('publisherFediverse').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.public),
+          onTap: () {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder: (context) => _PublisherFediverseSheet(
+                publisherUname: currentPublisher.value!.name,
+              ),
+            );
+          },
         ),
         ListTile(
           shape: RoundedRectangleBorder(
@@ -1121,6 +1154,155 @@ class _PublisherInviteSheet extends HookConsumerWidget {
         error: (error, _) => ResponseErrorWidget(
           error: error,
           onRetry: () => ref.invalidate(publisherInvitesProvider),
+        ),
+      ),
+    );
+  }
+}
+
+class _PublisherFediverseSheet extends HookConsumerWidget {
+  final String publisherUname;
+
+  const _PublisherFediverseSheet({required this.publisherUname});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final actorStatus = ref.watch(publisherActorStatusProvider(publisherUname));
+    final apiClient = ref.read(apiClientProvider);
+    final isLoading = useState(false);
+
+    Future<void> toggleActor() async {
+      final currentStatus = actorStatus.value;
+      if (currentStatus == null) return;
+
+      final confirm = await showConfirmAlert(
+        currentStatus.enabled
+            ? 'publisherFediverseDisableConfirm'.tr()
+            : 'publisherFediverseEnableConfirm'.tr(),
+        currentStatus.enabled
+            ? 'publisherFediverseDisabled'.tr()
+            : 'publisherFediverseEnabled'.tr(),
+        isDanger: !currentStatus.enabled,
+      );
+      if (confirm != true) return;
+
+      try {
+        isLoading.value = true;
+        if (currentStatus.enabled) {
+          await apiClient.delete(
+            '/sphere/publishers/$publisherUname/fediverse',
+          );
+        } else {
+          await apiClient.post('/sphere/publishers/$publisherUname/fediverse');
+        }
+        ref.invalidate(publisherActorStatusProvider(publisherUname));
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'publisherFediverse'.tr(),
+      child: actorStatus.when(
+        data: (status) => SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            spacing: 16,
+            children: [
+              Card.outlined(
+                child: SwitchListTile(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  value: status.enabled,
+                  onChanged: isLoading.value ? null : (_) => toggleActor(),
+                  title: Text(
+                    status.enabled
+                        ? 'publisherFediverseEnabled'.tr()
+                        : 'publisherFediverseDisabled'.tr(),
+                  ),
+                  subtitle: Text(
+                    status.enabled
+                        ? 'publisherFediverseDisableHint'.tr()
+                        : 'publisherFediverseEnableHint'.tr(),
+                  ),
+                  secondary: isLoading.value
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          status.enabled
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: status.enabled ? Colors.green : Colors.grey,
+                        ),
+                ),
+              ).padding(horizontal: 16),
+              if (status.enabled) ...[
+                if (status.actor != null) ...[
+                  ListTile(
+                    leading: ActorPictureWidget(
+                      actor: status.actor!,
+                      radius: 24,
+                    ),
+                    title: Text(
+                      status.actor!.displayName ??
+                          status.actor!.username ??
+                          'unknown'.tr(),
+                    ),
+                    subtitle: Text(
+                      '@${status.actor!.username}@${status.actor!.instance.domain}',
+                    ),
+                    isThreeLine: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 28),
+                  ),
+                  ListTile(
+                    leading: const Icon(Symbols.link),
+                    title: Text('publisherFediverseActorUri').tr(),
+                    subtitle: Text(status.actorUri ?? 'N/A'),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 32),
+                  ),
+                ],
+                ListTile(
+                  leading: const Icon(Symbols.group),
+                  title: Text('publisherFediverseFollowerCount').tr(),
+                  subtitle: Text(
+                    status.followerCount > 0
+                        ? status.followerCount.toString()
+                        : 'publisherFediverseNoFollowers'.tr(),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 32),
+                ),
+              ],
+              ExpansionTile(
+                leading: const Icon(Symbols.info),
+                title: Text('publisherFediverseWhatIs').tr(),
+                tilePadding: const EdgeInsets.symmetric(horizontal: 32),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 32,
+                    ),
+                    child: Text('publisherFediverseAbout').tr(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => ResponseErrorWidget(
+          error: error,
+          onRetry: () =>
+              ref.invalidate(publisherActorStatusProvider(publisherUname)),
         ),
       ),
     );

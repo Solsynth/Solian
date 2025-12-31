@@ -212,7 +212,7 @@ final class AccountAppbarForcegroundColorProvider
 }
 
 String _$accountAppbarForcegroundColorHash() =>
-    r'127fcc7fd6ec6a41ac4a6975276b5271aa4fa7d0';
+    r'59e0049a5158ea653f0afd724df9ff2312b90050';
 
 final class AccountAppbarForcegroundColorFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Color?>, String> {

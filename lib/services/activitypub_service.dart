@@ -70,4 +70,21 @@ class ActivityPubService {
         .toList();
     return users;
   }
+
+  Future<SnActorStatusResponse> getPublisherActorStatus(
+    String publisherName,
+  ) async {
+    final response = await _client.get(
+      '/sphere/publishers/$publisherName/fediverse',
+    );
+    return SnActorStatusResponse.fromJson(response.data);
+  }
+
+  Future<void> enablePublisherActor(String publisherName) async {
+    await _client.post('/sphere/publishers/$publisherName/fediverse');
+  }
+
+  Future<void> disablePublisherActor(String publisherName) async {
+    await _client.delete('/sphere/publishers/$publisherName/fediverse');
+  }
 }

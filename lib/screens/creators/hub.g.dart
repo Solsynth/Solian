@@ -354,3 +354,81 @@ final class PublisherInvitesProvider
 }
 
 String _$publisherInvitesHash() => r'93aafc2f02af0a7a055ec1770b3999363dfaabdc';
+
+@ProviderFor(publisherActorStatus)
+const publisherActorStatusProvider = PublisherActorStatusFamily._();
+
+final class PublisherActorStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnActorStatusResponse>,
+          SnActorStatusResponse,
+          FutureOr<SnActorStatusResponse>
+        >
+    with
+        $FutureModifier<SnActorStatusResponse>,
+        $FutureProvider<SnActorStatusResponse> {
+  const PublisherActorStatusProvider._({
+    required PublisherActorStatusFamily super.from,
+    required String? super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherActorStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherActorStatusHash();
+
+  @override
+  String toString() {
+    return r'publisherActorStatusProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnActorStatusResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnActorStatusResponse> create(Ref ref) {
+    final argument = this.argument as String?;
+    return publisherActorStatus(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherActorStatusProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherActorStatusHash() =>
+    r'406117cb99b2aef236945ef0ef59e857d8835029';
+
+final class PublisherActorStatusFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnActorStatusResponse>, String?> {
+  const PublisherActorStatusFamily._()
+    : super(
+        retry: null,
+        name: r'publisherActorStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherActorStatusProvider call(String? publisherName) =>
+      PublisherActorStatusProvider._(argument: publisherName, from: this);
+
+  @override
+  String toString() => r'publisherActorStatusProvider';
+}
