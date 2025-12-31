@@ -476,9 +476,9 @@ class _AccountPublisherList extends StatelessWidget {
               subtitle: Text(
                 publisher.bio.isNotEmpty
                     ? publisher.bio
-                        .split('\n')
-                        .where((line) => line.trim().isNotEmpty)
-                        .join('\n')
+                          .split('\n')
+                          .where((line) => line.trim().isNotEmpty)
+                          .join('\n')
                     : 'descriptionNone'.tr(),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
@@ -550,16 +550,14 @@ class _AccountAction extends StatelessWidget {
                       ),
                     ),
                     onPressed: relationshipAction,
-                    label:
-                        Text(
-                          accountRelationship.value == null
-                              ? 'addFriendShort'
-                              : 'added',
-                        ).tr(),
-                    icon:
-                        accountRelationship.value == null
-                            ? const Icon(Symbols.person_add)
-                            : const Icon(Symbols.person_check),
+                    label: Text(
+                      accountRelationship.value == null
+                          ? 'addFriendShort'
+                          : 'added',
+                    ).tr(),
+                    icon: accountRelationship.value == null
+                        ? const Icon(Symbols.person_add)
+                        : const Icon(Symbols.person_check),
                   ),
                 ),
               if (accountRelationship.value == null ||
@@ -579,16 +577,14 @@ class _AccountAction extends StatelessWidget {
                       ),
                     ),
                     onPressed: blockAction,
-                    label:
-                        Text(
-                          accountRelationship.value == null
-                              ? 'blockUser'
-                              : 'unblockUser',
-                        ).tr(),
-                    icon:
-                        accountRelationship.value == null
-                            ? const Icon(Symbols.block)
-                            : const Icon(Symbols.person_cancel),
+                    label: Text(
+                      accountRelationship.value == null
+                          ? 'blockUser'
+                          : 'unblockUser',
+                    ).tr(),
+                    icon: accountRelationship.value == null
+                        ? const Icon(Symbols.block)
+                        : const Icon(Symbols.person_cancel),
                   ),
                 ),
             ],
@@ -600,13 +596,12 @@ class _AccountAction extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: directMessageAction,
                   icon: const Icon(Symbols.message),
-                  label:
-                      Text(
-                        accountChat.value == null
-                            ? 'createDirectMessage'
-                            : 'gotoDirectMessage',
-                        maxLines: 1,
-                      ).tr(),
+                  label: Text(
+                    accountChat.value == null
+                        ? 'createDirectMessage'
+                        : 'gotoDirectMessage',
+                    maxLines: 1,
+                  ).tr(),
                 ),
               ),
               IconButton.filled(
@@ -664,7 +659,7 @@ Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
     if (account.profile.background == null) return null;
     final colors = await ColorExtractionService.getColorsFromImage(
       CloudImageWidget.provider(
-        fileId: account.profile.background!.id,
+        file: account.profile.background!,
         serverUrl: ref.watch(serverUrlProvider),
       ),
     );
@@ -838,262 +833,256 @@ class AccountProfileScreen extends HookConsumerWidget {
         final accountPublishers = ref.watch(accountPublishersProvider(data.id));
         return AppScaffold(
           isNoBackground: false,
-          appBar:
-              isWideScreen(context)
-                  ? AppBar(
-                    foregroundColor: appbarColor.value,
-                    leading: PageBackButton(
-                      color: appbarColor.value,
+          appBar: isWideScreen(context)
+              ? AppBar(
+                  foregroundColor: appbarColor.value,
+                  leading: PageBackButton(
+                    color: appbarColor.value,
+                    shadows: [appbarShadow],
+                  ),
+                  title: Text(
+                    data.nick,
+                    style: TextStyle(
+                      color:
+                          appbarColor.value ??
+                          Theme.of(context).appBarTheme.foregroundColor,
                       shadows: [appbarShadow],
                     ),
-                    title: Text(
-                      data.nick,
-                      style: TextStyle(
-                        color:
-                            appbarColor.value ??
-                            Theme.of(context).appBarTheme.foregroundColor,
-                        shadows: [appbarShadow],
-                      ),
-                    ),
-                  )
-                  : null,
-          body:
-              isWideScreen(context)
-                  ? Row(
-                    children: [
-                      Flexible(
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: _AccountBasicInfo(
-                                data: data,
-                                uname: name,
-                                accountDeveloper: accountDeveloper,
-                              ).padding(horizontal: 4, top: 20),
-                            ),
-                            if (data.badges.isNotEmpty)
-                              SliverToBoxAdapter(
-                                child: Card(
-                                  child: BadgeList(
-                                    badges: data.badges,
-                                  ).padding(horizontal: 26, vertical: 20),
-                                ).padding(left: 2, right: 4),
-                              ),
-                            SliverToBoxAdapter(
-                              child: Column(
-                                spacing: 12,
-                                children: [
-                                  LevelingProgressCard(
-                                    level: data.profile.level,
-                                    experience: data.profile.experience,
-                                    progress: data.profile.levelingProgress,
-                                  ).padding(left: 2, right: 4),
-                                  if (data.profile.verification != null)
-                                    Card(
-                                      margin: EdgeInsets.zero,
-                                      child: VerificationStatusCard(
-                                        mark: data.profile.verification!,
-                                      ),
-                                    ),
-                                ],
-                              ).padding(horizontal: 4, top: 8),
-                            ),
-                            SliverToBoxAdapter(
-                              child: _AccountProfileBio(
-                                data: data,
-                              ).padding(top: 4),
-                            ),
-                            if (data.profile.links.isNotEmpty)
-                              SliverToBoxAdapter(
-                                child: _AccountProfileLinks(data: data),
-                              ),
-                            if (data.contacts.any((c) => c.isPublic))
-                              SliverToBoxAdapter(
-                                child: _AccountProfileContacts(data: data),
-                              ),
-                            SliverToBoxAdapter(
-                              child: _AccountProfileDetail(data: data),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Flexible(
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverGap(18),
-                            SliverToBoxAdapter(
-                              child: ActivityPresenceWidget(
-                                uname: name,
-                              ).padding(horizontal: 4, top: 4, bottom: 4),
-                            ),
-                            SliverToBoxAdapter(
-                              child: _AccountPublisherList(
-                                publishers: accountPublishers.value ?? [],
-                              ),
-                            ),
-                            if (user.value != null && !isCurrentUser)
-                              SliverToBoxAdapter(
-                                child: _AccountAction(
-                                  data: data,
-                                  accountRelationship: accountRelationship,
-                                  accountChat: accountChat,
-                                  relationshipAction: relationshipAction,
-                                  blockAction: blockAction,
-                                  directMessageAction: directMessageAction,
-                                ),
-                              ),
+                  ),
+                )
+              : null,
+          body: isWideScreen(context)
+              ? Row(
+                  children: [
+                    Flexible(
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: _AccountBasicInfo(
+                              data: data,
+                              uname: name,
+                              accountDeveloper: accountDeveloper,
+                            ).padding(horizontal: 4, top: 20),
+                          ),
+                          if (data.badges.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Card(
-                                child: FortuneGraphWidget(
-                                  events: accountEvents,
-                                  eventCalandarUser: data.name,
-                                  margin: EdgeInsets.zero,
-                                ),
+                                child: BadgeList(
+                                  badges: data.badges,
+                                ).padding(horizontal: 26, vertical: 20),
+                              ).padding(left: 2, right: 4),
+                            ),
+                          SliverToBoxAdapter(
+                            child: Column(
+                              spacing: 12,
+                              children: [
+                                LevelingProgressCard(
+                                  level: data.profile.level,
+                                  experience: data.profile.experience,
+                                  progress: data.profile.levelingProgress,
+                                ).padding(left: 2, right: 4),
+                                if (data.profile.verification != null)
+                                  Card(
+                                    margin: EdgeInsets.zero,
+                                    child: VerificationStatusCard(
+                                      mark: data.profile.verification!,
+                                    ),
+                                  ),
+                              ],
+                            ).padding(horizontal: 4, top: 8),
+                          ),
+                          SliverToBoxAdapter(
+                            child: _AccountProfileBio(
+                              data: data,
+                            ).padding(top: 4),
+                          ),
+                          if (data.profile.links.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: _AccountProfileLinks(data: data),
+                            ),
+                          if (data.contacts.any((c) => c.isPublic))
+                            SliverToBoxAdapter(
+                              child: _AccountProfileContacts(data: data),
+                            ),
+                          SliverToBoxAdapter(
+                            child: _AccountProfileDetail(data: data),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Flexible(
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverGap(18),
+                          SliverToBoxAdapter(
+                            child: ActivityPresenceWidget(
+                              uname: name,
+                            ).padding(horizontal: 4, top: 4, bottom: 4),
+                          ),
+                          SliverToBoxAdapter(
+                            child: _AccountPublisherList(
+                              publishers: accountPublishers.value ?? [],
+                            ),
+                          ),
+                          if (user.value != null && !isCurrentUser)
+                            SliverToBoxAdapter(
+                              child: _AccountAction(
+                                data: data,
+                                accountRelationship: accountRelationship,
+                                accountChat: accountChat,
+                                relationshipAction: relationshipAction,
+                                blockAction: blockAction,
+                                directMessageAction: directMessageAction,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).padding(horizontal: 24)
-                  : CustomScrollView(
-                    slivers: [
-                      SliverAppBar(
-                        foregroundColor: appbarColor.value,
-                        expandedHeight: 180,
-                        pinned: true,
-                        leading: PageBackButton(
-                          color: appbarColor.value,
-                          shadows: [appbarShadow],
-                        ),
-                        flexibleSpace: Stack(
-                          children: [
-                            Positioned.fill(
-                              child:
-                                  data.profile.background?.id != null
-                                      ? CloudImageWidget(
-                                        file: data.profile.background,
-                                      )
-                                      : Container(
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).appBarTheme.backgroundColor,
-                                      ),
-                            ),
-                            FlexibleSpaceBar(
-                              title: Text(
-                                data.nick,
-                                style: TextStyle(
-                                  color:
-                                      appbarColor.value ??
-                                      Theme.of(
-                                        context,
-                                      ).appBarTheme.foregroundColor,
-                                  shadows: [appbarShadow],
-                                ),
+                          SliverToBoxAdapter(
+                            child: Card(
+                              child: FortuneGraphWidget(
+                                events: accountEvents,
+                                eventCalandarUser: data.name,
+                                margin: EdgeInsets.zero,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      SliverToBoxAdapter(
-                        child: _AccountBasicInfo(
-                          data: data,
-                          uname: name,
-                          accountDeveloper: accountDeveloper,
-                        ).padding(horizontal: 4, top: 8),
+                    ),
+                  ],
+                ).padding(horizontal: 24)
+              : CustomScrollView(
+                  slivers: [
+                    SliverAppBar(
+                      foregroundColor: appbarColor.value,
+                      expandedHeight: 180,
+                      pinned: true,
+                      leading: PageBackButton(
+                        color: appbarColor.value,
+                        shadows: [appbarShadow],
                       ),
-                      if (data.badges.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Card(
-                            child: BadgeList(
-                              badges: data.badges,
-                            ).padding(horizontal: 26, vertical: 20),
-                          ).padding(horizontal: 4),
-                        ),
-                      SliverToBoxAdapter(
-                        child: Column(
-                          children: [
-                            LevelingProgressCard(
-                              level: data.profile.level,
-                              experience: data.profile.experience,
-                              progress: data.profile.levelingProgress,
-                            ).padding(top: 8, horizontal: 8, bottom: 4),
-                            if (data.profile.verification != null)
-                              Card(
-                                child: VerificationStatusCard(
-                                  mark: data.profile.verification!,
-                                ),
-                              ).padding(horizontal: 4),
-                          ],
-                        ),
+                      flexibleSpace: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: data.profile.background?.id != null
+                                ? CloudImageWidget(
+                                    file: data.profile.background,
+                                  )
+                                : Container(
+                                    color: Theme.of(
+                                      context,
+                                    ).appBarTheme.backgroundColor,
+                                  ),
+                          ),
+                          FlexibleSpaceBar(
+                            title: Text(
+                              data.nick,
+                              style: TextStyle(
+                                color:
+                                    appbarColor.value ??
+                                    Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                shadows: [appbarShadow],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SliverToBoxAdapter(
-                        child: _AccountProfileBio(
-                          data: data,
-                        ).padding(horizontal: 4),
-                      ),
-                      if (data.profile.links.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: _AccountProfileLinks(
-                            data: data,
-                          ).padding(horizontal: 4),
-                        ),
-                      if (data.contacts.any((c) => c.isPublic))
-                        SliverToBoxAdapter(
-                          child: _AccountProfileContacts(
-                            data: data,
-                          ).padding(horizontal: 4),
-                        ),
-                      SliverToBoxAdapter(
-                        child: ActivityPresenceWidget(
-                          uname: name,
-                        ).padding(horizontal: 8, top: 4, bottom: 4),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _AccountPublisherList(
-                          publishers: accountPublishers.value ?? [],
-                        ).padding(horizontal: 4),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _AccountProfileDetail(
-                          data: data,
-                        ).padding(horizontal: 4),
-                      ),
-                      if (user.value != null && !isCurrentUser)
-                        SliverToBoxAdapter(
-                          child: _AccountAction(
-                            data: data,
-                            accountRelationship: accountRelationship,
-                            accountChat: accountChat,
-                            relationshipAction: relationshipAction,
-                            blockAction: blockAction,
-                            directMessageAction: directMessageAction,
-                          ).padding(horizontal: 4),
-                        ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _AccountBasicInfo(
+                        data: data,
+                        uname: name,
+                        accountDeveloper: accountDeveloper,
+                      ).padding(horizontal: 4, top: 8),
+                    ),
+                    if (data.badges.isNotEmpty)
                       SliverToBoxAdapter(
                         child: Card(
-                          child: FortuneGraphWidget(
-                            events: accountEvents,
-                            eventCalandarUser: data.name,
-                          ),
+                          child: BadgeList(
+                            badges: data.badges,
+                          ).padding(horizontal: 26, vertical: 20),
                         ).padding(horizontal: 4),
                       ),
-                    ],
-                  ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          LevelingProgressCard(
+                            level: data.profile.level,
+                            experience: data.profile.experience,
+                            progress: data.profile.levelingProgress,
+                          ).padding(top: 8, horizontal: 8, bottom: 4),
+                          if (data.profile.verification != null)
+                            Card(
+                              child: VerificationStatusCard(
+                                mark: data.profile.verification!,
+                              ),
+                            ).padding(horizontal: 4),
+                        ],
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _AccountProfileBio(
+                        data: data,
+                      ).padding(horizontal: 4),
+                    ),
+                    if (data.profile.links.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: _AccountProfileLinks(
+                          data: data,
+                        ).padding(horizontal: 4),
+                      ),
+                    if (data.contacts.any((c) => c.isPublic))
+                      SliverToBoxAdapter(
+                        child: _AccountProfileContacts(
+                          data: data,
+                        ).padding(horizontal: 4),
+                      ),
+                    SliverToBoxAdapter(
+                      child: ActivityPresenceWidget(
+                        uname: name,
+                      ).padding(horizontal: 8, top: 4, bottom: 4),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _AccountPublisherList(
+                        publishers: accountPublishers.value ?? [],
+                      ).padding(horizontal: 4),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _AccountProfileDetail(
+                        data: data,
+                      ).padding(horizontal: 4),
+                    ),
+                    if (user.value != null && !isCurrentUser)
+                      SliverToBoxAdapter(
+                        child: _AccountAction(
+                          data: data,
+                          accountRelationship: accountRelationship,
+                          accountChat: accountChat,
+                          relationshipAction: relationshipAction,
+                          blockAction: blockAction,
+                          directMessageAction: directMessageAction,
+                        ).padding(horizontal: 4),
+                      ),
+                    SliverToBoxAdapter(
+                      child: Card(
+                        child: FortuneGraphWidget(
+                          events: accountEvents,
+                          eventCalandarUser: data.name,
+                        ),
+                      ).padding(horizontal: 4),
+                    ),
+                  ],
+                ),
         );
       },
-      error:
-          (error, stackTrace) => AppScaffold(
-            appBar: AppBar(leading: const PageBackButton()),
-            body: Center(child: Text(error.toString())),
-          ),
-      loading:
-          () => AppScaffold(
-            appBar: AppBar(leading: const PageBackButton()),
-            body: Center(child: CircularProgressIndicator()),
-          ),
+      error: (error, stackTrace) => AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Center(child: Text(error.toString())),
+      ),
+      loading: () => AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

@@ -33,7 +33,7 @@ final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
       if (realm?.background == null) return null;
       final colors = await ColorExtractionService.getColorsFromImage(
         CloudImageWidget.provider(
-          fileId: realm!.background!.id,
+          file: realm!.background!,
           serverUrl: ref.watch(serverUrlProvider),
         ),
       );

@@ -21,7 +21,6 @@ import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import 'image.dart';
@@ -139,7 +138,7 @@ class MarkdownTextContent extends HookConsumerWidget {
             style:
                 linkStyle ??
                 TextStyle(color: Theme.of(context).colorScheme.primary),
-            onTap: (href) {
+            onTap: (href) async {
               final url = Uri.tryParse(href);
               if (url != null) {
                 if (url.scheme == 'solian') {
@@ -147,22 +146,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                   context.push(fullPath);
                   return;
                 }
-                final whitelistDomains = ['solian.app', 'solsynth.dev'];
-                if (whitelistDomains.any(
-                  (domain) =>
-                      url.host == domain || url.host.endsWith('.$domain'),
-                )) {
-                  launchUrl(url, mode: LaunchMode.externalApplication);
-                  return;
-                }
-                showConfirmAlert(
-                  'openLinkConfirmDescription'.tr(args: [url.toString()]),
-                  'openLinkConfirm'.tr(),
-                ).then((value) {
-                  if (value) {
-                    launchUrl(url, mode: LaunchMode.externalApplication);
-                  }
-                });
+                await openExternalLink(url, ref);
               } else {
                 showSnackBar(
                   'brokenLink'.tr(args: [href]),

@@ -146,7 +146,7 @@ class PostReplyPreview extends HookConsumerWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+      return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
     return ProfilePictureWidget(fileId: null, radius: radius);
@@ -452,7 +452,7 @@ class ReferencedPostWidget extends StatelessWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+      return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
     return ProfilePictureWidget(fileId: null, radius: radius);
@@ -657,7 +657,7 @@ class ReferencedPostWidget extends StatelessWidget {
   }
 }
 
-class PostHeader extends StatelessWidget {
+class PostHeader extends HookConsumerWidget {
   final SnPost item;
   final bool isFullPost;
   final Widget? trailing;
@@ -695,7 +695,7 @@ class PostHeader extends StatelessWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+      return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
     return ProfilePictureWidget(fileId: null, radius: radius);
@@ -746,7 +746,7 @@ class PostHeader extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
         Row(
@@ -756,12 +756,12 @@ class PostHeader extends StatelessWidget {
             GestureDetector(
               onTap: isInteractive && _getPublisherName(item) != null
                   ? () {
-                      context.pushNamed(
-                        'publisherProfile',
-                        pathParameters: {
-                          'name': _getPublisherName(item) as String,
-                        },
-                      );
+                      if (item.publisher != null) {
+                        context.pushNamed(
+                          'publisherProfile',
+                          pathParameters: {'name': item.publisher!.name},
+                        );
+                      }
                     }
                   : null,
               child: _buildProfilePicture(context, item, radius: 16),

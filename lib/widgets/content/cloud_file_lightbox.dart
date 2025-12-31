@@ -62,7 +62,7 @@ class CloudFileLightbox extends HookConsumerWidget {
               controller: photoViewController,
               heroAttributes: PhotoViewHeroAttributes(tag: heroTag),
               imageProvider: CloudImageWidget.provider(
-                fileId: item.id,
+                file: item,
                 serverUrl: serverUrl,
                 original: showOriginal.value,
               ),
@@ -118,20 +118,21 @@ class CloudFileLightbox extends HookConsumerWidget {
                 onPressed: showInfoSheet,
                 shadows: WhiteShadows.standard,
               ),
-              FileActionButton.more(
-                onPressed: () {
-                  final router = GoRouter.of(context);
-                  Navigator.of(context).pop(context);
-                  Future(() {
-                    router.pushNamed(
-                      'fileDetail',
-                      pathParameters: {'id': item.id},
-                      extra: item,
-                    );
-                  });
-                },
-                shadows: WhiteShadows.standard,
-              ),
+              if (item.url != null)
+                FileActionButton.more(
+                  onPressed: () {
+                    final router = GoRouter.of(context);
+                    Navigator.of(context).pop(context);
+                    Future(() {
+                      router.pushNamed(
+                        'fileDetail',
+                        pathParameters: {'id': item.id},
+                        extra: item,
+                      );
+                    });
+                  },
+                  shadows: WhiteShadows.standard,
+                ),
             ],
             showExtraOnLeft: true,
           ),

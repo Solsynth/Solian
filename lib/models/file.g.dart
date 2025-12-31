@@ -55,6 +55,7 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   deletedAt: json['deleted_at'] == null
       ? null
       : DateTime.parse(json['deleted_at'] as String),
+  url: json['url'] as String?,
 );
 
 Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
@@ -74,6 +75,7 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'url': instance.url,
     };
 
 _SnCloudFileIndex _$SnCloudFileIndexFromJson(Map<String, dynamic> json) =>

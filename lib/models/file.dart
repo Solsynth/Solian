@@ -55,6 +55,7 @@ sealed class SnCloudFile with _$SnCloudFile {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    String? url,
   }) = _SnCloudFile;
 
   factory SnCloudFile.fromJson(Map<String, dynamic> json) =>

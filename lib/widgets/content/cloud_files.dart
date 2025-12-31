@@ -41,7 +41,7 @@ class CloudFileWidget extends HookConsumerWidget {
       appSettingsProvider.select((s) => s.dataSavingMode),
     );
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/${item.id}';
+    final uri = item.url ?? '$serverUrl/drive/files/${item.id}';
 
     final unlocked = useState(false);
 
@@ -529,7 +529,7 @@ class CloudImageWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/${file?.id ?? fileId}';
+    final uri = file?.url ?? '$serverUrl/drive/files/${file?.id ?? fileId}';
 
     return AspectRatio(
       aspectRatio: aspectRatio,
@@ -540,13 +540,15 @@ class CloudImageWidget extends ConsumerWidget {
   }
 
   static ImageProvider provider({
-    required String fileId,
+    required SnCloudFile file,
     required String serverUrl,
     bool original = false,
   }) {
-    final uri = original
-        ? '$serverUrl/drive/files/$fileId?original=true'
-        : '$serverUrl/drive/files/$fileId';
+    final uri =
+        file.url ??
+        (original
+            ? '$serverUrl/drive/files/${file.id}?original=true'
+            : '$serverUrl/drive/files/${file.id}');
     return CachedNetworkImageProvider(uri);
   }
 }

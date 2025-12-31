@@ -167,7 +167,7 @@ class ImageFileContent extends HookConsumerWidget {
               ),
               controller: photoViewController,
               imageProvider: CloudImageWidget.provider(
-                fileId: item.id,
+                file: item,
                 serverUrl: ref.watch(serverUrlProvider),
                 original: showOriginal.value,
               ),

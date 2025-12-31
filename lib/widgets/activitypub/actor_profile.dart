@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:island/models/activitypub.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class ActorAvatarWidget extends StatelessWidget {
+class ActorPictureWidget extends StatelessWidget {
   final SnActivityPubActor actor;
   final double radius;
 
-  const ActorAvatarWidget({super.key, required this.actor, this.radius = 16});
+  const ActorPictureWidget({super.key, required this.actor, this.radius = 16});
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +29,12 @@ class ActorAvatarWidget extends StatelessWidget {
           backgroundImage: CachedNetworkImageProvider(avatarUrl),
           radius: radius,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          child: Icon(
-            Symbols.person,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          child: avatarUrl.isNotEmpty
+              ? null
+              : Icon(
+                  Symbols.person,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
         ),
         Positioned(
           right: 0,

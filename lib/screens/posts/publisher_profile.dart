@@ -393,7 +393,7 @@ Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
     if (publisher.background == null) return null;
     final colors = await ColorExtractionService.getColorsFromImage(
       CloudImageWidget.provider(
-        fileId: publisher.background!.id,
+        file: publisher.background!,
         serverUrl: ref.watch(serverUrlProvider),
       ),
     );
