@@ -11,6 +11,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_pfc.dart';
+import 'package:island/widgets/activitypub/actor_profile.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
@@ -119,7 +120,10 @@ class PostReactionSheet extends StatelessWidget {
         child: Column(
           children: [
             TabBar(
-              tabs: [Tab(text: 'overview'.tr()), Tab(text: 'custom'.tr())],
+              tabs: [
+                Tab(text: 'overview'.tr()),
+                Tab(text: 'custom'.tr()),
+              ],
             ),
             Expanded(
               child: TabBarView(
@@ -162,11 +166,10 @@ class PostReactionSheet extends StatelessWidget {
   }
 
   Widget _buildCustomReactionSection(BuildContext context) {
-    final customReactions =
-        reactionsCount.entries
-            .where((entry) => entry.key.contains('+'))
-            .map((entry) => entry.key)
-            .toList();
+    final customReactions = reactionsCount.entries
+        .where((entry) => entry.key.contains('+'))
+        .map((entry) => entry.key)
+        .toList();
 
     if (customReactions.isEmpty) return const SizedBox.shrink();
 
@@ -235,10 +238,9 @@ class PostReactionSheet extends StatelessWidget {
                       offset: Offset(0, 0),
                       child: Card(
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
                         child: InkWell(
                           borderRadius: const BorderRadius.all(
                             Radius.circular(8),
@@ -264,14 +266,14 @@ class PostReactionSheet extends StatelessWidget {
                                     fit: BoxFit.contain,
                                     colorFilter:
                                         (reactionsMade[symbol] ?? false)
-                                            ? ColorFilter.mode(
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primaryContainer
-                                                  .withOpacity(0.7),
-                                              BlendMode.srcATop,
-                                            )
-                                            : null,
+                                        ? ColorFilter.mode(
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withOpacity(0.7),
+                                            BlendMode.srcATop,
+                                          )
+                                        : null,
                                   ),
                                 ),
                               ),
@@ -314,11 +316,10 @@ class PostReactionSheet extends StatelessWidget {
     String title,
     int attitude,
   ) {
-    final allReactions =
-        kReactionTemplates.entries
-            .where((entry) => entry.value.attitude == attitude)
-            .map((entry) => entry.key)
-            .toList();
+    final allReactions = kReactionTemplates.entries
+        .where((entry) => entry.value.attitude == attitude)
+        .map((entry) => entry.key)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,28 +385,26 @@ class PostReactionSheet extends StatelessWidget {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        decoration:
-                            hasImage
-                                ? BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/stickers/$symbol.png',
-                                    ),
-                                    fit: BoxFit.cover,
-                                    colorFilter:
-                                        (reactionsMade[symbol] ?? false)
-                                            ? ColorFilter.mode(
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primaryContainer
-                                                  .withOpacity(0.7),
-                                              BlendMode.srcATop,
-                                            )
-                                            : null,
+                        decoration: hasImage
+                            ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                    'assets/images/stickers/$symbol.png',
                                   ),
-                                )
-                                : null,
+                                  fit: BoxFit.cover,
+                                  colorFilter: (reactionsMade[symbol] ?? false)
+                                      ? ColorFilter.mode(
+                                          Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withOpacity(0.7),
+                                          BlendMode.srcATop,
+                                        )
+                                      : null,
+                                ),
+                              )
+                            : null,
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -428,10 +427,9 @@ class PostReactionSheet extends StatelessWidget {
                                 ),
                               ),
                             Column(
-                              mainAxisAlignment:
-                                  hasImage
-                                      ? MainAxisAlignment.end
-                                      : MainAxisAlignment.center,
+                              mainAxisAlignment: hasImage
+                                  ? MainAxisAlignment.end
+                                  : MainAxisAlignment.center,
                               children: [
                                 if (!hasImage) _buildReactionIcon(symbol, 36),
                                 Text(
@@ -439,16 +437,15 @@ class PostReactionSheet extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: hasImage ? Colors.white : null,
-                                    shadows:
-                                        hasImage
-                                            ? [
-                                              const Shadow(
-                                                blurRadius: 4,
-                                                offset: Offset(0.5, 0.5),
-                                                color: Colors.black,
-                                              ),
-                                            ]
-                                            : null,
+                                    shadows: hasImage
+                                        ? [
+                                            const Shadow(
+                                              blurRadius: 4,
+                                              offset: Offset(0.5, 0.5),
+                                              color: Colors.black,
+                                            ),
+                                          ]
+                                        : null,
                                   ),
                                 ).tr(),
                                 if (hasImage) const Gap(4),
@@ -518,12 +515,18 @@ class ReactionDetailsPopup extends HookConsumerWidget {
                 itemBuilder: (context, index, reaction) {
                   return ListTile(
                     leading: AccountPfcGestureDetector(
-                      uname: reaction.account?.name ?? 'unknown',
-                      child: ProfilePictureWidget(
-                        file: reaction.account?.profile.picture,
-                      ),
+                      uname: reaction.account?.name,
+                      child: reaction.actor != null
+                          ? ActorPictureWidget(actor: reaction.actor!)
+                          : ProfilePictureWidget(
+                              file: reaction.account?.profile.picture,
+                            ),
                     ),
-                    title: Text(reaction.account?.nick ?? 'unknown'.tr()),
+                    title: Text(
+                      reaction.actor?.displayName ??
+                          reaction.account?.nick ??
+                          'unknown'.tr(),
+                    ),
                     subtitle: Text(
                       '${reaction.createdAt.formatRelative(context)} · ${reaction.createdAt.formatSystem()}',
                     ),
@@ -626,19 +629,22 @@ class CustomReactionForm extends HookConsumerWidget {
                     padding,
                     screenSize.width - popoverWidth - padding,
                   );
-                  final horizontalOffset = ((screenSize.width - popoverWidth) /
-                          2)
-                      .clamp(padding, maxHorizontalOffset);
+                  final horizontalOffset =
+                      ((screenSize.width - popoverWidth) / 2).clamp(
+                        padding,
+                        maxHorizontalOffset,
+                      );
 
                   // Calculate safe vertical position (bottom-aligned, but within bounds)
                   final maxVerticalOffset = math.max(
                     padding,
                     screenSize.height - popoverHeight - padding,
                   );
-                  final verticalOffset = (screenSize.height -
-                          popoverHeight -
-                          padding)
-                      .clamp(padding, maxVerticalOffset);
+                  final verticalOffset =
+                      (screenSize.height - popoverHeight - padding).clamp(
+                        padding,
+                        maxVerticalOffset,
+                      );
 
                   await showStickerPickerPopover(
                     context,
@@ -714,12 +720,11 @@ Future<void> showReactionDetailsPopup(
   await showPopupCard<void>(
     offset: offset,
     context: context,
-    builder:
-        (context) => ReactionDetailsPopup(
-          symbol: symbol,
-          postId: postId,
-          totalCount: totalCount,
-        ),
+    builder: (context) => ReactionDetailsPopup(
+      symbol: symbol,
+      postId: postId,
+      totalCount: totalCount,
+    ),
     alignment: Alignment.center,
     dimBackground: true,
   );

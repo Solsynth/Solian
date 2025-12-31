@@ -162,10 +162,12 @@ sealed class SnPostReaction with _$SnPostReaction {
     required String symbol,
     required int attitude,
     required String postId,
-    required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
-    @Default(null) SnAccount? account,
+    String? actorId,
+    SnActivityPubActor? actor,
+    String? accountId,
+    SnAccount? account,
     DateTime? deletedAt,
   }) = _SnPostReaction;
 

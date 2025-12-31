@@ -248,9 +248,13 @@ _SnPostReaction _$SnPostReactionFromJson(Map<String, dynamic> json) =>
       symbol: json['symbol'] as String,
       attitude: (json['attitude'] as num).toInt(),
       postId: json['post_id'] as String,
-      accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      actorId: json['actor_id'] as String?,
+      actor: json['actor'] == null
+          ? null
+          : SnActivityPubActor.fromJson(json['actor'] as Map<String, dynamic>),
+      accountId: json['account_id'] as String?,
       account: json['account'] == null
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
@@ -265,9 +269,11 @@ Map<String, dynamic> _$SnPostReactionToJson(_SnPostReaction instance) =>
       'symbol': instance.symbol,
       'attitude': instance.attitude,
       'post_id': instance.postId,
-      'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
+      'actor_id': instance.actorId,
+      'actor': instance.actor?.toJson(),
+      'account_id': instance.accountId,
       'account': instance.account?.toJson(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };

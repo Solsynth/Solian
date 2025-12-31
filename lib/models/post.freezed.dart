@@ -1985,7 +1985,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnPostReaction {
 
- String get id; String get symbol; int get attitude; String get postId; String get accountId; DateTime get createdAt; DateTime get updatedAt; SnAccount? get account; DateTime? get deletedAt;
+ String get id; String get symbol; int get attitude; String get postId; DateTime get createdAt; DateTime get updatedAt; String? get actorId; SnActivityPubActor? get actor; String? get accountId; SnAccount? get account; DateTime? get deletedAt;
 /// Create a copy of SnPostReaction
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1998,16 +1998,16 @@ $SnPostReactionCopyWith<SnPostReaction> get copyWith => _$SnPostReactionCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.actorId, actorId) || other.actorId == actorId)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,accountId,createdAt,updatedAt,account,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,createdAt,updatedAt,actorId,actor,accountId,account,deletedAt);
 
 @override
 String toString() {
-  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, deletedAt: $deletedAt)';
+  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, createdAt: $createdAt, updatedAt: $updatedAt, actorId: $actorId, actor: $actor, accountId: $accountId, account: $account, deletedAt: $deletedAt)';
 }
 
 
@@ -2018,11 +2018,11 @@ abstract mixin class $SnPostReactionCopyWith<$Res>  {
   factory $SnPostReactionCopyWith(SnPostReaction value, $Res Function(SnPostReaction) _then) = _$SnPostReactionCopyWithImpl;
 @useResult
 $Res call({
- String id, String symbol, int attitude, String postId, String accountId, DateTime createdAt, DateTime updatedAt, SnAccount? account, DateTime? deletedAt
+ String id, String symbol, int attitude, String postId, DateTime createdAt, DateTime updatedAt, String? actorId, SnActivityPubActor? actor, String? accountId, SnAccount? account, DateTime? deletedAt
 });
 
 
-$SnAccountCopyWith<$Res>? get account;
+$SnActivityPubActorCopyWith<$Res>? get actor;$SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -2035,21 +2035,35 @@ class _$SnPostReactionCopyWithImpl<$Res>
 
 /// Create a copy of SnPostReaction
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = freezed,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? createdAt = null,Object? updatedAt = null,Object? actorId = freezed,Object? actor = freezed,Object? accountId = freezed,Object? account = freezed,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
 as int,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
-as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as DateTime,actorId: freezed == actorId ? _self.actorId : actorId // ignore: cast_nullable_to_non_nullable
+as String?,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
+as SnActivityPubActor?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
 /// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActivityPubActorCopyWith<$Res>? get actor {
+    if (_self.actor == null) {
+    return null;
+  }
+
+  return $SnActivityPubActorCopyWith<$Res>(_self.actor!, (value) {
+    return _then(_self.copyWith(actor: value));
+  });
+}/// Create a copy of SnPostReaction
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -2140,10 +2154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  DateTime createdAt,  DateTime updatedAt,  String? actorId,  SnActivityPubActor? actor,  String? accountId,  SnAccount? account,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPostReaction() when $default != null:
-return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);case _:
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.createdAt,_that.updatedAt,_that.actorId,_that.actor,_that.accountId,_that.account,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -2161,10 +2175,10 @@ return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountI
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  DateTime createdAt,  DateTime updatedAt,  String? actorId,  SnActivityPubActor? actor,  String? accountId,  SnAccount? account,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnPostReaction():
-return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);}
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.createdAt,_that.updatedAt,_that.actorId,_that.actor,_that.accountId,_that.account,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2178,10 +2192,10 @@ return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountI
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String symbol,  int attitude,  String postId,  DateTime createdAt,  DateTime updatedAt,  String? actorId,  SnActivityPubActor? actor,  String? accountId,  SnAccount? account,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPostReaction() when $default != null:
-return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);case _:
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.createdAt,_that.updatedAt,_that.actorId,_that.actor,_that.accountId,_that.account,_that.deletedAt);case _:
   return null;
 
 }
@@ -2193,17 +2207,19 @@ return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountI
 @JsonSerializable()
 
 class _SnPostReaction implements SnPostReaction {
-  const _SnPostReaction({required this.id, required this.symbol, required this.attitude, required this.postId, required this.accountId, required this.createdAt, required this.updatedAt, this.account = null, this.deletedAt});
+  const _SnPostReaction({required this.id, required this.symbol, required this.attitude, required this.postId, required this.createdAt, required this.updatedAt, this.actorId, this.actor, this.accountId, this.account, this.deletedAt});
   factory _SnPostReaction.fromJson(Map<String, dynamic> json) => _$SnPostReactionFromJson(json);
 
 @override final  String id;
 @override final  String symbol;
 @override final  int attitude;
 @override final  String postId;
-@override final  String accountId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
-@override@JsonKey() final  SnAccount? account;
+@override final  String? actorId;
+@override final  SnActivityPubActor? actor;
+@override final  String? accountId;
+@override final  SnAccount? account;
 @override final  DateTime? deletedAt;
 
 /// Create a copy of SnPostReaction
@@ -2219,16 +2235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.actorId, actorId) || other.actorId == actorId)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,accountId,createdAt,updatedAt,account,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,createdAt,updatedAt,actorId,actor,accountId,account,deletedAt);
 
 @override
 String toString() {
-  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, deletedAt: $deletedAt)';
+  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, createdAt: $createdAt, updatedAt: $updatedAt, actorId: $actorId, actor: $actor, accountId: $accountId, account: $account, deletedAt: $deletedAt)';
 }
 
 
@@ -2239,11 +2255,11 @@ abstract mixin class _$SnPostReactionCopyWith<$Res> implements $SnPostReactionCo
   factory _$SnPostReactionCopyWith(_SnPostReaction value, $Res Function(_SnPostReaction) _then) = __$SnPostReactionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String symbol, int attitude, String postId, String accountId, DateTime createdAt, DateTime updatedAt, SnAccount? account, DateTime? deletedAt
+ String id, String symbol, int attitude, String postId, DateTime createdAt, DateTime updatedAt, String? actorId, SnActivityPubActor? actor, String? accountId, SnAccount? account, DateTime? deletedAt
 });
 
 
-@override $SnAccountCopyWith<$Res>? get account;
+@override $SnActivityPubActorCopyWith<$Res>? get actor;@override $SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -2256,22 +2272,36 @@ class __$SnPostReactionCopyWithImpl<$Res>
 
 /// Create a copy of SnPostReaction
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = freezed,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? createdAt = null,Object? updatedAt = null,Object? actorId = freezed,Object? actor = freezed,Object? accountId = freezed,Object? account = freezed,Object? deletedAt = freezed,}) {
   return _then(_SnPostReaction(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
 as int,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
-as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as DateTime,actorId: freezed == actorId ? _self.actorId : actorId // ignore: cast_nullable_to_non_nullable
+as String?,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
+as SnActivityPubActor?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
 
 /// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActivityPubActorCopyWith<$Res>? get actor {
+    if (_self.actor == null) {
+    return null;
+  }
+
+  return $SnActivityPubActorCopyWith<$Res>(_self.actor!, (value) {
+    return _then(_self.copyWith(actor: value));
+  });
+}/// Create a copy of SnPostReaction
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
