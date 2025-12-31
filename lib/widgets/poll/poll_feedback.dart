@@ -56,34 +56,33 @@ class PollFeedbackSheet extends HookConsumerWidget {
     return SheetScaffold(
       titleText: title ?? 'Poll feedback',
       child: poll.when(
-        data:
-            (data) => CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(child: _PollHeader(poll: data)),
-                SliverToBoxAdapter(child: const Divider(height: 1)),
-                SliverGap(4),
-                PaginationList(
-                  provider: provider,
-                  notifier: provider.notifier,
-                  isSliver: true,
-                  itemBuilder: (context, index, answer) {
-                    return Column(
-                      children: [
-                        _PollAnswerTile(answer: answer, poll: data),
-                        if (index < (ref.read(provider).value?.length ?? 0) - 1)
-                          const Divider(height: 1).padding(vertical: 4),
-                      ],
-                    );
-                  },
-                ),
-                SliverGap(4 + MediaQuery.of(context).padding.bottom),
-              ],
+        data: (data) => CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _PollHeader(poll: data)),
+            SliverToBoxAdapter(child: const Divider(height: 1)),
+            SliverGap(4),
+            PaginationList(
+              provider: provider,
+              notifier: provider.notifier,
+              isSliver: true,
+              isRefreshable: false,
+              itemBuilder: (context, index, answer) {
+                return Column(
+                  children: [
+                    _PollAnswerTile(answer: answer, poll: data),
+                    if (index < (ref.read(provider).value?.length ?? 0) - 1)
+                      const Divider(height: 1).padding(vertical: 4),
+                  ],
+                );
+              },
             ),
-        error:
-            (err, _) => ResponseErrorWidget(
-              error: err,
-              onRetry: () => ref.invalidate(pollWithStatsProvider(pollId)),
-            ),
+            SliverGap(4 + MediaQuery.of(context).padding.bottom),
+          ],
+        ),
+        error: (err, _) => ResponseErrorWidget(
+          error: err,
+          onRetry: () => ref.invalidate(pollWithStatsProvider(pollId)),
+        ),
         loading: () => ResponseLoadingWidget(),
       ),
     );
@@ -120,20 +119,19 @@ class _PollHeader extends StatelessWidget {
         ExpansionTile(
           title: Text('pollQuestions').tr().fontSize(17).bold(),
           tilePadding: EdgeInsets.symmetric(horizontal: 20),
-          children:
-              poll.questions
-                  .map(
-                    (q) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (q.title.isNotEmpty) Text(q.title).bold(),
-                        if (q.description?.isNotEmpty ?? false)
-                          Text(q.description!),
-                        PollStatsWidget(question: q, stats: poll.stats),
-                      ],
-                    ).padding(horizontal: 20, top: 8, bottom: 16),
-                  )
-                  .toList(),
+          children: poll.questions
+              .map(
+                (q) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (q.title.isNotEmpty) Text(q.title).bold(),
+                    if (q.description?.isNotEmpty ?? false)
+                      Text(q.description!),
+                    PollStatsWidget(question: q, stats: poll.stats),
+                  ],
+                ).padding(horizontal: 20, top: 8, bottom: 16),
+              )
+              .toList(),
         ),
       ],
     );
@@ -165,14 +163,13 @@ class _PollAnswerTile extends StatelessWidget {
         if (val is List) {
           final ids = val.whereType<String>().toList();
           if (ids.isEmpty) return '—';
-          final labels =
-              ids.map((id) {
-                final opt = q.options?.firstWhere(
-                  (o) => o.id == id,
-                  orElse: () => SnPollOption(id: id, label: '#$id', order: 0),
-                );
-                return opt?.label ?? '#$id';
-              }).toList();
+          final labels = ids.map((id) {
+            final opt = q.options?.firstWhere(
+              (o) => o.id == id,
+              orElse: () => SnPollOption(id: id, label: '#$id', order: 0),
+            );
+            return opt?.label ?? '#$id';
+          }).toList();
           return labels.join(', ');
         }
         return '—';
@@ -197,10 +194,9 @@ class _PollAnswerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Submit date/time (title)
-    final submitText =
-        answer.account == null
-            ? answer.createdAt.formatSystem()
-            : '${answer.account!.nick} · ${answer.createdAt.formatSystem()}';
+    final submitText = answer.account == null
+        ? answer.createdAt.formatSystem()
+        : '${answer.account!.nick} · ${answer.createdAt.formatSystem()}';
 
     // Compose content from poll questions if provided, otherwise fallback to joined key-values
     String content;
@@ -237,18 +233,17 @@ class _PollAnswerTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       isThreeLine: true,
-      leading:
-          answer.account == null
-              ? const CircleAvatar(
-                radius: 16,
-                child: Icon(Icons.how_to_vote, size: 16),
-              )
-              : AccountPfcGestureDetector(
-                uname: answer.account!.name,
-                child: ProfilePictureWidget(
-                  file: answer.account!.profile.picture,
-                ),
+      leading: answer.account == null
+          ? const CircleAvatar(
+              radius: 16,
+              child: Icon(Icons.how_to_vote, size: 16),
+            )
+          : AccountPfcGestureDetector(
+              uname: answer.account!.name,
+              child: ProfilePictureWidget(
+                file: answer.account!.profile.picture,
               ),
+            ),
       title: Text(submitText),
       subtitle: Text(content),
       trailing: null,
