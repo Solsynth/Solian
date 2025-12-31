@@ -48,12 +48,22 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   realm: json['realm'] == null
       ? null
       : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
+  publisherId: json['publisher_id'] as String?,
+  publisher: json['publisher'] == null
+      ? null
+      : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+  actorid: json['actorid'] as String?,
+  actor: json['actor'] == null
+      ? null
+      : SnActivityPubActor.fromJson(json['actor'] as Map<String, dynamic>),
+  fediverseUri: json['fediverse_uri'] as String?,
+  fediverseType: (json['fediverse_type'] as num?)?.toInt(),
+  contentType: (json['content_type'] as num?)?.toInt() ?? 0,
   attachments:
       (json['attachments'] as List<dynamic>?)
           ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  publisher: SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
   reactionsCount:
       (json['reactions_count'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, (e as num).toInt()),
@@ -123,8 +133,14 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'forwarded_post': instance.forwardedPost?.toJson(),
   'realm_id': instance.realmId,
   'realm': instance.realm?.toJson(),
+  'publisher_id': instance.publisherId,
+  'publisher': instance.publisher?.toJson(),
+  'actorid': instance.actorid,
+  'actor': instance.actor?.toJson(),
+  'fediverse_uri': instance.fediverseUri,
+  'fediverse_type': instance.fediverseType,
+  'content_type': instance.contentType,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
-  'publisher': instance.publisher.toJson(),
   'reactions_count': instance.reactionsCount,
   'reactions_made': instance.reactionsMade,
   'reactions': instance.reactions,

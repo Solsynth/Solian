@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/account.dart';
+import 'package:island/models/activitypub.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
@@ -39,8 +40,14 @@ sealed class SnPost with _$SnPost {
     SnPost? forwardedPost,
     String? realmId,
     SnRealm? realm,
+    String? publisherId,
+    SnPublisher? publisher,
+    String? actorid,
+    SnActivityPubActor? actor,
+    String? fediverseUri,
+    int? fediverseType,
+    @Default(0) int contentType,
     @Default([]) List<SnCloudFile> attachments,
-    required SnPublisher publisher,
     @Default({}) Map<String, int> reactionsCount,
     @Default({}) Map<String, bool> reactionsMade,
     @Default([]) List<dynamic> reactions,

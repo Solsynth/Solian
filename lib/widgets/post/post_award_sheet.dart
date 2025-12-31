@@ -16,6 +16,59 @@ class PostAwardSheet extends HookConsumerWidget {
   final SnPost post;
   const PostAwardSheet({super.key, required this.post});
 
+  Widget _buildProfilePicture(BuildContext context, {double radius = 16}) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return ProfilePictureWidget(
+        file:
+            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        radius: radius,
+      );
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      final avatarUrl = post.actor!.avatarUrl;
+      if (avatarUrl != null) {
+        return Container(
+          width: radius * 2,
+          height: radius * 2,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Image.network(
+              avatarUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Symbols.account_circle,
+                  size: radius,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                );
+              },
+            ),
+          ),
+        );
+      }
+    }
+    // Fallback
+    return ProfilePictureWidget(fileId: null, radius: radius);
+  }
+
+  String _getPublisherName() {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.name;
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return post.actor!.username ?? 'Unknown';
+    }
+    return 'Unknown';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messageController = useTextEditingController();
@@ -97,14 +150,13 @@ class PostAwardSheet extends HookConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed:
-                    () => _submitAward(
-                      context,
-                      ref,
-                      messageController,
-                      amountController,
-                      selectedAttitude.value,
-                    ),
+                onPressed: () => _submitAward(
+                  context,
+                  ref,
+                  messageController,
+                  amountController,
+                  selectedAttitude.value,
+                ),
                 icon: const Icon(Symbols.star),
                 label: Text('awardSubmit'.tr()),
               ),
@@ -157,12 +209,12 @@ class PostAwardSheet extends HookConsumerWidget {
               spacing: 6,
               children: [
                 Text(
-                  'awardByPublisher'.tr(args: ['@${post.publisher.name}']),
+                  'awardByPublisher'.tr(args: ['@${_getPublisherName()}']),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                ProfilePictureWidget(file: post.publisher.picture, radius: 8),
+                _buildProfilePicture(context, radius: 8),
               ],
             ),
           ],

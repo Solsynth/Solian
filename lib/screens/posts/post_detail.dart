@@ -80,7 +80,7 @@ class PostActionButtons extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
     final isAuthor =
-        user.value != null && user.value?.id == post.publisher.accountId;
+        user.value != null && user.value?.id == post.publisher?.accountId;
 
     String formatScore(int score) {
       if (score >= 1000000) {
@@ -303,10 +303,9 @@ class PostActionButtons extends HookConsumerWidget {
           );
         },
         icon: const Icon(Symbols.emoji_events),
-        label:
-            post.awardedScore > 0
-                ? Text('${formatScore(post.awardedScore)} pts')
-                : Text('award').tr(),
+        label: post.awardedScore > 0
+            ? Text('${formatScore(post.awardedScore)} pts')
+            : Text('award').tr(),
       ),
     );
 
@@ -323,10 +322,9 @@ class PostActionButtons extends HookConsumerWidget {
     actions.add(
       Row(
         mainAxisSize: MainAxisSize.min,
-        children:
-            replyButtons
-                .map((e) => SizedBox(height: kButtonHeight, child: e))
-                .toList(),
+        children: replyButtons
+            .map((e) => SizedBox(height: kButtonHeight, child: e))
+            .toList(),
       ),
     );
 
@@ -415,16 +413,15 @@ class PostActionButtons extends HookConsumerWidget {
     );
 
     // Add gaps between actions (excluding first one) using FP style
-    final children =
-        actions.asMap().entries.expand((entry) {
-          final index = entry.key;
-          final action = entry.value;
-          if (index == 0) {
-            return [action];
-          } else {
-            return [const Gap(8), action];
-          }
-        }).toList();
+    final children = actions.asMap().entries.expand((entry) {
+      final index = entry.key;
+      final action = entry.value;
+      if (index == 0) {
+        return [action];
+      } else {
+        return [const Gap(8), action];
+      }
+    }).toList();
 
     return Container(
       height: kButtonHeight,
@@ -518,33 +515,28 @@ class PostDetailScreen extends HookConsumerWidget {
                   bottom: 16 + MediaQuery.of(context).padding.bottom,
                   left: 16,
                   right: 16,
-                  child:
-                      ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 660),
-                        child: postState.when(
-                          data:
-                              (post) => PostQuickReply(
-                                parent: post!,
-                                onPosted: () {
-                                  ref
-                                      .read(postRepliesProvider(id).notifier)
-                                      .refresh();
-                                },
-                              ),
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, _) => const SizedBox.shrink(),
-                        ),
-                      ).center(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 660),
+                    child: postState.when(
+                      data: (post) => PostQuickReply(
+                        parent: post!,
+                        onPosted: () {
+                          ref.read(postRepliesProvider(id).notifier).refresh();
+                        },
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                    ),
+                  ).center(),
                 ),
             ],
           );
         },
         loading: () => ResponseLoadingWidget(),
-        error:
-            (e, _) => ResponseErrorWidget(
-              error: e,
-              onRetry: () => ref.invalidate(postProvider(id)),
-            ),
+        error: (e, _) => ResponseErrorWidget(
+          error: e,
+          onRetry: () => ref.invalidate(postProvider(id)),
+        ),
       ),
     );
   }

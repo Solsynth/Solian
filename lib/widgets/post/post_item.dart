@@ -90,7 +90,7 @@ class PostActionableItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
     final isAuthor = useMemoized(
-      () => user.value != null && user.value?.id == item.publisher.accountId,
+      () => user.value != null && item.publisher?.accountId == user.value?.id,
       [user],
     );
 

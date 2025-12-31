@@ -1242,4 +1242,294 @@ as String,
 
 }
 
+
+/// @nodoc
+mixin _$SnActorStatusResponse {
+
+ bool get enabled; int get followerCount; SnActivityPubActor? get actor; String? get actorUri;
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnActorStatusResponseCopyWith<SnActorStatusResponse> get copyWith => _$SnActorStatusResponseCopyWithImpl<SnActorStatusResponse>(this as SnActorStatusResponse, _$identity);
+
+  /// Serializes this SnActorStatusResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActorStatusResponse&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.followerCount, followerCount) || other.followerCount == followerCount)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.actorUri, actorUri) || other.actorUri == actorUri));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,enabled,followerCount,actor,actorUri);
+
+@override
+String toString() {
+  return 'SnActorStatusResponse(enabled: $enabled, followerCount: $followerCount, actor: $actor, actorUri: $actorUri)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnActorStatusResponseCopyWith<$Res>  {
+  factory $SnActorStatusResponseCopyWith(SnActorStatusResponse value, $Res Function(SnActorStatusResponse) _then) = _$SnActorStatusResponseCopyWithImpl;
+@useResult
+$Res call({
+ bool enabled, int followerCount, SnActivityPubActor? actor, String? actorUri
+});
+
+
+$SnActivityPubActorCopyWith<$Res>? get actor;
+
+}
+/// @nodoc
+class _$SnActorStatusResponseCopyWithImpl<$Res>
+    implements $SnActorStatusResponseCopyWith<$Res> {
+  _$SnActorStatusResponseCopyWithImpl(this._self, this._then);
+
+  final SnActorStatusResponse _self;
+  final $Res Function(SnActorStatusResponse) _then;
+
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? followerCount = null,Object? actor = freezed,Object? actorUri = freezed,}) {
+  return _then(_self.copyWith(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,followerCount: null == followerCount ? _self.followerCount : followerCount // ignore: cast_nullable_to_non_nullable
+as int,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
+as SnActivityPubActor?,actorUri: freezed == actorUri ? _self.actorUri : actorUri // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActivityPubActorCopyWith<$Res>? get actor {
+    if (_self.actor == null) {
+    return null;
+  }
+
+  return $SnActivityPubActorCopyWith<$Res>(_self.actor!, (value) {
+    return _then(_self.copyWith(actor: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnActorStatusResponse].
+extension SnActorStatusResponsePatterns on SnActorStatusResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnActorStatusResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnActorStatusResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnActorStatusResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnActorStatusResponse():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnActorStatusResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnActorStatusResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enabled,  int followerCount,  SnActivityPubActor? actor,  String? actorUri)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnActorStatusResponse() when $default != null:
+return $default(_that.enabled,_that.followerCount,_that.actor,_that.actorUri);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enabled,  int followerCount,  SnActivityPubActor? actor,  String? actorUri)  $default,) {final _that = this;
+switch (_that) {
+case _SnActorStatusResponse():
+return $default(_that.enabled,_that.followerCount,_that.actor,_that.actorUri);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enabled,  int followerCount,  SnActivityPubActor? actor,  String? actorUri)?  $default,) {final _that = this;
+switch (_that) {
+case _SnActorStatusResponse() when $default != null:
+return $default(_that.enabled,_that.followerCount,_that.actor,_that.actorUri);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnActorStatusResponse implements SnActorStatusResponse {
+  const _SnActorStatusResponse({required this.enabled, this.followerCount = 0, this.actor, this.actorUri});
+  factory _SnActorStatusResponse.fromJson(Map<String, dynamic> json) => _$SnActorStatusResponseFromJson(json);
+
+@override final  bool enabled;
+@override@JsonKey() final  int followerCount;
+@override final  SnActivityPubActor? actor;
+@override final  String? actorUri;
+
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnActorStatusResponseCopyWith<_SnActorStatusResponse> get copyWith => __$SnActorStatusResponseCopyWithImpl<_SnActorStatusResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnActorStatusResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnActorStatusResponse&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.followerCount, followerCount) || other.followerCount == followerCount)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.actorUri, actorUri) || other.actorUri == actorUri));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,enabled,followerCount,actor,actorUri);
+
+@override
+String toString() {
+  return 'SnActorStatusResponse(enabled: $enabled, followerCount: $followerCount, actor: $actor, actorUri: $actorUri)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnActorStatusResponseCopyWith<$Res> implements $SnActorStatusResponseCopyWith<$Res> {
+  factory _$SnActorStatusResponseCopyWith(_SnActorStatusResponse value, $Res Function(_SnActorStatusResponse) _then) = __$SnActorStatusResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ bool enabled, int followerCount, SnActivityPubActor? actor, String? actorUri
+});
+
+
+@override $SnActivityPubActorCopyWith<$Res>? get actor;
+
+}
+/// @nodoc
+class __$SnActorStatusResponseCopyWithImpl<$Res>
+    implements _$SnActorStatusResponseCopyWith<$Res> {
+  __$SnActorStatusResponseCopyWithImpl(this._self, this._then);
+
+  final _SnActorStatusResponse _self;
+  final $Res Function(_SnActorStatusResponse) _then;
+
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? enabled = null,Object? followerCount = null,Object? actor = freezed,Object? actorUri = freezed,}) {
+  return _then(_SnActorStatusResponse(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,followerCount: null == followerCount ? _self.followerCount : followerCount // ignore: cast_nullable_to_non_nullable
+as int,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
+as SnActivityPubActor?,actorUri: freezed == actorUri ? _self.actorUri : actorUri // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+/// Create a copy of SnActorStatusResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActivityPubActorCopyWith<$Res>? get actor {
+    if (_self.actor == null) {
+    return null;
+  }
+
+  return $SnActivityPubActorCopyWith<$Res>(_self.actor!, (value) {
+    return _then(_self.copyWith(actor: value));
+  });
+}
+}
+
 // dart format on

@@ -196,8 +196,8 @@ class PostItemScreenshot extends ConsumerWidget {
                               children: [
                                 ProfilePictureWidget(
                                   file:
-                                      post.publisher.picture ??
-                                      post.publisher.account?.profile.picture,
+                                      post.publisher?.picture ??
+                                      post.publisher?.account?.profile.picture,
                                   radius: 12,
                                 ).padding(top: 4),
                                 if (post.content?.isNotEmpty ?? false)

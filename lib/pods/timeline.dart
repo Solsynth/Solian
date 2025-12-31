@@ -24,6 +24,7 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
       if (currentFilter != null) 'filter': currentFilter,
+      'showFediverse': true,
     };
 
     final response = await client.get(

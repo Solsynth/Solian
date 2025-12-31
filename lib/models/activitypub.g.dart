@@ -164,3 +164,23 @@ Map<String, dynamic> _$SnActivityPubFollowResponseToJson(
   'success': instance.success,
   'message': instance.message,
 };
+
+_SnActorStatusResponse _$SnActorStatusResponseFromJson(
+  Map<String, dynamic> json,
+) => _SnActorStatusResponse(
+  enabled: json['enabled'] as bool,
+  followerCount: (json['follower_count'] as num?)?.toInt() ?? 0,
+  actor: json['actor'] == null
+      ? null
+      : SnActivityPubActor.fromJson(json['actor'] as Map<String, dynamic>),
+  actorUri: json['actor_uri'] as String?,
+);
+
+Map<String, dynamic> _$SnActorStatusResponseToJson(
+  _SnActorStatusResponse instance,
+) => <String, dynamic>{
+  'enabled': instance.enabled,
+  'follower_count': instance.followerCount,
+  'actor': instance.actor?.toJson(),
+  'actor_uri': instance.actorUri,
+};

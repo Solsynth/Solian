@@ -93,3 +93,16 @@ sealed class SnActivityPubFollowResponse with _$SnActivityPubFollowResponse {
   factory SnActivityPubFollowResponse.fromJson(Map<String, dynamic> json) =>
       _$SnActivityPubFollowResponseFromJson(json);
 }
+
+@freezed
+sealed class SnActorStatusResponse with _$SnActorStatusResponse {
+  const factory SnActorStatusResponse({
+    required bool enabled,
+    @Default(0) int followerCount,
+    SnActivityPubActor? actor,
+    String? actorUri,
+  }) = _SnActorStatusResponse;
+
+  factory SnActorStatusResponse.fromJson(Map<String, dynamic> json) =>
+      _$SnActorStatusResponseFromJson(json);
+}

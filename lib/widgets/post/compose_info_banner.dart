@@ -115,10 +115,9 @@ class ComposeInfoBanner extends StatelessWidget {
           const Gap(8),
           CompactReferencePost(
             post: post,
-            onTap:
-                onReferencePostTap != null
-                    ? () => onReferencePostTap!(context, post)
-                    : null,
+            onTap: onReferencePostTap != null
+                ? () => onReferencePostTap!(context, post)
+                : null,
           ),
         ],
       ).padding(all: 16),
@@ -132,6 +131,58 @@ class CompactReferencePost extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CompactReferencePost({super.key, required this.post, this.onTap});
+
+  Widget _buildProfilePicture(BuildContext context) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return ProfilePictureWidget(
+        fileId: post.publisher!.picture?.id,
+        radius: 16,
+      );
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      final avatarUrl = post.actor!.avatarUrl;
+      if (avatarUrl != null) {
+        return Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(
+              avatarUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Symbols.account_circle,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                );
+              },
+            ),
+          ),
+        );
+      }
+    }
+    // Fallback
+    return ProfilePictureWidget(fileId: null, radius: 16);
+  }
+
+  String _getDisplayName() {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.nick;
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return post.actor!.displayName ?? post.actor!.username ?? 'Unknown';
+    }
+    return 'Unknown';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,17 +199,14 @@ class CompactReferencePost extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ProfilePictureWidget(
-              fileId: post.publisher.picture?.id,
-              radius: 16,
-            ),
+            _buildProfilePicture(context),
             const Gap(8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    post.publisher.nick,
+                    _getDisplayName(),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,

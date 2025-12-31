@@ -6,10 +6,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:html2md/html2md.dart' as html2md;
+import 'package:island/models/account.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
+import 'package:island/widgets/activitypub/actor_profile.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -23,6 +26,14 @@ import 'package:styled_widget/styled_widget.dart';
 part 'post_shared.g.dart';
 
 const kMessageEnableEmbedTypes = ['text', 'messages.new'];
+
+/// Converts HTML content to markdown if contentType indicates HTML (contentType == 1)
+String _convertContentToMarkdown(SnPost post) {
+  if (post.contentType == 1 && post.content != null) {
+    return html2md.convert(post.content!);
+  }
+  return post.content ?? '';
+}
 
 class RepliesState {
   final List<SnPost> posts;
@@ -120,6 +131,27 @@ class PostReplyPreview extends HookConsumerWidget {
     this.onOpen,
   });
 
+  Widget _buildProfilePicture(
+    BuildContext context,
+    SnPost post, {
+    double radius = 16,
+  }) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return ProfilePictureWidget(
+        file:
+            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        radius: radius,
+      );
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+    }
+    // Fallback
+    return ProfilePictureWidget(fileId: null, radius: radius);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repliesState = ref.watch(repliesProvider(parent.id));
@@ -157,16 +189,15 @@ class PostReplyPreview extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 8,
                             children: [
-                              ProfilePictureWidget(
-                                file:
-                                    post.publisher.picture ??
-                                    post.publisher.account?.profile.picture,
+                              _buildProfilePicture(
+                                context,
+                                post,
                                 radius: 12,
                               ).padding(top: 4),
                               if (post.content?.isNotEmpty ?? false)
                                 Expanded(
                                   child: MarkdownTextContent(
-                                    content: post.content!,
+                                    content: _convertContentToMarkdown(post),
                                     attachments: post.attachments,
                                   ).padding(top: 2),
                                 )
@@ -244,16 +275,15 @@ class PostReplyPreview extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-                    ProfilePictureWidget(
-                      file:
-                          data.value?.publisher.picture ??
-                          data.value?.publisher.account?.profile.picture,
+                    _buildProfilePicture(
+                      context,
+                      data.value!,
                       radius: 12,
                     ).padding(top: 4),
                     if (data.value?.content?.isNotEmpty ?? false)
                       Expanded(
                         child: MarkdownTextContent(
-                          content: data.value!.content!,
+                          content: _convertContentToMarkdown(data.value!),
                           attachments: data.value!.attachments,
                         ),
                       )
@@ -408,6 +438,38 @@ class ReferencedPostWidget extends StatelessWidget {
     this.renderingPadding = EdgeInsets.zero,
   });
 
+  Widget _buildProfilePicture(
+    BuildContext context,
+    SnPost post, {
+    double radius = 16,
+  }) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return ProfilePictureWidget(
+        fileId: post.publisher!.picture?.id,
+        radius: radius,
+      );
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+    }
+    // Fallback
+    return ProfilePictureWidget(fileId: null, radius: radius);
+  }
+
+  String _getDisplayName(SnPost post) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.nick;
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return post.actor!.displayName ?? post.actor!.username ?? 'Unknown';
+    }
+    return 'Unknown';
+  }
+
   @override
   Widget build(BuildContext context) {
     final referencePost = item.repliedPost ?? item.forwardedPost;
@@ -479,17 +541,14 @@ class ReferencedPostWidget extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ProfilePictureWidget(
-                  fileId: referencePost!.publisher.picture?.id,
-                  radius: 16,
-                ),
+                _buildProfilePicture(context, referencePost!, radius: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        referencePost.publisher.nick,
+                        _getDisplayName(referencePost),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -541,7 +600,7 @@ class ReferencedPostWidget extends StatelessWidget {
                         ).padding(bottom: 2),
                       if (referencePost.content?.isNotEmpty ?? false)
                         MarkdownTextContent(
-                          content: referencePost.content!,
+                          content: _convertContentToMarkdown(referencePost),
                           textStyle: const TextStyle(fontSize: 14),
                           isSelectable: false,
                           linesMargin: referencePost.type == 0
@@ -620,6 +679,72 @@ class PostHeader extends StatelessWidget {
     this.hideOverlay = false,
   });
 
+  Widget _buildProfilePicture(
+    BuildContext context,
+    SnPost post, {
+    double radius = 16,
+  }) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return ProfilePictureWidget(
+        file:
+            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        radius: radius,
+        borderRadius: post.publisher!.type == 0 ? null : 6,
+      );
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return ActorAvatarWidget(actor: post.actor!, radius: radius);
+    }
+    // Fallback
+    return ProfilePictureWidget(fileId: null, radius: radius);
+  }
+
+  String _getDisplayName(SnPost post) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.nick;
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return post.actor!.displayName ?? post.actor!.username ?? 'unknown'.tr();
+    }
+    return 'unknown'.tr();
+  }
+
+  String? _getPublisherName(SnPost post) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.name;
+    }
+    // Handle actor case
+    if (post.actor != null) {
+      return '${post.actor!.username}@${post.actor!.instance.domain}';
+    }
+    return null;
+  }
+
+  int _getPublisherType(SnPost post) {
+    // Handle publisher case
+    if (post.publisher != null) {
+      return post.publisher!.type;
+    }
+    return 0; // Default to user type
+  }
+
+  bool _hasAccount(SnPost post) {
+    return post.publisher?.account != null;
+  }
+
+  SnAccount? _getAccount(SnPost post) {
+    return post.publisher?.account;
+  }
+
+  SnVerificationMark? _getVerification(SnPost post) {
+    return post.publisher?.verification;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -629,21 +754,17 @@ class PostHeader extends StatelessWidget {
           spacing: 12,
           children: [
             GestureDetector(
-              onTap: isInteractive
+              onTap: isInteractive && _getPublisherName(item) != null
                   ? () {
                       context.pushNamed(
                         'publisherProfile',
-                        pathParameters: {'name': item.publisher.name},
+                        pathParameters: {
+                          'name': _getPublisherName(item) as String,
+                        },
                       );
                     }
                   : null,
-              child: ProfilePictureWidget(
-                file:
-                    item.publisher.picture ??
-                    item.publisher.account?.profile.picture,
-                radius: 16,
-                borderRadius: item.publisher.type == 0 ? null : 6,
-              ),
+              child: _buildProfilePicture(context, item, radius: 16),
             ),
             Expanded(
               child: Column(
@@ -656,24 +777,23 @@ class PostHeader extends StatelessWidget {
                     children: [
                       Flexible(
                         child:
-                            (item.publisher.account != null &&
-                                item.publisher.type == 0)
+                            (_hasAccount(item) && _getPublisherType(item) == 0)
                             ? AccountName(
                                 hideOverlay: hideOverlay,
-                                account: item.publisher.account!,
-                                textOverride: item.publisher.nick,
+                                account: _getAccount(item)!,
+                                textOverride: _getDisplayName(item),
                                 style: TextStyle(fontWeight: FontWeight.bold),
                                 hideVerificationMark: true,
                               )
                             : Text(
-                                item.publisher.nick,
+                                _getDisplayName(item),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ).bold(),
                       ),
-                      if (item.publisher.verification != null)
+                      if (_getVerification(item) != null)
                         VerificationMark(
-                          mark: item.publisher.verification!,
+                          mark: _getVerification(item)!,
                           hideOverlay: hideOverlay,
                         ),
                       if (item.realm == null)
@@ -681,7 +801,7 @@ class PostHeader extends StatelessWidget {
                           child: isCompact
                               ? const SizedBox.shrink()
                               : Text(
-                                  '@${item.publisher.name}',
+                                  '@${_getPublisherName(item) ?? 'unknown'}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ).fontSize(11),
@@ -891,6 +1011,17 @@ class PostBody extends ConsumerWidget {
         ),
       );
     }
+    if (item.fediverseUri != null) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.globe, size: 16),
+            Text('fediversePostDescribe'.tr()).fontSize(13),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -937,7 +1068,7 @@ class PostBody extends ConsumerWidget {
                   )
                 else
                   MarkdownTextContent(
-                    content: '${item.content!}...',
+                    content: '${_convertContentToMarkdown(item)}...',
                     attachments: item.attachments,
                   ),
               ],
@@ -974,8 +1105,8 @@ class PostBody extends ConsumerWidget {
                   ).padding(bottom: 4),
                 MarkdownTextContent(
                   content: item.isTruncated
-                      ? '${item.content!}...'
-                      : item.content ?? '',
+                      ? '${_convertContentToMarkdown(item)}...'
+                      : _convertContentToMarkdown(item),
                   isSelectable: isTextSelectable,
                   attachments: item.attachments,
                 ),

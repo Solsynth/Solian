@@ -1559,5 +1559,7 @@
     "unfollowedUser": "Unfollowed @{}",
     "followingEmpty": "You're not following anyone yet",
     "followersEmpty": "No followers yet",
-    "followingEmptyHint": "Start by searching for users or explore other instances"
+    "followingEmptyHint": "Start by searching for users or explore other instances",
+    "fediversePost": "Fediverse Post",
+    "fediversePostDescribe": "Post from the Fediverse Network"
 }
