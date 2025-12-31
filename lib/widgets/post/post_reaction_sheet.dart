@@ -517,7 +517,10 @@ class ReactionDetailsPopup extends HookConsumerWidget {
                     leading: AccountPfcGestureDetector(
                       uname: reaction.account?.name,
                       child: reaction.actor != null
-                          ? ActorPictureWidget(actor: reaction.actor!)
+                          ? ActorPictureWidget(
+                              actor: reaction.actor!,
+                              radius: 20,
+                            )
                           : ProfilePictureWidget(
                               file: reaction.account?.profile.picture,
                             ),
