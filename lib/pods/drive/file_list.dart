@@ -18,7 +18,8 @@ final indexedCloudFileListProvider = AsyncNotifierProvider.autoDispose(
   IndexedCloudFileListNotifier.new,
 );
 
-class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
+class IndexedCloudFileListNotifier
+    extends AsyncNotifier<PaginationState<FileListItem>>
     with AsyncPaginationController<FileListItem> {
   String _currentPath = '/';
   String? _poolId;
@@ -49,6 +50,19 @@ class IndexedCloudFileListNotifier extends AsyncNotifier<List<FileListItem>>
   void setOrderDesc(bool orderDesc) {
     _orderDesc = orderDesc;
     ref.invalidateSelf();
+  }
+
+  @override
+  FutureOr<PaginationState<FileListItem>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: null,
+      hasMore: false,
+      cursor: null,
+    );
   }
 
   @override
@@ -96,7 +110,8 @@ final unindexedFileListProvider = AsyncNotifierProvider.autoDispose(
   UnindexedFileListNotifier.new,
 );
 
-class UnindexedFileListNotifier extends AsyncNotifier<List<FileListItem>>
+class UnindexedFileListNotifier
+    extends AsyncNotifier<PaginationState<FileListItem>>
     with AsyncPaginationController<FileListItem> {
   String? _poolId;
   bool _recycled = false;
@@ -130,6 +145,19 @@ class UnindexedFileListNotifier extends AsyncNotifier<List<FileListItem>>
   }
 
   static const int pageSize = 20;
+
+  @override
+  FutureOr<PaginationState<FileListItem>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<FileListItem>> fetch() async {

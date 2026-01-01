@@ -492,11 +492,10 @@ class _RealmActionMenu extends HookConsumerWidget {
 }
 
 final realmMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<RealmMemberListNotifier, List<SnRealmMember>, String>(
-      RealmMemberListNotifier.new,
-    );
+    .family(RealmMemberListNotifier.new);
 
-class RealmMemberListNotifier extends AsyncNotifier<List<SnRealmMember>>
+class RealmMemberListNotifier
+    extends AsyncNotifier<PaginationState<SnRealmMember>>
     with AsyncPaginationController<SnRealmMember> {
   String arg;
   RealmMemberListNotifier(this.arg);

@@ -15,12 +15,11 @@ import 'package:island/widgets/poll/poll_stats_widget.dart';
 import 'package:island/widgets/response.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<PollFeedbackNotifier, List<SnPollAnswer>, String>(
-      PollFeedbackNotifier.new,
-    );
+final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose.family(
+  PollFeedbackNotifier.new,
+);
 
-class PollFeedbackNotifier extends AsyncNotifier<List<SnPollAnswer>>
+class PollFeedbackNotifier extends AsyncNotifier<PaginationState<SnPollAnswer>>
     with AsyncPaginationController<SnPollAnswer> {
   static const int pageSize = 20;
 
@@ -70,7 +69,8 @@ class PollFeedbackSheet extends HookConsumerWidget {
                 return Column(
                   children: [
                     _PollAnswerTile(answer: answer, poll: data),
-                    if (index < (ref.read(provider).value?.length ?? 0) - 1)
+                    if (index <
+                        (ref.read(provider).value?.items.length ?? 0) - 1)
                       const Divider(height: 1).padding(vertical: 4),
                   ],
                 );

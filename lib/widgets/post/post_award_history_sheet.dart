@@ -6,12 +6,11 @@ import 'package:island/pods/paging.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 
-final postAwardListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<PostAwardListNotifier, List<SnPostAward>, String>(
-      PostAwardListNotifier.new,
-    );
+final postAwardListNotifierProvider = AsyncNotifierProvider.autoDispose.family(
+  PostAwardListNotifier.new,
+);
 
-class PostAwardListNotifier extends AsyncNotifier<List<SnPostAward>>
+class PostAwardListNotifier extends AsyncNotifier<PaginationState<SnPostAward>>
     with AsyncPaginationController<SnPostAward> {
   static const int pageSize = 20;
 
@@ -52,7 +51,7 @@ class PostAwardHistorySheet extends HookConsumerWidget {
           return Column(
             children: [
               PostAwardItem(award: award),
-              if (index < (ref.read(provider).value?.length ?? 0) - 1)
+              if (index < (ref.read(provider).value?.items.length ?? 0) - 1)
                 const Divider(height: 1),
             ],
           );

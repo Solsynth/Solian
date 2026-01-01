@@ -160,7 +160,7 @@ class PostSearchScreen extends HookConsumerWidget {
                                 );
                               },
                             ),
-                            if (searchState.value?.isEmpty == true &&
+                            if (searchState.value?.items.isEmpty == true &&
                                 searchController.text.isNotEmpty &&
                                 !searchState.isLoading)
                               SliverFillRemaining(
@@ -290,7 +290,7 @@ class PostSearchScreen extends HookConsumerWidget {
                         );
                       },
                     ),
-                    if (searchState.value?.isEmpty == true &&
+                    if (searchState.value?.items.isEmpty == true &&
                         searchController.text.isNotEmpty &&
                         !searchState.isLoading)
                       SliverFillRemaining(

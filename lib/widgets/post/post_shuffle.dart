@@ -42,9 +42,9 @@ class PostShuffleScreen extends HookConsumerWidget {
                   kBottomControlHeight + MediaQuery.of(context).padding.bottom,
             ),
             child: Builder(
-              key: ValueKey(postListState.value?.length ?? 0),
+              key: ValueKey(postListState.value?.items.length ?? 0),
               builder: (context) {
-                final items = postListState.value ?? [];
+                final items = postListState.value?.items ?? [];
                 if (items.isNotEmpty) {
                   return CardSwiper(
                     controller: cardSwiperController,

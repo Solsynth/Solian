@@ -96,12 +96,26 @@ Future<SnActorStatusResponse> publisherActorStatus(
 final publisherMemberListNotifierProvider = AsyncNotifierProvider.family
     .autoDispose(PublisherMemberListNotifier.new);
 
-class PublisherMemberListNotifier extends AsyncNotifier<List<SnPublisherMember>>
+class PublisherMemberListNotifier
+    extends AsyncNotifier<PaginationState<SnPublisherMember>>
     with AsyncPaginationController<SnPublisherMember> {
   static const int pageSize = 20;
 
   final String arg;
   PublisherMemberListNotifier(this.arg);
+
+  @override
+  FutureOr<PaginationState<SnPublisherMember>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<SnPublisherMember>> fetch() async {

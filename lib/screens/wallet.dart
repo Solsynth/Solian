@@ -963,7 +963,8 @@ final transactionListProvider = AsyncNotifierProvider.autoDispose(
   TransactionListNotifier.new,
 );
 
-class TransactionListNotifier extends AsyncNotifier<List<SnTransaction>>
+class TransactionListNotifier
+    extends AsyncNotifier<PaginationState<SnTransaction>>
     with AsyncPaginationController<SnTransaction> {
   static const int pageSize = 20;
 
@@ -992,7 +993,7 @@ final walletFundsProvider = AsyncNotifierProvider.autoDispose(
   WalletFundsNotifier.new,
 );
 
-class WalletFundsNotifier extends AsyncNotifier<List<SnWalletFund>>
+class WalletFundsNotifier extends AsyncNotifier<PaginationState<SnWalletFund>>
     with AsyncPaginationController<SnWalletFund> {
   static const int pageSize = 20;
 
@@ -1020,7 +1021,7 @@ final walletFundRecipientsProvider = AsyncNotifierProvider.autoDispose(
 );
 
 class WalletFundRecipientsNotifier
-    extends AsyncNotifier<List<SnWalletFundRecipient>>
+    extends AsyncNotifier<PaginationState<SnWalletFundRecipient>>
     with AsyncPaginationController<SnWalletFundRecipient> {
   static const int _pageSize = 20;
 
@@ -1484,7 +1485,7 @@ class WalletScreen extends HookConsumerWidget {
 
     return funds.when(
       data: (fundList) {
-        if (fundList.isEmpty) {
+        if (fundList.items.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1514,9 +1515,9 @@ class WalletScreen extends HookConsumerWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: fundList.length,
+          itemCount: fundList.items.length,
           itemBuilder: (context, index) {
-            final fund = fundList[index];
+            final fund = fundList.items[index];
             final claimedCount = fund.recipients
                 .where((r) => r.isReceived)
                 .length;

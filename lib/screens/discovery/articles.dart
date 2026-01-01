@@ -22,7 +22,7 @@ final articlesListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   ArticlesListNotifier.new,
 );
 
-class ArticlesListNotifier extends AsyncNotifier<List<SnWebArticle>>
+class ArticlesListNotifier extends AsyncNotifier<PaginationState<SnWebArticle>>
     with AsyncPaginationController<SnWebArticle> {
   static const int pageSize = 20;
 

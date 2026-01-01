@@ -15,7 +15,7 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class PaginationList<T> extends HookConsumerWidget {
-  final ProviderListenable<AsyncValue<List<T>>> provider;
+  final ProviderListenable<AsyncValue<PaginationState<T>>> provider;
   final Refreshable<PaginationController<T>> notifier;
   final Widget? Function(BuildContext, int, T) itemBuilder;
   final Widget? Function(BuildContext, int, T)? seperatorBuilder;
@@ -48,7 +48,8 @@ class PaginationList<T> extends HookConsumerWidget {
 
     // For sliver cases, avoid animation to prevent complex sliver issues
     if (isSliver) {
-      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+      if ((data.isLoading || data.value?.isLoading == true) &&
+          data.value?.items.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
           (_) => Skeletonizer(
@@ -77,9 +78,9 @@ class PaginationList<T> extends HookConsumerWidget {
       }
 
       final listView = SuperSliverList.separated(
-        itemCount: (data.value?.length ?? 0) + 1,
+        itemCount: (data.value?.items.length ?? 0) + 1,
         itemBuilder: (context, idx) {
-          if (idx == data.value?.length) {
+          if (idx == data.value?.items.length) {
             return PaginationListFooter(
               noti: noti,
               data: data,
@@ -87,13 +88,13 @@ class PaginationList<T> extends HookConsumerWidget {
               skeletonMaxWidth: footerSkeletonMaxWidth,
             );
           }
-          final entry = data.value?[idx];
+          final entry = data.value?.items[idx];
           if (entry != null) return itemBuilder(context, idx, entry);
           return null;
         },
         separatorBuilder: (context, index) {
           if (seperatorBuilder != null) {
-            final entry = data.value?[index];
+            final entry = data.value?.items[index];
             if (entry != null) {
               return seperatorBuilder!(context, index, entry) ??
                   const SizedBox();
@@ -114,7 +115,8 @@ class PaginationList<T> extends HookConsumerWidget {
 
     // For non-sliver cases, use AnimatedSwitcher for smooth transitions
     Widget buildContent() {
-      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+      if ((data.isLoading || data.value?.isLoading == true) &&
+          data.value?.items.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
           (_) => Skeletonizer(
@@ -147,9 +149,9 @@ class PaginationList<T> extends HookConsumerWidget {
 
       final listView = SuperListView.separated(
         padding: padding,
-        itemCount: (data.value?.length ?? 0) + 1,
+        itemCount: (data.value?.items.length ?? 0) + 1,
         itemBuilder: (context, idx) {
-          if (idx == data.value?.length) {
+          if (idx == data.value?.items.length) {
             return PaginationListFooter(
               noti: noti,
               data: data,
@@ -157,13 +159,13 @@ class PaginationList<T> extends HookConsumerWidget {
               skeletonMaxWidth: footerSkeletonMaxWidth,
             );
           }
-          final entry = data.value?[idx];
+          final entry = data.value?.items[idx];
           if (entry != null) return itemBuilder(context, idx, entry);
           return null;
         },
         separatorBuilder: (context, index) {
           if (seperatorBuilder != null) {
-            final entry = data.value?[index];
+            final entry = data.value?.items[index];
             if (entry != null) {
               return seperatorBuilder!(context, index, entry) ??
                   const SizedBox();
@@ -193,7 +195,7 @@ class PaginationList<T> extends HookConsumerWidget {
 }
 
 class PaginationWidget<T> extends HookConsumerWidget {
-  final ProviderListenable<AsyncValue<List<T>>> provider;
+  final ProviderListenable<AsyncValue<PaginationState<T>>> provider;
   final Refreshable<PaginationController<T>> notifier;
   final Widget Function(List<T>, Widget) contentBuilder;
   final bool isRefreshable;
@@ -220,7 +222,8 @@ class PaginationWidget<T> extends HookConsumerWidget {
 
     // For sliver cases, avoid animation to prevent complex sliver issues
     if (isSliver) {
-      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+      if ((data.isLoading || data.value?.isLoading == true) &&
+          data.value?.items.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
           (_) => Skeletonizer(
@@ -254,7 +257,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
         skeletonChild: footerSkeletonChild,
         skeletonMaxWidth: footerSkeletonMaxWidth,
       );
-      final content = contentBuilder(data.value ?? [], footer);
+      final content = contentBuilder(data.value?.items ?? [], footer);
 
       return isRefreshable
           ? ExtendedRefreshIndicator(onRefresh: noti.refresh, child: content)
@@ -263,7 +266,8 @@ class PaginationWidget<T> extends HookConsumerWidget {
 
     // For non-sliver cases, use AnimatedSwitcher for smooth transitions
     Widget buildContent() {
-      if ((data.isLoading || noti.isLoading) && data.value?.isEmpty == true) {
+      if ((data.isLoading || data.value?.isLoading == true) &&
+          data.value?.items.isEmpty == true) {
         final content = List<Widget>.generate(
           10,
           (_) => Skeletonizer(
@@ -300,7 +304,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
         skeletonChild: footerSkeletonChild,
         skeletonMaxWidth: footerSkeletonMaxWidth,
       );
-      final content = contentBuilder(data.value ?? [], footer);
+      final content = contentBuilder(data.value?.items ?? [], footer);
 
       return SizedBox(
         key: const ValueKey('data'),
@@ -319,7 +323,7 @@ class PaginationWidget<T> extends HookConsumerWidget {
 
 class PaginationListFooter<T> extends HookConsumerWidget {
   final PaginationController<T> noti;
-  final AsyncValue<List<T>> data;
+  final AsyncValue<PaginationState<T>> data;
   final Widget? skeletonChild;
   final double? skeletonMaxWidth;
   final bool isSliver;
@@ -347,7 +351,7 @@ class PaginationListFooter<T> extends HookConsumerWidget {
       child: skeletonChild ?? _DefaultSkeletonChild(maxWidth: skeletonMaxWidth),
     );
     final child = hasBeenVisible.value
-        ? data.isLoading
+        ? (data.isLoading || data.value?.isLoading == true)
               ? placeholder
               : Row(
                   spacing: 8,
@@ -363,7 +367,9 @@ class PaginationListFooter<T> extends HookConsumerWidget {
       key: Key("pagination-list-${noti.hashCode}"),
       onVisibilityChanged: (VisibilityInfo info) {
         hasBeenVisible.value = true;
-        if (!noti.fetchedAll && !data.isLoading && !data.hasError) {
+        if (!noti.fetchedAll &&
+            !(data.isLoading || data.value?.isLoading == true) &&
+            !data.hasError) {
           if (context.mounted) noti.fetchFurther();
         }
       },

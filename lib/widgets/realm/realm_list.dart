@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
@@ -8,14 +10,29 @@ import 'package:island/widgets/realm/realm_list_tile.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 final realmListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<RealmListNotifier, List<SnRealm>, String?>(RealmListNotifier.new);
+    .family<RealmListNotifier, PaginationState<SnRealm>, String?>(
+      RealmListNotifier.new,
+    );
 
-class RealmListNotifier extends AsyncNotifier<List<SnRealm>>
+class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
     with AsyncPaginationController<SnRealm> {
   String? arg;
   RealmListNotifier(this.arg);
 
   static const int _pageSize = 20;
+
+  @override
+  FutureOr<PaginationState<SnRealm>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<SnRealm>> fetch() async {

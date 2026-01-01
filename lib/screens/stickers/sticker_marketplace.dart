@@ -31,7 +31,8 @@ sealed class MarketplaceStickerQuery with _$MarketplaceStickerQuery {
 final marketplaceStickerPacksNotifierProvider =
     AsyncNotifierProvider.autoDispose(MarketplaceStickerPacksNotifier.new);
 
-class MarketplaceStickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
+class MarketplaceStickerPacksNotifier
+    extends AsyncNotifier<PaginationState<SnStickerPack>>
     with
         AsyncPaginationController<SnStickerPack>,
         AsyncPaginationFilter<MarketplaceStickerQuery, SnStickerPack> {

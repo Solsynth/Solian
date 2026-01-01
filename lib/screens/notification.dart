@@ -164,9 +164,23 @@ final notificationListProvider = AsyncNotifierProvider.autoDispose(
   NotificationListNotifier.new,
 );
 
-class NotificationListNotifier extends AsyncNotifier<List<SnNotification>>
+class NotificationListNotifier
+    extends AsyncNotifier<PaginationState<SnNotification>>
     with AsyncPaginationController<SnNotification> {
   static const int pageSize = 5;
+
+  @override
+  FutureOr<PaginationState<SnNotification>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<SnNotification>> fetch() async {

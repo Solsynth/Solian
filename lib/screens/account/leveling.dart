@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,13 +16,29 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final levelingHistoryNotifierProvider = AsyncNotifierProvider.autoDispose(
-  LevelingHistoryNotifier.new,
-);
+final levelingHistoryNotifierProvider =
+    AsyncNotifierProvider.autoDispose<
+      LevelingHistoryNotifier,
+      PaginationState<SnExperienceRecord>
+    >(LevelingHistoryNotifier.new);
 
-class LevelingHistoryNotifier extends AsyncNotifier<List<SnExperienceRecord>>
+class LevelingHistoryNotifier
+    extends AsyncNotifier<PaginationState<SnExperienceRecord>>
     with AsyncPaginationController<SnExperienceRecord> {
   static const int pageSize = 20;
+
+  @override
+  FutureOr<PaginationState<SnExperienceRecord>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<SnExperienceRecord>> fetch() async {

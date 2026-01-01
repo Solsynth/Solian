@@ -13,12 +13,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-final cloudFileListNotifierProvider =
-    AsyncNotifierProvider.autoDispose<CloudFileListNotifier, List<SnCloudFile>>(
-      CloudFileListNotifier.new,
-    );
+final cloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose(
+  CloudFileListNotifier.new,
+);
 
-class CloudFileListNotifier extends AsyncNotifier<List<SnCloudFile>>
+class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
     with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
@@ -83,28 +82,24 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                             width: 48,
                             child: switch (itemType) {
                               'image' => CloudImageWidget(file: item),
-                              'audio' =>
-                                const Icon(
-                                  Symbols.audio_file,
-                                  fill: 1,
-                                ).center(),
-                              'video' =>
-                                const Icon(
-                                  Symbols.video_file,
-                                  fill: 1,
-                                ).center(),
-                              _ =>
-                                const Icon(
-                                  Symbols.body_system,
-                                  fill: 1,
-                                ).center(),
+                              'audio' => const Icon(
+                                Symbols.audio_file,
+                                fill: 1,
+                              ).center(),
+                              'video' => const Icon(
+                                Symbols.video_file,
+                                fill: 1,
+                              ).center(),
+                              _ => const Icon(
+                                Symbols.body_system,
+                                fill: 1,
+                              ).center(),
                             },
                           ),
                         ),
-                        title:
-                            item.name.isEmpty
-                                ? Text('untitled').tr().italic()
-                                : Text(item.name),
+                        title: item.name.isEmpty
+                            ? Text('untitled').tr().italic()
+                            : Text(item.name),
                         onTap: () {
                           Navigator.pop(context, item);
                         },
@@ -128,9 +123,8 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const Gap(16),
                         InkWell(

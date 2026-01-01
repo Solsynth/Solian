@@ -7,13 +7,12 @@ import 'package:island/services/time.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 
-final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose<
-  ThoughtSequenceListNotifier,
-  List<SnThinkingSequence>
->(ThoughtSequenceListNotifier.new);
+final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose(
+  ThoughtSequenceListNotifier.new,
+);
 
 class ThoughtSequenceListNotifier
-    extends AsyncNotifier<List<SnThinkingSequence>>
+    extends AsyncNotifier<PaginationState<SnThinkingSequence>>
     with AsyncPaginationController<SnThinkingSequence> {
   static const int pageSize = 20;
 

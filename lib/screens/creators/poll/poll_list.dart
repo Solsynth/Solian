@@ -21,7 +21,7 @@ final pollListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   PollListNotifier.new,
 );
 
-class PollListNotifier extends AsyncNotifier<List<SnPollWithStats>>
+class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
     with AsyncPaginationController<SnPollWithStats> {
   static const int pageSize = 20;
 

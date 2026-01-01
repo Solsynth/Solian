@@ -291,7 +291,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 ),
               ),
               hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
-              items: (postCategories.value ?? <SnPostCategory>[]).map((item) {
+              items: (postCategories.value?.items ?? <SnPostCategory>[]).map((
+                item,
+              ) {
                 return DropdownMenuItem(
                   value: item,
                   enabled: false,
@@ -337,7 +339,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               value: currentCategories.isEmpty ? null : currentCategories.last,
               onChanged: (_) {},
               selectedItemBuilder: (context) {
-                return (postCategories.value ?? []).map((item) {
+                return (postCategories.value?.items ?? []).map((item) {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(

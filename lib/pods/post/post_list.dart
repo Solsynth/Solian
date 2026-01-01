@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
@@ -39,7 +41,7 @@ final postListProvider = AsyncNotifierProvider.autoDispose.family(
   PostListNotifier.new,
 );
 
-class PostListNotifier extends AsyncNotifier<List<SnPost>>
+class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
     with
         AsyncPaginationController<SnPost>,
         AsyncPaginationFilter<PostListQuery, SnPost> {
@@ -53,9 +55,17 @@ class PostListNotifier extends AsyncNotifier<List<SnPost>>
   late PostListQuery currentFilter;
 
   @override
-  Future<List<SnPost>> build() async {
+  FutureOr<PaginationState<SnPost>> build() async {
     currentFilter = config.initialFilter;
-    return fetch();
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
   }
 
   @override

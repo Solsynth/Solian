@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -28,9 +30,22 @@ final socialCreditHistoryNotifierProvider = AsyncNotifierProvider.autoDispose(
 );
 
 class SocialCreditHistoryNotifier
-    extends AsyncNotifier<List<SnSocialCreditRecord>>
+    extends AsyncNotifier<PaginationState<SnSocialCreditRecord>>
     with AsyncPaginationController<SnSocialCreditRecord> {
   static const int pageSize = 20;
+
+  @override
+  FutureOr<PaginationState<SnSocialCreditRecord>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   Future<List<SnSocialCreditRecord>> fetch() async {

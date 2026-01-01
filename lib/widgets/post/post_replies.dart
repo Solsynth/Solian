@@ -11,7 +11,7 @@ final postRepliesProvider = AsyncNotifierProvider.autoDispose.family(
   PostRepliesNotifier.new,
 );
 
-class PostRepliesNotifier extends AsyncNotifier<List<SnPost>>
+class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
     with AsyncPaginationController<SnPost> {
   static const int pageSize = 20;
 

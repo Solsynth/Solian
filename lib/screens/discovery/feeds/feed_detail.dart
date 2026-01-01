@@ -26,7 +26,7 @@ final marketplaceWebFeedContentNotifierProvider = AsyncNotifierProvider.family
     .autoDispose(MarketplaceWebFeedContentNotifier.new);
 
 class MarketplaceWebFeedContentNotifier
-    extends AsyncNotifier<List<SnWebArticle>>
+    extends AsyncNotifier<PaginationState<SnWebArticle>>
     with AsyncPaginationController<SnWebArticle> {
   static const int pageSize = 20;
 

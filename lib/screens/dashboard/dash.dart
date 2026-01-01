@@ -412,11 +412,11 @@ class NotificationsCard extends HookConsumerWidget {
               loading: () => const SkeletonNotificationTile(),
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (notificationList) {
-                if (notificationList.isEmpty) {
+                if (notificationList.items.isEmpty) {
                   return Center(child: Text('noNotificationsYet').tr());
                 }
                 // Get the most recent notification (first in the list)
-                final recentNotification = notificationList.first;
+                final recentNotification = notificationList.items.first;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

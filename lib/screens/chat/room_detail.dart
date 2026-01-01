@@ -588,7 +588,8 @@ final chatMemberListProvider = AsyncNotifierProvider.autoDispose.family(
   ChatMemberListNotifier.new,
 );
 
-class ChatMemberListNotifier extends AsyncNotifier<List<SnChatMember>>
+class ChatMemberListNotifier
+    extends AsyncNotifier<PaginationState<SnChatMember>>
     with AsyncPaginationController<SnChatMember> {
   static const pageSize = 20;
 

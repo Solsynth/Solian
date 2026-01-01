@@ -17,7 +17,8 @@ final chatCloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose(
   ChatCloudFileListNotifier.new,
 );
 
-class ChatCloudFileListNotifier extends AsyncNotifier<List<SnCloudFile>>
+class ChatCloudFileListNotifier
+    extends AsyncNotifier<PaginationState<SnCloudFile>>
     with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
@@ -31,10 +32,9 @@ class ChatCloudFileListNotifier extends AsyncNotifier<List<SnCloudFile>>
       queryParameters: queryParameters,
     );
 
-    final List<SnCloudFile> items =
-        (response.data as List)
-            .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final List<SnCloudFile> items = (response.data as List)
+        .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+        .toList();
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
     return items;
@@ -83,28 +83,24 @@ class ChatLinkAttachment extends HookConsumerWidget {
                             width: 48,
                             child: switch (itemType) {
                               'image' => CloudImageWidget(file: item),
-                              'audio' =>
-                                const Icon(
-                                  Symbols.audio_file,
-                                  fill: 1,
-                                ).center(),
-                              'video' =>
-                                const Icon(
-                                  Symbols.video_file,
-                                  fill: 1,
-                                ).center(),
-                              _ =>
-                                const Icon(
-                                  Symbols.body_system,
-                                  fill: 1,
-                                ).center(),
+                              'audio' => const Icon(
+                                Symbols.audio_file,
+                                fill: 1,
+                              ).center(),
+                              'video' => const Icon(
+                                Symbols.video_file,
+                                fill: 1,
+                              ).center(),
+                              _ => const Icon(
+                                Symbols.body_system,
+                                fill: 1,
+                              ).center(),
                             },
                           ),
                         ),
-                        title:
-                            item.name.isEmpty
-                                ? Text('untitled').tr().italic()
-                                : Text(item.name),
+                        title: item.name.isEmpty
+                            ? Text('untitled').tr().italic()
+                            : Text(item.name),
                         onTap: () {
                           Navigator.pop(context, item);
                         },
@@ -128,9 +124,8 @@ class ChatLinkAttachment extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const Gap(16),
                         InkWell(

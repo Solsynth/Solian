@@ -31,12 +31,12 @@ sealed class ReactionListQuery with _$ReactionListQuery {
   }) = _ReactionListQuery;
 }
 
-final reactionListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<ReactionListNotifier, List<SnPostReaction>, ReactionListQuery>(
-      ReactionListNotifier.new,
-    );
+final reactionListNotifierProvider = AsyncNotifierProvider.autoDispose.family(
+  ReactionListNotifier.new,
+);
 
-class ReactionListNotifier extends AsyncNotifier<List<SnPostReaction>>
+class ReactionListNotifier
+    extends AsyncNotifier<PaginationState<SnPostReaction>>
     with AsyncPaginationController<SnPostReaction> {
   static const int pageSize = 20;
 

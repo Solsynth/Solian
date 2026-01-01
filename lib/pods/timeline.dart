@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
@@ -7,11 +9,25 @@ final activityListProvider = AsyncNotifierProvider.autoDispose(
   ActivityListNotifier.new,
 );
 
-class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
+class ActivityListNotifier
+    extends AsyncNotifier<PaginationState<SnTimelineEvent>>
     with
         AsyncPaginationController<SnTimelineEvent>,
         AsyncPaginationFilter<String?, SnTimelineEvent> {
   static const int pageSize = 20;
+
+  @override
+  FutureOr<PaginationState<SnTimelineEvent>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
 
   @override
   String? currentFilter;
@@ -54,9 +70,9 @@ class ActivityListNotifier extends AsyncNotifier<List<SnTimelineEvent>>
     final currentState = state.value;
     if (currentState == null) return;
 
-    final updatedItems = [...currentState];
+    final updatedItems = [...currentState.items];
     updatedItems[index] = activity;
 
-    state = AsyncData(updatedItems);
+    state = AsyncData(currentState.copyWith(items: updatedItems));
   }
 }

@@ -16,7 +16,8 @@ final marketplaceWebFeedsNotifierProvider = AsyncNotifierProvider.autoDispose(
   MarketplaceWebFeedsNotifier.new,
 );
 
-class MarketplaceWebFeedsNotifier extends AsyncNotifier<List<SnWebFeed>>
+class MarketplaceWebFeedsNotifier
+    extends AsyncNotifier<PaginationState<SnWebFeed>>
     with
         AsyncPaginationController<SnWebFeed>,
         AsyncPaginationFilter<String?, SnWebFeed> {

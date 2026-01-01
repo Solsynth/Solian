@@ -140,7 +140,7 @@ final stickerPacksProvider = AsyncNotifierProvider.family.autoDispose(
   StickerPacksNotifier.new,
 );
 
-class StickerPacksNotifier extends AsyncNotifier<List<SnStickerPack>>
+class StickerPacksNotifier extends AsyncNotifier<PaginationState<SnStickerPack>>
     with AsyncPaginationController<SnStickerPack> {
   static const int pageSize = 20;
 

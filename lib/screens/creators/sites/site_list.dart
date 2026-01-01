@@ -18,7 +18,7 @@ final siteListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   SiteListNotifier.new,
 );
 
-class SiteListNotifier extends AsyncNotifier<List<SnPublicationSite>>
+class SiteListNotifier extends AsyncNotifier<PaginationState<SnPublicationSite>>
     with AsyncPaginationController<SnPublicationSite> {
   static const int pageSize = 20;
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,12 +31,28 @@ Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
       .toList();
 }
 
-final relationshipListNotifierProvider = AsyncNotifierProvider.autoDispose(
-  RelationshipListNotifier.new,
-);
+final relationshipListNotifierProvider =
+    AsyncNotifierProvider.autoDispose<
+      RelationshipListNotifier,
+      PaginationState<SnRelationship>
+    >(RelationshipListNotifier.new);
 
-class RelationshipListNotifier extends AsyncNotifier<List<SnRelationship>>
+class RelationshipListNotifier
+    extends AsyncNotifier<PaginationState<SnRelationship>>
     with AsyncPaginationController<SnRelationship> {
+  @override
+  FutureOr<PaginationState<SnRelationship>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
+
   @override
   Future<List<SnRelationship>> fetch() async {
     final client = ref.read(apiClientProvider);
