@@ -63,7 +63,7 @@ final realmIdentityProvider = FutureProvider.autoDispose
 final realmChatRoomsProvider = FutureProvider.autoDispose
     .family<List<SnChatRoom>, String>((ref, realmSlug) async {
       final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get('/sphere/realms/$realmSlug/chat');
+      final response = await apiClient.get('/messager/realms/$realmSlug/chat');
       return (response.data as List)
           .map((e) => SnChatRoom.fromJson(e))
           .toList();
