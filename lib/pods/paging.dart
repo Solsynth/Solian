@@ -8,6 +8,7 @@ abstract class PaginationController<T> {
 
   bool get fetchedAll;
   bool get isLoading;
+  bool get isReloading;
   bool get hasMore;
   set hasMore(bool value);
   String? get cursor;
@@ -32,7 +33,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   int? totalCount;
 
   @override
-  int get fetchedCount => state.value?.length ?? 0;
+  int get fetchedCount => isReloading ? 0 : state.value?.length ?? 0;
 
   @override
   bool get fetchedAll =>
@@ -40,6 +41,9 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
 
   @override
   bool isLoading = false;
+
+  @override
+  bool isReloading = false;
 
   @override
   bool hasMore = true;
@@ -56,6 +60,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
   @override
   Future<void> refresh() async {
     isLoading = true;
+    isReloading = true;
     totalCount = null;
     hasMore = true;
     cursor = null;
@@ -64,8 +69,9 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();
     });
-    state = newState;
+    isReloading = false;
     isLoading = false;
+    state = newState;
   }
 
   @override
@@ -81,8 +87,8 @@ mixin AsyncPaginationController<T> on AsyncNotifier<List<T>>
       return [...?state.value, ...elements];
     });
 
-    state = newState;
     isLoading = false;
+    state = newState;
   }
 }
 
@@ -92,6 +98,7 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
   Future<void> applyFilter(F filter) async {
     if (currentFilter == filter) return;
     // Reset the data
+    isReloading = true;
     isLoading = true;
     totalCount = null;
     hasMore = true;
@@ -102,7 +109,8 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
     final newState = await AsyncValue.guard<List<T>>(() async {
       return await fetch();
     });
-    state = newState;
     isLoading = false;
+    isReloading = false;
+    state = newState;
   }
 }
