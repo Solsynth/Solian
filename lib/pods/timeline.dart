@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/paging.dart';
 
@@ -35,12 +36,13 @@ class ActivityListNotifier
   @override
   Future<List<SnTimelineEvent>> fetch() async {
     final client = ref.read(apiClientProvider);
+    final settings = ref.read(appSettingsProvider);
 
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
       if (currentFilter != null) 'filter': currentFilter,
-      'showFediverse': true,
+      'showFediverse': settings.showFediverseContent,
     };
 
     final response = await client.get(

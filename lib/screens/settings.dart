@@ -794,6 +794,22 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Show fediverse content settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsShowFediverseContent').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.public),
+        trailing: Switch(
+          value: settings.showFediverseContent,
+          onChanged: (value) {
+            ref
+                .read(appSettingsProvider.notifier)
+                .setShowFediverseContent(value);
+          },
+        ),
+      ),
+
       // Default screen settings
       ListTile(
         minLeadingWidth: 48,

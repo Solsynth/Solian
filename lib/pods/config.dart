@@ -40,6 +40,7 @@ const kAppFirstLaunchAt = 'app_first_launch_at';
 const kAppAskedReview = 'app_asked_review';
 const kAppDashSearchEngine = 'app_dash_search_engine';
 const kAppDefaultScreen = 'app_default_screen';
+const kAppShowFediverseContent = 'app_show_fediverse_content';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -91,6 +92,7 @@ sealed class AppSettings with _$AppSettings {
     required bool askedReview,
     required String? dashSearchEngine,
     required String? defaultScreen,
+    required bool showFediverseContent,
   }) = _AppSettings;
 }
 
@@ -122,6 +124,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       firstLaunchAt: prefs.getString(kAppFirstLaunchAt),
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
+      showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
     );
   }
 
@@ -310,6 +313,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       prefs.remove(kAppDashSearchEngine);
     }
     state = state.copyWith(dashSearchEngine: value);
+  }
+
+  void setShowFediverseContent(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppShowFediverseContent, value);
+    state = state.copyWith(showFediverseContent: value);
   }
 }
 

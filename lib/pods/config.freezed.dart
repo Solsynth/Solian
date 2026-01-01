@@ -290,7 +290,7 @@ mixin _$AppSettings {
  ThemeColors? get customColors; Size? get windowSize;// The window size for desktop platforms
  double get windowOpacity;// The window opacity for desktop platforms
  double get cardTransparency;// The card background opacity
- String? get defaultPoolId; String get messageDisplayStyle; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen;
+ String? get defaultPoolId; String get messageDisplayStyle; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen; bool get showFediverseContent;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -301,16 +301,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.showFediverseContent, showFediverseContent) || other.showFediverseContent == showFediverseContent));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,showFediverseContent]);
 
 @override
 String toString() {
-  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, showFediverseContent: $showFediverseContent)';
 }
 
 
@@ -321,7 +321,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, bool showFediverseContent
 });
 
 
@@ -338,7 +338,7 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? showFediverseContent = null,}) {
   return _then(_self.copyWith(
 dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
@@ -362,7 +362,8 @@ as bool,firstLaunchAt: freezed == firstLaunchAt ? _self.firstLaunchAt : firstLau
 as String?,askedReview: null == askedReview ? _self.askedReview : askedReview // ignore: cast_nullable_to_non_nullable
 as bool,dashSearchEngine: freezed == dashSearchEngine ? _self.dashSearchEngine : dashSearchEngine // ignore: cast_nullable_to_non_nullable
 as String?,defaultScreen: freezed == defaultScreen ? _self.defaultScreen : defaultScreen // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,showFediverseContent: null == showFediverseContent ? _self.showFediverseContent : showFediverseContent // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of AppSettings
@@ -456,10 +457,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent);case _:
   return orElse();
 
 }
@@ -477,10 +478,10 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen);}
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -494,10 +495,10 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent);case _:
   return null;
 
 }
@@ -509,7 +510,7 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.notifyWithHaptic, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.themeMode, required this.disableAnimation, required this.groupedChatList, required this.firstLaunchAt, required this.askedReview, required this.dashSearchEngine, required this.defaultScreen});
+  const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.notifyWithHaptic, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.themeMode, required this.disableAnimation, required this.groupedChatList, required this.firstLaunchAt, required this.askedReview, required this.dashSearchEngine, required this.defaultScreen, required this.showFediverseContent});
   
 
 @override final  bool dataSavingMode;
@@ -538,6 +539,7 @@ class _AppSettings implements AppSettings {
 @override final  bool askedReview;
 @override final  String? dashSearchEngine;
 @override final  String? defaultScreen;
+@override final  bool showFediverseContent;
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -549,16 +551,16 @@ _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.showFediverseContent, showFediverseContent) || other.showFediverseContent == showFediverseContent));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,showFediverseContent]);
 
 @override
 String toString() {
-  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, showFediverseContent: $showFediverseContent)';
 }
 
 
@@ -569,7 +571,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, bool showFediverseContent
 });
 
 
@@ -586,7 +588,7 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? showFediverseContent = null,}) {
   return _then(_AppSettings(
 dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
@@ -610,7 +612,8 @@ as bool,firstLaunchAt: freezed == firstLaunchAt ? _self.firstLaunchAt : firstLau
 as String?,askedReview: null == askedReview ? _self.askedReview : askedReview // ignore: cast_nullable_to_non_nullable
 as bool,dashSearchEngine: freezed == dashSearchEngine ? _self.dashSearchEngine : dashSearchEngine // ignore: cast_nullable_to_non_nullable
 as String?,defaultScreen: freezed == defaultScreen ? _self.defaultScreen : defaultScreen // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,showFediverseContent: null == showFediverseContent ? _self.showFediverseContent : showFediverseContent // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

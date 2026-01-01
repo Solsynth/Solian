@@ -141,13 +141,13 @@ class ExploreScreen extends HookConsumerWidget {
               PopupMenuItem(
                 child: Row(
                   children: [
-                    const Icon(Symbols.linked_services),
+                    const Icon(Symbols.search),
                     const Gap(12),
-                    Text('searchFediverse').tr(),
+                    Text('search').tr(),
                   ],
                 ),
                 onTap: () {
-                  context.pushNamed('activitypubSearch');
+                  context.pushNamed('universalSearch');
                 },
               ),
               PopupMenuItem(
@@ -172,18 +172,6 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 onTap: () {
                   context.pushNamed('postShuffle');
-                },
-              ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.search),
-                    const Gap(12),
-                    Text('search').tr(),
-                  ],
-                ),
-                onTap: () {
-                  context.pushNamed('postSearch');
                 },
               ),
             ],
@@ -557,6 +545,18 @@ class ExploreScreen extends HookConsumerWidget {
                   PopupMenuItem(
                     child: Row(
                       children: [
+                        const Icon(Symbols.search),
+                        const Gap(12),
+                        Text('search').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('universalSearch');
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
                         const Icon(Symbols.category),
                         const Gap(12),
                         Text('categoriesAndTags').tr(),
@@ -576,18 +576,6 @@ class ExploreScreen extends HookConsumerWidget {
                     ),
                     onTap: () {
                       context.pushNamed('postShuffle');
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.search),
-                        const Gap(12),
-                        Text('search').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.pushNamed('postSearch');
                     },
                   ),
                 ],
@@ -610,27 +598,14 @@ class ExploreScreen extends HookConsumerWidget {
 
     final notifier = ref.watch(activityListProvider.notifier);
 
-    final activityState = ref.watch(activityListProvider);
-
     return Expanded(
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: ExtendedRefreshIndicator(
-              onRefresh: notifier.refresh,
-              child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
-            ),
-          ).padding(horizontal: 8),
-          if (activityState.isLoading)
-            Positioned.fill(
-              child: Container(
-                color: Colors.grey.withOpacity(0.3),
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            ),
-        ],
-      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: ExtendedRefreshIndicator(
+          onRefresh: notifier.refresh,
+          child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
+        ),
+      ).padding(horizontal: 8),
     );
   }
 }

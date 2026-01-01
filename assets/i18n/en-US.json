@@ -1569,6 +1569,7 @@
     "searchFediverseHint": "Search by address, e.g. {}",
     "searchFediverseEmpty": "Search for users on other ActivityPub instances",
     "searchFediverseNoResults": "No users found for this search",
+    "fediverseUsers": "Fediverse Users",
     "following": "Following",
     "followers": "Followers",
     "follow": "Follow",
@@ -1579,5 +1580,6 @@
     "followersEmpty": "No followers yet",
     "followingEmptyHint": "Start by searching for users or explore other instances",
     "fediversePost": "Fediverse Post",
-    "fediversePostDescribe": "Post from the Fediverse Network"
+    "fediversePostDescribe": "Post from the Fediverse Network",
+    "settingsShowFediverseContent": "Show Fediverse Content"
 }

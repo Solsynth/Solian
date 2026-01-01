@@ -287,7 +287,7 @@ final class AccountDirectChatProvider
   }
 }
 
-String _$accountDirectChatHash() => r'149ea3a3730672cfbbb8c16fe1f2caa0bb9f0e17';
+String _$accountDirectChatHash() => r'71bc9eed34a436a3743e8ef87f7aaae861fc5746';
 
 final class AccountDirectChatFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnChatRoom?>, String> {

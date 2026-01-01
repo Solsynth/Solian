@@ -21,6 +21,7 @@ import 'package:island/screens/files/file_detail.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
+import 'package:island/screens/search.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
@@ -185,6 +186,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               Navigator.of(context).pop();
               return const SizedBox.shrink();
             },
+          ),
+
+          GoRoute(
+            name: 'universalSearch',
+            path: '/search',
+            builder: (context, state) => const UniversalSearchScreen(),
           ),
 
           GoRoute(

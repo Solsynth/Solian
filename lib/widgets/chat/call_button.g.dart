@@ -64,7 +64,7 @@ final class OngoingCallProvider
   }
 }
 
-String _$ongoingCallHash() => r'48031badb79efa07aefb3a4fc51635be457bd3f9';
+String _$ongoingCallHash() => r'3d1efaaca2981ebf698e9241453dbf2b2f13bfe3';
 
 final class OngoingCallFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRealtimeCall?>, String> {
