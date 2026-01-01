@@ -391,6 +391,8 @@ class ExploreScreen extends HookConsumerWidget {
         ? null // Post list handles its own refreshing
         : ref.watch(activityListProvider.notifier);
 
+    final activityState = ref.watch(activityListProvider);
+
     return Row(
       spacing: 12,
       children: [
@@ -403,6 +405,10 @@ class ExploreScreen extends HookConsumerWidget {
             child: CustomScrollView(
               slivers: [
                 const SliverGap(12),
+                if (activityState.value?.isLoading ?? false)
+                  SliverToBoxAdapter(
+                    child: LinearProgressIndicator().padding(bottom: 8),
+                  ),
                 SliverToBoxAdapter(child: filterBar),
                 const SliverGap(8),
                 bodyView,
@@ -604,14 +610,27 @@ class ExploreScreen extends HookConsumerWidget {
 
     final notifier = ref.watch(activityListProvider.notifier);
 
+    final activityState = ref.watch(activityListProvider);
+
     return Expanded(
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: ExtendedRefreshIndicator(
-          onRefresh: notifier.refresh,
-          child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
-        ),
-      ).padding(horizontal: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: ExtendedRefreshIndicator(
+              onRefresh: notifier.refresh,
+              child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
+            ),
+          ).padding(horizontal: 8),
+          if (activityState.isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.grey.withOpacity(0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

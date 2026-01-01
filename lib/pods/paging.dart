@@ -120,7 +120,8 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
   @override
   Future<void> refresh() async {
     state = AsyncData(
-      state.value!.copyWith(
+      PaginationState(
+        items: [],
         isLoading: true,
         isReloading: true,
         totalCount: null,
@@ -131,8 +132,9 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
 
     final newItems = await fetch();
 
+    if (!ref.mounted) return;
     state = AsyncData(
-      state.value!.copyWith(
+      PaginationState(
         items: newItems,
         isLoading: false,
         isReloading: false,
@@ -152,6 +154,7 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
 
     final newItems = await fetch();
 
+    if (!ref.mounted) return;
     state = AsyncData(
       state.value!.copyWith(
         items: [...state.value!.items, ...newItems],
@@ -168,9 +171,10 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
     if (currentFilter == filter) return;
 
     state = AsyncData(
-      state.value!.copyWith(
-        isReloading: true,
+      PaginationState(
+        items: [],
         isLoading: true,
+        isReloading: true,
         totalCount: null,
         hasMore: true,
         cursor: null,
@@ -180,8 +184,9 @@ mixin AsyncPaginationFilter<F, T> on AsyncPaginationController<T>
 
     final newItems = await fetch();
 
+    if (!ref.mounted) return;
     state = AsyncData(
-      state.value!.copyWith(
+      PaginationState(
         items: newItems,
         isLoading: false,
         isReloading: false,
