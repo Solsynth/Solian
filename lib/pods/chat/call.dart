@@ -245,7 +245,7 @@ class CallNotifier extends _$CallNotifier {
       final apiClient = ref.read(apiClientProvider);
       final ongoingCall = await ref.read(ongoingCallProvider(roomId).future);
       final response = await apiClient.get(
-        '/sphere/chat/realtime/$roomId/join',
+        '/messager/chat/realtime/$roomId/join',
       );
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;

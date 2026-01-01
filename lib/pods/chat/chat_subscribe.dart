@@ -61,7 +61,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         WebSocketPacket(
           type: 'messages.subscribe',
           data: {'chat_room_id': roomId},
-          endpoint: 'sphere',
+          endpoint: 'messager',
         ),
       ),
     );
@@ -98,7 +98,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           WebSocketPacket(
             type: 'messages.subscribe',
             data: {'chat_room_id': roomId},
-            endpoint: 'sphere',
+            endpoint: 'messager',
           ),
         ),
       );
@@ -116,7 +116,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
             WebSocketPacket(
               type: 'messages.unsubscribe',
               data: {'chat_room_id': roomId},
-              endpoint: 'sphere',
+              endpoint: 'messager',
             ),
           ),
         );
@@ -128,7 +128,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
             WebSocketPacket(
               type: 'messages.subscribe',
               data: {'chat_room_id': roomId},
-              endpoint: 'sphere',
+              endpoint: 'messager',
             ),
           ),
         );
@@ -143,7 +143,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           WebSocketPacket(
             type: 'messages.unsubscribe',
             data: {'chat_room_id': roomId},
-            endpoint: 'sphere',
+            endpoint: 'messager',
           ),
         ),
       );
@@ -207,7 +207,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         WebSocketPacket(
           type: 'messages.read',
           data: {'chat_room_id': roomId},
-          endpoint: 'sphere',
+          endpoint: 'messager',
         ),
       ),
     );
@@ -224,7 +224,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         WebSocketPacket(
           type: 'messages.typing',
           data: {'chat_room_id': roomId},
-          endpoint: 'sphere',
+          endpoint: 'messager',
         ),
       ),
     );

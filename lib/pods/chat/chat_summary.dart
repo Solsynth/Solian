@@ -24,7 +24,7 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
 
     try {
       final client = ref.read(apiClientProvider);
-      final response = await client.get('/sphere/chat/unread');
+      final response = await client.get('/messager/chat/unread');
       return (response.data as num).toInt();
     } catch (_) {
       return 0;
@@ -65,7 +65,7 @@ class ChatSummary extends _$ChatSummary {
   @override
   Future<Map<String, SnChatSummary>> build() async {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/sphere/chat/summary');
+    final resp = await client.get('/messager/chat/summary');
 
     final Map<String, dynamic> data = resp.data;
     final summaries = data.map(

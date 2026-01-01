@@ -15,7 +15,7 @@ class ChatOnlineCountNotifier extends _$ChatOnlineCountNotifier {
 
     // Fetch initial online count
     final response = await apiClient.get(
-      '/sphere/chat/$chatroomId/members/online',
+      '/messager/chat/$chatroomId/members/online',
     );
     final initialCount = response.data as int;
 

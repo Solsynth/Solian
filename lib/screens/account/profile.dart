@@ -678,7 +678,7 @@ Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get("/sphere/chat/direct/${account.id}");
+    final resp = await apiClient.get("/messager/chat/direct/${account.id}");
     return SnChatRoom.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -807,7 +807,7 @@ class AccountProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(
-          '/sphere/chat/direct',
+          '/messager/chat/direct',
           data: {'related_user_id': account.value!.id},
         );
         final chat = SnChatRoom.fromJson(resp.data);

@@ -16,7 +16,7 @@ Future<SnRealtimeCall?> ongoingCall(Ref ref, String roomId) async {
   if (roomId.isEmpty) return null;
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/sphere/chat/realtime/$roomId');
+    final resp = await apiClient.get('/messager/chat/realtime/$roomId');
     return SnRealtimeCall.fromJson(resp.data);
   } catch (e) {
     if (e is DioException && e.response?.statusCode == 404) {
@@ -42,7 +42,7 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        await apiClient.post('/sphere/chat/realtime/${room.id}');
+        await apiClient.post('/messager/chat/realtime/${room.id}');
         ref.invalidate(ongoingCallProvider(room.id));
         // Just join the room, the overlay will handle the UI
         await callNotifier.joinRoom(room);
@@ -56,7 +56,7 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleEnd() async {
       isLoading.value = true;
       try {
-        await apiClient.delete('/sphere/chat/realtime/${room.id}');
+        await apiClient.delete('/messager/chat/realtime/${room.id}');
         callNotifier.dispose(); // Clean up call resources
       } catch (e) {
         showErrorAlert(e);

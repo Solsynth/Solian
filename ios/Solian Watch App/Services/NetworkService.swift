@@ -261,7 +261,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/sphere/chat")
+        let url = baseURL.appendingPathComponent("/messager/chat")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -283,7 +283,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/sphere/chat/\(identifier)")
+        let url = baseURL.appendingPathComponent("/messager/chat/\(identifier)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -308,7 +308,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/sphere/chat/invites")
+        let url = baseURL.appendingPathComponent("/messager/chat/invites")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -330,7 +330,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/sphere/chat/invites/\(chatRoomId)/accept")
+        let url = baseURL.appendingPathComponent("/messager/chat/invites/\(chatRoomId)/accept")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -351,7 +351,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/sphere/chat/invites/\(chatRoomId)/decline")
+        let url = baseURL.appendingPathComponent("/messager/chat/invites/\(chatRoomId)/decline")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -375,9 +375,9 @@ class NetworkService {
             throw URLError(.badURL)
         }
         
-        // Try a different pattern: /sphere/chat/messages with roomId as query param
+        // Try a different pattern: /messager/chat/messages with roomId as query param
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/sphere/chat/\(chatRoomId)/messages"),
+            url: baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/messages"),
             resolvingAgainstBaseURL: false
         )!
         var queryItems = [

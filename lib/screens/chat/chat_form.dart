@@ -97,14 +97,10 @@ class EditChatScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: UniversalFile(data: result, type: UniversalFileType.image),
+        ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -129,7 +125,7 @@ class EditChatScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          id == null ? '/sphere/chat' : '/sphere/chat/$id',
+          id == null ? '/messager/chat' : '/messager/chat/$id',
           data: {
             'name': nameController.text,
             'description': descriptionController.text,
@@ -166,13 +162,12 @@ class EditChatScreen extends HookConsumerWidget {
                   GestureDetector(
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      child:
-                          background.value != null
-                              ? CloudFileWidget(
-                                item: background.value!,
-                                fit: BoxFit.cover,
-                              )
-                              : const SizedBox.shrink(),
+                      child: background.value != null
+                          ? CloudFileWidget(
+                              item: background.value!,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     onTap: () {
                       setPicture('background');
@@ -208,8 +203,8 @@ class EditChatScreen extends HookConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -223,8 +218,8 @@ class EditChatScreen extends HookConsumerWidget {
                     ),
                     minLines: 3,
                     maxLines: null,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<SnRealm>(
@@ -241,22 +236,20 @@ class EditChatScreen extends HookConsumerWidget {
                         child: Text('none'.tr()),
                       ),
                       ...joinedRealms.maybeWhen(
-                        data:
-                            (realms) => realms.map(
-                              (realm) => DropdownMenuItem(
-                                value: realm,
-                                child: Text(realm.name),
-                              ),
-                            ),
+                        data: (realms) => realms.map(
+                          (realm) => DropdownMenuItem(
+                            value: realm,
+                            child: Text(realm.name),
+                          ),
+                        ),
                         orElse: () => [],
                       ),
                     ],
-                    onChanged:
-                        joinedRealms.isLoading
-                            ? null
-                            : (SnRealm? value) {
-                              currentRealm.value = value;
-                            },
+                    onChanged: joinedRealms.isLoading
+                        ? null
+                        : (SnRealm? value) {
+                            currentRealm.value = value;
+                          },
                   ),
                   const SizedBox(height: 16),
                   Card(

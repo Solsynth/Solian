@@ -105,7 +105,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
         Future(() async {
           try {
             final client = ref.read(apiClientProvider);
-            final resp = await client.get('/sphere/chat');
+            final resp = await client.get('/messager/chat');
             final remoteRooms = resp.data
                 .map((e) => SnChatRoom.fromJson(e))
                 .cast<SnChatRoom>()
@@ -122,7 +122,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
 
     // Fallback to API
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/sphere/chat');
+    final resp = await client.get('/messager/chat');
     final rooms = resp.data
         .map((e) => SnChatRoom.fromJson(e))
         .cast<SnChatRoom>()
@@ -306,7 +306,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
         Future(() async {
           try {
             final client = ref.read(apiClientProvider);
-            final resp = await client.get('/sphere/chat/$identifier');
+            final resp = await client.get('/messager/chat/$identifier');
             final remoteRoom = SnChatRoom.fromJson(resp.data);
             // Update state with fresh data directly without saving to DB
             // DB will be updated by ChatRoomJoinedNotifier's full sync
@@ -321,7 +321,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     // Fallback to API
     try {
       final client = ref.watch(apiClientProvider);
-      final resp = await client.get('/sphere/chat/$identifier');
+      final resp = await client.get('/messager/chat/$identifier');
       final room = SnChatRoom.fromJson(resp.data);
       await db.saveChatRooms([room]);
       return room;
@@ -375,7 +375,7 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
             try {
               final client = ref.read(apiClientProvider);
               final resp = await client.get(
-                '/sphere/chat/$identifier/members/me',
+                '/messager/chat/$identifier/members/me',
               );
               final remoteMember = SnChatMember.fromJson(resp.data);
               await db.saveMember(remoteMember);
@@ -396,7 +396,7 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
     // Fallback to API
     try {
       final client = ref.watch(apiClientProvider);
-      final resp = await client.get('/sphere/chat/$identifier/members/me');
+      final resp = await client.get('/messager/chat/$identifier/members/me');
       final member = SnChatMember.fromJson(resp.data);
       await db.saveMember(member);
       return member;
@@ -444,7 +444,7 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
 @riverpod
 Future<List<SnChatMember>> chatroomInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/chat/invites');
+  final resp = await client.get('/messager/chat/invites');
   return resp.data
       .map((e) => SnChatMember.fromJson(e))
       .cast<SnChatMember>()

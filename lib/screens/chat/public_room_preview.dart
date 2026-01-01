@@ -65,8 +65,9 @@ class PublicRoomPreview extends HookConsumerWidget {
           extentEstimation: (_, _) => 40,
           itemBuilder: (context, index) {
             final message = messageList[index];
-            final nextMessage =
-                index < messageList.length - 1 ? messageList[index + 1] : null;
+            final nextMessage = index < messageList.length - 1
+                ? messageList[index + 1]
+                : null;
             final isLastInGroup =
                 nextMessage == null ||
                 nextMessage.senderId != message.senderId ||
@@ -97,25 +98,23 @@ class PublicRoomPreview extends HookConsumerWidget {
         SizedBox(
           height: 26,
           width: 26,
-          child:
-              (room.type == 1 && room.picture?.id == null)
-                  ? SplitAvatarWidget(
-                    filesId:
-                        room.members!
-                            .map((e) => e.account.profile.picture?.id)
-                            .toList(),
-                  )
-                  : room.picture?.id != null
-                  ? ProfilePictureWidget(
-                    fileId: room.picture?.id,
-                    fallbackIcon: Symbols.chat,
-                  )
-                  : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
+          child: (room.type == 1 && room.picture?.id == null)
+              ? SplitAvatarWidget(
+                  filesId: room.members!
+                      .map((e) => e.account.profile.picture?.id)
+                      .toList(),
+                )
+              : room.picture?.id != null
+              ? ProfilePictureWidget(
+                  fileId: room.picture?.id,
+                  fallbackIcon: Symbols.chat,
+                )
+              : CircleAvatar(
+                  child: Text(
+                    room.name![0].toUpperCase(),
+                    style: const TextStyle(fontSize: 12),
                   ),
+                ),
         ),
         Text(
           (room.type == 1 && room.name == null)
@@ -132,25 +131,23 @@ class PublicRoomPreview extends HookConsumerWidget {
         SizedBox(
           height: 26,
           width: 26,
-          child:
-              (room.type == 1 && room.picture?.id == null)
-                  ? SplitAvatarWidget(
-                    filesId:
-                        room.members!
-                            .map((e) => e.account.profile.picture?.id)
-                            .toList(),
-                  )
-                  : room.picture?.id != null
-                  ? ProfilePictureWidget(
-                    fileId: room.picture?.id,
-                    fallbackIcon: Symbols.chat,
-                  )
-                  : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
+          child: (room.type == 1 && room.picture?.id == null)
+              ? SplitAvatarWidget(
+                  filesId: room.members!
+                      .map((e) => e.account.profile.picture?.id)
+                      .toList(),
+                )
+              : room.picture?.id != null
+              ? ProfilePictureWidget(
+                  fileId: room.picture?.id,
+                  fallbackIcon: Symbols.chat,
+                )
+              : CircleAvatar(
+                  child: Text(
+                    room.name![0].toUpperCase(),
+                    style: const TextStyle(fontSize: 12),
                   ),
+                ),
         ),
         Text(
           (room.type == 1 && room.name == null)
@@ -181,17 +178,14 @@ class PublicRoomPreview extends HookConsumerWidget {
         children: [
           Expanded(
             child: messages.when(
-              data:
-                  (messageList) =>
-                      messageList.isEmpty
-                          ? Center(child: Text('No messages yet'.tr()))
-                          : chatMessageListWidget(messageList),
+              data: (messageList) => messageList.isEmpty
+                  ? Center(child: Text('No messages yet'.tr()))
+                  : chatMessageListWidget(messageList),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, _) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () => messagesNotifier.loadInitial(),
-                  ),
+              error: (error, _) => ResponseErrorWidget(
+                error: error,
+                onRetry: () => messagesNotifier.loadInitial(),
+              ),
             ),
           ),
           // Join button at the bottom for public rooms
@@ -202,7 +196,7 @@ class PublicRoomPreview extends HookConsumerWidget {
                 try {
                   showLoadingModal(context);
                   final apiClient = ref.read(apiClientProvider);
-                  await apiClient.post('/sphere/chat/${room.id}/members/me');
+                  await apiClient.post('/messager/chat/${room.id}/members/me');
                   ref.invalidate(chatRoomIdentityProvider(id));
                 } catch (err) {
                   showErrorAlert(err);

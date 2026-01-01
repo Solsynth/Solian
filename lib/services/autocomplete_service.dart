@@ -18,7 +18,7 @@ class AutocompleteService {
     String content,
   ) async {
     final response = await _client.post(
-      '/sphere/chat/$roomId/autocomplete',
+      '/messager/chat/$roomId/autocomplete',
       data: {'content': content},
     );
 

@@ -117,7 +117,7 @@ class CallControlsBar extends HookConsumerWidget {
                       try {
                         showLoadingModal(context);
                         await apiClient.delete(
-                          '/sphere/chat/realtime/${callNotifier.roomId}',
+                          '/messager/chat/realtime/${callNotifier.roomId}',
                         );
                         callNotifier.dispose();
                         if (context.mounted && popOnLeaves) {

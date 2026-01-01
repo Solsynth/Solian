@@ -218,20 +218,19 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         case ShareContentType.file:
           // Upload files to cloud storage
           if (widget.content.files?.isNotEmpty == true) {
-            final universalFiles =
-                widget.content.files!.map((file) {
-                  UniversalFileType fileType;
-                  if (file.mimeType?.startsWith('image/') == true) {
-                    fileType = UniversalFileType.image;
-                  } else if (file.mimeType?.startsWith('video/') == true) {
-                    fileType = UniversalFileType.video;
-                  } else if (file.mimeType?.startsWith('audio/') == true) {
-                    fileType = UniversalFileType.audio;
-                  } else {
-                    fileType = UniversalFileType.file;
-                  }
-                  return UniversalFile(data: file, type: fileType);
-                }).toList();
+            final universalFiles = widget.content.files!.map((file) {
+              UniversalFileType fileType;
+              if (file.mimeType?.startsWith('image/') == true) {
+                fileType = UniversalFileType.image;
+              } else if (file.mimeType?.startsWith('video/') == true) {
+                fileType = UniversalFileType.video;
+              } else if (file.mimeType?.startsWith('audio/') == true) {
+                fileType = UniversalFileType.audio;
+              } else {
+                fileType = UniversalFileType.file;
+              }
+              return UniversalFile(data: file, type: fileType);
+            }).toList();
 
             // Initialize progress tracking
             final messageId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -243,19 +242,17 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             // Upload each file
             for (var idx = 0; idx < universalFiles.length; idx++) {
               final file = universalFiles[idx];
-              final cloudFile =
-                  await FileUploader.createCloudFile(
-                    ref: ref,
-                    fileData: file,
-                    onProgress: (progress, _) {
-                      if (mounted) {
-                        setState(() {
-                          _fileUploadProgress[messageId]?[idx] =
-                              progress ?? 0.0;
-                        });
-                      }
-                    },
-                  ).future;
+              final cloudFile = await FileUploader.createCloudFile(
+                ref: ref,
+                fileData: file,
+                onProgress: (progress, _) {
+                  if (mounted) {
+                    setState(() {
+                      _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
+                    });
+                  }
+                },
+              ).future;
 
               if (cloudFile == null) {
                 throw Exception('Failed to upload file: ${file.data.name}');
@@ -272,7 +269,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
       // Send message to chat room
       await apiClient.post(
-        '/sphere/chat/${chatRoom.id}/messages',
+        '/messager/chat/${chatRoom.id}/messages',
         data: {'content': content, 'attachments_id': attachmentIds, 'meta': {}},
       );
 
@@ -359,20 +356,19 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
     setState(() => _isLoading = true);
     try {
-      final universalFiles =
-          widget.content.files!.map((file) {
-            UniversalFileType fileType;
-            if (file.mimeType?.startsWith('image/') == true) {
-              fileType = UniversalFileType.image;
-            } else if (file.mimeType?.startsWith('video/') == true) {
-              fileType = UniversalFileType.video;
-            } else if (file.mimeType?.startsWith('audio/') == true) {
-              fileType = UniversalFileType.audio;
-            } else {
-              fileType = UniversalFileType.file;
-            }
-            return UniversalFile(data: file, type: fileType);
-          }).toList();
+      final universalFiles = widget.content.files!.map((file) {
+        UniversalFileType fileType;
+        if (file.mimeType?.startsWith('image/') == true) {
+          fileType = UniversalFileType.image;
+        } else if (file.mimeType?.startsWith('video/') == true) {
+          fileType = UniversalFileType.video;
+        } else if (file.mimeType?.startsWith('audio/') == true) {
+          fileType = UniversalFileType.audio;
+        } else {
+          fileType = UniversalFileType.file;
+        }
+        return UniversalFile(data: file, type: fileType);
+      }).toList();
 
       // Initialize progress tracking
       final messageId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -383,18 +379,17 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       // Upload each file
       for (var idx = 0; idx < universalFiles.length; idx++) {
         final file = universalFiles[idx];
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: file,
-              onProgress: (progress, _) {
-                if (mounted) {
-                  setState(() {
-                    _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
-                  });
-                }
-              },
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: file,
+          onProgress: (progress, _) {
+            if (mounted) {
+              setState(() {
+                _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
+              });
+            }
+          },
+        ).future;
 
         if (cloudFile == null) {
           throw Exception('Failed to upload file: ${file.data.name}');
@@ -481,8 +476,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -490,12 +486,12 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                       children: [
                         Text(
                           'contentToShare'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         _ContentPreview(content: widget.content),
@@ -510,12 +506,12 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                       children: [
                         Text(
                           'quickActions'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -568,12 +564,12 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                       children: [
                         Text(
                           'sendToChat'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                         const SizedBox(height: 12),
 
@@ -592,10 +588,8 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                                 vertical: 12,
                               ),
                             ),
-                            onTapOutside:
-                                (_) =>
-                                    FocusManager.instance.primaryFocus
-                                        ?.unfocus(),
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
                             maxLines: 3,
                             minLines: 1,
                             enabled: !_isLoading,
@@ -603,8 +597,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                         ),
 
                         _ChatRoomsList(
-                          onChatSelected:
-                              _isLoading ? null : _shareToSpecificChat,
+                          onChatSelected: _isLoading
+                              ? null
+                              : _shareToSpecificChat,
                         ),
                       ],
                     ),
@@ -627,11 +622,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                   if (_fileUploadProgress.isNotEmpty)
                     ..._fileUploadProgress.entries.map((entry) {
                       final progress = entry.value;
-                      final averageProgress =
-                          progress.isEmpty
-                              ? 0.0
-                              : progress.reduce((a, b) => a + b) /
-                                  progress.length;
+                      final averageProgress = progress.isEmpty
+                          ? 0.0
+                          : progress.reduce((a, b) => a + b) / progress.length;
                       return Column(
                         children: [
                           Text(
@@ -699,39 +692,38 @@ class _ChatRoomsList extends ConsumerWidget {
               final room = rooms[index];
               return _ChatRoomOption(
                 room: room,
-                onTap:
-                    onChatSelected != null ? () => onChatSelected!(room) : null,
+                onTap: onChatSelected != null
+                    ? () => onChatSelected!(room)
+                    : null,
               );
             },
           ),
         );
       },
-      loading:
-          () => SizedBox(
-            height: 80,
-            child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+      loading: () => SizedBox(
+        height: 80,
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+      error: (error, stack) => Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'failedToLoadChats'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onErrorContainer,
             ),
           ),
-      error:
-          (error, stack) => Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.errorContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                'failedToLoadChats'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ),
+        ),
+      ),
     );
   }
 }
@@ -746,10 +738,9 @@ class _ChatRoomOption extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoProvider);
 
-    final validMembers =
-        (room.members ?? [])
-            .where((m) => m.accountId != userInfo.value?.id)
-            .toList();
+    final validMembers = (room.members ?? [])
+        .where((m) => m.accountId != userInfo.value?.id)
+        .toList();
 
     final isDirect = room.type == 1; // Assuming type 1 is direct chat
     final displayName =
@@ -764,12 +755,11 @@ class _ChatRoomOption extends HookConsumerWidget {
         width: 72,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color:
-              onTap != null
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: onTap != null
+              ? Theme.of(context).colorScheme.surfaceContainerHighest
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -786,36 +776,30 @@ class _ChatRoomOption extends HookConsumerWidget {
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child:
-                  (isDirect && room.picture?.id == null)
-                      ? SplitAvatarWidget(
-                        filesId:
-                            validMembers
-                                .map((e) => e.account.profile.picture?.id)
-                                .toList(),
-                        radius: 16,
-                      )
-                      : room.picture?.id == null
-                      ? CircleAvatar(
-                        radius: 16,
-                        child: Text(room.name![0].toUpperCase()),
-                      )
-                      : ProfilePictureWidget(
-                        fileId: room.picture?.id,
-                        radius: 16,
-                      ),
+              child: (isDirect && room.picture?.id == null)
+                  ? SplitAvatarWidget(
+                      filesId: validMembers
+                          .map((e) => e.account.profile.picture?.id)
+                          .toList(),
+                      radius: 16,
+                    )
+                  : room.picture?.id == null
+                  ? CircleAvatar(
+                      radius: 16,
+                      child: Text(room.name![0].toUpperCase()),
+                    )
+                  : ProfilePictureWidget(fileId: room.picture?.id, radius: 16),
             ),
             const SizedBox(height: 4),
             // Chat room name
             Text(
               displayName,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color:
-                    onTap != null
-                        ? Theme.of(context).colorScheme.onSurface
-                        : Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: onTap != null
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -847,12 +831,11 @@ class _CompactShareOption extends StatelessWidget {
         width: 72,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color:
-              onTap != null
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: onTap != null
+              ? Theme.of(context).colorScheme.surfaceContainerHighest
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -864,23 +847,21 @@ class _CompactShareOption extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color:
-                  onTap != null
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: onTap != null
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withOpacity(0.5),
             ),
             const SizedBox(height: 4),
             Text(
               title,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color:
-                    onTap != null
-                        ? Theme.of(context).colorScheme.onSurface
-                        : Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: onTap != null
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -937,26 +918,25 @@ class _LinkPreview extends ConsumerWidget {
     final linkPreviewAsync = ref.watch(linkPreviewProvider(link));
 
     return linkPreviewAsync.when(
-      loading:
-          () => Container(
-            constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Loading link preview...',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+      loading: () => Container(
+        constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-          ),
+            const SizedBox(width: 8),
+            Text(
+              'Loading link preview...',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
       error: (error, stackTrace) => _buildFallbackPreview(context),
       data: (embed) {
         if (embed == null) {
@@ -979,27 +959,27 @@ class _LinkPreview extends ConsumerWidget {
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child:
-                        embed.imageUrl != null
-                            ? Image.network(
-                              embed.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildFaviconFallback(
-                                  context,
-                                  embed.faviconUrl ?? '',
-                                );
-                              },
-                            )
-                            : _buildFaviconFallback(
-                              context,
-                              embed.faviconUrl ?? '',
-                            ),
+                    child: embed.imageUrl != null
+                        ? Image.network(
+                            embed.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildFaviconFallback(
+                                context,
+                                embed.faviconUrl ?? '',
+                              );
+                            },
+                          )
+                        : _buildFaviconFallback(
+                            context,
+                            embed.faviconUrl ?? '',
+                          ),
                   ),
                 ),
               // Content
@@ -1033,12 +1013,12 @@ class _LinkPreview extends ConsumerWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           embed.description!,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1231,17 +1211,15 @@ class _FilePreview extends StatelessWidget {
                               return Container(
                                 width: 40,
                                 height: 40,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceVariant,
                                 child: Icon(
                                   Symbols.broken_image,
                                   size: 20,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               );
                             },
@@ -1252,17 +1230,17 @@ class _FilePreview extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).colorScheme.primaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Icon(
                             _getFileIcon(file.name),
                             size: 20,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       const SizedBox(width: 12),
@@ -1281,22 +1259,19 @@ class _FilePreview extends StatelessWidget {
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   final size = snapshot.data!;
-                                  final sizeStr =
-                                      size < 1024
-                                          ? '${size}B'
-                                          : size < 1024 * 1024
-                                          ? '${(size / 1024).toStringAsFixed(1)}KB'
-                                          : '${(size / (1024 * 1024)).toStringAsFixed(1)}MB';
+                                  final sizeStr = size < 1024
+                                      ? '${size}B'
+                                      : size < 1024 * 1024
+                                      ? '${(size / 1024).toStringAsFixed(1)}KB'
+                                      : '${(size / (1024 * 1024)).toStringAsFixed(1)}MB';
                                   return Text(
                                     sizeStr,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.copyWith(
-                                      color:
-                                          Theme.of(
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
                                             context,
                                           ).colorScheme.onSurfaceVariant,
-                                    ),
+                                        ),
                                   );
                                 }
                                 return const SizedBox.shrink();
@@ -1329,13 +1304,12 @@ void showShareSheet({
     context: context,
     isScrollControlled: true,
     useRootNavigator: true,
-    builder:
-        (context) => ShareSheet(
-          content: content,
-          title: title,
-          toSystem: toSystem,
-          onClose: onClose,
-        ),
+    builder: (context) => ShareSheet(
+      content: content,
+      title: title,
+      toSystem: toSystem,
+      onClose: onClose,
+    ),
   );
 }
 

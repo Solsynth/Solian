@@ -281,7 +281,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Fetching messages from API, offset $offset, take $take');
     if (_totalCount == null) {
       final response = await _apiClient.get(
-        '/sphere/chat/$roomId/messages',
+        '/messager/chat/$roomId/messages',
         queryParameters: {'offset': 0, 'take': 1},
       );
       _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
@@ -293,7 +293,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     final response = await _apiClient.get(
-      '/sphere/chat/$roomId/messages',
+      '/messager/chat/$roomId/messages',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -373,7 +373,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       do {
         final resp = await _apiClient.post(
-          '/sphere/chat/${_room.id}/sync',
+          '/messager/chat/${_room.id}/sync',
           data: {'last_sync_timestamp': lastSyncTimestamp},
         );
 
@@ -603,8 +603,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final response = await _apiClient.request(
         editingTo == null
-            ? '/sphere/chat/$roomId/messages'
-            : '/sphere/chat/$roomId/messages/${editingTo.id}',
+            ? '/messager/chat/$roomId/messages'
+            : '/messager/chat/$roomId/messages/${editingTo.id}',
         data: {
           'content': content,
           'attachments_id': cloudAttachments.map((e) => e.id).toList(),
@@ -688,7 +688,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       var remoteMessage = message.toRemoteMessage();
       final response = await _apiClient.post(
-        '/sphere/chat/${message.roomId}/messages',
+        '/messager/chat/${message.roomId}/messages',
         data: {
           'content': remoteMessage.content,
           'attachments_id': remoteMessage.attachments,
@@ -925,7 +925,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      await _apiClient.delete('/sphere/chat/$roomId/messages/$messageId');
+      await _apiClient.delete('/messager/chat/$roomId/messages/$messageId');
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
       talker.log(
@@ -1033,7 +1033,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       final response = await _apiClient.get(
-        '/sphere/chat/$roomId/messages/$messageId',
+        '/messager/chat/$roomId/messages/$messageId',
       );
       final remoteMessage = SnChatMessage.fromJson(response.data);
       final message = LocalChatMessage.fromRemoteMessage(

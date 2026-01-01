@@ -67,7 +67,7 @@ class ChatDetailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/sphere/chat/$id/members/me/notify',
+          '/messager/chat/$id/members/me/notify',
           data: {'notify_level': level},
         );
         ref.invalidate(chatRoomIdentityProvider(id));
@@ -85,7 +85,7 @@ class ChatDetailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/sphere/chat/$id/members/me/notify',
+          '/messager/chat/$id/members/me/notify',
           data: {'break_until': until.toUtc().toIso8601String()},
         );
         ref.invalidate(chatRoomIdentityProvider(id));
@@ -529,7 +529,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
               ).then((confirm) async {
                 if (confirm) {
                   final client = ref.watch(apiClientProvider);
-                  await client.delete('/sphere/chat/$id');
+                  await client.delete('/messager/chat/$id');
                   ref.invalidate(chatRoomJoinedProvider);
                   if (context.mounted) {
                     context.pop();
@@ -560,7 +560,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
               ).then((confirm) async {
                 if (confirm) {
                   final client = ref.watch(apiClientProvider);
-                  await client.delete('/sphere/chat/$id/members/me');
+                  await client.delete('/messager/chat/$id/members/me');
                   ref.invalidate(chatRoomJoinedProvider);
                   if (context.mounted) {
                     context.pop();
@@ -600,7 +600,7 @@ class ChatMemberListNotifier
   Future<List<SnChatMember>> fetch() async {
     final apiClient = ref.watch(apiClientProvider);
     final response = await apiClient.get(
-      '/sphere/chat/$arg/members',
+      '/messager/chat/$arg/members',
       queryParameters: {
         'offset': fetchedCount.toString(),
         'take': pageSize,
@@ -645,7 +645,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/sphere/chat/invites/$roomId',
+          '/messager/chat/invites/$roomId',
           data: {'related_user_id': result.id, 'role': 0},
         );
         memberNotifier.refresh();
@@ -735,7 +735,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                               try {
                                 final apiClient = ref.watch(apiClientProvider);
                                 await apiClient.delete(
-                                  '/sphere/chat/$roomId/members/${member.accountId}',
+                                  '/messager/chat/$roomId/members/${member.accountId}',
                                 );
                                 // Refresh both providers
                                 memberNotifier.refresh();

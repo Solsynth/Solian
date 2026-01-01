@@ -505,7 +505,7 @@ class ChatListScreen extends HookConsumerWidget {
                           final client = ref.read(apiClientProvider);
                           try {
                             await client.post(
-                              '/sphere/chat/direct',
+                              '/messager/chat/direct',
                               data: {'related_user_id': result.id},
                             );
                             eventBus.fire(const ChatRoomsRefreshEvent());
@@ -622,7 +622,9 @@ class _ChatInvitesSheet extends HookConsumerWidget {
     Future<void> acceptInvite(SnChatMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/sphere/chat/invites/${invite.chatRoom!.id}/accept');
+        await client.post(
+          '/messager/chat/invites/${invite.chatRoom!.id}/accept',
+        );
         ref.invalidate(chatroomInvitesProvider);
         ref.invalidate(chatRoomJoinedProvider);
       } catch (err) {
@@ -634,7 +636,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/sphere/chat/invites/${invite.chatRoom!.id}/decline',
+          '/messager/chat/invites/${invite.chatRoom!.id}/decline',
         );
         ref.invalidate(chatroomInvitesProvider);
       } catch (err) {

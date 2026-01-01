@@ -34,7 +34,7 @@ class NotifyDelegate: UIResponder, UNUserNotificationCenterDelegate {
         }
         
         let serverUrl = UserDefaults.standard.getServerUrl()
-        let url = "\(serverUrl)/sphere/chat/\(metadata["room_id"] ?? "")/messages"
+        let url = "\(serverUrl)/messager/chat/\(metadata["room_id"] ?? "")/messages"
         
         let parameters: [String: Any?] = [
             "content": textResponse.userText,

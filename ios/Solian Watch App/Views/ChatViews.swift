@@ -455,7 +455,7 @@ struct ChatRoomView: View {
             ]
 
             // Create the URL
-            guard let url = URL(string: "\(serverUrl)/sphere/chat/\(room.id)/messages") else {
+            guard let url = URL(string: "\(serverUrl)/messager/chat/\(room.id)/messages") else {
                 throw URLError(.badURL)
             }
 

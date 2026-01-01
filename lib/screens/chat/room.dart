@@ -71,67 +71,64 @@ class ChatRoomScreen extends HookConsumerWidget {
             return AppScaffold(
               appBar: AppBar(leading: const PageBackButton()),
               body: Center(
-                child:
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            room.isCommunity == true
-                                ? Symbols.person_add
-                                : Symbols.person_remove,
-                            size: 36,
-                            fill: 1,
-                          ).padding(bottom: 4),
-                          Text('chatNotJoined').tr(),
-                          if (room.isCommunity != true)
-                            Text(
-                              'chatUnableJoin',
-                              textAlign: TextAlign.center,
-                            ).tr().bold()
-                          else
-                            FilledButton.tonalIcon(
-                              onPressed: () async {
-                                try {
-                                  showLoadingModal(context);
-                                  final apiClient = ref.read(apiClientProvider);
-                                  await apiClient.post(
-                                    '/sphere/chat/${room.id}/members/me',
-                                  );
-                                  ref.invalidate(chatRoomIdentityProvider(id));
-                                } catch (err) {
-                                  showErrorAlert(err);
-                                } finally {
-                                  if (context.mounted) {
-                                    hideLoadingModal(context);
-                                  }
-                                }
-                              },
-                              label: Text('chatJoin').tr(),
-                              icon: const Icon(Icons.add),
-                            ).padding(top: 8),
-                        ],
-                      ),
-                    ).center(),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 280),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        room.isCommunity == true
+                            ? Symbols.person_add
+                            : Symbols.person_remove,
+                        size: 36,
+                        fill: 1,
+                      ).padding(bottom: 4),
+                      Text('chatNotJoined').tr(),
+                      if (room.isCommunity != true)
+                        Text(
+                          'chatUnableJoin',
+                          textAlign: TextAlign.center,
+                        ).tr().bold()
+                      else
+                        FilledButton.tonalIcon(
+                          onPressed: () async {
+                            try {
+                              showLoadingModal(context);
+                              final apiClient = ref.read(apiClientProvider);
+                              await apiClient.post(
+                                '/messager/chat/${room.id}/members/me',
+                              );
+                              ref.invalidate(chatRoomIdentityProvider(id));
+                            } catch (err) {
+                              showErrorAlert(err);
+                            } finally {
+                              if (context.mounted) {
+                                hideLoadingModal(context);
+                              }
+                            }
+                          },
+                          label: Text('chatJoin').tr(),
+                          icon: const Icon(Icons.add),
+                        ).padding(top: 8),
+                    ],
+                  ),
+                ).center(),
               ),
             );
           }
         },
-        loading:
-            () => AppScaffold(
-              appBar: AppBar(leading: const PageBackButton()),
-              body: CircularProgressIndicator().center(),
-            ),
-        error:
-            (error, _) => AppScaffold(
-              appBar: AppBar(leading: const PageBackButton()),
-              body: ResponseErrorWidget(
-                error: error,
-                onRetry: () => ref.refresh(chatRoomProvider(id)),
-              ),
-            ),
+        loading: () => AppScaffold(
+          appBar: AppBar(leading: const PageBackButton()),
+          body: CircularProgressIndicator().center(),
+        ),
+        error: (error, _) => AppScaffold(
+          appBar: AppBar(leading: const PageBackButton()),
+          body: ResponseErrorWidget(
+            error: error,
+            onRetry: () => ref.refresh(chatRoomProvider(id)),
+          ),
+        ),
       );
     }
 
@@ -186,10 +183,9 @@ class ChatRoomScreen extends HookConsumerWidget {
           case MessageItemAction.edit:
             messageEditingTo.value = message.toRemoteMessage();
             messageController.text = messageEditingTo.value?.content ?? '';
-            attachments.value =
-                messageEditingTo.value!.attachments
-                    .map((e) => UniversalFile.fromAttachment(e))
-                    .toList();
+            attachments.value = messageEditingTo.value!.attachments
+                .map((e) => UniversalFile.fromAttachment(e))
+                .toList();
           case MessageItemAction.forward:
             messageForwardingTo.value = message.toRemoteMessage();
           case MessageItemAction.reply:
@@ -424,38 +420,37 @@ class ChatRoomScreen extends HookConsumerWidget {
           label: Text('${(onlineCount.value ?? 0)}'),
           textStyle: GoogleFonts.robotoMono(fontSize: 10),
           textColor: Colors.white,
-          backgroundColor:
-              (onlineCount.value ?? 0) > 1 ? Colors.green : Colors.grey,
+          backgroundColor: (onlineCount.value ?? 0) > 1
+              ? Colors.green
+              : Colors.grey,
           offset: Offset(6, 14),
           child: SizedBox(
             height: 26,
             width: 26,
-            child:
-                (room!.type == 1 && room.picture?.id == null)
-                    ? SplitAvatarWidget(
-                      filesId:
-                          getValidMembers(
-                            room.members!,
-                          ).map((e) => e.account.profile.picture?.id).toList(),
-                    )
-                    : room.picture?.id != null
-                    ? ProfilePictureWidget(
-                      fileId: room.picture?.id,
-                      fallbackIcon: Symbols.chat,
-                    )
-                    : CircleAvatar(
-                      child: Text(
-                        room.name![0].toUpperCase(),
-                        style: const TextStyle(fontSize: 12),
-                      ),
+            child: (room!.type == 1 && room.picture?.id == null)
+                ? SplitAvatarWidget(
+                    filesId: getValidMembers(
+                      room.members!,
+                    ).map((e) => e.account.profile.picture?.id).toList(),
+                  )
+                : room.picture?.id != null
+                ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
                     ),
+                  ),
           ),
         ),
         Text(
           (room.type == 1 && room.name == null)
               ? getValidMembers(
-                room.members!,
-              ).map((e) => e.account.nick).join(', ')
+                  room.members!,
+                ).map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(15),
       ],
@@ -470,39 +465,38 @@ class ChatRoomScreen extends HookConsumerWidget {
           isLabelVisible: (onlineCount.value ?? 0) > 1,
           label: Text('${(onlineCount.value ?? 0)}'),
           textStyle: GoogleFonts.robotoMono(fontSize: 10),
-          backgroundColor:
-              (onlineCount.value ?? 0) > 1 ? Colors.green : Colors.grey,
+          backgroundColor: (onlineCount.value ?? 0) > 1
+              ? Colors.green
+              : Colors.grey,
           textColor: Colors.white,
           offset: Offset(6, 14),
           child: SizedBox(
             height: 28,
             width: 28,
-            child:
-                (room!.type == 1 && room.picture?.id == null)
-                    ? SplitAvatarWidget(
-                      filesId:
-                          getValidMembers(
-                            room.members!,
-                          ).map((e) => e.account.profile.picture?.id).toList(),
-                    )
-                    : room.picture?.id != null
-                    ? ProfilePictureWidget(
-                      fileId: room.picture?.id,
-                      fallbackIcon: Symbols.chat,
-                    )
-                    : CircleAvatar(
-                      child: Text(
-                        room.name![0].toUpperCase(),
-                        style: const TextStyle(fontSize: 12),
-                      ),
+            child: (room!.type == 1 && room.picture?.id == null)
+                ? SplitAvatarWidget(
+                    filesId: getValidMembers(
+                      room.members!,
+                    ).map((e) => e.account.profile.picture?.id).toList(),
+                  )
+                : room.picture?.id != null
+                ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
                     ),
+                  ),
           ),
         ),
         Text(
           (room.type == 1 && room.name == null)
               ? getValidMembers(
-                room.members!,
-              ).map((e) => e.account.nick).join(', ')
+                  room.members!,
+                ).map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(19),
       ],
@@ -531,11 +525,9 @@ class ChatRoomScreen extends HookConsumerWidget {
               index: index,
               scrollController: scrollController,
               alignment: 0.5,
-              duration:
-                  (estimatedDistance) => Duration(
-                    milliseconds:
-                        (estimatedDistance * 0.5).clamp(200, 800).toInt(),
-                  ),
+              duration: (estimatedDistance) => Duration(
+                milliseconds: (estimatedDistance * 0.5).clamp(200, 800).toInt(),
+              ),
               curve: (estimatedDistance) => Curves.easeOutCubic,
             );
 
@@ -605,12 +597,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       final config = await showModalBottomSheet<AttachmentUploadConfig>(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => AttachmentUploaderSheet(
-              ref: ref,
-              attachments: attachments.value,
-              index: index,
-            ),
+        builder: (context) => AttachmentUploaderSheet(
+          ref: ref,
+          attachments: attachments.value,
+          index: index,
+        ),
       );
       if (config == null) return;
 
@@ -621,22 +612,20 @@ class ChatRoomScreen extends HookConsumerWidget {
           'chat-upload': {index: 0},
         };
 
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: attachment,
-              poolId: config.poolId,
-              mode:
-                  attachment.type == UniversalFileType.file
-                      ? FileUploadMode.generic
-                      : FileUploadMode.mediaSafe,
-              onProgress: (progress, _) {
-                attachmentProgress.value = {
-                  ...attachmentProgress.value,
-                  'chat-upload': {index: progress ?? 0.0},
-                };
-              },
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: attachment,
+          poolId: config.poolId,
+          mode: attachment.type == UniversalFileType.file
+              ? FileUploadMode.generic
+              : FileUploadMode.mediaSafe,
+          onProgress: (progress, _) {
+            attachmentProgress.value = {
+              ...attachmentProgress.value,
+              'chat-upload': {index: progress ?? 0.0},
+            };
+          },
+        ).future;
 
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
@@ -690,10 +679,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                   extentEstimation: (_, _) => 40,
                   itemBuilder: (context, index) {
                     final message = messageList[index];
-                    final nextMessage =
-                        index < messageList.length - 1
-                            ? messageList[index + 1]
-                            : null;
+                    final nextMessage = index < messageList.length - 1
+                        ? messageList[index + 1]
+                        : null;
                     final isLastInGroup =
                         nextMessage == null ||
                         nextMessage.senderId != message.senderId ||
@@ -718,15 +706,14 @@ class ChatRoomScreen extends HookConsumerWidget {
                       toggleSelectionMode: toggleSelectionMode,
                       toggleMessageSelection: toggleMessageSelection,
                       onMessageAction: onMessageAction,
-                      onJump:
-                          (messageId) => scrollToMessage(
-                            messageId: messageId,
-                            messageList: messageList,
-                            messagesNotifier: messagesNotifier,
-                            listController: listController,
-                            scrollController: scrollController,
-                            ref: ref,
-                          ),
+                      onJump: (messageId) => scrollToMessage(
+                        messageId: messageId,
+                        messageList: messageList,
+                        messagesNotifier: messagesNotifier,
+                        listController: listController,
+                        scrollController: scrollController,
+                        ref: ref,
+                      ),
                       attachmentProgress: attachmentProgress.value,
                       disableAnimation: settings.disableAnimation,
                       roomOpenTime: roomOpenTime,
@@ -744,17 +731,14 @@ class ChatRoomScreen extends HookConsumerWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: compactHeader ? null : 74,
         title: chatRoom.when(
-          data:
-              (room) =>
-                  compactHeader
-                      ? compactHeaderWidget(room)
-                      : comfortHeaderWidget(room),
+          data: (room) => compactHeader
+              ? compactHeaderWidget(room)
+              : comfortHeaderWidget(room),
           loading: () => const Text('Loading...'),
-          error:
-              (err, _) => ResponseErrorWidget(
-                error: err,
-                onRetry: () => messagesNotifier.loadInitial(),
-              ),
+          error: (err, _) => ResponseErrorWidget(
+            error: err,
+            onRetry: () => messagesNotifier.loadInitial(),
+          ),
         ),
         actions: [
           chatRoom.when(
@@ -787,13 +771,11 @@ class ChatRoomScreen extends HookConsumerWidget {
                           index: index,
                           scrollController: scrollController,
                           alignment: 0.5,
-                          duration:
-                              (estimatedDistance) => Duration(
-                                milliseconds:
-                                    (estimatedDistance * 0.5)
-                                        .clamp(200, 800)
-                                        .toInt(),
-                              ),
+                          duration: (estimatedDistance) => Duration(
+                            milliseconds: (estimatedDistance * 0.5)
+                                .clamp(200, 800)
+                                .toInt(),
+                          ),
                           curve: (estimatedDistance) => Curves.easeOutCubic,
                         );
                       } catch (e) {
@@ -819,38 +801,35 @@ class ChatRoomScreen extends HookConsumerWidget {
                     duration: const Duration(milliseconds: 300),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (
-                      Widget child,
-                      Animation<double> animation,
-                    ) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.05),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(opacity: animation, child: child),
-                      );
-                    },
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.05),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
                     child: messages.when(
-                      data:
-                          (messageList) =>
-                              messageList.isEmpty
-                                  ? Center(
-                                    key: const ValueKey('empty-messages'),
-                                    child: Text('No messages yet'.tr()),
-                                  )
-                                  : chatMessageListWidget(messageList),
-                      loading:
-                          () => const Center(
-                            key: ValueKey('loading-messages'),
-                            child: CircularProgressIndicator(),
-                          ),
-                      error:
-                          (error, _) => ResponseErrorWidget(
-                            key: const ValueKey('error-messages'),
-                            error: error,
-                            onRetry: () => messagesNotifier.loadInitial(),
-                          ),
+                      data: (messageList) => messageList.isEmpty
+                          ? Center(
+                              key: const ValueKey('empty-messages'),
+                              child: Text('No messages yet'.tr()),
+                            )
+                          : chatMessageListWidget(messageList),
+                      loading: () => const Center(
+                        key: ValueKey('loading-messages'),
+                        child: CircularProgressIndicator(),
+                      ),
+                      error: (error, _) => ResponseErrorWidget(
+                        key: const ValueKey('error-messages'),
+                        error: error,
+                        onRetry: () => messagesNotifier.loadInitial(),
+                      ),
                     ),
                   ),
                 ),
@@ -862,10 +841,8 @@ class ChatRoomScreen extends HookConsumerWidget {
             right: 0,
             top: 0,
             child: chatRoom.when(
-              data:
-                  (data) => CallOverlayBar(
-                    room: data!,
-                  ).padding(horizontal: 8, top: 12),
+              data: (data) =>
+                  CallOverlayBar(room: data!).padding(horizontal: 8, top: 12),
               error: (_, _) => const SizedBox.shrink(),
               loading: () => const SizedBox.shrink(),
             ),
@@ -903,35 +880,34 @@ class ChatRoomScreen extends HookConsumerWidget {
           if (!isSelectionMode.value)
             AnimatedBuilder(
               animation: bottomGradientNotifier.value,
-              builder:
-                  (context, child) => Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Opacity(
-                      opacity: bottomGradientNotifier.value.value,
-                      child: Container(
-                        height: math.min(
-                          MediaQuery.of(context).size.height * 0.1,
-                          128,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer.withOpacity(0.8),
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer.withOpacity(0.0),
-                            ],
-                          ),
-                        ),
+              builder: (context, child) => Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Opacity(
+                  opacity: bottomGradientNotifier.value.value,
+                  child: Container(
+                    height: math.min(
+                      MediaQuery.of(context).size.height * 0.1,
+                      128,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainer.withOpacity(0.8),
+                          Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainer.withOpacity(0.0),
+                        ],
                       ),
                     ),
                   ),
+                ),
+              ),
             ),
           // Chat Input positioned above gradient (higher z-index)
           if (!isSelectionMode.value)
@@ -940,74 +916,73 @@ class ChatRoomScreen extends HookConsumerWidget {
               right: 0,
               bottom: 0, // At the very bottom, above gradient
               child: chatRoom.when(
-                data:
-                    (room) => Column(
-                      key: inputKey,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ChatInput(
-                          messageController: messageController,
-                          chatRoom: room!,
-                          onSend: sendMessage,
-                          onClear: () {
-                            if (messageEditingTo.value != null) {
-                              attachments.value.clear();
-                              messageController.clear();
-                            }
-                            messageEditingTo.value = null;
-                            messageReplyingTo.value = null;
-                            messageForwardingTo.value = null;
-                            selectedPoll.value = null;
-                            selectedFund.value = null;
-                          },
-                          messageEditingTo: messageEditingTo.value,
-                          messageReplyingTo: messageReplyingTo.value,
-                          messageForwardingTo: messageForwardingTo.value,
-                          selectedPoll: selectedPoll.value,
-                          onPollSelected: (poll) => selectedPoll.value = poll,
-                          selectedFund: selectedFund.value,
-                          onFundSelected: (fund) => selectedFund.value = fund,
-                          onPickFile: (bool isPhoto) {
-                            if (isPhoto) {
-                              pickPhotoMedia();
-                            } else {
-                              pickVideoMedia();
-                            }
-                          },
-                          onPickAudio: pickAudioMedia,
-                          onPickGeneralFile: pickGeneralFile,
-                          onLinkAttachment: linkAttachment,
-                          attachments: attachments.value,
-                          onUploadAttachment: uploadAttachment,
-                          onDeleteAttachment: (index) async {
-                            final attachment = attachments.value[index];
-                            if (attachment.isOnCloud && !attachment.isLink) {
-                              final client = ref.watch(apiClientProvider);
-                              await client.delete(
-                                '/drive/files/${attachment.data.id}',
-                              );
-                            }
-                            final clone = List.of(attachments.value);
-                            clone.removeAt(index);
-                            attachments.value = clone;
-                          },
-                          onMoveAttachment: (idx, delta) {
-                            if (idx + delta < 0 ||
-                                idx + delta >= attachments.value.length) {
-                              return;
-                            }
-                            final clone = List.of(attachments.value);
-                            clone.insert(idx + delta, clone.removeAt(idx));
-                            attachments.value = clone;
-                          },
-                          onAttachmentsChanged: (newAttachments) {
-                            attachments.value = newAttachments;
-                          },
-                          attachmentProgress: attachmentProgress.value,
-                        ),
-                        Gap(MediaQuery.of(context).padding.bottom),
-                      ],
+                data: (room) => Column(
+                  key: inputKey,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ChatInput(
+                      messageController: messageController,
+                      chatRoom: room!,
+                      onSend: sendMessage,
+                      onClear: () {
+                        if (messageEditingTo.value != null) {
+                          attachments.value.clear();
+                          messageController.clear();
+                        }
+                        messageEditingTo.value = null;
+                        messageReplyingTo.value = null;
+                        messageForwardingTo.value = null;
+                        selectedPoll.value = null;
+                        selectedFund.value = null;
+                      },
+                      messageEditingTo: messageEditingTo.value,
+                      messageReplyingTo: messageReplyingTo.value,
+                      messageForwardingTo: messageForwardingTo.value,
+                      selectedPoll: selectedPoll.value,
+                      onPollSelected: (poll) => selectedPoll.value = poll,
+                      selectedFund: selectedFund.value,
+                      onFundSelected: (fund) => selectedFund.value = fund,
+                      onPickFile: (bool isPhoto) {
+                        if (isPhoto) {
+                          pickPhotoMedia();
+                        } else {
+                          pickVideoMedia();
+                        }
+                      },
+                      onPickAudio: pickAudioMedia,
+                      onPickGeneralFile: pickGeneralFile,
+                      onLinkAttachment: linkAttachment,
+                      attachments: attachments.value,
+                      onUploadAttachment: uploadAttachment,
+                      onDeleteAttachment: (index) async {
+                        final attachment = attachments.value[index];
+                        if (attachment.isOnCloud && !attachment.isLink) {
+                          final client = ref.watch(apiClientProvider);
+                          await client.delete(
+                            '/drive/files/${attachment.data.id}',
+                          );
+                        }
+                        final clone = List.of(attachments.value);
+                        clone.removeAt(index);
+                        attachments.value = clone;
+                      },
+                      onMoveAttachment: (idx, delta) {
+                        if (idx + delta < 0 ||
+                            idx + delta >= attachments.value.length) {
+                          return;
+                        }
+                        final clone = List.of(attachments.value);
+                        clone.insert(idx + delta, clone.removeAt(idx));
+                        attachments.value = clone;
+                      },
+                      onAttachmentsChanged: (newAttachments) {
+                        attachments.value = newAttachments;
+                      },
+                      attachmentProgress: attachmentProgress.value,
                     ),
+                    Gap(MediaQuery.of(context).padding.bottom),
+                  ],
+                ),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),
               ),
