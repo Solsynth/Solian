@@ -624,7 +624,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
+    final memberState = ref.watch(chatMemberListProvider(roomId));
+    final memberNotifier = ref.watch(chatMemberListProvider(roomId).notifier);
 
     final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
     final chatRoom = ref.watch(chatRoomProvider(roomId));
@@ -664,7 +665,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'members'.plural(memberNotifier.totalCount ?? 0),
+                  'members'.plural(memberState.value?.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,

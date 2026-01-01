@@ -527,12 +527,11 @@ class _RealmMemberListSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
     final memberListProvider = realmMemberListNotifierProvider(realmSlug);
-    // memberListNotifier is not watched here to prevent unnecessary rebuilds of this widget
-    // when we only need it for passing to PaginationList as a Refreshable
-    // However, we used useEffect to dispose it, but AutoDispose handles it.
-    // So we remove the useEffect and the watch.
+
+    final memberListState = ref.watch(memberListProvider);
+    final memberListNotifier = ref.watch(memberListProvider.notifier);
+    final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -549,7 +548,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh the provider
-        ref.invalidate(memberListProvider);
+        memberListNotifier.refresh();
       } catch (err) {
         showErrorAlert(err);
       }
@@ -562,11 +561,8 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           children: [
             Consumer(
               builder: (context, ref, _) {
-                // effective watch to rebuild when data changes (and totalCount updates)
-                ref.watch(memberListProvider);
-                final notifier = ref.read(memberListProvider.notifier);
                 return Text(
-                  'members'.plural(notifier.totalCount ?? 0),
+                  'members'.plural(memberListState.value?.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
