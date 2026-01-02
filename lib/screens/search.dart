@@ -37,7 +37,7 @@ class UniversalSearchScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('search'.tr()), elevation: 0),
+      appBar: AppBar(title: Text('universalSearch'.tr()), elevation: 0),
       body: Column(
         children: [
           TabBar(
@@ -268,15 +268,47 @@ class _PostsSearchTab extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  if (showFilters.value)
-                    SliverToBoxAdapter(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 600),
-                          child: buildFilterPanel(),
+                  const SliverGap(8),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Card(
+                          margin: EdgeInsets.symmetric(horizontal: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Symbols.tune).padding(horizontal: 8),
+                                Expanded(
+                                  child: Text(
+                                    'filters'.tr(),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Symbols.filter_alt,
+                                    fill: showFilters.value ? 1 : null,
+                                  ),
+                                  onPressed: toggleFilterDisplay,
+                                  tooltip: 'toggleFilters'.tr(),
+                                ),
+                                const Gap(4),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                        const Gap(4),
+                        if (showFilters.value) buildFilterPanel(),
+                      ],
                     ),
+                  ),
                   PaginationList(
                     provider: postListProvider(
                       PostListQueryConfig(id: kSearchPostListId),
