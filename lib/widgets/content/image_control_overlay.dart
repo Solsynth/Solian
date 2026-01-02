@@ -13,6 +13,9 @@ class ImageControlOverlay extends HookWidget {
   final VoidCallback onToggleQuality;
   final List<Widget>? extraButtons;
   final bool showExtraOnLeft;
+  final bool showExifInfo;
+  final VoidCallback onToggleExif;
+  final bool hasExifData;
 
   const ImageControlOverlay({
     super.key,
@@ -22,12 +25,19 @@ class ImageControlOverlay extends HookWidget {
     required this.onToggleQuality,
     this.extraButtons,
     this.showExtraOnLeft = false,
+    this.showExifInfo = false,
+    required this.onToggleExif,
+    this.hasExifData = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final shadow = [
-      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
+      Shadow(
+        color: Colors.black54,
+        blurRadius: 5.0,
+        offset: const Offset(1.0, 1.0),
+      ),
     ];
 
     final controlButtons = [
@@ -58,6 +68,17 @@ class ImageControlOverlay extends HookWidget {
           photoViewController.rotation = rotation.value * -math.pi / 2;
         },
       ),
+      if (hasExifData) ...[
+        const Gap(8),
+        IconButton(
+          icon: Icon(
+            showExifInfo ? Icons.visibility : Icons.visibility_off,
+            color: Colors.white,
+            shadows: shadow,
+          ),
+          onPressed: onToggleExif,
+        ),
+      ],
     ];
 
     return Positioned(

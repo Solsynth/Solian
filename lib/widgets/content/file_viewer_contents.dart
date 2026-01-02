@@ -14,6 +14,7 @@ import 'package:island/services/file_download.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/content/audio.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/exif_info_overlay.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 import 'package:island/widgets/content/image_control_overlay.dart';
 import 'package:island/widgets/content/video.dart';
@@ -136,7 +137,10 @@ class ImageFileContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final photoViewController = useMemoized(() => PhotoViewController(), []);
     final rotation = useState(0);
+
+    final hasExifData = ExifInfoOverlay.precheck(item);
     final showOriginal = useState(false);
+    final showExif = useState(hasExifData);
 
     return Stack(
       children: [
@@ -177,6 +181,13 @@ class ImageFileContent extends HookConsumerWidget {
             ),
           ),
         ),
+        if (showExif.value)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 60,
+            left: 16,
+            right: 16,
+            child: ExifInfoOverlay(item: item),
+          ),
         ImageControlOverlay(
           photoViewController: photoViewController,
           rotation: rotation,
@@ -184,6 +195,11 @@ class ImageFileContent extends HookConsumerWidget {
           onToggleQuality: () {
             showOriginal.value = !showOriginal.value;
           },
+          showExifInfo: showExif.value,
+          onToggleExif: () {
+            showExif.value = !showExif.value;
+          },
+          hasExifData: hasExifData,
         ),
       ],
     );

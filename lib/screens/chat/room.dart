@@ -852,7 +852,12 @@ class ChatRoomScreen extends HookConsumerWidget {
               top: 8,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.fromLTRB(
+                  8,
+                  8,
+                  8,
+                  8 + MediaQuery.of(context).padding.bottom,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
@@ -914,74 +919,68 @@ class ChatRoomScreen extends HookConsumerWidget {
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0, // At the very bottom, above gradient
+              bottom: MediaQuery.of(
+                context,
+              ).padding.bottom, // At the very bottom, above gradient
               child: chatRoom.when(
-                data: (room) => Column(
+                data: (room) => ChatInput(
                   key: inputKey,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ChatInput(
-                      messageController: messageController,
-                      chatRoom: room!,
-                      onSend: sendMessage,
-                      onClear: () {
-                        if (messageEditingTo.value != null) {
-                          attachments.value.clear();
-                          messageController.clear();
-                        }
-                        messageEditingTo.value = null;
-                        messageReplyingTo.value = null;
-                        messageForwardingTo.value = null;
-                        selectedPoll.value = null;
-                        selectedFund.value = null;
-                      },
-                      messageEditingTo: messageEditingTo.value,
-                      messageReplyingTo: messageReplyingTo.value,
-                      messageForwardingTo: messageForwardingTo.value,
-                      selectedPoll: selectedPoll.value,
-                      onPollSelected: (poll) => selectedPoll.value = poll,
-                      selectedFund: selectedFund.value,
-                      onFundSelected: (fund) => selectedFund.value = fund,
-                      onPickFile: (bool isPhoto) {
-                        if (isPhoto) {
-                          pickPhotoMedia();
-                        } else {
-                          pickVideoMedia();
-                        }
-                      },
-                      onPickAudio: pickAudioMedia,
-                      onPickGeneralFile: pickGeneralFile,
-                      onLinkAttachment: linkAttachment,
-                      attachments: attachments.value,
-                      onUploadAttachment: uploadAttachment,
-                      onDeleteAttachment: (index) async {
-                        final attachment = attachments.value[index];
-                        if (attachment.isOnCloud && !attachment.isLink) {
-                          final client = ref.watch(apiClientProvider);
-                          await client.delete(
-                            '/drive/files/${attachment.data.id}',
-                          );
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.removeAt(index);
-                        attachments.value = clone;
-                      },
-                      onMoveAttachment: (idx, delta) {
-                        if (idx + delta < 0 ||
-                            idx + delta >= attachments.value.length) {
-                          return;
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.insert(idx + delta, clone.removeAt(idx));
-                        attachments.value = clone;
-                      },
-                      onAttachmentsChanged: (newAttachments) {
-                        attachments.value = newAttachments;
-                      },
-                      attachmentProgress: attachmentProgress.value,
-                    ),
-                    Gap(MediaQuery.of(context).padding.bottom),
-                  ],
+                  messageController: messageController,
+                  chatRoom: room!,
+                  onSend: sendMessage,
+                  onClear: () {
+                    if (messageEditingTo.value != null) {
+                      attachments.value.clear();
+                      messageController.clear();
+                    }
+                    messageEditingTo.value = null;
+                    messageReplyingTo.value = null;
+                    messageForwardingTo.value = null;
+                    selectedPoll.value = null;
+                    selectedFund.value = null;
+                  },
+                  messageEditingTo: messageEditingTo.value,
+                  messageReplyingTo: messageReplyingTo.value,
+                  messageForwardingTo: messageForwardingTo.value,
+                  selectedPoll: selectedPoll.value,
+                  onPollSelected: (poll) => selectedPoll.value = poll,
+                  selectedFund: selectedFund.value,
+                  onFundSelected: (fund) => selectedFund.value = fund,
+                  onPickFile: (bool isPhoto) {
+                    if (isPhoto) {
+                      pickPhotoMedia();
+                    } else {
+                      pickVideoMedia();
+                    }
+                  },
+                  onPickAudio: pickAudioMedia,
+                  onPickGeneralFile: pickGeneralFile,
+                  onLinkAttachment: linkAttachment,
+                  attachments: attachments.value,
+                  onUploadAttachment: uploadAttachment,
+                  onDeleteAttachment: (index) async {
+                    final attachment = attachments.value[index];
+                    if (attachment.isOnCloud && !attachment.isLink) {
+                      final client = ref.watch(apiClientProvider);
+                      await client.delete('/drive/files/${attachment.data.id}');
+                    }
+                    final clone = List.of(attachments.value);
+                    clone.removeAt(index);
+                    attachments.value = clone;
+                  },
+                  onMoveAttachment: (idx, delta) {
+                    if (idx + delta < 0 ||
+                        idx + delta >= attachments.value.length) {
+                      return;
+                    }
+                    final clone = List.of(attachments.value);
+                    clone.insert(idx + delta, clone.removeAt(idx));
+                    attachments.value = clone;
+                  },
+                  onAttachmentsChanged: (newAttachments) {
+                    attachments.value = newAttachments;
+                  },
+                  attachmentProgress: attachmentProgress.value,
                 ),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),

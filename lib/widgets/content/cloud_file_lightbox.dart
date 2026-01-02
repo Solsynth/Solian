@@ -7,13 +7,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/services/file_download.dart';
+import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/exif_info_overlay.dart';
 import 'package:island/widgets/content/file_action_button.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 import 'package:island/widgets/content/image_control_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
-
-import 'cloud_files.dart';
 
 class CloudFileLightbox extends HookConsumerWidget {
   final SnCloudFile item;
@@ -30,7 +30,9 @@ class CloudFileLightbox extends HookConsumerWidget {
     final photoViewController = useMemoized(() => PhotoViewController(), []);
     final rotation = useState(0);
 
+    final hasExifData = ExifInfoOverlay.precheck(item);
     final showOriginal = useState(false);
+    final showExif = useState(hasExifData);
 
     void saveToGallery() {
       FileDownloadService(ref).saveToGallery(item);
@@ -106,6 +108,14 @@ class CloudFileLightbox extends HookConsumerWidget {
               ],
             ),
           ),
+          // EXIF Info Overlay (positioned below the top buttons)
+          if (showExif.value)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 60,
+              left: 16,
+              right: 16,
+              child: ExifInfoOverlay(item: item),
+            ),
           ImageControlOverlay(
             photoViewController: photoViewController,
             rotation: rotation,
@@ -113,6 +123,11 @@ class CloudFileLightbox extends HookConsumerWidget {
             onToggleQuality: () {
               showOriginal.value = !showOriginal.value;
             },
+            showExifInfo: showExif.value,
+            onToggleExif: () {
+              showExif.value = !showExif.value;
+            },
+            hasExifData: hasExifData,
             extraButtons: [
               FileActionButton.info(
                 onPressed: showInfoSheet,
