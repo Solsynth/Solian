@@ -121,36 +121,38 @@ class RealmListScreen extends HookConsumerWidget {
                   MediaQuery.of(context).padding.bottom,
             )
           : null,
-      body: ExtendedRefreshIndicator(
-        child: realms.when(
-          data: (value) => Column(
-            children: [
-              Expanded(
-                child: ListView.separated(
-                  padding: EdgeInsets.only(
-                    top: 8,
-                    bottom: MediaQuery.of(context).padding.bottom + 8,
-                  ),
-                  itemCount: value.length,
-                  itemBuilder: (context, item) {
-                    return ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 540),
-                      child: RealmListTile(realm: value[item]),
-                    ).padding(horizontal: 8).center();
-                  },
-                  separatorBuilder: (_, _) => const Gap(8),
+      body: userInfo.value == null
+          ? const ResponseUnauthorizedWidget()
+          : ExtendedRefreshIndicator(
+              child: realms.when(
+                data: (value) => Column(
+                  children: [
+                    Expanded(
+                      child: ListView.separated(
+                        padding: EdgeInsets.only(
+                          top: 8,
+                          bottom: MediaQuery.of(context).padding.bottom + 8,
+                        ),
+                        itemCount: value.length,
+                        itemBuilder: (context, item) {
+                          return ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 540),
+                            child: RealmListTile(realm: value[item]),
+                          ).padding(horizontal: 8).center();
+                        },
+                        separatorBuilder: (_, _) => const Gap(8),
+                      ),
+                    ),
+                  ],
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => ResponseErrorWidget(
+                  error: e,
+                  onRetry: () => ref.invalidate(realmsJoinedProvider),
                 ),
               ),
-            ],
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => ResponseErrorWidget(
-            error: e,
-            onRetry: () => ref.invalidate(realmsJoinedProvider),
-          ),
-        ),
-        onRefresh: () => ref.refresh(realmsJoinedProvider.future),
-      ),
+              onRefresh: () => ref.refresh(realmsJoinedProvider.future),
+            ),
     );
   }
 }

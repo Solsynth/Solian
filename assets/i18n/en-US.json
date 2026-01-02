@@ -358,7 +358,7 @@
     "accountSettingsHelp": "Account Settings Help",
     "accountSettingsHelpContent": "This page allows you to manage your account security, privacy, and other settings. If you need assistance, please contact support.",
     "unauthorized": "Unauthorized",
-    "unauthorizedHint": "You're not signed in or session expired, please sign in again.",
+    "unauthorizedHint": "You're not signed in or session expired, please sign in and try again.",
     "publisherBelongsTo": "Belongs to {}",
     "postContent": "Content",
     "postSettings": "Settings",

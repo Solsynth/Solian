@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:island/screens/auth/login_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -71,5 +72,50 @@ class ResponseLoadingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(child: CircularProgressIndicator());
+  }
+}
+
+class ResponseUnauthorizedWidget extends StatelessWidget {
+  const ResponseUnauthorizedWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Symbols.error_outline, size: 48),
+        const Gap(4),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Column(
+            children: [
+              Text(
+                'unauthorized'.tr(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF757575)),
+              ).bold(),
+              Text(
+                'unauthorizedHint'.tr(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF757575)),
+              ),
+              const Gap(8),
+              TextButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => const LoginModal(),
+                  );
+                },
+                icon: const Icon(Symbols.login),
+                label: Text('login').tr(),
+              ),
+            ],
+          ),
+        ).center(),
+      ],
+    );
   }
 }

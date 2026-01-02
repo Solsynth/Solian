@@ -603,11 +603,13 @@ class ChatListScreen extends HookConsumerWidget {
           ),
         ),
       ),
-      body: ChatListBodyWidget(
-        isFloating: false,
-        tabController: tabController,
-        selectedTab: selectedTab,
-      ),
+      body: userInfo.value == null
+          ? const ResponseUnauthorizedWidget()
+          : ChatListBodyWidget(
+              isFloating: false,
+              tabController: tabController,
+              selectedTab: selectedTab,
+            ),
     );
   }
 }
