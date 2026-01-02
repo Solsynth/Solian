@@ -608,8 +608,8 @@ class ReferencedPostWidget extends StatelessWidget {
                           linesMargin: referencePost.type == 0
                               ? const EdgeInsets.only(bottom: 4)
                               : null,
-                          attachments: item.attachments,
-                          noMentionChip: item.fediverseUri != null,
+                          attachments: referencePost.attachments,
+                          noMentionChip: referencePost.fediverseUri != null,
                         ).padding(bottom: 4),
                       if (referencePost.isTruncated)
                         const PostTruncateHint(
