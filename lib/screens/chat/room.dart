@@ -48,6 +48,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final mediaQuery = MediaQuery.of(context);
     final chatRoom = ref.watch(chatRoomProvider(id));
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
     final isSyncing = ref.watch(chatSyncingProvider);
@@ -651,12 +652,12 @@ class ChatRoomScreen extends HookConsumerWidget {
               curve: Curves.easeOut,
               tween: EdgeInsetsTween(
                 begin: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top,
-                  bottom: MediaQuery.of(context).padding.bottom + 8 + height,
+                  top: mediaQuery.padding.top,
+                  bottom: mediaQuery.padding.bottom + 8 + height,
                 ),
                 end: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top,
-                  bottom: MediaQuery.of(context).padding.bottom + 8 + height,
+                  top: mediaQuery.padding.top,
+                  bottom: mediaQuery.padding.bottom + 8 + height,
                 ),
               ),
               builder: (context, padding, child) {
@@ -856,7 +857,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                   8,
                   8,
                   8,
-                  8 + MediaQuery.of(context).padding.bottom,
+                  8 + mediaQuery.padding.bottom,
                 ),
                 decoration: BoxDecoration(
                   color: Theme.of(
@@ -892,10 +893,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                 child: Opacity(
                   opacity: bottomGradientNotifier.value.value,
                   child: Container(
-                    height: math.min(
-                      MediaQuery.of(context).size.height * 0.1,
-                      128,
-                    ),
+                    height: math.min(mediaQuery.size.height * 0.1, 128),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
@@ -919,9 +917,9 @@ class ChatRoomScreen extends HookConsumerWidget {
             Positioned(
               left: 0,
               right: 0,
-              bottom: MediaQuery.of(
-                context,
-              ).padding.bottom, // At the very bottom, above gradient
+              bottom: mediaQuery
+                  .padding
+                  .bottom, // At the very bottom, above gradient
               child: chatRoom.when(
                 data: (room) => ChatInput(
                   key: inputKey,
@@ -998,7 +996,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                   left: 16,
                   right: 16,
                   top: 8,
-                  bottom: MediaQuery.of(context).padding.bottom + 8,
+                  bottom: mediaQuery.padding.bottom + 8,
                 ),
                 child: Row(
                   children: [
