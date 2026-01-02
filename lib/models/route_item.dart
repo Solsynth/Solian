@@ -32,10 +32,10 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.explore,
   ),
   RouteItem(
-    name: 'searchPosts'.tr(),
-    path: '/posts/search',
-    description: 'searchPostsDescription'.tr(),
-    searchableAliases: ['search', 'posts'],
+    name: 'universalSearch'.tr(),
+    path: '/search',
+    description: 'universalSearchDescription'.tr(),
+    searchableAliases: ['search', 'universal', 'fediverse'],
     icon: Symbols.search,
   ),
   RouteItem(

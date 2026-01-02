@@ -1581,5 +1581,7 @@
     "followingEmptyHint": "Start by searching for users or explore other instances",
     "fediversePost": "Fediverse Post",
     "fediversePostDescribe": "Post from the Fediverse Network",
-    "settingsShowFediverseContent": "Show Fediverse Content"
+    "settingsShowFediverseContent": "Show Fediverse Content",
+    "universalSearch": "Universal Search",
+    "universalSearchDescription": "Search content across the Solar Network and the fediverse network."
 }
