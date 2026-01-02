@@ -308,6 +308,7 @@ class PostItem extends HookConsumerWidget {
   final bool isTextSelectable;
   final bool isTranslatable;
   final bool isCompact;
+  final double? textScale;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
@@ -322,6 +323,7 @@ class PostItem extends HookConsumerWidget {
     this.isTextSelectable = true,
     this.isTranslatable = true,
     this.isCompact = false,
+    this.textScale,
     this.onRefresh,
     this.onUpdate,
     this.onOpen,
@@ -422,6 +424,11 @@ class PostItem extends HookConsumerWidget {
                 ],
               ),
               MarkdownTextContent(
+                textStyle: TextStyle(
+                  fontSize:
+                      Theme.of(context).textTheme.bodyMedium!.fontSize! *
+                      (textScale ?? 1),
+                ),
                 content: translatedText.value!,
                 isSelectable: isTextSelectable,
                 attachments: item.attachments,
@@ -557,6 +564,7 @@ class PostItem extends HookConsumerWidget {
         ),
         PostBody(
           item: item,
+          textScale: textScale,
           isFullPost: isFullPost,
           isTextSelectable: isTextSelectable,
           translationSection: translationSection,

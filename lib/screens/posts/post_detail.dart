@@ -466,11 +466,12 @@ class PostDetailScreen extends HookConsumerWidget {
                     SliverToBoxAdapter(
                       child: Center(
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 600),
+                          constraints: BoxConstraints(maxWidth: 800),
                           child: PostItem(
                             item: post!,
                             isFullPost: true,
                             isEmbedReply: false,
+                            textScale: post.type == 1 ? 1.2 : 1.1,
                             onUpdate: (newItem) {
                               // Update the local state with the new post data
                               ref

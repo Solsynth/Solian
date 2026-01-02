@@ -30,7 +30,6 @@ class MarkdownTextContent extends HookConsumerWidget {
 
   final String content;
   final bool isAutoWarp;
-  final TextScaler? textScaler;
   final TextStyle? textStyle;
   final TextStyle? linkStyle;
   final EdgeInsets? linesMargin;
@@ -45,7 +44,6 @@ class MarkdownTextContent extends HookConsumerWidget {
     super.key,
     required this.content,
     this.isAutoWarp = false,
-    this.textScaler,
     this.textStyle,
     this.linkStyle,
     this.isSelectable = false,
@@ -118,7 +116,7 @@ class MarkdownTextContent extends HookConsumerWidget {
               ? PreConfig.darkConfig.copy(textStyle: textStyle)
               : PreConfig().copy(textStyle: textStyle),
           PConfig(
-            textStyle: textStyle ?? Theme.of(context).textTheme.bodyMedium!,
+            textStyle: (textStyle ?? Theme.of(context).textTheme.bodyMedium!),
           ),
           HrConfig(height: 1, color: Theme.of(context).dividerColor),
           PreConfig(

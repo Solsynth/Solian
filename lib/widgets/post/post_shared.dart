@@ -870,6 +870,7 @@ class PostBody extends ConsumerWidget {
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
   final bool hideOverlay;
+  final double? textScale;
 
   const PostBody({
     super.key,
@@ -881,6 +882,7 @@ class PostBody extends ConsumerWidget {
     this.renderingPadding = EdgeInsets.zero,
     this.isRelativeTime = true,
     this.hideOverlay = false,
+    this.textScale,
   });
 
   @override
@@ -1108,6 +1110,14 @@ class PostBody extends ConsumerWidget {
                     ],
                   ).padding(bottom: 4),
                 MarkdownTextContent(
+                  linesMargin: item.type == 1 && isFullPost
+                      ? const EdgeInsets.symmetric(vertical: 8)
+                      : const EdgeInsets.symmetric(vertical: 4),
+                  textStyle: TextStyle(
+                    fontSize:
+                        Theme.of(context).textTheme.bodyMedium!.fontSize! *
+                        (textScale ?? 1),
+                  ),
                   content: item.isTruncated
                       ? '${_convertContentToMarkdown(item)}...'
                       : _convertContentToMarkdown(item),
