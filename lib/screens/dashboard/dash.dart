@@ -21,6 +21,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/notification_tile.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/check_in.dart';
+import 'package:island/screens/auth/login_modal.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/screens/notification.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -116,7 +117,11 @@ class DashboardGrid extends HookConsumerWidget {
                         topRight: isWide ? 0 : 12,
                       )
                       .padding(horizontal: isWide ? 0 : 16),
-            ),
+            )
+          else
+            Center(
+              child: _UnauthorizedCard(isWide: isWide),
+            ).padding(horizontal: isWide ? 24 : 16),
         ],
       ),
     );
@@ -303,7 +308,9 @@ class ClockCard extends HookConsumerWidget {
                         spacing: 5,
                         children: [
                           notableDay.when(
-                            data: (day) => _buildNotableDayText(context, day!),
+                            data: (day) => day == null
+                                ? Text('unauthorized').tr()
+                                : _buildNotableDayText(context, day),
                             error: (err, _) =>
                                 Text(err.toString()).fontSize(12),
                             loading: () =>
@@ -553,5 +560,66 @@ class FortuneCard extends HookConsumerWidget {
         },
       ),
     ).height(48);
+  }
+}
+
+class _UnauthorizedCard extends HookConsumerWidget {
+  final bool isWide;
+  const _UnauthorizedCard({required this.isWide});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: isWide ? 48 : 32,
+          vertical: 32,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Gap(16),
+            Icon(
+              Symbols.dashboard_rounded,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+              fill: 1,
+            ),
+            const Gap(16),
+            Text(
+              'Welcome to\nthe Solar Network',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(8),
+            Text(
+              'Login to access your personalized dashboard with friends, notifications, chats, and more!',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(12),
+            FilledButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  builder: (context) => const LoginModal(),
+                );
+              },
+              icon: const Icon(Symbols.login),
+              label: Text('login').tr(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

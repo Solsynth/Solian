@@ -39,6 +39,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final List<markdown.InlineSyntax> extraInlineSyntaxList;
   final List<markdown.BlockSyntax> extraBlockSyntaxList;
   final List<dynamic> extraGenerators;
+  final bool noMentionChip;
 
   const MarkdownTextContent({
     super.key,
@@ -53,6 +54,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.extraInlineSyntaxList = const [],
     this.extraBlockSyntaxList = const [],
     this.extraGenerators = const [],
+    this.noMentionChip = false,
   });
 
   @override
@@ -224,7 +226,7 @@ class MarkdownTextContent extends HookConsumerWidget {
         isDark: isDark,
         linesMargin: linesMargin,
         generators: [
-          mentionGenerator,
+          if (!noMentionChip) mentionGenerator,
           highlightGenerator,
           spoilerGenerator,
           stickerGenerator,
@@ -431,11 +433,13 @@ class MentionChipSpanNode extends SpanNode {
                           fallbackIcon: Symbols.person_rounded,
                           radius: 9,
                         ),
-                        error: (_, _) => const Icon(Symbols.close),
+                        error: (_, _) => const Icon(Symbols.close, size: 20),
                         loading: () => const SizedBox(
-                          width: 9,
-                          height: 9,
-                          child: CircularProgressIndicator(),
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
                       );
                     },
@@ -449,11 +453,13 @@ class MentionChipSpanNode extends SpanNode {
                           fallbackIcon: Symbols.design_services_rounded,
                           radius: 9,
                         ),
-                        error: (_, _) => const Icon(Symbols.close),
+                        error: (_, _) => const Icon(Symbols.close, size: 20),
                         loading: () => const SizedBox(
-                          width: 9,
-                          height: 9,
-                          child: CircularProgressIndicator(),
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
                       );
                     },
