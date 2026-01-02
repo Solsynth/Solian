@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -115,11 +114,7 @@ class RealmListScreen extends HookConsumerWidget {
                   ),
                 );
               },
-            ).padding(
-              bottom:
-                  (isWideScreen(context) ? 0 : 56) +
-                  MediaQuery.of(context).padding.bottom,
-            )
+            ).padding(bottom: MediaQuery.of(context).padding.bottom)
           : null,
       body: userInfo.value == null
           ? const ResponseUnauthorizedWidget()

@@ -519,11 +519,7 @@ class ChatListScreen extends HookConsumerWidget {
                   ),
                 );
               },
-            ).padding(
-              bottom:
-                  (isWideScreen(context) ? 0 : 56) +
-                  MediaQuery.of(context).padding.bottom,
-            )
+            ).padding(bottom: MediaQuery.of(context).padding.bottom)
           : null,
       appBar: AppBar(
         flexibleSpace: Container(

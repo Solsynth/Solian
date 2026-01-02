@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/activitypub/list.dart';
-import 'package:island/screens/activitypub/search.dart';
 import 'package:island/screens/dashboard/dash.dart';
 import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
@@ -20,7 +19,6 @@ import 'package:island/screens/files/file_list.dart';
 import 'package:island/screens/files/file_detail.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
-import 'package:island/screens/posts/post_search.dart';
 import 'package:island/screens/search.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/app_wrapper.dart';
@@ -195,11 +193,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
 
           GoRoute(
-            name: 'activitypubSearch',
-            path: '/activitypub/search',
-            builder: (context, state) => const ApSearchScreen(),
-          ),
-          GoRoute(
             name: 'activitypubFollowing',
             path: '/activitypub/following',
             builder: (context, state) =>
@@ -238,11 +231,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   child: const ExploreScreen(),
                   transitionsBuilder: _tabPagesTransitionBuilder,
                 ),
-              ),
-              GoRoute(
-                name: 'postSearch',
-                path: '/posts/search',
-                builder: (context, state) => const PostSearchScreen(),
               ),
               GoRoute(
                 name: 'postShuffle',

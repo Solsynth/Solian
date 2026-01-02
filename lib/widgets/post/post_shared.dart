@@ -67,7 +67,6 @@ class RepliesNotifier extends _$RepliesNotifier {
     );
 
     if (!ref.mounted) return;
-
     state = state.copyWith(
       posts: [...state.posts, ...response.data.map((e) => SnPost.fromJson(e))],
       loading: false,
@@ -160,7 +159,9 @@ class PostReplyPreview extends HookConsumerWidget {
       if (isAutoload) {
         Future(() async {
           try {
-            await ref.read(repliesProvider(parent.id).notifier).fetchMore(3);
+            if (context.mounted) {
+              await ref.read(repliesProvider(parent.id).notifier).fetchMore(3);
+            }
           } catch (err) {
             showErrorAlert(err);
           }
