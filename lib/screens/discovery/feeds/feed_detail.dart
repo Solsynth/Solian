@@ -18,7 +18,7 @@ part 'feed_detail.g.dart';
 @riverpod
 Future<SnWebFeed> marketplaceWebFeed(Ref ref, String feedId) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/feeds/$feedId');
+  final resp = await apiClient.get('/insight/feeds/$feedId');
   return SnWebFeed.fromJson(resp.data);
 }
 
@@ -40,7 +40,7 @@ class MarketplaceWebFeedContentNotifier
     final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
-      '/sphere/feeds/$arg/articles',
+      '/insight/feeds/$arg/articles',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
@@ -61,7 +61,7 @@ Future<bool> marketplaceWebFeedSubscription(
 }) async {
   final api = ref.watch(apiClientProvider);
   try {
-    await api.get('/sphere/feeds/$feedId/subscription');
+    await api.get('/insight/feeds/$feedId/subscription');
     // If not 404, consider subscribed
     return true;
   } on Object catch (e) {
@@ -86,7 +86,7 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
     // Subscribe to web feed
     Future<void> subscribeToFeed() async {
       final apiClient = ref.watch(apiClientProvider);
-      await apiClient.post('/sphere/feeds/$id/subscribe');
+      await apiClient.post('/insight/feeds/$id/subscribe');
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceWebFeedSubscriptionProvider(feedId: id));
       if (!context.mounted) return;
@@ -96,7 +96,7 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
     // Unsubscribe from web feed
     Future<void> unsubscribeFromFeed() async {
       final apiClient = ref.watch(apiClientProvider);
-      await apiClient.delete('/sphere/feeds/$id/subscribe');
+      await apiClient.delete('/insight/feeds/$id/subscribe');
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceWebFeedSubscriptionProvider(feedId: id));
       if (!context.mounted) return;

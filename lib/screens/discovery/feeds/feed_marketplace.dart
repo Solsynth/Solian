@@ -29,7 +29,7 @@ class MarketplaceWebFeedsNotifier
     final client = ref.read(apiClientProvider);
 
     final response = await client.get(
-      '/sphere/feeds/explore',
+      '/insight/feeds/explore',
       queryParameters: {
         'offset': fetchedCount.toString(),
         'take': 20,

@@ -42,7 +42,7 @@ class ArticlesListNotifier extends AsyncNotifier<PaginationState<SnWebArticle>>
 
     try {
       final response = await client.get(
-        '/sphere/feeds/articles',
+        '/insight/feeds/articles',
         queryParameters: queryParams,
       );
 
@@ -98,7 +98,7 @@ class SliverArticlesList extends ConsumerWidget {
 @riverpod
 Future<List<SnWebFeed>> subscribedFeeds(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.get('/sphere/feeds/subscribed');
+  final response = await client.get('/insight/feeds/subscribed');
   final data = response.data as List<dynamic>;
   return data.map((json) => SnWebFeed.fromJson(json)).toList();
 }

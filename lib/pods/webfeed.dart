@@ -8,7 +8,7 @@ import 'package:island/pods/network.dart';
 final webFeedListProvider = FutureProvider.autoDispose
     .family<List<SnWebFeed>, String>((ref, pubName) async {
       final client = ref.watch(apiClientProvider);
-      final response = await client.get('/sphere/publishers/$pubName/feeds');
+      final response = await client.get('/insight/publishers/$pubName/feeds');
       return (response.data as List)
           .map((json) => SnWebFeed.fromJson(json))
           .toList();

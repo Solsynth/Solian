@@ -10,7 +10,7 @@ final articleDetailProvider = FutureProvider.autoDispose
 
       try {
         final response = await dio.get<Map<String, dynamic>>(
-          '/sphere/feeds/articles/$articleId',
+          '/insight/feeds/articles/$articleId',
         );
 
         if (response.statusCode == 200 && response.data != null) {
