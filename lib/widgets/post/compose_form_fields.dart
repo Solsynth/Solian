@@ -41,12 +41,11 @@ class ComposeFormFields extends HookConsumerWidget {
           GestureDetector(
             onTap: onPublisherTap,
             child: ProfilePictureWidget(
-              fileId: state.currentPublisher.value?.picture?.id,
+              file: state.currentPublisher.value?.picture,
               radius: 20,
-              fallbackIcon:
-                  state.currentPublisher.value == null
-                      ? Icons.question_mark
-                      : null,
+              fallbackIcon: state.currentPublisher.value == null
+                  ? Icons.question_mark
+                  : null,
             ),
           ),
 
@@ -98,8 +97,8 @@ class ComposeFormFields extends HookConsumerWidget {
                   ),
                 ),
                 style: theme.textTheme.titleMedium,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
 
               // Description field
@@ -115,8 +114,8 @@ class ComposeFormFields extends HookConsumerWidget {
                 style: theme.textTheme.bodyMedium,
                 minLines: 1,
                 maxLines: 3,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
 
               // Content field
@@ -138,16 +137,17 @@ class ComposeFormFields extends HookConsumerWidget {
                       ),
                     ),
                     maxLines: null,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   );
                 },
                 suggestionsCallback: (pattern) async {
                   // Only trigger on @ or :
                   final atIndex = pattern.lastIndexOf('@');
                   final colonIndex = pattern.lastIndexOf(':');
-                  final triggerIndex =
-                      atIndex > colonIndex ? atIndex : colonIndex;
+                  final triggerIndex = atIndex > colonIndex
+                      ? atIndex
+                      : colonIndex;
                   if (triggerIndex == -1) return [];
                   final chopped = pattern.substring(triggerIndex);
                   if (chopped.contains(' ')) return [];
@@ -202,7 +202,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         child: SizedBox(
                           width: 28,
                           height: 28,
-                          child: CloudImageWidget(fileId: sticker.image.id),
+                          child: CloudImageWidget(file: sticker.image),
                         ),
                       );
                       break;
@@ -219,8 +219,9 @@ class ComposeFormFields extends HookConsumerWidget {
                   final text = state.contentController.text;
                   final atIndex = text.lastIndexOf('@');
                   final colonIndex = text.lastIndexOf(':');
-                  final triggerIndex =
-                      atIndex > colonIndex ? atIndex : colonIndex;
+                  final triggerIndex = atIndex > colonIndex
+                      ? atIndex
+                      : colonIndex;
                   if (triggerIndex == -1) return;
                   final newText = text.replaceRange(
                     triggerIndex,
@@ -281,8 +282,8 @@ class ArticleComposeFormFields extends StatelessWidget {
                 ),
               ),
               style: theme.textTheme.titleMedium,
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
 
             // Description field
@@ -297,8 +298,8 @@ class ArticleComposeFormFields extends StatelessWidget {
               style: theme.textTheme.bodyMedium,
               minLines: 1,
               maxLines: 3,
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
 
             // Content field (expanded)
@@ -317,8 +318,8 @@ class ArticleComposeFormFields extends StatelessWidget {
                 maxLines: null,
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
             ),
           ],

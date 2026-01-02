@@ -329,7 +329,7 @@ class DeveloperSelector extends HookConsumerWidget {
                 minTileHeight: 48,
                 leading: ProfilePictureWidget(
                   radius: 16,
-                  fileId: item.publisher?.picture?.id,
+                  file: item.publisher?.picture,
                 ),
                 title: Text(item.publisher!.nick),
                 subtitle: Text('@${item.publisher!.name}'),
@@ -348,7 +348,7 @@ class DeveloperSelector extends HookConsumerWidget {
     if (isReadOnly || currentDeveloper == null) {
       return ProfilePictureWidget(
         radius: 16,
-        fileId: currentDeveloper?.publisher?.picture?.id,
+        file: currentDeveloper?.publisher?.picture,
       ).center().padding(right: 8);
     }
 
@@ -373,7 +373,7 @@ class DeveloperSelector extends HookConsumerWidget {
             ...developersMenu.map(
               (e) => ProfilePictureWidget(
                 radius: 16,
-                fileId: e.value?.publisher?.picture?.id,
+                file: e.value?.publisher?.picture,
               ).center().padding(right: 8),
             ),
           ];
@@ -928,7 +928,7 @@ class _DeveloperEnrollmentSheet extends HookConsumerWidget {
                   final publisher = items[index];
                   return ListTile(
                     leading: ProfilePictureWidget(
-                      fileId: publisher.picture?.id,
+                      file: publisher.picture,
                       fallbackIcon: Symbols.group,
                     ),
                     title: Text(publisher.nick),

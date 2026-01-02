@@ -163,7 +163,7 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
                               child: AspectRatio(
                                 aspectRatio: 1,
                                 child: CloudImageWidget(
-                                  fileId: sticker.image.id,
+                                  file: sticker.image,
                                   fit: BoxFit.contain,
                                 ),
                               ),

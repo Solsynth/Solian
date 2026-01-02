@@ -34,16 +34,14 @@ class ArticleEditScreen extends HookConsumerWidget {
     final post = ref.watch(postProvider(id));
     return post.when(
       data: (post) => ArticleComposeScreen(originalPost: post),
-      loading:
-          () => AppScaffold(
-            appBar: AppBar(leading: const PageBackButton()),
-            body: const Center(child: CircularProgressIndicator()),
-          ),
-      error:
-          (e, _) => AppScaffold(
-            appBar: AppBar(leading: const PageBackButton()),
-            body: Text('Error: $e', textAlign: TextAlign.center),
-          ),
+      loading: () => AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Text('Error: $e', textAlign: TextAlign.center),
+      ),
     );
   }
 }
@@ -127,8 +125,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
           final mostRecentDraft = drafts.values.reduce(
             (a, b) =>
                 (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0))
-                    ? a
-                    : b,
+                ? a
+                : b,
           );
 
           // Only load if the draft has meaningful content
@@ -191,12 +189,11 @@ class ArticleComposeScreen extends HookConsumerWidget {
                           MarkdownTextContent(
                             content: contentValue.text,
                             textStyle: theme.textTheme.bodyMedium,
-                            attachments:
-                                state.attachments.value
-                                    .where((e) => e.isOnCloud)
-                                    .map((e) => e.data)
-                                    .cast<SnCloudFile>()
-                                    .toList(),
+                            attachments: state.attachments.value
+                                .where((e) => e.isOnCloud)
+                                .map((e) => e.data)
+                                .cast<SnCloudFile>()
+                                .toList(),
                           ),
                       ],
                     );
@@ -290,22 +287,21 @@ class ArticleComposeScreen extends HookConsumerWidget {
                       onExpansionChanged: (expanded) {
                         isAttachmentsExpanded.value = expanded;
                       },
-                      collapsedBackgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainer,
+                      collapsedBackgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer,
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('attachments').tr(),
                           Text(
                             'articleAttachmentHint'.tr(),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color:
-                                  Theme.of(
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
                                     context,
                                   ).colorScheme.onSurfaceVariant,
-                            ),
+                                ),
                           ),
                         ],
                       ),
@@ -336,13 +332,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                             >(
                                               context: context,
                                               isScrollControlled: true,
-                                              builder:
-                                                  (context) =>
-                                                      AttachmentUploaderSheet(
-                                                        ref: ref,
-                                                        state: state,
-                                                        index: idx,
-                                                      ),
+                                              builder: (context) =>
+                                                  AttachmentUploaderSheet(
+                                                    ref: ref,
+                                                    state: state,
+                                                    index: idx,
+                                                  ),
                                             );
                                         if (config != null) {
                                           await ComposeLogic.uploadAttachment(
@@ -353,21 +348,20 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                           );
                                         }
                                       },
-                                      onUpdate:
-                                          (value) =>
-                                              ComposeLogic.updateAttachment(
-                                                state,
-                                                value,
-                                                idx,
-                                              ),
-                                      onDelete:
-                                          () => ComposeLogic.deleteAttachment(
+                                      onUpdate: (value) =>
+                                          ComposeLogic.updateAttachment(
+                                            state,
+                                            value,
+                                            idx,
+                                          ),
+                                      onDelete: () =>
+                                          ComposeLogic.deleteAttachment(
                                             ref,
                                             state,
                                             idx,
                                           ),
-                                      onInsert:
-                                          () => ComposeLogic.insertAttachment(
+                                      onInsert: () =>
+                                          ComposeLogic.insertAttachment(
                                             ref,
                                             state,
                                             idx,
@@ -413,12 +407,11 @@ class ArticleComposeScreen extends HookConsumerWidget {
             const SizedBox.shrink(),
             IconButton(
               icon: ProfilePictureWidget(
-                fileId: state.currentPublisher.value?.picture?.id,
+                file: state.currentPublisher.value?.picture,
                 radius: 12,
-                fallbackIcon:
-                    state.currentPublisher.value == null
-                        ? Symbols.question_mark
-                        : null,
+                fallbackIcon: state.currentPublisher.value == null
+                    ? Symbols.question_mark
+                    : null,
               ),
               onPressed: () {
                 showModalBottomSheet(
@@ -448,30 +441,26 @@ class ArticleComposeScreen extends HookConsumerWidget {
               valueListenable: state.submitting,
               builder: (context, submitting, _) {
                 return IconButton(
-                  onPressed:
-                      submitting
-                          ? null
-                          : () => ComposeLogic.performAction(
-                            ref,
-                            state,
-                            context,
-                            originalPost: originalPost,
+                  onPressed: submitting
+                      ? null
+                      : () => ComposeLogic.performAction(
+                          ref,
+                          state,
+                          context,
+                          originalPost: originalPost,
+                        ),
+                  icon: submitting
+                      ? SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
                           ),
-                  icon:
-                      submitting
-                          ? SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          ).center()
-                          : Icon(
-                            originalPost != null
-                                ? Symbols.edit
-                                : Symbols.upload,
-                          ),
+                        ).center()
+                      : Icon(
+                          originalPost != null ? Symbols.edit : Symbols.upload,
+                        ),
                 );
               },
             ),
@@ -483,23 +472,22 @@ class ArticleComposeScreen extends HookConsumerWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16),
-                child:
-                    isWideScreen(context)
-                        ? Row(
-                          spacing: 16,
-                          children: [
-                            Expanded(
-                              flex: showPreview.value ? 1 : 2,
-                              child: buildEditorPane(),
-                            ),
-                            if (showPreview.value) const VerticalDivider(),
-                            if (showPreview.value)
-                              Expanded(child: buildPreviewPane()),
-                          ],
-                        )
-                        : showPreview.value
-                        ? buildPreviewPane()
-                        : buildEditorPane(),
+                child: isWideScreen(context)
+                    ? Row(
+                        spacing: 16,
+                        children: [
+                          Expanded(
+                            flex: showPreview.value ? 1 : 2,
+                            child: buildEditorPane(),
+                          ),
+                          if (showPreview.value) const VerticalDivider(),
+                          if (showPreview.value)
+                            Expanded(child: buildPreviewPane()),
+                        ],
+                      )
+                    : showPreview.value
+                    ? buildPreviewPane()
+                    : buildEditorPane(),
               ),
             ),
 

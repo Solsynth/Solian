@@ -62,8 +62,8 @@ class AccountPickerSheet extends HookConsumerWidget {
                 ),
               ),
               autofocus: true,
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
           ),
           Expanded(
@@ -74,23 +74,22 @@ class AccountPickerSheet extends HookConsumerWidget {
                 );
 
                 return searchResult.when(
-                  data:
-                      (accounts) => ListView.builder(
-                        itemCount: accounts.length,
-                        itemBuilder: (context, index) {
-                          final account = accounts[index];
-                          return ListTile(
-                            leading: ProfilePictureWidget(
-                              fileId: account.profile.picture?.id,
-                            ),
-                            title: Text(account.nick),
-                            subtitle: Text('@${account.name}'),
-                            onTap: () => Navigator.of(context).pop(account),
-                          );
-                        },
-                      ),
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
+                  data: (accounts) => ListView.builder(
+                    itemCount: accounts.length,
+                    itemBuilder: (context, index) {
+                      final account = accounts[index];
+                      return ListTile(
+                        leading: ProfilePictureWidget(
+                          file: account.profile.picture,
+                        ),
+                        title: Text(account.nick),
+                        subtitle: Text('@${account.name}'),
+                        onTap: () => Navigator.of(context).pop(account),
+                      );
+                    },
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(child: Text('Error: $error')),
                 );
               },

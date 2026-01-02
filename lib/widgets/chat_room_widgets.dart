@@ -22,15 +22,13 @@ class ChatRoomAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarChild = (isDirect && room.picture?.id == null)
+    final avatarChild = (isDirect && room.picture == null)
         ? SplitAvatarWidget(
-            filesId: validMembers
-                .map((e) => e.account.profile.picture?.id)
-                .toList(),
+            files: validMembers.map((e) => e.account.profile.picture).toList(),
           )
-        : room.picture?.id == null
+        : room.picture == null
         ? CircleAvatar(child: Text((room.name ?? 'DM')[0].toUpperCase()))
-        : ProfilePictureWidget(fileId: room.picture?.id);
+        : ProfilePictureWidget(file: room.picture);
 
     final badgeChild = Badge(
       isLabelVisible: summary.when(

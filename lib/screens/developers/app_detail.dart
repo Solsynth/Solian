@@ -146,7 +146,7 @@ class _AppOverview extends StatelessWidget {
                   left: 20,
                   bottom: -32,
                   child: ProfilePictureWidget(
-                    fileId: app.picture?.id,
+                    file: app.picture,
                     radius: 40,
                     fallbackIcon: Symbols.apps,
                   ),

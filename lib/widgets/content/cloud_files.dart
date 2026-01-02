@@ -577,6 +577,9 @@ class ProfilePictureWidget extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final String? id = file?.id ?? fileId;
 
+    final meta = file?.fileMeta is Map ? (file!.fileMeta as Map) : const {};
+    final blurHash = meta['blur'] as String?;
+
     final fallback = Icon(
       fallbackIcon ?? Symbols.account_circle,
       size: radius,
@@ -590,6 +593,7 @@ class ProfilePictureWidget extends ConsumerWidget {
             placeholder: fallback,
             content: () => UniversalImage(
               uri: '$serverUrl/drive/files/$id',
+              blurHash: blurHash,
               fit: BoxFit.cover,
             ),
           );
@@ -625,14 +629,14 @@ class ProfilePictureWidget extends ConsumerWidget {
 }
 
 class SplitAvatarWidget extends ConsumerWidget {
-  final List<String?> filesId;
+  final List<SnCloudFile?> files;
   final double radius;
   final IconData fallbackIcon;
   final Color? fallbackColor;
 
   const SplitAvatarWidget({
     super.key,
-    required this.filesId,
+    required this.files,
     this.radius = 20,
     this.fallbackIcon = Symbols.account_circle,
     this.fallbackColor,
@@ -640,17 +644,17 @@ class SplitAvatarWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (filesId.isEmpty) {
+    if (files.isEmpty) {
       return ProfilePictureWidget(
-        fileId: null,
+        file: null,
         radius: radius,
         fallbackIcon: fallbackIcon,
         fallbackColor: fallbackColor,
       );
     }
-    if (filesId.length == 1) {
+    if (files.length == 1) {
       return ProfilePictureWidget(
-        fileId: filesId[0],
+        file: files[0],
         radius: radius,
         fallbackIcon: fallbackIcon,
         fallbackColor: fallbackColor,
@@ -665,32 +669,32 @@ class SplitAvatarWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         child: Stack(
           children: [
-            if (filesId.length == 2)
+            if (files.length == 2)
               Row(
                 children: [
                   Expanded(
-                    child: _buildQuadrant(context, filesId[0], ref, radius),
+                    child: _buildQuadrant(context, files[0], ref, radius),
                   ),
                   Expanded(
-                    child: _buildQuadrant(context, filesId[1], ref, radius),
+                    child: _buildQuadrant(context, files[1], ref, radius),
                   ),
                 ],
               )
-            else if (filesId.length == 3)
+            else if (files.length == 3)
               Row(
                 children: [
                   Column(
                     children: [
                       Expanded(
-                        child: _buildQuadrant(context, filesId[0], ref, radius),
+                        child: _buildQuadrant(context, files[0], ref, radius),
                       ),
                       Expanded(
-                        child: _buildQuadrant(context, filesId[1], ref, radius),
+                        child: _buildQuadrant(context, files[1], ref, radius),
                       ),
                     ],
                   ),
                   Expanded(
-                    child: _buildQuadrant(context, filesId[2], ref, radius),
+                    child: _buildQuadrant(context, files[2], ref, radius),
                   ),
                 ],
               )
@@ -701,20 +705,10 @@ class SplitAvatarWidget extends ConsumerWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildQuadrant(
-                            context,
-                            filesId[0],
-                            ref,
-                            radius,
-                          ),
+                          child: _buildQuadrant(context, files[0], ref, radius),
                         ),
                         Expanded(
-                          child: _buildQuadrant(
-                            context,
-                            filesId[1],
-                            ref,
-                            radius,
-                          ),
+                          child: _buildQuadrant(context, files[1], ref, radius),
                         ),
                       ],
                     ),
@@ -723,22 +717,17 @@ class SplitAvatarWidget extends ConsumerWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildQuadrant(
-                            context,
-                            filesId[2],
-                            ref,
-                            radius,
-                          ),
+                          child: _buildQuadrant(context, files[2], ref, radius),
                         ),
                         Expanded(
-                          child: filesId.length > 4
+                          child: files.length > 4
                               ? Container(
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.primaryContainer,
                                   child: Center(
                                     child: Text(
-                                      '+${filesId.length - 3}',
+                                      '+${files.length - 3}',
                                       style: TextStyle(
                                         fontSize: radius * 0.4,
                                         color: Theme.of(
@@ -748,12 +737,7 @@ class SplitAvatarWidget extends ConsumerWidget {
                                     ),
                                   ),
                                 )
-                              : _buildQuadrant(
-                                  context,
-                                  filesId[3],
-                                  ref,
-                                  radius,
-                                ),
+                              : _buildQuadrant(context, files[3], ref, radius),
                         ),
                       ],
                     ),
@@ -768,11 +752,11 @@ class SplitAvatarWidget extends ConsumerWidget {
 
   Widget _buildQuadrant(
     BuildContext context,
-    String? fileId,
+    SnCloudFile? file,
     WidgetRef ref,
     double radius,
   ) {
-    if (fileId == null) {
+    if (file == null) {
       return Container(
         width: radius,
         height: radius,
@@ -787,7 +771,7 @@ class SplitAvatarWidget extends ConsumerWidget {
     }
 
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/$fileId';
+    final uri = '$serverUrl/drive/files/${file.id}';
 
     return SizedBox(
       width: radius,

@@ -143,7 +143,7 @@ class _BotOverview extends StatelessWidget {
                   left: 20,
                   bottom: -32,
                   child: ProfilePictureWidget(
-                    fileId: bot.account.profile.picture?.id,
+                    file: bot.account.profile.picture,
                     radius: 40,
                     fallbackIcon: Symbols.smart_toy,
                   ),

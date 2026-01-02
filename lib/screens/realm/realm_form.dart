@@ -90,14 +90,10 @@ class EditRealmScreen extends HookConsumerWidget {
       showLoadingModal(context);
       submitting.value = true;
       try {
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: UniversalFile(data: result, type: UniversalFileType.image),
+        ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -162,13 +158,12 @@ class EditRealmScreen extends HookConsumerWidget {
                   GestureDetector(
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      child:
-                          background.value != null
-                              ? CloudFileWidget(
-                                item: background.value!,
-                                fit: BoxFit.cover,
-                              )
-                              : const SizedBox.shrink(),
+                      child: background.value != null
+                          ? CloudFileWidget(
+                              item: background.value!,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     onTap: () {
                       setPicture('background');
@@ -179,7 +174,7 @@ class EditRealmScreen extends HookConsumerWidget {
                     bottom: -32,
                     child: GestureDetector(
                       child: ProfilePictureWidget(
-                        fileId: picture.value?.id,
+                        file: picture.value,
                         radius: 40,
                         fallbackIcon: Symbols.group,
                       ),
@@ -202,15 +197,15 @@ class EditRealmScreen extends HookConsumerWidget {
                       labelText: 'slug'.tr(),
                       helperText: 'slugHint'.tr(),
                     ),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: nameController,
                     decoration: InputDecoration(labelText: 'name'.tr()),
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -221,8 +216,8 @@ class EditRealmScreen extends HookConsumerWidget {
                     ),
                     minLines: 3,
                     maxLines: null,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   Card(

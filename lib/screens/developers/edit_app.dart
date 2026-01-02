@@ -51,10 +51,9 @@ class EditAppScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isNew = id == null;
-    final app =
-        isNew
-            ? null
-            : ref.watch(customAppProvider(publisherName, projectId, id!));
+    final app = isNew
+        ? null
+        : ref.watch(customAppProvider(publisherName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
@@ -139,14 +138,10 @@ class EditAppScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final cloudFile =
-            await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            ).future;
+        final cloudFile = await FileUploader.createCloudFile(
+          ref: ref,
+          fileData: UniversalFile(data: result, type: UniversalFileType.image),
+        ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -169,41 +164,40 @@ class EditAppScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'addScope'.tr(),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: scopeController,
-                      decoration: InputDecoration(
-                        labelText: 'scopeName'.tr(),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
+        builder: (context) => SheetScaffold(
+          titleText: 'addScope'.tr(),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: scopeController,
+                  decoration: InputDecoration(
+                    labelText: 'scopeName'.tr(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
-                    const SizedBox(height: 20),
-                    FilledButton.tonalIcon(
-                      onPressed: () {
-                        if (scopeController.text.isNotEmpty) {
-                          allowedScopes.value = [
-                            ...allowedScopes.value,
-                            scopeController.text,
-                          ];
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: const Icon(Symbols.add),
-                      label: Text('add').tr(),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                FilledButton.tonalIcon(
+                  onPressed: () {
+                    if (scopeController.text.isNotEmpty) {
+                      allowedScopes.value = [
+                        ...allowedScopes.value,
+                        scopeController.text,
+                      ];
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Symbols.add),
+                  label: Text('add').tr(),
+                ),
+              ],
             ),
+          ),
+        ),
       );
     }
 
@@ -212,57 +206,56 @@ class EditAppScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => SheetScaffold(
-              titleText: 'addRedirectUri'.tr(),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: uriController,
-                      decoration: InputDecoration(
-                        labelText: 'redirectUri'.tr(),
-                        hintText: 'https://example.com/auth/callback',
-                        helperText: 'redirectUriHint'.tr(),
-                        helperMaxLines: 3,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
-                      keyboardType: TextInputType.url,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'uriRequired'.tr();
-                        }
-                        final uri = Uri.tryParse(value);
-                        if (uri == null || !uri.hasAbsolutePath) {
-                          return 'invalidUri'.tr();
-                        }
-                        return null;
-                      },
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        builder: (context) => SheetScaffold(
+          titleText: 'addRedirectUri'.tr(),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: uriController,
+                  decoration: InputDecoration(
+                    labelText: 'redirectUri'.tr(),
+                    hintText: 'https://example.com/auth/callback',
+                    helperText: 'redirectUriHint'.tr(),
+                    helperMaxLines: 3,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
-                    const SizedBox(height: 20),
-                    FilledButton.tonalIcon(
-                      onPressed: () {
-                        if (uriController.text.isNotEmpty) {
-                          redirectUris.value = [
-                            ...redirectUris.value,
-                            uriController.text,
-                          ];
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: const Icon(Symbols.add),
-                      label: Text('add').tr(),
-                    ),
-                  ],
+                  ),
+                  keyboardType: TextInputType.url,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'uriRequired'.tr();
+                    }
+                    final uri = Uri.tryParse(value);
+                    if (uri == null || !uri.hasAbsolutePath) {
+                      return 'invalidUri'.tr();
+                    }
+                    return null;
+                  },
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-              ),
+                const SizedBox(height: 20),
+                FilledButton.tonalIcon(
+                  onPressed: () {
+                    if (uriController.text.isNotEmpty) {
+                      redirectUris.value = [
+                        ...redirectUris.value,
+                        uriController.text,
+                      ];
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Symbols.add),
+                  label: Text('add').tr(),
+                ),
+              ],
             ),
+          ),
+        ),
       );
     }
 
@@ -275,31 +268,28 @@ class EditAppScreen extends HookConsumerWidget {
         'picture_id': picture.value?.id,
         'background_id': background.value?.id,
         'links': {
-          'home_page':
-              homePageController.text.isNotEmpty
-                  ? homePageController.text
-                  : null,
-          'privacy_policy':
-              privacyPolicyController.text.isNotEmpty
-                  ? privacyPolicyController.text
-                  : null,
-          'terms_of_service':
-              termsController.text.isNotEmpty ? termsController.text : null,
+          'home_page': homePageController.text.isNotEmpty
+              ? homePageController.text
+              : null,
+          'privacy_policy': privacyPolicyController.text.isNotEmpty
+              ? privacyPolicyController.text
+              : null,
+          'terms_of_service': termsController.text.isNotEmpty
+              ? termsController.text
+              : null,
         },
-        'oauth_config':
-            oauthEnabled.value
-                ? {
-                  'redirect_uris': redirectUris.value,
-                  'post_logout_redirect_uris':
-                      postLogoutUris.value.isNotEmpty
-                          ? postLogoutUris.value
-                          : null,
-                  'allowed_scopes': allowedScopes.value,
-                  'allowed_grant_types': allowedGrantTypes.value,
-                  'require_pkce': requirePkce.value,
-                  'allow_offline_access': allowOfflineAccess.value,
-                }
-                : null,
+        'oauth_config': oauthEnabled.value
+            ? {
+                'redirect_uris': redirectUris.value,
+                'post_logout_redirect_uris': postLogoutUris.value.isNotEmpty
+                    ? postLogoutUris.value
+                    : null,
+                'allowed_scopes': allowedScopes.value,
+                'allowed_grant_types': allowedGrantTypes.value,
+                'require_pkce': requirePkce.value,
+                'allow_offline_access': allowOfflineAccess.value,
+              }
+            : null,
       };
       try {
         showLoadingModal(context);
@@ -326,287 +316,269 @@ class EditAppScreen extends HookConsumerWidget {
       }
     }
 
-    final bodyContent =
-        app == null && !isNew
-            ? const Center(child: CircularProgressIndicator())
-            : app?.hasError == true && !isNew
-            ? ResponseErrorWidget(
-              error: app!.error,
-              onRetry:
-                  () => ref.invalidate(
-                    customAppProvider(publisherName, projectId, id!),
-                  ),
-            )
-            : SingleChildScrollView(
-              child: Column(
-                children: [
-                  AspectRatio(
-                    aspectRatio: 16 / 7,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      fit: StackFit.expand,
-                      children: [
-                        GestureDetector(
-                          child: Container(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHigh,
-                            child:
-                                background.value != null
-                                    ? CloudFileWidget(
-                                      item: background.value!,
-                                      fit: BoxFit.cover,
-                                    )
-                                    : const SizedBox.shrink(),
+    final bodyContent = app == null && !isNew
+        ? const Center(child: CircularProgressIndicator())
+        : app?.hasError == true && !isNew
+        ? ResponseErrorWidget(
+            error: app!.error,
+            onRetry: () => ref.invalidate(
+              customAppProvider(publisherName, projectId, id!),
+            ),
+          )
+        : SingleChildScrollView(
+            child: Column(
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 7,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    fit: StackFit.expand,
+                    children: [
+                      GestureDetector(
+                        child: Container(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
+                          child: background.value != null
+                              ? CloudFileWidget(
+                                  item: background.value!,
+                                  fit: BoxFit.cover,
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                        onTap: () {
+                          setPicture('background');
+                        },
+                      ),
+                      Positioned(
+                        left: 20,
+                        bottom: -32,
+                        child: GestureDetector(
+                          child: ProfilePictureWidget(
+                            file: picture.value,
+                            radius: 40,
+                            fallbackIcon: Symbols.apps,
                           ),
                           onTap: () {
-                            setPicture('background');
+                            setPicture('picture');
                           },
                         ),
-                        Positioned(
-                          left: 20,
-                          bottom: -32,
-                          child: GestureDetector(
-                            child: ProfilePictureWidget(
-                              fileId: picture.value?.id,
-                              radius: 40,
-                              fallbackIcon: Symbols.apps,
-                            ),
-                            onTap: () {
-                              setPicture('picture');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).padding(bottom: 32),
-                  Form(
-                    key: formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: nameController,
-                          decoration: InputDecoration(
-                            labelText: 'name'.tr(),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
-                              ),
-                            ),
-                          ),
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: slugController,
-                          decoration: InputDecoration(
-                            labelText: 'slug'.tr(),
-                            helperText: 'slugHint'.tr(),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
-                              ),
-                            ),
-                          ),
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: descriptionController,
-                          decoration: InputDecoration(
-                            labelText: 'description'.tr(),
-                            alignLabelWithHint: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
-                              ),
-                            ),
-                          ),
-                          maxLines: 3,
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
-                        ),
-                        const SizedBox(height: 16),
-                        ExpansionPanelList(
-                          expansionCallback: (index, isExpanded) {
-                            switch (index) {
-                              case 0:
-                                enableLinks.value = isExpanded;
-                                break;
-                              case 1:
-                                oauthEnabled.value = isExpanded;
-                                break;
-                            }
-                          },
-                          children: [
-                            ExpansionPanel(
-                              headerBuilder:
-                                  (context, isExpanded) =>
-                                      ListTile(title: Text('appLinks').tr()),
-                              body: Column(
-                                spacing: 16,
-                                children: [
-                                  TextFormField(
-                                    controller: homePageController,
-                                    decoration: InputDecoration(
-                                      labelText: 'homePageUrl'.tr(),
-                                      hintText: 'https://example.com',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                    keyboardType: TextInputType.url,
-                                  ),
-                                  TextFormField(
-                                    controller: privacyPolicyController,
-                                    decoration: InputDecoration(
-                                      labelText: 'privacyPolicyUrl'.tr(),
-                                      hintText: 'https://example.com/privacy',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                    keyboardType: TextInputType.url,
-                                  ),
-                                  TextFormField(
-                                    controller: termsController,
-                                    decoration: InputDecoration(
-                                      labelText: 'termsOfServiceUrl'.tr(),
-                                      hintText: 'https://example.com/terms',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                    keyboardType: TextInputType.url,
-                                  ),
-                                ],
-                              ).padding(horizontal: 16, bottom: 24),
-                              isExpanded: enableLinks.value,
-                            ),
-                            ExpansionPanel(
-                              headerBuilder:
-                                  (context, isExpanded) =>
-                                      ListTile(title: Text('oauthConfig').tr()),
-                              body: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('redirectUris'.tr()),
-                                  Card(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        ...redirectUris.value.map(
-                                          (uri) => ListTile(
-                                            title: Text(uri),
-                                            trailing: IconButton(
-                                              icon: const Icon(Symbols.delete),
-                                              onPressed: () {
-                                                redirectUris.value =
-                                                    redirectUris.value
-                                                        .where((u) => u != uri)
-                                                        .toList();
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                        if (redirectUris.value.isNotEmpty)
-                                          const Divider(height: 1),
-                                        ListTile(
-                                          leading: const Icon(Symbols.add),
-                                          title: Text('addRedirectUri'.tr()),
-                                          onTap: showAddRedirectUriDialog,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text('allowedScopes'.tr()),
-                                  Card(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        ...allowedScopes.value.map(
-                                          (scope) => ListTile(
-                                            title: Text(scope),
-                                            trailing: IconButton(
-                                              icon: const Icon(Symbols.delete),
-                                              onPressed: () {
-                                                allowedScopes.value =
-                                                    allowedScopes.value
-                                                        .where(
-                                                          (s) => s != scope,
-                                                        )
-                                                        .toList();
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                        if (allowedScopes.value.isNotEmpty)
-                                          const Divider(height: 1),
-                                        ListTile(
-                                          leading: const Icon(Symbols.add),
-                                          title: Text('add').tr(),
-                                          onTap: showAddScopeDialog,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SwitchListTile(
-                                    title: Text('requirePkce'.tr()),
-                                    value: requirePkce.value,
-                                    onChanged:
-                                        (value) => requirePkce.value = value,
-                                  ),
-                                  SwitchListTile(
-                                    title: Text('allowOfflineAccess'.tr()),
-                                    value: allowOfflineAccess.value,
-                                    onChanged:
-                                        (value) =>
-                                            allowOfflineAccess.value = value,
-                                  ),
-                                ],
-                              ).padding(horizontal: 16, bottom: 24),
-                              isExpanded: oauthEnabled.value,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: submitting.value ? null : performAction,
-                            label: Text('saveChanges'.tr()),
-                            icon: const Icon(Symbols.save),
-                          ),
-                        ),
-                      ],
-                    ).padding(all: 24),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
+                ).padding(bottom: 32),
+                Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: 'name'.tr(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: slugController,
+                        decoration: InputDecoration(
+                          labelText: 'slug'.tr(),
+                          helperText: 'slugHint'.tr(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'description'.tr(),
+                          alignLabelWithHint: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                        maxLines: 3,
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                      const SizedBox(height: 16),
+                      ExpansionPanelList(
+                        expansionCallback: (index, isExpanded) {
+                          switch (index) {
+                            case 0:
+                              enableLinks.value = isExpanded;
+                              break;
+                            case 1:
+                              oauthEnabled.value = isExpanded;
+                              break;
+                          }
+                        },
+                        children: [
+                          ExpansionPanel(
+                            headerBuilder: (context, isExpanded) =>
+                                ListTile(title: Text('appLinks').tr()),
+                            body: Column(
+                              spacing: 16,
+                              children: [
+                                TextFormField(
+                                  controller: homePageController,
+                                  decoration: InputDecoration(
+                                    labelText: 'homePageUrl'.tr(),
+                                    hintText: 'https://example.com',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.url,
+                                ),
+                                TextFormField(
+                                  controller: privacyPolicyController,
+                                  decoration: InputDecoration(
+                                    labelText: 'privacyPolicyUrl'.tr(),
+                                    hintText: 'https://example.com/privacy',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.url,
+                                ),
+                                TextFormField(
+                                  controller: termsController,
+                                  decoration: InputDecoration(
+                                    labelText: 'termsOfServiceUrl'.tr(),
+                                    hintText: 'https://example.com/terms',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.url,
+                                ),
+                              ],
+                            ).padding(horizontal: 16, bottom: 24),
+                            isExpanded: enableLinks.value,
+                          ),
+                          ExpansionPanel(
+                            headerBuilder: (context, isExpanded) =>
+                                ListTile(title: Text('oauthConfig').tr()),
+                            body: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('redirectUris'.tr()),
+                                Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      ...redirectUris.value.map(
+                                        (uri) => ListTile(
+                                          title: Text(uri),
+                                          trailing: IconButton(
+                                            icon: const Icon(Symbols.delete),
+                                            onPressed: () {
+                                              redirectUris.value = redirectUris
+                                                  .value
+                                                  .where((u) => u != uri)
+                                                  .toList();
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      if (redirectUris.value.isNotEmpty)
+                                        const Divider(height: 1),
+                                      ListTile(
+                                        leading: const Icon(Symbols.add),
+                                        title: Text('addRedirectUri'.tr()),
+                                        onTap: showAddRedirectUriDialog,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text('allowedScopes'.tr()),
+                                Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      ...allowedScopes.value.map(
+                                        (scope) => ListTile(
+                                          title: Text(scope),
+                                          trailing: IconButton(
+                                            icon: const Icon(Symbols.delete),
+                                            onPressed: () {
+                                              allowedScopes.value =
+                                                  allowedScopes.value
+                                                      .where((s) => s != scope)
+                                                      .toList();
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      if (allowedScopes.value.isNotEmpty)
+                                        const Divider(height: 1),
+                                      ListTile(
+                                        leading: const Icon(Symbols.add),
+                                        title: Text('add').tr(),
+                                        onTap: showAddScopeDialog,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SwitchListTile(
+                                  title: Text('requirePkce'.tr()),
+                                  value: requirePkce.value,
+                                  onChanged: (value) =>
+                                      requirePkce.value = value,
+                                ),
+                                SwitchListTile(
+                                  title: Text('allowOfflineAccess'.tr()),
+                                  value: allowOfflineAccess.value,
+                                  onChanged: (value) =>
+                                      allowOfflineAccess.value = value,
+                                ),
+                              ],
+                            ).padding(horizontal: 16, bottom: 24),
+                            isExpanded: oauthEnabled.value,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: submitting.value ? null : performAction,
+                          label: Text('saveChanges'.tr()),
+                          icon: const Icon(Symbols.save),
+                        ),
+                      ),
+                    ],
+                  ).padding(all: 24),
+                ),
+              ],
+            ),
+          );
 
     if (isModal) {
       return bodyContent;

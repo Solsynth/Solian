@@ -30,17 +30,16 @@ class RealmListTile extends StatelessWidget {
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainer,
-                      child:
-                          realm.background == null
-                              ? const SizedBox.shrink()
-                              : CloudImageWidget(file: realm.background),
+                      child: realm.background == null
+                          ? const SizedBox.shrink()
+                          : CloudImageWidget(file: realm.background),
                     ),
                   ),
                   Positioned(
                     bottom: -30,
                     left: 18,
                     child: ProfilePictureWidget(
-                      fileId: realm.picture?.id,
+                      file: realm.picture,
                       fallbackIcon: Symbols.group,
                       radius: 24,
                     ),

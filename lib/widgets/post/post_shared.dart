@@ -148,7 +148,7 @@ class PostReplyPreview extends HookConsumerWidget {
       return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
-    return ProfilePictureWidget(fileId: null, radius: radius);
+    return ProfilePictureWidget(file: null, radius: radius);
   }
 
   @override
@@ -448,7 +448,7 @@ class ReferencedPostWidget extends StatelessWidget {
     // Handle publisher case
     if (post.publisher != null) {
       return ProfilePictureWidget(
-        fileId: post.publisher!.picture?.id,
+        file: post.publisher!.picture,
         radius: radius,
       );
     }
@@ -457,7 +457,7 @@ class ReferencedPostWidget extends StatelessWidget {
       return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
-    return ProfilePictureWidget(fileId: null, radius: radius);
+    return ProfilePictureWidget(file: null, radius: radius);
   }
 
   String _getDisplayName(SnPost post) {
@@ -701,7 +701,7 @@ class PostHeader extends HookConsumerWidget {
       return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
     // Fallback
-    return ProfilePictureWidget(fileId: null, radius: radius);
+    return ProfilePictureWidget(file: null, radius: radius);
   }
 
   String _getDisplayName(SnPost post) {

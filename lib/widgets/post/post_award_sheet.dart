@@ -54,7 +54,7 @@ class PostAwardSheet extends HookConsumerWidget {
       }
     }
     // Fallback
-    return ProfilePictureWidget(fileId: null, radius: radius);
+    return ProfilePictureWidget(file: null, radius: radius);
   }
 
   String _getPublisherName() {

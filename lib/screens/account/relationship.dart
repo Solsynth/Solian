@@ -113,7 +113,7 @@ class RelationshipListTile extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 16, right: 12),
       leading: AccountPfcGestureDetector(
         uname: account.name,
-        child: ProfilePictureWidget(fileId: account.profile.picture?.id),
+        child: ProfilePictureWidget(file: account.profile.picture),
       ),
       title: Row(
         spacing: 6,

@@ -178,7 +178,7 @@ class EditChatScreen extends HookConsumerWidget {
                     bottom: -32,
                     child: GestureDetector(
                       child: ProfilePictureWidget(
-                        fileId: picture.value?.id,
+                        file: picture.value,
                         radius: 40,
                         fallbackIcon: Symbols.group,
                       ),

@@ -24,12 +24,11 @@ class MessageSenderInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timestamp =
-        DateTime.now().difference(createdAt).inDays > 365
-            ? DateFormat('yyyy/MM/dd HH:mm').format(createdAt.toLocal())
-            : DateTime.now().difference(createdAt).inDays > 0
-            ? DateFormat('MM/dd HH:mm').format(createdAt.toLocal())
-            : DateFormat('HH:mm').format(createdAt.toLocal());
+    final timestamp = DateTime.now().difference(createdAt).inDays > 365
+        ? DateFormat('yyyy/MM/dd HH:mm').format(createdAt.toLocal())
+        : DateTime.now().difference(createdAt).inDays > 0
+        ? DateFormat('MM/dd HH:mm').format(createdAt.toLocal())
+        : DateFormat('HH:mm').format(createdAt.toLocal());
 
     if (isCompact) {
       return Row(
@@ -41,7 +40,7 @@ class MessageSenderInfo extends StatelessWidget {
             AccountPfcGestureDetector(
               uname: sender.account.name,
               child: ProfilePictureWidget(
-                fileId: sender.account.profile.picture?.id,
+                file: sender.account.profile.picture,
                 radius: 14,
               ),
             ),
@@ -69,7 +68,7 @@ class MessageSenderInfo extends StatelessWidget {
           AccountPfcGestureDetector(
             uname: sender.account.name,
             child: ProfilePictureWidget(
-              fileId: sender.account.profile.picture?.id,
+              file: sender.account.profile.picture,
               radius: 14,
             ),
           ),
@@ -106,7 +105,7 @@ class MessageSenderInfo extends StatelessWidget {
           AccountPfcGestureDetector(
             uname: sender.account.name,
             child: ProfilePictureWidget(
-              fileId: sender.account.profile.picture?.id,
+              file: sender.account.profile.picture,
               radius: 16,
             ),
           ),

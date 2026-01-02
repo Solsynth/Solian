@@ -21,63 +21,57 @@ class PublisherModal extends HookConsumerWidget {
         children: [
           Expanded(
             child: publishers.when(
-              data:
-                  (value) =>
-                      value.isEmpty
-                          ? ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: 280),
-                            child:
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'publishersEmpty',
-                                      textAlign: TextAlign.center,
-                                    ).tr().fontSize(17).bold(),
-                                    Text(
-                                      'publishersEmptyDescription',
-                                      textAlign: TextAlign.center,
-                                    ).tr(),
-                                    const Gap(12),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          builder:
-                                              (context) =>
-                                                  const NewPublisherScreen(),
-                                        ).then((value) {
-                                          if (value != null) {
-                                            ref.invalidate(
-                                              publishersManagedProvider,
-                                            );
-                                          }
-                                        });
-                                      },
-                                      child: Text('createPublisher').tr(),
-                                    ),
-                                  ],
-                                ).center(),
-                          )
-                          : SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                for (final publisher in value)
-                                  ListTile(
-                                    leading: ProfilePictureWidget(
-                                      fileId: publisher.picture?.id,
-                                    ),
-                                    title: Text(publisher.nick),
-                                    subtitle: Text('@${publisher.name}'),
-                                    onTap: () {
-                                      Navigator.pop(context, publisher);
-                                    },
-                                  ),
-                              ],
-                            ),
+              data: (value) => value.isEmpty
+                  ? ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 280),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'publishersEmpty',
+                            textAlign: TextAlign.center,
+                          ).tr().fontSize(17).bold(),
+                          Text(
+                            'publishersEmptyDescription',
+                            textAlign: TextAlign.center,
+                          ).tr(),
+                          const Gap(12),
+                          ElevatedButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) =>
+                                    const NewPublisherScreen(),
+                              ).then((value) {
+                                if (value != null) {
+                                  ref.invalidate(publishersManagedProvider);
+                                }
+                              });
+                            },
+                            child: Text('createPublisher').tr(),
                           ),
+                        ],
+                      ).center(),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          for (final publisher in value)
+                            ListTile(
+                              leading: ProfilePictureWidget(
+                                file: publisher.picture,
+                              ),
+                              title: Text(publisher.nick),
+                              subtitle: Text('@${publisher.name}'),
+                              onTap: () {
+                                Navigator.pop(context, publisher);
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Text('Error: $e'),
             ),

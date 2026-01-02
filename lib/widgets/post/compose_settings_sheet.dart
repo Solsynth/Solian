@@ -412,7 +412,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                     child: Row(
                       children: [
                         ProfilePictureWidget(
-                          fileId: currentRealm.picture?.id,
+                          file: currentRealm.picture,
                           fallbackIcon: Symbols.workspaces,
                           radius: 16,
                         ),
@@ -428,7 +428,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                       child: Row(
                         children: [
                           ProfilePictureWidget(
-                            fileId: realm.picture?.id,
+                            file: realm.picture,
                             fallbackIcon: Symbols.workspaces,
                             radius: 16,
                           ),
@@ -454,7 +454,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                         )
                       else
                         ProfilePictureWidget(
-                          fileId: currentRealm.picture?.id,
+                          file: currentRealm.picture,
                           fallbackIcon: Symbols.workspaces,
                           radius: 16,
                         ),
