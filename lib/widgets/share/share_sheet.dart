@@ -776,19 +776,19 @@ class _ChatRoomOption extends HookConsumerWidget {
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: (isDirect && room.picture?.id == null)
+              child: (isDirect && room.picture == null)
                   ? SplitAvatarWidget(
-                      filesId: validMembers
-                          .map((e) => e.account.profile.picture?.id)
+                      files: validMembers
+                          .map((e) => e.account.profile.picture)
                           .toList(),
                       radius: 16,
                     )
-                  : room.picture?.id == null
+                  : room.picture == null
                   ? CircleAvatar(
                       radius: 16,
                       child: Text(room.name![0].toUpperCase()),
                     )
-                  : ProfilePictureWidget(fileId: room.picture?.id, radius: 16),
+                  : ProfilePictureWidget(file: room.picture, radius: 16),
             ),
             const SizedBox(height: 4),
             // Chat room name

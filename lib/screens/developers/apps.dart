@@ -153,7 +153,7 @@ class CustomAppsScreen extends HookConsumerWidget {
                             ListTile(
                               title: Text(app.name),
                               leading: ProfilePictureWidget(
-                                fileId: app.picture?.id,
+                                file: app.picture,
                                 fallbackIcon: Symbols.apps,
                               ),
                               subtitle: Text(

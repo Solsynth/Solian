@@ -99,15 +99,15 @@ class PublicRoomPreview extends HookConsumerWidget {
         SizedBox(
           height: 26,
           width: 26,
-          child: (room.type == 1 && room.picture?.id == null)
+          child: (room.type == 1 && room.picture == null)
               ? SplitAvatarWidget(
-                  filesId: room.members!
-                      .map((e) => e.account.profile.picture?.id)
+                  files: room.members!
+                      .map((e) => e.account.profile.picture)
                       .toList(),
                 )
-              : room.picture?.id != null
+              : room.picture != null
               ? ProfilePictureWidget(
-                  fileId: room.picture?.id,
+                  file: room.picture,
                   fallbackIcon: Symbols.chat,
                 )
               : CircleAvatar(
@@ -132,15 +132,15 @@ class PublicRoomPreview extends HookConsumerWidget {
         SizedBox(
           height: 26,
           width: 26,
-          child: (room.type == 1 && room.picture?.id == null)
+          child: (room.type == 1 && room.picture == null)
               ? SplitAvatarWidget(
-                  filesId: room.members!
-                      .map((e) => e.account.profile.picture?.id)
+                  files: room.members!
+                      .map((e) => e.account.profile.picture)
                       .toList(),
                 )
-              : room.picture?.id != null
+              : room.picture != null
               ? ProfilePictureWidget(
-                  fileId: room.picture?.id,
+                  file: room.picture,
                   fallbackIcon: Symbols.chat,
                 )
               : CircleAvatar(

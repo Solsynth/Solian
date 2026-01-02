@@ -73,96 +73,94 @@ class PostQuickReply extends HookConsumerWidget {
     const kInputChipHeight = 54.0;
 
     return publishers.when(
-      data:
-          (data) => Material(
-            elevation: 2,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(28),
-            child: Container(
-              constraints: BoxConstraints(minHeight: kInputChipHeight),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: currentPublisher.value?.picture?.id,
-                      radius: (kInputChipHeight * 0.5) - 6,
+      data: (data) => Material(
+        elevation: 2,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(28),
+        child: Container(
+          constraints: BoxConstraints(minHeight: kInputChipHeight),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                child: ProfilePictureWidget(
+                  file: currentPublisher.value?.picture,
+                  radius: (kInputChipHeight * 0.5) - 6,
+                ),
+                onTap: () {
+                  showModalBottomSheet(
+                    isScrollControlled: true,
+                    context: context,
+                    builder: (context) => PublisherModal(),
+                  ).then((value) {
+                    if (value is SnPublisher) {
+                      currentPublisher.value = value;
+                    }
+                  });
+                },
+              ).padding(right: 12),
+              Expanded(
+                child: TextField(
+                  controller: contentController,
+                  decoration: InputDecoration(
+                    hintText: 'postReplyPlaceholder'.tr(),
+                    border: InputBorder.none,
+                    isDense: true,
+                    isCollapsed: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
                     ),
-                    onTap: () {
-                      showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (context) => PublisherModal(),
-                      ).then((value) {
-                        if (value is SnPublisher) {
-                          currentPublisher.value = value;
-                        }
-                      });
-                    },
-                  ).padding(right: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: contentController,
-                      decoration: InputDecoration(
-                        hintText: 'postReplyPlaceholder'.tr(),
-                        border: InputBorder.none,
-                        isDense: true,
-                        isCollapsed: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      style: TextStyle(fontSize: 14),
-                      minLines: 1,
-                      maxLines: 5,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                  ),
-                  const Gap(8),
-                  IconButton(
-                    onPressed: () async {
-                      onLaunch?.call();
-                      final value = await PostComposeSheet.show(
-                        context,
-                        initialState: PostComposeInitialState(
-                          content: contentController.text,
-                          replyingTo: parent,
-                        ),
-                      );
-                      if (value != null) onPosted?.call();
-                    },
-                    icon: const Icon(Symbols.launch, size: 20),
                     visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(
-                      maxHeight: kInputChipHeight - 6,
-                      minHeight: kInputChipHeight - 6,
-                    ),
                   ),
-                  IconButton(
-                    icon:
-                        submitting.value
-                            ? SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: CircularProgressIndicator(strokeWidth: 3),
-                            )
-                            : Icon(Symbols.send, size: 20),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: submitting.value ? null : performAction,
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(
-                      maxHeight: kInputChipHeight - 6,
-                      minHeight: kInputChipHeight - 6,
-                    ),
-                  ),
-                ],
+                  style: TextStyle(fontSize: 14),
+                  minLines: 1,
+                  maxLines: 5,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ),
               ),
-            ),
+              const Gap(8),
+              IconButton(
+                onPressed: () async {
+                  onLaunch?.call();
+                  final value = await PostComposeSheet.show(
+                    context,
+                    initialState: PostComposeInitialState(
+                      content: contentController.text,
+                      replyingTo: parent,
+                    ),
+                  );
+                  if (value != null) onPosted?.call();
+                },
+                icon: const Icon(Symbols.launch, size: 20),
+                visualDensity: VisualDensity.compact,
+                constraints: BoxConstraints(
+                  maxHeight: kInputChipHeight - 6,
+                  minHeight: kInputChipHeight - 6,
+                ),
+              ),
+              IconButton(
+                icon: submitting.value
+                    ? SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                    : Icon(Symbols.send, size: 20),
+                color: Theme.of(context).colorScheme.primary,
+                onPressed: submitting.value ? null : performAction,
+                visualDensity: VisualDensity.compact,
+                constraints: BoxConstraints(
+                  maxHeight: kInputChipHeight - 6,
+                  minHeight: kInputChipHeight - 6,
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
       loading: () => const SizedBox.shrink(),
       error: (e, _) => const SizedBox.shrink(),
     );

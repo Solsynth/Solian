@@ -49,7 +49,7 @@ class RealmSelectionDropdown extends StatelessWidget {
                 child: Row(
                   children: [
                     ProfilePictureWidget(
-                      fileId: realm.picture?.id,
+                      file: realm.picture,
                       fallbackIcon: Symbols.workspaces,
                       radius: 16,
                     ),

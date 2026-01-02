@@ -37,7 +37,7 @@ class SkeletonNotificationTile extends StatelessWidget {
       isThreeLine: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: fakePfp != null
-          ? ProfilePictureWidget(fileId: fakePfp, radius: 20)
+          ? ProfilePictureWidget(file: null, radius: 20)
           : CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               child: Icon(

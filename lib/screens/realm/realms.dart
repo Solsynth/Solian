@@ -213,7 +213,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
                   final invite = items[index];
                   return ListTile(
                     leading: ProfilePictureWidget(
-                      fileId: invite.realm!.picture?.id,
+                      file: invite.realm!.picture,
                       fallbackIcon: Symbols.group,
                     ),
                     title: Text(invite.realm!.name),

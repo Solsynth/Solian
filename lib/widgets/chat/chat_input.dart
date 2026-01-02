@@ -133,10 +133,9 @@ class _ExpandedSection extends StatelessWidget {
                             },
                             child: Card(
                               margin: EdgeInsets.zero,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -144,8 +143,9 @@ class _ExpandedSection extends StatelessWidget {
                                   const Gap(4),
                                   Text(
                                     'Poll',
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -160,8 +160,8 @@ class _ExpandedSection extends StatelessWidget {
                                   await showModalBottomSheet<SnWalletFund>(
                                     context: context,
                                     isScrollControlled: true,
-                                    builder:
-                                        (context) => const ComposeFundSheet(),
+                                    builder: (context) =>
+                                        const ComposeFundSheet(),
                                   );
                               if (fund != null) {
                                 onFundSelected(fund);
@@ -169,10 +169,9 @@ class _ExpandedSection extends StatelessWidget {
                             },
                             child: Card(
                               margin: EdgeInsets.zero,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -180,8 +179,9 @@ class _ExpandedSection extends StatelessWidget {
                                   const Gap(4),
                                   Text(
                                     'fund'.tr(),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -192,11 +192,8 @@ class _ExpandedSection extends StatelessWidget {
                     ),
                     StickerPickerEmbedded(
                       height: kInputDrawerExpandedHeight,
-                      onPick:
-                          (placeholder) => _insertPlaceholder(
-                            messageController,
-                            placeholder,
-                          ),
+                      onPick: (placeholder) =>
+                          _insertPlaceholder(messageController, placeholder),
                     ),
                   ],
                 ),
@@ -373,15 +370,16 @@ class ChatInput extends HookConsumerWidget {
                 switchOutCurve: Curves.fastEaseInToSlowEaseOut,
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, -0.3),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, -0.3),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
                     child: SizeTransition(
                       sizeFactor: animation,
                       axisAlignment: -1.0,
@@ -389,41 +387,40 @@ class ChatInput extends HookConsumerWidget {
                     ),
                   );
                 },
-                child:
-                    chatSubscribe.isNotEmpty
-                        ? Container(
-                          key: const ValueKey('typing-indicator'),
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Symbols.more_horiz,
-                                size: 16,
-                              ).padding(horizontal: 8),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  'typingHint'.plural(
-                                    chatSubscribe.length,
-                                    args: [
-                                      chatSubscribe
-                                          .map((x) => x.nick ?? x.account.nick)
-                                          .join(', '),
-                                    ],
-                                  ),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                        : const SizedBox.shrink(
-                          key: ValueKey('typing-indicator-none'),
+                child: chatSubscribe.isNotEmpty
+                    ? Container(
+                        key: const ValueKey('typing-indicator'),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
                         ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Symbols.more_horiz,
+                              size: 16,
+                            ).padding(horizontal: 8),
+                            const Gap(8),
+                            Expanded(
+                              child: Text(
+                                'typingHint'.plural(
+                                  chatSubscribe.length,
+                                  args: [
+                                    chatSubscribe
+                                        .map((x) => x.nick ?? x.account.nick)
+                                        .join(', '),
+                                  ],
+                                ),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(
+                        key: ValueKey('typing-indicator-none'),
+                      ),
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
@@ -445,41 +442,36 @@ class ChatInput extends HookConsumerWidget {
                     ),
                   );
                 },
-                child:
-                    attachments.isNotEmpty
-                        ? SizedBox(
-                          key: ValueKey('attachments-${attachments.length}'),
-                          height: 180,
-                          child: ListView.separated(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: attachments.length,
-                            itemBuilder: (context, idx) {
-                              return SizedBox(
-                                width: 180,
-                                child: AttachmentPreview(
-                                  isCompact: true,
-                                  item: attachments[idx],
-                                  progress:
-                                      attachmentProgress['chat-upload']?[idx],
-                                  onRequestUpload:
-                                      () => onUploadAttachment(idx),
-                                  onDelete: () => onDeleteAttachment(idx),
-                                  onUpdate: (value) {
-                                    attachments[idx] = value;
-                                    onAttachmentsChanged(attachments);
-                                  },
-                                  onMove:
-                                      (delta) => onMoveAttachment(idx, delta),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (_, _) => const Gap(8),
-                          ),
-                        ).padding(vertical: 12)
-                        : const SizedBox.shrink(
-                          key: ValueKey('no-attachments'),
+                child: attachments.isNotEmpty
+                    ? SizedBox(
+                        key: ValueKey('attachments-${attachments.length}'),
+                        height: 180,
+                        child: ListView.separated(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: attachments.length,
+                          itemBuilder: (context, idx) {
+                            return SizedBox(
+                              width: 180,
+                              child: AttachmentPreview(
+                                isCompact: true,
+                                item: attachments[idx],
+                                progress:
+                                    attachmentProgress['chat-upload']?[idx],
+                                onRequestUpload: () => onUploadAttachment(idx),
+                                onDelete: () => onDeleteAttachment(idx),
+                                onUpdate: (value) {
+                                  attachments[idx] = value;
+                                  onAttachmentsChanged(attachments);
+                                },
+                                onMove: (delta) => onMoveAttachment(idx, delta),
+                              ),
+                            );
+                          },
+                          separatorBuilder: (_, _) => const Gap(8),
                         ),
+                      ).padding(vertical: 12)
+                    : const SizedBox.shrink(key: ValueKey('no-attachments')),
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -501,66 +493,62 @@ class ChatInput extends HookConsumerWidget {
                     ),
                   );
                 },
-                child:
-                    selectedPoll != null
-                        ? Container(
-                          key: const ValueKey('selected-poll'),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.how_to_vote,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  selectedPoll!.title ?? 'Poll',
-                                  style: Theme.of(context).textTheme.bodySmall!
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () => onPollSelected(null),
-                                  tooltip: 'clear'.tr(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                        : const SizedBox.shrink(
-                          key: ValueKey('no-selected-poll'),
+                child: selectedPoll != null
+                    ? Container(
+                        key: const ValueKey('selected-poll'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        margin: const EdgeInsets.only(
+                          left: 8,
+                          right: 8,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.how_to_vote,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const Gap(8),
+                            Expanded(
+                              child: Text(
+                                selectedPoll!.title ?? 'Poll',
+                                style: Theme.of(context).textTheme.bodySmall!
+                                    .copyWith(fontWeight: FontWeight.w500),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () => onPollSelected(null),
+                                tooltip: 'clear'.tr(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('no-selected-poll')),
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -582,93 +570,88 @@ class ChatInput extends HookConsumerWidget {
                     ),
                   );
                 },
-                child:
-                    selectedFund != null
-                        ? Container(
-                          key: const ValueKey('selected-fund'),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                child: selectedFund != null
+                    ? Container(
+                        key: const ValueKey('selected-fund'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                            width: 1,
                           ),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
+                        ),
+                        margin: const EdgeInsets.only(
+                          left: 8,
+                          right: 8,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.currency_exchange,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.currency_exchange,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall!.copyWith(
-                                        fontWeight: FontWeight.w500,
+                            const Gap(8),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (selectedFund!.message != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        selectedFund!.message!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall!
+                                            .copyWith(
+                                              fontSize: 10,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    if (selectedFund!.message != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 2),
-                                        child: Text(
-                                          selectedFund!.message!,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            fontSize: 10,
-                                            color:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () => onFundSelected(null),
-                                  tooltip: 'clear'.tr(),
-                                ),
+                            ),
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () => onFundSelected(null),
+                                tooltip: 'clear'.tr(),
                               ),
-                            ],
-                          ),
-                        )
-                        : const SizedBox.shrink(
-                          key: ValueKey('no-selected-fund'),
+                            ),
+                          ],
                         ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('no-selected-fund')),
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -692,59 +675,57 @@ class ChatInput extends HookConsumerWidget {
                 },
                 child:
                     (messageReplyingTo != null ||
-                            messageForwardingTo != null ||
-                            messageEditingTo != null)
-                        ? Container(
-                          key: ValueKey(
-                            messageReplyingTo?.id ??
-                                messageForwardingTo?.id ??
-                                messageEditingTo?.id ??
-                                'action',
+                        messageForwardingTo != null ||
+                        messageEditingTo != null)
+                    ? Container(
+                        key: ValueKey(
+                          messageReplyingTo?.id ??
+                              messageForwardingTo?.id ??
+                              messageEditingTo?.id ??
+                              'action',
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                            width: 1,
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
+                        ),
+                        margin: const EdgeInsets.only(
+                          left: 8,
+                          right: 8,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  messageReplyingTo != null
+                                      ? Symbols.reply
+                                      : messageForwardingTo != null
+                                      ? Symbols.forward
+                                      : Symbols.edit,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const Gap(8),
+                                Expanded(
+                                  child: Text(
                                     messageReplyingTo != null
-                                        ? Symbols.reply
-                                        : messageForwardingTo != null
-                                        ? Symbols.forward
-                                        : Symbols.edit,
-                                    size: 18,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                  ),
-                                  const Gap(8),
-                                  Expanded(
-                                    child: Text(
-                                      messageReplyingTo != null
-                                          ? 'chatReplyingTo'.tr(
+                                        ? 'chatReplyingTo'.tr(
                                             args: [
                                               messageReplyingTo
                                                       ?.sender
@@ -753,60 +734,57 @@ class ChatInput extends HookConsumerWidget {
                                                   'unknown'.tr(),
                                             ],
                                           )
-                                          : messageForwardingTo != null
-                                          ? 'chatForwarding'.tr()
-                                          : 'chatEditing'.tr(),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall!.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      icon: const Icon(Icons.close, size: 18),
-                                      onPressed: onClear,
-                                      tooltip: 'clear'.tr(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (messageReplyingTo != null ||
-                                  messageForwardingTo != null ||
-                                  messageEditingTo != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 6,
-                                    left: 26,
-                                  ),
-                                  child: Text(
-                                    (messageReplyingTo ??
-                                                messageForwardingTo ??
-                                                messageEditingTo)
-                                            ?.content ??
-                                        'chatNoContent'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall!.copyWith(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 2,
+                                        : messageForwardingTo != null
+                                        ? 'chatForwarding'.tr()
+                                        : 'chatEditing'.tr(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(fontWeight: FontWeight.w500),
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                            ],
-                          ),
-                        )
-                        : const SizedBox.shrink(key: ValueKey('no-action')),
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.close, size: 18),
+                                    onPressed: onClear,
+                                    tooltip: 'clear'.tr(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (messageReplyingTo != null ||
+                                messageForwardingTo != null ||
+                                messageEditingTo != null)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 6,
+                                  left: 26,
+                                ),
+                                child: Text(
+                                  (messageReplyingTo ??
+                                              messageForwardingTo ??
+                                              messageEditingTo)
+                                          ?.content ??
+                                      'chatNoContent'.tr(),
+                                  style: Theme.of(context).textTheme.bodySmall!
+                                      .copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('no-action')),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -815,25 +793,19 @@ class ChatInput extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        tooltip:
-                            isExpanded.value ? 'collapse'.tr() : 'more'.tr(),
+                        tooltip: isExpanded.value
+                            ? 'collapse'.tr()
+                            : 'more'.tr(),
                         icon: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          transitionBuilder:
-                              (child, animation) => FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              ),
-                          child:
-                              isExpanded.value
-                                  ? const Icon(
-                                    Symbols.close,
-                                    key: ValueKey('close'),
-                                  )
-                                  : const Icon(
-                                    Symbols.add,
-                                    key: ValueKey('add'),
-                                  ),
+                          transitionBuilder: (child, animation) =>
+                              FadeTransition(opacity: animation, child: child),
+                          child: isExpanded.value
+                              ? const Icon(
+                                  Symbols.close,
+                                  key: ValueKey('close'),
+                                )
+                              : const Icon(Symbols.add, key: ValueKey('add')),
                         ),
                         onPressed: () {
                           isExpanded.value = !isExpanded.value;
@@ -885,46 +857,43 @@ class ChatInput extends HookConsumerWidget {
                             hintMaxLines: 1,
                             hintText:
                                 (chatRoom.type == 1 && chatRoom.name == null)
-                                    ? 'chatDirectMessageHint'.tr(
-                                      args: [
-                                        getValidMembers(
-                                          chatRoom.members!,
-                                        ).map((e) => e.account.nick).join(', '),
-                                      ],
-                                    )
-                                    : 'chatMessageHint'.tr(
-                                      args: [chatRoom.name!],
-                                    ),
+                                ? 'chatDirectMessageHint'.tr(
+                                    args: [
+                                      getValidMembers(
+                                        chatRoom.members!,
+                                      ).map((e) => e.account.nick).join(', '),
+                                    ],
+                                  )
+                                : 'chatMessageHint'.tr(args: [chatRoom.name!]),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 12,
                             ),
-                            counterText:
-                                messageController.text.length > 1024
-                                    ? '${messageController.text.length}/4096'
-                                    : null,
+                            counterText: messageController.text.length > 1024
+                                ? '${messageController.text.length}/4096'
+                                : null,
                           ),
                           maxLines: 5,
                           minLines: 1,
-                          onTapOutside:
-                              (_) =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
-                          textInputAction:
-                              settings.enterToSend
-                                  ? TextInputAction.send
-                                  : null,
-                          onSubmitted:
-                              settings.enterToSend ? (_) => send() : null,
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
+                          textInputAction: settings.enterToSend
+                              ? TextInputAction.send
+                              : null,
+                          onSubmitted: settings.enterToSend
+                              ? (_) => send()
+                              : null,
                         );
                       },
                       suggestionsCallback: (pattern) async {
                         // Only trigger on @ or :
                         final atIndex = pattern.lastIndexOf('@');
                         final colonIndex = pattern.lastIndexOf(':');
-                        final triggerIndex =
-                            atIndex > colonIndex ? atIndex : colonIndex;
+                        final triggerIndex = atIndex > colonIndex
+                            ? atIndex
+                            : colonIndex;
                         if (triggerIndex == -1) return [];
                         final chopped = pattern.substring(triggerIndex);
                         if (chopped.contains(' ')) return [];
@@ -986,9 +955,7 @@ class ChatInput extends HookConsumerWidget {
                               child: SizedBox(
                                 width: 28,
                                 height: 28,
-                                child: CloudImageWidget(
-                                  fileId: sticker.image.id,
-                                ),
+                                child: CloudImageWidget(file: sticker.image),
                               ),
                             );
                             break;
@@ -1005,8 +972,9 @@ class ChatInput extends HookConsumerWidget {
                         final text = messageController.text;
                         final atIndex = text.lastIndexOf('@');
                         final colonIndex = text.lastIndexOf(':');
-                        final triggerIndex =
-                            atIndex > colonIndex ? atIndex : colonIndex;
+                        final triggerIndex = atIndex > colonIndex
+                            ? atIndex
+                            : colonIndex;
                         if (triggerIndex == -1) return;
                         final newText = text.replaceRange(
                           triggerIndex,
@@ -1053,16 +1021,15 @@ class ChatInput extends HookConsumerWidget {
                     ),
                   );
                 },
-                child:
-                    isExpanded.value
-                        ? _ExpandedSection(
-                          messageController: messageController,
-                          selectedPoll: selectedPoll,
-                          onPollSelected: onPollSelected,
-                          selectedFund: selectedFund,
-                          onFundSelected: onFundSelected,
-                        )
-                        : const SizedBox.shrink(key: ValueKey('collapsed')),
+                child: isExpanded.value
+                    ? _ExpandedSection(
+                        messageController: messageController,
+                        selectedPoll: selectedPoll,
+                        onPollSelected: onPollSelected,
+                        selectedFund: selectedFund,
+                        onFundSelected: onFundSelected,
+                      )
+                    : const SizedBox.shrink(key: ValueKey('collapsed')),
               ),
             ],
           ),

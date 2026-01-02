@@ -69,157 +69,141 @@ class StickerPackDetailContent extends HookConsumerWidget {
     }
 
     return pack.when(
-      data:
-          (pack) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      data: (pack) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              Text(pack!.description),
+              Row(
+                spacing: 4,
                 children: [
-                  Text(pack!.description),
-                  Row(
-                    spacing: 4,
-                    children: [
-                      const Icon(Symbols.folder, size: 16),
-                      Text(
-                        '${packContent.value?.length ?? 0}/24',
-                        style: GoogleFonts.robotoMono(),
-                      ),
-                    ],
-                  ).opacity(0.85),
-                  Row(
-                    spacing: 4,
-                    children: [
-                      const Icon(Symbols.sell, size: 16),
-                      Text(pack.prefix, style: GoogleFonts.robotoMono()),
-                    ],
-                  ).opacity(0.85),
-                  Row(
-                    spacing: 4,
-                    children: [
-                      const Icon(Symbols.tag, size: 16),
-                      Flexible(
-                        child: SelectableText(
-                          pack.id,
-                          maxLines: 1,
-                          style: GoogleFonts.robotoMono(),
-                        ),
-                      ),
-                    ],
-                  ).opacity(0.85),
+                  const Icon(Symbols.folder, size: 16),
+                  Text(
+                    '${packContent.value?.length ?? 0}/24',
+                    style: GoogleFonts.robotoMono(),
+                  ),
                 ],
-              ).padding(horizontal: 24, vertical: 24),
-              const Divider(height: 1),
-              Expanded(
-                child: packContent.when(
-                  data:
-                      (stickers) => RefreshIndicator(
-                        onRefresh:
-                            () => ref.refresh(
-                              stickerPackContentProvider(id).future,
-                            ),
-                        child: GridView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 20,
-                          ),
-                          gridDelegate:
-                              const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 80,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                              ),
-                          itemCount: stickers.length,
-                          itemBuilder: (context, index) {
-                            final sticker = stickers[index];
-                            return ContextMenuWidget(
-                              menuProvider: (_) {
-                                return Menu(
-                                  children: [
-                                    MenuAction(
-                                      title: 'stickerCopyPlaceholder'.tr(),
-                                      image: MenuImage.icon(Symbols.copy_all),
-                                      callback: () {
-                                        Clipboard.setData(
-                                          ClipboardData(
-                                            text:
-                                                ':${pack.prefix}+${sticker.slug}:',
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    MenuSeparator(),
-                                    MenuAction(
-                                      title: 'edit'.tr(),
-                                      image: MenuImage.icon(Symbols.edit),
-                                      callback: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          builder:
-                                              (context) => SheetScaffold(
-                                                titleText: 'editSticker'.tr(),
-                                                child: StickerForm(
-                                                  packId: id,
-                                                  id: sticker.id,
-                                                ),
-                                              ),
-                                        ).then((value) {
-                                          if (value != null) {
-                                            ref.invalidate(
-                                              stickerPackContentProvider(id),
-                                            );
-                                          }
-                                        });
-                                      },
-                                    ),
-                                    MenuAction(
-                                      title: 'delete'.tr(),
-                                      image: MenuImage.icon(Symbols.delete),
-                                      callback: () {
-                                        deleteSticker(sticker);
-                                      },
-                                    ),
-                                  ],
+              ).opacity(0.85),
+              Row(
+                spacing: 4,
+                children: [
+                  const Icon(Symbols.sell, size: 16),
+                  Text(pack.prefix, style: GoogleFonts.robotoMono()),
+                ],
+              ).opacity(0.85),
+              Row(
+                spacing: 4,
+                children: [
+                  const Icon(Symbols.tag, size: 16),
+                  Flexible(
+                    child: SelectableText(
+                      pack.id,
+                      maxLines: 1,
+                      style: GoogleFonts.robotoMono(),
+                    ),
+                  ),
+                ],
+              ).opacity(0.85),
+            ],
+          ).padding(horizontal: 24, vertical: 24),
+          const Divider(height: 1),
+          Expanded(
+            child: packContent.when(
+              data: (stickers) => RefreshIndicator(
+                onRefresh: () =>
+                    ref.refresh(stickerPackContentProvider(id).future),
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 80,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                  ),
+                  itemCount: stickers.length,
+                  itemBuilder: (context, index) {
+                    final sticker = stickers[index];
+                    return ContextMenuWidget(
+                      menuProvider: (_) {
+                        return Menu(
+                          children: [
+                            MenuAction(
+                              title: 'stickerCopyPlaceholder'.tr(),
+                              image: MenuImage.icon(Symbols.copy_all),
+                              callback: () {
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: ':${pack.prefix}+${sticker.slug}:',
+                                  ),
                                 );
                               },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(8),
-                                ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainer,
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(8),
+                            ),
+                            MenuSeparator(),
+                            MenuAction(
+                              title: 'edit'.tr(),
+                              image: MenuImage.icon(Symbols.edit),
+                              callback: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) => SheetScaffold(
+                                    titleText: 'editSticker'.tr(),
+                                    child: StickerForm(
+                                      packId: id,
+                                      id: sticker.id,
                                     ),
                                   ),
-                                  child: CloudImageWidget(
-                                    fileId: sticker.image.id,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                                ).then((value) {
+                                  if (value != null) {
+                                    ref.invalidate(
+                                      stickerPackContentProvider(id),
+                                    );
+                                  }
+                                });
+                              },
+                            ),
+                            MenuAction(
+                              title: 'delete'.tr(),
+                              image: MenuImage.icon(Symbols.delete),
+                              callback: () {
+                                deleteSticker(sticker);
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          child: CloudImageWidget(
+                            file: sticker.image,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
-                  error:
-                      (err, _) =>
-                          Text(
-                            'Error: $err',
-                          ).textAlignment(TextAlign.center).center(),
-                  loading: () => const CircularProgressIndicator().center(),
+                    );
+                  },
                 ),
               ),
-            ],
+              error: (err, _) =>
+                  Text('Error: $err').textAlignment(TextAlign.center).center(),
+              loading: () => const CircularProgressIndicator().center(),
+            ),
           ),
-      error:
-          (err, _) =>
-              Text('Error: $err').textAlignment(TextAlign.center).center(),
+        ],
+      ),
+      error: (err, _) =>
+          Text('Error: $err').textAlignment(TextAlign.center).center(),
       loading: () => const CircularProgressIndicator().center(),
     );
   }
@@ -241,65 +225,60 @@ class StickerPackActionMenu extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton(
       icon: Icon(Icons.more_vert, shadows: [iconShadow]),
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder:
-                      (context) => SheetScaffold(
-                        titleText: 'editStickerPack'.tr(),
-                        child: StickerPackForm(
-                          pubName: pubName,
-                          packId: packId,
-                        ),
-                      ),
-                ).then((value) {
-                  if (value != null) {
-                    ref.invalidate(stickerPackProvider(packId));
-                  }
-                });
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
-                  ),
-                  const Gap(12),
-                  const Text('editStickerPack').tr(),
-                ],
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => SheetScaffold(
+                titleText: 'editStickerPack'.tr(),
+                child: StickerPackForm(pubName: pubName, packId: packId),
               ),
-            ),
-            PopupMenuItem(
-              child: Row(
-                children: [
-                  const Icon(Icons.delete, color: Colors.red),
-                  const Gap(12),
-                  const Text(
-                    'deleteStickerPack',
-                    style: TextStyle(color: Colors.red),
-                  ).tr(),
-                ],
+            ).then((value) {
+              if (value != null) {
+                ref.invalidate(stickerPackProvider(packId));
+              }
+            });
+          },
+          child: Row(
+            children: [
+              Icon(
+                Icons.edit,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),
-              onTap: () {
-                showConfirmAlert(
-                  'deleteStickerPackHint'.tr(),
-                  'deleteStickerPack'.tr(),
-                  isDanger: true,
-                ).then((confirm) {
-                  if (confirm) {
-                    final client = ref.watch(apiClientProvider);
-                    client.delete('/sphere/stickers/$packId');
-                    ref.invalidate(stickerPacksProvider);
-                    if (context.mounted) context.pop(true);
-                  }
-                });
-              },
-            ),
-          ],
+              const Gap(12),
+              const Text('editStickerPack').tr(),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          child: Row(
+            children: [
+              const Icon(Icons.delete, color: Colors.red),
+              const Gap(12),
+              const Text(
+                'deleteStickerPack',
+                style: TextStyle(color: Colors.red),
+              ).tr(),
+            ],
+          ),
+          onTap: () {
+            showConfirmAlert(
+              'deleteStickerPackHint'.tr(),
+              'deleteStickerPack'.tr(),
+              isDanger: true,
+            ).then((confirm) {
+              if (confirm) {
+                final client = ref.watch(apiClientProvider);
+                client.delete('/sphere/stickers/$packId');
+                ref.invalidate(stickerPacksProvider);
+                if (context.mounted) context.pop(true);
+              }
+            });
+          },
+        ),
+      ],
     );
   }
 }
@@ -372,10 +351,9 @@ class StickerForm extends HookConsumerWidget {
                     color: Theme.of(context).colorScheme.surfaceContainer,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
-                  child:
-                      (image.value?.isEmpty ?? true)
-                          ? const SizedBox.shrink()
-                          : CloudImageWidget(fileId: image.value!),
+                  child: (image.value?.isEmpty ?? true)
+                      ? const SizedBox.shrink()
+                      : CloudImageWidget(fileId: image.value!),
                 ),
               ),
             ),
@@ -383,10 +361,8 @@ class StickerForm extends HookConsumerWidget {
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
-                  builder:
-                      (context) => CloudFilePicker(
-                        allowedTypes: {UniversalFileType.image},
-                      ),
+                  builder: (context) =>
+                      CloudFilePicker(allowedTypes: {UniversalFileType.image}),
                 ).then((value) {
                   if (value == null) return;
                   image.value = value[0].id;
@@ -412,8 +388,8 @@ class StickerForm extends HookConsumerWidget {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
                 ),
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
               ),
             ],
           ),

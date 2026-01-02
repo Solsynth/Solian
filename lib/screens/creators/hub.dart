@@ -155,7 +155,7 @@ class PublisherSelector extends StatelessWidget {
     if (isReadOnly || currentPublisher == null) {
       return ProfilePictureWidget(
         radius: 16,
-        fileId: currentPublisher?.picture?.id,
+        file: currentPublisher?.picture,
       ).center().padding(right: 8);
     }
 
@@ -179,7 +179,7 @@ class PublisherSelector extends StatelessWidget {
               .map(
                 (e) => ProfilePictureWidget(
                   radius: 16,
-                  fileId: e.value?.picture?.id,
+                  file: e.value?.picture,
                 ).center().padding(right: 8),
               )
               .toList();
@@ -355,10 +355,7 @@ class CreatorHubScreen extends HookConsumerWidget {
               value: item,
               child: ListTile(
                 minTileHeight: 48,
-                leading: ProfilePictureWidget(
-                  radius: 16,
-                  fileId: item.picture?.id,
-                ),
+                leading: ProfilePictureWidget(radius: 16, file: item.picture),
                 title: Text(item.nick),
                 subtitle: Text('@${item.name}'),
                 trailing: currentPublisher.value?.id == item.id
@@ -889,7 +886,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                 return ListTile(
                   contentPadding: EdgeInsets.only(left: 16, right: 12),
                   leading: ProfilePictureWidget(
-                    fileId: member.account!.profile.picture?.id,
+                    file: member.account!.profile.picture,
                   ),
                   title: Row(
                     spacing: 6,
@@ -1137,7 +1134,7 @@ class _PublisherInviteSheet extends HookConsumerWidget {
                   final invite = items[index];
                   return ListTile(
                     leading: ProfilePictureWidget(
-                      fileId: invite.publisher!.picture?.id,
+                      file: invite.publisher!.picture,
                       fallbackIcon: Symbols.group,
                     ),
                     title: Text(invite.publisher!.nick),

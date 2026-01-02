@@ -279,9 +279,8 @@ class ChatDetailScreen extends HookConsumerWidget {
               leading: PageBackButton(shadows: [iconShadow]),
               flexibleSpace: FlexibleSpaceBar(
                 background:
-                    (currentRoom!.type == 1 &&
-                        currentRoom.background?.id != null)
-                    ? CloudImageWidget(fileId: currentRoom.background!.id)
+                    (currentRoom!.type == 1 && currentRoom.background != null)
+                    ? CloudImageWidget(file: currentRoom.background!)
                     : (currentRoom.type == 1 &&
                           currentRoom.members!.length == 1 &&
                           currentRoom
@@ -293,17 +292,16 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   ?.id !=
                               null)
                     ? CloudImageWidget(
-                        fileId: currentRoom
+                        file: currentRoom
                             .members!
                             .first
                             .account
                             .profile
-                            .background!
-                            .id,
+                            .background!,
                       )
-                    : currentRoom.background?.id != null
+                    : currentRoom.background != null
                     ? CloudImageWidget(
-                        fileId: currentRoom.background!.id,
+                        file: currentRoom.background!,
                         fit: BoxFit.cover,
                       )
                     : Container(
@@ -702,7 +700,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                   leading: AccountPfcGestureDetector(
                     uname: member.account.name,
                     child: ProfilePictureWidget(
-                      fileId: member.account.profile.picture?.id,
+                      file: member.account.profile.picture,
                     ),
                   ),
                   title: Row(

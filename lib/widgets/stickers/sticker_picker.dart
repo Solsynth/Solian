@@ -75,31 +75,29 @@ class StickerPicker extends HookConsumerWidget {
               },
             );
           },
-          loading:
-              () => const SizedBox(
-                width: 320,
-                height: 320,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-          error:
-              (err, _) => SizedBox(
-                width: 360,
-                height: 200,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Symbols.error, size: 28),
-                    const Gap(8),
-                    Text('Error: $err', textAlign: TextAlign.center),
-                    const Gap(12),
-                    FilledButton.icon(
-                      onPressed: () => ref.invalidate(myStickerPacksProvider),
-                      icon: const Icon(Symbols.refresh),
-                      label: Text('retry').tr(),
-                    ),
-                  ],
-                ).padding(all: 16),
-              ),
+          loading: () => const SizedBox(
+            width: 320,
+            height: 320,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (err, _) => SizedBox(
+            width: 360,
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Symbols.error, size: 28),
+                const Gap(8),
+                Text('Error: $err', textAlign: TextAlign.center),
+                const Gap(12),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(myStickerPacksProvider),
+                  icon: const Icon(Symbols.refresh),
+                  label: Text('retry').tr(),
+                ),
+              ],
+            ).padding(all: 16),
+          ),
         ),
       ),
     );
@@ -263,7 +261,7 @@ class _StickersGrid extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: CloudImageWidget(
-                    fileId: sticker.image.id,
+                    file: sticker.image,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -310,31 +308,29 @@ class StickerPickerEmbedded extends HookConsumerWidget {
           },
         );
       },
-      loading:
-          () => SizedBox(
-            width: 320,
-            height: height ?? 320,
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-      error:
-          (err, _) => SizedBox(
-            width: 360,
-            height: height ?? 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Symbols.error, size: 28),
-                const Gap(8),
-                Text('Error: $err', textAlign: TextAlign.center),
-                const Gap(12),
-                FilledButton.icon(
-                  onPressed: () => ref.invalidate(myStickerPacksProvider),
-                  icon: const Icon(Symbols.refresh),
-                  label: Text('retry').tr(),
-                ),
-              ],
-            ).padding(all: 16),
-          ),
+      loading: () => SizedBox(
+        width: 320,
+        height: height ?? 320,
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, _) => SizedBox(
+        width: 360,
+        height: height ?? 200,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Symbols.error, size: 28),
+            const Gap(8),
+            Text('Error: $err', textAlign: TextAlign.center),
+            const Gap(12),
+            FilledButton.icon(
+              onPressed: () => ref.invalidate(myStickerPacksProvider),
+              icon: const Icon(Symbols.refresh),
+              label: Text('retry').tr(),
+            ),
+          ],
+        ).padding(all: 16),
+      ),
     );
   }
 }
@@ -386,18 +382,16 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeInOut,
                     decoration: BoxDecoration(
-                      color:
-                          selected
-                              ? Theme.of(context).colorScheme.primaryContainer
-                              : Theme.of(context).colorScheme.surfaceContainer,
+                      color: selected
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      border:
-                          selected
-                              ? Border.all(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 4,
-                              )
-                              : null,
+                      border: selected
+                          ? Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 4,
+                            )
+                          : null,
                     ),
                     margin: const EdgeInsets.only(right: 8),
                     child: InkWell(
@@ -413,11 +407,11 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
                         builder: (context, value, _) {
                           return packs[i].icon != null
                               ? CloudImageWidget(
-                                file: packs[i].icon!,
-                              ).clipRRect(all: value)
+                                  file: packs[i].icon!,
+                                ).clipRRect(all: value)
                               : CloudImageWidget(
-                                file: packs[i].stickers.firstOrNull?.image,
-                              ).clipRRect(all: value);
+                                  file: packs[i].stickers.firstOrNull?.image,
+                                ).clipRRect(all: value);
                         },
                       ),
                     ),
@@ -458,18 +452,17 @@ Future<void> showStickerPickerPopover(
     offset: offset,
     alignment: alignment ?? Alignment.topLeft,
     dimBackground: true,
-    builder:
-        (ctx) => SizedBox(
-          width: math.min(480, MediaQuery.of(context).size.width * 0.9),
-          height: 480,
-          child: ProviderScope(
-            child: StickerPicker(
-              onPick: (ph) {
-                onPick(ph);
-                Navigator.of(ctx).maybePop();
-              },
-            ),
-          ),
+    builder: (ctx) => SizedBox(
+      width: math.min(480, MediaQuery.of(context).size.width * 0.9),
+      height: 480,
+      child: ProviderScope(
+        child: StickerPicker(
+          onPick: (ph) {
+            onPick(ph);
+            Navigator.of(ctx).maybePop();
+          },
         ),
+      ),
+    ),
   );
 }

@@ -135,10 +135,7 @@ class CompactReferencePost extends StatelessWidget {
   Widget _buildProfilePicture(BuildContext context) {
     // Handle publisher case
     if (post.publisher != null) {
-      return ProfilePictureWidget(
-        fileId: post.publisher!.picture?.id,
-        radius: 16,
-      );
+      return ProfilePictureWidget(file: post.publisher!.picture, radius: 16);
     }
     // Handle actor case
     if (post.actor != null) {
@@ -169,7 +166,7 @@ class CompactReferencePost extends StatelessWidget {
       }
     }
     // Fallback
-    return ProfilePictureWidget(fileId: null, radius: 16);
+    return ProfilePictureWidget(file: null, radius: 16);
   }
 
   String _getDisplayName() {

@@ -74,7 +74,7 @@ class AccountScreen extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (user.value?.profile.background?.id != null)
+                  if (user.value?.profile.background != null)
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -112,7 +112,7 @@ class AccountScreen extends HookConsumerWidget {
                   Builder(
                     builder: (context) {
                       final hasBackground =
-                          user.value?.profile.background?.id != null;
+                          user.value?.profile.background != null;
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         spacing: hasBackground ? 0 : 16,

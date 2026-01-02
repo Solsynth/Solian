@@ -183,8 +183,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                 flexibleSpace: Stack(
                   children: [
                     Positioned.fill(
-                      child: realm!.background?.id != null
-                          ? CloudImageWidget(fileId: realm.background!.id)
+                      child: realm!.background != null
+                          ? CloudImageWidget(file: realm.background!)
                           : Container(
                               color: Theme.of(
                                 context,
@@ -281,8 +281,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                     flexibleSpace: Stack(
                       children: [
                         Positioned.fill(
-                          child: realm!.background?.id != null
-                              ? CloudImageWidget(fileId: realm.background!.id)
+                          child: realm!.background != null
+                              ? CloudImageWidget(file: realm.background!)
                               : Container(
                                   color: Theme.of(
                                     context,
@@ -604,7 +604,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
               leading: AccountPfcGestureDetector(
                 uname: member.account!.name,
                 child: ProfilePictureWidget(
-                  fileId: member.account!.profile.picture?.id,
+                  file: member.account!.profile.picture,
                 ),
               ),
               title: Row(

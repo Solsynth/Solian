@@ -52,7 +52,7 @@ class _PublisherBasisWidget extends StatelessWidget {
     return Card(
       child: Builder(
         builder: (context) {
-          final hasBackground = data.background?.id != null;
+          final hasBackground = data.background != null;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -598,7 +598,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     flexibleSpace: Stack(
                       children: [
                         Positioned.fill(
-                          child: data.background?.id != null
+                          child: data.background != null
                               ? CloudImageWidget(file: data.background)
                               : Container(
                                   color: Theme.of(

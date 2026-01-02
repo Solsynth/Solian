@@ -57,7 +57,7 @@ class _AccountBasicInfo extends StatelessWidget {
     return Card(
       child: Builder(
         builder: (context) {
-          final hasBackground = data.profile.background?.id != null;
+          final hasBackground = data.profile.background != null;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -962,7 +962,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       flexibleSpace: Stack(
                         children: [
                           Positioned.fill(
-                            child: data.profile.background?.id != null
+                            child: data.profile.background != null
                                 ? CloudImageWidget(
                                     file: data.profile.background,
                                   )
