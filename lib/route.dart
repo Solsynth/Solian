@@ -169,6 +169,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AboutScreen(),
           ),
 
+          // File routes
           GoRoute(
             name: 'fileDetail',
             path: '/files/:id',
@@ -182,6 +183,34 @@ final routerProvider = Provider<GoRouter>((ref) {
               // Fallback - this shouldn't happen in normal flow
               Navigator.of(context).pop();
               return const SizedBox.shrink();
+            },
+          ),
+
+          // Post routes
+          GoRoute(
+            name: 'postShuffle',
+            path: '/posts/shuffle',
+            builder: (context, state) => const PostShuffleScreen(),
+          ),
+          GoRoute(
+            name: 'postCategories',
+            path: '/posts/categories',
+            builder: (context, state) => const PostCategoriesListScreen(),
+          ),
+          GoRoute(
+            name: 'postCategoryDetail',
+            path: '/posts/categories/:slug',
+            builder: (context, state) {
+              final slug = state.pathParameters['slug']!;
+              return PostCategoryDetailScreen(slug: slug, isCategory: true);
+            },
+          ),
+          GoRoute(
+            name: 'postTagDetail',
+            path: '/posts/tags/:slug',
+            builder: (context, state) {
+              final slug = state.pathParameters['slug']!;
+              return PostCategoryDetailScreen(slug: slug, isCategory: false);
             },
           ),
           GoRoute(
@@ -234,35 +263,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   transitionsBuilder: _tabPagesTransitionBuilder,
                 ),
               ),
-              GoRoute(
-                name: 'postShuffle',
-                path: '/posts/shuffle',
-                builder: (context, state) => const PostShuffleScreen(),
-              ),
-              GoRoute(
-                name: 'postCategories',
-                path: '/posts/categories',
-                builder: (context, state) => const PostCategoriesListScreen(),
-              ),
-              GoRoute(
-                name: 'postCategoryDetail',
-                path: '/posts/categories/:slug',
-                builder: (context, state) {
-                  final slug = state.pathParameters['slug']!;
-                  return PostCategoryDetailScreen(slug: slug, isCategory: true);
-                },
-              ),
-              GoRoute(
-                name: 'postTagDetail',
-                path: '/posts/tags/:slug',
-                builder: (context, state) {
-                  final slug = state.pathParameters['slug']!;
-                  return PostCategoryDetailScreen(
-                    slug: slug,
-                    isCategory: false,
-                  );
-                },
-              ),
+
               GoRoute(
                 name: 'discoveryRealms',
                 path: '/discovery/realms',

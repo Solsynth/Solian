@@ -1,15 +1,23 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/post/post_list.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 const kShufflePostListId = 'shuffle';
+
+class _ShufflePageNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void updatePage(int page) => state = page;
+}
+
+final _shufflePageProvider = NotifierProvider<_ShufflePageNotifier, int>(
+  _ShufflePageNotifier.new,
+);
 
 class PostShuffleScreen extends HookConsumerWidget {
   const PostShuffleScreen({super.key});
@@ -24,100 +32,159 @@ class PostShuffleScreen extends HookConsumerWidget {
     final postListState = ref.watch(postListProvider(cfg));
     final postListNotifier = ref.watch(postListProvider(cfg).notifier);
 
-    final cardSwiperController = useMemoized(() => CardSwiperController(), []);
+    final savedPage = ref.watch(_shufflePageProvider);
+    final pageNotifier = ref.watch(_shufflePageProvider.notifier);
+
+    final pageController = usePageController(initialPage: savedPage);
 
     useEffect(() {
-      return cardSwiperController.dispose;
+      return pageController.dispose;
     }, []);
 
-    const kBottomControlHeight = 80.0;
+    final items = postListState.value?.items ?? [];
+
+    useEffect(() {
+      void listener() {
+        if (!pageController.hasClients) return;
+        final page = pageController.page?.round() ?? 0;
+        if (page != savedPage) {
+          pageNotifier.updatePage(page);
+        }
+        if (page >= items.length - 3 && !postListNotifier.fetchedAll) {
+          postListNotifier.fetchFurther();
+        }
+      }
+
+      pageController.addListener(listener);
+      return () => pageController.removeListener(listener);
+    }, [items.length, postListNotifier.fetchedAll]);
 
     return AppScaffold(
       appBar: AppBar(title: const Text('postShuffle').tr()),
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-              bottom:
-                  kBottomControlHeight + MediaQuery.of(context).padding.bottom,
-            ),
-            child: Builder(
-              key: ValueKey(postListState.value?.items.length ?? 0),
-              builder: (context) {
-                final items = postListState.value?.items ?? [];
-                if (items.isNotEmpty) {
-                  return CardSwiper(
-                    controller: cardSwiperController,
-                    cardsCount: items.length,
-                    isLoop: false,
-                    cardBuilder:
-                        (
-                          context,
-                          index,
-                          horizontalOffsetPercentage,
-                          verticalOffsetPercentage,
-                        ) {
-                          return Center(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: 540),
-                              child: SingleChildScrollView(
-                                child: Card(
-                                  margin: EdgeInsets.zero,
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(8),
-                                    ),
-                                    child: PostActionableItem(
-                                      item: items[index],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                    onEnd: () async {
-                      if (!postListNotifier.fetchedAll) {
-                        postListNotifier.fetchFurther();
-                      }
-                    },
+      body: Builder(
+        builder: (context) {
+          if (items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return Stack(
+            children: [
+              PageView.builder(
+                controller: pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return SingleChildScrollView(
+                    child: PostActionableItem(
+                      item: items[index],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                    ),
                   );
-                } else {
-                  return Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom,
+                },
               ),
-              height: kBottomControlHeight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      cardSwiperController.undo();
-                    },
-                    icon: const Icon(Symbols.arrow_left_alt),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.3),
+                      ],
+                    ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      cardSwiperController.swipe(CardSwiperDirection.right);
-                    },
-                    icon: const Icon(Symbols.arrow_right_alt),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 16,
                   ),
-                ],
-              ).padding(all: 8).center(),
-            ),
-          ),
-        ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          final currentPage = pageController.page?.round() ?? 0;
+                          if (currentPage > 0) {
+                            pageController.animateToPage(
+                              currentPage - 1,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        icon: Icon(
+                          Icons.keyboard_double_arrow_up,
+                          color: Colors.white.withOpacity(0.8),
+                          size: 20,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'swipeToExplore'.tr(),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          final currentPage = pageController.page?.round() ?? 0;
+                          if (currentPage < items.length - 1) {
+                            pageController.animateToPage(
+                              currentPage + 1,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        icon: Icon(
+                          Icons.keyboard_double_arrow_down,
+                          color: Colors.white.withOpacity(0.8),
+                          size: 20,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
