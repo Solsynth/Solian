@@ -10,11 +10,11 @@ part of 'chat_room.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ChatRoomJoinedNotifier)
-const chatRoomJoinedProvider = ChatRoomJoinedNotifierProvider._();
+final chatRoomJoinedProvider = ChatRoomJoinedNotifierProvider._();
 
 final class ChatRoomJoinedNotifierProvider
     extends $AsyncNotifierProvider<ChatRoomJoinedNotifier, List<SnChatRoom>> {
-  const ChatRoomJoinedNotifierProvider._()
+  ChatRoomJoinedNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -42,7 +42,6 @@ abstract class _$ChatRoomJoinedNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref as $Ref<AsyncValue<List<SnChatRoom>>, List<SnChatRoom>>;
     final element =
@@ -53,16 +52,16 @@ abstract class _$ChatRoomJoinedNotifier
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ChatRoomNotifier)
-const chatRoomProvider = ChatRoomNotifierFamily._();
+final chatRoomProvider = ChatRoomNotifierFamily._();
 
 final class ChatRoomNotifierProvider
     extends $AsyncNotifierProvider<ChatRoomNotifier, SnChatRoom?> {
-  const ChatRoomNotifierProvider._({
+  ChatRoomNotifierProvider._({
     required ChatRoomNotifierFamily super.from,
     required String? super.argument,
   }) : super(
@@ -109,7 +108,7 @@ final class ChatRoomNotifierFamily extends $Family
           FutureOr<SnChatRoom?>,
           String?
         > {
-  const ChatRoomNotifierFamily._()
+  ChatRoomNotifierFamily._()
     : super(
         retry: null,
         name: r'chatRoomProvider',
@@ -133,7 +132,6 @@ abstract class _$ChatRoomNotifier extends $AsyncNotifier<SnChatRoom?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<SnChatRoom?>, SnChatRoom?>;
     final element =
         ref.element
@@ -143,16 +141,16 @@ abstract class _$ChatRoomNotifier extends $AsyncNotifier<SnChatRoom?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(ChatRoomIdentityNotifier)
-const chatRoomIdentityProvider = ChatRoomIdentityNotifierFamily._();
+final chatRoomIdentityProvider = ChatRoomIdentityNotifierFamily._();
 
 final class ChatRoomIdentityNotifierProvider
     extends $AsyncNotifierProvider<ChatRoomIdentityNotifier, SnChatMember?> {
-  const ChatRoomIdentityNotifierProvider._({
+  ChatRoomIdentityNotifierProvider._({
     required ChatRoomIdentityNotifierFamily super.from,
     required String? super.argument,
   }) : super(
@@ -201,7 +199,7 @@ final class ChatRoomIdentityNotifierFamily extends $Family
           FutureOr<SnChatMember?>,
           String?
         > {
-  const ChatRoomIdentityNotifierFamily._()
+  ChatRoomIdentityNotifierFamily._()
     : super(
         retry: null,
         name: r'chatRoomIdentityProvider',
@@ -226,7 +224,6 @@ abstract class _$ChatRoomIdentityNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<SnChatMember?>, SnChatMember?>;
     final element =
         ref.element
@@ -236,12 +233,12 @@ abstract class _$ChatRoomIdentityNotifier
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(chatroomInvites)
-const chatroomInvitesProvider = ChatroomInvitesProvider._();
+final chatroomInvitesProvider = ChatroomInvitesProvider._();
 
 final class ChatroomInvitesProvider
     extends
@@ -253,7 +250,7 @@ final class ChatroomInvitesProvider
     with
         $FutureModifier<List<SnChatMember>>,
         $FutureProvider<List<SnChatMember>> {
-  const ChatroomInvitesProvider._()
+  ChatroomInvitesProvider._()
     : super(
         from: null,
         argument: null,

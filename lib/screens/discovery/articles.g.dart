@@ -10,7 +10,7 @@ part of 'articles.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(subscribedFeeds)
-const subscribedFeedsProvider = SubscribedFeedsProvider._();
+final subscribedFeedsProvider = SubscribedFeedsProvider._();
 
 final class SubscribedFeedsProvider
     extends
@@ -20,7 +20,7 @@ final class SubscribedFeedsProvider
           FutureOr<List<SnWebFeed>>
         >
     with $FutureModifier<List<SnWebFeed>>, $FutureProvider<List<SnWebFeed>> {
-  const SubscribedFeedsProvider._()
+  SubscribedFeedsProvider._()
     : super(
         from: null,
         argument: null,

@@ -10,7 +10,7 @@ part of 'account_settings.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(authFactors)
-const authFactorsProvider = AuthFactorsProvider._();
+final authFactorsProvider = AuthFactorsProvider._();
 
 final class AuthFactorsProvider
     extends
@@ -22,7 +22,7 @@ final class AuthFactorsProvider
     with
         $FutureModifier<List<SnAuthFactor>>,
         $FutureProvider<List<SnAuthFactor>> {
-  const AuthFactorsProvider._()
+  AuthFactorsProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class AuthFactorsProvider
 String _$authFactorsHash() => r'ed87d7dbd421fef0a5620416727c3dc598c97ef5';
 
 @ProviderFor(contactMethods)
-const contactMethodsProvider = ContactMethodsProvider._();
+final contactMethodsProvider = ContactMethodsProvider._();
 
 final class ContactMethodsProvider
     extends
@@ -63,7 +63,7 @@ final class ContactMethodsProvider
     with
         $FutureModifier<List<SnContactMethod>>,
         $FutureProvider<List<SnContactMethod>> {
-  const ContactMethodsProvider._()
+  ContactMethodsProvider._()
     : super(
         from: null,
         argument: null,
@@ -92,7 +92,7 @@ final class ContactMethodsProvider
 String _$contactMethodsHash() => r'1d3d03e9ffbf36126236558ead22cb7d88bb9cb2';
 
 @ProviderFor(accountConnections)
-const accountConnectionsProvider = AccountConnectionsProvider._();
+final accountConnectionsProvider = AccountConnectionsProvider._();
 
 final class AccountConnectionsProvider
     extends
@@ -104,7 +104,7 @@ final class AccountConnectionsProvider
     with
         $FutureModifier<List<SnAccountConnection>>,
         $FutureProvider<List<SnAccountConnection>> {
-  const AccountConnectionsProvider._()
+  AccountConnectionsProvider._()
     : super(
         from: null,
         argument: null,

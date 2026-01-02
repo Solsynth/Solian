@@ -10,7 +10,7 @@ part of 'profile.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(account)
-const accountProvider = AccountFamily._();
+final accountProvider = AccountFamily._();
 
 final class AccountProvider
     extends
@@ -20,7 +20,7 @@ final class AccountProvider
           FutureOr<SnAccount>
         >
     with $FutureModifier<SnAccount>, $FutureProvider<SnAccount> {
-  const AccountProvider._({
+  AccountProvider._({
     required AccountFamily super.from,
     required String super.argument,
   }) : super(
@@ -67,7 +67,7 @@ String _$accountHash() => r'5e2b7bd59151b4638a5561f495537c259f767123';
 
 final class AccountFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnAccount>, String> {
-  const AccountFamily._()
+  AccountFamily._()
     : super(
         retry: null,
         name: r'accountProvider',
@@ -84,7 +84,7 @@ final class AccountFamily extends $Family
 }
 
 @ProviderFor(accountBadges)
-const accountBadgesProvider = AccountBadgesFamily._();
+final accountBadgesProvider = AccountBadgesFamily._();
 
 final class AccountBadgesProvider
     extends
@@ -96,7 +96,7 @@ final class AccountBadgesProvider
     with
         $FutureModifier<List<SnAccountBadge>>,
         $FutureProvider<List<SnAccountBadge>> {
-  const AccountBadgesProvider._({
+  AccountBadgesProvider._({
     required AccountBadgesFamily super.from,
     required String super.argument,
   }) : super(
@@ -144,7 +144,7 @@ String _$accountBadgesHash() => r'68db63f49827020beecbdbf20529520d0cd14a7d';
 
 final class AccountBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
-  const AccountBadgesFamily._()
+  AccountBadgesFamily._()
     : super(
         retry: null,
         name: r'accountBadgesProvider',
@@ -161,13 +161,13 @@ final class AccountBadgesFamily extends $Family
 }
 
 @ProviderFor(accountAppbarForcegroundColor)
-const accountAppbarForcegroundColorProvider =
+final accountAppbarForcegroundColorProvider =
     AccountAppbarForcegroundColorFamily._();
 
 final class AccountAppbarForcegroundColorProvider
     extends $FunctionalProvider<AsyncValue<Color?>, Color?, FutureOr<Color?>>
     with $FutureModifier<Color?>, $FutureProvider<Color?> {
-  const AccountAppbarForcegroundColorProvider._({
+  AccountAppbarForcegroundColorProvider._({
     required AccountAppbarForcegroundColorFamily super.from,
     required String super.argument,
   }) : super(
@@ -216,7 +216,7 @@ String _$accountAppbarForcegroundColorHash() =>
 
 final class AccountAppbarForcegroundColorFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Color?>, String> {
-  const AccountAppbarForcegroundColorFamily._()
+  AccountAppbarForcegroundColorFamily._()
     : super(
         retry: null,
         name: r'accountAppbarForcegroundColorProvider',
@@ -233,7 +233,7 @@ final class AccountAppbarForcegroundColorFamily extends $Family
 }
 
 @ProviderFor(accountDirectChat)
-const accountDirectChatProvider = AccountDirectChatFamily._();
+final accountDirectChatProvider = AccountDirectChatFamily._();
 
 final class AccountDirectChatProvider
     extends
@@ -243,7 +243,7 @@ final class AccountDirectChatProvider
           FutureOr<SnChatRoom?>
         >
     with $FutureModifier<SnChatRoom?>, $FutureProvider<SnChatRoom?> {
-  const AccountDirectChatProvider._({
+  AccountDirectChatProvider._({
     required AccountDirectChatFamily super.from,
     required String super.argument,
   }) : super(
@@ -291,7 +291,7 @@ String _$accountDirectChatHash() => r'71bc9eed34a436a3743e8ef87f7aaae861fc5746';
 
 final class AccountDirectChatFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnChatRoom?>, String> {
-  const AccountDirectChatFamily._()
+  AccountDirectChatFamily._()
     : super(
         retry: null,
         name: r'accountDirectChatProvider',
@@ -308,7 +308,7 @@ final class AccountDirectChatFamily extends $Family
 }
 
 @ProviderFor(accountRelationship)
-const accountRelationshipProvider = AccountRelationshipFamily._();
+final accountRelationshipProvider = AccountRelationshipFamily._();
 
 final class AccountRelationshipProvider
     extends
@@ -318,7 +318,7 @@ final class AccountRelationshipProvider
           FutureOr<SnRelationship?>
         >
     with $FutureModifier<SnRelationship?>, $FutureProvider<SnRelationship?> {
-  const AccountRelationshipProvider._({
+  AccountRelationshipProvider._({
     required AccountRelationshipFamily super.from,
     required String super.argument,
   }) : super(
@@ -367,7 +367,7 @@ String _$accountRelationshipHash() =>
 
 final class AccountRelationshipFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRelationship?>, String> {
-  const AccountRelationshipFamily._()
+  AccountRelationshipFamily._()
     : super(
         retry: null,
         name: r'accountRelationshipProvider',
@@ -384,7 +384,7 @@ final class AccountRelationshipFamily extends $Family
 }
 
 @ProviderFor(accountBotDeveloper)
-const accountBotDeveloperProvider = AccountBotDeveloperFamily._();
+final accountBotDeveloperProvider = AccountBotDeveloperFamily._();
 
 final class AccountBotDeveloperProvider
     extends
@@ -394,7 +394,7 @@ final class AccountBotDeveloperProvider
           FutureOr<SnDeveloper?>
         >
     with $FutureModifier<SnDeveloper?>, $FutureProvider<SnDeveloper?> {
-  const AccountBotDeveloperProvider._({
+  AccountBotDeveloperProvider._({
     required AccountBotDeveloperFamily super.from,
     required String super.argument,
   }) : super(
@@ -443,7 +443,7 @@ String _$accountBotDeveloperHash() =>
 
 final class AccountBotDeveloperFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnDeveloper?>, String> {
-  const AccountBotDeveloperFamily._()
+  AccountBotDeveloperFamily._()
     : super(
         retry: null,
         name: r'accountBotDeveloperProvider',
@@ -460,7 +460,7 @@ final class AccountBotDeveloperFamily extends $Family
 }
 
 @ProviderFor(accountPublishers)
-const accountPublishersProvider = AccountPublishersFamily._();
+final accountPublishersProvider = AccountPublishersFamily._();
 
 final class AccountPublishersProvider
     extends
@@ -472,7 +472,7 @@ final class AccountPublishersProvider
     with
         $FutureModifier<List<SnPublisher>>,
         $FutureProvider<List<SnPublisher>> {
-  const AccountPublishersProvider._({
+  AccountPublishersProvider._({
     required AccountPublishersFamily super.from,
     required String super.argument,
   }) : super(
@@ -520,7 +520,7 @@ String _$accountPublishersHash() => r'25f5695b4a5154163d77f1769876d826bf736609';
 
 final class AccountPublishersFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnPublisher>>, String> {
-  const AccountPublishersFamily._()
+  AccountPublishersFamily._()
     : super(
         retry: null,
         name: r'accountPublishersProvider',

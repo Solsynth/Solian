@@ -10,7 +10,7 @@ part of 'hub.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(developerStats)
-const developerStatsProvider = DeveloperStatsFamily._();
+final developerStatsProvider = DeveloperStatsFamily._();
 
 final class DeveloperStatsProvider
     extends
@@ -20,7 +20,7 @@ final class DeveloperStatsProvider
           FutureOr<DeveloperStats?>
         >
     with $FutureModifier<DeveloperStats?>, $FutureProvider<DeveloperStats?> {
-  const DeveloperStatsProvider._({
+  DeveloperStatsProvider._({
     required DeveloperStatsFamily super.from,
     required String? super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$developerStatsHash() => r'45546f29ec7cd1a9c3a4e0f4e39275e78bf34755';
 
 final class DeveloperStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<DeveloperStats?>, String?> {
-  const DeveloperStatsFamily._()
+  DeveloperStatsFamily._()
     : super(
         retry: null,
         name: r'developerStatsProvider',
@@ -85,7 +85,7 @@ final class DeveloperStatsFamily extends $Family
 }
 
 @ProviderFor(developers)
-const developersProvider = DevelopersProvider._();
+final developersProvider = DevelopersProvider._();
 
 final class DevelopersProvider
     extends
@@ -97,7 +97,7 @@ final class DevelopersProvider
     with
         $FutureModifier<List<SnDeveloper>>,
         $FutureProvider<List<SnDeveloper>> {
-  const DevelopersProvider._()
+  DevelopersProvider._()
     : super(
         from: null,
         argument: null,
@@ -126,7 +126,7 @@ final class DevelopersProvider
 String _$developersHash() => r'252341098617ac398ce133994453f318dd3edbd2';
 
 @ProviderFor(devProjects)
-const devProjectsProvider = DevProjectsFamily._();
+final devProjectsProvider = DevProjectsFamily._();
 
 final class DevProjectsProvider
     extends
@@ -136,7 +136,7 @@ final class DevProjectsProvider
           FutureOr<List<DevProject>>
         >
     with $FutureModifier<List<DevProject>>, $FutureProvider<List<DevProject>> {
-  const DevProjectsProvider._({
+  DevProjectsProvider._({
     required DevProjectsFamily super.from,
     required String super.argument,
   }) : super(
@@ -184,7 +184,7 @@ String _$devProjectsHash() => r'715b395bebda785d38691ffee3b88e50b498c91a';
 
 final class DevProjectsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<DevProject>>, String> {
-  const DevProjectsFamily._()
+  DevProjectsFamily._()
     : super(
         retry: null,
         name: r'devProjectsProvider',

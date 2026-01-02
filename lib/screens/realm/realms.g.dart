@@ -10,7 +10,7 @@ part of 'realms.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(realmsJoined)
-const realmsJoinedProvider = RealmsJoinedProvider._();
+final realmsJoinedProvider = RealmsJoinedProvider._();
 
 final class RealmsJoinedProvider
     extends
@@ -20,7 +20,7 @@ final class RealmsJoinedProvider
           FutureOr<List<SnRealm>>
         >
     with $FutureModifier<List<SnRealm>>, $FutureProvider<List<SnRealm>> {
-  const RealmsJoinedProvider._()
+  RealmsJoinedProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,13 +49,13 @@ final class RealmsJoinedProvider
 String _$realmsJoinedHash() => r'b15029acd38f03bbbb8708adb78f25ac357a0421';
 
 @ProviderFor(realm)
-const realmProvider = RealmFamily._();
+final realmProvider = RealmFamily._();
 
 final class RealmProvider
     extends
         $FunctionalProvider<AsyncValue<SnRealm?>, SnRealm?, FutureOr<SnRealm?>>
     with $FutureModifier<SnRealm?>, $FutureProvider<SnRealm?> {
-  const RealmProvider._({
+  RealmProvider._({
     required RealmFamily super.from,
     required String? super.argument,
   }) : super(
@@ -102,7 +102,7 @@ String _$realmHash() => r'71a126ab2810566646e1629290c1ce9ffa0839e3';
 
 final class RealmFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRealm?>, String?> {
-  const RealmFamily._()
+  RealmFamily._()
     : super(
         retry: null,
         name: r'realmProvider',
@@ -119,7 +119,7 @@ final class RealmFamily extends $Family
 }
 
 @ProviderFor(realmInvites)
-const realmInvitesProvider = RealmInvitesProvider._();
+final realmInvitesProvider = RealmInvitesProvider._();
 
 final class RealmInvitesProvider
     extends
@@ -131,7 +131,7 @@ final class RealmInvitesProvider
     with
         $FutureModifier<List<SnRealmMember>>,
         $FutureProvider<List<SnRealmMember>> {
-  const RealmInvitesProvider._()
+  RealmInvitesProvider._()
     : super(
         from: null,
         argument: null,

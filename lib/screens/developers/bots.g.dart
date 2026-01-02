@@ -10,7 +10,7 @@ part of 'bots.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(bots)
-const botsProvider = BotsFamily._();
+final botsProvider = BotsFamily._();
 
 final class BotsProvider
     extends
@@ -20,7 +20,7 @@ final class BotsProvider
           FutureOr<List<Bot>>
         >
     with $FutureModifier<List<Bot>>, $FutureProvider<List<Bot>> {
-  const BotsProvider._({
+  BotsProvider._({
     required BotsFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -67,7 +67,7 @@ String _$botsHash() => r'15cefd5781350eb68208a342e85fcb0b9e0e3269';
 
 final class BotsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Bot>>, (String, String)> {
-  const BotsFamily._()
+  BotsFamily._()
     : super(
         retry: null,
         name: r'botsProvider',

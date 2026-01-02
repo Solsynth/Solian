@@ -10,7 +10,7 @@ part of 'edit_app.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(customApp)
-const customAppProvider = CustomAppFamily._();
+final customAppProvider = CustomAppFamily._();
 
 final class CustomAppProvider
     extends
@@ -20,7 +20,7 @@ final class CustomAppProvider
           FutureOr<CustomApp?>
         >
     with $FutureModifier<CustomApp?>, $FutureProvider<CustomApp?> {
-  const CustomAppProvider._({
+  CustomAppProvider._({
     required CustomAppFamily super.from,
     required (String, String, String) super.argument,
   }) : super(
@@ -71,7 +71,7 @@ final class CustomAppFamily extends $Family
           FutureOr<CustomApp?>,
           (String, String, String)
         > {
-  const CustomAppFamily._()
+  CustomAppFamily._()
     : super(
         retry: null,
         name: r'customAppProvider',

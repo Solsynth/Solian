@@ -10,12 +10,12 @@ part of 'credits.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(socialCredits)
-const socialCreditsProvider = SocialCreditsProvider._();
+final socialCreditsProvider = SocialCreditsProvider._();
 
 final class SocialCreditsProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
-  const SocialCreditsProvider._()
+  SocialCreditsProvider._()
     : super(
         from: null,
         argument: null,

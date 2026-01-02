@@ -185,6 +185,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               return const SizedBox.shrink();
             },
           ),
+          GoRoute(
+            name: 'postDetail',
+            path: '/posts/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return PostDetailScreen(id: id);
+            },
+          ),
+          GoRoute(
+            name: 'publisherProfile',
+            path: '/publishers/:name',
+            builder: (context, state) {
+              final name = state.pathParameters['name']!;
+              return PublisherProfileScreen(name: name);
+            },
+          ),
 
           GoRoute(
             name: 'universalSearch',
@@ -259,22 +275,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     slug: slug,
                     isCategory: false,
                   );
-                },
-              ),
-              GoRoute(
-                name: 'postDetail',
-                path: '/posts/:id',
-                builder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  return PostDetailScreen(id: id);
-                },
-              ),
-              GoRoute(
-                name: 'publisherProfile',
-                path: '/publishers/:name',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return PublisherProfileScreen(name: name);
                 },
               ),
               GoRoute(

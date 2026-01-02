@@ -10,7 +10,7 @@ part of 'site_pages.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(sitePages)
-const sitePagesProvider = SitePagesFamily._();
+final sitePagesProvider = SitePagesFamily._();
 
 final class SitePagesProvider
     extends
@@ -22,7 +22,7 @@ final class SitePagesProvider
     with
         $FutureModifier<List<SnPublicationPage>>,
         $FutureProvider<List<SnPublicationPage>> {
-  const SitePagesProvider._({
+  SitePagesProvider._({
     required SitePagesFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class SitePagesFamily extends $Family
           FutureOr<List<SnPublicationPage>>,
           (String, String)
         > {
-  const SitePagesFamily._()
+  SitePagesFamily._()
     : super(
         retry: null,
         name: r'sitePagesProvider',
@@ -91,7 +91,7 @@ final class SitePagesFamily extends $Family
 }
 
 @ProviderFor(sitePage)
-const sitePageProvider = SitePageFamily._();
+final sitePageProvider = SitePageFamily._();
 
 final class SitePageProvider
     extends
@@ -103,7 +103,7 @@ final class SitePageProvider
     with
         $FutureModifier<SnPublicationPage>,
         $FutureProvider<SnPublicationPage> {
-  const SitePageProvider._({
+  SitePageProvider._({
     required SitePageFamily super.from,
     required String super.argument,
   }) : super(
@@ -151,7 +151,7 @@ String _$sitePageHash() => r'542f70c5b103fe34d7cf7eb0821d52f017022efc';
 
 final class SitePageFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublicationPage>, String> {
-  const SitePageFamily._()
+  SitePageFamily._()
     : super(
         retry: null,
         name: r'sitePageProvider',

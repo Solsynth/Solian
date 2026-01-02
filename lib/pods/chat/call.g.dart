@@ -10,11 +10,11 @@ part of 'call.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(CallNotifier)
-const callProvider = CallNotifierProvider._();
+final callProvider = CallNotifierProvider._();
 
 final class CallNotifierProvider
     extends $NotifierProvider<CallNotifier, CallState> {
-  const CallNotifierProvider._()
+  CallNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,7 +48,6 @@ abstract class _$CallNotifier extends $Notifier<CallState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<CallState, CallState>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$CallNotifier extends $Notifier<CallState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

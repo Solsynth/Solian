@@ -10,7 +10,7 @@ part of 'feed_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(marketplaceWebFeed)
-const marketplaceWebFeedProvider = MarketplaceWebFeedFamily._();
+final marketplaceWebFeedProvider = MarketplaceWebFeedFamily._();
 
 final class MarketplaceWebFeedProvider
     extends
@@ -20,7 +20,7 @@ final class MarketplaceWebFeedProvider
           FutureOr<SnWebFeed>
         >
     with $FutureModifier<SnWebFeed>, $FutureProvider<SnWebFeed> {
-  const MarketplaceWebFeedProvider._({
+  MarketplaceWebFeedProvider._({
     required MarketplaceWebFeedFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$marketplaceWebFeedHash() =>
 
 final class MarketplaceWebFeedFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWebFeed>, String> {
-  const MarketplaceWebFeedFamily._()
+  MarketplaceWebFeedFamily._()
     : super(
         retry: null,
         name: r'marketplaceWebFeedProvider',
@@ -87,7 +87,7 @@ final class MarketplaceWebFeedFamily extends $Family
 /// Provider for web feed subscription status
 
 @ProviderFor(marketplaceWebFeedSubscription)
-const marketplaceWebFeedSubscriptionProvider =
+final marketplaceWebFeedSubscriptionProvider =
     MarketplaceWebFeedSubscriptionFamily._();
 
 /// Provider for web feed subscription status
@@ -96,7 +96,7 @@ final class MarketplaceWebFeedSubscriptionProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
   /// Provider for web feed subscription status
-  const MarketplaceWebFeedSubscriptionProvider._({
+  MarketplaceWebFeedSubscriptionProvider._({
     required MarketplaceWebFeedSubscriptionFamily super.from,
     required String super.argument,
   }) : super(
@@ -147,7 +147,7 @@ String _$marketplaceWebFeedSubscriptionHash() =>
 
 final class MarketplaceWebFeedSubscriptionFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, String> {
-  const MarketplaceWebFeedSubscriptionFamily._()
+  MarketplaceWebFeedSubscriptionFamily._()
     : super(
         retry: null,
         name: r'marketplaceWebFeedSubscriptionProvider',

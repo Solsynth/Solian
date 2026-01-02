@@ -10,7 +10,7 @@ part of 'pack_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(stickerPackContent)
-const stickerPackContentProvider = StickerPackContentFamily._();
+final stickerPackContentProvider = StickerPackContentFamily._();
 
 final class StickerPackContentProvider
     extends
@@ -20,7 +20,7 @@ final class StickerPackContentProvider
           FutureOr<List<SnSticker>>
         >
     with $FutureModifier<List<SnSticker>>, $FutureProvider<List<SnSticker>> {
-  const StickerPackContentProvider._({
+  StickerPackContentProvider._({
     required StickerPackContentFamily super.from,
     required String super.argument,
   }) : super(
@@ -69,7 +69,7 @@ String _$stickerPackContentHash() =>
 
 final class StickerPackContentFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnSticker>>, String> {
-  const StickerPackContentFamily._()
+  StickerPackContentFamily._()
     : super(
         retry: null,
         name: r'stickerPackContentProvider',
@@ -86,7 +86,7 @@ final class StickerPackContentFamily extends $Family
 }
 
 @ProviderFor(stickerPackSticker)
-const stickerPackStickerProvider = StickerPackStickerFamily._();
+final stickerPackStickerProvider = StickerPackStickerFamily._();
 
 final class StickerPackStickerProvider
     extends
@@ -96,7 +96,7 @@ final class StickerPackStickerProvider
           FutureOr<SnSticker?>
         >
     with $FutureModifier<SnSticker?>, $FutureProvider<SnSticker?> {
-  const StickerPackStickerProvider._({
+  StickerPackStickerProvider._({
     required StickerPackStickerFamily super.from,
     required StickerWithPackQuery? super.argument,
   }) : super(
@@ -145,7 +145,7 @@ String _$stickerPackStickerHash() =>
 final class StickerPackStickerFamily extends $Family
     with
         $FunctionalFamilyOverride<FutureOr<SnSticker?>, StickerWithPackQuery?> {
-  const StickerPackStickerFamily._()
+  StickerPackStickerFamily._()
     : super(
         retry: null,
         name: r'stickerPackStickerProvider',

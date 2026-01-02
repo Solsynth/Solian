@@ -10,7 +10,7 @@ part of 'file_references.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(fileReferences)
-const fileReferencesProvider = FileReferencesFamily._();
+final fileReferencesProvider = FileReferencesFamily._();
 
 final class FileReferencesProvider
     extends
@@ -20,7 +20,7 @@ final class FileReferencesProvider
           FutureOr<List<Reference>>
         >
     with $FutureModifier<List<Reference>>, $FutureProvider<List<Reference>> {
-  const FileReferencesProvider._({
+  FileReferencesProvider._({
     required FileReferencesFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$fileReferencesHash() => r'd66c678c221f61978bdb242b98e6dbe31d0c204b';
 
 final class FileReferencesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Reference>>, String> {
-  const FileReferencesFamily._()
+  FileReferencesFamily._()
     : super(
         retry: null,
         name: r'fileReferencesProvider',

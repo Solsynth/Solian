@@ -10,7 +10,7 @@ part of 'publishers_form.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(publishersManaged)
-const publishersManagedProvider = PublishersManagedProvider._();
+final publishersManagedProvider = PublishersManagedProvider._();
 
 final class PublishersManagedProvider
     extends
@@ -22,7 +22,7 @@ final class PublishersManagedProvider
     with
         $FutureModifier<List<SnPublisher>>,
         $FutureProvider<List<SnPublisher>> {
-  const PublishersManagedProvider._()
+  PublishersManagedProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class PublishersManagedProvider
 String _$publishersManagedHash() => r'ea83759fed9bd5119738b4d09f12b4476959e0a3';
 
 @ProviderFor(publisherNullable)
-const publisherNullableProvider = PublisherNullableFamily._();
+final publisherNullableProvider = PublisherNullableFamily._();
 
 final class PublisherNullableProvider
     extends
@@ -61,7 +61,7 @@ final class PublisherNullableProvider
           FutureOr<SnPublisher?>
         >
     with $FutureModifier<SnPublisher?>, $FutureProvider<SnPublisher?> {
-  const PublisherNullableProvider._({
+  PublisherNullableProvider._({
     required PublisherNullableFamily super.from,
     required String? super.argument,
   }) : super(
@@ -109,7 +109,7 @@ String _$publisherNullableHash() => r'49b28083a2f351c5e5cde0b1a97f6c7503969041';
 
 final class PublisherNullableFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisher?>, String?> {
-  const PublisherNullableFamily._()
+  PublisherNullableFamily._()
     : super(
         retry: null,
         name: r'publisherNullableProvider',

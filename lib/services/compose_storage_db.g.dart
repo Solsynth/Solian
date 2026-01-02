@@ -10,11 +10,11 @@ part of 'compose_storage_db.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ComposeStorageNotifier)
-const composeStorageProvider = ComposeStorageNotifierProvider._();
+final composeStorageProvider = ComposeStorageNotifierProvider._();
 
 final class ComposeStorageNotifierProvider
     extends $NotifierProvider<ComposeStorageNotifier, Map<String, SnPost>> {
-  const ComposeStorageNotifierProvider._()
+  ComposeStorageNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Map<String, SnPost>, Map<String, SnPost>>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

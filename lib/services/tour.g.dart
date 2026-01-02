@@ -10,11 +10,11 @@ part of 'tour.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TourStatusNotifier)
-const tourStatusProvider = TourStatusNotifierProvider._();
+final tourStatusProvider = TourStatusNotifierProvider._();
 
 final class TourStatusNotifierProvider
     extends $NotifierProvider<TourStatusNotifier, Map<String, bool>> {
-  const TourStatusNotifierProvider._()
+  TourStatusNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$TourStatusNotifier extends $Notifier<Map<String, bool>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Map<String, bool>, Map<String, bool>>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$TourStatusNotifier extends $Notifier<Map<String, bool>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

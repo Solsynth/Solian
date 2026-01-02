@@ -10,7 +10,7 @@ part of 'account_devices.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(authDevices)
-const authDevicesProvider = AuthDevicesProvider._();
+final authDevicesProvider = AuthDevicesProvider._();
 
 final class AuthDevicesProvider
     extends
@@ -22,7 +22,7 @@ final class AuthDevicesProvider
     with
         $FutureModifier<List<SnAuthDeviceWithSession>>,
         $FutureProvider<List<SnAuthDeviceWithSession>> {
-  const AuthDevicesProvider._()
+  AuthDevicesProvider._()
     : super(
         from: null,
         argument: null,

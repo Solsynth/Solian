@@ -10,7 +10,7 @@ part of 'post_subscription_filter.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(publishersSubscriptions)
-const publishersSubscriptionsProvider = PublishersSubscriptionsProvider._();
+final publishersSubscriptionsProvider = PublishersSubscriptionsProvider._();
 
 final class PublishersSubscriptionsProvider
     extends
@@ -22,7 +22,7 @@ final class PublishersSubscriptionsProvider
     with
         $FutureModifier<List<SnPublisherSubscription>>,
         $FutureProvider<List<SnPublisherSubscription>> {
-  const PublishersSubscriptionsProvider._()
+  PublishersSubscriptionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ String _$publishersSubscriptionsHash() =>
     r'208463c1f879a3ddab4092112e312a0cd27ebc2f';
 
 @ProviderFor(categoriesSubscriptions)
-const categoriesSubscriptionsProvider = CategoriesSubscriptionsProvider._();
+final categoriesSubscriptionsProvider = CategoriesSubscriptionsProvider._();
 
 final class CategoriesSubscriptionsProvider
     extends
@@ -64,7 +64,7 @@ final class CategoriesSubscriptionsProvider
     with
         $FutureModifier<List<SnCategorySubscription>>,
         $FutureProvider<List<SnCategorySubscription>> {
-  const CategoriesSubscriptionsProvider._()
+  CategoriesSubscriptionsProvider._()
     : super(
         from: null,
         argument: null,

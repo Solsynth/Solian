@@ -10,7 +10,7 @@ part of 'fund_envelope.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(walletFund)
-const walletFundProvider = WalletFundFamily._();
+final walletFundProvider = WalletFundFamily._();
 
 final class WalletFundProvider
     extends
@@ -20,7 +20,7 @@ final class WalletFundProvider
           FutureOr<SnWalletFund>
         >
     with $FutureModifier<SnWalletFund>, $FutureProvider<SnWalletFund> {
-  const WalletFundProvider._({
+  WalletFundProvider._({
     required WalletFundFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$walletFundHash() => r'521fa280708e71266f8164268ba11f135f4ba810';
 
 final class WalletFundFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletFund>, String> {
-  const WalletFundFamily._()
+  WalletFundFamily._()
     : super(
         retry: null,
         name: r'walletFundProvider',

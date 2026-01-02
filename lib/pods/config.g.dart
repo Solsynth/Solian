@@ -33,11 +33,11 @@ Map<String, dynamic> _$ThemeColorsToJson(_ThemeColors instance) =>
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AppSettingsNotifier)
-const appSettingsProvider = AppSettingsNotifierProvider._();
+final appSettingsProvider = AppSettingsNotifierProvider._();
 
 final class AppSettingsNotifierProvider
     extends $NotifierProvider<AppSettingsNotifier, AppSettings> {
-  const AppSettingsNotifierProvider._()
+  AppSettingsNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -72,7 +72,6 @@ abstract class _$AppSettingsNotifier extends $Notifier<AppSettings> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AppSettings, AppSettings>;
     final element =
         ref.element
@@ -82,6 +81,6 @@ abstract class _$AppSettingsNotifier extends $Notifier<AppSettings> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

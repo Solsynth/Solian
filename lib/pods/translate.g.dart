@@ -10,12 +10,12 @@ part of 'translate.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(translateString)
-const translateStringProvider = TranslateStringFamily._();
+final translateStringProvider = TranslateStringFamily._();
 
 final class TranslateStringProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
-  const TranslateStringProvider._({
+  TranslateStringProvider._({
     required TranslateStringFamily super.from,
     required TranslateQuery super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$translateStringHash() => r'51d638cf07cbf3ffa9469298f5bd9c667bc0ccb7';
 
 final class TranslateStringFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<String>, TranslateQuery> {
-  const TranslateStringFamily._()
+  TranslateStringFamily._()
     : super(
         retry: null,
         name: r'translateStringProvider',
@@ -79,12 +79,12 @@ final class TranslateStringFamily extends $Family
 }
 
 @ProviderFor(detectStringLanguage)
-const detectStringLanguageProvider = DetectStringLanguageFamily._();
+final detectStringLanguageProvider = DetectStringLanguageFamily._();
 
 final class DetectStringLanguageProvider
     extends $FunctionalProvider<String?, String?, String?>
     with $Provider<String?> {
-  const DetectStringLanguageProvider._({
+  DetectStringLanguageProvider._({
     required DetectStringLanguageFamily super.from,
     required String super.argument,
   }) : super(
@@ -140,7 +140,7 @@ String _$detectStringLanguageHash() =>
 
 final class DetectStringLanguageFamily extends $Family
     with $FunctionalFamilyOverride<String?, String> {
-  const DetectStringLanguageFamily._()
+  DetectStringLanguageFamily._()
     : super(
         retry: null,
         name: r'detectStringLanguageProvider',

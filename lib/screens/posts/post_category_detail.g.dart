@@ -10,7 +10,7 @@ part of 'post_category_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(postCategory)
-const postCategoryProvider = PostCategoryFamily._();
+final postCategoryProvider = PostCategoryFamily._();
 
 final class PostCategoryProvider
     extends
@@ -20,7 +20,7 @@ final class PostCategoryProvider
           FutureOr<SnPostCategory>
         >
     with $FutureModifier<SnPostCategory>, $FutureProvider<SnPostCategory> {
-  const PostCategoryProvider._({
+  PostCategoryProvider._({
     required PostCategoryFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$postCategoryHash() => r'0df2de729ba96819ee37377314615abef0c99547';
 
 final class PostCategoryFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPostCategory>, String> {
-  const PostCategoryFamily._()
+  PostCategoryFamily._()
     : super(
         retry: null,
         name: r'postCategoryProvider',
@@ -85,7 +85,7 @@ final class PostCategoryFamily extends $Family
 }
 
 @ProviderFor(postTag)
-const postTagProvider = PostTagFamily._();
+final postTagProvider = PostTagFamily._();
 
 final class PostTagProvider
     extends
@@ -95,7 +95,7 @@ final class PostTagProvider
           FutureOr<SnPostTag>
         >
     with $FutureModifier<SnPostTag>, $FutureProvider<SnPostTag> {
-  const PostTagProvider._({
+  PostTagProvider._({
     required PostTagFamily super.from,
     required String super.argument,
   }) : super(
@@ -142,7 +142,7 @@ String _$postTagHash() => r'e050fdf9af81a843a9abd9cf979dd2672e0a2b93';
 
 final class PostTagFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPostTag>, String> {
-  const PostTagFamily._()
+  PostTagFamily._()
     : super(
         retry: null,
         name: r'postTagProvider',
@@ -159,7 +159,7 @@ final class PostTagFamily extends $Family
 }
 
 @ProviderFor(postCategorySubscription)
-const postCategorySubscriptionProvider = PostCategorySubscriptionFamily._();
+final postCategorySubscriptionProvider = PostCategorySubscriptionFamily._();
 
 final class PostCategorySubscriptionProvider
     extends
@@ -171,7 +171,7 @@ final class PostCategorySubscriptionProvider
     with
         $FutureModifier<SnCategorySubscription?>,
         $FutureProvider<SnCategorySubscription?> {
-  const PostCategorySubscriptionProvider._({
+  PostCategorySubscriptionProvider._({
     required PostCategorySubscriptionFamily super.from,
     required (String, bool) super.argument,
   }) : super(
@@ -225,7 +225,7 @@ final class PostCategorySubscriptionFamily extends $Family
           FutureOr<SnCategorySubscription?>,
           (String, bool)
         > {
-  const PostCategorySubscriptionFamily._()
+  PostCategorySubscriptionFamily._()
     : super(
         retry: null,
         name: r'postCategorySubscriptionProvider',

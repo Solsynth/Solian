@@ -10,7 +10,7 @@ part of 'site_files.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(siteFiles)
-const siteFilesProvider = SiteFilesFamily._();
+final siteFilesProvider = SiteFilesFamily._();
 
 final class SiteFilesProvider
     extends
@@ -22,7 +22,7 @@ final class SiteFilesProvider
     with
         $FutureModifier<List<SnSiteFileEntry>>,
         $FutureProvider<List<SnSiteFileEntry>> {
-  const SiteFilesProvider._({
+  SiteFilesProvider._({
     required SiteFilesFamily super.from,
     required ({String siteId, String? path}) super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class SiteFilesFamily extends $Family
           FutureOr<List<SnSiteFileEntry>>,
           ({String siteId, String? path})
         > {
-  const SiteFilesFamily._()
+  SiteFilesFamily._()
     : super(
         retry: null,
         name: r'siteFilesProvider',
@@ -91,7 +91,7 @@ final class SiteFilesFamily extends $Family
 }
 
 @ProviderFor(siteFileContent)
-const siteFileContentProvider = SiteFileContentFamily._();
+final siteFileContentProvider = SiteFileContentFamily._();
 
 final class SiteFileContentProvider
     extends
@@ -101,7 +101,7 @@ final class SiteFileContentProvider
           FutureOr<SnFileContent>
         >
     with $FutureModifier<SnFileContent>, $FutureProvider<SnFileContent> {
-  const SiteFileContentProvider._({
+  SiteFileContentProvider._({
     required SiteFileContentFamily super.from,
     required ({String siteId, String relativePath}) super.argument,
   }) : super(
@@ -157,7 +157,7 @@ final class SiteFileContentFamily extends $Family
           FutureOr<SnFileContent>,
           ({String siteId, String relativePath})
         > {
-  const SiteFileContentFamily._()
+  SiteFileContentFamily._()
     : super(
         retry: null,
         name: r'siteFileContentProvider',
@@ -179,12 +179,12 @@ final class SiteFileContentFamily extends $Family
 }
 
 @ProviderFor(siteFileContentRaw)
-const siteFileContentRawProvider = SiteFileContentRawFamily._();
+final siteFileContentRawProvider = SiteFileContentRawFamily._();
 
 final class SiteFileContentRawProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
-  const SiteFileContentRawProvider._({
+  SiteFileContentRawProvider._({
     required SiteFileContentRawFamily super.from,
     required ({String siteId, String relativePath}) super.argument,
   }) : super(
@@ -240,7 +240,7 @@ final class SiteFileContentRawFamily extends $Family
           FutureOr<String>,
           ({String siteId, String relativePath})
         > {
-  const SiteFileContentRawFamily._()
+  SiteFileContentRawFamily._()
     : super(
         retry: null,
         name: r'siteFileContentRawProvider',

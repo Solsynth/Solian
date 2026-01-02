@@ -10,12 +10,12 @@ part of 'think.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(thoughtAvailableStaus)
-const thoughtAvailableStausProvider = ThoughtAvailableStausProvider._();
+final thoughtAvailableStausProvider = ThoughtAvailableStausProvider._();
 
 final class ThoughtAvailableStausProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  const ThoughtAvailableStausProvider._()
+  ThoughtAvailableStausProvider._()
     : super(
         from: null,
         argument: null,
@@ -44,7 +44,7 @@ String _$thoughtAvailableStausHash() =>
     r'720e04e56bff8c4d4ca6854ce997da4e7926c84c';
 
 @ProviderFor(thoughtSequence)
-const thoughtSequenceProvider = ThoughtSequenceFamily._();
+final thoughtSequenceProvider = ThoughtSequenceFamily._();
 
 final class ThoughtSequenceProvider
     extends
@@ -56,7 +56,7 @@ final class ThoughtSequenceProvider
     with
         $FutureModifier<List<SnThinkingThought>>,
         $FutureProvider<List<SnThinkingThought>> {
-  const ThoughtSequenceProvider._({
+  ThoughtSequenceProvider._({
     required ThoughtSequenceFamily super.from,
     required String super.argument,
   }) : super(
@@ -104,7 +104,7 @@ String _$thoughtSequenceHash() => r'2a93c0a04f9a720ba474c02a36502940fb7f3ed7';
 
 final class ThoughtSequenceFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnThinkingThought>>, String> {
-  const ThoughtSequenceFamily._()
+  ThoughtSequenceFamily._()
     : super(
         retry: null,
         name: r'thoughtSequenceProvider',
@@ -121,7 +121,7 @@ final class ThoughtSequenceFamily extends $Family
 }
 
 @ProviderFor(thoughtServices)
-const thoughtServicesProvider = ThoughtServicesProvider._();
+final thoughtServicesProvider = ThoughtServicesProvider._();
 
 final class ThoughtServicesProvider
     extends
@@ -133,7 +133,7 @@ final class ThoughtServicesProvider
     with
         $FutureModifier<ThoughtServicesResponse>,
         $FutureProvider<ThoughtServicesResponse> {
-  const ThoughtServicesProvider._()
+  ThoughtServicesProvider._()
     : super(
         from: null,
         argument: null,

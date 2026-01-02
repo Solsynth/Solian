@@ -12,7 +12,7 @@ part of 'sticker_picker.dart';
 /// GET /sphere/stickers/me
 
 @ProviderFor(myStickerPacks)
-const myStickerPacksProvider = MyStickerPacksProvider._();
+final myStickerPacksProvider = MyStickerPacksProvider._();
 
 /// Fetch user-added sticker packs (with stickers) from API:
 /// GET /sphere/stickers/me
@@ -29,7 +29,7 @@ final class MyStickerPacksProvider
         $FutureProvider<List<SnStickerPack>> {
   /// Fetch user-added sticker packs (with stickers) from API:
   /// GET /sphere/stickers/me
-  const MyStickerPacksProvider._()
+  MyStickerPacksProvider._()
     : super(
         from: null,
         argument: null,

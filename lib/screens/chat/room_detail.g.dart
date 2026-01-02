@@ -10,12 +10,12 @@ part of 'room_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(totalMessagesCount)
-const totalMessagesCountProvider = TotalMessagesCountFamily._();
+final totalMessagesCountProvider = TotalMessagesCountFamily._();
 
 final class TotalMessagesCountProvider
     extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
     with $FutureModifier<int>, $FutureProvider<int> {
-  const TotalMessagesCountProvider._({
+  TotalMessagesCountProvider._({
     required TotalMessagesCountFamily super.from,
     required String super.argument,
   }) : super(
@@ -63,7 +63,7 @@ String _$totalMessagesCountHash() =>
 
 final class TotalMessagesCountFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<int>, String> {
-  const TotalMessagesCountFamily._()
+  TotalMessagesCountFamily._()
     : super(
         retry: null,
         name: r'totalMessagesCountProvider',

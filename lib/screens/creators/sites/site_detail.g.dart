@@ -10,7 +10,7 @@ part of 'site_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(publicationSiteDetail)
-const publicationSiteDetailProvider = PublicationSiteDetailFamily._();
+final publicationSiteDetailProvider = PublicationSiteDetailFamily._();
 
 final class PublicationSiteDetailProvider
     extends
@@ -22,7 +22,7 @@ final class PublicationSiteDetailProvider
     with
         $FutureModifier<SnPublicationSite>,
         $FutureProvider<SnPublicationSite> {
-  const PublicationSiteDetailProvider._({
+  PublicationSiteDetailProvider._({
     required PublicationSiteDetailFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -75,7 +75,7 @@ final class PublicationSiteDetailFamily extends $Family
           FutureOr<SnPublicationSite>,
           (String, String)
         > {
-  const PublicationSiteDetailFamily._()
+  PublicationSiteDetailFamily._()
     : super(
         retry: null,
         name: r'publicationSiteDetailProvider',

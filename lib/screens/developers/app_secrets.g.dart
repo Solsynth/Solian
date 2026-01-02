@@ -10,7 +10,7 @@ part of 'app_secrets.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(customAppSecrets)
-const customAppSecretsProvider = CustomAppSecretsFamily._();
+final customAppSecretsProvider = CustomAppSecretsFamily._();
 
 final class CustomAppSecretsProvider
     extends
@@ -22,7 +22,7 @@ final class CustomAppSecretsProvider
     with
         $FutureModifier<List<CustomAppSecret>>,
         $FutureProvider<List<CustomAppSecret>> {
-  const CustomAppSecretsProvider._({
+  CustomAppSecretsProvider._({
     required CustomAppSecretsFamily super.from,
     required (String, String, String) super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class CustomAppSecretsFamily extends $Family
           FutureOr<List<CustomAppSecret>>,
           (String, String, String)
         > {
-  const CustomAppSecretsFamily._()
+  CustomAppSecretsFamily._()
     : super(
         retry: null,
         name: r'customAppSecretsProvider',

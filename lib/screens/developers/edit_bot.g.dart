@@ -10,12 +10,12 @@ part of 'edit_bot.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(bot)
-const botProvider = BotFamily._();
+final botProvider = BotFamily._();
 
 final class BotProvider
     extends $FunctionalProvider<AsyncValue<Bot?>, Bot?, FutureOr<Bot?>>
     with $FutureModifier<Bot?>, $FutureProvider<Bot?> {
-  const BotProvider._({
+  BotProvider._({
     required BotFamily super.from,
     required (String, String, String) super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$botHash() => r'7bec47bb2a4061a5babc6d6d19c3d4c320c91188';
 
 final class BotFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Bot?>, (String, String, String)> {
-  const BotFamily._()
+  BotFamily._()
     : super(
         retry: null,
         name: r'botProvider',

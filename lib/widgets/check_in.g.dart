@@ -10,7 +10,7 @@ part of 'check_in.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(checkInResultToday)
-const checkInResultTodayProvider = CheckInResultTodayProvider._();
+final checkInResultTodayProvider = CheckInResultTodayProvider._();
 
 final class CheckInResultTodayProvider
     extends
@@ -20,7 +20,7 @@ final class CheckInResultTodayProvider
           FutureOr<SnCheckInResult?>
         >
     with $FutureModifier<SnCheckInResult?>, $FutureProvider<SnCheckInResult?> {
-  const CheckInResultTodayProvider._()
+  CheckInResultTodayProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,7 +50,7 @@ String _$checkInResultTodayHash() =>
     r'b4dc97b2243f542b36c295dc5cce3fe6097cb308';
 
 @ProviderFor(nextNotableDay)
-const nextNotableDayProvider = NextNotableDayProvider._();
+final nextNotableDayProvider = NextNotableDayProvider._();
 
 final class NextNotableDayProvider
     extends
@@ -60,7 +60,7 @@ final class NextNotableDayProvider
           FutureOr<SnNotableDay?>
         >
     with $FutureModifier<SnNotableDay?>, $FutureProvider<SnNotableDay?> {
-  const NextNotableDayProvider._()
+  NextNotableDayProvider._()
     : super(
         from: null,
         argument: null,
@@ -89,7 +89,7 @@ final class NextNotableDayProvider
 String _$nextNotableDayHash() => r'60d0546a086bdcb89c433c38133eb4197e4fb0a6';
 
 @ProviderFor(recentNotableDay)
-const recentNotableDayProvider = RecentNotableDayProvider._();
+final recentNotableDayProvider = RecentNotableDayProvider._();
 
 final class RecentNotableDayProvider
     extends
@@ -99,7 +99,7 @@ final class RecentNotableDayProvider
           FutureOr<SnNotableDay?>
         >
     with $FutureModifier<SnNotableDay?>, $FutureProvider<SnNotableDay?> {
-  const RecentNotableDayProvider._()
+  RecentNotableDayProvider._()
     : super(
         from: null,
         argument: null,
@@ -128,7 +128,7 @@ final class RecentNotableDayProvider
 String _$recentNotableDayHash() => r'e0cc4a0e8016afe1c469a7c744dbab41e0d54c2d';
 
 @ProviderFor(randomFortuneSaying)
-const randomFortuneSayingProvider = RandomFortuneSayingProvider._();
+final randomFortuneSayingProvider = RandomFortuneSayingProvider._();
 
 final class RandomFortuneSayingProvider
     extends
@@ -138,7 +138,7 @@ final class RandomFortuneSayingProvider
           FutureOr<SnFortuneSaying>
         >
     with $FutureModifier<SnFortuneSaying>, $FutureProvider<SnFortuneSaying> {
-  const RandomFortuneSayingProvider._()
+  RandomFortuneSayingProvider._()
     : super(
         from: null,
         argument: null,

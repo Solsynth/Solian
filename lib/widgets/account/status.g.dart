@@ -10,7 +10,7 @@ part of 'status.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(accountStatus)
-const accountStatusProvider = AccountStatusFamily._();
+final accountStatusProvider = AccountStatusFamily._();
 
 final class AccountStatusProvider
     extends
@@ -20,7 +20,7 @@ final class AccountStatusProvider
           FutureOr<SnAccountStatus?>
         >
     with $FutureModifier<SnAccountStatus?>, $FutureProvider<SnAccountStatus?> {
-  const AccountStatusProvider._({
+  AccountStatusProvider._({
     required AccountStatusFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$accountStatusHash() => r'4cac809808e6f1345dab06dc32d759cfcea13315';
 
 final class AccountStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnAccountStatus?>, String> {
-  const AccountStatusFamily._()
+  AccountStatusFamily._()
     : super(
         retry: null,
         name: r'accountStatusProvider',

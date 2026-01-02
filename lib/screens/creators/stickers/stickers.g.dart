@@ -10,7 +10,7 @@ part of 'stickers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(stickerPack)
-const stickerPackProvider = StickerPackFamily._();
+final stickerPackProvider = StickerPackFamily._();
 
 final class StickerPackProvider
     extends
@@ -20,7 +20,7 @@ final class StickerPackProvider
           FutureOr<SnStickerPack?>
         >
     with $FutureModifier<SnStickerPack?>, $FutureProvider<SnStickerPack?> {
-  const StickerPackProvider._({
+  StickerPackProvider._({
     required StickerPackFamily super.from,
     required String? super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$stickerPackHash() => r'71ef84471237c8191918095094bdfc87d3920e77';
 
 final class StickerPackFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnStickerPack?>, String?> {
-  const StickerPackFamily._()
+  StickerPackFamily._()
     : super(
         retry: null,
         name: r'stickerPackProvider',

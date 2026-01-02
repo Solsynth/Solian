@@ -10,12 +10,12 @@ part of 'post_detail.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(post)
-const postProvider = PostFamily._();
+final postProvider = PostFamily._();
 
 final class PostProvider
     extends $FunctionalProvider<AsyncValue<SnPost?>, SnPost?, FutureOr<SnPost?>>
     with $FutureModifier<SnPost?>, $FutureProvider<SnPost?> {
-  const PostProvider._({
+  PostProvider._({
     required PostFamily super.from,
     required String super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$postHash() => r'66c2eb074c6d7467fef81cab70a13356e648e661';
 
 final class PostFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPost?>, String> {
-  const PostFamily._()
+  PostFamily._()
     : super(
         retry: null,
         name: r'postProvider',

@@ -10,7 +10,7 @@ part of 'poll_list.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(pollWithStats)
-const pollWithStatsProvider = PollWithStatsFamily._();
+final pollWithStatsProvider = PollWithStatsFamily._();
 
 final class PollWithStatsProvider
     extends
@@ -20,7 +20,7 @@ final class PollWithStatsProvider
           FutureOr<SnPollWithStats>
         >
     with $FutureModifier<SnPollWithStats>, $FutureProvider<SnPollWithStats> {
-  const PollWithStatsProvider._({
+  PollWithStatsProvider._({
     required PollWithStatsFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$pollWithStatsHash() => r'6bb910046ce1e09368f9922dbec52fdc2cc86740';
 
 final class PollWithStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPollWithStats>, String> {
-  const PollWithStatsFamily._()
+  PollWithStatsFamily._()
     : super(
         retry: null,
         name: r'pollWithStatsProvider',

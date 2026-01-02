@@ -10,12 +10,12 @@ part of 'theme.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(theme)
-const themeProvider = ThemeProvider._();
+final themeProvider = ThemeProvider._();
 
 final class ThemeProvider
     extends $FunctionalProvider<ThemeSet, ThemeSet, ThemeSet>
     with $Provider<ThemeSet> {
-  const ThemeProvider._()
+  ThemeProvider._()
     : super(
         from: null,
         argument: null,

@@ -10,7 +10,7 @@ part of 'relationship.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(sentFriendRequest)
-const sentFriendRequestProvider = SentFriendRequestProvider._();
+final sentFriendRequestProvider = SentFriendRequestProvider._();
 
 final class SentFriendRequestProvider
     extends
@@ -22,7 +22,7 @@ final class SentFriendRequestProvider
     with
         $FutureModifier<List<SnRelationship>>,
         $FutureProvider<List<SnRelationship>> {
-  const SentFriendRequestProvider._()
+  SentFriendRequestProvider._()
     : super(
         from: null,
         argument: null,

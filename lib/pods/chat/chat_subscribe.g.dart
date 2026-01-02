@@ -10,11 +10,11 @@ part of 'chat_subscribe.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ChatSubscribeNotifier)
-const chatSubscribeProvider = ChatSubscribeNotifierFamily._();
+final chatSubscribeProvider = ChatSubscribeNotifierFamily._();
 
 final class ChatSubscribeNotifierProvider
     extends $NotifierProvider<ChatSubscribeNotifier, List<SnChatMember>> {
-  const ChatSubscribeNotifierProvider._({
+  ChatSubscribeNotifierProvider._({
     required ChatSubscribeNotifierFamily super.from,
     required String super.argument,
   }) : super(
@@ -59,7 +59,7 @@ final class ChatSubscribeNotifierProvider
 }
 
 String _$chatSubscribeNotifierHash() =>
-    r'7d720afd7e9f1bc4cc0e4308415e60a4781157db';
+    r'b7624ae45ace2944a88f8b4d14ddce556c236371';
 
 final class ChatSubscribeNotifierFamily extends $Family
     with
@@ -70,7 +70,7 @@ final class ChatSubscribeNotifierFamily extends $Family
           List<SnChatMember>,
           String
         > {
-  const ChatSubscribeNotifierFamily._()
+  ChatSubscribeNotifierFamily._()
     : super(
         retry: null,
         name: r'chatSubscribeProvider',
@@ -94,7 +94,6 @@ abstract class _$ChatSubscribeNotifier extends $Notifier<List<SnChatMember>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<List<SnChatMember>, List<SnChatMember>>;
     final element =
         ref.element
@@ -104,6 +103,6 @@ abstract class _$ChatSubscribeNotifier extends $Notifier<List<SnChatMember>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

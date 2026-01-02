@@ -10,7 +10,7 @@ part of 'post_featured.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(featuredPosts)
-const featuredPostsProvider = FeaturedPostsProvider._();
+final featuredPostsProvider = FeaturedPostsProvider._();
 
 final class FeaturedPostsProvider
     extends
@@ -20,7 +20,7 @@ final class FeaturedPostsProvider
           FutureOr<List<SnPost>>
         >
     with $FutureModifier<List<SnPost>>, $FutureProvider<List<SnPost>> {
-  const FeaturedPostsProvider._()
+  FeaturedPostsProvider._()
     : super(
         from: null,
         argument: null,

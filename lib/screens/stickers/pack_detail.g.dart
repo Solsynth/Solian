@@ -13,7 +13,7 @@ part of 'pack_detail.dart';
 /// API interactions are intentionally left blank per request.
 
 @ProviderFor(marketplaceStickerPackContent)
-const marketplaceStickerPackContentProvider =
+final marketplaceStickerPackContentProvider =
     MarketplaceStickerPackContentFamily._();
 
 /// Marketplace version of sticker pack detail page (no publisher dependency).
@@ -31,7 +31,7 @@ final class MarketplaceStickerPackContentProvider
   /// Marketplace version of sticker pack detail page (no publisher dependency).
   /// Shows all stickers in the pack and provides a button to add the sticker.
   /// API interactions are intentionally left blank per request.
-  const MarketplaceStickerPackContentProvider._({
+  MarketplaceStickerPackContentProvider._({
     required MarketplaceStickerPackContentFamily super.from,
     required String super.argument,
   }) : super(
@@ -85,7 +85,7 @@ String _$marketplaceStickerPackContentHash() =>
 
 final class MarketplaceStickerPackContentFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnSticker>>, String> {
-  const MarketplaceStickerPackContentFamily._()
+  MarketplaceStickerPackContentFamily._()
     : super(
         retry: null,
         name: r'marketplaceStickerPackContentProvider',
@@ -106,13 +106,13 @@ final class MarketplaceStickerPackContentFamily extends $Family
 }
 
 @ProviderFor(marketplaceStickerPackOwnership)
-const marketplaceStickerPackOwnershipProvider =
+final marketplaceStickerPackOwnershipProvider =
     MarketplaceStickerPackOwnershipFamily._();
 
 final class MarketplaceStickerPackOwnershipProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  const MarketplaceStickerPackOwnershipProvider._({
+  MarketplaceStickerPackOwnershipProvider._({
     required MarketplaceStickerPackOwnershipFamily super.from,
     required String super.argument,
   }) : super(
@@ -161,7 +161,7 @@ String _$marketplaceStickerPackOwnershipHash() =>
 
 final class MarketplaceStickerPackOwnershipFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, String> {
-  const MarketplaceStickerPackOwnershipFamily._()
+  MarketplaceStickerPackOwnershipFamily._()
     : super(
         retry: null,
         name: r'marketplaceStickerPackOwnershipProvider',

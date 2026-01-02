@@ -10,7 +10,7 @@ part of 'publisher_profile.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(publisher)
-const publisherProvider = PublisherFamily._();
+final publisherProvider = PublisherFamily._();
 
 final class PublisherProvider
     extends
@@ -20,7 +20,7 @@ final class PublisherProvider
           FutureOr<SnPublisher>
         >
     with $FutureModifier<SnPublisher>, $FutureProvider<SnPublisher> {
-  const PublisherProvider._({
+  PublisherProvider._({
     required PublisherFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$publisherHash() => r'a1da21f0275421382e2882fd52c4e061c4675cf7';
 
 final class PublisherFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisher>, String> {
-  const PublisherFamily._()
+  PublisherFamily._()
     : super(
         retry: null,
         name: r'publisherProvider',
@@ -85,7 +85,7 @@ final class PublisherFamily extends $Family
 }
 
 @ProviderFor(publisherBadges)
-const publisherBadgesProvider = PublisherBadgesFamily._();
+final publisherBadgesProvider = PublisherBadgesFamily._();
 
 final class PublisherBadgesProvider
     extends
@@ -97,7 +97,7 @@ final class PublisherBadgesProvider
     with
         $FutureModifier<List<SnAccountBadge>>,
         $FutureProvider<List<SnAccountBadge>> {
-  const PublisherBadgesProvider._({
+  PublisherBadgesProvider._({
     required PublisherBadgesFamily super.from,
     required String super.argument,
   }) : super(
@@ -145,7 +145,7 @@ String _$publisherBadgesHash() => r'26776fd6cb611953f52bdb6a7dfa004c34d5cd8e';
 
 final class PublisherBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
-  const PublisherBadgesFamily._()
+  PublisherBadgesFamily._()
     : super(
         retry: null,
         name: r'publisherBadgesProvider',
@@ -162,7 +162,7 @@ final class PublisherBadgesFamily extends $Family
 }
 
 @ProviderFor(publisherSubscriptionStatus)
-const publisherSubscriptionStatusProvider =
+final publisherSubscriptionStatusProvider =
     PublisherSubscriptionStatusFamily._();
 
 final class PublisherSubscriptionStatusProvider
@@ -175,7 +175,7 @@ final class PublisherSubscriptionStatusProvider
     with
         $FutureModifier<SnPublisherSubscription?>,
         $FutureProvider<SnPublisherSubscription?> {
-  const PublisherSubscriptionStatusProvider._({
+  PublisherSubscriptionStatusProvider._({
     required PublisherSubscriptionStatusFamily super.from,
     required String super.argument,
   }) : super(
@@ -225,7 +225,7 @@ String _$publisherSubscriptionStatusHash() =>
 
 final class PublisherSubscriptionStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisherSubscription?>, String> {
-  const PublisherSubscriptionStatusFamily._()
+  PublisherSubscriptionStatusFamily._()
     : super(
         retry: null,
         name: r'publisherSubscriptionStatusProvider',
@@ -242,13 +242,13 @@ final class PublisherSubscriptionStatusFamily extends $Family
 }
 
 @ProviderFor(publisherAppbarForcegroundColor)
-const publisherAppbarForcegroundColorProvider =
+final publisherAppbarForcegroundColorProvider =
     PublisherAppbarForcegroundColorFamily._();
 
 final class PublisherAppbarForcegroundColorProvider
     extends $FunctionalProvider<AsyncValue<Color?>, Color?, FutureOr<Color?>>
     with $FutureModifier<Color?>, $FutureProvider<Color?> {
-  const PublisherAppbarForcegroundColorProvider._({
+  PublisherAppbarForcegroundColorProvider._({
     required PublisherAppbarForcegroundColorFamily super.from,
     required String super.argument,
   }) : super(
@@ -297,7 +297,7 @@ String _$publisherAppbarForcegroundColorHash() =>
 
 final class PublisherAppbarForcegroundColorFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Color?>, String> {
-  const PublisherAppbarForcegroundColorFamily._()
+  PublisherAppbarForcegroundColorFamily._()
     : super(
         retry: null,
         name: r'publisherAppbarForcegroundColorProvider',
@@ -314,7 +314,7 @@ final class PublisherAppbarForcegroundColorFamily extends $Family
 }
 
 @ProviderFor(publisherHeatmap)
-const publisherHeatmapProvider = PublisherHeatmapFamily._();
+final publisherHeatmapProvider = PublisherHeatmapFamily._();
 
 final class PublisherHeatmapProvider
     extends
@@ -324,7 +324,7 @@ final class PublisherHeatmapProvider
           FutureOr<SnHeatmap?>
         >
     with $FutureModifier<SnHeatmap?>, $FutureProvider<SnHeatmap?> {
-  const PublisherHeatmapProvider._({
+  PublisherHeatmapProvider._({
     required PublisherHeatmapFamily super.from,
     required String super.argument,
   }) : super(
@@ -371,7 +371,7 @@ String _$publisherHeatmapHash() => r'86db275ce3861a2855b5ec35fbfef85fc47b23a6';
 
 final class PublisherHeatmapFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnHeatmap?>, String> {
-  const PublisherHeatmapFamily._()
+  PublisherHeatmapFamily._()
     : super(
         retry: null,
         name: r'publisherHeatmapProvider',

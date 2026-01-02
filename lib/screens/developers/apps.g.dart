@@ -10,7 +10,7 @@ part of 'apps.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(customApp)
-const customAppProvider = CustomAppFamily._();
+final customAppProvider = CustomAppFamily._();
 
 final class CustomAppProvider
     extends
@@ -20,7 +20,7 @@ final class CustomAppProvider
           FutureOr<CustomApp>
         >
     with $FutureModifier<CustomApp>, $FutureProvider<CustomApp> {
-  const CustomAppProvider._({
+  CustomAppProvider._({
     required CustomAppFamily super.from,
     required (String, String, String) super.argument,
   }) : super(
@@ -71,7 +71,7 @@ final class CustomAppFamily extends $Family
           FutureOr<CustomApp>,
           (String, String, String)
         > {
-  const CustomAppFamily._()
+  CustomAppFamily._()
     : super(
         retry: null,
         name: r'customAppProvider',
@@ -94,7 +94,7 @@ final class CustomAppFamily extends $Family
 }
 
 @ProviderFor(customApps)
-const customAppsProvider = CustomAppsFamily._();
+final customAppsProvider = CustomAppsFamily._();
 
 final class CustomAppsProvider
     extends
@@ -104,7 +104,7 @@ final class CustomAppsProvider
           FutureOr<List<CustomApp>>
         >
     with $FutureModifier<List<CustomApp>>, $FutureProvider<List<CustomApp>> {
-  const CustomAppsProvider._({
+  CustomAppsProvider._({
     required CustomAppsFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -153,7 +153,7 @@ String _$customAppsHash() => r'450bedaf4220b8963cb44afeb14d4c0e80f01b11';
 final class CustomAppsFamily extends $Family
     with
         $FunctionalFamilyOverride<FutureOr<List<CustomApp>>, (String, String)> {
-  const CustomAppsFamily._()
+  CustomAppsFamily._()
     : super(
         retry: null,
         name: r'customAppsProvider',

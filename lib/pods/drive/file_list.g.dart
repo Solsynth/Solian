@@ -10,7 +10,7 @@ part of 'file_list.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(billingUsage)
-const billingUsageProvider = BillingUsageProvider._();
+final billingUsageProvider = BillingUsageProvider._();
 
 final class BillingUsageProvider
     extends
@@ -22,7 +22,7 @@ final class BillingUsageProvider
     with
         $FutureModifier<Map<String, dynamic>?>,
         $FutureProvider<Map<String, dynamic>?> {
-  const BillingUsageProvider._()
+  BillingUsageProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class BillingUsageProvider
 String _$billingUsageHash() => r'58d8bc774868d60781574c85d6b25869a79c57aa';
 
 @ProviderFor(billingQuota)
-const billingQuotaProvider = BillingQuotaProvider._();
+final billingQuotaProvider = BillingQuotaProvider._();
 
 final class BillingQuotaProvider
     extends
@@ -63,7 +63,7 @@ final class BillingQuotaProvider
     with
         $FutureModifier<Map<String, dynamic>?>,
         $FutureProvider<Map<String, dynamic>?> {
-  const BillingQuotaProvider._()
+  BillingQuotaProvider._()
     : super(
         from: null,
         argument: null,

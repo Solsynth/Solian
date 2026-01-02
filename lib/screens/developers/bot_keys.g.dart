@@ -10,7 +10,7 @@ part of 'bot_keys.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(botKeys)
-const botKeysProvider = BotKeysFamily._();
+final botKeysProvider = BotKeysFamily._();
 
 final class BotKeysProvider
     extends
@@ -22,7 +22,7 @@ final class BotKeysProvider
     with
         $FutureModifier<List<SnAccountApiKey>>,
         $FutureProvider<List<SnAccountApiKey>> {
-  const BotKeysProvider._({
+  BotKeysProvider._({
     required BotKeysFamily super.from,
     required (String, String, String) super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class BotKeysFamily extends $Family
           FutureOr<List<SnAccountApiKey>>,
           (String, String, String)
         > {
-  const BotKeysFamily._()
+  BotKeysFamily._()
     : super(
         retry: null,
         name: r'botKeysProvider',

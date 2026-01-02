@@ -10,7 +10,7 @@ part of 'lottery.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(lotteryTickets)
-const lotteryTicketsProvider = LotteryTicketsFamily._();
+final lotteryTicketsProvider = LotteryTicketsFamily._();
 
 final class LotteryTicketsProvider
     extends
@@ -22,7 +22,7 @@ final class LotteryTicketsProvider
     with
         $FutureModifier<List<SnLotteryTicket>>,
         $FutureProvider<List<SnLotteryTicket>> {
-  const LotteryTicketsProvider._({
+  LotteryTicketsProvider._({
     required LotteryTicketsFamily super.from,
     required ({int offset, int take}) super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class LotteryTicketsFamily extends $Family
           FutureOr<List<SnLotteryTicket>>,
           ({int offset, int take})
         > {
-  const LotteryTicketsFamily._()
+  LotteryTicketsFamily._()
     : super(
         retry: null,
         name: r'lotteryTicketsProvider',
@@ -94,7 +94,7 @@ final class LotteryTicketsFamily extends $Family
 }
 
 @ProviderFor(lotteryRecords)
-const lotteryRecordsProvider = LotteryRecordsFamily._();
+final lotteryRecordsProvider = LotteryRecordsFamily._();
 
 final class LotteryRecordsProvider
     extends
@@ -106,7 +106,7 @@ final class LotteryRecordsProvider
     with
         $FutureModifier<List<SnLotteryRecord>>,
         $FutureProvider<List<SnLotteryRecord>> {
-  const LotteryRecordsProvider._({
+  LotteryRecordsProvider._({
     required LotteryRecordsFamily super.from,
     required ({int offset, int take}) super.argument,
   }) : super(
@@ -158,7 +158,7 @@ final class LotteryRecordsFamily extends $Family
           FutureOr<List<SnLotteryRecord>>,
           ({int offset, int take})
         > {
-  const LotteryRecordsFamily._()
+  LotteryRecordsFamily._()
     : super(
         retry: null,
         name: r'lotteryRecordsProvider',

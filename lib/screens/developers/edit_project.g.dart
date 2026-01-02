@@ -10,7 +10,7 @@ part of 'edit_project.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(devProject)
-const devProjectProvider = DevProjectFamily._();
+final devProjectProvider = DevProjectFamily._();
 
 final class DevProjectProvider
     extends
@@ -20,7 +20,7 @@ final class DevProjectProvider
           FutureOr<DevProject?>
         >
     with $FutureModifier<DevProject?>, $FutureProvider<DevProject?> {
-  const DevProjectProvider._({
+  DevProjectProvider._({
     required DevProjectFamily super.from,
     required (String, String) super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$devProjectHash() => r'd92be3f5cdc510c2a377615ed5c70622a6842bf2';
 
 final class DevProjectFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<DevProject?>, (String, String)> {
-  const DevProjectFamily._()
+  DevProjectFamily._()
     : super(
         retry: null,
         name: r'devProjectProvider',

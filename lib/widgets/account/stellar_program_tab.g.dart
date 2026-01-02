@@ -10,7 +10,7 @@ part of 'stellar_program_tab.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(accountStellarSubscription)
-const accountStellarSubscriptionProvider =
+final accountStellarSubscriptionProvider =
     AccountStellarSubscriptionProvider._();
 
 final class AccountStellarSubscriptionProvider
@@ -23,7 +23,7 @@ final class AccountStellarSubscriptionProvider
     with
         $FutureModifier<SnWalletSubscription?>,
         $FutureProvider<SnWalletSubscription?> {
-  const AccountStellarSubscriptionProvider._()
+  AccountStellarSubscriptionProvider._()
     : super(
         from: null,
         argument: null,
@@ -53,7 +53,7 @@ String _$accountStellarSubscriptionHash() =>
     r'7cdfc7ca29aac240fc8704f4493498d87f307400';
 
 @ProviderFor(accountSentGifts)
-const accountSentGiftsProvider = AccountSentGiftsFamily._();
+final accountSentGiftsProvider = AccountSentGiftsFamily._();
 
 final class AccountSentGiftsProvider
     extends
@@ -65,7 +65,7 @@ final class AccountSentGiftsProvider
     with
         $FutureModifier<List<SnWalletGift>>,
         $FutureProvider<List<SnWalletGift>> {
-  const AccountSentGiftsProvider._({
+  AccountSentGiftsProvider._({
     required AccountSentGiftsFamily super.from,
     required ({int offset, int take}) super.argument,
   }) : super(
@@ -117,7 +117,7 @@ final class AccountSentGiftsFamily extends $Family
           FutureOr<List<SnWalletGift>>,
           ({int offset, int take})
         > {
-  const AccountSentGiftsFamily._()
+  AccountSentGiftsFamily._()
     : super(
         retry: null,
         name: r'accountSentGiftsProvider',
@@ -137,7 +137,7 @@ final class AccountSentGiftsFamily extends $Family
 }
 
 @ProviderFor(accountReceivedGifts)
-const accountReceivedGiftsProvider = AccountReceivedGiftsFamily._();
+final accountReceivedGiftsProvider = AccountReceivedGiftsFamily._();
 
 final class AccountReceivedGiftsProvider
     extends
@@ -149,7 +149,7 @@ final class AccountReceivedGiftsProvider
     with
         $FutureModifier<List<SnWalletGift>>,
         $FutureProvider<List<SnWalletGift>> {
-  const AccountReceivedGiftsProvider._({
+  AccountReceivedGiftsProvider._({
     required AccountReceivedGiftsFamily super.from,
     required ({int offset, int take}) super.argument,
   }) : super(
@@ -206,7 +206,7 @@ final class AccountReceivedGiftsFamily extends $Family
           FutureOr<List<SnWalletGift>>,
           ({int offset, int take})
         > {
-  const AccountReceivedGiftsFamily._()
+  AccountReceivedGiftsFamily._()
     : super(
         retry: null,
         name: r'accountReceivedGiftsProvider',
@@ -226,7 +226,7 @@ final class AccountReceivedGiftsFamily extends $Family
 }
 
 @ProviderFor(accountGift)
-const accountGiftProvider = AccountGiftFamily._();
+final accountGiftProvider = AccountGiftFamily._();
 
 final class AccountGiftProvider
     extends
@@ -236,7 +236,7 @@ final class AccountGiftProvider
           FutureOr<SnWalletGift>
         >
     with $FutureModifier<SnWalletGift>, $FutureProvider<SnWalletGift> {
-  const AccountGiftProvider._({
+  AccountGiftProvider._({
     required AccountGiftFamily super.from,
     required String super.argument,
   }) : super(
@@ -284,7 +284,7 @@ String _$accountGiftHash() => r'70ca553e0b84cba9dfbee428f9bf44207138713a';
 
 final class AccountGiftFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletGift>, String> {
-  const AccountGiftFamily._()
+  AccountGiftFamily._()
     : super(
         retry: null,
         name: r'accountGiftProvider',

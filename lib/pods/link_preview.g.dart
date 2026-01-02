@@ -10,11 +10,11 @@ part of 'link_preview.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(LinkPreview)
-const linkPreviewProvider = LinkPreviewFamily._();
+final linkPreviewProvider = LinkPreviewFamily._();
 
 final class LinkPreviewProvider
     extends $AsyncNotifierProvider<LinkPreview, SnScrappedLink?> {
-  const LinkPreviewProvider._({
+  LinkPreviewProvider._({
     required LinkPreviewFamily super.from,
     required String super.argument,
   }) : super(
@@ -61,7 +61,7 @@ final class LinkPreviewFamily extends $Family
           FutureOr<SnScrappedLink?>,
           String
         > {
-  const LinkPreviewFamily._()
+  LinkPreviewFamily._()
     : super(
         retry: null,
         name: r'linkPreviewProvider',
@@ -85,7 +85,6 @@ abstract class _$LinkPreview extends $AsyncNotifier<SnScrappedLink?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<SnScrappedLink?>, SnScrappedLink?>;
     final element =
         ref.element
@@ -95,6 +94,6 @@ abstract class _$LinkPreview extends $AsyncNotifier<SnScrappedLink?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

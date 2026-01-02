@@ -10,7 +10,7 @@ part of 'activity_rpc.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(presenceActivities)
-const presenceActivitiesProvider = PresenceActivitiesFamily._();
+final presenceActivitiesProvider = PresenceActivitiesFamily._();
 
 final class PresenceActivitiesProvider
     extends
@@ -22,7 +22,7 @@ final class PresenceActivitiesProvider
     with
         $FutureModifier<List<SnPresenceActivity>>,
         $FutureProvider<List<SnPresenceActivity>> {
-  const PresenceActivitiesProvider._({
+  PresenceActivitiesProvider._({
     required PresenceActivitiesFamily super.from,
     required String super.argument,
   }) : super(
@@ -71,7 +71,7 @@ String _$presenceActivitiesHash() =>
 
 final class PresenceActivitiesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnPresenceActivity>>, String> {
-  const PresenceActivitiesFamily._()
+  PresenceActivitiesFamily._()
     : super(
         retry: null,
         name: r'presenceActivitiesProvider',

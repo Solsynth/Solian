@@ -10,7 +10,7 @@ part of 'friends_overview.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(friendsOverview)
-const friendsOverviewProvider = FriendsOverviewProvider._();
+final friendsOverviewProvider = FriendsOverviewProvider._();
 
 final class FriendsOverviewProvider
     extends
@@ -22,7 +22,7 @@ final class FriendsOverviewProvider
     with
         $FutureModifier<List<SnFriendOverviewItem>>,
         $FutureProvider<List<SnFriendOverviewItem>> {
-  const FriendsOverviewProvider._()
+  FriendsOverviewProvider._()
     : super(
         from: null,
         argument: null,

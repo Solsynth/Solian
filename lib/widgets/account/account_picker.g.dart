@@ -10,7 +10,7 @@ part of 'account_picker.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(searchAccounts)
-const searchAccountsProvider = SearchAccountsFamily._();
+final searchAccountsProvider = SearchAccountsFamily._();
 
 final class SearchAccountsProvider
     extends
@@ -20,7 +20,7 @@ final class SearchAccountsProvider
           FutureOr<List<SnAccount>>
         >
     with $FutureModifier<List<SnAccount>>, $FutureProvider<List<SnAccount>> {
-  const SearchAccountsProvider._({
+  SearchAccountsProvider._({
     required SearchAccountsFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$searchAccountsHash() => r'3b4aa4d7970a1e406c1a0a1dfac2c686e05bc533';
 
 final class SearchAccountsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccount>>, String> {
-  const SearchAccountsFamily._()
+  SearchAccountsFamily._()
     : super(
         retry: null,
         name: r'searchAccountsProvider',

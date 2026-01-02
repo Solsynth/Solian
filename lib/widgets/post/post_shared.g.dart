@@ -10,11 +10,11 @@ part of 'post_shared.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(RepliesNotifier)
-const repliesProvider = RepliesNotifierFamily._();
+final repliesProvider = RepliesNotifierFamily._();
 
 final class RepliesNotifierProvider
     extends $NotifierProvider<RepliesNotifier, RepliesState> {
-  const RepliesNotifierProvider._({
+  RepliesNotifierProvider._({
     required RepliesNotifierFamily super.from,
     required String super.argument,
   }) : super(
@@ -69,7 +69,7 @@ final class RepliesNotifierFamily extends $Family
           RepliesState,
           String
         > {
-  const RepliesNotifierFamily._()
+  RepliesNotifierFamily._()
     : super(
         retry: null,
         name: r'repliesProvider',
@@ -93,7 +93,6 @@ abstract class _$RepliesNotifier extends $Notifier<RepliesState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<RepliesState, RepliesState>;
     final element =
         ref.element
@@ -103,17 +102,17 @@ abstract class _$RepliesNotifier extends $Notifier<RepliesState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(postFeaturedReply)
-const postFeaturedReplyProvider = PostFeaturedReplyFamily._();
+final postFeaturedReplyProvider = PostFeaturedReplyFamily._();
 
 final class PostFeaturedReplyProvider
     extends $FunctionalProvider<AsyncValue<SnPost?>, SnPost?, FutureOr<SnPost?>>
     with $FutureModifier<SnPost?>, $FutureProvider<SnPost?> {
-  const PostFeaturedReplyProvider._({
+  PostFeaturedReplyProvider._({
     required PostFeaturedReplyFamily super.from,
     required String super.argument,
   }) : super(
@@ -160,7 +159,7 @@ String _$postFeaturedReplyHash() => r'3f0ac0d51ad21f8754a63dd94109eb8ac4812293';
 
 final class PostFeaturedReplyFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPost?>, String> {
-  const PostFeaturedReplyFamily._()
+  PostFeaturedReplyFamily._()
     : super(
         retry: null,
         name: r'postFeaturedReplyProvider',

@@ -10,12 +10,12 @@ part of 'captcha.config.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(captchaUrl)
-const captchaUrlProvider = CaptchaUrlProvider._();
+final captchaUrlProvider = CaptchaUrlProvider._();
 
 final class CaptchaUrlProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
-  const CaptchaUrlProvider._()
+  CaptchaUrlProvider._()
     : super(
         from: null,
         argument: null,

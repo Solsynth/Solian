@@ -10,7 +10,7 @@ part of 'call_button.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ongoingCall)
-const ongoingCallProvider = OngoingCallFamily._();
+final ongoingCallProvider = OngoingCallFamily._();
 
 final class OngoingCallProvider
     extends
@@ -20,7 +20,7 @@ final class OngoingCallProvider
           FutureOr<SnRealtimeCall?>
         >
     with $FutureModifier<SnRealtimeCall?>, $FutureProvider<SnRealtimeCall?> {
-  const OngoingCallProvider._({
+  OngoingCallProvider._({
     required OngoingCallFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$ongoingCallHash() => r'3d1efaaca2981ebf698e9241453dbf2b2f13bfe3';
 
 final class OngoingCallFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRealtimeCall?>, String> {
-  const OngoingCallFamily._()
+  OngoingCallFamily._()
     : super(
         retry: null,
         name: r'ongoingCallProvider',

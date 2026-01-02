@@ -10,11 +10,11 @@ part of 'chat_online_count.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ChatOnlineCountNotifier)
-const chatOnlineCountProvider = ChatOnlineCountNotifierFamily._();
+final chatOnlineCountProvider = ChatOnlineCountNotifierFamily._();
 
 final class ChatOnlineCountNotifierProvider
     extends $AsyncNotifierProvider<ChatOnlineCountNotifier, int> {
-  const ChatOnlineCountNotifierProvider._({
+  ChatOnlineCountNotifierProvider._({
     required ChatOnlineCountNotifierFamily super.from,
     required String super.argument,
   }) : super(
@@ -63,7 +63,7 @@ final class ChatOnlineCountNotifierFamily extends $Family
           FutureOr<int>,
           String
         > {
-  const ChatOnlineCountNotifierFamily._()
+  ChatOnlineCountNotifierFamily._()
     : super(
         retry: null,
         name: r'chatOnlineCountProvider',
@@ -87,7 +87,6 @@ abstract class _$ChatOnlineCountNotifier extends $AsyncNotifier<int> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<int>, int>;
     final element =
         ref.element
@@ -97,6 +96,6 @@ abstract class _$ChatOnlineCountNotifier extends $AsyncNotifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

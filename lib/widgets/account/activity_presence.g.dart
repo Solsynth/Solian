@@ -10,7 +10,7 @@ part of 'activity_presence.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(discordAssets)
-const discordAssetsProvider = DiscordAssetsFamily._();
+final discordAssetsProvider = DiscordAssetsFamily._();
 
 final class DiscordAssetsProvider
     extends
@@ -22,7 +22,7 @@ final class DiscordAssetsProvider
     with
         $FutureModifier<Map<String, String>?>,
         $FutureProvider<Map<String, String>?> {
-  const DiscordAssetsProvider._({
+  DiscordAssetsProvider._({
     required DiscordAssetsFamily super.from,
     required SnPresenceActivity super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class DiscordAssetsFamily extends $Family
           FutureOr<Map<String, String>?>,
           SnPresenceActivity
         > {
-  const DiscordAssetsFamily._()
+  DiscordAssetsFamily._()
     : super(
         retry: null,
         name: r'discordAssetsProvider',
@@ -91,12 +91,12 @@ final class DiscordAssetsFamily extends $Family
 }
 
 @ProviderFor(discordAssetsUrl)
-const discordAssetsUrlProvider = DiscordAssetsUrlFamily._();
+final discordAssetsUrlProvider = DiscordAssetsUrlFamily._();
 
 final class DiscordAssetsUrlProvider
     extends $FunctionalProvider<AsyncValue<String?>, String?, FutureOr<String?>>
     with $FutureModifier<String?>, $FutureProvider<String?> {
-  const DiscordAssetsUrlProvider._({
+  DiscordAssetsUrlProvider._({
     required DiscordAssetsUrlFamily super.from,
     required (SnPresenceActivity, String) super.argument,
   }) : super(
@@ -147,7 +147,7 @@ final class DiscordAssetsUrlFamily extends $Family
           FutureOr<String?>,
           (SnPresenceActivity, String)
         > {
-  const DiscordAssetsUrlFamily._()
+  DiscordAssetsUrlFamily._()
     : super(
         retry: null,
         name: r'discordAssetsUrlProvider',

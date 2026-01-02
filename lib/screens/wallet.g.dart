@@ -10,7 +10,7 @@ part of 'wallet.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(walletCurrent)
-const walletCurrentProvider = WalletCurrentProvider._();
+final walletCurrentProvider = WalletCurrentProvider._();
 
 final class WalletCurrentProvider
     extends
@@ -20,7 +20,7 @@ final class WalletCurrentProvider
           FutureOr<SnWallet?>
         >
     with $FutureModifier<SnWallet?>, $FutureProvider<SnWallet?> {
-  const WalletCurrentProvider._()
+  WalletCurrentProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,7 +48,7 @@ final class WalletCurrentProvider
 String _$walletCurrentHash() => r'bdc7cb27ce2286b561a03522085cc4efc884faad';
 
 @ProviderFor(walletStats)
-const walletStatsProvider = WalletStatsProvider._();
+final walletStatsProvider = WalletStatsProvider._();
 
 final class WalletStatsProvider
     extends
@@ -58,7 +58,7 @@ final class WalletStatsProvider
           FutureOr<SnWalletStats>
         >
     with $FutureModifier<SnWalletStats>, $FutureProvider<SnWalletStats> {
-  const WalletStatsProvider._()
+  WalletStatsProvider._()
     : super(
         from: null,
         argument: null,
@@ -87,7 +87,7 @@ final class WalletStatsProvider
 String _$walletStatsHash() => r'2243011937b377a66cdf44cae144021cee69e82f';
 
 @ProviderFor(walletFund)
-const walletFundProvider = WalletFundFamily._();
+final walletFundProvider = WalletFundFamily._();
 
 final class WalletFundProvider
     extends
@@ -97,7 +97,7 @@ final class WalletFundProvider
           FutureOr<SnWalletFund>
         >
     with $FutureModifier<SnWalletFund>, $FutureProvider<SnWalletFund> {
-  const WalletFundProvider._({
+  WalletFundProvider._({
     required WalletFundFamily super.from,
     required String super.argument,
   }) : super(
@@ -145,7 +145,7 @@ String _$walletFundHash() => r'459efdee5e2775eedaa4312e0d317c218fa7e1fa';
 
 final class WalletFundFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletFund>, String> {
-  const WalletFundFamily._()
+  WalletFundFamily._()
     : super(
         retry: null,
         name: r'walletFundProvider',

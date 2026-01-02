@@ -10,7 +10,7 @@ part of 'hub.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(publisherStats)
-const publisherStatsProvider = PublisherStatsFamily._();
+final publisherStatsProvider = PublisherStatsFamily._();
 
 final class PublisherStatsProvider
     extends
@@ -22,7 +22,7 @@ final class PublisherStatsProvider
     with
         $FutureModifier<SnPublisherStats?>,
         $FutureProvider<SnPublisherStats?> {
-  const PublisherStatsProvider._({
+  PublisherStatsProvider._({
     required PublisherStatsFamily super.from,
     required String? super.argument,
   }) : super(
@@ -70,7 +70,7 @@ String _$publisherStatsHash() => r'eea4ed98bf165cc785874f83b912bb7e23d1f7bc';
 
 final class PublisherStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisherStats?>, String?> {
-  const PublisherStatsFamily._()
+  PublisherStatsFamily._()
     : super(
         retry: null,
         name: r'publisherStatsProvider',
@@ -87,7 +87,7 @@ final class PublisherStatsFamily extends $Family
 }
 
 @ProviderFor(publisherHeatmap)
-const publisherHeatmapProvider = PublisherHeatmapFamily._();
+final publisherHeatmapProvider = PublisherHeatmapFamily._();
 
 final class PublisherHeatmapProvider
     extends
@@ -97,7 +97,7 @@ final class PublisherHeatmapProvider
           FutureOr<SnHeatmap?>
         >
     with $FutureModifier<SnHeatmap?>, $FutureProvider<SnHeatmap?> {
-  const PublisherHeatmapProvider._({
+  PublisherHeatmapProvider._({
     required PublisherHeatmapFamily super.from,
     required String? super.argument,
   }) : super(
@@ -144,7 +144,7 @@ String _$publisherHeatmapHash() => r'5f70c55e14629ec8628445a317888e02fccd9af2';
 
 final class PublisherHeatmapFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnHeatmap?>, String?> {
-  const PublisherHeatmapFamily._()
+  PublisherHeatmapFamily._()
     : super(
         retry: null,
         name: r'publisherHeatmapProvider',
@@ -161,7 +161,7 @@ final class PublisherHeatmapFamily extends $Family
 }
 
 @ProviderFor(publisherIdentity)
-const publisherIdentityProvider = PublisherIdentityFamily._();
+final publisherIdentityProvider = PublisherIdentityFamily._();
 
 final class PublisherIdentityProvider
     extends
@@ -173,7 +173,7 @@ final class PublisherIdentityProvider
     with
         $FutureModifier<SnPublisherMember?>,
         $FutureProvider<SnPublisherMember?> {
-  const PublisherIdentityProvider._({
+  PublisherIdentityProvider._({
     required PublisherIdentityFamily super.from,
     required String super.argument,
   }) : super(
@@ -221,7 +221,7 @@ String _$publisherIdentityHash() => r'299372f25fa4b2bf8e11a8ba2d645100fc38e76f';
 
 final class PublisherIdentityFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisherMember?>, String> {
-  const PublisherIdentityFamily._()
+  PublisherIdentityFamily._()
     : super(
         retry: null,
         name: r'publisherIdentityProvider',
@@ -238,7 +238,7 @@ final class PublisherIdentityFamily extends $Family
 }
 
 @ProviderFor(publisherFeatures)
-const publisherFeaturesProvider = PublisherFeaturesFamily._();
+final publisherFeaturesProvider = PublisherFeaturesFamily._();
 
 final class PublisherFeaturesProvider
     extends
@@ -250,7 +250,7 @@ final class PublisherFeaturesProvider
     with
         $FutureModifier<Map<String, bool>>,
         $FutureProvider<Map<String, bool>> {
-  const PublisherFeaturesProvider._({
+  PublisherFeaturesProvider._({
     required PublisherFeaturesFamily super.from,
     required String? super.argument,
   }) : super(
@@ -298,7 +298,7 @@ String _$publisherFeaturesHash() => r'08bace2d9a3da227ecec0cbf8709e55ee0646ca2';
 
 final class PublisherFeaturesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Map<String, bool>>, String?> {
-  const PublisherFeaturesFamily._()
+  PublisherFeaturesFamily._()
     : super(
         retry: null,
         name: r'publisherFeaturesProvider',
@@ -315,7 +315,7 @@ final class PublisherFeaturesFamily extends $Family
 }
 
 @ProviderFor(publisherInvites)
-const publisherInvitesProvider = PublisherInvitesProvider._();
+final publisherInvitesProvider = PublisherInvitesProvider._();
 
 final class PublisherInvitesProvider
     extends
@@ -327,7 +327,7 @@ final class PublisherInvitesProvider
     with
         $FutureModifier<List<SnPublisherMember>>,
         $FutureProvider<List<SnPublisherMember>> {
-  const PublisherInvitesProvider._()
+  PublisherInvitesProvider._()
     : super(
         from: null,
         argument: null,
@@ -356,7 +356,7 @@ final class PublisherInvitesProvider
 String _$publisherInvitesHash() => r'93aafc2f02af0a7a055ec1770b3999363dfaabdc';
 
 @ProviderFor(publisherActorStatus)
-const publisherActorStatusProvider = PublisherActorStatusFamily._();
+final publisherActorStatusProvider = PublisherActorStatusFamily._();
 
 final class PublisherActorStatusProvider
     extends
@@ -368,7 +368,7 @@ final class PublisherActorStatusProvider
     with
         $FutureModifier<SnActorStatusResponse>,
         $FutureProvider<SnActorStatusResponse> {
-  const PublisherActorStatusProvider._({
+  PublisherActorStatusProvider._({
     required PublisherActorStatusFamily super.from,
     required String? super.argument,
   }) : super(
@@ -417,7 +417,7 @@ String _$publisherActorStatusHash() =>
 
 final class PublisherActorStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnActorStatusResponse>, String?> {
-  const PublisherActorStatusFamily._()
+  PublisherActorStatusFamily._()
     : super(
         retry: null,
         name: r'publisherActorStatusProvider',

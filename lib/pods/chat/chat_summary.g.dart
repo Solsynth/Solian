@@ -10,11 +10,11 @@ part of 'chat_summary.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ChatUnreadCountNotifier)
-const chatUnreadCountProvider = ChatUnreadCountNotifierProvider._();
+final chatUnreadCountProvider = ChatUnreadCountNotifierProvider._();
 
 final class ChatUnreadCountNotifierProvider
     extends $AsyncNotifierProvider<ChatUnreadCountNotifier, int> {
-  const ChatUnreadCountNotifierProvider._()
+  ChatUnreadCountNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -41,7 +41,6 @@ abstract class _$ChatUnreadCountNotifier extends $AsyncNotifier<int> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<int>, int>;
     final element =
         ref.element
@@ -51,16 +50,16 @@ abstract class _$ChatUnreadCountNotifier extends $AsyncNotifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ChatSummary)
-const chatSummaryProvider = ChatSummaryProvider._();
+final chatSummaryProvider = ChatSummaryProvider._();
 
 final class ChatSummaryProvider
     extends $AsyncNotifierProvider<ChatSummary, Map<String, SnChatSummary>> {
-  const ChatSummaryProvider._()
+  ChatSummaryProvider._()
     : super(
         from: null,
         argument: null,
@@ -87,7 +86,6 @@ abstract class _$ChatSummary
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref
             as $Ref<
@@ -105,6 +103,6 @@ abstract class _$ChatSummary
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

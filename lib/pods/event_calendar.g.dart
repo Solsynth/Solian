@@ -12,7 +12,7 @@ part of 'event_calendar.dart';
 /// This can be used anywhere in the app where calendar data is needed
 
 @ProviderFor(eventCalendar)
-const eventCalendarProvider = EventCalendarFamily._();
+final eventCalendarProvider = EventCalendarFamily._();
 
 /// Provider for fetching event calendar data
 /// This can be used anywhere in the app where calendar data is needed
@@ -29,7 +29,7 @@ final class EventCalendarProvider
         $FutureProvider<List<SnEventCalendarEntry>> {
   /// Provider for fetching event calendar data
   /// This can be used anywhere in the app where calendar data is needed
-  const EventCalendarProvider._({
+  EventCalendarProvider._({
     required EventCalendarFamily super.from,
     required EventCalendarQuery super.argument,
   }) : super(
@@ -84,7 +84,7 @@ final class EventCalendarFamily extends $Family
           FutureOr<List<SnEventCalendarEntry>>,
           EventCalendarQuery
         > {
-  const EventCalendarFamily._()
+  EventCalendarFamily._()
     : super(
         retry: null,
         name: r'eventCalendarProvider',
