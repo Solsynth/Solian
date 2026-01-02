@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/post/post_list.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 const kShufflePostListId = 'shuffle';
 
@@ -60,6 +61,7 @@ class PostShuffleScreen extends HookConsumerWidget {
     }, [items.length, postListNotifier.fetchedAll]);
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(title: const Text('postShuffle').tr()),
       body: Builder(
         builder: (context) {
@@ -75,13 +77,16 @@ class PostShuffleScreen extends HookConsumerWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   return SingleChildScrollView(
-                    child: PostActionableItem(
-                      item: items[index],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 640),
+                      child: PostActionableItem(
+                        item: items[index],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
                       ),
-                    ),
+                    ).center(),
                   );
                 },
               ),
