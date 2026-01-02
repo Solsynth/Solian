@@ -199,6 +199,7 @@ class PostReplyPreview extends HookConsumerWidget {
                                   child: MarkdownTextContent(
                                     content: _convertContentToMarkdown(post),
                                     attachments: post.attachments,
+                                    noMentionChip: post.fediverseUri != null,
                                   ).padding(top: 2),
                                 )
                               else
@@ -607,6 +608,7 @@ class ReferencedPostWidget extends StatelessWidget {
                               ? const EdgeInsets.only(bottom: 4)
                               : null,
                           attachments: item.attachments,
+                          noMentionChip: item.fediverseUri != null,
                         ).padding(bottom: 4),
                       if (referencePost.isTruncated)
                         const PostTruncateHint(
@@ -1070,6 +1072,7 @@ class PostBody extends ConsumerWidget {
                   MarkdownTextContent(
                     content: '${_convertContentToMarkdown(item)}...',
                     attachments: item.attachments,
+                    noMentionChip: item.fediverseUri != null,
                   ),
               ],
             ),
@@ -1109,6 +1112,7 @@ class PostBody extends ConsumerWidget {
                       : _convertContentToMarkdown(item),
                   isSelectable: isTextSelectable,
                   attachments: item.attachments,
+                  noMentionChip: item.fediverseUri != null,
                 ),
                 if (translationSection != null) translationSection!,
               ],

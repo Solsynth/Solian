@@ -584,6 +584,10 @@ class _WebSocketIndicator extends HookConsumerWidget {
       isInteractive = false;
     }
 
+    if (user.value == null) {
+      opacity = 0.0;
+    }
+
     return Positioned(
       top: devicePadding.top + (isDesktop ? 27.5 : 25),
       left: 0,

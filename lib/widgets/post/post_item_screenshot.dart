@@ -205,6 +205,7 @@ class PostItemScreenshot extends ConsumerWidget {
                                     child: MarkdownTextContent(
                                       content: post.content!,
                                       attachments: post.attachments,
+                                      noMentionChip: item.fediverseUri != null,
                                     ).padding(top: 2),
                                   )
                                 else

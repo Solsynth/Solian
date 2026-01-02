@@ -425,6 +425,7 @@ class PostItem extends HookConsumerWidget {
                 content: translatedText.value!,
                 isSelectable: isTextSelectable,
                 attachments: item.attachments,
+                noMentionChip: item.fediverseUri != null,
               ),
             ],
           )
