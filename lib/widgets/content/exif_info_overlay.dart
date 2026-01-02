@@ -116,7 +116,7 @@ class ExifInfoOverlay extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         child: Wrap(
-          alignment: WrapAlignment.start,
+          alignment: WrapAlignment.end,
           children: items
               .map(
                 (item) => Padding(
