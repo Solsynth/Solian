@@ -123,7 +123,6 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                     return CheckboxListTile(
                       controlAffinity: ListTileControlAffinity.trailing,
                       title: Text(publisher.nick),
-                      subtitle: Text('@${publisher.name}'),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                       ),
@@ -146,9 +145,11 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                       dense: true,
                       secondary: ProfilePictureWidget(
                         file: subscription.publisher.picture,
+                        radius: 12,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                      contentPadding: const EdgeInsets.only(
+                        left: 15,
+                        right: 16,
                       ),
                     );
                   }),
