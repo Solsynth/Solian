@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/embed.dart';
-import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/poll/poll_submit.dart';
 import 'package:island/widgets/wallet/fund_envelope.dart';
@@ -25,15 +24,8 @@ class EmbedListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalizedEmbeds = embeds
-        .map((e) => convertMapKeysToSnakeCase(e as Map<String, dynamic>))
-        .toList();
-    final linkEmbeds = normalizedEmbeds
-        .where((e) => e['type'] == 'link')
-        .toList();
-    final otherEmbeds = normalizedEmbeds
-        .where((e) => e['type'] != 'link')
-        .toList();
+    final linkEmbeds = embeds.where((e) => e['type'] == 'link').toList();
+    final otherEmbeds = embeds.where((e) => e['type'] != 'link').toList();
 
     return Column(
       children: [

@@ -46,4 +46,4 @@ final class SubscribedFeedsProvider
   }
 }
 
-String _$subscribedFeedsHash() => r'5c0c8c30c5f543f6ea1d39786a6778f77ba5b3df';
+String _$subscribedFeedsHash() => r'91d6f909a3d2c9f68028550223f7c7b2128727d2';
