@@ -10,26 +10,32 @@ import Foundation
 private let flutterKeyPrefix = "flutter."
 
 private let flutterKeysToSync: [String] = [
-    "dyn_user_tk"
+    "dyn_user_tk",
+    "app_server_url"
 ]
 
 func syncDefaultsToGroup() {
+    print("[iOS] syncDefaultsToGroup() called")
+    
     let standard = UserDefaults.standard
-    let shared = UserDefaults(suiteName: "dev.solsynth.solian")
-
+    let shared = UserDefaults(suiteName: "group.solsynth.solian")
+    
     guard let shared else {
         print("[iOS] App Group UserDefaults not available")
         return
     }
-
+    
     for key in flutterKeysToSync {
-        guard key.hasPrefix(flutterKeyPrefix) else { continue }
-
-        if let value = standard.object(forKey: key) {
-            print("[iOS] Syncing key to App Group: \(key)")
-            shared.set(value, forKey: key)
+        let prefixedKey = key.starts(with: flutterKeyPrefix) ? key : flutterKeyPrefix + key
+        
+        if let value = standard.object(forKey: prefixedKey) {
+            print("[iOS] Syncing key to App Group: \(prefixedKey)")
+            shared.set(value, forKey: prefixedKey)
+        } else {
+            print("[iOS] Key \(prefixedKey) was not found in the app data, skipping...")
         }
     }
-
+    
     shared.synchronize()
+    print("[iOS] Sync completed")
 }

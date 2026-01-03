@@ -272,7 +272,7 @@ class AppWrapper extends HookConsumerWidget {
     final router = ref.read(routerProvider);
     if (uri.queryParameters.isNotEmpty) {
       path = Uri.parse(
-        path,
+        path == '/dashboard' ? '/' : path,
       ).replace(queryParameters: uri.queryParameters).toString();
     }
     router.push(path);

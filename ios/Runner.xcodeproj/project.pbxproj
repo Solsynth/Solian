@@ -467,8 +467,6 @@
 				7301DB062F08D99C008390F3 /* SolianWidgetExtension */,
 			);
 			name = SolianWidgetExtensionExtension;
-			packageProductDependencies = (
-			);
 			productName = SolianWidgetExtensionExtension;
 			productReference = 7301DB012F08D99C008390F3 /* SolianWidgetExtensionExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -632,6 +630,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			preferredProjectObjectVersion = 77;
@@ -1203,7 +1202,7 @@
 				INFOPLIST_FILE = SolianWidgetExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SolianWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1249,7 +1248,7 @@
 				INFOPLIST_FILE = SolianWidgetExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SolianWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1292,7 +1291,7 @@
 				INFOPLIST_FILE = SolianWidgetExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SolianWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

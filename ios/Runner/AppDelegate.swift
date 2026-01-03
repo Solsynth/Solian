@@ -1,4 +1,5 @@
 import Flutter
+import WidgetKit
 import UIKit
 import WatchConnectivity
 
@@ -12,6 +13,7 @@ import WatchConnectivity
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         syncDefaultsToGroup()
+        WidgetCenter.shared.reloadAllTimelines()
         
         UNUserNotificationCenter.current().delegate = notifyDelegate
 
@@ -31,6 +33,9 @@ import WatchConnectivity
         
         GeneratedPluginRegistrant.register(with: self)
         
+        // Setup widget sync method channel
+        setupWidgetSyncChannel()
+        
         // Always initialize and retain a strong reference
         if WCSession.isSupported() {
             AppDelegate.sharedWatchConnectivityService = WatchConnectivityService.shared
@@ -39,6 +44,30 @@ import WatchConnectivity
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+    
+    private func setupWidgetSyncChannel() {
+        let controller = window?.rootViewController as? FlutterViewController
+        let channel = FlutterMethodChannel(name: "dev.solsynth.solian/widget", binaryMessenger: controller!.binaryMessenger)
+        
+        channel.setMethodCallHandler { [weak self] (call, result) in
+            if call.method == "syncToWidget" {
+                syncDefaultsToGroup()
+                WidgetCenter.shared.reloadAllTimelines()
+                result(true)
+            } else {
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+    
+    override func applicationDidEnterBackground(_ application: UIApplication) {
+        syncDefaultsToGroup()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    
+    override func applicationWillTerminate(_ application: UIApplication) {
+        syncDefaultsToGroup()
     }
 }
 

@@ -1,0 +1,16 @@
+/* Check In Level Names */
+"checkInResultT0" = "大凶";
+"checkInResultT1" = "凶";
+"checkInResultT2" = "中平";
+"checkInResultT3" = "吉";
+"checkInResultT4" = "大吉";
+"checkInResultT5" = "特殊";
+
+/* Widget UI Strings */
+"checkIn" = "打卡";
+"tapToCheckIn" = "点击今日打卡";
+"error" = "错误";
+"openAppToRefresh" = "打开应用以刷新";
+"loading" = "加载中...";
+"rewardPoints" = "%d";
+"rewardExperience" = "%d 经验值";
