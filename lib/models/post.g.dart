@@ -21,7 +21,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   content: json['content'] as String?,
   slug: json['slug'] as String?,
   type: (json['type'] as num?)?.toInt() ?? 0,
-  meta: json['metadata'] as Map<String, dynamic>?,
+  meta: json['meta'] as Map<String, dynamic>?,
   embedView: json['embed_view'] == null
       ? null
       : SnPostEmbedView.fromJson(json['embed_view'] as Map<String, dynamic>),
@@ -116,7 +116,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'content': instance.content,
   'slug': instance.slug,
   'type': instance.type,
-  'metadata': instance.meta,
+  'meta': instance.meta,
   'embed_view': instance.embedView?.toJson(),
   'views_unique': instance.viewsUnique,
   'views_total': instance.viewsTotal,

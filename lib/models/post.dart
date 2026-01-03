@@ -23,7 +23,7 @@ sealed class SnPost with _$SnPost {
     String? content,
     String? slug,
     @Default(0) int type,
-    @JsonKey(name: "metadata") Map<String, dynamic>? meta,
+    Map<String, dynamic>? meta,
     SnPostEmbedView? embedView,
     @Default(0) int viewsUnique,
     @Default(0) int viewsTotal,
