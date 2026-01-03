@@ -610,8 +610,8 @@ struct CheckInWidgetEntryView: View {
     private func NotCheckedInView(notableDay: NotableDay?) -> some View {
         Link(destination: URL(string: "solian://dashboard")!) {
             VStack(alignment: .leading, spacing: isAccessory ? 2 : 8) {
-                HStack(spacing: 4) {
-                    Image(systemName: "flame")
+                HStack(spacing: 8) {
+                    Image(systemName: "flame.fill")
                         .foregroundColor(.secondary)
                         .font(isAccessory ? .caption : .title3)
                     Text(NSLocalizedString("checkIn", comment: "Check In"))
@@ -696,13 +696,45 @@ struct CheckInWidgetEntryView: View {
 
 struct SolianCheckInWidget: Widget {
     let kind: String = "SolianCheckInWidget"
-    
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            @Environment(\.colorScheme) var colorScheme
             if #available(iOS 17.0, *) {
-                CheckInWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-                    .padding(.vertical, 8)
+                ZStack {
+                    CheckInWidgetEntryView(entry: entry)
+
+                    if entry.result != nil || entry.notableDay != nil {
+                        GeometryReader { geometry in
+                            Image(colorScheme == .dark ? "CloudyLambDark" : "CloudyLamb")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(
+                                    width: geometry.size.width * 0.9,
+                                    height: geometry.size.width * 0.9
+                                )
+                                .opacity(0.18)
+                                .mask(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.white,
+                                            Color.white,
+                                            Color.clear
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .position(
+                                    x: geometry.size.width * 0.9,
+                                    y: 20
+                                )
+                        }
+                        .allowsHitTesting(false)
+                    }
+                }
+                .containerBackground(.fill.tertiary, for: .widget)
+                .padding(.vertical, 8)
             } else {
                 CheckInWidgetEntryView(entry: entry)
                     .padding()
