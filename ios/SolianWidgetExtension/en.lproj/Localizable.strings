@@ -1,0 +1,23 @@
+/* Check In Level Names */
+"checkInResultT0" = "Great Misfortune";
+"checkInResultT1" = "Misfortune";
+"checkInResultT2" = "Moderate";
+"checkInResultT3" = "Fortune";
+"checkInResultT4" = "Great Fortune";
+"checkInResultT5" = "Special";
+
+/* Widget UI Strings */
+"checkIn" = "Check In";
+"tapToCheckIn" = "Tap to check in today";
+"error" = "Error";
+"openAppToRefresh" = "Open app to refresh";
+"loading" = "Loading...";
+"rewardPoints" = "%d";
+"rewardExperience" = "%d EXP";
+"footer" = "Solian Check In";
+
+/* Notable Day Strings */
+"notableDayToday" = "%@ is today!";
+"notableDayIs" = "%@ is %@";
+"notableDayUpcoming" = "Upcoming";
+"today" = "Today";

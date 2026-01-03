@@ -1,0 +1,22 @@
+/* Check In Level Names */
+"checkInResultT0" = "大凶";
+"checkInResultT1" = "凶";
+"checkInResultT2" = "中平";
+"checkInResultT3" = "吉";
+"checkInResultT4" = "大吉";
+"checkInResultT5" = "特殊";
+
+/* Widget UI Strings */
+"checkIn" = "チェックイン";
+"tapToCheckIn" = "タップして今日チェックイン";
+"error" = "エラー";
+"openAppToRefresh" = "アプリを開いて更新";
+"loading" = "読み込み中...";
+"rewardPoints" = "%d";
+"rewardExperience" = "%d 経験値";
+"footer" = "Solian チェックイン";
+
+/* Notable Day Strings */
+"notableDayToday" = "%@は今日です!";
+"notableDayIs" = "%@は%@です";
+"today" = "今日";

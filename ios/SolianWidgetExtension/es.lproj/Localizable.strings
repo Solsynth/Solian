@@ -1,0 +1,22 @@
+/* Check In Level Names */
+"checkInResultT0" = "Gran Desventura";
+"checkInResultT1" = "Desventura";
+"checkInResultT2" = "Moderado";
+"checkInResultT3" = "Buena Fortuna";
+"checkInResultT4" = "Gran Fortuna";
+"checkInResultT5" = "Especial";
+
+/* Widget UI Strings */
+"checkIn" = "Registrar";
+"tapToCheckIn" = "Toca para registrar hoy";
+"error" = "Error";
+"openAppToRefresh" = "Abre la aplicación para actualizar";
+"loading" = "Cargando...";
+"rewardPoints" = "%d";
+"rewardExperience" = "%d EXP";
+"footer" = "Registro Solian";
+
+/* Notable Day Strings */
+"notableDayToday" = "%@ es hoy!";
+"notableDayIs" = "%@ es %@";
+"today" = "Hoy";

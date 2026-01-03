@@ -1,0 +1,22 @@
+/* Check In Level Names */
+"checkInResultT0" = "대흉";
+"checkInResultT1" = "흉";
+"checkInResultT2" = "중평";
+"checkInResultT3" = "길";
+"checkInResultT4" = "대길";
+"checkInResultT5" = "특수";
+
+/* Widget UI Strings */
+"checkIn" = "체크인";
+"tapToCheckIn" = "탭하여 오늘 체크인";
+"error" = "오류";
+"openAppToRefresh" = "앱을 열어 새로고침";
+"loading" = "로딩 중...";
+"rewardPoints" = "%d";
+"rewardExperience" = "%d 경험치";
+"footer" = "Solian 체크인";
+
+/* Notable Day Strings */
+"notableDayToday" = "%@ 오늘입니다!";
+"notableDayIs" = "%@ 은/는 %@";
+"today" = "오늘";

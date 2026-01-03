@@ -8,16 +8,15 @@
 
 /* Widget UI Strings */
 "checkIn" = "打卡";
-"tapToCheckIn" = "点击今日打卡";
-"error" = "错误";
-"openAppToRefresh" = "打开应用以刷新";
-"loading" = "加载中...";
+"tapToCheckIn" = "點擊今日打卡";
+"error" = "錯誤";
+"openAppToRefresh" = "打開應用以刷新";
+"loading" = "載入中...";
 "rewardPoints" = "%d";
-"rewardExperience" = "%d 经验值";
-"footer" = "Solian 签到";
+"rewardExperience" = "%d 經驗值";
+"footer" = "Solian 簽到";
 
 /* Notable Day Strings */
 "notableDayToday" = "%@是今天!";
 "notableDayIs" = "%@ 是 %@";
-"notableDayUpcoming" = "接下来";
 "today" = "今天";

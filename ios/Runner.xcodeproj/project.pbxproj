@@ -631,6 +631,10 @@
 				en,
 				Base,
 				"zh-Hans",
+				es,
+				ja,
+				ko,
+				"zh-Hant",
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			preferredProjectObjectVersion = 77;
