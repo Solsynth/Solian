@@ -64,7 +64,7 @@ final class MarketplaceWebFeedProvider
 }
 
 String _$marketplaceWebFeedHash() =>
-    r'8383f94f1bc272b903c341b8d95000313b69d14c';
+    r'36f3235ba346b0d416ce5e66dca8d6cecbafb608';
 
 final class MarketplaceWebFeedFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWebFeed>, String> {
@@ -141,7 +141,7 @@ final class MarketplaceWebFeedSubscriptionProvider
 }
 
 String _$marketplaceWebFeedSubscriptionHash() =>
-    r'2ff06a48ed7d4236b57412ecca55e94c0a0b6330';
+    r'6efa43b4d7e2ab62a721a67e035038dcf63be524';
 
 /// Provider for web feed subscription status
 

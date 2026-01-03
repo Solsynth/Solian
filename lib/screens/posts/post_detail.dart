@@ -485,7 +485,7 @@ class PostDetailScreen extends HookConsumerWidget {
                     SliverToBoxAdapter(
                       child: Center(
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 600),
+                          constraints: BoxConstraints(maxWidth: 800),
                           child: PostActionButtons(
                             post: post,
                             renderingPadding: const EdgeInsets.symmetric(
@@ -506,7 +506,7 @@ class PostDetailScreen extends HookConsumerWidget {
                         ),
                       ),
                     ),
-                    PostRepliesList(postId: id, maxWidth: 600),
+                    PostRepliesList(postId: id, maxWidth: 800),
                     SliverGap(MediaQuery.of(context).padding.bottom + 80),
                   ],
                 ),
