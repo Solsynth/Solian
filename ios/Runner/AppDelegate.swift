@@ -11,6 +11,8 @@ import WatchConnectivity
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        syncDefaultsToGroup()
+        
         UNUserNotificationCenter.current().delegate = notifyDelegate
 
         let replyableMessageCategory = UNNotificationCategory(
