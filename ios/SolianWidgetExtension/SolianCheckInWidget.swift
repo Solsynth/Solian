@@ -694,8 +694,8 @@ struct CheckInWidgetEntryView: View {
     }
 }
 
-struct SolianWidgetExtension: Widget {
-    let kind: String = "SolianWidgetExtension"
+struct SolianCheckInWidget: Widget {
+    let kind: String = "SolianCheckInWidget"
     
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
@@ -724,13 +724,13 @@ struct SolianWidgetExtension: Widget {
 }
 
 #Preview(as: .systemSmall) {
-    SolianWidgetExtension()
+    SolianCheckInWidget()
 } timeline: {
     CheckInEntry(date: .now, result: nil, notableDay: nil, error: nil, isLoading: false)
 }
 
 #Preview(as: .systemMedium) {
-    SolianWidgetExtension()
+    SolianCheckInWidget()
 } timeline: {
     CheckInEntry(
         date: .now,
@@ -765,7 +765,7 @@ struct SolianWidgetExtension: Widget {
 
 #if os(iOS)
 #Preview(as: .accessoryRectangular) {
-    SolianWidgetExtension()
+    SolianCheckInWidget()
 } timeline: {
     CheckInEntry(
         date: .now,
