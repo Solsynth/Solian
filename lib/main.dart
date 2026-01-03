@@ -20,6 +20,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/services/notify.dart';
+import 'package:island/services/widget_sync_service.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -281,6 +282,11 @@ class IslandApp extends HookConsumerWidget {
       final userNotifier = ref.read(userInfoProvider.notifier);
       ref.listen(websocketStateProvider, (_, state) {
         talker.info('[WebSocket] $state');
+      });
+      ref.listen(userInfoProvider, (_, user) {
+        if (user.value != null) {
+          WidgetSyncService().syncToWidget();
+        }
       });
       Future(() {
         userNotifier.fetchUser().then((_) {
