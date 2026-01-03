@@ -110,6 +110,10 @@ class NotificationService {
     }()
     
     func fetchRecentNotifications(take: Int = 5) async throws -> [SnNotification] {
+        if take == 0 {
+            return []
+        }
+        
         guard let token = networkService.token else {
             throw RemoteError.missingCredentials
         }
@@ -213,13 +217,13 @@ struct NotificationProvider: TimelineProvider {
                 let takeLimit: Int
                 switch context.family {
                 case .systemSmall:
-                    takeLimit = 3
+                    takeLimit = 0
                 case .systemMedium:
-                    takeLimit = 5
+                    takeLimit = 1
                 case .systemLarge:
-                    takeLimit = 10
+                    takeLimit = 3
                 default:
-                    takeLimit = 5
+                    takeLimit = 0
                 }
                 
                 async let notifications = try await notificationService.fetchRecentNotifications(take: takeLimit)
@@ -384,7 +388,7 @@ struct NotificationWidgetEntryView: View {
                         }
                     }.padding(.bottom, 8)
                     
-                    let displayCount = family == .systemMedium ? 1 : 3
+                    let displayCount = family == .systemMedium ? 1 : 5
                     let displayNotifications = Array(notifications.prefix(displayCount))
                     
                     VStack(alignment: .leading, spacing: 4) {
@@ -437,6 +441,13 @@ struct NotificationWidgetEntryView: View {
                     Text(notification.subtitle)
                         .font(.caption)
                         .lineLimit(1)
+                }
+                
+                if !compact && !notification.content.isEmpty {
+                    Text(notification.content)
+                        .font(.caption2)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
                 }
                 
                 if let createdDate = notification.createdDate {
