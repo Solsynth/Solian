@@ -20,3 +20,17 @@
 "notableDayToday" = "%@ 오늘입니다!";
 "notableDayIs" = "%@ 은/는 %@";
 "today" = "오늘";
+
+/* Notification Widget Strings */
+"notifications" = "알림";
+"noNotifications" = "아직 알림이 없습니다";
+"tapToViewAll" = "탭하여 모든 알림 보기";
+"justNow" = "방금";
+"minutesAgo" = "%d분 전";
+"hoursAgo" = "%d시간 전";
+"daysAgo" = "%d일 전";
+"pleaseSignIn" = "앱을 열어 로그인하세요.";
+"invalidServerConfig" = "서버 구성이 올바르지 않습니다.";
+"invalidResponse" = "서버에서 잘못된 응답을 받았습니다.";
+"httpError" = "서버 오류 (%d).";
+"decodingError" = "서버 데이터 읽기에 실패했습니다.";

@@ -20,3 +20,17 @@
 "notableDayToday" = "%@は今日です!";
 "notableDayIs" = "%@は%@です";
 "today" = "今日";
+
+/* Notification Widget Strings */
+"notifications" = "通知";
+"noNotifications" = "まだ通知はありません";
+"tapToViewAll" = "タップしてすべての通知を表示";
+"justNow" = "たった今";
+"minutesAgo" = "%d分前";
+"hoursAgo" = "%d時間前";
+"daysAgo" = "%d日前";
+"pleaseSignIn" = "アプリを開いてサインインしてください。";
+"invalidServerConfig" = "サーバー設定が無効です。";
+"invalidResponse" = "サーバーから無効な応答が返されました。";
+"httpError" = "サーバーエラー (%d)。";
+"decodingError" = "サーバーデータの読み込みに失敗しました。";

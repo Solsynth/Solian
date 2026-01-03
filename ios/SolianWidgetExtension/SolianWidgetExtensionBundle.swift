@@ -12,5 +12,6 @@ import SwiftUI
 struct SolianWidgetExtensionBundle: WidgetBundle {
     var body: some Widget {
         SolianCheckInWidget()
+        SolianNotificationWidget()
     }
 }

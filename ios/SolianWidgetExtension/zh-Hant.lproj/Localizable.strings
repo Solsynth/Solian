@@ -20,3 +20,17 @@
 "notableDayToday" = "%@是今天!";
 "notableDayIs" = "%@ 是 %@";
 "today" = "今天";
+
+/* Notification Widget Strings */
+"notifications" = "通知";
+"noNotifications" = "還沒有通知";
+"tapToViewAll" = "點擊查看所有通知";
+"justNow" = "剛剛";
+"minutesAgo" = "%d分鐘前";
+"hoursAgo" = "%d小時前";
+"daysAgo" = "%d天前";
+"pleaseSignIn" = "請打開應用登錄。";
+"invalidServerConfig" = "伺服器配置無效。";
+"invalidResponse" = "伺服器返回了無效響應。";
+"httpError" = "伺服器錯誤 (%d)。";
+"decodingError" = "讀取伺服器數據失敗。";

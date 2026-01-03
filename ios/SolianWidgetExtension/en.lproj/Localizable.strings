@@ -21,3 +21,21 @@
 "notableDayIs" = "%@ is %@";
 "notableDayUpcoming" = "Upcoming";
 "today" = "Today";
+
+/* Notification Widget Strings */
+"notifications" = "Notifications";
+"noNotifications" = "No notifications yet";
+"tapToViewAll" = "Tap to view all notifications";
+"justNow" = "Just now";
+"minutesAgo" = "%d min ago";
+"hoursAgo" = "%d hr ago";
+"daysAgo" = "%d d ago";
+"pleaseSignIn" = "Please open the app to sign in.";
+"invalidServerConfig" = "Invalid server configuration.";
+"invalidResponse" = "Server returned an invalid response.";
+"httpError" = "Server error (%d).";
+"decodingError" = "Failed to read server data.";
+"unreadNotifications" = "Notification(s) unread";
+"noNotifications" = "No notifications";
+"noUnreadNotifications" = "All notifications are read";
+"unread" = "unread";

@@ -20,3 +20,17 @@
 "notableDayToday" = "%@ es hoy!";
 "notableDayIs" = "%@ es %@";
 "today" = "Hoy";
+
+/* Notification Widget Strings */
+"notifications" = "Notificaciones";
+"noNotifications" = "Aún no hay notificaciones";
+"tapToViewAll" = "Toca para ver todas las notificaciones";
+"justNow" = "Ahora mismo";
+"minutesAgo" = "hace %d min";
+"hoursAgo" = "hace %d hr";
+"daysAgo" = "hace %d días";
+"pleaseSignIn" = "Por favor, abre la aplicación para iniciar sesión.";
+"invalidServerConfig" = "Configuración del servidor no válida.";
+"invalidResponse" = "El servidor devolvió una respuesta no válida.";
+"httpError" = "Error del servidor (%d).";
+"decodingError" = "Error al leer los datos del servidor.";

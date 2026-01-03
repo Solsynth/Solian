@@ -88,134 +88,6 @@ struct NotableDay: Codable {
     }
 }
 
-enum RemoteError: Error {
-    case missingCredentials
-    case invalidURL
-    case invalidResponse
-    case httpError(Int)
-    case decodingError
-}
-
-extension RemoteError: LocalizedError {
-    var errorDescription: String? {
-        switch self {
-        case .missingCredentials:
-            return "Please open the app to sign in."
-        case .invalidURL:
-            return "Invalid server configuration."
-        case .invalidResponse:
-            return "Server returned an invalid response."
-        case .httpError(let code):
-            return "Server error (\(code))."
-        case .decodingError:
-            return "Failed to read server data."
-        }
-    }
-}
-
-struct TokenData: Codable {
-    let token: String
-}
-
-class WidgetNetworkService {
-    private let appGroup = "group.solsynth.solian"
-    private let tokenKey = "flutter.dyn_user_tk"
-    private let urlKey = "flutter.app_server_url"
-    
-    private lazy var session: URLSession = {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 10.0
-        configuration.timeoutIntervalForResource = 10.0
-        configuration.waitsForConnectivity = false
-        return URLSession(configuration: configuration)
-    }()
-    
-    private var userDefaults: UserDefaults? {
-        UserDefaults(suiteName: appGroup)
-    }
-    
-    var token: String? {
-        guard let tokenString = userDefaults?.string(forKey: tokenKey) else {
-            return nil
-        }
-        
-        guard let data = tokenString.data(using: .utf8) else {
-            return nil
-        }
-        
-        do {
-            let tokenData = try JSONDecoder().decode(TokenData.self, from: data)
-            return tokenData.token
-        } catch {
-            print("[WidgetKit] Failed to decode token: \(error)")
-            return nil
-        }
-    }
-    
-    var baseURL: String {
-        return userDefaults?.string(forKey: urlKey) ?? "https://api.solian.app"
-    }
-    
-    func makeRequest<T: Codable>(
-        path: String,
-        method: String = "GET",
-        headers: [String: String] = [:]
-    ) async throws -> T? {
-        guard let token = token else {
-            throw RemoteError.missingCredentials
-        }
-        
-        guard let url = URL(string: "\(baseURL)\(path)") else {
-            throw RemoteError.invalidURL
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
-        for (key, value) in headers {
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        
-        request.timeoutInterval = 10.0
-        
-        print("[WidgetKit] [Network] Requesting: \(baseURL)\(path)")
-        
-        let (data, response) = try await session.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw RemoteError.invalidResponse
-        }
-        
-        print("[WidgetKit] [Network] Status: \(httpResponse.statusCode), Data length: \(data.count)")
-        
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("[WidgetKit] [Network] Response: \(jsonString.prefix(500))")
-        }
-        
-        switch httpResponse.statusCode {
-        case 200...299:
-            let decoder = JSONDecoder()
-            do {
-                let result = try decoder.decode(T.self, from: data)
-                print("[WidgetKit] [Network] Successfully decoded response")
-                return result
-            } catch {
-                print("[WidgetKit] [Network] Decoding error: \(error.localizedDescription)")
-                print("[WidgetKit] [Network] Expected type: \(String(describing: T.self))")
-                throw RemoteError.decodingError
-            }
-        case 404:
-            print("[WidgetKit] [Network] Resource not found (404)")
-            return nil
-        default:
-            print("[WidgetKit] [Network] HTTP Error: \(httpResponse.statusCode)")
-            throw RemoteError.httpError(httpResponse.statusCode)
-        }
-    }
-}
-
 class CheckInService {
     private let networkService = WidgetNetworkService()
     
@@ -694,52 +566,60 @@ struct CheckInWidgetEntryView: View {
     }
 }
 
+struct CheckInWidgetRootView: View {
+    var entry: Provider.Entry
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        if #available(iOS 17.0, *) {
+            ZStack {
+                CheckInWidgetEntryView(entry: entry)
+
+                if entry.result != nil || entry.notableDay != nil {
+                    GeometryReader { geometry in
+                        Image(colorScheme == .dark ? "CloudyLambDark" : "CloudyLamb")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(
+                                width: geometry.size.width * 0.9,
+                                height: geometry.size.width * 0.9
+                            )
+                            .opacity(0.18)
+                            .mask(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.white,
+                                        Color.white,
+                                        Color.clear
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .position(
+                                x: geometry.size.width * 0.9,
+                                y: 20
+                            )
+                    }
+                    .allowsHitTesting(false)
+                }
+            }
+            .containerBackground(.fill.tertiary, for: .widget)
+            .padding(.vertical, 8)
+        } else {
+            CheckInWidgetEntryView(entry: entry)
+                .padding()
+                .background()
+        }
+    }
+}
+
 struct SolianCheckInWidget: Widget {
     let kind: String = "SolianCheckInWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            @Environment(\.colorScheme) var colorScheme
-            if #available(iOS 17.0, *) {
-                ZStack {
-                    CheckInWidgetEntryView(entry: entry)
-
-                    if entry.result != nil || entry.notableDay != nil {
-                        GeometryReader { geometry in
-                            Image(colorScheme == .dark ? "CloudyLambDark" : "CloudyLamb")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(
-                                    width: geometry.size.width * 0.9,
-                                    height: geometry.size.width * 0.9
-                                )
-                                .opacity(0.18)
-                                .mask(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.white,
-                                            Color.white,
-                                            Color.clear
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .position(
-                                    x: geometry.size.width * 0.9,
-                                    y: 20
-                                )
-                        }
-                        .allowsHitTesting(false)
-                    }
-                }
-                .containerBackground(.fill.tertiary, for: .widget)
-                .padding(.vertical, 8)
-            } else {
-                CheckInWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
-            }
+            CheckInWidgetRootView(entry: entry)
         }
         .configurationDisplayName("Check In")
         .description("View your daily check-in status")

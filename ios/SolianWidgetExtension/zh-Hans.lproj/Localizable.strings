@@ -21,3 +21,21 @@
 "notableDayIs" = "%@ 是 %@";
 "notableDayUpcoming" = "接下来";
 "today" = "今天";
+
+/* Notification Widget Strings */
+"notifications" = "通知";
+"noNotifications" = "还没有通知";
+"tapToViewAll" = "点击查看所有通知";
+"justNow" = "刚刚";
+"minutesAgo" = "%d分钟前";
+"hoursAgo" = "%d小时前";
+"daysAgo" = "%d天前";
+"pleaseSignIn" = "请打开应用登录。";
+"invalidServerConfig" = "服务器配置无效。";
+"invalidResponse" = "服务器返回了无效响应。";
+"httpError" = "服务器错误 (%d)。";
+"decodingError" = "读取服务器数据失败。";
+"unreadNotifications" = "条通知未读";
+"noNotifications" = "没有通知";
+"noUnreadNotifications" = "没有未读通知";
+"unread" = "未读";

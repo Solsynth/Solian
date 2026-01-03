@@ -269,10 +269,20 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
+    if (path == '/notifications') {
+      eventBus.fire(ShowNotificationSheetEvent());
+      return;
+    }
+
     final router = ref.read(routerProvider);
+    if (path == '/dashboard') {
+      router.go('/');
+      return;
+    }
+
     if (uri.queryParameters.isNotEmpty) {
       path = Uri.parse(
-        path == '/dashboard' ? '/' : path,
+        path,
       ).replace(queryParameters: uri.queryParameters).toString();
     }
     router.push(path);
