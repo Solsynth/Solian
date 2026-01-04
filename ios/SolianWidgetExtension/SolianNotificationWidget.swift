@@ -276,6 +276,18 @@ struct NotificationWidgetEntryView: View {
             if case .accessoryRectangular = family {
                 return true
             }
+            if case .accessoryCircular = family {
+                return true
+            }
+        }
+        return false
+    }
+    
+    private var isCircular: Bool {
+        if #available(iOS 16.0, *) {
+            if case .accessoryCircular = family {
+                return true
+            }
         }
         return false
     }
@@ -285,40 +297,57 @@ struct NotificationWidgetEntryView: View {
         Link(destination: URL(string: "solian://notifications")!) {
             if isCompact {
                 if isAccessory {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
+                    if isCircular {
+                        ZStack {
                             Image(systemName: "bell.fill")
-                                .font(.caption2)
-                                .foregroundColor(.orange)
-                                .padding(.leading, 1.5)
+                                .font(.system(size: 20))
+                                .foregroundColor(unreadCount > 0 ? .orange : .gray)
                             
-                            Text(NSLocalizedString("notifications", comment: "Notifications"))
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                            
-                            Spacer()
-                        }
-                        
-                        if unreadCount > 0 {
-                            HStack(spacing: 4) {
-                                Text("\(unreadCount)")
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal, 6)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.blue.opacity(0.5))
-                                    )
-                                
-                                Text(NSLocalizedString("unread", comment: "unread"))
-                                    .font(.caption2)
+                            if unreadCount > 0 {
+                                Text("\(min(unreadCount, 99))")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Circle().fill(Color.blue))
+                                    .offset(x: 12, y: -12)
                             }
                         }
-                        
-                        Text("on the Solar Network")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 1.5)
+                    } else {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bell.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                                    .padding(.leading, 1.5)
+                                
+                                Text(NSLocalizedString("notifications", comment: "Notifications"))
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                
+                                Spacer()
+                            }
+                            
+                            if unreadCount > 0 {
+                                HStack(spacing: 4) {
+                                    Text("\(unreadCount)")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .padding(.horizontal, 6)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.blue.opacity(0.5))
+                                        )
+                                    
+                                    Text(NSLocalizedString("unread", comment: "unread"))
+                                        .font(.caption2)
+                                }
+                            }
+                            
+                            Text("on the Solar Network")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 1.5)
+                        }
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
@@ -490,79 +519,100 @@ struct NotificationWidgetEntryView: View {
     @ViewBuilder
     private func EmptyView() -> some View {
         Link(destination: URL(string: "solian://notifications")!) {
-            VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
-                HStack(spacing: 6) {
+            if isCircular {
+                ZStack {
                     Image(systemName: "bell")
-                        .font(isAccessory ? .caption : .title3)
-                        .foregroundColor(.secondary)
-                    
-                    Text(NSLocalizedString("notifications", comment: "Notifications"))
-                        .font(isAccessory ? .caption2 : .headline)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
+                        .font(.system(size: 20))
+                        .foregroundColor(.gray)
                 }
-                
-                if !isAccessory {
-                    Text(NSLocalizedString("noNotifications", comment: "No notifications yet"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bell")
+                            .font(isAccessory ? .caption : .title3)
+                            .foregroundColor(.secondary)
+                        
+                        Text(NSLocalizedString("notifications", comment: "Notifications"))
+                            .font(isAccessory ? .caption2 : .headline)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                    }
                     
-                    Spacer()
+                    if !isAccessory {
+                        Text(NSLocalizedString("noNotifications", comment: "No notifications yet"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
                 }
+                .padding(isAccessory ? 4 : 12)
             }
-            .padding(isAccessory ? 4 : 12)
         }
     }
     
     @ViewBuilder
     private func LoadingView() -> some View {
-        VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
-            HStack(spacing: 6) {
-                ProgressView()
-                    .scaleEffect(isAccessory ? 0.6 : 0.8)
-                Text(NSLocalizedString("loading", comment: "Loading..."))
-                    .font(isAccessory ? .caption2 : .caption)
-                    .foregroundColor(.secondary)
-                Spacer()
+        if isCircular {
+            ProgressView()
+                .scaleEffect(0.8)
+        } else {
+            VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .scaleEffect(isAccessory ? 0.6 : 0.8)
+                    Text(NSLocalizedString("loading", comment: "Loading..."))
+                        .font(isAccessory ? .caption2 : .caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                
+                if !isAccessory {
+                    Spacer()
+                }
             }
-            
-            if !isAccessory {
-                Spacer()
-            }
+            .padding(isAccessory ? 4 : 12)
         }
-        .padding(isAccessory ? 4 : 12)
     }
     
     @ViewBuilder
     private func ErrorView(error: String) -> some View {
         Link(destination: URL(string: "solian://notifications")!) {
-            VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
-                HStack(spacing: 6) {
+            if isCircular {
+                ZStack {
                     Image(systemName: "exclamationmark.triangle")
-                        .foregroundColor(.secondary)
-                        .font(isAccessory ? .caption : .title3)
-                    
-                    Text(NSLocalizedString("error", comment: "Error"))
-                        .font(isAccessory ? .caption2 : .headline)
-                    Spacer()
+                        .font(.system(size: 20))
+                        .foregroundColor(.red)
                 }
-                
-                if !isAccessory {
-                    Text(NSLocalizedString("openAppToRefresh", comment: "Open app to refresh"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: isAccessory ? 4 : 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundColor(.secondary)
+                            .font(isAccessory ? .caption : .title3)
+                        
+                        Text(NSLocalizedString("error", comment: "Error"))
+                            .font(isAccessory ? .caption2 : .headline)
+                        Spacer()
+                    }
                     
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(nil)
-                        .multilineTextAlignment(.leading)
-                    
-                    Spacer()
+                    if !isAccessory {
+                        Text(NSLocalizedString("openAppToRefresh", comment: "Open app to refresh"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                        
+                        Spacer()
+                    }
                 }
+                .padding(isAccessory ? 4 : 12)
             }
-            .padding(isAccessory ? 4 : 12)
         }
     }
     
@@ -647,13 +697,14 @@ struct SolianNotificationWidget: Widget {
     
     private var supportedFamilies: [WidgetFamily] {
 #if os(iOS)
-        return [.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular]
+        return [.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular, .accessoryCircular]
 #else
         return [.systemSmall, .systemMedium, .systemLarge]
 #endif
     }
 }
 
+#if os(iOS)
 #Preview(as: .accessoryRectangular) {
     SolianNotificationWidget()
 } timeline: {
@@ -694,6 +745,7 @@ struct SolianNotificationWidget: Widget {
         isLoading: false
     )
 }
+#endif
 
 #Preview(as: .systemSmall) {
     SolianNotificationWidget()
@@ -842,6 +894,33 @@ struct SolianNotificationWidget: Widget {
             )
         ],
         unreadCount: 3,
+        error: nil,
+        isLoading: false
+    )
+}
+
+#Preview(as: .accessoryCircular) {
+    SolianNotificationWidget()
+} timeline: {
+    NotificationEntry(
+        date: .now,
+        notifications: [
+            SnNotification(
+                id: "1",
+                topic: "post.replies",
+                title: "New reply",
+                subtitle: "Someone replied",
+                content: "Content",
+                meta: nil,
+                priority: 0,
+                viewedAt: nil,
+                accountId: "acc-1",
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                updatedAt: ISO8601DateFormatter().string(from: Date()),
+                deletedAt: nil
+            )
+        ],
+        unreadCount: 5,
         error: nil,
         isLoading: false
     )
