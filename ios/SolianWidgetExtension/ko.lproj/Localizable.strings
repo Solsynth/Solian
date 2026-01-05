@@ -34,3 +34,8 @@
 "invalidResponse" = "서버에서 잘못된 응답을 받았습니다.";
 "httpError" = "서버 오류 (%d).";
 "decodingError" = "서버 데이터 읽기에 실패했습니다.";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "사용 가능한 게시물이 없습니다";
+"tapToRefresh" = "탭하여 새로고침";
+"loadingPost" = "게시물 로딩 중...";

@@ -34,3 +34,8 @@
 "invalidResponse" = "伺服器返回了無效響應。";
 "httpError" = "伺服器錯誤 (%d)。";
 "decodingError" = "讀取伺服器數據失敗。";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "沒有可用的帖子";
+"tapToRefresh" = "點擊刷新";
+"loadingPost" = "載入帖子中...";

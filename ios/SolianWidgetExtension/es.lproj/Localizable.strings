@@ -34,3 +34,8 @@
 "invalidResponse" = "El servidor devolvió una respuesta no válida.";
 "httpError" = "Error del servidor (%d).";
 "decodingError" = "Error al leer los datos del servidor.";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "No hay publicaciones disponibles";
+"tapToRefresh" = "Toca para actualizar";
+"loadingPost" = "Cargando publicación...";
