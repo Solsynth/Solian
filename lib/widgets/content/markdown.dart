@@ -266,7 +266,13 @@ class _MentionInlineSyntax extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    final alias = match[0]!;
+    final prefix = match[1] ?? '';
+    final alias = match[2]!;
+
+    if (prefix.isNotEmpty) {
+      parser.addNode(markdown.Text(prefix));
+    }
+
     final parts = alias.substring(1).split('/');
     final typeShortcut = parts.length == 1 ? 'u' : parts.first;
     final type = switch (typeShortcut) {
