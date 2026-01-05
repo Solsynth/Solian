@@ -2,14 +2,16 @@ import 'package:collection/collection.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_highlight/themes/a11y-dark.dart';
 import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/screens/account/profile.dart';
 import 'package:island/screens/posts/publisher_profile.dart';
@@ -246,7 +248,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     return MarkdownGenerator(
       generators: [latexGenerator, ...generators],
       inlineSyntaxList: [
-        _MetionInlineSyntax(),
+        _MentionInlineSyntax(),
         _HighlightInlineSyntax(),
         _SpoilerInlineSyntax(),
         _StickerInlineSyntax(),
@@ -259,8 +261,8 @@ class MarkdownTextContent extends HookConsumerWidget {
   }
 }
 
-class _MetionInlineSyntax extends markdown.InlineSyntax {
-  _MetionInlineSyntax() : super(r'@[-a-zA-Z0-9_./]+');
+class _MentionInlineSyntax extends markdown.InlineSyntax {
+  _MentionInlineSyntax() : super(r'(^|[^A-Za-z0-9._%+\-])(@[-A-Za-z0-9_./]+)');
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
@@ -271,7 +273,6 @@ class _MetionInlineSyntax extends markdown.InlineSyntax {
       'u' => 'accounts',
       'r' => 'realms',
       'p' => 'publishers',
-      "c" => 'chat',
       _ => '',
     };
     final element = markdown.Element('mention-chip', [markdown.Text(alias)])
@@ -374,6 +375,130 @@ class MentionChipGenerator extends SpanNodeGeneratorWithTag {
        );
 }
 
+class _MentionChipContent extends HookConsumerWidget {
+  final String mentionType;
+  final String id;
+  final String alias;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback onTap;
+
+  const _MentionChipContent({
+    required this.mentionType,
+    required this.id,
+    required this.alias,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isHovered = useState(false);
+
+    if (mentionType == 'accounts' || mentionType == 'publishers') {
+      final data = mentionType == 'accounts'
+          ? ref.watch(accountProvider(id))
+          : ref.watch(publisherProvider(id));
+
+      return data.when(
+        data: (profile) {
+          final picture = mentionType == 'accounts'
+              ? (profile as SnAccount).profile.picture
+              : (profile as SnPublisher).picture;
+          final icon = mentionType == 'accounts'
+              ? Symbols.person_rounded
+              : Symbols.design_services_rounded;
+
+          return _buildChip(
+            ProfilePictureWidget(file: picture, fallbackIcon: icon, radius: 9),
+            id,
+            isHovered,
+          );
+        },
+        error: (_, __) => Text(
+          alias,
+          style: TextStyle(
+            color: backgroundColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        loading: () => Text(
+          alias,
+          style: TextStyle(
+            color: backgroundColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    return _buildStaticChip(mentionType, id);
+  }
+
+  Widget _buildChip(
+    Widget avatar,
+    String displayName,
+    ValueNotifier<bool> isHovered,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      onHover: (value) => isHovered.value = value,
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        padding: const EdgeInsets.only(
+          left: 5,
+          right: 7,
+          top: 2.5,
+          bottom: 2.5,
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: backgroundColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 6,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: backgroundColor.withOpacity(0.5),
+                borderRadius: const BorderRadius.all(Radius.circular(32)),
+              ),
+              child: avatar,
+            ),
+            Text(
+              displayName,
+              style: TextStyle(
+                color: backgroundColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaticChip(String type, String id) {
+    final icon = switch (type) {
+      'chat' => Symbols.forum_rounded,
+      'realms' => Symbols.group_rounded,
+      _ => Symbols.person_rounded,
+    };
+
+    return _buildChip(
+      Icon(icon, size: 14, color: foregroundColor, fill: 1).padding(all: 2),
+      id,
+      useState(false),
+    );
+  }
+}
+
 class MentionChipSpanNode extends SpanNode {
   final Map<String, String> attributes;
   final Color backgroundColor;
@@ -393,98 +518,15 @@ class MentionChipSpanNode extends SpanNode {
     final type = attributes['type'] ?? '';
     final id = attributes['id'] ?? '';
 
-    final parts = alias.substring(1).split('/');
-
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: InkWell(
+      child: _MentionChipContent(
+        mentionType: type,
+        id: id,
+        alias: alias,
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
         onTap: () => onTap(type, id),
-        borderRadius: BorderRadius.circular(32),
-        child: Container(
-          padding: const EdgeInsets.only(
-            left: 5,
-            right: 7,
-            top: 2.5,
-            bottom: 2.5,
-          ),
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: backgroundColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 6,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: backgroundColor.withOpacity(0.5),
-                  borderRadius: const BorderRadius.all(Radius.circular(32)),
-                ),
-                child: switch (parts.length == 1 ? 'u' : parts.first) {
-                  'u' => Consumer(
-                    builder: (context, ref, _) {
-                      final userData = ref.watch(accountProvider(parts.last));
-                      return userData.when(
-                        data: (data) => ProfilePictureWidget(
-                          file: data.profile.picture,
-                          fallbackIcon: Symbols.person_rounded,
-                          radius: 9,
-                        ),
-                        error: (_, _) => const Icon(Symbols.close, size: 20),
-                        loading: () => const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  'p' => Consumer(
-                    builder: (context, ref, _) {
-                      final pubData = ref.watch(publisherProvider(parts.last));
-                      return pubData.when(
-                        data: (data) => ProfilePictureWidget(
-                          file: data.picture,
-                          fallbackIcon: Symbols.design_services_rounded,
-                          radius: 9,
-                        ),
-                        error: (_, _) => const Icon(Symbols.close, size: 20),
-                        loading: () => const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _ => Icon(
-                    (switch (parts.length == 1 ? 'u' : parts.first) {
-                      'c' => Symbols.forum_rounded,
-                      'r' => Symbols.group_rounded,
-                      _ => Symbols.person_rounded,
-                    }),
-                    size: 14,
-                    color: foregroundColor,
-                    fill: 1,
-                  ).padding(all: 2),
-                },
-              ),
-              Text(
-                parts.last,
-                style: TextStyle(
-                  color: backgroundColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
