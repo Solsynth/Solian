@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:croppy/croppy.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -170,6 +171,12 @@ void main() async {
 
   runApp(
     ProviderScope(
+      retry: (retryCount, error) {
+        if (error is DioException && error.response?.statusCode == 404) {
+          return null;
+        }
+        return const Duration(milliseconds: 300);
+      },
       observers: [
         TalkerRiverpodObserver(
           talker: talker,
