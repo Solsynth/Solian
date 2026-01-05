@@ -39,3 +39,8 @@
 "noNotifications" = "没有通知";
 "noUnreadNotifications" = "没有未读通知";
 "unread" = "未读";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "没有可用的帖子";
+"tapToRefresh" = "点击刷新";
+"loadingPost" = "加载帖子中...";

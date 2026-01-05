@@ -34,3 +34,8 @@
 "invalidResponse" = "サーバーから無効な応答が返されました。";
 "httpError" = "サーバーエラー (%d)。";
 "decodingError" = "サーバーデータの読み込みに失敗しました。";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "利用可能な投稿がありません";
+"tapToRefresh" = "タップして更新";
+"loadingPost" = "投稿を読み込み中...";

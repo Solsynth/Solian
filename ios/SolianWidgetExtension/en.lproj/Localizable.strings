@@ -39,3 +39,8 @@
 "noNotifications" = "No notifications";
 "noUnreadNotifications" = "All notifications are read";
 "unread" = "unread";
+
+/* Post Shuffle Widget Strings */
+"noPostsAvailable" = "No posts available";
+"tapToRefresh" = "Tap to refresh";
+"loadingPost" = "Loading post...";
