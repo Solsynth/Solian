@@ -56,7 +56,16 @@ struct CheckInResult: Codable {
     }
     
     var createdDate: Date? {
-        ISO8601DateFormatter().date(from: createdAt)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        if let date = formatter.date(from: createdAt) {
+            return date
+        }
+
+        // Fallback for timestamps without fractional seconds
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: createdAt)
     }
 }
 
