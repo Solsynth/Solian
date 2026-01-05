@@ -246,7 +246,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     return MarkdownGenerator(
       generators: [latexGenerator, ...generators],
       inlineSyntaxList: [
-        _MetionInlineSyntax(),
+        _MentionInlineSyntax(),
         _HighlightInlineSyntax(),
         _SpoilerInlineSyntax(),
         _StickerInlineSyntax(),
@@ -259,12 +259,19 @@ class MarkdownTextContent extends HookConsumerWidget {
   }
 }
 
-class _MetionInlineSyntax extends markdown.InlineSyntax {
-  _MetionInlineSyntax() : super(r'@[-a-zA-Z0-9_./]+');
+class _MentionInlineSyntax extends markdown.InlineSyntax {
+  _MentionInlineSyntax()
+      : super(r'(^|[^A-Za-z0-9._%+\-])(@[-A-Za-z0-9_./]+)');
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    final alias = match[0]!;
+    final prefix = match[1] ?? '';
+    final alias = match[2]!;
+
+    if (prefix.isNotEmpty) {
+      parser.addNode(markdown.Text(prefix));
+    }
+
     final parts = alias.substring(1).split('/');
     final typeShortcut = parts.length == 1 ? 'u' : parts.first;
     final type = switch (typeShortcut) {
@@ -274,12 +281,13 @@ class _MetionInlineSyntax extends markdown.InlineSyntax {
       "c" => 'chat',
       _ => '',
     };
+
     final element = markdown.Element('mention-chip', [markdown.Text(alias)])
       ..attributes['alias'] = alias
       ..attributes['type'] = type
       ..attributes['id'] = parts.last;
-    parser.addNode(element);
 
+    parser.addNode(element);
     return true;
   }
 }
