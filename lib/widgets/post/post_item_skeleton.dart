@@ -10,6 +10,7 @@ class PostItemSkeleton extends StatelessWidget {
   final bool isEmbedReply;
   final bool isCompact;
   final double? borderRadius;
+  final double maxWidth;
 
   const PostItemSkeleton({
     super.key,
@@ -19,6 +20,7 @@ class PostItemSkeleton extends StatelessWidget {
     this.isEmbedReply = false,
     this.isCompact = false,
     this.borderRadius,
+    this.maxWidth = 640,
   });
 
   @override
@@ -28,7 +30,7 @@ class PostItemSkeleton extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 640),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         child: Card(
           margin: EdgeInsets.only(bottom: 8),
           child: Column(
