@@ -357,44 +357,34 @@ class AppScaffold extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final focusNode = useFocusNode();
-
-    useEffect(() {
-      focusNode.requestFocus();
-      return null;
-    }, []);
-
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
 
     final noBackground = isNoBackground ?? isWideScreen(context);
 
-    final builtWidget = Focus(
-      focusNode: focusNode,
-      child: Scaffold(
-        extendBody: extendBody ?? true,
-        extendBodyBehindAppBar: true,
-        backgroundColor: Colors.transparent,
-        body: Column(
-          children: [
-            IgnorePointer(
-              child: SizedBox(
-                height: appBar != null ? appBarHeight + safeTop : 0,
-              ),
+    final builtWidget = Scaffold(
+      extendBody: extendBody ?? true,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          IgnorePointer(
+            child: SizedBox(
+              height: appBar != null ? appBarHeight + safeTop : 0,
             ),
-            if (body != null) Expanded(child: body!),
-          ],
-        ),
-        appBar: appBar,
-        bottomNavigationBar: bottomNavigationBar,
-        bottomSheet: bottomSheet,
-        drawer: drawer,
-        endDrawer: endDrawer,
-        floatingActionButton: floatingActionButton,
-        floatingActionButtonAnimator: floatingActionButtonAnimator,
-        onDrawerChanged: onDrawerChanged,
-        onEndDrawerChanged: onEndDrawerChanged,
+          ),
+          if (body != null) Expanded(child: body!),
+        ],
       ),
+      appBar: appBar,
+      bottomNavigationBar: bottomNavigationBar,
+      bottomSheet: bottomSheet,
+      drawer: drawer,
+      endDrawer: endDrawer,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonAnimator: floatingActionButtonAnimator,
+      onDrawerChanged: onDrawerChanged,
+      onEndDrawerChanged: onEndDrawerChanged,
     );
 
     return noBackground
