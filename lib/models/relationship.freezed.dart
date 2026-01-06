@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnRelationship {
 
- DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get accountId; SnAccount get account; String get relatedId; SnAccount get related; DateTime? get expiredAt; int get status;
+ DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get accountId;// Usually the account was not included in the response
+ SnAccount? get account; String get relatedId; SnAccount? get related; DateTime? get expiredAt; int get status;
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +49,11 @@ abstract mixin class $SnRelationshipCopyWith<$Res>  {
   factory $SnRelationshipCopyWith(SnRelationship value, $Res Function(SnRelationship) _then) = _$SnRelationshipCopyWithImpl;
 @useResult
 $Res call({
- DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount account, String relatedId, SnAccount related, DateTime? expiredAt, int status
+ DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status
 });
 
 
-$SnAccountCopyWith<$Res> get account;$SnAccountCopyWith<$Res> get related;
+$SnAccountCopyWith<$Res>? get account;$SnAccountCopyWith<$Res>? get related;
 
 }
 /// @nodoc
@@ -65,16 +66,16 @@ class _$SnRelationshipCopyWithImpl<$Res>
 
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = null,Object? relatedId = null,Object? related = null,Object? expiredAt = freezed,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,}) {
   return _then(_self.copyWith(
 createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,relatedId: null == relatedId ? _self.relatedId : relatedId // ignore: cast_nullable_to_non_nullable
-as String,related: null == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
-as SnAccount,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,relatedId: null == relatedId ? _self.relatedId : relatedId // ignore: cast_nullable_to_non_nullable
+as String,related: freezed == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
+as SnAccount?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -83,18 +84,24 @@ as int,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get account {
-  
-  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
     return _then(_self.copyWith(account: value));
   });
 }/// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get related {
-  
-  return $SnAccountCopyWith<$Res>(_self.related, (value) {
+$SnAccountCopyWith<$Res>? get related {
+    if (_self.related == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.related!, (value) {
     return _then(_self.copyWith(related: value));
   });
 }
@@ -176,7 +183,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount account,  String relatedId,  SnAccount related,  DateTime? expiredAt,  int status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRelationship() when $default != null:
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);case _:
@@ -197,7 +204,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount account,  String relatedId,  SnAccount related,  DateTime? expiredAt,  int status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)  $default,) {final _that = this;
 switch (_that) {
 case _SnRelationship():
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);}
@@ -214,7 +221,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount account,  String relatedId,  SnAccount related,  DateTime? expiredAt,  int status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRelationship() when $default != null:
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);case _:
@@ -236,9 +243,10 @@ class _SnRelationship implements SnRelationship {
 @override final  DateTime? updatedAt;
 @override final  DateTime? deletedAt;
 @override final  String accountId;
-@override final  SnAccount account;
+// Usually the account was not included in the response
+@override final  SnAccount? account;
 @override final  String relatedId;
-@override final  SnAccount related;
+@override final  SnAccount? related;
 @override final  DateTime? expiredAt;
 @override final  int status;
 
@@ -275,11 +283,11 @@ abstract mixin class _$SnRelationshipCopyWith<$Res> implements $SnRelationshipCo
   factory _$SnRelationshipCopyWith(_SnRelationship value, $Res Function(_SnRelationship) _then) = __$SnRelationshipCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount account, String relatedId, SnAccount related, DateTime? expiredAt, int status
+ DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status
 });
 
 
-@override $SnAccountCopyWith<$Res> get account;@override $SnAccountCopyWith<$Res> get related;
+@override $SnAccountCopyWith<$Res>? get account;@override $SnAccountCopyWith<$Res>? get related;
 
 }
 /// @nodoc
@@ -292,16 +300,16 @@ class __$SnRelationshipCopyWithImpl<$Res>
 
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = null,Object? relatedId = null,Object? related = null,Object? expiredAt = freezed,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,}) {
   return _then(_SnRelationship(
 createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,relatedId: null == relatedId ? _self.relatedId : relatedId // ignore: cast_nullable_to_non_nullable
-as String,related: null == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
-as SnAccount,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,relatedId: null == relatedId ? _self.relatedId : relatedId // ignore: cast_nullable_to_non_nullable
+as String,related: freezed == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
+as SnAccount?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -311,18 +319,24 @@ as int,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get account {
-  
-  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
     return _then(_self.copyWith(account: value));
   });
 }/// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get related {
-  
-  return $SnAccountCopyWith<$Res>(_self.related, (value) {
+$SnAccountCopyWith<$Res>? get related {
+    if (_self.related == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.related!, (value) {
     return _then(_self.copyWith(related: value));
   });
 }

@@ -9,10 +9,10 @@ part of 'relationship.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(sentFriendRequest)
-final sentFriendRequestProvider = SentFriendRequestProvider._();
+@ProviderFor(friendRequest)
+final friendRequestProvider = FriendRequestProvider._();
 
-final class SentFriendRequestProvider
+final class FriendRequestProvider
     extends
         $FunctionalProvider<
           AsyncValue<List<SnRelationship>>,
@@ -22,19 +22,19 @@ final class SentFriendRequestProvider
     with
         $FutureModifier<List<SnRelationship>>,
         $FutureProvider<List<SnRelationship>> {
-  SentFriendRequestProvider._()
+  FriendRequestProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'sentFriendRequestProvider',
+        name: r'friendRequestProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$sentFriendRequestHash();
+  String debugGetCreateSourceHash() => _$friendRequestHash();
 
   @$internal
   @override
@@ -44,8 +44,8 @@ final class SentFriendRequestProvider
 
   @override
   FutureOr<List<SnRelationship>> create(Ref ref) {
-    return sentFriendRequest(ref);
+    return friendRequest(ref);
   }
 }
 
-String _$sentFriendRequestHash() => r'0c52813eb6f86c05f6e0b1e4e840d0d9c350aa9e';
+String _$friendRequestHash() => r'b066553f9bd0505a7a272cf10cb3ca312152acd6';

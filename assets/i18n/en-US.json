@@ -283,14 +283,17 @@
     "relationshipStatusBlocked": "Blocked",
     "blockUser": "Block User",
     "unblockUser": "Unblock User",
+    "forgotRelationship": "Forgot Relationship",
+    "forgotRelationshipConfirm": "Are you sure you want to forget your relationship with {}?",
+    "relationshipDeleted": "Relationship deleted",
     "friendRequestAccepted": "Accepted friend request from {}",
     "friendRequestDeclined": "Declined friend request from {}",
     "requestExpiredIn": "Expired in {}",
-    "friendSentRequest": "Sent Friend Requests",
-    "friendSentRequestEmpty": "No sent friend requests",
-    "friendSentRequestHint": {
-        "one": "{} friend request sent",
-        "other": "{} friend requests sent"
+    "friendRequests": "Friend Requests",
+    "friendRequestsEmpty": "No related friend requests",
+    "friendRequestsHint": {
+        "one": "{} friend request",
+        "other": "{} friend requests"
     },
     "levelingProgress": "Leveling Progress",
     "levelingProgressExperience": "{} EXP",
