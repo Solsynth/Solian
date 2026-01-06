@@ -75,7 +75,9 @@ class UniversalImage extends HookWidget {
               );
             },
             imageBuilder: (context, imageProvider) {
-              Future(() => loaded.value = true);
+              Future(() {
+                if (context.mounted) return loaded.value = true;
+              });
               return AnimatedOpacity(
                 opacity: loaded.value ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
