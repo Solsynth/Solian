@@ -62,7 +62,14 @@ class ActivityListNotifier
           .where((e) => e.type.startsWith('posts.'))
           .map((e) => e.createdAt)
           .reduce((a, b) => a.isBefore(b) ? a : b);
-      cursor = latestCreatedAt.toUtc().toIso8601String();
+      if (cursor != null) {
+        final prevCursor = DateTime.tryParse(cursor!);
+        if (prevCursor != null && prevCursor.isAfter(latestCreatedAt)) {
+          cursor = latestCreatedAt.toUtc().toIso8601String();
+        }
+      } else {
+        cursor = latestCreatedAt.toUtc().toIso8601String();
+      }
     }
 
     return items;
