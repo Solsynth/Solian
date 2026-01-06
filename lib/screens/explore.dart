@@ -317,7 +317,7 @@ class ExploreScreen extends HookConsumerWidget {
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
-      footerSkeletonChild: const PostItemSkeleton(),
+      footerSkeletonChild: const PostItemSkeleton(maxWidth: double.infinity),
       contentBuilder: (data, footer) =>
           _ActivityListView(data: data, isWide: isWide, footer: footer),
     );
