@@ -422,7 +422,7 @@ class _MentionChipContent extends HookConsumerWidget {
             isHovered,
           );
         },
-        error: (_, __) => Text(
+        error: (_, _) => Text(
           alias,
           style: TextStyle(
             color: backgroundColor,
