@@ -23,7 +23,7 @@ import 'package:island/pods/network.dart';
 part 'relationship.g.dart';
 
 @riverpod
-Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
+Future<List<SnRelationship>> friendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
   final resp = await client.get('/pass/relationships/requests');
   return resp.data
