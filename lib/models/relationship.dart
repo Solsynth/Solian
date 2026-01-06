@@ -12,9 +12,10 @@ sealed class SnRelationship with _$SnRelationship {
     required DateTime? updatedAt,
     required DateTime? deletedAt,
     required String accountId,
-    required SnAccount account,
+    // Usually the account was not included in the response
+    required SnAccount? account,
     required String relatedId,
-    required SnAccount related,
+    required SnAccount? related,
     required DateTime? expiredAt,
     required int status,
   }) = _SnRelationship;

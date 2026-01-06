@@ -18,9 +18,13 @@ _SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['deleted_at'] as String),
       accountId: json['account_id'] as String,
-      account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       relatedId: json['related_id'] as String,
-      related: SnAccount.fromJson(json['related'] as Map<String, dynamic>),
+      related: json['related'] == null
+          ? null
+          : SnAccount.fromJson(json['related'] as Map<String, dynamic>),
       expiredAt: json['expired_at'] == null
           ? null
           : DateTime.parse(json['expired_at'] as String),
@@ -33,9 +37,9 @@ Map<String, dynamic> _$SnRelationshipToJson(_SnRelationship instance) =>
       'updated_at': instance.updatedAt?.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'account_id': instance.accountId,
-      'account': instance.account.toJson(),
+      'account': instance.account?.toJson(),
       'related_id': instance.relatedId,
-      'related': instance.related.toJson(),
+      'related': instance.related?.toJson(),
       'expired_at': instance.expiredAt?.toIso8601String(),
       'status': instance.status,
     };

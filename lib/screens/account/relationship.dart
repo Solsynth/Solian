@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/pods/userinfo.dart';
@@ -31,11 +32,9 @@ Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
       .toList();
 }
 
-final relationshipListNotifierProvider =
-    AsyncNotifierProvider.autoDispose<
-      RelationshipListNotifier,
-      PaginationState<SnRelationship>
-    >(RelationshipListNotifier.new);
+final relationshipListNotifierProvider = AsyncNotifierProvider.autoDispose(
+  RelationshipListNotifier.new,
+);
 
 class RelationshipListNotifier
     extends AsyncNotifier<PaginationState<SnRelationship>>
@@ -84,6 +83,7 @@ class RelationshipListTile extends StatelessWidget {
   final String? currentUserId;
   final bool showRelatedAccount;
   final Function(SnRelationship, int)? onUpdateStatus;
+  final Function(SnRelationship)? onDelete;
 
   const RelationshipListTile({
     super.key,
@@ -96,18 +96,19 @@ class RelationshipListTile extends StatelessWidget {
     required this.currentUserId,
     this.showRelatedAccount = false,
     this.onUpdateStatus,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final account = showRelatedAccount
-        ? relationship.related
-        : relationship.account;
+        ? relationship.related!
+        : relationship.account!;
     final isPending =
         relationship.status == 0 && relationship.relatedId == currentUserId;
     final isWaiting =
         relationship.status == 0 && relationship.accountId == currentUserId;
-    final isEstablished = relationship.status == 1 || relationship.status == 2;
+    final isEstablished = relationship.status != 0;
 
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 16, right: 12),
@@ -185,21 +186,36 @@ class RelationshipListTile extends StatelessWidget {
                     itemBuilder: (context) => [
                       if (relationship.status >= 100) // If friend
                         PopupMenuItem(
-                          child: ListTile(
-                            leading: const Icon(Symbols.block),
-                            title: Text('blockUser').tr(),
-                            contentPadding: EdgeInsets.zero,
-                          ),
                           onTap: () => onUpdateStatus?.call(relationship, -100),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.block),
+                              const Gap(12),
+                              Text('blockUser').tr(),
+                            ],
+                          ),
                         )
                       else if (relationship.status <= -100) // If blocked
                         PopupMenuItem(
-                          child: ListTile(
-                            leading: const Icon(Symbols.person_add),
-                            title: Text('unblockUser').tr(),
-                            contentPadding: EdgeInsets.zero,
-                          ),
                           onTap: () => onUpdateStatus?.call(relationship, 100),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.person_add),
+                              const Gap(12),
+                              Text('unblockUser').tr(),
+                            ],
+                          ),
+                        ),
+                      if (onDelete != null)
+                        PopupMenuItem(
+                          onTap: () => onDelete?.call(relationship),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.delete),
+                              const Gap(12),
+                              Text('forgotRelationship').tr(),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -230,39 +246,10 @@ class RelationshipScreen extends HookConsumerWidget {
 
       final client = ref.read(apiClientProvider);
       await client.post('/pass/relationships/${result.id}/friends');
-      ref.invalidate(sentFriendRequestProvider);
+      ref.invalidate(friendRequestProvider);
     }
 
     final submitting = useState(false);
-
-    Future<void> handleFriendRequest(
-      SnRelationship relationship,
-      bool isAccept,
-    ) async {
-      try {
-        submitting.value = true;
-        final client = ref.read(apiClientProvider);
-        await client.post(
-          '/pass/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
-        );
-        relationshipNotifier.refresh();
-        if (!context.mounted) return;
-        if (isAccept) {
-          showSnackBar(
-            'friendRequestAccepted'.tr(args: ['@${relationship.account.name}']),
-          );
-        } else {
-          showSnackBar(
-            'friendRequestDeclined'.tr(args: ['@${relationship.account.name}']),
-          );
-        }
-        HapticFeedback.lightImpact();
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        submitting.value = false;
-      }
-    }
 
     Future<void> updateRelationship(
       SnRelationship relationship,
@@ -276,8 +263,32 @@ class RelationshipScreen extends HookConsumerWidget {
       relationshipNotifier.refresh();
     }
 
+    Future<void> deleteRelationship(SnRelationship relationship) async {
+      final confirmed = await showConfirmAlert(
+        'forgotRelationshipConfirm'.tr(
+          args: ['@${relationship.related!.name}'],
+        ),
+        'forgotRelationship'.tr(),
+        isDanger: true,
+      );
+      if (!confirmed) return;
+
+      if (!context.mounted) return;
+      showLoadingModal(context);
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.delete('/pass/relationships/${relationship.accountId}');
+        relationshipNotifier.refresh();
+        showSnackBar('relationshipDeleted'.tr());
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     final user = ref.watch(userInfoProvider);
-    final requests = ref.watch(sentFriendRequestProvider);
+    final requests = ref.watch(friendRequestProvider);
 
     return AppScaffold(
       appBar: AppBar(title: Text('relationships').tr()),
@@ -293,9 +304,9 @@ class RelationshipScreen extends HookConsumerWidget {
           if (requests.hasValue && requests.value!.isNotEmpty)
             ListTile(
               leading: const Icon(Symbols.send),
-              title: Text('friendSentRequest').tr(),
+              title: Text('friendRequests').tr(),
               subtitle: Text(
-                'friendSentRequestHint'.plural(requests.value!.length),
+                'friendRequestsHint'.plural(requests.value!.length),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () {
@@ -316,11 +327,10 @@ class RelationshipScreen extends HookConsumerWidget {
                 return RelationshipListTile(
                   relationship: relationship,
                   submitting: submitting.value,
-                  onAccept: () => handleFriendRequest(relationship, true),
-                  onDecline: () => handleFriendRequest(relationship, false),
                   currentUserId: user.value?.id,
-                  showRelatedAccount: false,
+                  showRelatedAccount: true,
                   onUpdateStatus: updateRelationship,
+                  onDelete: deleteRelationship,
                 );
               },
             ),
@@ -336,16 +346,51 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final requests = ref.watch(sentFriendRequestProvider);
+    final requests = ref.watch(friendRequestProvider);
     final user = ref.watch(userInfoProvider);
 
     Future<void> cancelRequest(SnRelationship request) async {
       try {
         final client = ref.read(apiClientProvider);
         await client.delete('/pass/relationships/${request.relatedId}/friends');
-        ref.invalidate(sentFriendRequestProvider);
+        ref.invalidate(friendRequestProvider);
       } catch (err) {
         showErrorAlert(err);
+      }
+    }
+
+    final submitting = useState(false);
+
+    Future<void> handleFriendRequest(
+      SnRelationship relationship,
+      bool isAccept,
+    ) async {
+      try {
+        submitting.value = true;
+        final client = ref.read(apiClientProvider);
+        await client.post(
+          '/pass/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
+        );
+        ref.invalidate(friendRequestProvider);
+        if (!context.mounted) return;
+        if (isAccept) {
+          showSnackBar(
+            'friendRequestAccepted'.tr(
+              args: ['@${relationship.account!.name}'],
+            ),
+          );
+        } else {
+          showSnackBar(
+            'friendRequestDeclined'.tr(
+              args: ['@${relationship.account!.name}'],
+            ),
+          );
+        }
+        HapticFeedback.lightImpact();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        submitting.value = false;
       }
     }
 
@@ -366,7 +411,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'friendSentRequest'.tr(),
+                  'friendRequests'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
@@ -377,7 +422,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
                   icon: const Icon(Symbols.refresh),
                   style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
                   onPressed: () {
-                    ref.invalidate(sentFriendRequestProvider);
+                    ref.invalidate(friendRequestProvider);
                   },
                 ),
                 IconButton(
@@ -394,7 +439,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
               data: (items) => items.isEmpty
                   ? Center(
                       child: Text(
-                        'friendSentRequestEmpty'.tr(),
+                        'friendRequestsEmpty'.tr(),
                         textAlign: TextAlign.center,
                       ),
                     )
@@ -406,6 +451,8 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
                         return RelationshipListTile(
                           relationship: request,
                           onCancel: () => cancelRequest(request),
+                          onAccept: () => handleFriendRequest(request, true),
+                          onDecline: () => handleFriendRequest(request, false),
                           currentUserId: user.value?.id,
                           showRelatedAccount: true,
                         );
