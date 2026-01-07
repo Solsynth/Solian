@@ -9,6 +9,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/post/post_list.dart';
+import 'package:island/widgets/post/post_item.dart';
 import 'package:island/services/color_extraction.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -26,6 +27,113 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/pods/paging.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+class _RealmPinnedPostsPageView extends HookConsumerWidget {
+  final String realmSlug;
+
+  const _RealmPinnedPostsPageView({required this.realmSlug});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postListProvider(
+      PostListQueryConfig(
+        id: 'realm-$realmSlug-pinned',
+        initialFilter: PostListQuery(realm: realmSlug, pinned: true),
+      ),
+    );
+    final pinnedPosts = ref.watch(provider);
+    final pageController = usePageController();
+    final currentPage = useState(0);
+
+    useEffect(() {
+      void listener() {
+        currentPage.value = pageController.page?.round() ?? 0;
+      }
+
+      pageController.addListener(listener);
+      return () => pageController.removeListener(listener);
+    }, [pageController]);
+
+    return pinnedPosts.when(
+      data: (data) {
+        if (data.items.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Card(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: true,
+              leading: const Icon(Symbols.push_pin),
+              title: Text('pinnedPosts'.tr()),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              collapsedShape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              children: [
+                SizedBox(
+                  height: 400,
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: pageController,
+                        itemCount: data.items.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: SingleChildScrollView(
+                              child: Card(
+                                child: PostActionableItem(
+                                  item: data.items[index],
+                                  borderRadius: 8,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      Positioned(
+                        bottom: 16,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            data.items.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: index == currentPage.value
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
 
 final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
     .family<Color?, String>((ref, realmSlug) async {
@@ -235,8 +343,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                     flex: 3,
                     child: CustomScrollView(
                       slivers: [
-                        SliverPostList(
-                          query: PostListQuery(realm: slug, pinned: true),
+                        SliverToBoxAdapter(
+                          child: _RealmPinnedPostsPageView(realmSlug: slug),
                         ),
                         SliverPostList(
                           query: PostListQuery(realm: slug, pinned: false),
@@ -338,8 +446,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                     ),
                   ),
                   SliverToBoxAdapter(child: realmChatRoomListWidget(realm)),
-                  SliverPostList(
-                    query: PostListQuery(realm: slug, pinned: true),
+                  SliverToBoxAdapter(
+                    child: _RealmPinnedPostsPageView(realmSlug: slug),
                   ),
                   SliverPostList(
                     query: PostListQuery(realm: slug, pinned: false),

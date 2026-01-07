@@ -76,6 +76,9 @@ class _PinnedPostsPageView extends HookConsumerWidget {
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
+              collapsedShape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
               children: [
                 SizedBox(
                   height: 400,
