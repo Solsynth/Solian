@@ -58,17 +58,17 @@ class ActivityListNotifier
     // Find the latest createdAt timestamp from all items for cursor-based pagination
     // This ensures we get items created before this timestamp, regardless of sort order
     if (items.isNotEmpty) {
-      final latestCreatedAt = items
+      final newestCreatedAt = items
           .where((e) => e.type.startsWith('posts.'))
           .map((e) => e.createdAt)
           .reduce((a, b) => a.isBefore(b) ? a : b);
       if (cursor != null) {
         final prevCursor = DateTime.tryParse(cursor!);
-        if (prevCursor != null && prevCursor.isAfter(latestCreatedAt)) {
-          cursor = latestCreatedAt.toUtc().toIso8601String();
+        if (prevCursor != null && prevCursor.isAfter(newestCreatedAt)) {
+          cursor = newestCreatedAt.toUtc().toIso8601String();
         }
       } else {
-        cursor = latestCreatedAt.toUtc().toIso8601String();
+        cursor = newestCreatedAt.toUtc().toIso8601String();
       }
     }
 
