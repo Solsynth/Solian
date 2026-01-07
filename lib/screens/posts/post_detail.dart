@@ -9,8 +9,10 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/post/post_award_sheet.dart';
 import 'package:island/widgets/post/post_item.dart';
@@ -19,6 +21,7 @@ import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/post/post_replies.dart';
+import 'package:island/widgets/post/post_shared.dart';
 import 'package:island/widgets/response.dart';
 import 'package:island/utils/share_utils.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
@@ -60,6 +63,10 @@ class PostState extends Notifier<AsyncValue<SnPost?>> {
       state = AsyncData(newPost);
     }
   }
+}
+
+bool _isMediaPost(SnPost? post) {
+  return post != null && post.type == 0 && post.attachments.isNotEmpty;
 }
 
 class PostActionButtons extends HookConsumerWidget {
@@ -435,6 +442,88 @@ class PostActionButtons extends HookConsumerWidget {
   }
 }
 
+class _PostDetailLargeScreenLayout extends StatelessWidget {
+  final SnPost post;
+  final WidgetRef ref;
+  final String postId;
+  final Function(SnPost) onUpdate;
+  final VoidCallback onRefresh;
+
+  const _PostDetailLargeScreenLayout({
+    required this.post,
+    required this.ref,
+    required this.postId,
+    required this.onUpdate,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Material(
+            color: Theme.of(context).cardTheme.color,
+            elevation: 8,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: CloudFileList(
+                  files: post.attachments,
+                  disableConstraint: true,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      PostHeader(
+                        item: post,
+                        isFullPost: true,
+                        isCompact: false,
+                        renderingPadding: EdgeInsets.zero,
+                      ),
+                      const Gap(8),
+                      PostBody(
+                        item: post,
+                        isFullPost: true,
+                        isTextSelectable: true,
+                        renderingPadding: EdgeInsets.zero,
+                        hideAttachments: true,
+                        textScale: post.type == 1 ? 1.2 : 1.1,
+                      ),
+                      const Gap(12),
+                      PostActionButtons(
+                        post: post,
+                        renderingPadding: EdgeInsets.zero,
+                        onRefresh: onRefresh,
+                        onUpdate: onUpdate,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              PostRepliesList(postId: postId, maxWidth: 800),
+              SliverGap(MediaQuery.of(context).padding.bottom + 80),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
   const PostDetailScreen({super.key, required this.id});
@@ -452,6 +541,8 @@ class PostDetailScreen extends HookConsumerWidget {
       ),
       body: postState.when(
         data: (post) {
+          final isMediaPostLayout = isWideScreen(context) && _isMediaPost(post);
+
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -460,64 +551,78 @@ class PostDetailScreen extends HookConsumerWidget {
                   ref.invalidate(postProvider(id));
                   ref.read(postRepliesProvider(id).notifier).refresh();
                 },
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 800),
-                          child: PostItem(
-                            item: post!,
-                            isFullPost: true,
-                            isEmbedReply: false,
-                            textScale: post.type == 1 ? 1.2 : 1.1,
-                            onUpdate: (newItem) {
-                              // Update the local state with the new post data
-                              ref
-                                  .read(postStateProvider(id).notifier)
-                                  .updatePost(newItem);
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 800),
-                          child: PostActionButtons(
-                            post: post,
-                            renderingPadding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                child: isMediaPostLayout
+                    ? _PostDetailLargeScreenLayout(
+                        post: post!,
+                        ref: ref,
+                        postId: id,
+                        onUpdate: (newItem) {
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(newItem);
+                        },
+                        onRefresh: () {
+                          ref.invalidate(postProvider(id));
+                          ref.read(postRepliesProvider(id).notifier).refresh();
+                        },
+                      )
+                    : CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: 800),
+                                child: PostItem(
+                                  item: post!,
+                                  isFullPost: true,
+                                  isEmbedReply: false,
+                                  textScale: post.type == 1 ? 1.2 : 1.1,
+                                  onUpdate: (newItem) {
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
+                                  },
+                                ),
+                              ),
                             ),
-                            onRefresh: () {
-                              ref.invalidate(postProvider(id));
-                              ref
-                                  .read(postRepliesProvider(id).notifier)
-                                  .refresh();
-                            },
-                            onUpdate: (newItem) {
-                              ref
-                                  .read(postStateProvider(id).notifier)
-                                  .updatePost(newItem);
-                            },
                           ),
-                        ),
+                          SliverToBoxAdapter(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: 800),
+                                child: PostActionButtons(
+                                  post: post,
+                                  renderingPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  onRefresh: () {
+                                    ref.invalidate(postProvider(id));
+                                    ref
+                                        .read(postRepliesProvider(id).notifier)
+                                        .refresh();
+                                  },
+                                  onUpdate: (newItem) {
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          PostRepliesList(postId: id, maxWidth: 800),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                        ],
                       ),
-                    ),
-                    PostRepliesList(postId: id, maxWidth: 800),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 80),
-                  ],
-                ),
               ),
-              if (user.value != null)
+              if (user.value != null && !isMediaPostLayout)
                 Positioned(
                   bottom: 16 + MediaQuery.of(context).padding.bottom,
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 660),
+                    constraints: BoxConstraints(maxWidth: 800),
                     child: postState.when(
                       data: (post) => PostQuickReply(
                         parent: post!,

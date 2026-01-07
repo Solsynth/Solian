@@ -870,6 +870,7 @@ class PostBody extends ConsumerWidget {
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
   final bool hideOverlay;
+  final bool hideAttachments;
   final double? textScale;
 
   const PostBody({
@@ -882,6 +883,7 @@ class PostBody extends ConsumerWidget {
     this.renderingPadding = EdgeInsets.zero,
     this.isRelativeTime = true,
     this.hideOverlay = false,
+    this.hideAttachments = false,
     this.textScale,
   });
 
@@ -1140,7 +1142,7 @@ class PostBody extends ConsumerWidget {
               right: renderingPadding.horizontal,
             ),
           ),
-        if (item.attachments.isNotEmpty && item.type != 1)
+        if (item.attachments.isNotEmpty && item.type != 1 && !hideAttachments)
           CloudFileList(
             files: item.attachments,
             isColumn: !isInteractive,

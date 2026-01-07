@@ -167,7 +167,9 @@ class _PostsSearchTab extends HookConsumerWidget {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                               ),
-                              child: const PostItemSkeleton(),
+                              child: const PostItemSkeleton(
+                                maxWidth: double.infinity,
+                              ),
                             ),
                             itemBuilder: (context, index, post) {
                               return Card(
@@ -320,7 +322,7 @@ class _PostsSearchTab extends HookConsumerWidget {
                     isRefreshable: false,
                     footerSkeletonChild: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: const PostItemSkeleton(),
+                      child: const PostItemSkeleton(maxWidth: double.infinity),
                     ),
                     itemBuilder: (context, index, post) {
                       return Center(

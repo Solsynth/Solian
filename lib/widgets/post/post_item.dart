@@ -67,6 +67,7 @@ class PostActionableItem extends HookConsumerWidget {
   final bool isEmbedReply;
   final bool isEmbedOpenable;
   final bool isCompact;
+  final bool hideAttachments;
   final double? borderRadius;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -80,6 +81,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.isEmbedReply = true,
     this.isEmbedOpenable = false,
     this.isCompact = false,
+    this.hideAttachments = false,
     this.borderRadius,
     this.onRefresh,
     this.onUpdate,
@@ -110,6 +112,7 @@ class PostActionableItem extends HookConsumerWidget {
         isEmbedOpenable: isEmbedOpenable,
         isTextSelectable: false,
         isCompact: isCompact,
+        hideAttachments: hideAttachments,
         onRefresh: onRefresh,
         onUpdate: onUpdate,
         onOpen: onOpen,
@@ -308,6 +311,7 @@ class PostItem extends HookConsumerWidget {
   final bool isTextSelectable;
   final bool isTranslatable;
   final bool isCompact;
+  final bool hideAttachments;
   final double? textScale;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -323,6 +327,7 @@ class PostItem extends HookConsumerWidget {
     this.isTextSelectable = true,
     this.isTranslatable = true,
     this.isCompact = false,
+    this.hideAttachments = false,
     this.textScale,
     this.onRefresh,
     this.onUpdate,
@@ -569,6 +574,7 @@ class PostItem extends HookConsumerWidget {
           isTextSelectable: isTextSelectable,
           translationSection: translationSection,
           renderingPadding: renderingPadding,
+          hideAttachments: hideAttachments,
         ),
         if (item.embedView != null)
           EmbedViewRenderer(

@@ -69,7 +69,7 @@ class SliverPostList extends HookConsumerWidget {
       isSliver: true,
       footerSkeletonChild: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: const PostItemSkeleton(),
+        child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
       ),
       itemBuilder: (context, index, post) {
         if (maxWidth != null) {

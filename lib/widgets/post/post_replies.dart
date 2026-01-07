@@ -50,7 +50,7 @@ class PostRepliesList extends HookConsumerWidget {
 
     final skeletonItem = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: const PostItemSkeleton(),
+      child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
     );
 
     return PaginationList(
