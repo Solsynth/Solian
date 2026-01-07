@@ -277,7 +277,7 @@ class RelationshipScreen extends HookConsumerWidget {
       showLoadingModal(context);
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/pass/relationships/${relationship.accountId}');
+        await client.delete('/pass/relationships/${relationship.relatedId}');
         relationshipNotifier.refresh();
         showSnackBar('relationshipDeleted'.tr());
       } catch (err) {

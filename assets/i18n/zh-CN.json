@@ -266,7 +266,7 @@
     "blockUser": "屏蔽用户",
     "unblockUser": "解除屏蔽用户",
     "forgotRelationship": "忘记关系",
-    "forgotRelationshipConfirm": "确定要忘记与 {} 的关系吗？",
+    "forgotRelationshipConfirm": "确定要忘记与 {} 的关系吗？这只会改变您对他/她的关系，他可能看到不到您的友限帖，但是您仍然可以看到他/她的。他/她也可以再次提出好友申请。",
     "relationshipDeleted": "关系已删除",
     "friendRequestAccepted": "已接受 {} 的好友请求",
     "friendRequestDeclined": "已拒绝 {} 的好友请求",
