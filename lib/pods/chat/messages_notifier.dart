@@ -50,9 +50,6 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
-  // Disposal handling
-  bool _disposed = false;
-
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
@@ -81,17 +78,11 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('MessagesNotifier built for room $roomId');
 
-    // Set up disposal handling
-    ref.onDispose(() {
-      _disposed = true;
-      talker.log('MessagesNotifier disposed for room $roomId');
-    });
-
     // Only setup sync and lifecycle listeners if user is a member
     if (identity != null) {
       ref.listen(appLifecycleStateProvider, (_, next) {
         next.whenData((state) {
-          if (_disposed) return; // Check disposal before accessing ref
+          if (!ref.mounted) return; // Check disposal before accessing ref
           if (state == AppLifecycleState.paused) {
             _lastPauseTime = DateTime.now();
             talker.log('App paused, recording time');
@@ -100,7 +91,7 @@ class MessagesNotifier extends _$MessagesNotifier {
               final diff = DateTime.now().difference(_lastPauseTime!);
               if (diff > const Duration(minutes: 1)) {
                 talker.log('App resumed after >1 min, syncing messages');
-                if (!_disposed) {
+                if (!!ref.mounted) {
                   syncMessages(); // Check disposal before calling syncMessages
                 }
               } else {
@@ -336,7 +327,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Starting message sync');
     // Use Future.microtask to set syncing state, but check disposal to avoid errors
     Future.microtask(() {
-      if (!_disposed) {
+      if (!!ref.mounted) {
         ref.read(chatSyncingProvider.notifier).set(true);
       }
     });
@@ -514,7 +505,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_hasMore || state is AsyncLoading) return;
     talker.log('Loading more messages');
 
-    if (!_disposed) {
+    if (!!ref.mounted) {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     }
     try {
@@ -1058,7 +1049,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isJumping = true;
 
     // Clear flashing messages when starting a new jump
-    if (!_disposed) {
+    if (!!ref.mounted) {
       ref.read(flashingMessagesProvider.notifier).state = {};
     }
 
