@@ -23,6 +23,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
+import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/activity_heatmap.dart';
 import 'package:island/widgets/posts/post_filter.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -31,6 +32,110 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'publisher_profile.g.dart';
+
+class _PinnedPostsPageView extends HookConsumerWidget {
+  final String pubName;
+
+  const _PinnedPostsPageView({required this.pubName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postListProvider(
+      PostListQueryConfig(
+        id: 'publisher-$pubName-pinned',
+        initialFilter: PostListQuery(pubName: pubName, pinned: true),
+      ),
+    );
+    final pinnedPosts = ref.watch(provider);
+    final pageController = usePageController();
+    final currentPage = useState(0);
+
+    useEffect(() {
+      void listener() {
+        currentPage.value = pageController.page?.round() ?? 0;
+      }
+
+      pageController.addListener(listener);
+      return () => pageController.removeListener(listener);
+    }, [pageController]);
+
+    return pinnedPosts.when(
+      data: (data) {
+        if (data.items.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Card(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: true,
+              leading: const Icon(Symbols.push_pin),
+              title: Text('pinnedPosts'.tr()),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              children: [
+                SizedBox(
+                  height: 400,
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: pageController,
+                        itemCount: data.items.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: SingleChildScrollView(
+                              child: Card(
+                                child: PostActionableItem(
+                                  item: data.items[index],
+                                  borderRadius: 8,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      Positioned(
+                        bottom: 16,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            data.items.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: index == currentPage.value
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
 
 class _PublisherBasisWidget extends StatelessWidget {
   final SnPublisher data;
@@ -431,7 +536,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final queryState = useState(PostListQuery(pubName: name));
 
     final subscribing = useState(false);
-    final isPinnedExpanded = useState(true);
 
     useEffect(() {
       final index = switch (queryState.value.type) {
@@ -510,36 +614,8 @@ class PublisherProfileScreen extends HookConsumerWidget {
                       slivers: [
                         SliverGap(16),
                         SliverToBoxAdapter(
-                          child: Card(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: ListTile(
-                              title: Text('pinnedPosts'.tr()),
-                              leading: const Icon(Symbols.push_pin),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(8),
-                                ),
-                              ),
-                              trailing: Icon(
-                                isPinnedExpanded.value
-                                    ? Symbols.expand_less
-                                    : Symbols.expand_more,
-                              ),
-                              onTap: () => isPinnedExpanded.value =
-                                  !isPinnedExpanded.value,
-                            ),
-                          ),
+                          child: _PinnedPostsPageView(pubName: name),
                         ),
-                        ...[
-                          if (isPinnedExpanded.value)
-                            SliverPostList(
-                              query: PostListQuery(pubName: name, pinned: true),
-                              queryKey: 'publisher-$name-pinned',
-                            ),
-                        ],
                         SliverToBoxAdapter(
                           child: PostFilterWidget(
                             categoryTabController: categoryTabController,
@@ -644,27 +720,8 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     ).padding(vertical: 4),
                   ),
                   SliverToBoxAdapter(
-                    child: Card(
-                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: ListTile(
-                        title: Text('pinnedPosts'.tr()),
-                        trailing: Icon(
-                          isPinnedExpanded.value
-                              ? Symbols.expand_less
-                              : Symbols.expand_more,
-                        ),
-                        onTap: () =>
-                            isPinnedExpanded.value = !isPinnedExpanded.value,
-                      ),
-                    ),
+                    child: _PinnedPostsPageView(pubName: name),
                   ),
-                  ...[
-                    if (isPinnedExpanded.value)
-                      SliverPostList(
-                        query: PostListQuery(pubName: name, pinned: true),
-                        queryKey: 'publisher-$name-pinned',
-                      ),
-                  ],
                   SliverToBoxAdapter(
                     child: PostFilterWidget(
                       categoryTabController: categoryTabController,
