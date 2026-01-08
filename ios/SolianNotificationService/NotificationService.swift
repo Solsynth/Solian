@@ -5,7 +5,7 @@
 //  Created by LittleSheep on 2025/5/31.
 //
 
-import UserNotifications
+@preconcurrency import UserNotifications
 import Intents
 import Kingfisher
 import UniformTypeIdentifiers
@@ -149,7 +149,7 @@ class NotificationService: UNNotificationServiceExtension {
         
         let dispatchGroup = DispatchGroup()
         var attachments: [UNNotificationAttachment] = []
-        let lock = NSLock() // To synchronize access to the attachments array
+        let queue = DispatchQueue(label: "dev.solsynth.solian.nse")
 
         for attachmentUrl in attachmentUrls {
             guard let remoteUrl = URL(string: attachmentUrl) else {
@@ -163,7 +163,7 @@ class NotificationService: UNNotificationServiceExtension {
                 .processor(scaleProcessor)
             ] : nil) { [weak self] result in
                 defer { dispatchGroup.leave() }
-                guard let self = self else { return }
+                guard self != nil else { return }
 
                 switch result {
                 case .success(let retrievalResult):
@@ -176,12 +176,12 @@ class NotificationService: UNNotificationServiceExtension {
                         try retrievalResult.image.pngData()?.write(to: cachedFileUrl)
                         
                         if let attachment = try? UNNotificationAttachment(identifier: attachmentUrl, url: cachedFileUrl, options: [
-                            UNNotificationAttachmentOptionsTypeHintKey: type?.identifier as Any,
+                            UNNotificationAttachmentOptionsTypeHintKey: UTType.png.identifier,
                             UNNotificationAttachmentOptionsThumbnailHiddenKey: 0,
                         ]) {
-                            lock.lock()
-                            attachments.append(attachment)
-                            lock.unlock()
+                            queue.async {
+                                attachments.append(attachment)
+                            }
                         }
                     } catch {
                         print("Failed to write media to temporary file: \(error.localizedDescription)")
