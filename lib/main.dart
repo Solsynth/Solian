@@ -24,6 +24,7 @@ import 'package:island/services/notify.dart';
 import 'package:island/services/widget_sync_service.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/services/app_intents.dart';
+import 'package:island/services/quick_actions.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:relative_time/relative_time.dart';
@@ -108,6 +109,17 @@ void main() async {
   } catch (err) {
     talker.error(
       "[AppIntents] Failed to initialize App Intents service... $err",
+    );
+  }
+
+  try {
+    talker.info("[QuickActions] Initializing Quick Actions service...");
+    final quickActionsService = QuickActionsService();
+    await quickActionsService.initialize();
+    talker.info("[QuickActions] Quick Actions service is ready!");
+  } catch (err) {
+    talker.error(
+      "[QuickActions] Failed to initialize Quick Actions service... $err",
     );
   }
 
