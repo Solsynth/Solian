@@ -63,6 +63,18 @@
 		<string>Allow the Solar Network verify your ownership of the logged in account and continue your action quickly.</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>Grant access to Microphone will allow Solian record audio for your post.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Solian uses speech recognition for Siri integration</string>
+        <key>NSAppIntentsConfiguration</key>
+        <dict>
+            <key>NSAppIntentsPackage</key>
+            <string>dev.solsynth.solian</string>
+        </dict>
+        <key>NSAppIntentsMetadata</key>
+        <dict>
+            <key>NSAppIntentsSupported</key>
+            <true/>
+        </dict>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>Grant access to Photo Library will allow Solian download photo to album for you.</string>
 		<key>NSPhotoLibraryUsageDescription</key>

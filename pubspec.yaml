@@ -173,6 +173,7 @@ dependencies:
   shake: ^3.0.0
   in_app_review: ^2.0.11
   snow_fall_animation: ^0.0.1+3
+  flutter_app_intents: ^0.7.0
 
 dev_dependencies:
   flutter_test:

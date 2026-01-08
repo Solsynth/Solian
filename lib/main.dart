@@ -23,6 +23,7 @@ import 'package:island/route.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/widget_sync_service.dart';
 import 'package:island/services/timezone.dart';
+import 'package:island/services/app_intents.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:relative_time/relative_time.dart';
@@ -97,6 +98,17 @@ void main() async {
     talker.info("[SplashScreen] Time zone database was loaded!");
   } catch (err) {
     talker.error("[SplashScreen] Failed to load timezone database... $err");
+  }
+
+  try {
+    talker.info("[AppIntents] Initializing App Intents service...");
+    final appIntentsService = AppIntentsService();
+    await appIntentsService.initialize();
+    talker.info("[AppIntents] App Intents service is ready!");
+  } catch (err) {
+    talker.error(
+      "[AppIntents] Failed to initialize App Intents service... $err",
+    );
   }
 
   final prefs = await SharedPreferences.getInstance();

@@ -774,6 +774,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.2"
+  flutter_app_intents:
+    dependency: "direct main"
+    description:
+      name: flutter_app_intents
+      sha256: bec5a1ec991b93d475435205dbdca6efdd8979749f2a3c73ebb9f8334b9d3fa2
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   flutter_app_update:
     dependency: "direct main"
     description:
