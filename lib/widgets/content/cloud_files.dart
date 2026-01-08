@@ -759,7 +759,6 @@ class SplitAvatarWidget extends ConsumerWidget {
     if (file == null) {
       return Container(
         width: radius,
-        height: radius,
         color: Theme.of(context).colorScheme.primaryContainer,
         child: Icon(
           fallbackIcon,
@@ -775,7 +774,6 @@ class SplitAvatarWidget extends ConsumerWidget {
 
     return SizedBox(
       width: radius,
-      height: radius,
       child: UniversalImage(uri: uri, fit: BoxFit.cover),
     );
   }
