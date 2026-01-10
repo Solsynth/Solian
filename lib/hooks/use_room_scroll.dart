@@ -4,11 +4,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/chat_room.dart';
 import 'package:island/database/message.dart';
 import 'package:island/pods/chat/messages_notifier.dart';
-import 'package:super_sliver_list/super_sliver_list.dart';
 
 class RoomScrollManager {
   final ScrollController scrollController;
-  final ListController listController;
   final ValueNotifier<double> bottomGradientOpacity;
   bool isScrollingToMessage;
   final void Function({
@@ -19,7 +17,6 @@ class RoomScrollManager {
 
   RoomScrollManager({
     required this.scrollController,
-    required this.listController,
     required this.bottomGradientOpacity,
     required this.scrollToMessage,
     this.isScrollingToMessage = false,
@@ -33,7 +30,6 @@ RoomScrollManager useRoomScrollManager(
   AsyncValue<List<LocalChatMessage>> messagesAsync,
 ) {
   final scrollController = useScrollController();
-  final listController = useMemoized(() => ListController(), []);
   final bottomGradientOpacity = useState(ValueNotifier<double>(0.0));
 
   var isLoading = false;
@@ -47,14 +43,23 @@ RoomScrollManager useRoomScrollManager(
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
-          listController.animateToItem(
-            index: index,
-            scrollController: scrollController,
-            alignment: 0.5,
-            duration: (estimatedDistance) => Duration(
-              milliseconds: (estimatedDistance * 0.5).clamp(200, 800).toInt(),
-            ),
-            curve: (estimatedDistance) => Curves.easeOutCubic,
+          messagesAsync.when(
+            data: (messageList) {
+              if (!scrollController.hasClients) return;
+
+              final messageIndex = index;
+              final totalMessages = messageList.length;
+
+              if (messageIndex < 0 || messageIndex >= totalMessages) return;
+
+              scrollController.animateTo(
+                messageIndex * 80.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+              );
+            },
+            loading: () {},
+            error: (_, _) {},
           );
 
           Future.delayed(const Duration(milliseconds: 800), () {
@@ -109,7 +114,7 @@ RoomScrollManager useRoomScrollManager(
           bottomGradientOpacity.value.value = (pixels / 500.0).clamp(0.0, 1.0);
         },
         loading: () {},
-        error: (_, _) {},
+        error: (_, _) => {},
       );
     }
 
@@ -119,7 +124,6 @@ RoomScrollManager useRoomScrollManager(
 
   return RoomScrollManager(
     scrollController: scrollController,
-    listController: listController,
     bottomGradientOpacity: bottomGradientOpacity.value,
     scrollToMessage: scrollToMessageWrapper,
     isScrollingToMessage: isScrollingToMessage,

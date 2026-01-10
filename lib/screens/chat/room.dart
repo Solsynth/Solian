@@ -143,7 +143,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);
     final inputManager = useRoomInputManager(ref, id);
-
     final roomOpenTime = useMemoized(() => DateTime.now());
 
     final previousInputHeightRef = useRef<double?>(null);
@@ -372,7 +371,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                               roomAsync: chatRoom,
                               chatIdentity: chatIdentity,
                               scrollController: scrollManager.scrollController,
-                              listController: scrollManager.listController,
                               isSelectionMode: isSelectionMode.value,
                               selectedMessages: selectedMessages.value,
                               toggleSelectionMode: toggleSelectionMode,
@@ -381,10 +379,10 @@ class ChatRoomScreen extends HookConsumerWidget {
                               onJump: onJump,
                               attachmentProgress:
                                   inputManager.attachmentProgress,
-                              disableAnimation: settings.disableAnimation,
-                              roomOpenTime: roomOpenTime,
                               inputHeight: inputHeight.value,
                               previousInputHeight: previousInputHeightRef.value,
+                              roomOpenTime: roomOpenTime,
+                              disableAnimation: settings.disableAnimation,
                             ),
                       loading: () => const Center(
                         key: ValueKey('loading-messages'),
