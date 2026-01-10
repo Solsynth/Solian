@@ -1,47 +1,35 @@
 import "dart:async";
-import "dart:math" as math;
 import "package:easy_localization/easy_localization.dart";
-import "package:file_picker/file_picker.dart";
-import "package:google_fonts/google_fonts.dart";
-import "package:image_picker/image_picker.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
-import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:island/database/message.dart";
-import "package:island/models/chat.dart";
-import "package:island/models/file.dart";
-import "package:island/models/poll.dart";
-import "package:island/models/wallet.dart";
 import "package:island/pods/chat/chat_room.dart";
-import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/chat/chat_online_count.dart";
 import "package:island/pods/config.dart";
-import "package:island/pods/userinfo.dart";
 import "package:island/screens/chat/search_messages.dart";
+import "package:island/screens/chat/public_room_preview.dart";
 import "package:island/services/analytics_service.dart";
-import "package:island/services/file_uploader.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
-import "package:island/widgets/attachment_uploader.dart";
-import "package:island/widgets/chat/call_overlay.dart";
-import "package:island/widgets/chat/message_item.dart";
-import "package:island/widgets/content/cloud_files.dart";
 import "package:island/widgets/response.dart";
-import "package:material_symbols_icons/material_symbols_icons.dart";
-import "package:styled_widget/styled_widget.dart";
-import "package:super_sliver_list/super_sliver_list.dart";
-import "package:material_symbols_icons/symbols.dart";
+import "package:island/widgets/attachment_uploader.dart";
 import "package:island/widgets/chat/call_button.dart";
 import "package:island/widgets/chat/chat_input.dart";
-import "package:island/widgets/chat/chat_link_attachments.dart";
-import "package:island/widgets/chat/public_room_preview.dart";
+import "package:island/widgets/chat/room_app_bar.dart";
+import "package:island/widgets/chat/room_message_list.dart";
+import "package:island/widgets/chat/room_selection_mode.dart";
+import "package:island/widgets/chat/room_overlays.dart";
+import "package:island/services/file_uploader.dart";
+import "package:island/models/file.dart";
 import "package:island/screens/thought/think_sheet.dart";
-import "package:island/screens/chat/widgets/message_item_wrapper.dart";
+import "package:styled_widget/styled_widget.dart";
+import "package:island/hooks/use_room_scroll.dart";
+import "package:island/hooks/use_room_file_picker.dart";
+import "package:island/hooks/use_room_input.dart";
 
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
@@ -64,22 +52,19 @@ class ChatRoomScreen extends HookConsumerWidget {
         );
       }
       return null;
-    }, []);
+    }, [chatRoom]);
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
         appBar: AppBar(leading: const PageBackButton()),
-        body: CircularProgressIndicator().center(),
+        body: const Center(child: CircularProgressIndicator()),
       );
     } else if (chatIdentity.value == null) {
-      // Identity was not found, user was not joined
       return chatRoom.when(
         data: (room) {
           if (room!.isPublic) {
-            // Show public room preview with messages but no input
             return PublicRoomPreview(id: id, room: room);
           } else {
-            // Show regular "not joined" screen for private rooms
             return AppScaffold(
               appBar: AppBar(leading: const PageBackButton()),
               body: Center(
@@ -91,8 +76,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                     children: [
                       Icon(
                         room.isCommunity == true
-                            ? Symbols.person_add
-                            : Symbols.person_remove,
+                            ? Icons.person_add
+                            : Icons.person_remove,
                         size: 36,
                         fill: 1,
                       ).padding(bottom: 4),
@@ -132,7 +117,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         },
         loading: () => AppScaffold(
           appBar: AppBar(leading: const PageBackButton()),
-          body: CircularProgressIndicator().center(),
+          body: const Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => AppScaffold(
           appBar: AppBar(leading: const PageBackButton()),
@@ -146,16 +131,27 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
-    final chatSubscribeNotifier = ref.read(chatSubscribeProvider(id).notifier);
+    final compactHeader = isWideScreen(context);
 
-    final messageController = useTextEditingController();
-    final scrollController = useScrollController();
+    final scrollManager = useRoomScrollManager(
+      ref,
+      id,
+      messagesNotifier.jumpToMessage,
+      messages,
+    );
 
-    // Input height measurement for dynamic padding
-    final inputKey = useMemoized(() => GlobalKey());
+    final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);
+    final inputManager = useRoomInputManager(ref, id);
 
-    // Periodic height measurement for dynamic sizing
+    final roomOpenTime = useMemoized(() => DateTime.now());
+
+    final previousInputHeightRef = useRef<double?>(null);
+    useEffect(() {
+      previousInputHeightRef.value = inputHeight.value;
+      return null;
+    }, [inputHeight.value]);
+
     useEffect(() {
       final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
         final renderBox =
@@ -170,202 +166,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       return timer.cancel;
     }, []);
 
-    // Scroll animation notifiers
-    final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
-
-    final messageReplyingTo = useState<SnChatMessage?>(null);
-    final messageForwardingTo = useState<SnChatMessage?>(null);
-    final messageEditingTo = useState<SnChatMessage?>(null);
-    final selectedPoll = useState<SnPoll?>(null);
-    final selectedFund = useState<SnWalletFund?>(null);
-    final attachments = useState<List<UniversalFile>>([]);
-    final attachmentProgress = useState<Map<String, Map<int, double?>>>({});
-
-    // Selection mode state
     final isSelectionMode = useState<bool>(false);
     final selectedMessages = useState<Set<String>>({});
 
-    final roomOpenTime = useMemoized(() => DateTime.now());
-
-    final onMessageAction = useCallback(
-      (String action, LocalChatMessage message) {
-        switch (action) {
-          case MessageItemAction.delete:
-            messagesNotifier.deleteMessage(message.id);
-          case MessageItemAction.edit:
-            messageEditingTo.value = message.toRemoteMessage();
-            messageController.text = messageEditingTo.value?.content ?? '';
-            attachments.value = messageEditingTo.value!.attachments
-                .map((e) => UniversalFile.fromAttachment(e))
-                .toList();
-          case MessageItemAction.forward:
-            messageForwardingTo.value = message.toRemoteMessage();
-          case MessageItemAction.reply:
-            messageReplyingTo.value = message.toRemoteMessage();
-          case MessageItemAction.resend:
-            messagesNotifier.retryMessage(message.id);
-        }
-      },
-      [
-        messagesNotifier,
-        messageEditingTo,
-        messageController,
-        attachments,
-        messageForwardingTo,
-        messageReplyingTo,
-      ],
-    );
-
-    var isLoading = false;
-    var isScrollingToMessage = false; // Flag to prevent scroll conflicts
-
-    final listController = useMemoized(() => ListController(), []);
-
-    // Add scroll listener for pagination
-    useEffect(() {
-      void onScroll() {
-        if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 200) {
-          if (isLoading) return;
-          isLoading = true;
-          messagesNotifier.loadMore().then((_) => isLoading = false);
-        }
-
-        // Update gradient animations
-        final pixels = scrollController.position.pixels;
-
-        // Bottom gradient: appears when not at bottom (pixels > 0)
-        bottomGradientNotifier.value.value = (pixels / 500.0).clamp(0.0, 1.0);
-      }
-
-      scrollController.addListener(onScroll);
-      return () => scrollController.removeListener(onScroll);
-    }, [scrollController]);
-
-    Future<void> pickPhotoMedia() async {
-      final ImagePicker picker = ImagePicker();
-      final List<XFile> results = await picker.pickMultiImage();
-      if (results.isEmpty) return;
-      attachments.value = [
-        ...attachments.value,
-        ...results.map(
-          (xfile) => UniversalFile(data: xfile, type: UniversalFileType.image),
-        ),
-      ];
-    }
-
-    Future<void> pickVideoMedia() async {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.video,
-        allowMultiple: true,
-        allowCompression: false,
-      );
-      if (result == null || result.count == 0) return;
-      attachments.value = [
-        ...attachments.value,
-        ...result.files.map(
-          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.video),
-        ),
-      ];
-    }
-
-    Future<void> pickAudioMedia() async {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
-        allowMultiple: true,
-        allowCompression: false,
-      );
-      if (result == null || result.count == 0) return;
-      attachments.value = [
-        ...attachments.value,
-        ...result.files.map(
-          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.audio),
-        ),
-      ];
-    }
-
-    Future<void> pickGeneralFile() async {
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: true,
-        allowCompression: false,
-      );
-      if (result == null || result.count == 0) return;
-      attachments.value = [
-        ...attachments.value,
-        ...result.files.map(
-          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.file),
-        ),
-      ];
-    }
-
-    void linkAttachment() async {
-      final cloudFile = await showModalBottomSheet<SnCloudFile?>(
-        context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        builder: (context) => const ChatLinkAttachment(),
-      );
-      if (cloudFile == null) return;
-
-      attachments.value = [
-        ...attachments.value,
-        UniversalFile(
-          data: cloudFile,
-          type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
-            'image' => UniversalFileType.image,
-            'video' => UniversalFileType.video,
-            'audio' => UniversalFileType.audio,
-            _ => UniversalFileType.file,
-          },
-          isLink: true,
-        ),
-      ];
-    }
-
-    void sendMessage() {
-      if (messageController.text.trim().isNotEmpty ||
-          attachments.value.isNotEmpty ||
-          selectedPoll.value != null ||
-          selectedFund.value != null) {
-        messagesNotifier.sendMessage(
-          ref,
-          messageController.text.trim(),
-          attachments.value,
-          poll: selectedPoll.value,
-          fund: selectedFund.value,
-          editingTo: messageEditingTo.value,
-          forwardingTo: messageForwardingTo.value,
-          replyingTo: messageReplyingTo.value,
-          onProgress: (messageId, progress) {
-            attachmentProgress.value = {
-              ...attachmentProgress.value,
-              messageId: progress,
-            };
-          },
-        );
-        messageController.clear();
-        messageEditingTo.value = null;
-        messageReplyingTo.value = null;
-        messageForwardingTo.value = null;
-        selectedPoll.value = null;
-        selectedFund.value = null;
-        attachments.value = [];
-      }
-    }
-
-    // Add listener to message controller for typing status
-    useEffect(() {
-      void onTextChange() {
-        if (messageController.text.isNotEmpty) {
-          chatSubscribeNotifier.sendTypingStatus();
-        }
-      }
-
-      messageController.addListener(onTextChange);
-      return () => messageController.removeListener(onTextChange);
-    }, [messageController]);
-
-    // Selection functions
     void toggleSelectionMode() {
       isSelectionMode.value = !isSelectionMode.value;
       if (!isSelectionMode.value) {
@@ -386,7 +189,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     void openThinkingSheet() {
       if (selectedMessages.value.isEmpty) return;
 
-      // Convert selected message IDs to message data
       final selectedMessageData =
           messages.value
               ?.where((msg) => selectedMessages.value.contains(msg.id))
@@ -405,205 +207,14 @@ class ChatRoomScreen extends HookConsumerWidget {
       ThoughtSheet.show(
         context,
         attachedMessages: selectedMessageData,
-        attachedPosts: [], // Could be extended to include posts
+        attachedPosts: [],
       );
 
-      // Exit selection mode after opening
       toggleSelectionMode();
     }
 
-    final compactHeader = isWideScreen(context);
-
-    final userInfo = ref.watch(userInfoProvider);
-
-    List<SnChatMember> getValidMembers(List<SnChatMember> members) {
-      return members
-          .where((member) => member.accountId != userInfo.value?.id)
-          .toList();
-    }
-
-    Widget comfortHeaderWidget(SnChatRoom? room) => Column(
-      spacing: 4,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Badge(
-          isLabelVisible: (onlineCount.value ?? 0) > 1,
-          label: Text('${(onlineCount.value ?? 0)}'),
-          textStyle: GoogleFonts.robotoMono(fontSize: 10),
-          textColor: Colors.white,
-          backgroundColor: (onlineCount.value ?? 0) > 1
-              ? Colors.green
-              : Colors.grey,
-          offset: Offset(6, 14),
-          child: SizedBox(
-            height: 26,
-            width: 26,
-            child: (room!.type == 1 && room.picture == null)
-                ? SplitAvatarWidget(
-                    files: getValidMembers(
-                      room.members!,
-                    ).map((e) => e.account.profile.picture).toList(),
-                  )
-                : room.picture != null
-                ? ProfilePictureWidget(
-                    file: room.picture,
-                    fallbackIcon: Symbols.chat,
-                  )
-                : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-          ),
-        ),
-        Text(
-          (room.type == 1 && room.name == null)
-              ? getValidMembers(
-                  room.members!,
-                ).map((e) => e.account.nick).join(', ')
-              : room.name!,
-        ).fontSize(15),
-      ],
-    );
-
-    Widget compactHeaderWidget(SnChatRoom? room) => Row(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Badge(
-          isLabelVisible: (onlineCount.value ?? 0) > 1,
-          label: Text('${(onlineCount.value ?? 0)}'),
-          textStyle: GoogleFonts.robotoMono(fontSize: 10),
-          backgroundColor: (onlineCount.value ?? 0) > 1
-              ? Colors.green
-              : Colors.grey,
-          textColor: Colors.white,
-          offset: Offset(6, 14),
-          child: SizedBox(
-            height: 28,
-            width: 28,
-            child: (room!.type == 1 && room.picture == null)
-                ? SplitAvatarWidget(
-                    files: getValidMembers(
-                      room.members!,
-                    ).map((e) => e.account.profile.picture).toList(),
-                  )
-                : room.picture != null
-                ? ProfilePictureWidget(
-                    file: room.picture,
-                    fallbackIcon: Symbols.chat,
-                  )
-                : CircleAvatar(
-                    child: Text(
-                      room.name![0].toUpperCase(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-          ),
-        ),
-        Text(
-          (room.type == 1 && room.name == null)
-              ? getValidMembers(
-                  room.members!,
-                ).map((e) => e.account.nick).join(', ')
-              : room.name!,
-        ).fontSize(19),
-      ],
-    );
-
-    const messageKeyPrefix = 'message-';
-
-    // Helper function for scroll animation
-    void performScrollAnimation({
-      required int index,
-      required ListController listController,
-      required ScrollController scrollController,
-      required String messageId,
-      required WidgetRef ref,
-    }) {
-      // Update flashing message first
-      ref
-          .read(flashingMessagesProvider.notifier)
-          .update((set) => set.union({messageId}));
-
-      // Use multiple post-frame callbacks to ensure stability
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            listController.animateToItem(
-              index: index,
-              scrollController: scrollController,
-              alignment: 0.5,
-              duration: (estimatedDistance) => Duration(
-                milliseconds: (estimatedDistance * 0.5).clamp(200, 800).toInt(),
-              ),
-              curve: (estimatedDistance) => Curves.easeOutCubic,
-            );
-
-            // Reset the scroll flag after animation completes
-            Future.delayed(const Duration(milliseconds: 800), () {
-              isScrollingToMessage = false;
-            });
-          } catch (e) {
-            // If animation fails, reset the flag
-            isScrollingToMessage = false;
-          }
-        });
-      });
-    }
-
-    // Robust scroll-to-message function to prevent jumping back
-    void scrollToMessage({
-      required String messageId,
-      required List<LocalChatMessage> messageList,
-      required MessagesNotifier messagesNotifier,
-      required ListController listController,
-      required ScrollController scrollController,
-      required WidgetRef ref,
-    }) {
-      // Prevent concurrent scroll operations
-      if (isScrollingToMessage) return;
-      isScrollingToMessage = true;
-
-      final messageIndex = messageList.indexWhere((m) => m.id == messageId);
-
-      if (messageIndex == -1) {
-        // Message not in current list, need to load it first
-        messagesNotifier.jumpToMessage(messageId).then((index) {
-          if (index != -1) {
-            // Wait for UI to rebuild before animating
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              performScrollAnimation(
-                index: index,
-                listController: listController,
-                scrollController: scrollController,
-                messageId: messageId,
-                ref: ref,
-              );
-            });
-          } else {
-            isScrollingToMessage = false;
-          }
-        });
-      } else {
-        // Message is already in list, scroll directly with slight delay
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          performScrollAnimation(
-            index: messageIndex,
-            listController: listController,
-            scrollController: scrollController,
-            messageId: messageId,
-            ref: ref,
-          );
-        });
-      }
-    }
-
     Future<void> uploadAttachment(int index) async {
-      final attachment = attachments.value[index];
+      final attachment = inputManager.attachments[index];
       if (attachment.isOnCloud) return;
 
       final config = await showModalBottomSheet<AttachmentUploadConfig>(
@@ -611,18 +222,14 @@ class ChatRoomScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder: (context) => AttachmentUploaderSheet(
           ref: ref,
-          attachments: attachments.value,
+          attachments: inputManager.attachments,
           index: index,
         ),
       );
       if (config == null) return;
 
       try {
-        // Use 'chat-upload' as temporary key for progress
-        attachmentProgress.value = {
-          ...attachmentProgress.value,
-          'chat-upload': {index: 0},
-        };
+        inputManager.updateAttachmentProgress('chat-upload', 0);
 
         final cloudFile = await FileUploader.createCloudFile(
           ref: ref,
@@ -632,110 +239,48 @@ class ChatRoomScreen extends HookConsumerWidget {
               ? FileUploadMode.generic
               : FileUploadMode.mediaSafe,
           onProgress: (progress, _) {
-            attachmentProgress.value = {
-              ...attachmentProgress.value,
-              'chat-upload': {index: progress ?? 0.0},
-            };
+            inputManager.updateAttachmentProgress(
+              'chat-upload',
+              progress ?? 0.0,
+            );
           },
         ).future;
 
         if (cloudFile == null) {
-          throw ArgumentError('Failed to upload the file...');
+          throw ArgumentError('Failed to upload file...');
         }
 
-        final clone = List.of(attachments.value);
+        final clone = List.of(inputManager.attachments);
         clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
-        attachments.value = clone;
+        inputManager.updateAttachments(clone);
       } catch (err) {
         showErrorAlert(err.toString());
       } finally {
-        attachmentProgress.value = {...attachmentProgress.value}
-          ..remove('chat-upload');
+        final newProgress = Map<String, Map<int, double?>>.from(
+          inputManager.attachmentProgress,
+        );
+        newProgress.remove('chat-upload');
       }
     }
 
-    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
-        ValueListenableBuilder<double>(
-          valueListenable: inputHeight,
-          builder: (context, height, child) {
-            return TweenAnimationBuilder<EdgeInsets>(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              tween: EdgeInsetsTween(
-                begin: EdgeInsets.only(
-                  top: mediaQuery.padding.top,
-                  bottom: mediaQuery.padding.bottom + 8 + height,
-                ),
-                end: EdgeInsets.only(
-                  top: mediaQuery.padding.top,
-                  bottom: mediaQuery.padding.bottom + 8 + height,
-                ),
-              ),
-              builder: (context, padding, child) {
-                return SuperListView.builder(
-                  listController: listController,
-                  controller: scrollController,
-                  reverse: true, // Show newest messages at the bottom
-                  padding: padding,
-                  itemCount: messageList.length,
-                  findChildIndexCallback: (key) {
-                    if (key is! ValueKey<String>) return null;
-                    final messageId = key.value.substring(
-                      messageKeyPrefix.length,
-                    );
-                    final index = messageList.indexWhere(
-                      (m) => (m.nonce ?? m.id) == messageId,
-                    );
-                    return index >= 0 ? index : null;
-                  },
-                  extentEstimation: (_, _) => 40,
-                  itemBuilder: (context, index) {
-                    final message = messageList[index];
-                    final nextMessage = index < messageList.length - 1
-                        ? messageList[index + 1]
-                        : null;
-                    final isLastInGroup =
-                        nextMessage == null ||
-                        nextMessage.senderId != message.senderId ||
-                        nextMessage.createdAt
-                                .difference(message.createdAt)
-                                .inMinutes
-                                .abs() >
-                            3;
+    final filePicker = useRoomFilePicker(
+      context,
+      inputManager.attachments,
+      inputManager.updateAttachments,
+    );
 
-                    final key = Key(
-                      '$messageKeyPrefix${message.nonce ?? message.id}',
-                    );
-
-                    return MessageItemWrapper(
-                      key: key,
-                      message: message,
-                      index: index,
-                      isLastInGroup: isLastInGroup,
-                      isSelectionMode: isSelectionMode.value,
-                      selectedMessages: selectedMessages.value,
-                      chatIdentity: chatIdentity,
-                      toggleSelectionMode: toggleSelectionMode,
-                      toggleMessageSelection: toggleMessageSelection,
-                      onMessageAction: onMessageAction,
-                      onJump: (messageId) => scrollToMessage(
-                        messageId: messageId,
-                        messageList: messageList,
-                        messagesNotifier: messagesNotifier,
-                        listController: listController,
-                        scrollController: scrollController,
-                        ref: ref,
-                      ),
-                      attachmentProgress: attachmentProgress.value,
-                      disableAnimation: settings.disableAnimation,
-                      roomOpenTime: roomOpenTime,
-                    );
-                  },
-                );
-              },
-            );
-          },
-        );
+    void onJump(String messageId) {
+      messages.when(
+        data: (messageList) {
+          scrollManager.scrollToMessage(
+            messageId: messageId,
+            messageList: messageList,
+          );
+        },
+        loading: () {},
+        error: (_, _) {},
+      );
+    }
 
     return AppScaffold(
       appBar: AppBar(
@@ -743,9 +288,11 @@ class ChatRoomScreen extends HookConsumerWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: compactHeader ? null : 74,
         title: chatRoom.when(
-          data: (room) => compactHeader
-              ? compactHeaderWidget(room)
-              : comfortHeaderWidget(room),
+          data: (room) => RoomAppBar(
+            room: room!,
+            onlineCount: onlineCount.value ?? 0,
+            compact: compactHeader,
+          ),
           loading: () => const Text('Loading...'),
           error: (err, _) => ResponseErrorWidget(
             error: err,
@@ -755,7 +302,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         actions: [
           chatRoom.when(
             data: (data) => AudioCallButton(room: data!),
-            error: (err, _) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             loading: () => const SizedBox.shrink(),
           ),
           IconButton(
@@ -767,44 +314,31 @@ class ChatRoomScreen extends HookConsumerWidget {
               );
               if (result is SearchMessagesResult && messages.value != null) {
                 final messageId = result.messageId;
-
-                // Jump to the message and trigger flash effect
                 messagesNotifier.jumpToMessage(messageId).then((index) {
                   if (index != -1 && context.mounted) {
-                    // Update flashing message
                     ref
                         .read(flashingMessagesProvider.notifier)
                         .update((set) => set.union({messageId}));
-
-                    // Scroll to the message with animation
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      try {
-                        listController.animateToItem(
-                          index: index,
-                          scrollController: scrollController,
-                          alignment: 0.5,
-                          duration: (estimatedDistance) => Duration(
-                            milliseconds: (estimatedDistance * 0.5)
-                                .clamp(200, 800)
-                                .toInt(),
-                          ),
-                          curve: (estimatedDistance) => Curves.easeOutCubic,
+                    messages.when(
+                      data: (messageList) {
+                        scrollManager.scrollToMessage(
+                          messageId: messageId,
+                          messageList: messageList,
                         );
-                      } catch (e) {
-                        // If animation fails, just update flashing state
-                      }
-                    });
+                      },
+                      loading: () {},
+                      error: (_, _) {},
+                    );
                   }
                 });
               }
             },
           ),
-          const Gap(8),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
         children: [
-          // Messages only in Column
           Positioned.fill(
             child: Column(
               children: [
@@ -832,7 +366,26 @@ class ChatRoomScreen extends HookConsumerWidget {
                               key: const ValueKey('empty-messages'),
                               child: Text('No messages yet'.tr()),
                             )
-                          : chatMessageListWidget(messageList),
+                          : RoomMessageList(
+                              key: const ValueKey('message-list'),
+                              messages: messageList,
+                              roomAsync: chatRoom,
+                              chatIdentity: chatIdentity,
+                              scrollController: scrollManager.scrollController,
+                              listController: scrollManager.listController,
+                              isSelectionMode: isSelectionMode.value,
+                              selectedMessages: selectedMessages.value,
+                              toggleSelectionMode: toggleSelectionMode,
+                              toggleMessageSelection: toggleMessageSelection,
+                              onMessageAction: inputManager.onMessageAction,
+                              onJump: onJump,
+                              attachmentProgress:
+                                  inputManager.attachmentProgress,
+                              disableAnimation: settings.disableAnimation,
+                              roomOpenTime: roomOpenTime,
+                              inputHeight: inputHeight.value,
+                              previousInputHeight: previousInputHeightRef.value,
+                            ),
                       loading: () => const Center(
                         key: ValueKey('loading-messages'),
                         child: CircularProgressIndicator(),
@@ -848,188 +401,93 @@ class ChatRoomScreen extends HookConsumerWidget {
               ],
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            child: chatRoom.when(
-              data: (data) =>
-                  CallOverlayBar(room: data!).padding(horizontal: 8, top: 12),
-              error: (_, _) => const SizedBox.shrink(),
-              loading: () => const SizedBox.shrink(),
-            ),
+          RoomOverlays(
+            roomAsync: chatRoom,
+            isSyncing: isSyncing,
+            showGradient: !isSelectionMode.value,
+            bottomGradientOpacity: scrollManager.bottomGradientOpacity.value,
+            inputHeight: inputHeight.value,
           ),
-          if (isSyncing)
-            Positioned(
-              top: 8,
-              right: 16,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(
-                  8,
-                  8,
-                  8,
-                  8 + mediaQuery.padding.bottom,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).scaffoldBackgroundColor.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Syncing...',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          // Bottom gradient - appears when scrolling towards newer messages (behind chat input)
-          if (!isSelectionMode.value)
-            AnimatedBuilder(
-              animation: bottomGradientNotifier.value,
-              builder: (context, child) => Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Opacity(
-                  opacity: bottomGradientNotifier.value.value,
-                  child: Container(
-                    height: math.min(mediaQuery.size.height * 0.1, 128),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainer.withOpacity(0.8),
-                          Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainer.withOpacity(0.0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Chat Input positioned above gradient (higher z-index)
           if (!isSelectionMode.value)
             Positioned(
               left: 0,
               right: 0,
-              bottom: mediaQuery
-                  .padding
-                  .bottom, // At the very bottom, above gradient
+              bottom: mediaQuery.padding.bottom,
               child: chatRoom.when(
-                data: (room) => ChatInput(
-                  key: inputKey,
-                  messageController: messageController,
-                  chatRoom: room!,
-                  onSend: sendMessage,
-                  onClear: () {
-                    if (messageEditingTo.value != null) {
-                      attachments.value.clear();
-                      messageController.clear();
-                    }
-                    messageEditingTo.value = null;
-                    messageReplyingTo.value = null;
-                    messageForwardingTo.value = null;
-                    selectedPoll.value = null;
-                    selectedFund.value = null;
-                  },
-                  messageEditingTo: messageEditingTo.value,
-                  messageReplyingTo: messageReplyingTo.value,
-                  messageForwardingTo: messageForwardingTo.value,
-                  selectedPoll: selectedPoll.value,
-                  onPollSelected: (poll) => selectedPoll.value = poll,
-                  selectedFund: selectedFund.value,
-                  onFundSelected: (fund) => selectedFund.value = fund,
-                  onPickFile: (bool isPhoto) {
-                    if (isPhoto) {
-                      pickPhotoMedia();
-                    } else {
-                      pickVideoMedia();
-                    }
-                  },
-                  onPickAudio: pickAudioMedia,
-                  onPickGeneralFile: pickGeneralFile,
-                  onLinkAttachment: linkAttachment,
-                  attachments: attachments.value,
-                  onUploadAttachment: uploadAttachment,
-                  onDeleteAttachment: (index) async {
-                    final attachment = attachments.value[index];
-                    if (attachment.isOnCloud && !attachment.isLink) {
-                      final client = ref.watch(apiClientProvider);
-                      await client.delete('/drive/files/${attachment.data.id}');
-                    }
-                    final clone = List.of(attachments.value);
-                    clone.removeAt(index);
-                    attachments.value = clone;
-                  },
-                  onMoveAttachment: (idx, delta) {
-                    if (idx + delta < 0 ||
-                        idx + delta >= attachments.value.length) {
-                      return;
-                    }
-                    final clone = List.of(attachments.value);
-                    clone.insert(idx + delta, clone.removeAt(idx));
-                    attachments.value = clone;
-                  },
-                  onAttachmentsChanged: (newAttachments) {
-                    attachments.value = newAttachments;
-                  },
-                  attachmentProgress: attachmentProgress.value,
-                ),
+                data: (room) => room != null
+                    ? ChatInput(
+                        key: inputKey,
+                        messageController: inputManager.messageController,
+                        chatRoom: room,
+                        onSend: () => inputManager.sendMessage(ref),
+                        onClear: () {
+                          if (inputManager.messageEditingTo != null) {
+                            inputManager.clearAttachmentsOnly();
+                          }
+                          inputManager.setEditingTo(null);
+                          inputManager.setReplyingTo(null);
+                          inputManager.setForwardingTo(null);
+                          inputManager.setPoll(null);
+                          inputManager.setFund(null);
+                        },
+                        messageEditingTo: inputManager.messageEditingTo,
+                        messageReplyingTo: inputManager.messageReplyingTo,
+                        messageForwardingTo: inputManager.messageForwardingTo,
+                        selectedPoll: inputManager.selectedPoll,
+                        onPollSelected: (poll) => inputManager.setPoll(poll),
+                        selectedFund: inputManager.selectedFund,
+                        onFundSelected: (fund) => inputManager.setFund(fund),
+                        onPickFile: (isPhoto) {
+                          if (isPhoto) {
+                            filePicker.pickPhotos();
+                          } else {
+                            filePicker.pickVideos();
+                          }
+                        },
+                        onPickAudio: filePicker.pickAudio,
+                        onPickGeneralFile: filePicker.pickFiles,
+                        onLinkAttachment: filePicker.linkAttachment,
+                        attachments: inputManager.attachments,
+                        onUploadAttachment: uploadAttachment,
+                        onDeleteAttachment: (index) async {
+                          final attachment = inputManager.attachments[index];
+                          if (attachment.isOnCloud && !attachment.isLink) {
+                            final client = ref.watch(apiClientProvider);
+                            await client.delete(
+                              '/drive/files/${attachment.data.id}',
+                            );
+                          }
+                          final clone = List.of(inputManager.attachments);
+                          clone.removeAt(index);
+                          inputManager.updateAttachments(clone);
+                        },
+                        onMoveAttachment: (idx, delta) {
+                          if (idx + delta < 0 ||
+                              idx + delta >= inputManager.attachments.length) {
+                            return;
+                          }
+                          final clone = List.of(inputManager.attachments);
+                          clone.insert(idx + delta, clone.removeAt(idx));
+                          inputManager.updateAttachments(clone);
+                        },
+                        onAttachmentsChanged: inputManager.updateAttachments,
+                        attachmentProgress: inputManager.attachmentProgress,
+                      )
+                    : const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),
               ),
             ),
-          // Selection mode toolbar
           if (isSelectionMode.value)
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              child: Container(
-                color: Theme.of(context).colorScheme.surface,
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 8,
-                  bottom: mediaQuery.padding.bottom + 8,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: toggleSelectionMode,
-                      tooltip: 'Cancel selection',
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${selectedMessages.value.length} selected',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const Spacer(),
-                    if (selectedMessages.value.isNotEmpty)
-                      FilledButton.icon(
-                        onPressed: openThinkingSheet,
-                        icon: Icon(Symbols.smart_toy),
-                        label: const Text('AI Think'),
-                      ),
-                  ],
-                ),
+              child: RoomSelectionMode(
+                visible: isSelectionMode.value,
+                selectedCount: selectedMessages.value.length,
+                onClose: toggleSelectionMode,
+                onAIThink: openThinkingSheet,
               ),
             ),
         ],

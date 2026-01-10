@@ -146,16 +146,19 @@ class WindowScaffold extends HookConsumerWidget {
         },
       );
 
-      ShakeDetector detector = ShakeDetector.autoStart(
-        onPhoneShake: (_) {
-          showPalette.value = true;
-        },
-      );
+      ShakeDetector? detactor;
+      if (!kIsWeb && (Platform.isIOS && Platform.isAndroid)) {
+        detactor = ShakeDetector.autoStart(
+          onPhoneShake: (_) {
+            showPalette.value = true;
+          },
+        );
+      }
 
       return () {
         hotKeyManager.unregister(popHotKey);
         hotKeyManager.unregister(cmpHotKey);
-        detector.stopListening();
+        detactor?.stopListening();
       };
     }, []);
 
