@@ -365,6 +365,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                               roomAsync: chatRoom,
                               chatIdentity: chatIdentity,
                               scrollController: scrollManager.scrollController,
+                              listController: scrollManager.listController,
                               isSelectionMode: isSelectionMode.value,
                               selectedMessages: selectedMessages.value,
                               toggleSelectionMode: toggleSelectionMode,

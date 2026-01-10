@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/widgets/chat/message_item.dart';
 
-class MessageItemWrapper extends ConsumerWidget {
+// Provider to track animated messages to prevent replay
+final animatedMessagesProvider =
+    NotifierProvider<AnimatedMessagesNotifier, Set<String>>(
+      AnimatedMessagesNotifier.new,
+    );
+
+class AnimatedMessagesNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() {
+    return {};
+  }
+
+  void addMessage(String messageId) {
+    state = {...state, messageId};
+  }
+}
+
+class MessageItemWrapper extends HookConsumerWidget {
   final LocalChatMessage message;
   final int index;
   final bool isLastInGroup;
@@ -17,8 +35,8 @@ class MessageItemWrapper extends ConsumerWidget {
   final Function(String, LocalChatMessage) onMessageAction;
   final Function(String) onJump;
   final Map<String, Map<int, double?>> attachmentProgress;
-  final DateTime roomOpenTime;
   final bool disableAnimation;
+  final DateTime roomOpenTime;
 
   const MessageItemWrapper({
     super.key,
@@ -33,19 +51,9 @@ class MessageItemWrapper extends ConsumerWidget {
     required this.onMessageAction,
     required this.onJump,
     required this.attachmentProgress,
-    required this.roomOpenTime,
     required this.disableAnimation,
+    required this.roomOpenTime,
   });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return chatIdentity.when(
-      skipError: true,
-      data: (identity) => _buildContent(context, identity),
-      loading: () => _buildLoading(),
-      error: (_, _) => const SizedBox.shrink(),
-    );
-  }
 
   Widget _buildContent(BuildContext context, SnChatMember? identity) {
     final isSelected = selectedMessages.contains(message.id);
@@ -120,6 +128,90 @@ class MessageItemWrapper extends ConsumerWidget {
       progress: null,
       showAvatar: false,
       onJump: (_) {},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Animation logic
+    final animatedMessages = ref.watch(animatedMessagesProvider);
+    final isNewMessage = message.createdAt.isAfter(roomOpenTime);
+    final hasAnimated = animatedMessages.contains(message.id);
+
+    // Only animate if:
+    // 1. Animation is enabled
+    // 2. Message is new (created after room open)
+    // 3. Has not animated yet
+    final shouldAnimate = !disableAnimation && isNewMessage && !hasAnimated;
+
+    final child = chatIdentity.when(
+      skipError: true,
+      data: (identity) => _buildContent(context, identity),
+      loading: () => _buildLoading(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+
+    final controller = useAnimationController(
+      duration: Duration(milliseconds: 400 + (index % 5) * 50),
+    );
+
+    final hasStarted = useState(false);
+
+    useEffect(() {
+      if (shouldAnimate && !hasStarted.value) {
+        hasStarted.value = true;
+        controller.forward().then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(animatedMessagesProvider.notifier).addMessage(message.id);
+          });
+        });
+      }
+      return null;
+    }, [shouldAnimate]);
+
+    if (!shouldAnimate) {
+      return child;
+    }
+
+    final curvedAnimation = useMemoized(
+      () => CurvedAnimation(parent: controller, curve: Curves.easeOutQuart),
+      [controller],
+    );
+
+    final sizeAnimation = useMemoized(
+      () => Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+      [curvedAnimation],
+    );
+
+    final slideAnimation = useMemoized(
+      () => Tween<Offset>(
+        begin: const Offset(0, 0.12),
+        end: Offset.zero,
+      ).animate(curvedAnimation),
+      [curvedAnimation],
+    );
+
+    final fadeAnimation = useMemoized(
+      () => Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: const Interval(0.1, 1.0, curve: Curves.easeOut),
+        ),
+      ),
+      [controller],
+    );
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) => FadeTransition(
+        opacity: fadeAnimation,
+        child: SizeTransition(
+          axis: Axis.vertical,
+          sizeFactor: sizeAnimation,
+          child: SlideTransition(position: slideAnimation, child: child),
+        ),
+      ),
+      child: child,
     );
   }
 }
