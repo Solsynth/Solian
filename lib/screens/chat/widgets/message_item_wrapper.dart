@@ -5,23 +5,6 @@ import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/widgets/chat/message_item.dart';
 
-// Provider to track animated messages to prevent replay
-final animatedMessagesProvider =
-    NotifierProvider<AnimatedMessagesNotifier, Set<String>>(
-      AnimatedMessagesNotifier.new,
-    );
-
-class AnimatedMessagesNotifier extends Notifier<Set<String>> {
-  @override
-  Set<String> build() {
-    return {};
-  }
-
-  void addMessage(String messageId) {
-    state = {...state, messageId};
-  }
-}
-
 class MessageItemWrapper extends ConsumerWidget {
   final LocalChatMessage message;
   final int index;
@@ -34,8 +17,8 @@ class MessageItemWrapper extends ConsumerWidget {
   final Function(String, LocalChatMessage) onMessageAction;
   final Function(String) onJump;
   final Map<String, Map<int, double?>> attachmentProgress;
-  final bool disableAnimation;
   final DateTime roomOpenTime;
+  final bool disableAnimation;
 
   const MessageItemWrapper({
     super.key,
@@ -50,52 +33,17 @@ class MessageItemWrapper extends ConsumerWidget {
     required this.onMessageAction,
     required this.onJump,
     required this.attachmentProgress,
-    required this.disableAnimation,
     required this.roomOpenTime,
+    required this.disableAnimation,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Animation logic
-    final animatedMessages = ref.watch(animatedMessagesProvider);
-    final isNewMessage = message.createdAt.isAfter(roomOpenTime);
-    final hasAnimated = animatedMessages.contains(message.id);
-
-    // Only animate if:
-    // 1. Animation is enabled
-    // 2. Message is new (created after room open)
-    // 3. Has not animated yet
-    final shouldAnimate = !disableAnimation && isNewMessage && !hasAnimated;
-
-    final child = chatIdentity.when(
+    return chatIdentity.when(
       skipError: true,
       data: (identity) => _buildContent(context, identity),
       loading: () => _buildLoading(),
       error: (_, _) => const SizedBox.shrink(),
-    );
-
-    if (!shouldAnimate) {
-      return child;
-    }
-
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('anim-${message.id}'), // Ensure unique key for animation
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index % 5) * 50),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 20 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      onEnd: () {
-        // Mark as animated
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(animatedMessagesProvider.notifier).addMessage(message.id);
-        });
-      },
-      child: child,
     );
   }
 
@@ -116,12 +64,9 @@ class MessageItemWrapper extends ConsumerWidget {
         }
       },
       child: Container(
-        color:
-            isSelected
-                ? Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withOpacity(0.3)
-                : null,
+        color: isSelected
+            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+            : null,
         child: Stack(
           children: [
             MessageItem(
@@ -130,10 +75,9 @@ class MessageItemWrapper extends ConsumerWidget {
               key: ValueKey('item-${message.id}'),
               message: message,
               isCurrentUser: isCurrentUser,
-              onAction:
-                  isSelectionMode
-                      ? null
-                      : (action) => onMessageAction(action, message),
+              onAction: isSelectionMode
+                  ? null
+                  : (action) => onMessageAction(action, message),
               onJump: onJump,
               progress: attachmentProgress[message.id],
               showAvatar: isLastInGroup,
