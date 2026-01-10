@@ -28,6 +28,7 @@ import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:island/services/analytics_service.dart';
 
 const kAvailableStickers = {
   'angry',
@@ -367,7 +368,15 @@ class PostItem extends HookConsumerWidget {
               ),
             );
             HapticFeedback.heavyImpact();
+
+            AnalyticsService().logPostReacted(
+              item.id,
+              symbol,
+              attitude,
+              isRemoving,
+            );
           });
+
       reacting.value = false;
     }
 

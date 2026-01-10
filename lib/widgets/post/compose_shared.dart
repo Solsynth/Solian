@@ -27,6 +27,7 @@ import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:island/pods/drive/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:island/talker.dart';
+import 'package:island/services/analytics_service.dart';
 
 class ComposeState {
   final TextEditingController titleController;
@@ -737,6 +738,17 @@ class ComposeLogic {
       // Call the success callback
       onSuccess();
       eventBus.fire(PostCreatedEvent());
+
+      final postTypeStr = state.postType == 0 ? 'regular' : 'article';
+      final visibilityStr = state.visibility.value.toString();
+      final publisherId = state.currentPublisher.value?.id ?? 'unknown';
+
+      AnalyticsService().logPostCreated(
+        postTypeStr,
+        visibilityStr,
+        state.attachments.value.isNotEmpty,
+        publisherId,
+      );
 
       return post;
     } catch (err) {

@@ -22,6 +22,7 @@ import "package:island/pods/chat/chat_online_count.dart";
 import "package:island/pods/config.dart";
 import "package:island/pods/userinfo.dart";
 import "package:island/screens/chat/search_messages.dart";
+import "package:island/services/analytics_service.dart";
 import "package:island/services/file_uploader.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/alert.dart";
@@ -54,6 +55,16 @@ class ChatRoomScreen extends HookConsumerWidget {
     final isSyncing = ref.watch(chatSyncingProvider);
     final onlineCount = ref.watch(chatOnlineCountProvider(id));
     final settings = ref.watch(appSettingsProvider);
+
+    useEffect(() {
+      if (!chatRoom.isLoading && chatRoom.value != null) {
+        AnalyticsService().logChatRoomOpened(
+          id,
+          chatRoom.value!.isCommunity == true ? 'group' : 'direct',
+        );
+      }
+      return null;
+    }, []);
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
