@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 
-typedef WidgetBuilder0 = Widget Function();
+typedef WidgetBuilder = Widget Function();
 
 class DataSavingGate extends ConsumerWidget {
   final bool bypass;
-  final WidgetBuilder0 content;
+  final WidgetBuilder content;
   final Widget placeholder;
 
   const DataSavingGate({
