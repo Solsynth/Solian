@@ -7,10 +7,9 @@ import 'package:island/models/chat.dart';
 import 'package:island/widgets/chat/message_item.dart';
 
 // Provider to track animated messages to prevent replay
-final animatedMessagesProvider =
-    NotifierProvider<AnimatedMessagesNotifier, Set<String>>(
-      AnimatedMessagesNotifier.new,
-    );
+final animatedMessagesProvider = NotifierProvider.autoDispose(
+  AnimatedMessagesNotifier.new,
+);
 
 class AnimatedMessagesNotifier extends Notifier<Set<String>> {
   @override
