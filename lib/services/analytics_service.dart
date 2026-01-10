@@ -79,7 +79,7 @@ class AnalyticsService {
       'post_id': postId,
       'reaction_symbol': reactionSymbol,
       'attitude': attitude,
-      'is_removing': isRemoving,
+      'is_removing': isRemoving ? 'yes' : 'no',
     });
   }
 
@@ -138,7 +138,7 @@ class AnalyticsService {
       'post_id': postId,
       'amount': amount,
       'attitude': attitude,
-      'has_message': hasMessage,
+      'has_message': hasMessage ? 'yes' : 'no',
       'currency': 'NSP',
     });
   }

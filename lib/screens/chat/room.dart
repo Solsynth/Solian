@@ -348,15 +348,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                     switchOutCurve: Curves.easeInCubic,
                     transitionBuilder:
                         (Widget child, Animation<double> animation) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.05),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
                           );
                         },
                     child: messages.when(
