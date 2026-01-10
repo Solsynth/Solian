@@ -11,8 +11,8 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-class UploadOverlay extends HookConsumerWidget {
-  const UploadOverlay({super.key});
+class TaskOverlay extends HookConsumerWidget {
+  const TaskOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,7 +32,9 @@ class UploadOverlay extends HookConsumerWidget {
     final isVisibleOverride = useState<bool?>(null);
     final pendingHide = useState(false);
     final isExpandedLocal = useState(false);
+    final isCompactLocal = useState(true); // Start compact
     final autoHideTimer = useState<Timer?>(null);
+    final autoCompactTimer = useState<Timer?>(null);
 
     final allFinished = activeTasks.every(
       (task) =>
@@ -69,14 +71,35 @@ class UploadOverlay extends HookConsumerWidget {
       }
       return null;
     }, [allFinished, activeTasks, isExpandedLocal.value, pendingHide.value]);
+
+    final isDesktop = isWideScreen(context);
+
+    // Auto-compact timer for mobile when expanded
+    useEffect(() {
+      if (!isDesktop && !isCompactLocal.value) {
+        // Start timer to auto-compact after 5 seconds
+        autoCompactTimer.value?.cancel();
+        autoCompactTimer.value = Timer(const Duration(seconds: 5), () {
+          isCompactLocal.value = true;
+        });
+      } else {
+        autoCompactTimer.value?.cancel();
+        autoCompactTimer.value = null;
+      }
+      return null;
+    }, [isCompactLocal.value, isDesktop]);
     final isVisible =
         (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
         !pendingHide.value;
     final slideController = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
+    final isTopPositioned = !isDesktop; // Mobile: top, Desktop: bottom
+
     final slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1), // Start from below the screen
+      begin: isTopPositioned
+          ? const Offset(0, -1)
+          : const Offset(0, 1), // Start from above/below the screen
       end: Offset.zero, // End at normal position
     ).animate(CurvedAnimation(parent: slideController, curve: Curves.easeOut));
 
@@ -95,33 +118,47 @@ class UploadOverlay extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final isDesktop = isWideScreen(context);
-
     return Positioned(
-      bottom: 0,
+      top: isTopPositioned ? 0 : null,
+      bottom: !isTopPositioned ? 0 : null,
       left: isDesktop ? null : 0,
       right: isDesktop ? 24 : 0,
       child: SlideTransition(
         position: slideAnimation,
-        child: _UploadOverlayContent(
-          activeTasks: activeTasks,
-          isExpanded: isExpandedLocal.value,
-          onExpansionChanged: (expanded) => isExpandedLocal.value = expanded,
-        ).padding(bottom: 16 + MediaQuery.of(context).padding.bottom),
+        child:
+            _TaskOverlayContent(
+              activeTasks: activeTasks,
+              isExpanded: isExpandedLocal.value,
+              isCompact: isCompactLocal.value,
+              onExpansionChanged: (expanded) =>
+                  isExpandedLocal.value = expanded,
+              onCompactChanged: (compact) => isCompactLocal.value = compact,
+            ).padding(
+              top: isTopPositioned
+                  ? MediaQuery.of(context).padding.top + 16
+                  : 0,
+              bottom: !isTopPositioned
+                  ? 16 + MediaQuery.of(context).padding.bottom
+                  : 0,
+            ),
       ),
     );
   }
 }
 
-class _UploadOverlayContent extends HookConsumerWidget {
+class _TaskOverlayContent extends HookConsumerWidget {
   final List<DriveTask> activeTasks;
   final bool isExpanded;
+  final bool isCompact;
   final Function(bool)? onExpansionChanged;
+  final Function(bool)? onCompactChanged;
 
-  const _UploadOverlayContent({
+  const _TaskOverlayContent({
     required this.activeTasks,
     required this.isExpanded,
+    required this.isCompact,
     this.onExpansionChanged,
+    this.onCompactChanged,
   });
 
   @override
@@ -130,11 +167,16 @@ class _UploadOverlayContent extends HookConsumerWidget {
       duration: const Duration(milliseconds: 200),
       initialValue: 0.0,
     );
-    final heightAnimation = useAnimation(
-      Tween<double>(begin: 60, end: 400).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
-      ),
-    );
+    final compactHeight = 32.0;
+    final collapsedHeight = 60.0;
+    final expandedHeight = 400.0;
+
+    final currentHeight = isCompact
+        ? compactHeight
+        : isExpanded
+        ? expandedHeight
+        : collapsedHeight;
+
     final opacityAnimation = useAnimation(
       CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
     );
@@ -152,234 +194,313 @@ class _UploadOverlayContent extends HookConsumerWidget {
 
     final taskNotifier = ref.read(uploadTasksProvider.notifier);
 
+    void handleInteraction() {
+      if (isCompact) {
+        onCompactChanged?.call(false);
+      } else if (!isExpanded) {
+        onExpansionChanged?.call(true);
+      } else {
+        onExpansionChanged?.call(false);
+      }
+    }
+
+    Widget content = AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(isCompact ? 64 : 12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      width: isCompact
+          ? _getCompactWidth(activeTasks)
+          : (isMobile ? MediaQuery.of(context).size.width - 32 : 320),
+      height: currentHeight,
+      child: GestureDetector(
+        onTap: isMobile ? handleInteraction : null,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(isCompact ? 64 : 12),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            child: isCompact
+                ? // Compact view with progress bar background and text
+                  Container(
+                    key: const ValueKey('compact'),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        Icon(
+                          _getOverallStatusIcon(activeTasks),
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        Expanded(
+                          child: Text(
+                            activeTasks.isEmpty
+                                ? '0 tasks'
+                                : _getOverallStatusText(activeTasks),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            value: _getOverallProgress(activeTasks),
+                            strokeWidth: 3,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ).padding(horizontal: 12),
+                  )
+                : Container(
+                    key: const ValueKey('expanded'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Collapsed Header
+                        Container(
+                          height: 60,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              // Task icon with animation
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 150),
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                                child: Icon(
+                                  key: ValueKey(isExpanded),
+                                  isExpanded
+                                      ? Symbols.list_rounded
+                                      : _getOverallStatusIcon(activeTasks),
+                                  size: 24,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Title and count
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isExpanded
+                                          ? 'tasks'.tr()
+                                          : _getOverallStatusText(activeTasks),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (!isExpanded && activeTasks.isNotEmpty)
+                                      Text(
+                                        _getOverallProgressText(activeTasks),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+
+                              // Progress indicator (collapsed)
+                              if (!isExpanded)
+                                SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: CircularProgressIndicator(
+                                    value: _getOverallProgress(activeTasks),
+                                    strokeWidth: 3,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                                  ),
+                                ),
+
+                              // Expand/collapse button
+                              IconButton(
+                                icon: AnimatedRotation(
+                                  turns: opacityAnimation * 0.5,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Icon(
+                                    isExpanded
+                                        ? Symbols.expand_more
+                                        : Symbols.chevron_right,
+                                    size: 20,
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    onExpansionChanged?.call(!isExpanded),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Expanded content
+                        if (isExpanded)
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Theme.of(context).colorScheme.outline,
+                                    width:
+                                        1 /
+                                        MediaQuery.of(context).devicePixelRatio,
+                                  ),
+                                ),
+                              ),
+                              child: CustomScrollView(
+                                slivers: [
+                                  // Clear completed tasks button
+                                  if (_hasCompletedTasks(activeTasks))
+                                    SliverToBoxAdapter(
+                                      child: ListTile(
+                                        dense: true,
+                                        title: const Text('clearCompleted').tr(),
+                                        leading: Icon(
+                                          Symbols.clear_all,
+                                          size: 18,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                        onTap: () {
+                                          taskNotifier.clearCompletedTasks();
+                                          onExpansionChanged?.call(false);
+                                        },
+
+                                        tileColor: Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
+                                      ),
+                                    ),
+
+                                  // Clear all tasks button
+                                  if (activeTasks.any(
+                                    (task) =>
+                                        task.status != DriveTaskStatus.completed,
+                                  ))
+                                    SliverToBoxAdapter(
+                                      child: ListTile(
+                                        dense: true,
+                                        title: const Text('Clear All'),
+                                        leading: Icon(
+                                          Symbols.clear_all,
+                                          size: 18,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                        ),
+                                        onTap: () {
+                                          taskNotifier.clearAllTasks();
+                                          onExpansionChanged?.call(false);
+                                        },
+                                        tileColor: Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
+                                      ),
+                                    ),
+
+                                  // Task list
+                                  SliverList(
+                                    delegate: SliverChildBuilderDelegate((
+                                      context,
+                                      index,
+                                    ) {
+                                      final task = activeTasks[index];
+                                      return AnimatedOpacity(
+                                        opacity: opacityAnimation,
+                                        duration: const Duration(
+                                          milliseconds: 150,
+                                        ),
+                                        child: UploadTaskTile(task: task),
+                                      );
+                                    }, childCount: activeTasks.length),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+
+    // Add MouseRegion for desktop hover
+    if (!isMobile) {
+      content = MouseRegion(
+        onEnter: (_) => onCompactChanged?.call(false),
+        onExit: (_) => onCompactChanged?.call(true),
+        child: content,
+      );
+    }
+
+    if (isCompact) {
+      content = Center(child: content);
+    }
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: isMobile ? 16 : 24,
         left: isMobile ? 16 : 0,
         right: isMobile ? 16 : 24,
       ),
-      child: GestureDetector(
-        onTap: () => onExpansionChanged?.call(!isExpanded),
-        child: AnimatedBuilder(
-          animation: animationController,
-          builder: (context, child) {
-            return Material(
-              elevation: 8 + (opacityAnimation * 4),
-              borderRadius: BorderRadius.circular(12),
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                width: isMobile ? MediaQuery.of(context).size.width - 32 : 320,
-                height: heightAnimation,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Collapsed Header
-                      Container(
-                        height: 60,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            // Upload icon with animation
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 150),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
-                              child: Icon(
-                                key: ValueKey(isExpanded),
-                                isExpanded
-                                    ? Symbols.list_rounded
-                                    : _getOverallStatusIcon(activeTasks),
-                                size: 24,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            // Title and count
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isExpanded
-                                        ? 'uploadTasks'.tr()
-                                        : _getOverallStatusText(activeTasks),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  if (!isExpanded && activeTasks.isNotEmpty)
-                                    Text(
-                                      _getOverallProgressText(activeTasks),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                ],
-                              ),
-                            ),
-
-                            // Progress indicator (collapsed)
-                            if (!isExpanded)
-                              SizedBox(
-                                width: 32,
-                                height: 32,
-                                child: CircularProgressIndicator(
-                                  value: _getOverallProgress(activeTasks),
-                                  strokeWidth: 3,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                ),
-                              ),
-
-                            // Expand/collapse button
-                            IconButton(
-                              icon: AnimatedRotation(
-                                turns: opacityAnimation * 0.5,
-                                duration: const Duration(milliseconds: 200),
-                                child: Icon(
-                                  isExpanded
-                                      ? Symbols.expand_more
-                                      : Symbols.chevron_right,
-                                  size: 20,
-                                ),
-                              ),
-                              onPressed: () =>
-                                  onExpansionChanged?.call(!isExpanded),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Expanded content
-                      if (isExpanded)
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                top: BorderSide(
-                                  color: Theme.of(context).colorScheme.outline,
-                                  width:
-                                      1 /
-                                      MediaQuery.of(context).devicePixelRatio,
-                                ),
-                              ),
-                            ),
-                            child: CustomScrollView(
-                              slivers: [
-                                // Clear completed tasks button
-                                if (_hasCompletedTasks(activeTasks))
-                                  SliverToBoxAdapter(
-                                    child: ListTile(
-                                      dense: true,
-                                      title: const Text('clearCompleted').tr(),
-                                      leading: Icon(
-                                        Symbols.clear_all,
-                                        size: 18,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                      onTap: () {
-                                        taskNotifier.clearCompletedTasks();
-                                        onExpansionChanged?.call(false);
-                                      },
-
-                                      tileColor: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                    ),
-                                  ),
-
-                                // Clear all tasks button
-                                if (activeTasks.any(
-                                  (task) =>
-                                      task.status != DriveTaskStatus.completed,
-                                ))
-                                  SliverToBoxAdapter(
-                                    child: ListTile(
-                                      dense: true,
-                                      title: const Text('Clear All'),
-                                      leading: Icon(
-                                        Symbols.clear_all,
-                                        size: 18,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                      onTap: () {
-                                        taskNotifier.clearAllTasks();
-                                        onExpansionChanged?.call(false);
-                                      },
-                                      tileColor: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                    ),
-                                  ),
-
-                                // Task list
-                                SliverList(
-                                  delegate: SliverChildBuilderDelegate((
-                                    context,
-                                    index,
-                                  ) {
-                                    final task = activeTasks[index];
-                                    return AnimatedOpacity(
-                                      opacity: opacityAnimation,
-                                      duration: const Duration(
-                                        milliseconds: 150,
-                                      ),
-                                      child: UploadTaskTile(task: task),
-                                    );
-                                  }, childCount: activeTasks.length),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+      child: content,
     );
   }
 
   double _getOverallProgress(List<DriveTask> tasks) {
     if (tasks.isEmpty) return 0.0;
-    final totalProgress = tasks.fold<double>(
-      0.0,
-      (sum, task) =>
-          sum +
+    final totalProgress = tasks.fold<double>(0.0, (sum, task) {
+      final byteProgress = task.fileSize > 0
+          ? task.uploadedBytes / task.fileSize
+          : 0.0;
+      return sum +
           (task.status == DriveTaskStatus.inProgress
-              ? task.progress
+              ? byteProgress
               : task.status == DriveTaskStatus.completed
               ? 1
-              : 0),
-    );
+              : 0);
+    });
     return totalProgress / tasks.length;
   }
 
@@ -482,6 +603,19 @@ class _UploadOverlayContent extends HookConsumerWidget {
           task.status == DriveTaskStatus.expired,
     );
   }
+
+  double _getCompactWidth(List<DriveTask> tasks) {
+    // Base width for icon and padding
+    double width = 16 + 12 + 12; // icon size + padding + spacing
+
+    // Add text width estimation
+    final text = activeTasks.isEmpty ? '0 tasks' : _getOverallStatusText(tasks);
+    // Rough estimation: 8px per character
+    width += text.length * 8.0;
+
+    // Cap at reasonable maximum
+    return width.clamp(200, 280);
+  }
 }
 
 class UploadTaskTile extends StatefulWidget {
@@ -551,7 +685,9 @@ class _UploadTaskTileState extends State<UploadTaskTile>
             child: Padding(
               padding: const EdgeInsets.all(2),
               child: CircularProgressIndicator(
-                value: widget.task.progress,
+                value: widget.task.fileSize > 0
+                    ? widget.task.uploadedBytes / widget.task.fileSize
+                    : 0.0,
                 strokeWidth: 2.5,
                 backgroundColor: Theme.of(
                   context,

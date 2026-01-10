@@ -17,7 +17,7 @@ import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/cmp/pattle.dart';
-import 'package:island/widgets/upload_overlay.dart';
+import 'package:island/widgets/task_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shake/shake.dart';
@@ -258,7 +258,7 @@ class WindowScaffold extends HookConsumerWidget {
               ],
             ),
             _WebSocketIndicator(),
-            const UploadOverlay(),
+            const TaskOverlay(),
             if (showPalette.value)
               CommandPattleWidget(onDismiss: () => showPalette.value = false),
           ],
@@ -271,7 +271,7 @@ class WindowScaffold extends HookConsumerWidget {
       children: [
         Positioned.fill(child: child),
         _WebSocketIndicator(),
-        const UploadOverlay(),
+        const TaskOverlay(),
         if (showPalette.value)
           CommandPattleWidget(onDismiss: () => showPalette.value = false),
       ],
