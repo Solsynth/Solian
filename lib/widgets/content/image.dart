@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -29,7 +30,15 @@ class UniversalImage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final loaded = useState(false);
+    final isCached = useState<bool?>(null);
     final isSvgImage = isSvg || uri.toLowerCase().endsWith('.svg');
+
+    useEffect(() {
+      DefaultCacheManager().getFileFromCache(uri).then((fileInfo) {
+        isCached.value = fileInfo != null;
+      });
+      return null;
+    }, [uri]);
 
     if (isSvgImage) {
       return SvgPicture.network(
@@ -59,44 +68,69 @@ class UniversalImage extends HookWidget {
         fit: StackFit.expand,
         children: [
           if (blurHash != null) BlurHash(hash: blurHash!),
-          CachedNetworkImage(
-            imageUrl: uri,
-            fit: fit,
-            width: width,
-            height: height,
-            memCacheHeight: cacheHeight,
-            memCacheWidth: cacheWidth,
-            progressIndicatorBuilder: (context, url, progress) {
-              return Center(
-                child: AnimatedCircularProgressIndicator(
-                  value: progress.progress,
-                  color: Colors.white.withOpacity(0.5),
-                ),
-              );
-            },
-            imageBuilder: (context, imageProvider) {
-              Future(() {
-                if (context.mounted) return loaded.value = true;
-              });
-              return AnimatedOpacity(
-                opacity: loaded.value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: Image(
-                  image: imageProvider,
-                  fit: fit,
-                  width: width,
-                  height: height,
-                ),
-              );
-            },
-            errorWidget: (context, url, error) => useFallbackImage
-                ? Image.asset(
-                    'assets/images/media-offline.jpg',
-                    fit: BoxFit.cover,
-                    key: Key('image-broke-$uri'),
-                  )
-                : SizedBox.shrink(),
-          ),
+          if (isCached.value == null)
+            Center(child: CircularProgressIndicator())
+          else if (isCached.value!)
+            CachedNetworkImage(
+              imageUrl: uri,
+              fit: fit,
+              width: width,
+              height: height,
+              memCacheHeight: cacheHeight,
+              memCacheWidth: cacheWidth,
+              imageBuilder: (context, imageProvider) => Image(
+                image: imageProvider,
+                fit: fit,
+                width: width,
+                height: height,
+              ),
+              errorWidget: (context, url, error) => useFallbackImage
+                  ? Image.asset(
+                      'assets/images/media-offline.jpg',
+                      fit: BoxFit.cover,
+                      key: Key('image-broke-$uri'),
+                    )
+                  : SizedBox.shrink(),
+            )
+          else
+            CachedNetworkImage(
+              imageUrl: uri,
+              fit: fit,
+              width: width,
+              height: height,
+              memCacheHeight: cacheHeight,
+              memCacheWidth: cacheWidth,
+              progressIndicatorBuilder: (context, url, progress) {
+                return Center(
+                  child: AnimatedCircularProgressIndicator(
+                    value: progress.progress,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
+                );
+              },
+              imageBuilder: (context, imageProvider) {
+                Future(() {
+                  if (context.mounted) loaded.value = true;
+                });
+                return AnimatedOpacity(
+                  opacity: loaded.value ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Image(
+                    image: imageProvider,
+                    fit: fit,
+                    width: width,
+                    height: height,
+                  ),
+                );
+              },
+              errorWidget: (context, url, error) => useFallbackImage
+                  ? Image.asset(
+                      'assets/images/media-offline.jpg',
+                      fit: BoxFit.cover,
+                      key: Key('image-broke-$uri'),
+                    )
+                  : SizedBox.shrink(),
+            ),
         ],
       ),
     );
