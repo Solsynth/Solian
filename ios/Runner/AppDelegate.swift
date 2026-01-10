@@ -314,10 +314,146 @@ struct CheckNotificationsIntent: AppIntent {
             let value = result["value"] as? String ?? "You have new notifications"
             return .result(
                 value: value,
-                dialog: "Dialog: \(value)"
+                dialog: "\(value)"
             )
         } else {
             let errorMessage = result["error"] as? String ?? "Failed to check notifications"
+            throw AppIntentError.executionFailed(errorMessage)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct SendMessageIntent: AppIntent {
+    static var title: LocalizedStringResource = "Send Message"
+    static var description = IntentDescription("Send a message to a chat channel")
+    static var isDiscoverable = true
+    static var openAppWhenRun = false
+
+    @Parameter(title: "Channel ID")
+    var channelId: String?
+
+    @Parameter(title: "Message Content")
+    var content: String?
+
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+        guard let channelId = channelId, !channelId.isEmpty else {
+            throw AppIntentError.executionFailed("Channel ID is required")
+        }
+
+        guard let content = content, !content.isEmpty else {
+            throw AppIntentError.executionFailed("Message content is required")
+        }
+
+        let plugin = FlutterAppIntentsPlugin.shared
+        let result = await plugin.handleIntentInvocation(
+            identifier: "send_message",
+            parameters: ["channelId": channelId, "content": content]
+        )
+
+        if let success = result["success"] as? Bool, success {
+            let value = result["value"] as? String ?? "Message sent"
+            return .result(
+                value: value,
+                dialog: "\(value)"
+            )
+        } else {
+            let errorMessage = result["error"] as? String ?? "Failed to send message"
+            throw AppIntentError.executionFailed(errorMessage)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct ReadMessagesIntent: AppIntent {
+    static var title: LocalizedStringResource = "Read Messages"
+    static var description = IntentDescription("Read recent messages from a chat channel")
+    static var isDiscoverable = true
+    static var openAppWhenRun = false
+
+    @Parameter(title: "Channel ID")
+    var channelId: String?
+
+    @Parameter(title: "Number of Messages", default: "5")
+    var limit: String?
+
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+        guard let channelId = channelId, !channelId.isEmpty else {
+            throw AppIntentError.executionFailed("Channel ID is required")
+        }
+
+        let limit = limit ?? "5"
+        var parameters: [String: Any] = ["channelId": channelId]
+        parameters["limit"] = limit
+
+        let plugin = FlutterAppIntentsPlugin.shared
+        let result = await plugin.handleIntentInvocation(
+            identifier: "read_messages",
+            parameters: parameters
+        )
+
+        if let success = result["success"] as? Bool, success {
+            let value = result["value"] as? String ?? "Messages retrieved"
+            return .result(
+                value: value,
+                dialog: "\(value)"
+            )
+        } else {
+            let errorMessage = result["error"] as? String ?? "Failed to read messages"
+            throw AppIntentError.executionFailed(errorMessage)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct CheckUnreadChatsIntent: AppIntent {
+    static var title: LocalizedStringResource = "Check Unread Chats"
+    static var description = IntentDescription("Check number of unread chat messages")
+    static var isDiscoverable = true
+    static var openAppWhenRun = false
+
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+        let plugin = FlutterAppIntentsPlugin.shared
+        let result = await plugin.handleIntentInvocation(
+            identifier: "check_unread_chats",
+            parameters: [:]
+        )
+
+        if let success = result["success"] as? Bool, success {
+            let value = result["value"] as? String ?? "No unread messages"
+            return .result(
+                value: value,
+                dialog: "\(value)"
+            )
+        } else {
+            let errorMessage = result["error"] as? String ?? "Failed to check unread chats"
+            throw AppIntentError.executionFailed(errorMessage)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct MarkNotificationsReadIntent: AppIntent {
+    static var title: LocalizedStringResource = "Mark Notifications Read"
+    static var description = IntentDescription("Mark all notifications as read")
+    static var isDiscoverable = true
+    static var openAppWhenRun = false
+
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+        let plugin = FlutterAppIntentsPlugin.shared
+        let result = await plugin.handleIntentInvocation(
+            identifier: "mark_notifications_read",
+            parameters: [:]
+        )
+
+        if let success = result["success"] as? Bool, success {
+            let value = result["value"] as? String ?? "Notifications marked as read"
+            return .result(
+                value: value,
+                dialog: "\(value)"
+            )
+        } else {
+            let errorMessage = result["error"] as? String ?? "Failed to mark notifications as read"
             throw AppIntentError.executionFailed(errorMessage)
         }
     }
@@ -372,6 +508,42 @@ struct AppShortcuts: AppShortcutsProvider {
                     "Check notifications with \(.applicationName)",
                     "Get notifications using \(.applicationName)",
                     "Do I have notifications in \(.applicationName)"
+                ]
+            ),
+            // Send message
+            AppShortcut(
+                intent: SendMessageIntent(),
+                phrases: [
+                    "Send message with \(.applicationName)",
+                    "Post message using \(.applicationName)",
+                    "Send text using \(.applicationName)"
+                ]
+            ),
+            // Read messages
+            AppShortcut(
+                intent: ReadMessagesIntent(),
+                phrases: [
+                    "Read messages with \(.applicationName)",
+                    "Get chat using \(.applicationName)",
+                    "Show messages with \(.applicationName)"
+                ]
+            ),
+            // Check unread chats
+            AppShortcut(
+                intent: CheckUnreadChatsIntent(),
+                phrases: [
+                    "Check unread chats with \(.applicationName)",
+                    "Do I have messages using \(.applicationName)",
+                    "Get unread messages with \(.applicationName)"
+                ]
+            ),
+            // Mark notifications read
+            AppShortcut(
+                intent: MarkNotificationsReadIntent(),
+                phrases: [
+                    "Mark notifications read with \(.applicationName)",
+                    "Clear notifications using \(.applicationName)",
+                    "Mark all read with \(.applicationName)"
                 ]
             )
         ]

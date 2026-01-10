@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/pods/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/talker.dart';
 import 'package:island/route.dart';
 
@@ -165,6 +166,75 @@ class AppIntentsService {
           .build(),
       _handleCheckNotificationsIntent,
     );
+
+    // Message Intents
+    await _client!.registerIntent(
+      AppIntentBuilder()
+          .identifier('send_message')
+          .title('Send Message')
+          .description('Send a message to a chat channel')
+          .parameter(
+            const AppIntentParameter(
+              name: 'channelId',
+              title: 'Channel ID',
+              type: AppIntentParameterType.string,
+              isOptional: false,
+            ),
+          )
+          .parameter(
+            const AppIntentParameter(
+              name: 'content',
+              title: 'Message Content',
+              type: AppIntentParameterType.string,
+              isOptional: false,
+            ),
+          )
+          .build(),
+      _handleSendMessageIntent,
+    );
+
+    await _client!.registerIntent(
+      AppIntentBuilder()
+          .identifier('read_messages')
+          .title('Read Messages')
+          .description('Read recent messages from a chat channel')
+          .parameter(
+            const AppIntentParameter(
+              name: 'channelId',
+              title: 'Channel ID',
+              type: AppIntentParameterType.string,
+              isOptional: false,
+            ),
+          )
+          .parameter(
+            const AppIntentParameter(
+              name: 'limit',
+              title: 'Number of Messages',
+              type: AppIntentParameterType.string,
+              isOptional: true,
+            ),
+          )
+          .build(),
+      _handleReadMessagesIntent,
+    );
+
+    await _client!.registerIntent(
+      AppIntentBuilder()
+          .identifier('check_unread_chats')
+          .title('Check Unread Chats')
+          .description('Check number of unread chat messages')
+          .build(),
+      _handleCheckUnreadChatsIntent,
+    );
+
+    await _client!.registerIntent(
+      AppIntentBuilder()
+          .identifier('mark_notifications_read')
+          .title('Mark Notifications Read')
+          .description('Mark all notifications as read')
+          .build(),
+      _handleMarkNotificationsReadIntent,
+    );
   }
 
   void dispose() {
@@ -232,11 +302,7 @@ class AppIntentsService {
     try {
       talker.info('[AppIntents] Opening compose screen');
 
-      if (rootNavigatorKey.currentContext == null) {
-        return AppIntentResult.failed(error: 'App context not available');
-      }
-
-      rootNavigatorKey.currentContext!.push('/posts/compose');
+      eventBus.fire(ShowComposeSheetEvent());
 
       return AppIntentResult.successful(
         value: 'Opening compose screen',
@@ -254,11 +320,7 @@ class AppIntentsService {
     try {
       talker.info('[AppIntents] Composing new post');
 
-      if (rootNavigatorKey.currentContext == null) {
-        return AppIntentResult.failed(error: 'App context not available');
-      }
-
-      rootNavigatorKey.currentContext!.push('/posts/compose');
+      eventBus.fire(ShowComposeSheetEvent());
 
       return AppIntentResult.successful(
         value: 'Opening compose screen',
@@ -360,6 +422,189 @@ class AppIntentsService {
     }
   }
 
+  Future<AppIntentResult> _handleSendMessageIntent(
+    Map<String, dynamic> parameters,
+  ) async {
+    try {
+      final channelId = parameters['channelId'] as String?;
+      final content = parameters['content'] as String?;
+
+      if (channelId == null) {
+        throw ArgumentError('channelId is required');
+      }
+      if (content == null || content.isEmpty) {
+        throw ArgumentError('content is required');
+      }
+
+      talker.info('[AppIntents] Sending message to $channelId: $content');
+
+      if (_dio == null) {
+        return AppIntentResult.failed(error: 'API client not initialized');
+      }
+
+      try {
+        final nonce = _generateNonce();
+
+        await _dio!.post(
+          '/messager/chat/$channelId/messages',
+          data: {'content': content, 'nonce': nonce},
+        );
+
+        talker.info('[AppIntents] Message sent successfully');
+        return AppIntentResult.successful(
+          value: 'Message sent to channel $channelId',
+          needsToContinueInApp: false,
+        );
+      } on DioException catch (e) {
+        talker.error('[AppIntents] API error sending message', e);
+        return AppIntentResult.failed(
+          error: 'Failed to send message: ${e.message ?? 'Network error'}',
+        );
+      }
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to send message', e, stack);
+      return AppIntentResult.failed(error: 'Failed to send message: $e');
+    }
+  }
+
+  Future<AppIntentResult> _handleReadMessagesIntent(
+    Map<String, dynamic> parameters,
+  ) async {
+    try {
+      final channelId = parameters['channelId'] as String?;
+      final limitParam = parameters['limit'] as String?;
+      final limit = limitParam != null ? int.tryParse(limitParam) ?? 5 : 5;
+
+      if (channelId == null) {
+        throw ArgumentError('channelId is required');
+      }
+      if (limit < 1 || limit > 20) {
+        return AppIntentResult.failed(error: 'limit must be between 1 and 20');
+      }
+
+      talker.info('[AppIntents] Reading $limit messages from $channelId');
+
+      if (_dio == null) {
+        return AppIntentResult.failed(error: 'API client not initialized');
+      }
+
+      try {
+        final response = await _dio!.get(
+          '/messager/chat/$channelId/messages',
+          queryParameters: {'offset': 0, 'take': limit},
+        );
+
+        final messages = response.data as List;
+        if (messages.isEmpty) {
+          return AppIntentResult.successful(
+            value: 'No messages found in channel $channelId',
+            needsToContinueInApp: false,
+          );
+        }
+
+        final formattedMessages = messages
+            .map((msg) {
+              final senderName =
+                  msg['sender']?['account']?['name'] ?? 'Unknown';
+              final messageContent = msg['content'] ?? '';
+              return '$senderName: $messageContent';
+            })
+            .join('\n');
+
+        talker.info('[AppIntents] Retrieved ${messages.length} messages');
+        return AppIntentResult.successful(
+          value: formattedMessages,
+          needsToContinueInApp: false,
+        );
+      } on DioException catch (e) {
+        talker.error('[AppIntents] API error reading messages', e);
+        return AppIntentResult.failed(
+          error: 'Failed to read messages: ${e.message ?? 'Network error'}',
+        );
+      }
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to read messages', e, stack);
+      return AppIntentResult.failed(error: 'Failed to read messages: $e');
+    }
+  }
+
+  String _generateNonce() {
+    return '${DateTime.now().millisecondsSinceEpoch}-${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  Future<AppIntentResult> _handleCheckUnreadChatsIntent(
+    Map<String, dynamic> parameters,
+  ) async {
+    try {
+      talker.info('[AppIntents] Checking unread chats count');
+
+      if (_dio == null) {
+        return AppIntentResult.failed(error: 'API client not initialized');
+      }
+
+      try {
+        final response = await _dio!.get('/messager/chat/unread');
+        final count = response.data as int? ?? 0;
+
+        String message;
+        if (count == 0) {
+          message = 'You have no unread messages';
+        } else if (count == 1) {
+          message = 'You have 1 unread message';
+        } else {
+          message = 'You have $count unread messages';
+        }
+
+        return AppIntentResult.successful(
+          value: message,
+          needsToContinueInApp: false,
+        );
+      } on DioException catch (e) {
+        talker.error('[AppIntents] API error checking unread chats', e);
+        return AppIntentResult.failed(
+          error:
+              'Failed to fetch unread chats: ${e.message ?? 'Network error'}',
+        );
+      }
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to check unread chats', e, stack);
+      return AppIntentResult.failed(error: 'Failed to check unread chats: $e');
+    }
+  }
+
+  Future<AppIntentResult> _handleMarkNotificationsReadIntent(
+    Map<String, dynamic> parameters,
+  ) async {
+    try {
+      talker.info('[AppIntents] Marking all notifications as read');
+
+      if (_dio == null) {
+        return AppIntentResult.failed(error: 'API client not initialized');
+      }
+
+      try {
+        await _dio!.post('/ring/notifications/all/read');
+
+        talker.info('[AppIntents] Notifications marked as read');
+        return AppIntentResult.successful(
+          value: 'All notifications marked as read',
+          needsToContinueInApp: false,
+        );
+      } on DioException catch (e) {
+        talker.error('[AppIntents] API error marking notifications read', e);
+        return AppIntentResult.failed(
+          error:
+              'Failed to mark notifications: ${e.message ?? 'Network error'}',
+        );
+      }
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to mark notifications read', e, stack);
+      return AppIntentResult.failed(
+        error: 'Failed to mark notifications read: $e',
+      );
+    }
+  }
+
   // Donation Methods - to be called manually from your app code
 
   Future<void> donateOpenChat(String channelId) async {
@@ -435,6 +680,74 @@ class AppIntentsService {
     } catch (e, stack) {
       talker.error(
         '[AppIntents] Failed to donate check_notifications',
+        e,
+        stack,
+      );
+    }
+  }
+
+  Future<void> donateSendMessage(String channelId, String content) async {
+    if (!_initialized) return;
+    try {
+      await FlutterAppIntentsService.donateIntentWithMetadata(
+        'send_message',
+        {'channelId': channelId, 'content': content},
+        relevanceScore: 0.8,
+        context: {'feature': 'chat', 'userAction': true},
+      );
+      talker.info('[AppIntents] Donated send_message intent');
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to donate send_message', e, stack);
+    }
+  }
+
+  Future<void> donateReadMessages(String channelId) async {
+    if (!_initialized) return;
+    try {
+      await FlutterAppIntentsService.donateIntentWithMetadata(
+        'read_messages',
+        {'channelId': channelId},
+        relevanceScore: 0.7,
+        context: {'feature': 'chat', 'userAction': true},
+      );
+      talker.info('[AppIntents] Donated read_messages intent');
+    } catch (e, stack) {
+      talker.error('[AppIntents] Failed to donate read_messages', e, stack);
+    }
+  }
+
+  Future<void> donateCheckUnreadChats() async {
+    if (!_initialized) return;
+    try {
+      await FlutterAppIntentsService.donateIntentWithMetadata(
+        'check_unread_chats',
+        {},
+        relevanceScore: 0.7,
+        context: {'feature': 'chat', 'userAction': true},
+      );
+      talker.info('[AppIntents] Donated check_unread_chats intent');
+    } catch (e, stack) {
+      talker.error(
+        '[AppIntents] Failed to donate check_unread_chats',
+        e,
+        stack,
+      );
+    }
+  }
+
+  Future<void> donateMarkNotificationsRead() async {
+    if (!_initialized) return;
+    try {
+      await FlutterAppIntentsService.donateIntentWithMetadata(
+        'mark_notifications_read',
+        {},
+        relevanceScore: 0.6,
+        context: {'feature': 'notifications', 'userAction': true},
+      );
+      talker.info('[AppIntents] Donated mark_notifications_read intent');
+    } catch (e, stack) {
+      talker.error(
+        '[AppIntents] Failed to donate mark_notifications_read',
         e,
         stack,
       );
