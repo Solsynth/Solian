@@ -11,6 +11,7 @@ import 'package:island/widgets/post/post_shared.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:island/services/analytics_service.dart';
 
 /// Shares a post as a screenshot image
 Future<void> sharePostAsScreenshot(
@@ -62,5 +63,9 @@ Future<void> sharePostAsScreenshot(
       .catchError((err) {
         if (context.mounted) hideLoadingModal(context);
         showErrorAlert(err);
+      })
+      .whenComplete(() {
+        final postTypeStr = post.type == 0 ? 'regular' : 'article';
+        AnalyticsService().logPostShared(post.id, 'screenshot', postTypeStr);
       });
 }

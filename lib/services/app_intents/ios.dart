@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_app_intents/flutter_app_intents.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/models/auth.dart';
@@ -532,6 +533,17 @@ class AppIntentsService {
     return '${DateTime.now().millisecondsSinceEpoch}-${DateTime.now().microsecondsSinceEpoch}';
   }
 
+  void _logDonation(String eventName, Map<String, Object> parameters) {
+    try {
+      FirebaseAnalytics.instance.logEvent(
+        name: eventName,
+        parameters: parameters.isEmpty ? null : parameters,
+      );
+    } catch (e) {
+      talker.warning('[AppIntents] Failed to log analytics: $e');
+    }
+  }
+
   Future<AppIntentResult> _handleCheckUnreadChatsIntent(
     Map<String, dynamic> parameters,
   ) async {
@@ -616,6 +628,7 @@ class AppIntentsService {
         relevanceScore: 0.8,
         context: {'feature': 'chat', 'userAction': true},
       );
+      _logDonation('open_chat', {'channel_id': channelId});
       talker.info('[AppIntents] Donated open_chat intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate open_chat', e, stack);
@@ -631,6 +644,7 @@ class AppIntentsService {
         relevanceScore: 0.8,
         context: {'feature': 'posts', 'userAction': true},
       );
+      _logDonation('open_post', {'post_id': postId});
       talker.info('[AppIntents] Donated open_post intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate open_post', e, stack);
@@ -646,6 +660,7 @@ class AppIntentsService {
         relevanceScore: 0.9,
         context: {'feature': 'compose', 'userAction': true},
       );
+      _logDonation('open_compose', {});
       talker.info('[AppIntents] Donated compose intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate compose', e, stack);
@@ -661,6 +676,7 @@ class AppIntentsService {
         relevanceScore: 0.7,
         context: {'feature': 'search', 'userAction': true},
       );
+      _logDonation('search_content', {'query': query});
       talker.info('[AppIntents] Donated search intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate search', e, stack);
@@ -676,6 +692,7 @@ class AppIntentsService {
         relevanceScore: 0.6,
         context: {'feature': 'notifications', 'userAction': true},
       );
+      _logDonation('check_notifications', {});
       talker.info('[AppIntents] Donated check_notifications intent');
     } catch (e, stack) {
       talker.error(
@@ -695,6 +712,7 @@ class AppIntentsService {
         relevanceScore: 0.8,
         context: {'feature': 'chat', 'userAction': true},
       );
+      _logDonation('send_message', {'channel_id': channelId});
       talker.info('[AppIntents] Donated send_message intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate send_message', e, stack);
@@ -710,6 +728,7 @@ class AppIntentsService {
         relevanceScore: 0.7,
         context: {'feature': 'chat', 'userAction': true},
       );
+      _logDonation('read_messages', {'channel_id': channelId});
       talker.info('[AppIntents] Donated read_messages intent');
     } catch (e, stack) {
       talker.error('[AppIntents] Failed to donate read_messages', e, stack);
@@ -725,6 +744,7 @@ class AppIntentsService {
         relevanceScore: 0.7,
         context: {'feature': 'chat', 'userAction': true},
       );
+      _logDonation('check_unread_chats', {});
       talker.info('[AppIntents] Donated check_unread_chats intent');
     } catch (e, stack) {
       talker.error(
@@ -744,6 +764,7 @@ class AppIntentsService {
         relevanceScore: 0.6,
         context: {'feature': 'notifications', 'userAction': true},
       );
+      _logDonation('mark_notifications_read', {});
       talker.info('[AppIntents] Donated mark_notifications_read intent');
     } catch (e, stack) {
       talker.error(

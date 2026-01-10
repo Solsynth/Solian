@@ -1,10 +1,6 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +9,7 @@ import 'package:island/models/account.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
+import 'package:island/services/analytics_service.dart';
 
 class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
   @override
@@ -31,9 +28,7 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
       final response = await client.get('/pass/accounts/me');
       final user = SnAccount.fromJson(response.data);
 
-      if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
-        FirebaseAnalytics.instance.setUserId(id: user.id);
-      }
+      AnalyticsService().setUserId(user.id);
       return user;
     } catch (error, stackTrace) {
       if (error is DioException) {
@@ -91,9 +86,8 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
     ref.invalidate(tokenProvider);
-    if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
-      FirebaseAnalytics.instance.setUserId(id: null);
-    }
+    AnalyticsService().setUserId(null);
+    AnalyticsService().logLogout();
   }
 }
 

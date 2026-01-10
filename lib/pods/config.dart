@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/services/analytics_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
@@ -256,8 +257,11 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   void setThemeMode(String value) {
     final prefs = ref.read(sharedPreferencesProvider);
+    final oldValue = state.themeMode;
     prefs.setString(kAppThemeMode, value);
     state = state.copyWith(themeMode: value);
+
+    AnalyticsService().logThemeChanged(oldValue ?? 'system', value);
   }
 
   void setAppTransparentBackground(double value) {
