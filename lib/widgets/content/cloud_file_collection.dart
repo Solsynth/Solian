@@ -244,22 +244,20 @@ class CloudFileList extends HookConsumerWidget {
           minWidth: minWidth ?? 0,
           maxWidth: files.length == 1 ? maxWidth : double.infinity,
         ),
-        child:
-            (ratio == null && isImage)
-                ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
-                : (ratio == null && isAudio)
-                ? IntrinsicHeight(child: widgetItem)
-                : AspectRatio(
-                  aspectRatio: ratio?.toDouble() ?? 1,
-                  child: widgetItem,
-                ),
+        child: (ratio == null && isImage)
+            ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
+            : (ratio == null && isAudio)
+            ? IntrinsicHeight(child: widgetItem)
+            : AspectRatio(
+                aspectRatio: ratio?.toDouble() ?? 1,
+                child: widgetItem,
+              ),
       );
     }
 
-    final allImages =
-        !files.any(
-          (e) => e.mimeType == null || !e.mimeType!.startsWith('image'),
-        );
+    final allImages = !files.any(
+      (e) => e.mimeType == null || !e.mimeType!.startsWith('image'),
+    );
 
     if (allImages) {
       return ConstrainedBox(
@@ -270,10 +268,9 @@ class CloudFileList extends HookConsumerWidget {
             padding: padding ?? EdgeInsets.zero,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final availableWidth =
-                    constraints.maxWidth.isFinite
-                        ? constraints.maxWidth
-                        : MediaQuery.of(context).size.width;
+                final availableWidth = constraints.maxWidth.isFinite
+                    ? constraints.maxWidth
+                    : MediaQuery.of(context).size.width;
                 final itemExtent = math.min(
                   math.min(availableWidth * 0.75, maxWidth * 0.75).toDouble(),
                   640.0,
@@ -339,10 +336,9 @@ class CloudFileList extends HookConsumerWidget {
           padding: padding,
           itemBuilder: (context, index) {
             return AspectRatio(
-              aspectRatio:
-                  files[index].fileMeta?['ratio'] is num
-                      ? files[index].fileMeta!['ratio'].toDouble()
-                      : 1.0,
+              aspectRatio: files[index].fileMeta?['ratio'] is num
+                  ? files[index].fileMeta!['ratio'].toDouble()
+                  : 1.0,
               child: Stack(
                 children: [
                   ClipRRect(
@@ -440,40 +436,68 @@ class _CloudFileListEntry extends HookConsumerWidget {
     }
 
     final bool fullyUnlocked = !lockedByDS && !lockedByMature;
-    Widget fg =
-        fullyUnlocked
-            ? (isImage
-                ? CloudFileWidget(
+    Widget fg = fullyUnlocked
+        ? (isImage
+              ? CloudFileWidget(
                   item: file,
                   heroTag: heroTag,
                   noBlurhash: true,
                   fit: fit,
                   useInternalGate: false,
                 )
-                : CloudFileWidget(
+              : CloudFileWidget(
                   item: file,
                   heroTag: heroTag,
                   fit: fit,
                   useInternalGate: false,
                 ))
-            : const SizedBox.shrink();
+        : const SizedBox.shrink();
 
-    Widget overlays;
-    if (lockedByDS) {
-      overlays = _DataSavingOverlay();
-    } else if (file.sensitiveMarks.isNotEmpty) {
-      overlays = _SensitiveOverlay(
-        file: file,
-        isRevealed: showMature.value,
-        onHide: () => showMature.value = false,
+    Widget overlays = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: lockedByDS
+          ? _DataSavingOverlay(key: const ValueKey('ds'))
+          : (file.sensitiveMarks.isNotEmpty && !showMature.value
+                ? _SensitiveOverlay(
+                    key: const ValueKey('sensitive-blur'),
+                    file: file,
+                  )
+                : const SizedBox.shrink(key: ValueKey('none'))),
+    );
+
+    Widget hideButton = const SizedBox.shrink();
+    if (file.sensitiveMarks.isNotEmpty && showMature.value) {
+      hideButton = Positioned(
+        top: 3,
+        left: 4,
+        child: IconButton(
+          iconSize: 16,
+          constraints: const BoxConstraints(),
+          icon: const Icon(
+            Icons.visibility_off,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                color: Colors.black,
+                blurRadius: 5.0,
+                offset: Offset(1.0, 1.0),
+              ),
+            ],
+          ),
+          tooltip: 'Blur content',
+          onPressed: () => showMature.value = false,
+        ),
       );
-    } else {
-      overlays = const SizedBox.shrink();
     }
 
     final content = Stack(
       fit: StackFit.expand,
-      children: [if (isImage) Positioned.fill(child: bg), fg, overlays],
+      children: [
+        if (isImage) Positioned.fill(child: bg),
+        fg,
+        overlays,
+        hideButton,
+      ],
     );
 
     return InkWell(
@@ -494,41 +518,11 @@ class _CloudFileListEntry extends HookConsumerWidget {
 
 class _SensitiveOverlay extends StatelessWidget {
   final SnCloudFile file;
-  final VoidCallback? onHide;
-  final bool isRevealed;
 
-  const _SensitiveOverlay({
-    required this.file,
-    this.onHide,
-    this.isRevealed = false,
-  });
+  const _SensitiveOverlay({required this.file, super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (isRevealed) {
-      return Positioned(
-        top: 3,
-        left: 4,
-        child: IconButton(
-          iconSize: 16,
-          constraints: const BoxConstraints(),
-          icon: const Icon(
-            Icons.visibility_off,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                color: Colors.black,
-                blurRadius: 5.0,
-                offset: Offset(1.0, 1.0),
-              ),
-            ],
-          ),
-          tooltip: 'Blur content',
-          onPressed: onHide,
-        ),
-      );
-    }
-
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 64, sigmaY: 64),
       child: Container(
@@ -549,6 +543,8 @@ class _SensitiveOverlay extends StatelessWidget {
 }
 
 class _DataSavingOverlay extends StatelessWidget {
+  const _DataSavingOverlay({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
