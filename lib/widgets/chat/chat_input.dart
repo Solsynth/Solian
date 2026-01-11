@@ -458,6 +458,10 @@ class ChatInput extends HookConsumerWidget {
                                 item: attachments[idx],
                                 progress:
                                     attachmentProgress['chat-upload']?[idx],
+                                isUploading:
+                                    attachmentProgress['chat-upload']
+                                        ?.containsKey(idx) ??
+                                    false,
                                 onRequestUpload: () => onUploadAttachment(idx),
                                 onDelete: () => onDeleteAttachment(idx),
                                 onUpdate: (value) {

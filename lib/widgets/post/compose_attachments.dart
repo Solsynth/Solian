@@ -71,14 +71,14 @@ class ComposeAttachments extends ConsumerWidget {
       isCompact: isCompact,
       item: state.attachments.value[idx],
       progress: progressMap[idx],
+      isUploading: progressMap.containsKey(idx),
       onRequestUpload: () async {
         final config = await showModalBottomSheet<AttachmentUploadConfig>(
           context: ref.context,
           isScrollControlled: true,
           useRootNavigator: true,
-          builder:
-              (context) =>
-                  AttachmentUploaderSheet(ref: ref, state: state, index: idx),
+          builder: (context) =>
+              AttachmentUploaderSheet(ref: ref, state: state, index: idx),
         );
         if (config != null) {
           await ComposeLogic.uploadAttachment(
@@ -146,19 +146,21 @@ class ArticleComposeAttachments extends ConsumerWidget {
                             isCompact: true,
                             item: attachments[idx],
                             progress: progressMap[idx],
+                            isUploading: progressMap.containsKey(idx),
                             onRequestUpload: () async {
-                              final config = await showModalBottomSheet<
-                                AttachmentUploadConfig
-                              >(
-                                context: context,
-                                isScrollControlled: true,
-                                builder:
-                                    (context) => AttachmentUploaderSheet(
-                                      ref: ref,
-                                      state: state,
-                                      index: idx,
-                                    ),
-                              );
+                              final config =
+                                  await showModalBottomSheet<
+                                    AttachmentUploadConfig
+                                  >(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        AttachmentUploaderSheet(
+                                          ref: ref,
+                                          state: state,
+                                          index: idx,
+                                        ),
+                                  );
                               if (config != null) {
                                 await ComposeLogic.uploadAttachment(
                                   ref,
@@ -168,24 +170,15 @@ class ArticleComposeAttachments extends ConsumerWidget {
                                 );
                               }
                             },
-                            onUpdate:
-                                (value) => ComposeLogic.updateAttachment(
-                                  state,
-                                  value,
-                                  idx,
-                                ),
-                            onDelete:
-                                () => ComposeLogic.deleteAttachment(
-                                  ref,
-                                  state,
-                                  idx,
-                                ),
-                            onInsert:
-                                () => ComposeLogic.insertAttachment(
-                                  ref,
-                                  state,
-                                  idx,
-                                ),
+                            onUpdate: (value) => ComposeLogic.updateAttachment(
+                              state,
+                              value,
+                              idx,
+                            ),
+                            onDelete: () =>
+                                ComposeLogic.deleteAttachment(ref, state, idx),
+                            onInsert: () =>
+                                ComposeLogic.insertAttachment(ref, state, idx),
                           ),
                         ),
                     ],
