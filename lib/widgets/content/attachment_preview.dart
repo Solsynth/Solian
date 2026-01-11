@@ -392,7 +392,12 @@ class AttachmentPreview extends HookConsumerWidget {
                             ),
                             Gap(6),
                             Center(
-                              child: LinearProgressIndicator(value: progress),
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween<double>(begin: 0.0, end: progress),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                builder: (context, value, child) => LinearProgressIndicator(value: value),
+                              ),
                             ),
                           ],
                         ),
