@@ -202,9 +202,9 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                           const Gap(8),
 
                           // Title
-                          if (widget.link.title.isNotEmpty) ...[
+                          if (widget.link.title?.isNotEmpty ?? false) ...[
                             Text(
-                              widget.link.title,
+                              widget.link.title!,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),

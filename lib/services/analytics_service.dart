@@ -64,7 +64,7 @@ class AnalyticsService {
     logEvent('post_created', {
       'post_type': postType,
       'visibility': visibility,
-      'has_attachments': hasAttachments,
+      'has_attachments': hasAttachments ? 'yes' : 'no',
       'publisher_id': publisherId,
     });
   }

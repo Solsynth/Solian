@@ -998,14 +998,15 @@ class _LinkPreview extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     // Title
-                    Text(
-                      embed.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    if (embed.title != null)
+                      Text(
+                        embed.title!,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                     // Description
                     if (embed.description != null &&
                         embed.description!.isNotEmpty)

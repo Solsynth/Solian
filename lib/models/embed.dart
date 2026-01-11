@@ -8,7 +8,7 @@ sealed class SnScrappedLink with _$SnScrappedLink {
   const factory SnScrappedLink({
     required String type,
     required String url,
-    required String title,
+    required String? title,
     required String? description,
     required String? imageUrl,
     required String? faviconUrl,
