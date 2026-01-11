@@ -325,6 +325,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                       isCompact: true,
                                       item: attachments[idx],
                                       progress: progressMap[idx],
+                                      isUploading: progressMap.containsKey(idx),
                                       onRequestUpload: () async {
                                         final config =
                                             await showModalBottomSheet<

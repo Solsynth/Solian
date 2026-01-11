@@ -14,12 +14,11 @@ import 'package:island/services/file_uploader.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sensitive.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
-
-import 'sensitive.dart';
 
 class SensitiveMarksSelector extends StatefulWidget {
   final List<int> initial;
@@ -85,6 +84,7 @@ class SensitiveMarksSelectorState extends State<SensitiveMarksSelector> {
 class AttachmentPreview extends HookConsumerWidget {
   final UniversalFile item;
   final double? progress;
+  final bool isUploading;
   final Function(int)? onMove;
   final Function? onDelete;
   final Function? onInsert;
@@ -96,6 +96,7 @@ class AttachmentPreview extends HookConsumerWidget {
     super.key,
     required this.item,
     this.progress,
+    this.isUploading = false,
     this.onRequestUpload,
     this.onMove,
     this.onDelete,
@@ -125,79 +126,72 @@ class AttachmentPreview extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder:
-          (context) => SheetScaffold(
-            heightFactor: 0.6,
-            titleText: 'rename'.tr(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 24,
-                  ),
-                  child: TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: 'fileName'.tr(),
-                      border: const OutlineInputBorder(),
-                      errorText: errorMessage,
-                    ),
-                  ),
+      builder: (context) => SheetScaffold(
+        heightFactor: 0.6,
+        titleText: 'rename'.tr(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'fileName'.tr(),
+                  border: const OutlineInputBorder(),
+                  errorText: errorMessage,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('cancel'.tr()),
-                    ),
-                    const Gap(8),
-                    TextButton(
-                      onPressed: () async {
-                        final newName = nameController.text.trim();
-                        if (newName.isEmpty) {
-                          errorMessage = 'fieldCannotBeEmpty'.tr();
-                          return;
-                        }
-
-                        if (item.isOnCloud) {
-                          try {
-                            showLoadingModal(context);
-                            final apiClient = ref.watch(apiClientProvider);
-                            await apiClient.patch(
-                              '/drive/files/${item.data.id}/name',
-                              data: jsonEncode(newName),
-                            );
-                            final newData = item.data;
-                            newData.name = newName;
-                            onUpdate?.call(
-                              item.copyWith(
-                                data: newData,
-                                displayName: newName,
-                              ),
-                            );
-                            if (context.mounted) Navigator.pop(context);
-                          } catch (err) {
-                            showErrorAlert(err);
-                          } finally {
-                            if (context.mounted) hideLoadingModal(context);
-                          }
-                        } else {
-                          // Local file rename
-                          onUpdate?.call(item.copyWith(displayName: newName));
-                          if (context.mounted) Navigator.pop(context);
-                        }
-                      },
-                      child: Text('rename'.tr()),
-                    ),
-                  ],
-                ).padding(horizontal: 16, vertical: 8),
-              ],
+              ),
             ),
-          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('cancel'.tr()),
+                ),
+                const Gap(8),
+                TextButton(
+                  onPressed: () async {
+                    final newName = nameController.text.trim();
+                    if (newName.isEmpty) {
+                      errorMessage = 'fieldCannotBeEmpty'.tr();
+                      return;
+                    }
+
+                    if (item.isOnCloud) {
+                      try {
+                        showLoadingModal(context);
+                        final apiClient = ref.watch(apiClientProvider);
+                        await apiClient.patch(
+                          '/drive/files/${item.data.id}/name',
+                          data: jsonEncode(newName),
+                        );
+                        final newData = item.data;
+                        newData.name = newName;
+                        onUpdate?.call(
+                          item.copyWith(data: newData, displayName: newName),
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                      } catch (err) {
+                        showErrorAlert(err);
+                      } finally {
+                        if (context.mounted) hideLoadingModal(context);
+                      }
+                    } else {
+                      // Local file rename
+                      onUpdate?.call(item.copyWith(displayName: newName));
+                      if (context.mounted) Navigator.pop(context);
+                    }
+                  },
+                  child: Text('rename'.tr()),
+                ),
+              ],
+            ).padding(horizontal: 16, vertical: 8),
+          ],
+        ),
+      ),
     );
   }
 
@@ -205,91 +199,84 @@ class AttachmentPreview extends HookConsumerWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (context) => SheetScaffold(
-            heightFactor: 0.6,
-            titleText: 'markAsSensitive'.tr(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 24,
+      builder: (context) => SheetScaffold(
+        heightFactor: 0.6,
+        titleText: 'markAsSensitive'.tr(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                children: [
+                  // Sensitive categories checklist
+                  SensitiveMarksSelector(
+                    key: _sensitiveSelectorKey,
+                    initial: (item.data.sensitiveMarks ?? [])
+                        .map((e) => e as int)
+                        .cast<int>()
+                        .toList(),
+                    onChanged: (marks) {
+                      // Update local data immediately (optimistic)
+                      final newData = item.data;
+                      newData.sensitiveMarks = marks;
+                      final updatedFile = item.copyWith(data: newData);
+                      onUpdate?.call(item.copyWith(data: updatedFile));
+                    },
                   ),
-                  child: Column(
-                    children: [
-                      // Sensitive categories checklist
-                      SensitiveMarksSelector(
-                        key: _sensitiveSelectorKey,
-                        initial:
-                            (item.data.sensitiveMarks ?? [])
-                                .map((e) => e as int)
-                                .cast<int>()
-                                .toList(),
-                        onChanged: (marks) {
-                          // Update local data immediately (optimistic)
-                          final newData = item.data;
-                          newData.sensitiveMarks = marks;
-                          final updatedFile = item.copyWith(data: newData);
-                          onUpdate?.call(item.copyWith(data: updatedFile));
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('cancel'.tr()),
-                    ),
-                    const Gap(8),
-                    TextButton(
-                      onPressed: () async {
-                        try {
-                          showLoadingModal(context);
-                          final apiClient = ref.watch(apiClientProvider);
-                          // Use the current selections from stateful selector via GlobalKey
-                          final selectorState =
-                              _sensitiveSelectorKey.currentState;
-                          final marks = selectorState?.current ?? <int>[];
-                          await apiClient.put(
-                            '/drive/files/${item.data.id}/marks',
-                            data: jsonEncode({'sensitive_marks': marks}),
-                          );
-                          final newData = item.data as SnCloudFile;
-                          final updatedFile = item.copyWith(
-                            data: newData.copyWith(sensitiveMarks: marks),
-                          );
-                          onUpdate?.call(updatedFile);
-                          if (context.mounted) Navigator.pop(context);
-                        } catch (err) {
-                          showErrorAlert(err);
-                        } finally {
-                          if (context.mounted) hideLoadingModal(context);
-                        }
-                      },
-                      child: Text('confirm'.tr()),
-                    ),
-                  ],
-                ).padding(horizontal: 16, vertical: 8),
-              ],
+                ],
+              ),
             ),
-          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('cancel'.tr()),
+                ),
+                const Gap(8),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      showLoadingModal(context);
+                      final apiClient = ref.watch(apiClientProvider);
+                      // Use the current selections from stateful selector via GlobalKey
+                      final selectorState = _sensitiveSelectorKey.currentState;
+                      final marks = selectorState?.current ?? <int>[];
+                      await apiClient.put(
+                        '/drive/files/${item.data.id}/marks',
+                        data: jsonEncode({'sensitive_marks': marks}),
+                      );
+                      final newData = item.data as SnCloudFile;
+                      final updatedFile = item.copyWith(
+                        data: newData.copyWith(sensitiveMarks: marks),
+                      );
+                      onUpdate?.call(updatedFile);
+                      if (context.mounted) Navigator.pop(context);
+                    } catch (err) {
+                      showErrorAlert(err);
+                    } finally {
+                      if (context.mounted) hideLoadingModal(context);
+                    }
+                  },
+                  child: Text('confirm'.tr()),
+                ),
+              ],
+            ).padding(horizontal: 16, vertical: 8),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var ratio =
-        item.isOnCloud
-            ? (item.data.fileMeta?['ratio'] is num
-                ? item.data.fileMeta!['ratio'].toDouble()
-                : 1.0)
-            : 1.0;
+    var ratio = item.isOnCloud
+        ? (item.data.fileMeta?['ratio'] is num
+              ? item.data.fileMeta!['ratio'].toDouble()
+              : 1.0)
+        : 1.0;
     if (ratio == 0) ratio = 1.0;
 
     final contentWidget = ClipRRect(
@@ -387,7 +374,7 @@ class AttachmentPreview extends HookConsumerWidget {
                       return Placeholder();
                     },
                   ),
-                  if (progress != null)
+                  if (isUploading && progress != null && (progress ?? 0) > 0)
                     Positioned.fill(
                       child: Container(
                         color: Colors.black.withOpacity(0.3),
@@ -399,20 +386,36 @@ class AttachmentPreview extends HookConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            if (progress != null)
-                              Text(
-                                '${(progress! * 100).toStringAsFixed(2)}%',
-                                style: TextStyle(color: Colors.white),
-                              )
-                            else
-                              Text(
-                                'uploading'.tr(),
-                                style: TextStyle(color: Colors.white),
-                              ),
+                            Text(
+                              '${(progress! * 100).toStringAsFixed(2)}%',
+                              style: TextStyle(color: Colors.white),
+                            ),
                             Gap(6),
                             Center(
                               child: LinearProgressIndicator(value: progress),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isUploading && (progress == null || progress == 0))
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 16,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'processing'.tr(),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            Gap(6),
+                            Center(child: LinearProgressIndicator(value: null)),
                           ],
                         ),
                       ),
@@ -497,8 +500,9 @@ class AttachmentPreview extends HookConsumerWidget {
                 if (onRequestUpload != null)
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap:
-                        item.isOnCloud ? null : () => onRequestUpload?.call(),
+                    onTap: item.isOnCloud
+                        ? null
+                        : () => onRequestUpload?.call(),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
@@ -507,40 +511,39 @@ class AttachmentPreview extends HookConsumerWidget {
                           horizontal: 8,
                           vertical: 4,
                         ),
-                        child:
-                            (item.isOnCloud)
-                                ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Symbols.cloud,
-                                      size: 16,
-                                      color: Colors.white,
+                        child: (item.isOnCloud)
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Symbols.cloud,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                  if (!isCompact) const Gap(8),
+                                  if (!isCompact)
+                                    Text(
+                                      'attachmentOnCloud'.tr(),
+                                      style: TextStyle(color: Colors.white),
                                     ),
-                                    if (!isCompact) const Gap(8),
-                                    if (!isCompact)
-                                      Text(
-                                        'attachmentOnCloud'.tr(),
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                  ],
-                                )
-                                : Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Symbols.cloud_off,
-                                      size: 16,
-                                      color: Colors.white,
+                                ],
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Symbols.cloud_off,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                  if (!isCompact) const Gap(8),
+                                  if (!isCompact)
+                                    Text(
+                                      'attachmentOnDevice'.tr(),
+                                      style: TextStyle(color: Colors.white),
                                     ),
-                                    if (!isCompact) const Gap(8),
-                                    if (!isCompact)
-                                      Text(
-                                        'attachmentOnDevice'.tr(),
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                  ],
-                                ),
+                                ],
+                              ),
                       ),
                     ),
                   ),
@@ -552,49 +555,48 @@ class AttachmentPreview extends HookConsumerWidget {
     );
 
     return ContextMenuWidget(
-      menuProvider:
-          (MenuRequest request) => Menu(
-            children: [
-              if (item.isOnDevice && item.type == UniversalFileType.image)
-                MenuAction(
-                  title: 'crop'.tr(),
-                  image: MenuImage.icon(Symbols.crop),
-                  callback: () async {
-                    final result = await cropImage(
-                      context,
-                      image: item.data,
-                      replacePath: true,
-                    );
-                    if (result == null) return;
-                    onUpdate?.call(item.copyWith(data: result));
-                  },
-                ),
-              if (item.isOnDevice)
-                MenuAction(
-                  title: 'rename'.tr(),
-                  image: MenuImage.icon(Symbols.edit),
-                  callback: () async {
-                    await _showRenameSheet(context, ref);
-                  },
-                ),
-              if (item.isOnCloud)
-                MenuAction(
-                  title: 'rename'.tr(),
-                  image: MenuImage.icon(Symbols.edit),
-                  callback: () async {
-                    await _showRenameSheet(context, ref);
-                  },
-                ),
-              if (item.isOnCloud)
-                MenuAction(
-                  title: 'markAsSensitive'.tr(),
-                  image: MenuImage.icon(Symbols.no_adult_content),
-                  callback: () async {
-                    await _showSensitiveDialog(context, ref);
-                  },
-                ),
-            ],
-          ),
+      menuProvider: (MenuRequest request) => Menu(
+        children: [
+          if (item.isOnDevice && item.type == UniversalFileType.image)
+            MenuAction(
+              title: 'crop'.tr(),
+              image: MenuImage.icon(Symbols.crop),
+              callback: () async {
+                final result = await cropImage(
+                  context,
+                  image: item.data,
+                  replacePath: true,
+                );
+                if (result == null) return;
+                onUpdate?.call(item.copyWith(data: result));
+              },
+            ),
+          if (item.isOnDevice)
+            MenuAction(
+              title: 'rename'.tr(),
+              image: MenuImage.icon(Symbols.edit),
+              callback: () async {
+                await _showRenameSheet(context, ref);
+              },
+            ),
+          if (item.isOnCloud)
+            MenuAction(
+              title: 'rename'.tr(),
+              image: MenuImage.icon(Symbols.edit),
+              callback: () async {
+                await _showRenameSheet(context, ref);
+              },
+            ),
+          if (item.isOnCloud)
+            MenuAction(
+              title: 'markAsSensitive'.tr(),
+              image: MenuImage.icon(Symbols.no_adult_content),
+              callback: () async {
+                await _showSensitiveDialog(context, ref);
+              },
+            ),
+        ],
+      ),
       child: contentWidget,
     );
   }
