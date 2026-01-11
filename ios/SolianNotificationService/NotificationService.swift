@@ -53,8 +53,10 @@ class NotificationService: UNNotificationServiceExtension {
     private func processNotification(request: UNNotificationRequest, content: UNMutableNotificationContent) throws {
         switch content.userInfo["type"] as? String {
         case "messages.new":
+            content.sound = UNNotificationSound(named: UNNotificationSoundName("SfxMessage.caf"))
             try handleMessagingNotification(request: request, content: content)
         default:
+            content.sound = UNNotificationSound(named: UNNotificationSoundName("SfxNotification.caf"))
             try handleDefaultNotification(content: content)
         }
     }
