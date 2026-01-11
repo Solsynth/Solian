@@ -74,9 +74,9 @@ class TaskOverlay extends HookConsumerWidget {
 
     final isDesktop = isWideScreen(context);
 
-    // Auto-compact timer for mobile when expanded
+    // Auto-compact timer for mobile when not expanded
     useEffect(() {
-      if (!isDesktop && !isCompactLocal.value) {
+      if (!isDesktop && !isCompactLocal.value && !isExpandedLocal.value) {
         // Start timer to auto-compact after 5 seconds
         autoCompactTimer.value?.cancel();
         autoCompactTimer.value = Timer(const Duration(seconds: 5), () {
@@ -87,7 +87,7 @@ class TaskOverlay extends HookConsumerWidget {
         autoCompactTimer.value = null;
       }
       return null;
-    }, [isCompactLocal.value, isDesktop]);
+    }, [isCompactLocal.value, isExpandedLocal.value, isDesktop]);
     final isVisible =
         (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
         !pendingHide.value;
@@ -438,58 +438,47 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                 color: Colors.transparent,
                                 child: CustomScrollView(
                                   slivers: [
-                                    // Clear completed tasks button
-                                    if (_hasCompletedTasks(activeTasks))
-                                      SliverToBoxAdapter(
-                                        child: ListTile(
-                                          dense: true,
-                                          title: const Text(
-                                            'clearCompleted',
-                                          ).tr(),
-                                          leading: Icon(
-                                            Symbols.clear_all,
-                                            size: 18,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
-                                          onTap: () {
-                                            taskNotifier.clearCompletedTasks();
-                                            onExpansionChanged?.call(false);
-                                          },
-
-                                          tileColor: Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHighest,
+                                    SliverToBoxAdapter(
+                                      child: ListTile(
+                                        dense: true,
+                                        contentPadding: const EdgeInsets.only(
+                                          left: 18,
+                                          right: 16,
                                         ),
-                                      ),
-
-                                    // Clear all tasks button
-                                    if (activeTasks.any(
-                                      (task) =>
-                                          task.status !=
-                                          DriveTaskStatus.completed,
-                                    ))
-                                      SliverToBoxAdapter(
-                                        child: ListTile(
-                                          dense: true,
-                                          title: const Text('Clear All'),
-                                          leading: Icon(
-                                            Symbols.clear_all,
+                                        title: const Text(
+                                          'clearCompleted',
+                                        ).tr(),
+                                        leading: Icon(
+                                          Symbols.clear_all,
+                                          size: 18,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                        onTap: () {
+                                          taskNotifier.clearCompletedTasks();
+                                          onExpansionChanged?.call(false);
+                                        },
+                                        trailing: IconButton(
+                                          tooltip: 'clearAll'.tr(),
+                                          icon: Icon(
+                                            Symbols.close,
                                             size: 18,
                                             color: Theme.of(
                                               context,
                                             ).colorScheme.error,
                                           ),
-                                          onTap: () {
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
                                             taskNotifier.clearAllTasks();
                                             onExpansionChanged?.call(false);
                                           },
-                                          tileColor: Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHighest,
                                         ),
+                                        tileColor: Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
                                       ),
+                                    ),
 
                                     // Task list
                                     SliverList(
@@ -618,7 +607,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
   }
 
   String _getOverallStatusText(List<DriveTask> tasks) {
-    if (tasks.isEmpty) return '0 tasks';
+    if (tasks.isEmpty) return 'tasks'.plural(0);
 
     final hasDownload = tasks.any((task) => task.type == 'FileDownload');
     final hasInProgress = tasks.any(
@@ -656,18 +645,8 @@ class _TaskOverlayContent extends HookConsumerWidget {
     } else if (hasCompleted) {
       return '${tasks.length} ${'completed'.tr()}';
     } else {
-      return '${tasks.length} ${'tasks'.tr()}';
+      return 'tasks'.plural(tasks.length);
     }
-  }
-
-  bool _hasCompletedTasks(List<DriveTask> tasks) {
-    return tasks.any(
-      (task) =>
-          task.status == DriveTaskStatus.completed ||
-          task.status == DriveTaskStatus.failed ||
-          task.status == DriveTaskStatus.cancelled ||
-          task.status == DriveTaskStatus.expired,
-    );
   }
 
   double _getCompactWidth(List<DriveTask> tasks) {

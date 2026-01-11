@@ -1587,5 +1587,10 @@
   "fediversePostDescribe": "Post from the Fediverse Network",
   "settingsShowFediverseContent": "Show Fediverse Content",
   "universalSearch": "Universal Search",
-  "universalSearchDescription": "Search content across the Solar Network and the fediverse network."
+  "universalSearchDescription": "Search content across the Solar Network and the fediverse network.",
+  "tasks": "Tasks",
+  "tasksCount": {
+    "one": "{} task",
+    "other": "{} tasks"
+  }
 }
