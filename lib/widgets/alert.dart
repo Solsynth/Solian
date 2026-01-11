@@ -259,24 +259,26 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
         title: null,
         titlePadding: EdgeInsets.zero,
         contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon ?? Icons.error_outline_rounded,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const Gap(16),
-            Text(
-              'somethingWentWrong'.tr(),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const Gap(8),
-            Text(text),
-            const Gap(8),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon ?? Icons.error_outline_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const Gap(16),
+              Text(
+                'somethingWentWrong'.tr(),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const Gap(8),
+              SelectableText(text),
+              const Gap(8),
+            ],
+          ),
         ),
         actions: [
           TextButton(
