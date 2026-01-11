@@ -256,6 +256,21 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
         }).toList();
   }
 
+  void updateUploadProgress(String taskId, int uploadedBytes, int uploadedChunks) {
+    state =
+        state.map((task) {
+          if (task.taskId == taskId) {
+            return task.copyWith(
+              uploadedBytes: uploadedBytes,
+              uploadedChunks: uploadedChunks,
+              status: DriveTaskStatus.inProgress,
+              updatedAt: DateTime.now(),
+            );
+          }
+          return task;
+        }).toList();
+  }
+
   void updateDownloadProgress(
     String taskId,
     int downloadedBytes,
@@ -470,6 +485,7 @@ class EnhancedFileUploader extends FileUploader {
 
     // Step 2: Upload chunks
     int bytesUploaded = 0;
+    int chunksUploaded = 0;
     if (fileData is XFile) {
       // Use stream for XFile
       final subscription = fileData.openRead().listen(null);
@@ -494,6 +510,11 @@ class EnhancedFileUploader extends FileUploader {
           },
         );
         bytesUploaded += chunkData.length;
+        chunksUploaded += 1;
+        // Update upload progress in UI
+        ref
+            .read(uploadTasksProvider.notifier)
+            .updateUploadProgress(taskId, bytesUploaded, chunksUploaded);
       }
       subscription.cancel();
     } else if (fileData is Uint8List) {
@@ -521,6 +542,11 @@ class EnhancedFileUploader extends FileUploader {
           },
         );
         bytesUploaded += chunks[i].length;
+        chunksUploaded += 1;
+        // Update upload progress in UI
+        ref
+            .read(uploadTasksProvider.notifier)
+            .updateUploadProgress(taskId, bytesUploaded, chunksUploaded);
       }
     } else {
       throw ArgumentError('Invalid fileData type');

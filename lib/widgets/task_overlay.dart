@@ -251,7 +251,9 @@ class _TaskOverlayContent extends HookConsumerWidget {
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                 ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -260,13 +262,34 @@ class _TaskOverlayContent extends HookConsumerWidget {
                         SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(
-                            value: _getOverallProgress(activeTasks),
-                            strokeWidth: 3,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            padding: EdgeInsets.zero,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                value: _getOverallProgress(activeTasks),
+                                strokeWidth: 3,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                padding: EdgeInsets.zero,
+                              ),
+                              if (activeTasks.any(
+                                (task) =>
+                                    task.status == DriveTaskStatus.inProgress,
+                              ))
+                                CircularProgressIndicator(
+                                  value: null, // Indeterminate
+                                  strokeWidth: 3,
+                                  trackGap: 0,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.secondary.withOpacity(0.5),
+                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  padding: EdgeInsets.zero,
+                                ),
+                            ],
                           ),
                         ),
                       ],
@@ -316,7 +339,9 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleSmall
-                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -341,12 +366,34 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                 SizedBox(
                                   width: 32,
                                   height: 32,
-                                  child: CircularProgressIndicator(
-                                    value: _getOverallProgress(activeTasks),
-                                    strokeWidth: 3,
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHighest,
+                                  child: Stack(
+                                    children: [
+                                      CircularProgressIndicator(
+                                        value: _getOverallProgress(activeTasks),
+                                        strokeWidth: 3,
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
+                                      ),
+                                      if (activeTasks.any(
+                                        (task) =>
+                                            task.status ==
+                                            DriveTaskStatus.inProgress,
+                                      ))
+                                        CircularProgressIndicator(
+                                          value: null, // Indeterminate
+                                          strokeWidth: 3,
+                                          trackGap: 0,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary
+                                                    .withOpacity(0.5),
+                                              ),
+                                          backgroundColor: Colors.transparent,
+                                        ),
+                                    ],
                                   ),
                                 ),
 
@@ -378,82 +425,90 @@ class _TaskOverlayContent extends HookConsumerWidget {
                               decoration: BoxDecoration(
                                 border: Border(
                                   top: BorderSide(
-                                    color: Theme.of(context).colorScheme.outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
                                     width:
                                         1 /
                                         MediaQuery.of(context).devicePixelRatio,
                                   ),
                                 ),
                               ),
-                              child: CustomScrollView(
-                                slivers: [
-                                  // Clear completed tasks button
-                                  if (_hasCompletedTasks(activeTasks))
-                                    SliverToBoxAdapter(
-                                      child: ListTile(
-                                        dense: true,
-                                        title: const Text('clearCompleted').tr(),
-                                        leading: Icon(
-                                          Symbols.clear_all,
-                                          size: 18,
-                                          color: Theme.of(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: CustomScrollView(
+                                  slivers: [
+                                    // Clear completed tasks button
+                                    if (_hasCompletedTasks(activeTasks))
+                                      SliverToBoxAdapter(
+                                        child: ListTile(
+                                          dense: true,
+                                          title: const Text(
+                                            'clearCompleted',
+                                          ).tr(),
+                                          leading: Icon(
+                                            Symbols.clear_all,
+                                            size: 18,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                          onTap: () {
+                                            taskNotifier.clearCompletedTasks();
+                                            onExpansionChanged?.call(false);
+                                          },
+
+                                          tileColor: Theme.of(
                                             context,
-                                          ).colorScheme.onSurfaceVariant,
+                                          ).colorScheme.surfaceContainerHighest,
                                         ),
-                                        onTap: () {
-                                          taskNotifier.clearCompletedTasks();
-                                          onExpansionChanged?.call(false);
-                                        },
-
-                                        tileColor: Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
                                       ),
-                                    ),
 
-                                  // Clear all tasks button
-                                  if (activeTasks.any(
-                                    (task) =>
-                                        task.status != DriveTaskStatus.completed,
-                                  ))
-                                    SliverToBoxAdapter(
-                                      child: ListTile(
-                                        dense: true,
-                                        title: const Text('Clear All'),
-                                        leading: Icon(
-                                          Symbols.clear_all,
-                                          size: 18,
-                                          color: Theme.of(
+                                    // Clear all tasks button
+                                    if (activeTasks.any(
+                                      (task) =>
+                                          task.status !=
+                                          DriveTaskStatus.completed,
+                                    ))
+                                      SliverToBoxAdapter(
+                                        child: ListTile(
+                                          dense: true,
+                                          title: const Text('Clear All'),
+                                          leading: Icon(
+                                            Symbols.clear_all,
+                                            size: 18,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
+                                          ),
+                                          onTap: () {
+                                            taskNotifier.clearAllTasks();
+                                            onExpansionChanged?.call(false);
+                                          },
+                                          tileColor: Theme.of(
                                             context,
-                                          ).colorScheme.error,
+                                          ).colorScheme.surfaceContainerHighest,
                                         ),
-                                        onTap: () {
-                                          taskNotifier.clearAllTasks();
-                                          onExpansionChanged?.call(false);
-                                        },
-                                        tileColor: Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
                                       ),
-                                    ),
 
-                                  // Task list
-                                  SliverList(
-                                    delegate: SliverChildBuilderDelegate((
-                                      context,
-                                      index,
-                                    ) {
-                                      final task = activeTasks[index];
-                                      return AnimatedOpacity(
-                                        opacity: opacityAnimation,
-                                        duration: const Duration(
-                                          milliseconds: 150,
-                                        ),
-                                        child: UploadTaskTile(task: task),
-                                      );
-                                    }, childCount: activeTasks.length),
-                                  ),
-                                ],
+                                    // Task list
+                                    SliverList(
+                                      delegate: SliverChildBuilderDelegate((
+                                        context,
+                                        index,
+                                      ) {
+                                        final task = activeTasks[index];
+                                        return AnimatedOpacity(
+                                          opacity: opacityAnimation,
+                                          duration: const Duration(
+                                            milliseconds: 150,
+                                          ),
+                                          child: UploadTaskTile(task: task),
+                                        );
+                                      }, childCount: activeTasks.length),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -488,19 +543,30 @@ class _TaskOverlayContent extends HookConsumerWidget {
     );
   }
 
+  double? _getTaskProgress(DriveTask task) {
+    if (task.status == DriveTaskStatus.completed) return 1.0;
+    if (task.status != DriveTaskStatus.inProgress) return 0.0;
+
+    // If all bytes are uploaded but still in progress, show indeterminate
+    if (task.uploadedBytes >= task.fileSize && task.fileSize > 0) {
+      return null; // Indeterminate progress
+    }
+
+    return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
+  }
+
   double _getOverallProgress(List<DriveTask> tasks) {
     if (tasks.isEmpty) return 0.0;
-    final totalProgress = tasks.fold<double>(0.0, (sum, task) {
-      final byteProgress = task.fileSize > 0
-          ? task.uploadedBytes / task.fileSize
-          : 0.0;
-      return sum +
-          (task.status == DriveTaskStatus.inProgress
-              ? byteProgress
-              : task.status == DriveTaskStatus.completed
-              ? 1
-              : 0);
-    });
+
+    final progressValues = tasks.map((task) => _getTaskProgress(task));
+    final determinateProgresses = progressValues.where((p) => p != null);
+
+    if (determinateProgresses.isEmpty) return 0.0;
+
+    final totalProgress = determinateProgresses.fold<double>(
+      0.0,
+      (sum, progress) => sum + progress!,
+    );
     return totalProgress / tasks.length;
   }
 
@@ -625,6 +691,18 @@ class UploadTaskTile extends StatefulWidget {
 
   @override
   State<UploadTaskTile> createState() => _UploadTaskTileState();
+
+  static double? _getTaskProgress(DriveTask task) {
+    if (task.status == DriveTaskStatus.completed) return 1.0;
+    if (task.status == DriveTaskStatus.inProgress) return null;
+
+    // If all bytes are uploaded but still in progress, show indeterminate
+    if (task.uploadedBytes >= task.fileSize && task.fileSize > 0) {
+      return null; // Indeterminate progress
+    }
+
+    return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
+  }
 }
 
 class _UploadTaskTileState extends State<UploadTaskTile>
@@ -685,9 +763,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
             child: Padding(
               padding: const EdgeInsets.all(2),
               child: CircularProgressIndicator(
-                value: widget.task.fileSize > 0
-                    ? widget.task.uploadedBytes / widget.task.fileSize
-                    : 0.0,
+                value: UploadTaskTile._getTaskProgress(widget.task),
                 strokeWidth: 2.5,
                 backgroundColor: Theme.of(
                   context,
@@ -814,7 +890,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: widget.task.progress,
+          value: UploadTaskTile._getTaskProgress(widget.task),
           backgroundColor: Theme.of(context).colorScheme.surface,
           valueColor: AlwaysStoppedAnimation<Color>(
             Theme.of(context).colorScheme.primary,
