@@ -5,18 +5,33 @@ import 'package:island/talker.dart';
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
-  AnalyticsService._internal();
+  AnalyticsService._internal() {
+    _init();
+  }
 
-  final _analytics = FirebaseAnalytics.instance;
+  FirebaseAnalytics? _analytics;
   bool _enabled = true;
 
   bool get _supportsAnalytics =>
       Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
+  void _init() {
+    if (!_supportsAnalytics) return;
+    try {
+      _analytics = FirebaseAnalytics.instance;
+    } catch (e) {
+      talker.warning('[Analytics] Failed to init: $e');
+      _analytics = null;
+    }
+  }
+
   void logEvent(String name, Map<String, Object>? parameters) {
     if (!_enabled || !_supportsAnalytics) return;
+    final analytics = _analytics;
+    if (analytics == null) return;
+
     try {
-      _analytics.logEvent(name: name, parameters: parameters);
+      analytics.logEvent(name: name, parameters: parameters);
     } catch (e) {
       talker.warning('[Analytics] Failed to log event $name: $e');
     }
@@ -28,8 +43,11 @@ class AnalyticsService {
 
   void setUserId(String? id) {
     if (!_supportsAnalytics) return;
+    final analytics = _analytics;
+    if (analytics == null) return;
+
     try {
-      _analytics.setUserId(id: id);
+      analytics.setUserId(id: id);
     } catch (e) {
       talker.warning('[Analytics] Failed to set user ID: $e');
     }
