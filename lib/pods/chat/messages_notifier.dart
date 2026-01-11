@@ -128,7 +128,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           uniqueMessages.add(message);
         }
       }
-      state = AsyncValue.data(uniqueMessages);
+      if (ref.mounted) state = AsyncValue.data(uniqueMessages);
     } finally {
       _isUpdatingState = false;
     }
@@ -350,7 +350,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           offset: 0,
           take: _pageSize,
         );
-        state = AsyncValue.data(newMessages);
+        if (ref.mounted) state = AsyncValue.data(newMessages);
         return;
       }
 
@@ -408,7 +408,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     } finally {
       talker.log('Finished message sync');
       // Always reset global syncing state, regardless of disposal
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
+      Future.microtask(() {
+        if (ref.mounted) ref.read(chatSyncingProvider.notifier).set(false);
+      });
       _isSyncing = false;
     }
   }
@@ -498,7 +500,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     _hasMore = messages.length == _pageSize;
 
-    state = AsyncValue.data(messages);
+    if (ref.mounted) state = AsyncValue.data(messages);
   }
 
   Future<void> loadMore() async {
@@ -509,7 +511,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     }
     try {
-      final currentMessages = state.value ?? [];
+      final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final offset = currentMessages.length;
 
       final newMessages = await listMessages(offset: offset, take: _pageSize);
@@ -518,9 +520,11 @@ class MessagesNotifier extends _$MessagesNotifier {
         _hasMore = false;
       }
 
-      state = AsyncValue.data(
-        _sortMessages([...currentMessages, ...newMessages]),
-      );
+      if (ref.mounted) {
+        state = AsyncValue.data(
+          _sortMessages([...currentMessages, ...newMessages]),
+        );
+      }
     } catch (err, stackTrace) {
       talker.log(
         'Error loading more messages',
@@ -531,12 +535,14 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       // Always reset global syncing state, regardless of disposal
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(false));
+      Future.microtask(() {
+        if (ref.mounted) ref.read(chatSyncingProvider.notifier).set(false);
+      });
     }
   }
 
   Future<void> sendMessage(
-    WidgetRef ref,
+    WidgetRef outerRef,
     String content,
     List<UniversalFile> attachments, {
     SnPoll? poll,
@@ -569,14 +575,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     _fileUploadProgress[localMessage.id] = {};
     await _database.saveMessageWithSender(localMessage);
 
-    final currentMessages = state.value ?? [];
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
     state = AsyncValue.data([localMessage, ...currentMessages]);
 
     try {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile = await FileUploader.createCloudFile(
-          ref: ref,
+          ref: outerRef,
           fileData: attachments[idx],
           onProgress: (progress, _) {
             _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
@@ -619,24 +625,27 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(localMessage.id);
       await _database.saveMessageWithSender(updatedMessage);
 
-      final currentMessages = state.value ?? [];
-      if (editingTo != null) {
-        final newMessages = currentMessages
-            .where((m) => m.id != localMessage.id) // remove pending message
-            .map(
-              (m) => m.id == editingTo.id ? updatedMessage : m,
-            ) // update original message
-            .toList();
-        state = AsyncValue.data(newMessages);
-      } else {
-        final newMessages = currentMessages.map((m) {
-          if (m.id == localMessage.id) {
-            return updatedMessage;
-          }
-          return m;
-        }).toList();
-        state = AsyncValue.data(newMessages);
+      if (ref.mounted) {
+        final currentMessages = state.value ?? [];
+        if (editingTo != null) {
+          final newMessages = currentMessages
+              .where((m) => m.id != localMessage.id) // remove pending message
+              .map(
+                (m) => m.id == editingTo.id ? updatedMessage : m,
+              ) // update original message
+              .toList();
+          state = AsyncValue.data(newMessages);
+        } else {
+          final newMessages = currentMessages.map((m) {
+            if (m.id == localMessage.id) {
+              return updatedMessage;
+            }
+            return m;
+          }).toList();
+          state = AsyncValue.data(newMessages);
+        }
       }
+
       talker.log('Message with nonce $nonce sent successfully');
     } catch (e, stackTrace) {
       talker.log(
@@ -651,13 +660,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         localMessage.id,
         MessageStatus.failed,
       );
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == localMessage.id) {
-          return m..status = MessageStatus.failed;
-        }
-        return m;
-      }).toList();
-      state = AsyncValue.data(newMessages);
+      if (ref.mounted) {
+        final newMessages = (state.value ?? []).map((m) {
+          if (m.id == localMessage.id) {
+            return m..status = MessageStatus.failed;
+          }
+          return m;
+        }).toList();
+        state = AsyncValue.data(newMessages);
+      }
       showErrorAlert(e);
     }
   }
@@ -698,13 +709,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(pendingMessageId);
       await _database.saveMessageWithSender(updatedMessage);
 
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == pendingMessageId) {
-          return updatedMessage;
-        }
-        return m;
-      }).toList();
-      state = AsyncValue.data(newMessages);
+      if (ref.mounted) {
+        final newMessages = (state.value ?? []).map((m) {
+          if (m.id == pendingMessageId) {
+            return updatedMessage;
+          }
+          return m;
+        }).toList();
+        state = AsyncValue.data(newMessages);
+      }
     } catch (e, stackTrace) {
       talker.log(
         'Failed to retry message $pendingMessageId',
@@ -718,13 +731,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         pendingMessageId,
         MessageStatus.failed,
       );
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == pendingMessageId) {
-          return m..status = MessageStatus.failed;
-        }
-        return m;
-      }).toList();
-      state = AsyncValue.data(_sortMessages(newMessages));
+      if (ref.mounted) {
+        final newMessages = (state.value ?? []).map((m) {
+          if (m.id == pendingMessageId) {
+            return m..status = MessageStatus.failed;
+          }
+          return m;
+        }).toList();
+        state = AsyncValue.data(_sortMessages(newMessages));
+      }
       showErrorAlert(e);
     }
   }
@@ -756,21 +771,23 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!isSilentMessage) {
       await _database.saveMessageWithSender(localMessage);
 
-      final currentMessages = state.value ?? [];
+      final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final existingIndex = currentMessages.indexWhere(
         (m) =>
             m.id == localMessage.id ||
             (localMessage.nonce != null && m.nonce == localMessage.nonce),
       );
 
-      if (existingIndex >= 0) {
-        final newList = [...currentMessages];
-        newList[existingIndex] = localMessage;
-        state = AsyncValue.data(_sortMessages(newList));
-      } else {
-        state = AsyncValue.data(
-          _sortMessages([localMessage, ...currentMessages]),
-        );
+      if (ref.mounted) {
+        if (existingIndex >= 0) {
+          final newList = [...currentMessages];
+          newList[existingIndex] = localMessage;
+          state = AsyncValue.data(_sortMessages(newList));
+        } else {
+          state = AsyncValue.data(
+            _sortMessages([localMessage, ...currentMessages]),
+          );
+        }
       }
     }
 
@@ -837,13 +854,15 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     await _database.updateMessage(_database.messageToCompanion(updatedMessage));
 
-    final currentMessages = state.value ?? [];
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == updatedMessage.id);
 
-    if (index >= 0) {
-      final newList = [...currentMessages];
-      newList[index] = updatedMessage;
-      state = AsyncValue.data(_sortMessages(newList));
+    if (ref.mounted) {
+      if (index >= 0) {
+        final newList = [...currentMessages];
+        newList[index] = updatedMessage;
+        state = AsyncValue.data(_sortMessages(newList));
+      }
     }
   }
 
@@ -857,7 +876,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Received message deletion $messageId');
     _pendingMessages.remove(messageId);
 
-    final currentMessages = state.value ?? [];
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final messageIndex = currentMessages.indexWhere((m) => m.id == messageId);
 
     LocalChatMessage? messageToUpdate;
@@ -883,10 +902,12 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     await _database.saveMessageWithSender(deletedMessage);
 
-    if (messageIndex != -1) {
-      final newList = [...currentMessages];
-      newList[messageIndex] = deletedMessage;
-      state = AsyncValue.data(newList);
+    if (ref.mounted) {
+      if (messageIndex != -1) {
+        final newList = [...currentMessages];
+        newList[messageIndex] = deletedMessage;
+        state = AsyncValue.data(newList);
+      }
     }
   }
 
@@ -907,7 +928,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _pendingMessages.remove(messageId);
       await _database.deleteMessage(messageId);
 
-      final currentMessages = state.value ?? [];
+      final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final newMessages = currentMessages
           .where((m) => m.id != messageId)
           .toList();
@@ -1063,7 +1084,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       // Check if message is already in current state to avoid duplicate loading
-      final currentMessages = state.value ?? [];
+      final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final existingIndex = currentMessages.indexWhere(
         (m) => m.id == messageId,
       );
