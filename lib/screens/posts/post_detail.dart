@@ -459,63 +459,85 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userInfoProvider);
+
     return Row(
       children: [
         Expanded(
           flex: 3,
-          child: Material(
-            color: Theme.of(context).cardTheme.color,
-            elevation: 8,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: CloudFileList(
-                  files: post.attachments,
-                  disableConstraint: true,
-                  padding: EdgeInsets.zero,
-                ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: CloudFileList(
+                files: post.attachments,
+                disableConstraint: true,
+                padding: EdgeInsets.zero,
               ),
             ),
           ),
         ),
         Expanded(
           flex: 2,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PostHeader(
-                        item: post,
-                        isFullPost: true,
-                        isCompact: false,
-                        renderingPadding: EdgeInsets.zero,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                elevation: 8,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            PostHeader(
+                              item: post,
+                              isFullPost: true,
+                              isCompact: false,
+                              renderingPadding: EdgeInsets.zero,
+                            ),
+                            const Gap(8),
+                            PostBody(
+                              item: post,
+                              isFullPost: true,
+                              isTextSelectable: true,
+                              renderingPadding: EdgeInsets.zero,
+                              hideAttachments: true,
+                              textScale: post.type == 1 ? 1.2 : 1.1,
+                            ),
+                            const Gap(12),
+                            PostActionButtons(
+                              post: post,
+                              renderingPadding: EdgeInsets.zero,
+                              onRefresh: onRefresh,
+                              onUpdate: onUpdate,
+                            ),
+                          ],
+                        ),
                       ),
-                      const Gap(8),
-                      PostBody(
-                        item: post,
-                        isFullPost: true,
-                        isTextSelectable: true,
-                        renderingPadding: EdgeInsets.zero,
-                        hideAttachments: true,
-                        textScale: post.type == 1 ? 1.2 : 1.1,
-                      ),
-                      const Gap(12),
-                      PostActionButtons(
-                        post: post,
-                        renderingPadding: EdgeInsets.zero,
-                        onRefresh: onRefresh,
-                        onUpdate: onUpdate,
-                      ),
-                    ],
-                  ),
+                    ),
+                    PostRepliesList(postId: postId, maxWidth: 800),
+                    SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                  ],
                 ),
               ),
-              PostRepliesList(postId: postId, maxWidth: 800),
-              SliverGap(MediaQuery.of(context).padding.bottom + 80),
+              if (user.value != null)
+                Positioned(
+                  bottom: 16 + MediaQuery.of(context).padding.bottom,
+                  left: 16,
+                  right: 16,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 800),
+                    child: PostQuickReply(
+                      parent: post,
+                      onPosted: () {
+                        ref.read(postRepliesProvider(postId).notifier).refresh();
+                      },
+                    ),
+                  ).center(),
+                ),
             ],
           ),
         ),
