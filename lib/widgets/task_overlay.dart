@@ -275,7 +275,8 @@ class _TaskOverlayContent extends HookConsumerWidget {
                               ),
                               if (activeTasks.any(
                                 (task) =>
-                                    task.status == DriveTaskStatus.inProgress,
+                                    task.status == DriveTaskStatus.inProgress &&
+                                    task.uploadedBytes < task.fileSize,
                               ))
                                 CircularProgressIndicator(
                                   value: null, // Indeterminate
@@ -378,7 +379,8 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                       if (activeTasks.any(
                                         (task) =>
                                             task.status ==
-                                            DriveTaskStatus.inProgress,
+                                            DriveTaskStatus.inProgress &&
+                                            task.uploadedBytes < task.fileSize,
                                       ))
                                         CircularProgressIndicator(
                                           value: null, // Indeterminate
@@ -533,13 +535,8 @@ class _TaskOverlayContent extends HookConsumerWidget {
   }
 
   double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed) return 1.0;
+    if (task.status == DriveTaskStatus.completed || (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) return 1.0;
     if (task.status != DriveTaskStatus.inProgress) return 0.0;
-
-    // If all bytes are uploaded but still in progress, show indeterminate
-    if (task.uploadedBytes >= task.fileSize && task.fileSize > 0) {
-      return null; // Indeterminate progress
-    }
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
   }
@@ -672,13 +669,8 @@ class UploadTaskTile extends StatefulWidget {
   State<UploadTaskTile> createState() => _UploadTaskTileState();
 
   static double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed) return 1.0;
+    if (task.status == DriveTaskStatus.completed || (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) return 1.0;
     if (task.status == DriveTaskStatus.inProgress) return null;
-
-    // If all bytes are uploaded but still in progress, show indeterminate
-    if (task.uploadedBytes >= task.fileSize && task.fileSize > 0) {
-      return null; // Indeterminate progress
-    }
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
   }

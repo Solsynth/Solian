@@ -2,6 +2,8 @@ import "dart:async";
 import "dart:convert";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:just_audio/just_audio.dart";
+import "package:island/pods/config.dart";
 import "package:island/models/chat.dart";
 import "package:island/pods/chat/chat_room.dart";
 import "package:island/pods/lifecycle.dart";
@@ -198,7 +200,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     return _typingStatuses;
   }
 
-  void onMessage(WebSocketPacket pkt) {
+  Future<void> onMessage(WebSocketPacket pkt) async {
     if (!pkt.type.startsWith('messages')) return;
     if (['messages.read'].contains(pkt.type)) return;
 
@@ -238,6 +240,17 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         _messagesNotifier.receiveMessage(message);
         // Send read receipt for new message
         sendReadReceipt();
+        // Play sound for new messages when app is unfocused
+        if (pkt.type == 'messages.new' &&
+            message.senderId != _chatIdentity.id &&
+            ref.read(appLifecycleStateProvider).value != AppLifecycleState.resumed &&
+            ref.read(appSettingsProvider).soundEffects) {
+          final player = AudioPlayer();
+          await player.setVolume(0.75);
+          await player.setAudioSource(AudioSource.asset('assets/audio/messages.mp3'));
+          await player.play();
+          player.dispose();
+        }
     }
   }
 

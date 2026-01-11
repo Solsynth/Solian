@@ -107,13 +107,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         }
         if (settings.soundEffects) {
           final player = AudioPlayer();
-          player
-              .setAudioSource(
-                AudioSource.asset('assets/audio/notification.mp3'),
-              )
-              .then((_) {
-                player.play().then((_) => player.dispose());
-              });
+          await player.setVolume(0.75);
+          await player.setAudioSource(AudioSource.asset('assets/audio/notification.mp3'));
+          await player.play();
+          player.dispose();
         }
         showTopSnackBar(
           globalOverlay.currentState!,
