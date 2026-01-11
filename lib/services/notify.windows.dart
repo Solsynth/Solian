@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:just_audio/just_audio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
@@ -31,9 +33,7 @@ void _onAppLifecycleChanged(AppLifecycleState state) {
 
 Future<void> initializeLocalNotifications() async {
   // Initialize Windows notification for Windows platform
-  windowsNotification = winty.WindowsNotification(
-    applicationId: "Solian",
-  );
+  windowsNotification = winty.WindowsNotification(applicationId: "Solian");
 
   WidgetsBinding.instance.addObserver(
     LifecycleEventHandler(onAppLifecycleChanged: _onAppLifecycleChanged),
@@ -55,6 +55,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   BuildContext context,
   WidgetRef ref,
 ) {
+  final settings = ref.watch(appSettingsProvider);
   final ws = ref.watch(websocketProvider);
   return ws.dataStream.listen((pkt) async {
     if (pkt.type == "notifications.new") {
@@ -64,6 +65,19 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
+        if (settings.notifyWithHaptic) {
+          HapticFeedback.heavyImpact();
+        }
+        if (settings.soundEffects) {
+          final player = AudioPlayer();
+          player
+              .setAudioSource(
+                AudioSource.asset('assets/audio/notification.mp3'),
+              )
+              .then((_) {
+                player.play().then((_) => player.dispose());
+              });
+        }
         showTopSnackBar(
           globalOverlay.currentState!,
           Center(
@@ -139,7 +153,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           final notificationMessage = NotificationMessage.fromPluginTemplate(
             notification.id, // unique id
             notification.title,
-            [notification.subtitle, notification.content].where((e) => e.isNotEmpty).join('\n'),
+            [
+              notification.subtitle,
+              notification.content,
+            ].where((e) => e.isNotEmpty).join('\n'),
             group: notification.topic,
             image: imagePath,
             largeImage: largeImagePath,

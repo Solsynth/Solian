@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:just_audio/just_audio.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -103,6 +104,16 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         );
         if (settings.notifyWithHaptic) {
           HapticFeedback.heavyImpact();
+        }
+        if (settings.soundEffects) {
+          final player = AudioPlayer();
+          player
+              .setAudioSource(
+                AudioSource.asset('assets/audio/notification.mp3'),
+              )
+              .then((_) {
+                player.play().then((_) => player.dispose());
+              });
         }
         showTopSnackBar(
           globalOverlay.currentState!,
