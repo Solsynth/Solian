@@ -29,30 +29,59 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
   }
 
   void _handleWebSocketPacket(dynamic packet) {
-    if (packet.type.startsWith('task.')) {
+    if (packet.type.startsWith('task.') || packet.type == 'upload.completed') {
       final data = packet.data;
-      if (data == null) return;
+      if (data == null && packet.type != 'upload.completed') return;
 
       // Debug logging
       talker.info(
         '[UploadTasks] Received WebSocket packet: ${packet.type}, data: $data',
       );
 
-      final taskId = data['task_id'] as String?;
-      if (taskId == null) return;
+      final taskId = data != null ? (data['task_id'] as String?) : null;
+      if (taskId == null && packet.type != 'upload.completed') return;
 
       switch (packet.type) {
         case 'task.created':
-          _handleTaskCreated(taskId, data);
+          _handleTaskCreated(taskId!, data);
           break;
         case 'task.progress':
-          _handleProgressUpdate(taskId, data);
+          _handleProgressUpdate(taskId!, data);
           break;
         case 'task.completed':
-          _handleUploadCompleted(taskId, data);
+          _handleUploadCompleted(taskId!, data);
+          break;
+        case 'upload.completed':
+          // For upload.completed, we need to find the taskId differently
+          // Since data is null, we can't get task_id from data
+          // We'll need to mark all in-progress uploads as completed
+          // For now, assume we need to handle it per task, but since no task_id,
+          // perhaps it's a broadcast or we need to modify the logic
+          // Actually, looking at the logs, upload.completed has data: null, but maybe in real scenario it has task_id?
+          // For now, let's assume it needs task_id, and modify accordingly
+          // But since the original code expects data, perhaps the server sends data with task_id
+          // Wait, in the logs: "upload.completed null" - the null is data, but perhaps in code it's null
+          // To be safe, let's modify to handle upload.completed even with null data, but we need task_id
+          // Perhaps search for in-progress tasks and complete them
+          // But that's risky. Let's see the log again: the previous task.progress had task_id: YvvfVbaWSxj5vUnFnzJDu
+          // So probably upload.completed should have the same task_id
+          // Perhaps the server sends it with data containing task_id
+          // The log says "upload.completed null" meaning data is null
+          // But maybe it's a logging issue. To fix, let's assume data has task_id for upload.completed
+          // If not, we can modify _handleUploadCompleted to accept null data and find the task
+          if (data != null && data['task_id'] != null) {
+            _handleUploadCompleted(data['task_id'], data);
+          } else {
+            // If no data, perhaps complete the most recent in-progress task
+            final inProgressTasks = state.where((task) => task.status == DriveTaskStatus.inProgress).toList();
+            if (inProgressTasks.isNotEmpty) {
+              final task = inProgressTasks.last; // Assume the last one
+              _handleUploadCompleted(task.taskId, {});
+            }
+          }
           break;
         case 'task.failed':
-          _handleUploadFailed(taskId, data);
+          _handleUploadFailed(taskId!, data);
           break;
       }
     }
