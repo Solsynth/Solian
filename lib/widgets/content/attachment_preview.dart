@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -275,9 +277,184 @@ class AttachmentPreview extends HookConsumerWidget {
     var ratio = item.isOnCloud
         ? (item.data.fileMeta?['ratio'] is num
               ? item.data.fileMeta!['ratio'].toDouble()
-              : 1.0)
-        : 1.0;
-    if (ratio == 0) ratio = 1.0;
+              : null)
+        : null;
+
+    final innerContentWidget = Stack(
+      fit: StackFit.expand,
+      children: [
+        HookBuilder(
+          key: ValueKey(item.hashCode),
+          builder: (context) {
+            final fallbackIcon = switch (item.type) {
+              UniversalFileType.video => Symbols.video_file,
+              UniversalFileType.audio => Symbols.audio_file,
+              UniversalFileType.image => Symbols.image,
+              _ => Symbols.insert_drive_file,
+            };
+
+            final mimeType = FileUploader.getMimeType(item);
+
+            if (item.isOnCloud) {
+              return CloudFileWidget(item: item.data);
+            } else if (item.data is XFile) {
+              final file = item.data as XFile;
+              if (file.path.isEmpty) {
+                return FutureBuilder<Uint8List>(
+                  future: file.readAsBytes(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Image.memory(snapshot.data!);
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                );
+              }
+
+              switch (item.type) {
+                case UniversalFileType.image:
+                  return kIsWeb
+                      ? Image.network(file.path)
+                      : Image.file(File(file.path));
+                case UniversalFileType.video:
+                  if (!kIsWeb) {
+                    final thumbnailFuture = useMemoized(
+                      () => VideoThumbnail.thumbnailData(
+                        video: file.path,
+                        imageFormat: ImageFormat.JPEG,
+                        maxWidth: 320,
+                        quality: 50,
+                      ),
+                      [file.path],
+                    );
+                    return FutureBuilder<Uint8List?>(
+                      future: thumbnailFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Stack(
+                            children: [
+                              Image.memory(snapshot.data!),
+                              Positioned.fill(
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Symbols.play_arrow,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    );
+                  }
+                  break;
+                default:
+                  break;
+              }
+
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(fallbackIcon),
+                  const Gap(6),
+                  Text(
+                    _getDisplayName(),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(mimeType, style: TextStyle(fontSize: 10)),
+                  const Gap(1),
+                  FutureBuilder(
+                    future: file.length(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final size = snapshot.data as int;
+                        return Text(formatFileSize(size)).fontSize(11);
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ).padding(vertical: 32);
+            } else if (item is List<int> || item is Uint8List) {
+              switch (item.type) {
+                case UniversalFileType.image:
+                  return Image.memory(item.data);
+                default:
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(fallbackIcon),
+                      const Gap(6),
+                      Text(mimeType, style: TextStyle(fontSize: 10)),
+                      const Gap(1),
+                      Text(formatFileSize(item.data.length)).fontSize(11),
+                    ],
+                  );
+              }
+            }
+            return Placeholder();
+          },
+        ),
+        if (isUploading && progress != null && (progress ?? 0) > 0)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '${(progress! * 100).toStringAsFixed(2)}%',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Gap(6),
+                  Center(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: progress),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      builder: (context, value, child) =>
+                          LinearProgressIndicator(value: value),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        if (isUploading && (progress == null || progress == 0))
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'processing'.tr(),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Gap(6),
+                  Center(child: LinearProgressIndicator(value: null)),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
 
     final contentWidget = ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -285,149 +462,13 @@ class AttachmentPreview extends HookConsumerWidget {
         color: Theme.of(context).colorScheme.surfaceContainer,
         child: Stack(
           children: [
-            AspectRatio(
-              aspectRatio: ratio,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Builder(
-                    key: ValueKey(item.hashCode),
-                    builder: (context) {
-                      final fallbackIcon = switch (item.type) {
-                        UniversalFileType.video => Symbols.video_file,
-                        UniversalFileType.audio => Symbols.audio_file,
-                        UniversalFileType.image => Symbols.image,
-                        _ => Symbols.insert_drive_file,
-                      };
-
-                      final mimeType = FileUploader.getMimeType(item);
-
-                      if (item.isOnCloud) {
-                        return CloudFileWidget(item: item.data);
-                      } else if (item.data is XFile) {
-                        final file = item.data as XFile;
-                        if (file.path.isEmpty) {
-                          return FutureBuilder<Uint8List>(
-                            future: file.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(snapshot.data!);
-                              }
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
-                          );
-                        }
-
-                        switch (item.type) {
-                          case UniversalFileType.image:
-                            return kIsWeb
-                                ? Image.network(file.path)
-                                : Image.file(File(file.path));
-                          default:
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(fallbackIcon),
-                                const Gap(6),
-                                Text(
-                                  _getDisplayName(),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(mimeType, style: TextStyle(fontSize: 10)),
-                                const Gap(1),
-                                FutureBuilder(
-                                  future: file.length(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      final size = snapshot.data as int;
-                                      return Text(
-                                        formatFileSize(size),
-                                      ).fontSize(11);
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ],
-                            );
-                        }
-                      } else if (item is List<int> || item is Uint8List) {
-                        switch (item.type) {
-                          case UniversalFileType.image:
-                            return Image.memory(item.data);
-                          default:
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(fallbackIcon),
-                                const Gap(6),
-                                Text(mimeType, style: TextStyle(fontSize: 10)),
-                                const Gap(1),
-                                Text(
-                                  formatFileSize(item.data.length),
-                                ).fontSize(11),
-                              ],
-                            );
-                        }
-                      }
-                      return Placeholder();
-                    },
-                  ),
-                  if (isUploading && progress != null && (progress ?? 0) > 0)
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withOpacity(0.3),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 16,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${(progress! * 100).toStringAsFixed(2)}%',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Gap(6),
-                            Center(
-                              child: TweenAnimationBuilder<double>(
-                                tween: Tween<double>(begin: 0.0, end: progress),
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                builder: (context, value, child) => LinearProgressIndicator(value: value),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (isUploading && (progress == null || progress == 0))
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withOpacity(0.3),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 16,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              'processing'.tr(),
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Gap(6),
-                            Center(child: LinearProgressIndicator(value: null)),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ).center(),
+            if (ratio != null)
+              AspectRatio(
+                aspectRatio: ratio,
+                child: innerContentWidget,
+              ).center()
+            else
+              IntrinsicHeight(child: innerContentWidget),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
