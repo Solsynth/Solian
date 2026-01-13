@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
+import 'package:island/services/analytics_service.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/pods/config.dart';
@@ -121,6 +122,14 @@ void main() async {
     talker.error(
       "[QuickActions] Failed to initialize Quick Actions service... $err",
     );
+  }
+
+  try {
+    talker.info("[Analytics] Initializing Analytics service...");
+    final analyticsService = AnalyticsService();
+    analyticsService.initialize();
+  } catch (err) {
+    talker.error("[Analytics] Failed to initialize Analytics service... $err");
   }
 
   final prefs = await SharedPreferences.getInstance();

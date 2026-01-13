@@ -38,6 +38,45 @@ sealed class UniversalFile with _$UniversalFile {
 }
 
 @freezed
+sealed class SnFileReplica with _$SnFileReplica {
+  const factory SnFileReplica({
+    required String id,
+    required String objectId,
+    required String poolId,
+    required SnFilePool? pool,
+    required String storageId,
+    required int status,
+    required bool isPrimary,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnFileReplica;
+
+  factory SnFileReplica.fromJson(Map<String, dynamic> json) =>
+      _$SnFileReplicaFromJson(json);
+}
+
+@freezed
+sealed class SnCloudFileObject with _$SnCloudFileObject {
+  const factory SnCloudFileObject({
+    required String id,
+    required int size,
+    required Map<String, dynamic>? meta,
+    required String? mimeType,
+    required String? hash,
+    required bool hasCompression,
+    required bool hasThumbnail,
+    required List<SnFileReplica> fileReplicas,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnCloudFileObject;
+
+  factory SnCloudFileObject.fromJson(Map<String, dynamic> json) =>
+      _$SnCloudFileObjectFromJson(json);
+}
+
+@freezed
 sealed class SnCloudFile with _$SnCloudFile {
   const factory SnCloudFile({
     required String id,
@@ -45,13 +84,11 @@ sealed class SnCloudFile with _$SnCloudFile {
     required String? description,
     required Map<String, dynamic>? fileMeta,
     required Map<String, dynamic>? userMeta,
-    required SnFilePool? pool,
     @Default([]) List<int> sensitiveMarks,
     required String? mimeType,
     required String? hash,
     required int size,
     required DateTime? uploadedAt,
-    required String? uploadedTo,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

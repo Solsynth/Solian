@@ -124,24 +124,6 @@ class FileInfoSheet extends StatelessWidget {
                 },
               ),
             ),
-            if (item.pool != null)
-              ListTile(
-                leading: const Icon(Symbols.calendar_today),
-                title: Text('File Pool').tr(),
-                subtitle: Text(
-                  item.pool!.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                trailing: IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: item.pool!.id));
-                    showSnackBar('fileNameCopied'.tr());
-                  },
-                ),
-              ),
             ListTile(
               leading: const Icon(Symbols.launch),
               title: Text('openInBrowser').tr(),
@@ -176,15 +158,14 @@ class FileInfoSheet extends StatelessWidget {
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
-                            title:
-                                Text(
-                                  entry.key.contains('-')
-                                      ? entry.key.split('-').last
-                                      : entry.key,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ).bold(),
+                            title: Text(
+                              entry.key.contains('-')
+                                  ? entry.key.split('-').last
+                                  : entry.key,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ).bold(),
                             subtitle: Text(
                               '${entry.value}'.isNotEmpty
                                   ? '${entry.value}'
@@ -227,13 +208,12 @@ class FileInfoSheet extends StatelessWidget {
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
-                            title:
-                                Text(
-                                  entry.key,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ).bold(),
+                            title: Text(
+                              entry.key,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ).bold(),
                             subtitle: Text(
                               jsonEncode(entry.value),
                               style: theme.textTheme.bodyMedium,
@@ -276,13 +256,12 @@ class FileInfoSheet extends StatelessWidget {
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
-                            title:
-                                Text(
-                                  entry.key,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ).bold(),
+                            title: Text(
+                              entry.key,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ).bold(),
                             subtitle: Text(
                               jsonEncode(entry.value),
                               style: theme.textTheme.bodyMedium,

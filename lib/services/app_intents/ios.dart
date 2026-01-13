@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_app_intents/flutter_app_intents.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/models/auth.dart';
@@ -21,7 +22,7 @@ class AppIntentsService {
   Dio? _dio;
 
   Future<void> initialize() async {
-    if (!Platform.isIOS) {
+    if (kIsWeb || !Platform.isIOS) {
       talker.warning('[AppIntents] App Intents only supported on iOS');
       return;
     }

@@ -1,21 +1,20 @@
 import 'dart:io';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:island/talker.dart';
 
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
-  AnalyticsService._internal() {
-    _init();
-  }
+  AnalyticsService._internal();
 
   FirebaseAnalytics? _analytics;
   bool _enabled = true;
 
   bool get _supportsAnalytics =>
-      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+      kIsWeb || (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
 
-  void _init() {
+  void initialize() {
     if (!_supportsAnalytics) return;
     try {
       _analytics = FirebaseAnalytics.instance;
