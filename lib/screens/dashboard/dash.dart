@@ -200,7 +200,7 @@ class _DashboardGridNarrow extends HookConsumerWidget {
         if (userInfo.value != null && userInfo.value?.activatedAt == null)
           AccountUnactivatedCard(),
         CheckInWidget(margin: EdgeInsets.zero),
-        FortuneCard(),
+        FortuneCard(unlimited: true),
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 400),
           child: PostFeaturedList(),
@@ -528,13 +528,14 @@ class ChatListCard extends HookConsumerWidget {
 }
 
 class FortuneCard extends HookConsumerWidget {
-  const FortuneCard({super.key});
+  final bool unlimited;
+  const FortuneCard({super.key, this.unlimited = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fortuneAsync = ref.watch(randomFortuneSayingProvider);
 
-    return Card(
+    final child = Card(
       margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -550,7 +551,7 @@ class FortuneCard extends HookConsumerWidget {
               Expanded(
                 child: Text(
                   fortune.content,
-                  maxLines: 2,
+                  maxLines: unlimited ? null : 2,
                   overflow: TextOverflow.fade,
                 ),
               ),
@@ -559,7 +560,10 @@ class FortuneCard extends HookConsumerWidget {
           ).padding(horizontal: 16);
         },
       ),
-    ).height(48);
+    );
+
+    if (unlimited) return child;
+    return child.height(48);
   }
 }
 
