@@ -205,8 +205,12 @@ void main() async {
   runApp(
     ProviderScope(
       retry: (retryCount, error) {
-        if (error is DioException && error.response?.statusCode == 404) {
-          return null;
+        if (retryCount > 3) return null;
+        if (error is DioException) {
+          if (error.response?.statusCode == 401) return null;
+          if (error.response?.statusCode == 403) return null;
+          if (error.response?.statusCode == 404) return null;
+          if (error.response?.statusCode == 500) return null;
         }
         return const Duration(milliseconds: 300);
       },
