@@ -105,14 +105,12 @@ class WebfeedForm extends HookConsumerWidget {
 
     return feedAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (error, _) => ResponseErrorWidget(
-            error: error,
-            onRetry:
-                () => ref.invalidate(
-                  webFeedNotifierProvider((pubName: pubName, feedId: feedId)),
-                ),
-          ),
+      error: (error, _) => ResponseErrorWidget(
+        error: error,
+        onRetry: () => ref.invalidate(
+          webFeedNotifierProvider((pubName: pubName, feedId: feedId)),
+        ),
+      ),
       data: (feed) {
         // Initialize form fields if they're empty and we have a feed
         if (titleController.text.isEmpty) {
@@ -140,7 +138,7 @@ class WebfeedForm extends HookConsumerWidget {
           } catch (e) {
             showErrorAlert(e);
           } finally {
-            isLoading.value = false;
+            if (context.mounted) isLoading.value = false;
           }
         }, [pubName, feedId, ref, context, isLoading]);
 
@@ -160,8 +158,8 @@ class WebfeedForm extends HookConsumerWidget {
                 }
                 return null;
               },
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -184,8 +182,8 @@ class WebfeedForm extends HookConsumerWidget {
                 }
                 return null;
               },
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -197,8 +195,8 @@ class WebfeedForm extends HookConsumerWidget {
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               maxLines: 3,
             ),
             const SizedBox(height: 24),
@@ -256,7 +254,12 @@ class WebfeedForm extends HookConsumerWidget {
           ],
         ).padding(horizontal: 20, vertical: 12);
 
-        return Column(children: [Expanded(child: formWidget), buttonsRow]);
+        return Column(
+          children: [
+            Expanded(child: formWidget),
+            buttonsRow,
+          ],
+        );
       },
     );
   }

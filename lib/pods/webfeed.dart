@@ -35,7 +35,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.get(
-        '/sphere/publishers/${arg.pubName}/feeds/${arg.feedId}',
+        '/insight/publishers/${arg.pubName}/feeds/${arg.feedId}',
       );
       return SnWebFeed.fromJson(response.data);
     } catch (e) {
@@ -47,7 +47,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
-      final url = '/sphere/publishers/${feed.publisherId}/feeds';
+      final url = '/insight/publishers/${feed.publisherId}/feeds';
 
       final response = feed.id.isEmpty
           ? await client.post(url, data: feed.toJson())
@@ -67,7 +67,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
-      await client.delete('/sphere/publishers/${arg.pubName}/feeds/$feedId');
+      await client.delete('/insight/publishers/${arg.pubName}/feeds/$feedId');
       state = AsyncValue.data(
         SnWebFeed(
           id: '',
@@ -93,7 +93,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
     try {
       final client = ref.read(apiClientProvider);
       await client.post(
-        '/sphere/publishers/${arg.pubName}/feeds/$feedId/scrap',
+        '/insight/publishers/${arg.pubName}/feeds/$feedId/scrap',
         options: Options(
           sendTimeout: const Duration(seconds: 60),
           receiveTimeout: const Duration(seconds: 180),
