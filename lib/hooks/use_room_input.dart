@@ -143,7 +143,12 @@ RoomInputManager useRoomInputManager(WidgetRef ref, String roomId) {
       final newAttachments = [
         ...attachments.value,
         UniversalFile(
-          data: XFile.fromData(image, mimeType: "image/jpeg"),
+          displayName: 'image.jpeg',
+          data: XFile.fromData(
+            image,
+            mimeType: "image/jpeg",
+            name: 'image.jpeg',
+          ),
           type: UniversalFileType.image,
         ),
       ];

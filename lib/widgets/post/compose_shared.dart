@@ -811,7 +811,12 @@ class ComposeLogic {
     state.attachments.value = [
       ...state.attachments.value,
       UniversalFile(
-        data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
+        displayName: 'image.jpeg',
+        data: XFile.fromData(
+          clipboard,
+          mimeType: "image/jpeg",
+          name: 'image.jpeg',
+        ),
         type: UniversalFileType.image,
       ),
     ];

@@ -284,7 +284,12 @@ class ChatInput extends HookConsumerWidget {
         onAttachmentsChanged([
           ...attachments,
           UniversalFile(
-            data: XFile.fromData(image, mimeType: "image/jpeg"),
+            displayName: 'image.jpeg',
+            data: XFile.fromData(
+              image,
+              mimeType: "image/jpeg",
+              name: 'image.jpeg',
+            ),
             type: UniversalFileType.image,
           ),
         ]);
