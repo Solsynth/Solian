@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:just_audio/just_audio.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
+import 'package:island/pods/audio.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
@@ -105,13 +105,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         if (settings.notifyWithHaptic) {
           HapticFeedback.heavyImpact();
         }
-        if (settings.soundEffects) {
-          final player = AudioPlayer();
-          await player.setVolume(0.75);
-          await player.setAudioSource(AudioSource.asset('assets/audio/notification.mp3'));
-          await player.play();
-          player.dispose();
-        }
+        playNotificationSfx(ref);
         showTopSnackBar(
           globalOverlay.currentState!,
           Center(

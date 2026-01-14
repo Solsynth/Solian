@@ -16,6 +16,7 @@ import 'package:island/services/analytics_service.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/audio.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/theme.dart';
 import 'package:island/pods/userinfo.dart';
@@ -339,6 +340,8 @@ class IslandApp extends HookConsumerWidget {
             final apiClient = ref.read(apiClientProvider);
             subscribePushNotification(apiClient);
             initializeLocalNotifications();
+            ref.read(notificationSfxProvider);
+            ref.read(messageSfxProvider);
             final wsNotifier = ref.read(websocketStateProvider.notifier);
             wsNotifier.connect();
           }
