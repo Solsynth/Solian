@@ -162,36 +162,38 @@ class AppWrapper extends HookConsumerWidget {
         (now.day >= 22 && now.day <= 28);
 
     useEffect(() {
-      final now = DateTime.now();
-      if (doesShowSnow) {
-        isShowSnow.value = true;
-        Future.delayed(const Duration(seconds: 60), () {
-          if (!context.mounted) return;
-          isShowSnow.value = false;
-          Future.delayed(const Duration(seconds: 3), () {
+      Future(() {
+        final now = DateTime.now();
+        if (doesShowSnow) {
+          isShowSnow.value = true;
+          Future.delayed(const Duration(seconds: 60), () {
             if (!context.mounted) return;
-            isSnowGone.value = true;
+            isShowSnow.value = false;
+            Future.delayed(const Duration(seconds: 3), () {
+              if (!context.mounted) return;
+              isSnowGone.value = true;
+            });
           });
-        });
-      }
-
-      if (settings.firstLaunchAt == null) {
-        settingsNotifier.setFirstLaunchAt(now.toIso8601String());
-      } else if (!settings.askedReview) {
-        final launchAt = DateTime.parse(settings.firstLaunchAt!);
-        final daysSinceFirstLaunch = now.difference(launchAt).inDays;
-        if (daysSinceFirstLaunch >= 3 &&
-            !kIsWeb &&
-            (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
-          final InAppReview inAppReview = InAppReview.instance;
-          Future(() async {
-            if (await inAppReview.isAvailable()) {
-              inAppReview.requestReview();
-            }
-          });
-          settingsNotifier.setAskedReview(true);
         }
-      }
+
+        if (settings.firstLaunchAt == null) {
+          settingsNotifier.setFirstLaunchAt(now.toIso8601String());
+        } else if (!settings.askedReview) {
+          final launchAt = DateTime.parse(settings.firstLaunchAt!);
+          final daysSinceFirstLaunch = now.difference(launchAt).inDays;
+          if (daysSinceFirstLaunch >= 3 &&
+              !kIsWeb &&
+              (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+            final InAppReview inAppReview = InAppReview.instance;
+            Future(() async {
+              if (await inAppReview.isAvailable()) {
+                inAppReview.requestReview();
+              }
+            });
+            settingsNotifier.setAskedReview(true);
+          }
+        }
+      });
 
       return null;
     }, []);

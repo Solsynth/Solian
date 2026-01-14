@@ -125,6 +125,8 @@ class WindowScaffold extends HookConsumerWidget {
     );
 
     useEffect(() {
+      if (kIsWeb) return null;
+
       hotKeyManager.register(
         popHotKey,
         keyDownHandler: (_) {

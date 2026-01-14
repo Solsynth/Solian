@@ -586,6 +586,7 @@ class _UnauthorizedCard extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Gap(16),
+            const SizedBox(width: double.infinity),
             Icon(
               Symbols.dashboard_rounded,
               size: 64,
