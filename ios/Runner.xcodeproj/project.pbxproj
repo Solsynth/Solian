@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,6 +15,10 @@
 		7301DB052F08D99C008390F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7301DB042F08D99C008390F3 /* SwiftUI.framework */; };
 		7301DB102F08D99D008390F3 /* SolianWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7301DB012F08D99C008390F3 /* SolianWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7310A7DF2EB10963002C0FD3 /* Solian Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 7310A7D42EB10962002C0FD3 /* Solian Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		73595B1B2F17FF8000AAD53C /* SfxMessage.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B162F17FF8000AAD53C /* SfxMessage.caf */; };
+		73595B1C2F17FF8000AAD53C /* SfxNotification.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B172F17FF8000AAD53C /* SfxNotification.caf */; };
+		73595B832F1803D300AAD53C /* SfxNotification.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B172F17FF8000AAD53C /* SfxNotification.caf */; };
+		73595B842F1803D300AAD53C /* SfxMessage.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B162F17FF8000AAD53C /* SfxMessage.caf */; };
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -133,6 +137,8 @@
 		7301DB042F08D99C008390F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		7301DB162F08D9A5008390F3 /* SolianWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SolianWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
 		7310A7D42EB10962002C0FD3 /* Solian Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Solian Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73595B162F17FF8000AAD53C /* SfxMessage.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SfxMessage.caf; sourceTree = "<group>"; };
+		73595B172F17FF8000AAD53C /* SfxNotification.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SfxNotification.caf; sourceTree = "<group>"; };
 		737E920B2DB6A9FF00BE9CDB /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -216,8 +222,6 @@
 		};
 		7310A7D52EB10962002C0FD3 /* Solian Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Solian Watch App";
 			sourceTree = "<group>";
 		};
@@ -396,6 +400,8 @@
 				91E124CE95BCB4DCD890160D /* Pods */,
 				498A09270B73B217F0279168 /* Frameworks */,
 				9AE244813FCDFAA941430393 /* GoogleService-Info.plist */,
+				73595B162F17FF8000AAD53C /* SfxMessage.caf */,
+				73595B172F17FF8000AAD53C /* SfxNotification.caf */,
 			);
 			sourceTree = "<group>";
 		};
@@ -695,6 +701,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73595B1B2F17FF8000AAD53C /* SfxMessage.caf in Resources */,
+				73595B1C2F17FF8000AAD53C /* SfxNotification.caf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -703,6 +711,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
+				73595B832F1803D300AAD53C /* SfxNotification.caf in Resources */,
+				73595B842F1803D300AAD53C /* SfxMessage.caf in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
@@ -759,9 +769,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -820,9 +834,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -874,9 +892,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

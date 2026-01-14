@@ -8,15 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:island/main.dart';
 import 'package:island/pods/audio.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/notification.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/talker.dart';
-import 'package:island/widgets/app_notification.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -98,7 +96,6 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
     if (pkt.type == "notifications.new") {
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
-        // App is focused, show in-app notification
         talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
@@ -106,32 +103,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           HapticFeedback.heavyImpact();
         }
         playNotificationSfx(ref);
-        showTopSnackBar(
-          globalOverlay.currentState!,
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: NotificationCard(notification: notification),
-            ),
-          ),
-          onDismissed: () {},
-          dismissType: DismissType.onSwipe,
-          displayDuration: const Duration(seconds: 5),
-          snackBarPosition: SnackBarPosition.top,
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top:
-                (!kIsWeb &&
-                    (Platform.isMacOS ||
-                        Platform.isWindows ||
-                        Platform.isLinux))
-                ? 28
-                // ignore: use_build_context_synchronously
-                : MediaQuery.of(context).padding.top + 16,
-            bottom: 16,
-          ),
-        );
+        ref.read(notificationStateProvider.notifier).add(notification);
       } else {
         // App is in background, show system notification (only on supported platforms)
         if (!kIsWeb && !Platform.isIOS) {

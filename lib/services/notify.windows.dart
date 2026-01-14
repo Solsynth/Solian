@@ -6,17 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:island/main.dart';
 import 'package:island/pods/audio.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/route.dart';
+import 'package:island/pods/notification.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/talker.dart';
-import 'package:island/widgets/app_notification.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
@@ -60,7 +55,6 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
     if (pkt.type == "notifications.new") {
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
-        // App is focused, show in-app notification
         talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
@@ -68,39 +62,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           HapticFeedback.heavyImpact();
         }
         playNotificationSfx(ref);
-        showTopSnackBar(
-          globalOverlay.currentState!,
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: NotificationCard(notification: notification),
-            ),
-          ),
-          onTap: () {
-            if (notification.meta['action_uri'] != null) {
-              var uri = notification.meta['action_uri'] as String;
-              if (uri.startsWith('/')) {
-                // In-app routes
-                rootNavigatorKey.currentContext?.push(
-                  notification.meta['action_uri'],
-                );
-              } else {
-                // External URLs
-                launchUrlString(uri);
-              }
-            }
-          },
-          onDismissed: () {},
-          dismissType: DismissType.onSwipe,
-          displayDuration: const Duration(seconds: 5),
-          snackBarPosition: SnackBarPosition.top,
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 28, // Windows specific padding
-            bottom: 16,
-          ),
-        );
+        ref.read(notificationStateProvider.notifier).add(notification);
       } else {
         // App is in background, show Windows system notification
         talker.info(

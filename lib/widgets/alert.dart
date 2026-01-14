@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/main.dart';
+import 'package:island/models/account.dart';
+import 'package:island/pods/notification.dart';
 import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -163,7 +165,6 @@ String _parseRemoteError(DioException err) {
   return message ?? err.toString();
 }
 
-// Track active overlay dialogs for dismissal
 final List<void Function()> _activeOverlayDialogs = [];
 
 Future<T?> showOverlayDialog<T>({
@@ -229,7 +230,6 @@ Future<T?> showOverlayDialog<T>({
   return completer.future;
 }
 
-// Close the topmost overlay dialog if any exists
 bool closeTopmostOverlayDialog() {
   if (_activeOverlayDialogs.isNotEmpty) {
     final closeFunc = _activeOverlayDialogs.last;
@@ -376,6 +376,34 @@ Future<bool> showConfirmAlert(
     ),
   );
   return result ?? false;
+}
+
+void showNotification({
+  required String title,
+  String content = '',
+  String subtitle = '',
+  Map<String, dynamic> meta = const {},
+  Duration? duration,
+}) {
+  final context = globalOverlay.currentState!.context;
+  final ref = ProviderScope.containerOf(context);
+  final notification = SnNotification(
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    deletedAt: null,
+    id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+    topic: 'local',
+    title: title,
+    subtitle: subtitle,
+    content: content,
+    meta: meta,
+    priority: 0,
+    viewedAt: null,
+    accountId: 'local',
+  );
+  ref
+      .read(notificationStateProvider.notifier)
+      .add(notification, duration: duration);
 }
 
 Future<void> openExternalLink(Uri url, WidgetRef ref) async {
