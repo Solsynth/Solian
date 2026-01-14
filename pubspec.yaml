@@ -177,6 +177,7 @@ dependencies:
   flutter_app_intents: ^0.7.0
   video_thumbnail: ^0.5.6
   just_audio: ^0.10.5
+  audio_session: ^0.2.2
 
 dev_dependencies:
   flutter_test:
