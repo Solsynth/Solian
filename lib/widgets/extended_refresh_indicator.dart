@@ -38,6 +38,8 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
     );
 
     useEffect(() {
+      if (kIsWeb) return null;
+
       hotKeyManager.register(
         refreshHotKey,
         keyDownHandler: (_) {
