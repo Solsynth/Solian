@@ -340,6 +340,7 @@ class IslandApp extends HookConsumerWidget {
             final apiClient = ref.read(apiClientProvider);
             subscribePushNotification(apiClient);
             initializeLocalNotifications();
+            ref.read(audioSessionProvider);
             ref.read(notificationSfxProvider);
             ref.read(messageSfxProvider);
             final wsNotifier = ref.read(websocketStateProvider.notifier);
