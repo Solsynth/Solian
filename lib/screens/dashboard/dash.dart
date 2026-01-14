@@ -304,19 +304,22 @@ class ClockCard extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      Row(
-                        spacing: 5,
-                        children: [
-                          notableDay.when(
-                            data: (day) => day == null
-                                ? Text('unauthorized').tr()
-                                : _buildNotableDayText(context, day),
-                            error: (err, _) =>
-                                Text(err.toString()).fontSize(12),
-                            loading: () =>
-                                const Text('loading').tr().fontSize(12),
-                          ),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          spacing: 5,
+                          children: [
+                            notableDay.when(
+                              data: (day) => day == null
+                                  ? Text('unauthorized').tr()
+                                  : _buildNotableDayText(context, day),
+                              error: (err, _) =>
+                                  Text(err.toString()).fontSize(12),
+                              loading: () =>
+                                  const Text('loading').tr().fontSize(12),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -557,7 +560,7 @@ class FortuneCard extends HookConsumerWidget {
               ),
               Text('—— ${fortune.source}').bold(),
             ],
-          ).padding(horizontal: 16);
+          ).padding(horizontal: 16, vertical: unlimited ? 12 : 0);
         },
       ),
     );
