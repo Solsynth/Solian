@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/talker.dart';
@@ -57,10 +58,14 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
     final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
     if (inCacheInfo == null) {
       talker.info('[MediaPlayer] Miss cache: $url');
-      final token = ref.watch(tokenProvider)?.token;
+      final serverUrl = ref.read(serverUrlProvider);
+      final token = ref.read(tokenProvider);
+      final authHeaders = url.startsWith(serverUrl) && token != null
+          ? {'Authorization': 'AtField ${token.token}'}
+          : null;
       DefaultCacheManager().downloadFile(
         url,
-        authHeaders: {'Authorization': 'AtField $token'},
+        authHeaders: authHeaders,
       );
       uri = url;
     } else {
@@ -68,7 +73,13 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       talker.info('[MediaPlayer] Hit cache: $url');
     }
 
-    _player!.open(Media(uri), play: widget.autoplay);
+    final serverUrl = ref.read(serverUrlProvider);
+    final token = ref.read(tokenProvider);
+    final Map<String, String>? httpHeaders = uri.startsWith(serverUrl) && token != null
+        ? {'Authorization': 'AtField ${token.token}'}
+        : null;
+
+    _player!.open(Media(uri, httpHeaders: httpHeaders), play: widget.autoplay);
   }
 
   @override
