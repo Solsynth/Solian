@@ -79,14 +79,9 @@ class AnimatedNotificationItem extends HookConsumerWidget {
     final isDismissed = useState(false);
 
     final slideTween = Tween<Offset>(
-      begin: Offset(isDesktop ? 1.0 : 0.0, 0),
+      begin: isDesktop ? Offset(1.0, 0.0) : Offset(0.0, -1.0),
       end: Offset.zero,
     ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-    final fadeTween = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).chain(CurveTween(curve: Curves.easeOut));
 
     useEffect(() {
       animationController.forward();
@@ -105,17 +100,8 @@ class AnimatedNotificationItem extends HookConsumerWidget {
       return () => timer.cancel();
     }, [item.duration, isDismissed.value]);
 
-    return AnimatedBuilder(
-      animation: animationController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: slideTween.evaluate(animationController),
-          child: Opacity(
-            opacity: fadeTween.evaluate(animationController),
-            child: child,
-          ),
-        );
-      },
+    return SlideTransition(
+      position: slideTween.animate(animationController),
       child: Padding(
         padding: isDesktop
             ? const EdgeInsets.only(bottom: 12, right: 16)
@@ -124,7 +110,7 @@ class AnimatedNotificationItem extends HookConsumerWidget {
           item: item,
           isDesktop: isDesktop,
           onDismiss: () {},
-        ).width(isDesktop ? 340 : MediaQuery.sizeOf(context).width - 40),
+        ).width(isDesktop ? 420 : MediaQuery.sizeOf(context).width - 40),
       ),
     );
   }
