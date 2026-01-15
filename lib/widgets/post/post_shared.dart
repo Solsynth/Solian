@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/models/account.dart';
+import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
@@ -1030,6 +1031,16 @@ class PostBody extends ConsumerWidget {
       );
     }
 
+    SnCloudFile? getThumbnailAttachment() {
+      final thumbnailId = item.meta?['thumbnail'] as String?;
+      if (thumbnailId == null) return null;
+      try {
+        return item.attachments.firstWhere((a) => a.id == thumbnailId);
+      } catch (_) {
+        return null;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1042,7 +1053,6 @@ class PostBody extends ConsumerWidget {
               ),
               borderRadius: const BorderRadius.all(Radius.circular(8)),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             margin: EdgeInsets.only(
               top: 4,
               left: renderingPadding.horizontal,
@@ -1052,33 +1062,38 @@ class PostBody extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Badge(
-                    label: const Text('postArticle').tr(),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-                const Gap(4),
-                if (item.title != null)
-                  Text(
-                    item.title!,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
+                if (getThumbnailAttachment() != null)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(8),
                     ),
+                    child: CloudFileWidget(item: getThumbnailAttachment()!),
                   ),
-                if (item.description != null)
-                  Text(
-                    item.description!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )
-                else
-                  MarkdownTextContent(
-                    content: '${_convertContentToMarkdown(item)}...',
-                    attachments: item.attachments,
-                    noMentionChip: item.fediverseUri != null,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Badge(
+                        label: const Text('postArticle').tr(),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        textColor: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                    const Gap(4),
+                    if (item.title != null)
+                      Text(
+                        item.title!,
+                        style: Theme.of(context).textTheme.titleMedium!
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    if (item.description?.isNotEmpty ?? false)
+                      Text(
+                        item.description!,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                  ],
+                ).padding(horizontal: 16, vertical: 12),
               ],
             ),
           )
