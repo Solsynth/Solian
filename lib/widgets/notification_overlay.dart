@@ -38,18 +38,17 @@ class NotificationOverlay extends HookConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: Column(
+            spacing: 8,
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: notifications.asMap().entries.map((entry) {
-              final index = entry.key;
               final item = entry.value;
               return AnimatedNotificationItem(
                 key: Key(item.id),
                 item: item,
                 isDesktop: true,
-                index: index,
-                totalNotifications: notifications.length,
+                margin: EdgeInsets.symmetric(horizontal: 16),
                 onDismiss: () {
                   ref.read(notificationStateProvider.notifier).dismiss(item.id);
                 },
@@ -60,10 +59,7 @@ class NotificationOverlay extends HookConsumerWidget {
       );
     } else {
       // Non-desktop: use Stack with overlapping
-      const double notificationHeight = 80.0;
       const double overlap = 20.0;
-      final stackHeight =
-          notificationHeight + (notifications.length - 1) * overlap;
 
       return Positioned(
         top: topOffset,
@@ -72,7 +68,7 @@ class NotificationOverlay extends HookConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
-            height: stackHeight,
+            height: MediaQuery.sizeOf(context).height,
             child: Stack(
               alignment: Alignment.topCenter,
               children: notifications.asMap().entries.map((entry) {
@@ -82,18 +78,23 @@ class NotificationOverlay extends HookConsumerWidget {
                   top: index * overlap,
                   left: 16,
                   right: 16,
-                  child: AnimatedNotificationItem(
-                    key: Key(item.id),
-                    item: item,
-                    isDesktop: false,
-                    index: index,
-                    totalNotifications: notifications.length,
-                    onDismiss: () {
-                      ref
-                          .read(notificationStateProvider.notifier)
-                          .dismiss(item.id);
-                    },
-                  ).clipRRect(all: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(color: Colors.black54, blurRadius: 4.0 + index * 2.0),
+                      ],
+                    ),
+                    child: AnimatedNotificationItem(
+                      key: Key(item.id),
+                      item: item,
+                      isDesktop: false,
+                      onDismiss: () {
+                        ref
+                            .read(notificationStateProvider.notifier)
+                            .dismiss(item.id);
+                      },
+                    ),
+                  ),
                 );
               }).toList(),
             ),
@@ -108,16 +109,14 @@ class AnimatedNotificationItem extends HookConsumerWidget {
   final NotificationItem item;
   final VoidCallback onDismiss;
   final bool isDesktop;
-  final int index;
-  final int totalNotifications;
+  final EdgeInsets? margin;
 
   const AnimatedNotificationItem({
     super.key,
     required this.item,
     required this.onDismiss,
     required this.isDesktop,
-    required this.index,
-    required this.totalNotifications,
+    this.margin,
   });
 
   @override
@@ -163,13 +162,14 @@ class AnimatedNotificationItem extends HookConsumerWidget {
       child: SizeTransition(
         sizeFactor: curvedAnimation,
         axis: Axis.vertical,
-        child: NotificationItemWidget(
-          item: item,
-          isDesktop: isDesktop,
-          index: index,
-          totalNotifications: totalNotifications,
-          onDismiss: onDismiss,
-          progress: progressAnimation,
+        child: Padding(
+          padding: margin ?? EdgeInsets.zero,
+          child: NotificationItemWidget(
+            item: item,
+            isDesktop: isDesktop,
+            onDismiss: onDismiss,
+            progress: progressAnimation,
+          ),
         ),
       ),
     );

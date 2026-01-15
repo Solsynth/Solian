@@ -8,12 +8,12 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+const double kNotificationBorderRadius = 8;
+
 class NotificationItemWidget extends HookConsumerWidget {
   final NotificationItem item;
   final VoidCallback onDismiss;
   final bool isDesktop;
-  final int index;
-  final int totalNotifications;
   final Animation<double> progress;
 
   const NotificationItemWidget({
@@ -21,8 +21,6 @@ class NotificationItemWidget extends HookConsumerWidget {
     required this.item,
     required this.onDismiss,
     required this.isDesktop,
-    required this.index,
-    required this.totalNotifications,
     required this.progress,
   });
 
@@ -56,91 +54,96 @@ class NotificationItemWidget extends HookConsumerWidget {
               }
             }
           : null,
-      child: Stack(
-        children: [
-          Card(
-            elevation: (index == 0 && !isDesktop && totalNotifications > 1) ? 8 : 4,
-            margin: EdgeInsets.zero,
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (item.notification.meta['pfp'] != null)
-                        ProfilePictureWidget(
-                          fileId: item.notification.meta['pfp'],
-                          radius: 12,
-                        ).padding(right: 12, top: 2)
-                      else
-                        Icon(
-                          Symbols.info,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 24,
-                        ).padding(right: 12),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              item.notification.title,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            if (item.notification.content.isNotEmpty)
-                              Text(
-                                item.notification.content,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            if (item.notification.subtitle.isNotEmpty)
-                              Text(
-                                item.notification.subtitle,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: double.infinity),
+        child: Stack(
+          children: [
+            Card(
+              elevation: 4,
+              margin: EdgeInsets.zero,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(kNotificationBorderRadius),
                 ),
-                AnimatedBuilder(
-                  animation: progress,
-                  builder: (context, child) => LinearProgressIndicator(
-                    value: progress.value,
-                    minHeight: 2,
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.notification.meta['pfp'] != null)
+                          ProfilePictureWidget(
+                            fileId: item.notification.meta['pfp'],
+                            radius: 12,
+                          ).padding(right: 12, top: 2)
+                        else
+                          Icon(
+                            Symbols.info,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 24,
+                          ).padding(right: 12),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                item.notification.title,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              if (item.notification.content.isNotEmpty)
+                                Text(
+                                  item.notification.content,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              if (item.notification.subtitle.isNotEmpty)
+                                Text(
+                                  item.notification.subtitle,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ).clipRRect(all: 8),
-          ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: IconButton(
-              icon: Icon(
-                Symbols.close,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  AnimatedBuilder(
+                    animation: progress,
+                    builder: (context, child) => LinearProgressIndicator(
+                      value: progress.value,
+                      minHeight: 2,
+                      backgroundColor: Colors.transparent,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              onPressed: onDismiss,
-              padding: const EdgeInsets.all(4),
-              constraints: const BoxConstraints(),
             ),
-          ),
-        ],
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                icon: Icon(
+                  Symbols.close,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                onPressed: onDismiss,
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+              ),
+            ),
+          ],
+        ).clipRRect(all: kNotificationBorderRadius),
       ),
     );
   }
