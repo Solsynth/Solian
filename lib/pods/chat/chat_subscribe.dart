@@ -223,7 +223,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         // Add new typing status
         _typingStatuses.add(sender);
       }
-      state = List.of(_typingStatuses);
+      if (ref.mounted) state = List.of(_typingStatuses);
       return;
     }
 
@@ -243,11 +243,14 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         // Play sound for new messages when app is unfocused
         if (pkt.type == 'messages.new' &&
             message.senderId != _chatIdentity.id &&
-            ref.read(appLifecycleStateProvider).value != AppLifecycleState.resumed &&
+            ref.read(appLifecycleStateProvider).value !=
+                AppLifecycleState.resumed &&
             ref.read(appSettingsProvider).soundEffects) {
           final player = AudioPlayer();
           await player.setVolume(0.75);
-          await player.setAudioSource(AudioSource.asset('assets/audio/messages.mp3'));
+          await player.setAudioSource(
+            AudioSource.asset('assets/audio/messages.mp3'),
+          );
           await player.play();
           player.dispose();
         }
