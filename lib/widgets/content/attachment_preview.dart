@@ -93,6 +93,8 @@ class AttachmentPreview extends HookConsumerWidget {
   final Function(UniversalFile)? onUpdate;
   final Function? onRequestUpload;
   final bool isCompact;
+  final String? thumbnailId;
+  final Function(String?)? onSetThumbnail;
 
   const AttachmentPreview({
     super.key,
@@ -105,6 +107,8 @@ class AttachmentPreview extends HookConsumerWidget {
     this.onUpdate,
     this.onInsert,
     this.isCompact = false,
+    this.thumbnailId,
+    this.onSetThumbnail,
   });
 
   // GlobalKey for selector
@@ -453,6 +457,39 @@ class AttachmentPreview extends HookConsumerWidget {
               ),
             ),
           ),
+        if (thumbnailId != null &&
+            item.isOnCloud &&
+            (item.data as SnCloudFile).id == thumbnailId)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        if (thumbnailId != null &&
+            item.isOnCloud &&
+            (item.data as SnCloudFile).id == thumbnailId)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Symbols.image,
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+          ),
       ],
     );
 
@@ -639,6 +676,24 @@ class AttachmentPreview extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.no_adult_content),
               callback: () async {
                 await _showSensitiveDialog(context, ref);
+              },
+            ),
+          if (item.isOnCloud &&
+              item.type == UniversalFileType.image &&
+              onSetThumbnail != null)
+            MenuAction(
+              title: thumbnailId == (item.data as SnCloudFile).id
+                  ? 'unsetAsThumbnail'.tr()
+                  : 'setAsThumbnail'.tr(),
+              image: MenuImage.icon(Symbols.image),
+              callback: () {
+                final isCurrentlyThumbnail =
+                    thumbnailId == (item.data as SnCloudFile).id;
+                if (isCurrentlyThumbnail) {
+                  onSetThumbnail?.call(null);
+                } else {
+                  onSetThumbnail?.call((item.data as SnCloudFile).id);
+                }
               },
             ),
         ],

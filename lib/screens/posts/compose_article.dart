@@ -13,12 +13,11 @@ import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/attachment_uploader.dart';
-import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/compose_form_fields.dart';
 import 'package:island/widgets/post/compose_shared.dart';
+import 'package:island/widgets/post/compose_attachments.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/widgets/post/compose_toolbar.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
@@ -88,9 +87,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }, [state]);
 
     final showPreview = useState(false);
-    final isAttachmentsExpanded = useState(
-      true,
-    ); // New state for attachments section
 
     // Initialize publisher once when data is available
     useEffect(() {
@@ -274,111 +270,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
               ),
 
               // Attachments preview
-              ValueListenableBuilder<List<UniversalFile>>(
-                valueListenable: state.attachments,
-                builder: (context, attachments, _) {
-                  if (attachments.isEmpty) return const SizedBox.shrink();
-                  return Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      initiallyExpanded: isAttachmentsExpanded.value,
-                      onExpansionChanged: (expanded) {
-                        isAttachmentsExpanded.value = expanded;
-                      },
-                      collapsedBackgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer,
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('attachments').tr(),
-                          Text(
-                            'articleAttachmentHint'.tr(),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                      children: [
-                        ValueListenableBuilder<Map<int, double?>>(
-                          valueListenable: state.attachmentProgress,
-                          builder: (context, progressMap, _) {
-                            return Wrap(
-                              runSpacing: 8,
-                              spacing: 8,
-                              children: [
-                                for (
-                                  var idx = 0;
-                                  idx < attachments.length;
-                                  idx++
-                                )
-                                  SizedBox(
-                                    width: 180,
-                                    height: 180,
-                                    child: AttachmentPreview(
-                                      isCompact: true,
-                                      item: attachments[idx],
-                                      progress: progressMap[idx],
-                                      isUploading: progressMap.containsKey(idx),
-                                      onRequestUpload: () async {
-                                        final config =
-                                            await showModalBottomSheet<
-                                              AttachmentUploadConfig
-                                            >(
-                                              context: context,
-                                              isScrollControlled: true,
-                                              builder: (context) =>
-                                                  AttachmentUploaderSheet(
-                                                    ref: ref,
-                                                    state: state,
-                                                    index: idx,
-                                                  ),
-                                            );
-                                        if (config != null) {
-                                          await ComposeLogic.uploadAttachment(
-                                            ref,
-                                            state,
-                                            idx,
-                                            poolId: config.poolId,
-                                          );
-                                        }
-                                      },
-                                      onUpdate: (value) =>
-                                          ComposeLogic.updateAttachment(
-                                            state,
-                                            value,
-                                            idx,
-                                          ),
-                                      onDelete: () =>
-                                          ComposeLogic.deleteAttachment(
-                                            ref,
-                                            state,
-                                            idx,
-                                          ),
-                                      onInsert: () =>
-                                          ComposeLogic.insertAttachment(
-                                            ref,
-                                            state,
-                                            idx,
-                                          ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                        Gap(16),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              ArticleComposeAttachments(state: state),
             ],
           ),
         ),

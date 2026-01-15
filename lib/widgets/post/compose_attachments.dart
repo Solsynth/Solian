@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
@@ -110,84 +111,101 @@ class ArticleComposeAttachments extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ValueListenableBuilder<List<UniversalFile>>(
-      valueListenable: state.attachments,
-      builder: (context, attachments, _) {
-        if (attachments.isEmpty) return const SizedBox.shrink();
-        return Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            initiallyExpanded: true,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('attachments'),
-                Text(
-                  'articleAttachmentHint',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+    return ValueListenableBuilder<String?>(
+      valueListenable: state.thumbnailId,
+      builder: (context, thumbnailId, _) {
+        return ValueListenableBuilder<List<UniversalFile>>(
+          valueListenable: state.attachments,
+          builder: (context, attachments, _) {
+            if (attachments.isEmpty) return const SizedBox.shrink();
+            return Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                initiallyExpanded: true,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('attachments').tr(),
+                    Text(
+                      'articleAttachmentHint'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            children: [
-              ValueListenableBuilder<Map<int, double?>>(
-                valueListenable: state.attachmentProgress,
-                builder: (context, progressMap, _) {
-                  return Wrap(
-                    runSpacing: 8,
-                    spacing: 8,
-                    children: [
-                      for (var idx = 0; idx < attachments.length; idx++)
-                        SizedBox(
-                          width: 180,
-                          height: 180,
-                          child: AttachmentPreview(
-                            isCompact: true,
-                            item: attachments[idx],
-                            progress: progressMap[idx],
-                            isUploading: progressMap.containsKey(idx),
-                            onRequestUpload: () async {
-                              final config =
-                                  await showModalBottomSheet<
-                                    AttachmentUploadConfig
-                                  >(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        AttachmentUploaderSheet(
-                                          ref: ref,
-                                          state: state,
-                                          index: idx,
-                                        ),
-                                  );
-                              if (config != null) {
-                                await ComposeLogic.uploadAttachment(
+                children: [
+                  ValueListenableBuilder<Map<int, double?>>(
+                    valueListenable: state.attachmentProgress,
+                    builder: (context, progressMap, _) {
+                      return Wrap(
+                        runSpacing: 8,
+                        spacing: 8,
+                        children: [
+                          for (var idx = 0; idx < attachments.length; idx++)
+                            SizedBox(
+                              width: 180,
+                              height: 180,
+                              child: AttachmentPreview(
+                                isCompact: true,
+                                item: attachments[idx],
+                                progress: progressMap[idx],
+                                isUploading: progressMap.containsKey(idx),
+                                thumbnailId: thumbnailId,
+                                onSetThumbnail: (id) =>
+                                    ComposeLogic.setThumbnail(state, id),
+                                onRequestUpload: () async {
+                                  final config =
+                                      await showModalBottomSheet<
+                                        AttachmentUploadConfig
+                                      >(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (context) =>
+                                            AttachmentUploaderSheet(
+                                              ref: ref,
+                                              state: state,
+                                              index: idx,
+                                            ),
+                                      );
+                                  if (config != null) {
+                                    await ComposeLogic.uploadAttachment(
+                                      ref,
+                                      state,
+                                      idx,
+                                      poolId: config.poolId,
+                                    );
+                                  }
+                                },
+                                onUpdate: (value) =>
+                                    ComposeLogic.updateAttachment(
+                                      state,
+                                      value,
+                                      idx,
+                                    ),
+                                onDelete: () => ComposeLogic.deleteAttachment(
                                   ref,
                                   state,
                                   idx,
-                                  poolId: config.poolId,
-                                );
-                              }
-                            },
-                            onUpdate: (value) => ComposeLogic.updateAttachment(
-                              state,
-                              value,
-                              idx,
+                                ),
+                                onInsert: () => ComposeLogic.insertAttachment(
+                                  ref,
+                                  state,
+                                  idx,
+                                ),
+                              ),
                             ),
-                            onDelete: () =>
-                                ComposeLogic.deleteAttachment(ref, state, idx),
-                            onInsert: () =>
-                                ComposeLogic.insertAttachment(ref, state, idx),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            );
+          },
         );
       },
     );

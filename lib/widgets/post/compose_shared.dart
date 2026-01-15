@@ -49,6 +49,8 @@ class ComposeState {
   final ValueNotifier<String?> pollId;
   // Linked fund id for this compose session (nullable)
   final ValueNotifier<String?> fundId;
+  // Thumbnail id for article type post (nullable)
+  final ValueNotifier<String?> thumbnailId;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -69,8 +71,10 @@ class ComposeState {
     this.postType = 0,
     String? pollId,
     String? fundId,
+    String? thumbnailId,
   }) : pollId = ValueNotifier<String?>(pollId),
-       fundId = ValueNotifier<String?>(fundId);
+       fundId = ValueNotifier<String?>(fundId),
+       thumbnailId = ValueNotifier<String?>(thumbnailId);
 
   void startAutoSave(WidgetRef ref) {
     _autoSaveTimer?.cancel();
@@ -121,6 +125,9 @@ class ComposeLogic {
       } catch (_) {}
     }
 
+    // Extract thumbnail ID from meta
+    final thumbnailId = originalPost?.meta?['thumbnail'] as String?;
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -156,11 +163,13 @@ class ComposeLogic {
       postType: postType,
       pollId: pollId,
       fundId: fundId,
+      thumbnailId: thumbnailId,
     );
   }
 
   static ComposeState createStateFromDraft(SnPost draft, {int postType = 0}) {
     final tags = draft.tags.map((tag) => tag.slug).toList();
+    final thumbnailId = draft.meta?['thumbnail'] as String?;
 
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
@@ -183,6 +192,7 @@ class ComposeLogic {
       pollId: null,
       // initialize without fund by default
       fundId: null,
+      thumbnailId: thumbnailId,
     );
   }
 
@@ -230,7 +240,9 @@ class ComposeLogic {
         visibility: state.visibility.value,
         content: state.contentController.text,
         type: state.postType,
-        meta: null,
+        meta: state.postType == 1 && state.thumbnailId.value != null
+            ? {'thumbnail': state.thumbnailId.value}
+            : null,
         viewsUnique: 0,
         viewsTotal: 0,
         upvotes: 0,
@@ -302,7 +314,9 @@ class ComposeLogic {
         visibility: state.visibility.value,
         content: state.contentController.text,
         type: state.postType,
-        meta: null,
+        meta: state.postType == 1 && state.thumbnailId.value != null
+            ? {'thumbnail': state.thumbnailId.value}
+            : null,
         viewsUnique: 0,
         viewsTotal: 0,
         upvotes: 0,
@@ -612,6 +626,10 @@ class ComposeLogic {
     state.embedView.value = null;
   }
 
+  static void setThumbnail(ComposeState state, String? thumbnailId) {
+    state.thumbnailId.value = thumbnailId;
+  }
+
   static Future<void> pickPoll(
     WidgetRef ref,
     ComposeState state,
@@ -720,6 +738,8 @@ class ComposeLogic {
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
         if (state.fundId.value != null) 'fund_id': state.fundId.value,
+        if (state.postType == 1 && state.thumbnailId.value != null)
+          'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
           'embed_view': state.embedView.value!.toJson(),
       };
@@ -872,5 +892,6 @@ class ComposeLogic {
     state.embedView.dispose();
     state.pollId.dispose();
     state.fundId.dispose();
+    state.thumbnailId.dispose();
   }
 }

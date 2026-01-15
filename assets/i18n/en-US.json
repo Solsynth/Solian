@@ -1592,5 +1592,7 @@
   "tasksCount": {
     "one": "{} task",
     "other": "{} tasks"
-  }
+  },
+  "setAsThumbnail": "Set as thumbnail",
+  "unsetAsThumbnail": "Unset as thumbnail"
 }
