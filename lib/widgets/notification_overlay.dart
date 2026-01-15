@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -52,7 +51,7 @@ class NotificationOverlay extends HookConsumerWidget {
                 index: index,
                 totalNotifications: notifications.length,
                 onDismiss: () {
-                  ref.read(notificationStateProvider.notifier).remove(item.id);
+                  ref.read(notificationStateProvider.notifier).dismiss(item.id);
                 },
               );
             }).toList(),
@@ -92,7 +91,7 @@ class NotificationOverlay extends HookConsumerWidget {
                     onDismiss: () {
                       ref
                           .read(notificationStateProvider.notifier)
-                          .remove(item.id);
+                          .dismiss(item.id);
                     },
                   ).clipRRect(all: 8),
                 );
@@ -128,7 +127,6 @@ class AnimatedNotificationItem extends HookConsumerWidget {
       reverseDuration: const Duration(milliseconds: 250),
     );
     final progressController = useAnimationController(duration: item.duration);
-    final isDismissed = useState(false);
 
     final curvedAnimation = CurvedAnimation(
       parent: animationController,
@@ -152,16 +150,13 @@ class AnimatedNotificationItem extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
-      if (isDismissed.value) return null;
-      final timer = Timer(item.duration, () async {
-        if (!isDismissed.value) {
-          isDismissed.value = true;
-          await animationController.reverse();
-          onDismiss();
-        }
-      });
-      return () => timer.cancel();
-    }, [item.duration, isDismissed.value]);
+      if (item.dismissed) {
+        animationController.reverse().then((_) {
+          ref.read(notificationStateProvider.notifier).remove(item.id);
+        });
+      }
+      return null;
+    }, [item.dismissed]);
 
     return SlideTransition(
       position: slideTween.animate(curvedAnimation),
@@ -173,7 +168,7 @@ class AnimatedNotificationItem extends HookConsumerWidget {
           isDesktop: isDesktop,
           index: index,
           totalNotifications: totalNotifications,
-          onDismiss: () {},
+          onDismiss: onDismiss,
           progress: progressAnimation,
         ),
       ),
