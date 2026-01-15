@@ -468,7 +468,7 @@ class AttachmentPreview extends HookConsumerWidget {
                 child: innerContentWidget,
               ).center()
             else
-              IntrinsicHeight(child: innerContentWidget),
+              IntrinsicHeight(child: innerContentWidget).center(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

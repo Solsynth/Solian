@@ -29,31 +29,38 @@ class NotificationOverlay extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final itemWidth = isDesktop ? 420.0 : MediaQuery.sizeOf(context).width - 40;
+
     return Positioned(
       top: topOffset,
       left: 0,
       right: 0,
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: isDesktop
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: notifications.asMap().entries.map((entry) {
-            final item = entry.value;
-            return AnimatedNotificationItem(
-              key: Key(item.id),
-              item: item,
-              isDesktop: isDesktop,
-              onDismiss: () {
-                ref.read(notificationStateProvider.notifier).remove(item.id);
-              },
-            );
-          }).toList(),
-        ),
-      ),
+      child:
+          Material(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: isDesktop
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: notifications.asMap().entries.map((entry) {
+                    final item = entry.value;
+                    return AnimatedNotificationItem(
+                      key: Key(item.id),
+                      item: item,
+                      isDesktop: isDesktop,
+                      onDismiss: () {
+                        ref
+                            .read(notificationStateProvider.notifier)
+                            .remove(item.id);
+                      },
+                    );
+                  }).toList(),
+                ),
+              )
+              .width(itemWidth)
+              .alignment(isDesktop ? Alignment.topRight : Alignment.topCenter),
     );
   }
 }
@@ -76,9 +83,7 @@ class AnimatedNotificationItem extends HookConsumerWidget {
       duration: const Duration(milliseconds: 300),
       reverseDuration: const Duration(milliseconds: 250),
     );
-    final progressController = useAnimationController(
-      duration: item.duration,
-    );
+    final progressController = useAnimationController(duration: item.duration);
     final isDismissed = useState(false);
 
     final curvedAnimation = CurvedAnimation(
@@ -114,14 +119,11 @@ class AnimatedNotificationItem extends HookConsumerWidget {
       return () => timer.cancel();
     }, [item.duration, isDismissed.value]);
 
-    final itemWidth = isDesktop ? 420.0 : MediaQuery.sizeOf(context).width - 40;
-
-    return SizeTransition(
-      sizeFactor: curvedAnimation,
-      axis: Axis.vertical,
-      axisAlignment: -1.0,
-      child: SlideTransition(
-        position: slideTween.animate(curvedAnimation),
+    return SlideTransition(
+      position: slideTween.animate(curvedAnimation),
+      child: SizeTransition(
+        sizeFactor: curvedAnimation,
+        axis: Axis.vertical,
         child: Padding(
           padding: isDesktop
               ? const EdgeInsets.only(bottom: 12, right: 16)
@@ -131,7 +133,7 @@ class AnimatedNotificationItem extends HookConsumerWidget {
             isDesktop: isDesktop,
             onDismiss: () {},
             progress: progressAnimation,
-          ).width(itemWidth),
+          ),
         ),
       ),
     );
