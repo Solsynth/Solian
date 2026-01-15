@@ -81,10 +81,15 @@ class AnimatedNotificationItem extends HookConsumerWidget {
     );
     final isDismissed = useState(false);
 
+    final curvedAnimation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeOutCubic,
+    );
+
     final slideTween = Tween<Offset>(
       begin: isDesktop ? Offset(1.0, 0.0) : Offset(0.0, -1.0),
       end: Offset.zero,
-    ).chain(CurveTween(curve: Curves.easeOutCubic));
+    );
 
     final progressAnimation = Tween<double>(
       begin: 1.0,
@@ -111,18 +116,23 @@ class AnimatedNotificationItem extends HookConsumerWidget {
 
     final itemWidth = isDesktop ? 420.0 : MediaQuery.sizeOf(context).width - 40;
 
-    return SlideTransition(
-      position: slideTween.animate(animationController),
-      child: Padding(
-        padding: isDesktop
-            ? const EdgeInsets.only(bottom: 12, right: 16)
-            : const EdgeInsets.only(bottom: 12, left: 16, right: 16),
-        child: NotificationItemWidget(
-          item: item,
-          isDesktop: isDesktop,
-          onDismiss: () {},
-          progress: progressAnimation,
-        ).width(itemWidth),
+    return SizeTransition(
+      sizeFactor: curvedAnimation,
+      axis: Axis.vertical,
+      axisAlignment: -1.0,
+      child: SlideTransition(
+        position: slideTween.animate(curvedAnimation),
+        child: Padding(
+          padding: isDesktop
+              ? const EdgeInsets.only(bottom: 12, right: 16)
+              : const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+          child: NotificationItemWidget(
+            item: item,
+            isDesktop: isDesktop,
+            onDismiss: () {},
+            progress: progressAnimation,
+          ).width(itemWidth),
+        ),
       ),
     );
   }
