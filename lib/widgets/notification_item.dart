@@ -12,12 +12,14 @@ class NotificationItemWidget extends HookConsumerWidget {
   final NotificationItem item;
   final VoidCallback onDismiss;
   final bool isDesktop;
+  final Animation<double> progress;
 
   const NotificationItemWidget({
     super.key,
     required this.item,
     required this.onDismiss,
     required this.isDesktop,
+    required this.progress,
   });
 
   @override
@@ -52,54 +54,66 @@ class NotificationItemWidget extends HookConsumerWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: isDesktop ? 400 : double.infinity,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (item.notification.meta['pfp'] != null)
-                  ProfilePictureWidget(
-                    fileId: item.notification.meta['pfp'],
-                    radius: 12,
-                  ).padding(right: 12, top: 2)
-                else
-                  Icon(
-                    Symbols.info,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 24,
-                  ).padding(right: 12),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        item.notification.title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      if (item.notification.content.isNotEmpty)
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (item.notification.meta['pfp'] != null)
+                    ProfilePictureWidget(
+                      fileId: item.notification.meta['pfp'],
+                      radius: 12,
+                    ).padding(right: 12, top: 2)
+                  else
+                    Icon(
+                      Symbols.info,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 24,
+                    ).padding(right: 12),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          item.notification.content,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          item.notification.title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                      if (item.notification.subtitle.isNotEmpty)
-                        Text(
-                          item.notification.subtitle,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                    ],
+                        if (item.notification.content.isNotEmpty)
+                          Text(
+                            item.notification.content,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        if (item.notification.subtitle.isNotEmpty)
+                          Text(
+                            item.notification.subtitle,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ),
+            AnimatedBuilder(
+              animation: progress,
+              builder: (context, child) => LinearProgressIndicator(
+                value: progress.value,
+                minHeight: 2,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ],
+        ).clipRRect(all: 8),
       ),
     );
   }
