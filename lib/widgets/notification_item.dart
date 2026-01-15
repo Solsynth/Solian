@@ -12,6 +12,8 @@ class NotificationItemWidget extends HookConsumerWidget {
   final NotificationItem item;
   final VoidCallback onDismiss;
   final bool isDesktop;
+  final int index;
+  final int totalNotifications;
   final Animation<double> progress;
 
   const NotificationItemWidget({
@@ -19,6 +21,8 @@ class NotificationItemWidget extends HookConsumerWidget {
     required this.item,
     required this.onDismiss,
     required this.isDesktop,
+    required this.index,
+    required this.totalNotifications,
     required this.progress,
   });
 
@@ -48,7 +52,7 @@ class NotificationItemWidget extends HookConsumerWidget {
             }
           : null,
       child: Card(
-        elevation: 4,
+        elevation: (index == 0 && !isDesktop && totalNotifications > 1) ? 8 : 4,
         margin: EdgeInsets.zero,
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
         shape: const RoundedRectangleBorder(
