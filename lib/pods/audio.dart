@@ -44,18 +44,22 @@ final messageSfxProvider = FutureProvider<void>((ref) async {
   );
 });
 
+Future<void> _playSfx(String assetPath, double volume) async {
+  final player = AudioPlayer();
+  await player.setVolume(volume);
+  await player.setAudioSource(AudioSource.asset(assetPath));
+  await player.play();
+  await player.dispose();
+}
+
 void playNotificationSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects) return;
-  final player = ref.read(sfxPlayerProvider);
-  player.seek(Duration.zero);
-  player.play();
+  _playSfx('assets/audio/notification.mp3', 0.75);
 }
 
 void playMessageSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects) return;
-  final player = ref.read(sfxPlayerProvider);
-  player.seek(Duration.zero);
-  player.play();
+  _playSfx('assets/audio/messages.mp3', 0.75);
 }
