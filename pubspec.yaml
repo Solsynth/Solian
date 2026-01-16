@@ -52,7 +52,7 @@ dependencies:
   flutter_highlight: ^0.7.0
   uuid: ^4.5.2
   url_launcher: ^6.3.2
-  google_fonts: ^7.0.0
+  google_fonts: ^7.0.2
   gap: ^3.0.1
   cached_network_image: ^3.4.1
   web: ^1.1.1
@@ -81,7 +81,7 @@ dependencies:
   firebase_core: ^4.3.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2892.0
-  drift: ^2.30.0
+  drift: ^2.30.1
   drift_flutter: ^0.2.8
   path: ^1.9.1
   collection: ^1.19.1
@@ -150,14 +150,13 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  talker: ^5.1.9
-  talker_flutter: ^5.1.9
-  talker_logger: ^5.1.9
-  talker_dio_logger: ^5.1.9
-  talker_riverpod_logger: ^5.1.9
+  talker: ^5.1.11
+  talker_flutter: ^5.1.11
+  talker_logger: ^5.1.11
+  talker_dio_logger: ^5.1.11
+  talker_riverpod_logger: ^5.1.11
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
-  fl_heatmap: ^0.4.6
   dio_smart_retry: ^7.0.1
   flutter_expandable_fab: ^2.5.2
   event_bus: ^2.0.1
@@ -186,13 +185,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  build_runner: ^2.10.4
+  build_runner: ^2.10.5
   freezed: ^3.2.3
   json_serializable: ^6.11.2
   riverpod_generator: ^4.0.0+1
   custom_lint: ^0.8.1
   riverpod_lint: ^3.1.0
-  drift_dev: ^2.30.0
+  drift_dev: ^2.30.1
   flutter_launcher_icons: ^0.14.4
   msix: ^3.16.12
 
