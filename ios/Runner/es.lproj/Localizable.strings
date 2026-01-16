@@ -1,0 +1,33 @@
+/* App Intents - Chat */
+"intent_open_chat_title" = "Abrir chat";
+"intent_open_chat_desc" = "Abrir sala de chat específica";
+
+/* App Intents - Post */
+"intent_open_post_title" = "Abrir publicación";
+"intent_open_post_desc" = "Abrir publicación específica";
+
+/* App Intents - Compose */
+"intent_open_compose_title" = "Abrir compose";
+"intent_open_compose_desc" = "Abrir pantalla de publicación";
+"intent_compose_post_title" = "Redactar publicación";
+"intent_compose_post_desc" = "Crear nueva publicación";
+
+/* App Intents - Search */
+"intent_search_title" = "Buscar contenido";
+"intent_search_desc" = "Buscar contenido";
+
+/* App Intents - Notifications */
+"intent_notifications_title" = "Ver notificaciones";
+"intent_notifications_desc" = "Ver notificaciones";
+"intent_check_notifications_title" = "Ver notificaciones";
+"intent_check_notifications_desc" = "Ver número de notificaciones";
+
+/* App Intents - Messages */
+"intent_send_message_title" = "Enviar mensaje";
+"intent_send_message_desc" = "Enviar mensaje a canal de chat";
+"intent_read_messages_title" = "Leer mensajes";
+"intent_read_messages_desc" = "Leer mensajes recientes de un canal de chat";
+"intent_unread_chats_title" = "Ver chats no leídos";
+"intent_unread_chats_desc" = "Ver mensajes no leídos";
+"intent_mark_read_title" = "Marcar notificaciones leídas";
+"intent_mark_read_desc" = "Marcar todas como leídas";

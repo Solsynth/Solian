@@ -10,8 +10,8 @@ import UIKit
 
 @available(iOS 16.0, *)
 struct OpenChatIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Chat"
-    static var description = IntentDescription("Open a specific chat room")
+    static var title: LocalizedStringResource = "intent_open_chat_title"
+    static var description = IntentDescription("intent_open_chat_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -31,8 +31,8 @@ struct OpenChatIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct OpenPostIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Post"
-    static var description = IntentDescription("Open a specific post")
+    static var title: LocalizedStringResource = "intent_open_post_title"
+    static var description = IntentDescription("intent_open_post_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -52,8 +52,8 @@ struct OpenPostIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct OpenComposeIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Compose"
-    static var description = IntentDescription("Open compose post screen")
+    static var title: LocalizedStringResource = "intent_open_compose_title"
+    static var description = IntentDescription("intent_open_compose_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -66,8 +66,8 @@ struct OpenComposeIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct ComposePostIntent: AppIntent {
-    static var title: LocalizedStringResource = "Compose Post"
-    static var description = IntentDescription("Create a new post")
+    static var title: LocalizedStringResource = "intent_compose_post_title"
+    static var description = IntentDescription("intent_compose_post_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -80,8 +80,8 @@ struct ComposePostIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct SearchContentIntent: AppIntent {
-    static var title: LocalizedStringResource = "Search Content"
-    static var description = IntentDescription("Search for content")
+    static var title: LocalizedStringResource = "intent_search_title"
+    static var description = IntentDescription("intent_search_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -102,8 +102,8 @@ struct SearchContentIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct ViewNotificationsIntent: AppIntent {
-    static var title: LocalizedStringResource = "View Notifications"
-    static var description = IntentDescription("View notifications")
+    static var title: LocalizedStringResource = "intent_notifications_title"
+    static var description = IntentDescription("intent_notifications_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
@@ -116,8 +116,8 @@ struct ViewNotificationsIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct CheckNotificationsIntent: AppIntent {
-    static var title: LocalizedStringResource = "Check Notifications"
-    static var description = IntentDescription("Check notification count")
+    static var title: LocalizedStringResource = "intent_check_notifications_title"
+    static var description = IntentDescription("intent_check_notifications_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
@@ -146,8 +146,8 @@ struct CheckNotificationsIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct SendMessageIntent: AppIntent {
-    static var title: LocalizedStringResource = "Send Message"
-    static var description = IntentDescription("Send a message to a chat channel")
+    static var title: LocalizedStringResource = "intent_send_message_title"
+    static var description = IntentDescription("intent_send_message_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
@@ -181,8 +181,8 @@ struct SendMessageIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct ReadMessagesIntent: AppIntent {
-    static var title: LocalizedStringResource = "Read Messages"
-    static var description = IntentDescription("Read recent messages from a chat channel")
+    static var title: LocalizedStringResource = "intent_read_messages_title"
+    static var description = IntentDescription("intent_read_messages_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
@@ -232,8 +232,8 @@ struct ReadMessagesIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct CheckUnreadChatsIntent: AppIntent {
-    static var title: LocalizedStringResource = "Check Unread Chats"
-    static var description = IntentDescription("Check number of unread chat messages")
+    static var title: LocalizedStringResource = "intent_unread_chats_title"
+    static var description = IntentDescription("intent_unread_chats_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
@@ -262,8 +262,8 @@ struct CheckUnreadChatsIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct MarkNotificationsReadIntent: AppIntent {
-    static var title: LocalizedStringResource = "Mark Notifications Read"
-    static var description = IntentDescription("Mark all notifications as read")
+    static var title: LocalizedStringResource = "intent_mark_read_title"
+    static var description = IntentDescription("intent_mark_read_desc")
     static var isDiscoverable = true
     static var openAppWhenRun = false
 

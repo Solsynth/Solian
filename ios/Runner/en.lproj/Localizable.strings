@@ -1,0 +1,33 @@
+/* App Intents - Chat */
+"intent_open_chat_title" = "Open Chat";
+"intent_open_chat_desc" = "Open a specific chat room";
+
+/* App Intents - Post */
+"intent_open_post_title" = "Open Post";
+"intent_open_post_desc" = "Open a specific post";
+
+/* App Intents - Compose */
+"intent_open_compose_title" = "Open Compose";
+"intent_open_compose_desc" = "Open compose post screen";
+"intent_compose_post_title" = "Compose Post";
+"intent_compose_post_desc" = "Create a new post";
+
+/* App Intents - Search */
+"intent_search_title" = "Search Content";
+"intent_search_desc" = "Search for content";
+
+/* App Intents - Notifications */
+"intent_notifications_title" = "View Notifications";
+"intent_notifications_desc" = "View notifications";
+"intent_check_notifications_title" = "Check Notifications";
+"intent_check_notifications_desc" = "Check notification count";
+
+/* App Intents - Messages */
+"intent_send_message_title" = "Send Message";
+"intent_send_message_desc" = "Send a message to a chat channel";
+"intent_read_messages_title" = "Read Messages";
+"intent_read_messages_desc" = "Read recent messages from a chat channel";
+"intent_unread_chats_title" = "Check Unread Chats";
+"intent_unread_chats_desc" = "Check number of unread chat messages";
+"intent_mark_read_title" = "Mark Notifications Read";
+"intent_mark_read_desc" = "Mark all notifications as read";
