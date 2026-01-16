@@ -1,0 +1,33 @@
+/* App Intents - Chat */
+"intent_open_chat_title" = "打开聊天";
+"intent_open_chat_desc" = "打开特定聊天室";
+
+/* App Intents - Post */
+"intent_open_post_title" = "打开帖子";
+"intent_open_post_desc" = "打开特定帖子";
+
+/* App Intents - Compose */
+"intent_open_compose_title" = "打开撰写";
+"intent_open_compose_desc" = "打开撰写帖子页面";
+"intent_compose_post_title" = "撰写帖子";
+"intent_compose_post_desc" = "创建新帖子";
+
+/* App Intents - Search */
+"intent_search_title" = "搜索内容";
+"intent_search_desc" = "搜索内容";
+
+/* App Intents - Notifications */
+"intent_notifications_title" = "查看通知";
+"intent_notifications_desc" = "查看通知";
+"intent_check_notifications_title" = "检查通知";
+"intent_check_notifications_desc" = "检查通知数量";
+
+/* App Intents - Messages */
+"intent_send_message_title" = "发送消息";
+"intent_send_message_desc" = "发送消息到聊天频道";
+"intent_read_messages_title" = "读取消息";
+"intent_read_messages_desc" = "从聊天频道读取最近消息";
+"intent_unread_chats_title" = "检查未读聊天";
+"intent_unread_chats_desc" = "检查未读聊天消息数量";
+"intent_mark_read_title" = "标记通知已读";
+"intent_mark_read_desc" = "将所有通知标记为已读";

@@ -1,0 +1,33 @@
+/* App Intents - Chat */
+"intent_open_chat_title" = "채팅 열기";
+"intent_open_chat_desc" = "특정 채팅방 열기";
+
+/* App Intents - Post */
+"intent_open_post_title" = "게시물 열기";
+"intent_open_post_desc" = "특정 게시물 열기";
+
+/* App Intents - Compose */
+"intent_open_compose_title" = "글쓰기 열기";
+"intent_open_compose_desc" = "글쓰기 화면 열기";
+"intent_compose_post_title" = "게시물 작성";
+"intent_compose_post_desc" = "새 게시물 작성";
+
+/* App Intents - Search */
+"intent_search_title" = "검색";
+"intent_search_desc" = "콘텐츠 검색";
+
+/* App Intents - Notifications */
+"intent_notifications_title" = "알림 보기";
+"intent_notifications_desc" = "알림 보기";
+"intent_check_notifications_title" = "알림 확인";
+"intent_check_notifications_desc" = "알림 수 확인";
+
+/* App Intents - Messages */
+"intent_send_message_title" = "메시지 보내기";
+"intent_send_message_desc" = "채팅 채널에 메시지 보내기";
+"intent_read_messages_title" = "메시지 읽기";
+"intent_read_messages_desc" = "채팅 채널에서 최근 메시지 읽기";
+"intent_unread_chats_title" = "읽지 않은 채팅 확인";
+"intent_unread_chats_desc" = "읽지 않은 채팅 메시지 수 확인";
+"intent_mark_read_title" = "알림 읽음 처리";
+"intent_mark_read_desc" = "모든 알림을 읽음으로 처리";
