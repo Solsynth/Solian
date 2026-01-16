@@ -417,6 +417,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  dart_midi_pro:
+    dependency: "direct main"
+    description:
+      name: dart_midi_pro
+      sha256: "9a0273c92c0336e5694c7318fd936f64f06e938a936dd5fac6563c39954b7f6d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4+2"
   dart_style:
     dependency: transitive
     description:

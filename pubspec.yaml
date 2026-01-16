@@ -174,6 +174,7 @@ dependencies:
   video_thumbnail: ^0.5.6
   just_audio: ^0.10.5
   audio_session: ^0.2.2
+  dart_midi_pro: ^1.0.4+2
 
 dev_dependencies:
   flutter_test:
@@ -207,6 +208,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/midi/
     - assets/i18n/
     - assets/images/
     - assets/images/oidc/
