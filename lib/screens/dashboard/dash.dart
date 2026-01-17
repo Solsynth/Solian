@@ -144,8 +144,6 @@ class DashboardRenderer {
   }
 }
 
-
-
 class DashboardGrid extends HookConsumerWidget {
   const DashboardGrid({super.key});
 
@@ -273,7 +271,7 @@ class DashboardGrid extends HookConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),
-              ),
+              ).tr(),
               style: TextButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 padding: const EdgeInsets.symmetric(
@@ -337,17 +335,15 @@ class _DashboardGridWide extends HookConsumerWidget {
     }
 
     // Add configured columns in the specified order
-    final horizontalLayouts = appSettings.dashboardConfig?.horizontalLayouts ??
+    final horizontalLayouts =
+        appSettings.dashboardConfig?.horizontalLayouts ??
         ['activityColumn', 'postsColumn', 'socialColumn', 'chatsColumn'];
 
     for (final columnId in horizontalLayouts) {
       children.add(DashboardRenderer.buildColumn(columnId, ref));
     }
 
-    return Row(
-      spacing: 16,
-      children: children,
-    );
+    return Row(spacing: 16, children: children);
   }
 }
 
@@ -367,17 +363,23 @@ class _DashboardGridNarrow extends HookConsumerWidget {
     }
 
     // Add configured cards in the specified order
-    final verticalLayouts = appSettings.dashboardConfig?.verticalLayouts ??
-        ['checkIn', 'fortuneCard', 'postFeatured', 'friendsOverview', 'notifications', 'chatList', 'fortuneGraph'];
+    final verticalLayouts =
+        appSettings.dashboardConfig?.verticalLayouts ??
+        [
+          'checkIn',
+          'fortuneCard',
+          'postFeatured',
+          'friendsOverview',
+          'notifications',
+          'chatList',
+          'fortuneGraph',
+        ];
 
     for (final cardId in verticalLayouts) {
       children.add(DashboardRenderer.buildCard(cardId, ref));
     }
 
-    return Column(
-      spacing: 16,
-      children: children,
-    );
+    return Column(spacing: 16, children: children);
   }
 }
 

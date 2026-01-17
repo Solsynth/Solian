@@ -363,6 +363,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     }
     state = state.copyWith(dashboardConfig: value);
   }
+
+  void resetDashboardConfig() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.remove(kAppDashboardConfig);
+    state = state.copyWith(dashboardConfig: null);
+  }
 }
 
 final updateInfoProvider =
