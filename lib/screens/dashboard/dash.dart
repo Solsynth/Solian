@@ -357,6 +357,11 @@ class _DashboardGridWide extends HookConsumerWidget {
       children.add(DashboardRenderer.buildColumn(columnId, ref));
     }
 
+    // If no children, add a SizedBox.expand to maintain width
+    if (children.isEmpty) {
+      children.add(SizedBox(width: MediaQuery.sizeOf(context).width));
+    }
+
     return Row(spacing: 16, children: children);
   }
 }
