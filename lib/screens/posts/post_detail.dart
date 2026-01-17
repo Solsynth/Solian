@@ -518,7 +518,7 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    PostRepliesList(postId: postId, maxWidth: 800),
+                    PostRepliesList(postId: postId, maxWidth: 680),
                     SliverGap(MediaQuery.of(context).padding.bottom + 80),
                   ],
                 ),
@@ -529,11 +529,13 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 800),
+                    constraints: BoxConstraints(maxWidth: 680),
                     child: PostQuickReply(
                       parent: post,
                       onPosted: () {
-                        ref.read(postRepliesProvider(postId).notifier).refresh();
+                        ref
+                            .read(postRepliesProvider(postId).notifier)
+                            .refresh();
                       },
                     ),
                   ).center(),
@@ -594,7 +596,7 @@ class PostDetailScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: 800),
+                                constraints: BoxConstraints(maxWidth: 680),
                                 child: PostItem(
                                   item: post!,
                                   isFullPost: true,
@@ -612,7 +614,7 @@ class PostDetailScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: 800),
+                                constraints: BoxConstraints(maxWidth: 680),
                                 child: PostActionButtons(
                                   post: post,
                                   renderingPadding: const EdgeInsets.symmetric(
@@ -633,7 +635,7 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          PostRepliesList(postId: id, maxWidth: 800),
+                          PostRepliesList(postId: id, maxWidth: 680),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
                         ],
                       ),
@@ -644,7 +646,7 @@ class PostDetailScreen extends HookConsumerWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 800),
+                    constraints: BoxConstraints(maxWidth: 680),
                     child: postState.when(
                       data: (post) => PostQuickReply(
                         parent: post!,
