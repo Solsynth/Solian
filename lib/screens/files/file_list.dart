@@ -43,6 +43,7 @@ class FileListScreen extends HookConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
           hintText: 'Search files...',
           hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
           onChanged: (value) {
             // Update the query state that will be passed to FileListView
             query.value = value.isEmpty ? null : value;
@@ -104,25 +105,26 @@ class FileListScreen extends HookConsumerWidget {
             )
           : null,
       body: usageAsync.when(
-        data: (usage) => quotaAsync.when(
-          data: (quota) => FileListView(
-            usage: usage,
-            quota: quota,
-            currentPath: currentPath,
-            selectedPool: selectedPool,
-            onPickAndUpload: () => _pickAndUploadFile(
-              ref,
-              currentPath.value,
-              selectedPool.value?.id,
+          data: (usage) => quotaAsync.when(
+            data: (quota) => FileListView(
+              usage: usage,
+              quota: quota,
+              currentPath: currentPath,
+              selectedPool: selectedPool,
+              onPickAndUpload: () => _pickAndUploadFile(
+                ref,
+                currentPath.value,
+                selectedPool.value?.id,
+              ),
+              onShowCreateDirectory: _showCreateDirectoryDialog,
+              mode: mode,
+              viewMode: viewMode,
+              isSelectionMode: isSelectionMode,
+              query: query,
             ),
-            onShowCreateDirectory: _showCreateDirectoryDialog,
-            mode: mode,
-            viewMode: viewMode,
-            isSelectionMode: isSelectionMode,
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error loading quota')),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error loading quota')),
-        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error loading usage')),
       ),

@@ -40,6 +40,7 @@ class FileListView extends HookConsumerWidget {
   final ValueNotifier<FileListMode> mode;
   final ValueNotifier<FileListViewMode> viewMode;
   final ValueNotifier<bool> isSelectionMode;
+  final ValueNotifier<String?> query;
 
   const FileListView({
     required this.usage,
@@ -51,6 +52,7 @@ class FileListView extends HookConsumerWidget {
     required this.mode,
     required this.viewMode,
     required this.isSelectionMode,
+    required this.query,
     super.key,
   });
 
@@ -75,7 +77,6 @@ class FileListView extends HookConsumerWidget {
     final isSelectionMode = useState<bool>(false);
     final selectedFileIds = useState<Set<String>>({});
     final currentVisibleItems = useState<List<FileListItem>>([]);
-    final query = useState<String?>(null);
     final order = useState<String?>('date');
     final orderDesc = useState<bool>(true);
     final queryDebounceTimer = useRef<Timer?>(null);
@@ -101,16 +102,16 @@ class FileListView extends HookConsumerWidget {
     useEffect(() {
       // Sync query, order, and orderDesc filters
       if (mode.value == FileListMode.unindexed) {
-        unindexedNotifier.setQuery(query.value);
+        unindexedNotifier.setQuery(this.query.value);
         unindexedNotifier.setOrder(order.value);
         unindexedNotifier.setOrderDesc(orderDesc.value);
       } else {
-        cloudNotifier.setQuery(query.value);
+        cloudNotifier.setQuery(this.query.value);
         cloudNotifier.setOrder(order.value);
         cloudNotifier.setOrderDesc(orderDesc.value);
       }
       return null;
-    }, [query.value, order.value, orderDesc.value, mode.value]);
+    }, [this.query.value, order.value, orderDesc.value, mode.value]);
 
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal
