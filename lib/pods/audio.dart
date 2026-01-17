@@ -35,7 +35,7 @@ final notificationSfxProvider = FutureProvider<void>((ref) async {
   final player = ref.watch(sfxPlayerProvider);
   await player.setVolume(0.75);
   await player.setAudioSource(
-    AudioSource.asset('assets/audio/notification.mp3'),
+    AudioSource.asset('assets/audio/notification.wav'),
     preload: true,
   );
 });
@@ -43,7 +43,7 @@ final notificationSfxProvider = FutureProvider<void>((ref) async {
 final messageSfxProvider = FutureProvider<void>((ref) async {
   final player = ref.watch(sfxPlayerProvider);
   await player.setAudioSource(
-    AudioSource.asset('assets/audio/messages.mp3'),
+    AudioSource.asset('assets/audio/messages.wav'),
     preload: true,
   );
 });
@@ -70,7 +70,8 @@ void playMessageSfx(WidgetRef ref) {
 
 class MiniSampleSynth {
   final String sampleAsset;
-  final int baseNote; // MIDI note of the sample (usually 72 = C5 for lower pitch playback)
+  final int
+  baseNote; // MIDI note of the sample (usually 72 = C5 for lower pitch playback)
 
   AudioPlayer? currentPlayer;
 
