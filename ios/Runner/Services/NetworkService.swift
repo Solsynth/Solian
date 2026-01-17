@@ -46,7 +46,7 @@ final class NetworkService {
 
     func markNotificationsRead() async throws {
         let url = try buildUrl(path: SharedConstants.API.notificationsMarkRead)
-        let _: EmptyResponse = try await post(url: url, body: nil)
+        let _: EmptyResponse = try await post(url: url)
     }
 
     func getUnreadChatsCount() async throws -> Int {
@@ -92,14 +92,27 @@ final class NetworkService {
         return try decoder.decode(T.self, from: data)
     }
 
-    private func post<T: Decodable, B: Encodable>(url: URL, body: B?) async throws -> T {
+    private func post<T: Decodable>(url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         authHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
 
-        if let body = body {
-            request.httpBody = try JSONEncoder().encode(body)
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        if T.self == EmptyResponse.self {
+            return EmptyResponse() as! T
         }
+
+        return try decoder.decode(T.self, from: data)
+    }
+
+    private func post<T: Decodable, B: Encodable>(url: URL, body: B) async throws -> T {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        authHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+
+        request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await session.data(for: request)
         try validateResponse(response)
@@ -131,19 +144,19 @@ enum NetworkError: Error {
     case httpError(statusCode: Int)
 }
 
-private struct NotificationCountResponse: Decodable {
+struct NotificationCountResponse: Decodable {
     let count: Int
 }
 
-private struct UnreadChatsResponse: Decodable {
+struct UnreadChatsResponse: Decodable {
     let unreadCount: Int
 }
 
-private struct MessagesResponse: Decodable {
+struct MessagesResponse: Decodable {
     let messages: [MessageResponse]
 }
 
-private struct MessageResponse: Decodable {
+struct MessageResponse: Decodable {
     let content: String?
     let sender: SenderResponse?
 
@@ -156,9 +169,9 @@ private struct MessageResponse: Decodable {
     }
 }
 
-private struct SendMessageBody: Encodable {
+struct SendMessageBody: Encodable {
     let content: String
     let nonce: String
 }
 
-private struct EmptyResponse: Decodable {}
+struct EmptyResponse: Decodable {}
