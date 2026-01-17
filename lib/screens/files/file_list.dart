@@ -1,5 +1,4 @@
 import 'package:cross_file/cross_file.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -33,21 +32,33 @@ class FileListScreen extends HookConsumerWidget {
     final viewMode = useState(FileListViewMode.list);
     final isSelectionMode = useState<bool>(false);
     final recycled = useState<bool>(false);
+    final query = useState<String?>(null);
 
     final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
 
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        title: Text('files').tr(),
+        title: SearchBar(
+          constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
+          hintText: 'Search files...',
+          hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          onChanged: (value) {
+            // Update the query state that will be passed to FileListView
+            query.value = value.isEmpty ? null : value;
+          },
+          leading: Icon(
+            Symbols.search,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         leading: const PageBackButton(backTo: '/account'),
         actions: [
           // Selection mode toggle
           IconButton(
             icon: Icon(
-              isSelectionMode.value
-                  ? Symbols.close
-                  : Symbols.select_check_box,
+              isSelectionMode.value ? Symbols.close : Symbols.select_check_box,
             ),
             onPressed: () => isSelectionMode.value = !isSelectionMode.value,
             tooltip: isSelectionMode.value
@@ -82,9 +93,14 @@ class FileListScreen extends HookConsumerWidget {
       ),
       floatingActionButton: mode.value == FileListMode.normal
           ? FloatingActionButton(
-              onPressed: () => _showActionBottomSheet(context, ref, currentPath, selectedPool),
-              child: const Icon(Symbols.add),
+              onPressed: () => _showActionBottomSheet(
+                context,
+                ref,
+                currentPath,
+                selectedPool,
+              ),
               tooltip: 'Add files or create directory',
+              child: const Icon(Symbols.add),
             )
           : null,
       body: usageAsync.when(
@@ -242,11 +258,11 @@ class FileListScreen extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) => SheetScaffold(
-        titleText: 'Usage Overview',
         child: UsageOverviewWidget(
           usage: usage,
           quota: quota,
         ).padding(horizontal: 8, vertical: 16),
+        titleText: 'Usage Overview',
       ),
     );
   }

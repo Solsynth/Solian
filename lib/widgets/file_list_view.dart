@@ -1347,232 +1347,194 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<bool> orderDesc,
     ObjectRef<Timer?> queryDebounceTimer,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Search bar below chips
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: SearchBar(
-            constraints: const BoxConstraints(minHeight: 48),
-            elevation: WidgetStatePropertyAll(2),
-            hintText: 'Search files...',
-            onChanged: (value) {
-              queryDebounceTimer.value?.cancel();
-              queryDebounceTimer.value = Timer(
-                const Duration(milliseconds: 300),
-                () {
-                  query.value = value.isEmpty ? null : value;
-                },
-              );
-            },
-            leading: const Icon(Symbols.search).padding(horizontal: 24),
-          ),
-        ),
-
-        const Gap(12),
-
-        // Chips row
-        SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              // Pool filter dropdown
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(
-                      ref.context,
-                    ).colorScheme.outline.withOpacity(0.5),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Pool filter dropdown
+          Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(ref.context).colorScheme.outline.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<SnFilePool>(
+                value: selectedPool.value,
+                items: [
+                  const DropdownMenuItem<SnFilePool>(
+                    value: null,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Symbols.database, size: 16),
+                        Gap(6),
+                        Text('All files', style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<SnFilePool>(
-                    value: selectedPool.value,
-                    items: [
-                      const DropdownMenuItem<SnFilePool>(
-                        value: null,
+                  ...poolsAsync.maybeWhen(
+                    data: (pools) => pools.map(
+                      (pool) => DropdownMenuItem<SnFilePool>(
+                        value: pool,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Symbols.database, size: 16),
                             Gap(6),
-                            Text('All files', style: TextStyle(fontSize: 12)),
+                            Text(
+                              pool.name,
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ],
                         ),
                       ),
-                      ...poolsAsync.maybeWhen(
-                        data: (pools) => pools.map(
-                          (pool) => DropdownMenuItem<SnFilePool>(
-                            value: pool,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Symbols.database, size: 16),
-                                Gap(6),
-                                Text(
-                                  pool.name,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ],
-                            ),
+                    ),
+                    orElse: () => <DropdownMenuItem<SnFilePool>>[],
+                  ),
+                ],
+                onChanged: isRefreshing
+                    ? null
+                    : (value) {
+                        selectedPool.value = value;
+                        if (mode.value == FileListMode.unindexed) {
+                          unindexedNotifier.setPool(value?.id);
+                        } else {
+                          cloudNotifier.setPool(value?.id);
+                        }
+                      },
+                icon: const Icon(Symbols.arrow_drop_down, size: 16),
+                isDense: true,
+              ),
+            ),
+          ),
+
+          const Gap(8),
+
+          // Order filter dropdown
+          Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(ref.context).colorScheme.outline.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: order.value ?? 'date',
+                items: [
+                  DropdownMenuItem<String>(
+                    value: 'date',
+                    child: Row(
+                      spacing: 6,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Symbols.schedule, size: 16),
+                        Text('Date', style: const TextStyle(fontSize: 12)),
+                        if (order.value == 'date')
+                          Icon(
+                            orderDesc.value ? Symbols.arrow_downward : Symbols.arrow_upward,
+                            size: 14,
                           ),
-                        ),
-                        orElse: () => <DropdownMenuItem<SnFilePool>>[],
-                      ),
-                    ],
-                    onChanged: isRefreshing
-                        ? null
-                        : (value) {
-                            selectedPool.value = value;
-                            if (mode.value == FileListMode.unindexed) {
-                              unindexedNotifier.setPool(value?.id);
-                            } else {
-                              cloudNotifier.setPool(value?.id);
-                            }
-                          },
-                    icon: const Icon(Symbols.arrow_drop_down, size: 16),
-                    isDense: true,
+                      ],
+                    ),
                   ),
-                ),
-              ),
-
-              const Gap(8),
-
-              // Order filter dropdown
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(
-                      ref.context,
-                    ).colorScheme.outline.withOpacity(0.5),
+                  DropdownMenuItem<String>(
+                    value: 'size',
+                    child: Row(
+                      spacing: 6,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Symbols.data_usage, size: 16),
+                        Text(
+                          'fileSize'.tr(),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        if (order.value == 'size')
+                          Icon(
+                            orderDesc.value ? Symbols.arrow_downward : Symbols.arrow_upward,
+                            size: 16,
+                          ),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: order.value ?? 'date',
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: 'date',
-                        child: Row(
-                          spacing: 6,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Symbols.schedule, size: 16),
-                            Text('Date', style: const TextStyle(fontSize: 12)),
-                            if (order.value == 'date')
-                              Icon(
-                                orderDesc.value
-                                    ? Symbols.arrow_downward
-                                    : Symbols.arrow_upward,
-                                size: 14,
-                              ),
-                          ],
+                  DropdownMenuItem<String>(
+                    value: 'name',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 6,
+                      children: [
+                        Icon(Symbols.sort_by_alpha, size: 16),
+                        Text(
+                          'fileName'.tr(),
+                          style: const TextStyle(fontSize: 12),
                         ),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'size',
-                        child: Row(
-                          spacing: 6,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Symbols.data_usage, size: 16),
-                            Text(
-                              'fileSize'.tr(),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            if (order.value == 'size')
-                              Icon(
-                                orderDesc.value
-                                    ? Symbols.arrow_downward
-                                    : Symbols.arrow_upward,
-                                size: 16,
-                              ),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'name',
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 6,
-                          children: [
-                            Icon(Symbols.sort_by_alpha, size: 16),
-                            Text(
-                              'fileName'.tr(),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            if (order.value == 'name')
-                              Icon(
-                                orderDesc.value
-                                    ? Symbols.arrow_downward
-                                    : Symbols.arrow_upward,
-                                size: 16,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value == order.value) {
-                        // Toggle direction if same option selected
-                        final newValue = !orderDesc.value;
-                        orderDesc.value = newValue;
-                        if (mode.value == FileListMode.unindexed) {
-                          unindexedNotifier.setOrderDesc(newValue);
-                        } else {
-                          cloudNotifier.setOrderDesc(newValue);
-                        }
-                      } else {
-                        // Change sort option
-                        order.value = value;
-                        if (mode.value == FileListMode.unindexed) {
-                          unindexedNotifier.setOrder(value);
-                        } else {
-                          cloudNotifier.setOrder(value);
-                        }
-                      }
-                    },
-                    icon: const SizedBox.shrink(),
-                    isDense: true,
+                        if (order.value == 'name')
+                          Icon(
+                            orderDesc.value ? Symbols.arrow_downward : Symbols.arrow_upward,
+                            size: 16,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-
-              const Gap(8),
-
-              // Refresh chip
-              FilterChip(
-                label: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 6,
-                  children: [
-                    Icon(Symbols.refresh, size: 16),
-                    Text('Refresh', style: TextStyle(fontSize: 12)),
-                  ],
-                ),
-                selected: false,
-                onSelected: (selected) {
-                  if (selected) {
+                ],
+                onChanged: (value) {
+                  if (value == order.value) {
+                    // Toggle direction if same option selected
+                    final newValue = !orderDesc.value;
+                    orderDesc.value = newValue;
                     if (mode.value == FileListMode.unindexed) {
-                      ref.invalidate(unindexedFileListProvider);
+                      unindexedNotifier.setOrderDesc(newValue);
                     } else {
-                      cloudNotifier.setPath(currentPath.value);
+                      cloudNotifier.setOrderDesc(newValue);
+                    }
+                  } else {
+                    // Change sort option
+                    order.value = value;
+                    if (mode.value == FileListMode.unindexed) {
+                      unindexedNotifier.setOrder(value);
+                    } else {
+                      cloudNotifier.setOrder(value);
                     }
                   }
                 },
+                icon: const SizedBox.shrink(),
+                isDense: true,
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+
+          const Gap(8),
+
+          // Refresh chip
+          FilterChip(
+            label: const Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [
+                Icon(Symbols.refresh, size: 16),
+                Text('Refresh', style: TextStyle(fontSize: 12)),
+              ],
+            ),
+            selected: false,
+            onSelected: (selected) {
+              if (selected) {
+                if (mode.value == FileListMode.unindexed) {
+                  ref.invalidate(unindexedFileListProvider);
+                } else {
+                  cloudNotifier.setPath(currentPath.value);
+                }
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }
