@@ -1,4 +1,5 @@
 import 'package:cross_file/cross_file.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -41,7 +42,7 @@ class FileListScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: SearchBar(
           constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
-          hintText: 'Search files...',
+          hintText: 'searchFiles'.tr(),
           hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
           textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
           onChanged: (value) {
@@ -105,26 +106,26 @@ class FileListScreen extends HookConsumerWidget {
             )
           : null,
       body: usageAsync.when(
-          data: (usage) => quotaAsync.when(
-            data: (quota) => FileListView(
-              usage: usage,
-              quota: quota,
-              currentPath: currentPath,
-              selectedPool: selectedPool,
-              onPickAndUpload: () => _pickAndUploadFile(
-                ref,
-                currentPath.value,
-                selectedPool.value?.id,
-              ),
-              onShowCreateDirectory: _showCreateDirectoryDialog,
-              mode: mode,
-              viewMode: viewMode,
-              isSelectionMode: isSelectionMode,
-              query: query,
+        data: (usage) => quotaAsync.when(
+          data: (quota) => FileListView(
+            usage: usage,
+            quota: quota,
+            currentPath: currentPath,
+            selectedPool: selectedPool,
+            onPickAndUpload: () => _pickAndUploadFile(
+              ref,
+              currentPath.value,
+              selectedPool.value?.id,
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error loading quota')),
+            onShowCreateDirectory: _showCreateDirectoryDialog,
+            mode: mode,
+            viewMode: viewMode,
+            isSelectionMode: isSelectionMode,
+            query: query,
           ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error loading quota')),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error loading usage')),
       ),
