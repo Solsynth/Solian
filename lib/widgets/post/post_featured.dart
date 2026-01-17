@@ -22,7 +22,8 @@ Future<List<SnPost>> featuredPosts(Ref ref) async {
 
 class PostFeaturedList extends HookConsumerWidget {
   final bool collapsable;
-  const PostFeaturedList({super.key, this.collapsable = true});
+  final double? maxHeight;
+  const PostFeaturedList({super.key, this.collapsable = true, this.maxHeight});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -178,7 +179,7 @@ class PostFeaturedList extends HookConsumerWidget {
                   error: (error, stack) => Center(child: Text('Error: $error')),
                   data: (posts) {
                     return SizedBox(
-                      height: 344,
+                      height: maxHeight == null ? 344 : (maxHeight! - 48),
                       child: PageView.builder(
                         controller: pageViewController,
                         scrollDirection: Axis.horizontal,
