@@ -44,7 +44,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
             showDrawer.value = true;
             animationController.forward();
           } else if (!showSidebar.value && showDrawer.value) {
-            showDrawer.value = false;
+            // Don't set showDrawer.value = false here - let animation complete first
             animationController.reverse();
           }
         } else {

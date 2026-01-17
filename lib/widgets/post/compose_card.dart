@@ -121,11 +121,10 @@ class PostComposeCard extends HookConsumerWidget {
                 content: composeState.contentController.text,
                 visibility: composeState.visibility.value,
                 type: composeState.postType,
-                attachments:
-                    composeState.attachments.value
-                        .where((e) => e.isOnCloud)
-                        .map((e) => e.data as SnCloudFile)
-                        .toList(),
+                attachments: composeState.attachments.value
+                    .where((e) => e.isOnCloud)
+                    .map((e) => e.data as SnCloudFile)
+                    .toList(),
                 publisher: composeState.currentPublisher.value!,
                 updatedAt: DateTime.now(),
               );
@@ -218,27 +217,25 @@ class PostComposeCard extends HookConsumerWidget {
                     IconButton(
                       onPressed:
                           (composeState.submitting.value ||
-                                  composeState.currentPublisher.value == null)
-                              ? null
-                              : performSubmit,
-                      icon:
-                          composeState.submitting.value
-                              ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: const CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : Icon(
-                                originalPost != null
-                                    ? Symbols.edit
-                                    : Symbols.upload,
+                              composeState.currentPublisher.value == null)
+                          ? null
+                          : performSubmit,
+                      icon: composeState.submitting.value
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
                               ),
-                      tooltip:
-                          originalPost != null
-                              ? 'postUpdate'.tr()
-                              : 'postPublish'.tr(),
+                            )
+                          : Icon(
+                              originalPost != null
+                                  ? Symbols.edit
+                                  : Symbols.upload,
+                            ),
+                      tooltip: originalPost != null
+                          ? 'postUpdate'.tr()
+                          : 'postPublish'.tr(),
                       visualDensity: const VisualDensity(
                         horizontal: -4,
                         vertical: -2,
@@ -268,13 +265,10 @@ class PostComposeCard extends HookConsumerWidget {
                   context: context,
                   isScrollControlled: true,
                   useRootNavigator: true,
-                  builder:
-                      (context) => SheetScaffold(
-                        titleText: 'Post Preview',
-                        child: SingleChildScrollView(
-                          child: PostItem(item: post),
-                        ),
-                      ),
+                  builder: (context) => SheetScaffold(
+                    titleText: 'Post Preview',
+                    child: SingleChildScrollView(child: PostItem(item: post)),
+                  ),
                 );
               },
             ),
@@ -283,16 +277,15 @@ class PostComposeCard extends HookConsumerWidget {
             Expanded(
               child: KeyboardListener(
                 focusNode: FocusNode(),
-                onKeyEvent:
-                    (event) => ComposeLogic.handleKeyPress(
-                      event,
-                      composeState,
-                      ref,
-                      context,
-                      originalPost: originalPost,
-                      repliedPost: repliedPost,
-                      forwardedPost: forwardedPost,
-                    ),
+                onKeyEvent: (event) => ComposeLogic.handleKeyPress(
+                  event,
+                  composeState,
+                  ref,
+                  context,
+                  originalPost: originalPost,
+                  repliedPost: repliedPost,
+                  forwardedPost: forwardedPost,
+                ),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: ConstrainedBox(
@@ -304,17 +297,16 @@ class PostComposeCard extends HookConsumerWidget {
                         // Publisher profile picture
                         GestureDetector(
                           child: ProfilePictureWidget(
-                            fileId:
-                                composeState
-                                    .currentPublisher
-                                    .value
-                                    ?.picture
-                                    ?.id,
+                            fileId: composeState
+                                .currentPublisher
+                                .value
+                                ?.picture
+                                ?.id,
                             radius: 20,
                             fallbackIcon:
                                 composeState.currentPublisher.value == null
-                                    ? Symbols.question_mark
-                                    : null,
+                                ? Symbols.question_mark
+                                : null,
                           ),
                           onTap: () {
                             if (composeState.currentPublisher.value == null) {
@@ -326,8 +318,8 @@ class PostComposeCard extends HookConsumerWidget {
                                 context: context,
                                 isScrollControlled: true,
                                 useRootNavigator: true,
-                                builder:
-                                    (context) => const NewPublisherScreen(),
+                                builder: (context) =>
+                                    const NewPublisherScreen(),
                               ).then((value) {
                                 if (value != null) {
                                   composeState.currentPublisher.value =
@@ -370,9 +362,8 @@ class PostComposeCard extends HookConsumerWidget {
                                       context: context,
                                       isScrollControlled: true,
                                       useRootNavigator: true,
-                                      builder:
-                                          (context) =>
-                                              const NewPublisherScreen(),
+                                      builder: (context) =>
+                                          const NewPublisherScreen(),
                                     ).then((value) {
                                       if (value != null) {
                                         composeState.currentPublisher.value =
@@ -388,8 +379,8 @@ class PostComposeCard extends HookConsumerWidget {
                                       isScrollControlled: true,
                                       useRootNavigator: true,
                                       context: context,
-                                      builder:
-                                          (context) => const PublisherModal(),
+                                      builder: (context) =>
+                                          const PublisherModal(),
                                     ).then((value) {
                                       if (value != null) {
                                         composeState.currentPublisher.value =
@@ -415,19 +406,16 @@ class PostComposeCard extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            SizedBox(
-              height: 65,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
-                ),
-                child: ComposeToolbar(
-                  state: composeState,
-                  originalPost: originalPost,
-                  isCompact: true,
-                  useSafeArea: isContained,
-                ),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+              child: ComposeToolbar(
+                state: composeState,
+                originalPost: originalPost,
+                isCompact: true,
+                useSafeArea: isContained,
               ),
             ),
           ],

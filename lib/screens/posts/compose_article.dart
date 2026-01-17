@@ -201,6 +201,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
 
       return Container(
         decoration: BoxDecoration(
+          color: colorScheme.surface,
           border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -225,19 +226,14 @@ class ArticleComposeScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: widgetItem,
-              ),
-            ),
+            Expanded(child: widgetItem),
           ],
         ),
       );
     }
 
     Widget buildEditorPane() {
-      return Center(
+      final editorContent = Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Column(
@@ -267,6 +263,20 @@ class ArticleComposeScreen extends HookConsumerWidget {
           ),
         ),
       );
+
+      // Add background color for mobile editor pane
+      if (!isWideScreen(context)) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          child: editorContent,
+        );
+      }
+
+      return editorContent;
     }
 
     return PopScope(
@@ -325,7 +335,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
             Tooltip(
               message: 'togglePreview'.tr(),
               child: IconButton(
-                icon: Icon(showPreview.value ? Symbols.edit : Symbols.preview),
+                icon: Icon(
+                  showPreview.value ? Symbols.preview_off : Symbols.preview,
+                ),
                 onPressed: () => showPreview.value = !showPreview.value,
               ),
             ),
@@ -395,12 +407,25 @@ class ArticleComposeScreen extends HookConsumerWidget {
                     switchOutCurve: Curves.easeOutCubic,
                     transitionBuilder:
                         (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
+                          final isWide = isWideScreen(context);
+                          if (isWide) {
+                            // Desktop: scale animation
+                            return ScaleTransition(
+                              scale: Tween<double>(begin: 0.95, end: 1.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          } else {
+                            // Mobile: horizontal slide animation
+                            return SlideTransition(
                               position:
                                   Tween<Offset>(
-                                    begin: const Offset(0, 0.05),
+                                    begin: const Offset(0.05, 0),
                                     end: Offset.zero,
                                   ).animate(
                                     CurvedAnimation(
@@ -409,8 +434,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                     ),
                                   ),
                               child: child,
-                            ),
-                          );
+                            );
+                          }
                         },
                     child: isWideScreen(context)
                         ? Row(
