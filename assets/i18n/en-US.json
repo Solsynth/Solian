@@ -1594,5 +1594,8 @@
     "other": "{} tasks"
   },
   "setAsThumbnail": "Set as thumbnail",
-  "unsetAsThumbnail": "Unset as thumbnail"
+  "unsetAsThumbnail": "Unset as thumbnail",
+  "sidebar": "Sidebar",
+  "dropFilesHere": "Drop your files here",
+  "dragAndDropToAttach": "Drag your files here to attach it"
 }

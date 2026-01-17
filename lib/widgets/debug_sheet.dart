@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/audio.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/update_service.dart';
@@ -77,7 +78,7 @@ class DebugSheet extends HookConsumerWidget {
               minTileHeight: 48,
               leading: const Icon(Symbols.update),
               trailing: const Icon(Symbols.chevron_right),
-              title: Text('Force Update'),
+              title: Text('Force update'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () async {
                 // Fetch latest release and show the unified sheet
@@ -102,7 +103,7 @@ class DebugSheet extends HookConsumerWidget {
               minTileHeight: 48,
               leading: const Icon(Symbols.wifi),
               trailing: const Icon(Symbols.chevron_right),
-              title: Text('Connection Status'),
+              title: Text('Connection status'),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               onTap: () {
                 showModalBottomSheet(
@@ -124,6 +125,23 @@ class DebugSheet extends HookConsumerWidget {
                   MaterialPageRoute(
                     builder: (context) => TalkerScreen(talker: talker),
                   ),
+                );
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.play_arrow),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Play untitled'),
+              onTap: () async {
+                final synth = MiniSampleSynth(
+                  sampleAsset: 'assets/audio/messages.mp3',
+                  baseNote: 60,
+                );
+                await synth.playMidiAsset(
+                  'assets/midi/never-gonna-give-you-up.mid',
                 );
               },
             ),

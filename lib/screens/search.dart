@@ -15,7 +15,7 @@ import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_skeleton.dart';
-import 'package:island/widgets/posts/post_filter.dart';
+import 'package:island/widgets/post/filters/post_filter.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 

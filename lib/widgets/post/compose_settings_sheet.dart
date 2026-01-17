@@ -139,364 +139,350 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
     final tagInputController = useTextEditingController();
 
-    return SheetScaffold(
-      titleText: 'postSettings'.tr(),
-      heightFactor: 0.6,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            // Slug field
-            TextField(
-              controller: state.slugController,
-              decoration: InputDecoration(
-                labelText: 'postSlug'.tr(),
-                hintText: 'postSlugHint'.tr(),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 9,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
+        children: [
+          // Slug field
+          TextField(
+            controller: state.slugController,
+            decoration: InputDecoration(
+              labelText: 'postSlug'.tr(),
+              hintText: 'postSlugHint'.tr(),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 9,
+                horizontal: 16,
               ),
-              onTapOutside: (_) =>
-                  FocusManager.instance.primaryFocus?.unfocus(),
-            ),
-
-            // Tags field
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline,
-                  width: 1,
-                ),
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 12,
-                children: [
-                  Text(
-                    'tags'.tr(),
-                    style: Theme.of(context).textTheme.labelLarge,
+            ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          ),
+
+          // Tags field
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
+              children: [
+                Text(
+                  'tags'.tr(),
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                // Existing tags display
+                if (currentTags.isNotEmpty)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: currentTags.map((tag) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '#$tag',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const Gap(4),
+                            InkWell(
+                              onTap: () {
+                                final newTags = List<String>.from(
+                                  state.tags.value,
+                                )..remove(tag);
+                                state.tags.value = newTags;
+                              },
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  // Existing tags display
-                  if (currentTags.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: currentTags.map((tag) {
-                        return Container(
+                // Tag input with autocomplete
+                TypeAheadField<SnPostTag>(
+                  controller: tagInputController,
+                  builder: (context, controller, focusNode) {
+                    return TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
+                        hintText: 'addTag'.tr(),
+                        border: InputBorder.none,
+                        isCollapsed: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onSubmitted: (value) {
+                        state.tags.value = [...state.tags.value, value];
+                        controller.clear();
+                      },
+                    );
+                  },
+                  suggestionsCallback: (pattern) =>
+                      _fetchTagSuggestions(pattern, ref),
+                  itemBuilder: (context, suggestion) {
+                    return ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      ),
+                      title: Text('#${suggestion.slug}'),
+                      subtitle: Text('${suggestion.usage} posts'),
+                      dense: true,
+                    );
+                  },
+                  onSelected: (suggestion) {
+                    if (!state.tags.value.contains(suggestion.slug)) {
+                      state.tags.value = [...state.tags.value, suggestion.slug];
+                    }
+                    tagInputController.clear();
+                  },
+                  direction: VerticalDirection.down,
+                  hideOnEmpty: true,
+                  hideOnLoading: true,
+                  debounceDuration: const Duration(milliseconds: 300),
+                ),
+              ],
+            ),
+          ),
+
+          // Categories field
+          DropdownButtonFormField2<SnPostCategory>(
+            isExpanded: true,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(vertical: 9),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
+            items: (postCategories.value?.items ?? <SnPostCategory>[]).map((
+              item,
+            ) {
+              return DropdownMenuItem(
+                value: item,
+                enabled: false,
+                child: StatefulBuilder(
+                  builder: (context, menuSetState) {
+                    final isSelected = state.categories.value.contains(item);
+                    return InkWell(
+                      onTap: () {
+                        isSelected
+                            ? state.categories.value = state.categories.value
+                                  .where((e) => e != item)
+                                  .toList()
+                            : state.categories.value = [
+                                ...state.categories.value,
+                                item,
+                              ];
+                        menuSetState(() {});
+                      },
+                      child: Container(
+                        height: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          children: [
+                            if (isSelected)
+                              const Icon(Icons.check_box_outlined)
+                            else
+                              const Icon(Icons.check_box_outline_blank),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                item.categoryDisplayTitle,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
+            value: currentCategories.isEmpty ? null : currentCategories.last,
+            onChanged: (_) {},
+            selectedItemBuilder: (context) {
+              return (postCategories.value?.items ?? []).map((item) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final category in currentCategories)
+                        Container(
                           decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
                             color: Theme.of(context).colorScheme.primary,
-                            borderRadius: BorderRadius.circular(16),
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
-                            vertical: 6,
+                            vertical: 4,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '#$tag',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const Gap(4),
-                              InkWell(
-                                onTap: () {
-                                  final newTags = List<String>.from(
-                                    state.tags.value,
-                                  )..remove(tag);
-                                  state.tags.value = newTags;
-                                },
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  // Tag input with autocomplete
-                  TypeAheadField<SnPostTag>(
-                    controller: tagInputController,
-                    builder: (context, controller, focusNode) {
-                      return TextField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          hintText: 'addTag'.tr(),
-                          border: InputBorder.none,
-                          isCollapsed: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onSubmitted: (value) {
-                          state.tags.value = [...state.tags.value, value];
-                          controller.clear();
-                        },
-                      );
-                    },
-                    suggestionsCallback: (pattern) =>
-                        _fetchTagSuggestions(pattern, ref),
-                    itemBuilder: (context, suggestion) {
-                      return ListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        title: Text('#${suggestion.slug}'),
-                        subtitle: Text('${suggestion.usage} posts'),
-                        dense: true,
-                      );
-                    },
-                    onSelected: (suggestion) {
-                      if (!state.tags.value.contains(suggestion.slug)) {
-                        state.tags.value = [
-                          ...state.tags.value,
-                          suggestion.slug,
-                        ];
-                      }
-                      tagInputController.clear();
-                    },
-                    direction: VerticalDirection.down,
-                    hideOnEmpty: true,
-                    hideOnLoading: true,
-                    debounceDuration: const Duration(milliseconds: 300),
-                  ),
-                ],
-              ),
-            ),
-
-            // Categories field
-            DropdownButtonFormField2<SnPostCategory>(
-              isExpanded: true,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
-              items: (postCategories.value?.items ?? <SnPostCategory>[]).map((
-                item,
-              ) {
-                return DropdownMenuItem(
-                  value: item,
-                  enabled: false,
-                  child: StatefulBuilder(
-                    builder: (context, menuSetState) {
-                      final isSelected = state.categories.value.contains(item);
-                      return InkWell(
-                        onTap: () {
-                          isSelected
-                              ? state.categories.value = state.categories.value
-                                    .where((e) => e != item)
-                                    .toList()
-                              : state.categories.value = [
-                                  ...state.categories.value,
-                                  item,
-                                ];
-                          menuSetState(() {});
-                        },
-                        child: Container(
-                          height: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
-                            children: [
-                              if (isSelected)
-                                const Icon(Icons.check_box_outlined)
-                              else
-                                const Icon(Icons.check_box_outline_blank),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  item.categoryDisplayTitle,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                            ],
+                          margin: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            category.categoryDisplayTitle,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
-                      );
-                    },
+                    ],
                   ),
                 );
-              }).toList(),
-              value: currentCategories.isEmpty ? null : currentCategories.last,
-              onChanged: (_) {},
-              selectedItemBuilder: (context) {
-                return (postCategories.value?.items ?? []).map((item) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (final category in currentCategories)
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            margin: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              category.categoryDisplayTitle,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList();
-              },
-              buttonStyleData: const ButtonStyleData(
-                padding: EdgeInsets.only(left: 16, right: 8),
-                height: 38,
-              ),
-              menuItemStyleData: const MenuItemStyleData(
-                height: 38,
-                padding: EdgeInsets.zero,
+              }).toList();
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.only(left: 16, right: 8),
+              height: 38,
+            ),
+            menuItemStyleData: const MenuItemStyleData(
+              height: 38,
+              padding: EdgeInsets.zero,
+            ),
+          ),
+
+          // Realm selection
+          DropdownButtonFormField2<SnRealm?>(
+            isExpanded: true,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(vertical: 9),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-
-            // Realm selection
-            DropdownButtonFormField2<SnRealm?>(
-              isExpanded: true,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            hint: Text('realm'.tr(), style: const TextStyle(fontSize: 15)),
+            items: [
+              DropdownMenuItem<SnRealm?>(
+                value: null,
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 16,
+                      child: Icon(Symbols.link_off, fill: 1),
+                    ),
+                    const SizedBox(width: 12),
+                    Text('postUnlinkRealm').tr(),
+                  ],
+                ).padding(left: 16, right: 8),
               ),
-              hint: Text('realm'.tr(), style: const TextStyle(fontSize: 15)),
-              items: [
+              // Include current realm if it's not null and not in joined realms
+              if (currentRealm != null &&
+                  !(userRealms.value ?? []).any((r) => r.id == currentRealm.id))
                 DropdownMenuItem<SnRealm?>(
-                  value: null,
+                  value: currentRealm,
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      ProfilePictureWidget(
+                        file: currentRealm.picture,
+                        fallbackIcon: Symbols.workspaces,
                         radius: 16,
-                        child: Icon(Symbols.link_off, fill: 1),
                       ),
                       const SizedBox(width: 12),
-                      Text('postUnlinkRealm').tr(),
+                      Text(currentRealm.name),
                     ],
                   ).padding(left: 16, right: 8),
                 ),
-                // Include current realm if it's not null and not in joined realms
-                if (currentRealm != null &&
-                    !(userRealms.value ?? []).any(
-                      (r) => r.id == currentRealm.id,
-                    ))
-                  DropdownMenuItem<SnRealm?>(
-                    value: currentRealm,
+              if (userRealms.hasValue)
+                ...(userRealms.value ?? []).map(
+                  (realm) => DropdownMenuItem<SnRealm?>(
+                    value: realm,
                     child: Row(
                       children: [
                         ProfilePictureWidget(
-                          file: currentRealm.picture,
+                          file: realm.picture,
                           fallbackIcon: Symbols.workspaces,
                           radius: 16,
                         ),
                         const SizedBox(width: 12),
-                        Text(currentRealm.name),
+                        Text(realm.name),
                       ],
                     ).padding(left: 16, right: 8),
                   ),
-                if (userRealms.hasValue)
-                  ...(userRealms.value ?? []).map(
-                    (realm) => DropdownMenuItem<SnRealm?>(
-                      value: realm,
-                      child: Row(
-                        children: [
-                          ProfilePictureWidget(
-                            file: realm.picture,
-                            fallbackIcon: Symbols.workspaces,
-                            radius: 16,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(realm.name),
-                        ],
-                      ).padding(left: 16, right: 8),
-                    ),
-                  ),
-              ],
-              value: currentRealm,
-              onChanged: (value) {
-                state.realm.value = value;
-              },
-              selectedItemBuilder: (context) {
-                return (userRealms.value ?? []).map((_) {
-                  return Row(
-                    children: [
-                      if (currentRealm == null)
-                        const CircleAvatar(
-                          radius: 16,
-                          child: Icon(Symbols.link_off, fill: 1),
-                        )
-                      else
-                        ProfilePictureWidget(
-                          file: currentRealm.picture,
-                          fallbackIcon: Symbols.workspaces,
-                          radius: 16,
-                        ),
-                      const SizedBox(width: 12),
-                      Text(currentRealm?.name ?? 'postUnlinkRealm'.tr()),
-                    ],
-                  );
-                }).toList();
-              },
-              buttonStyleData: const ButtonStyleData(
-                padding: EdgeInsets.only(left: 16, right: 8),
-                height: 40,
-              ),
-              menuItemStyleData: const MenuItemStyleData(
-                height: 56,
-                padding: EdgeInsets.zero,
-              ),
+                ),
+            ],
+            value: currentRealm,
+            onChanged: (value) {
+              state.realm.value = value;
+            },
+            selectedItemBuilder: (context) {
+              return (userRealms.value ?? []).map((_) {
+                return Row(
+                  children: [
+                    if (currentRealm == null)
+                      const CircleAvatar(
+                        radius: 16,
+                        child: Icon(Symbols.link_off, fill: 1),
+                      )
+                    else
+                      ProfilePictureWidget(
+                        file: currentRealm.picture,
+                        fallbackIcon: Symbols.workspaces,
+                        radius: 16,
+                      ),
+                    const SizedBox(width: 12),
+                    Text(currentRealm?.name ?? 'postUnlinkRealm'.tr()),
+                  ],
+                );
+              }).toList();
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.only(left: 16, right: 8),
+              height: 40,
             ),
+            menuItemStyleData: const MenuItemStyleData(
+              height: 56,
+              padding: EdgeInsets.zero,
+            ),
+          ),
 
-            // Visibility setting
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.outline, width: 1),
+          // Visibility setting
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.outline, width: 1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: Icon(getVisibilityIcon(currentVisibility)),
+              title: Text('postVisibility'.tr()),
+              subtitle: Text(getVisibilityText(currentVisibility).tr()),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: showVisibilitySheet,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: ListTile(
-                leading: Icon(getVisibilityIcon(currentVisibility)),
-                title: Text('postVisibility'.tr()),
-                subtitle: Text(getVisibilityText(currentVisibility).tr()),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: showVisibilitySheet,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

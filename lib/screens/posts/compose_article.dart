@@ -15,6 +15,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/common/responsive_sidebar.dart';
 import 'package:island/widgets/post/compose_form_fields.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/compose_attachments.dart';
@@ -87,6 +88,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }, [state]);
 
     final showPreview = useState(false);
+    final showSidebar = useState(false);
 
     // Initialize publisher once when data is available
     useEffect(() {
@@ -140,17 +142,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }, []);
 
     // Helper methods
-    void showSettingsSheet() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => ComposeSettingsSheet(state: state),
-      );
-    }
-
     Widget buildPreviewPane() {
       final widgetItem = SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
         child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: state.titleController,
           builder: (context, titleValue, _) {
@@ -170,7 +164,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Gap(16),
+                          const Gap(20),
                         ],
                         if (descriptionValue.text.isNotEmpty) ...[
                           Text(
@@ -179,7 +173,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               color: colorScheme.onSurface.withOpacity(0.7),
                             ),
                           ),
-                          const Gap(16),
+                          const Gap(20),
                         ],
                         if (contentValue.text.isNotEmpty)
                           MarkdownTextContent(
@@ -233,7 +227,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: widgetItem,
               ),
             ),
@@ -251,6 +245,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
                   child: ComposeFormFields(
                     state: state,
                     showPublisherAvatar: false,
@@ -265,12 +260,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
                         }
                       });
                     },
-                  ).padding(top: 16),
+                  ),
                 ),
               ),
-
-              // Attachments preview
-              ArticleComposeAttachments(state: state),
             ],
           ),
         ),
@@ -290,8 +282,15 @@ class ArticleComposeScreen extends HookConsumerWidget {
           title: ValueListenableBuilder<TextEditingValue>(
             valueListenable: state.titleController,
             builder: (context, titleValue, _) {
-              return Text(
-                titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 150),
+                switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                child: Text(
+                  titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
+                  key: ValueKey(titleValue.text),
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             },
           ),
@@ -319,9 +318,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
               },
             ),
             IconButton(
-              icon: const Icon(Symbols.settings),
-              onPressed: showSettingsSheet,
-              tooltip: 'postSettings'.tr(),
+              icon: const Icon(Symbols.tune),
+              onPressed: () => showSidebar.value = !showSidebar.value,
+              tooltip: 'sidebar'.tr(),
             ),
             Tooltip(
               message: 'togglePreview'.tr(),
@@ -333,17 +332,26 @@ class ArticleComposeScreen extends HookConsumerWidget {
             ValueListenableBuilder<bool>(
               valueListenable: state.submitting,
               builder: (context, submitting, _) {
-                return IconButton(
-                  onPressed: submitting
-                      ? null
-                      : () => ComposeLogic.performAction(
-                          ref,
-                          state,
-                          context,
-                          originalPost: originalPost,
-                        ),
-                  icon: submitting
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(
+                              begin: 0.8,
+                              end: 1.0,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                  child: submitting
                       ? SizedBox(
+                          key: const ValueKey('submitting'),
                           width: 28,
                           height: 28,
                           child: const CircularProgressIndicator(
@@ -351,8 +359,19 @@ class ArticleComposeScreen extends HookConsumerWidget {
                             strokeWidth: 2.5,
                           ),
                         ).center()
-                      : Icon(
-                          originalPost != null ? Symbols.edit : Symbols.upload,
+                      : IconButton(
+                          key: const ValueKey('icon'),
+                          onPressed: () => ComposeLogic.performAction(
+                            ref,
+                            state,
+                            context,
+                            originalPost: originalPost,
+                          ),
+                          icon: Icon(
+                            originalPost != null
+                                ? Symbols.edit
+                                : Symbols.upload,
+                          ),
                         ),
                 );
               },
@@ -363,24 +382,53 @@ class ArticleComposeScreen extends HookConsumerWidget {
         body: Column(
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16),
-                child: isWideScreen(context)
-                    ? Row(
-                        spacing: 16,
-                        children: [
-                          Expanded(
-                            flex: showPreview.value ? 1 : 2,
-                            child: buildEditorPane(),
+              child: ResponsiveSidebar(
+                sidebarWidth: 480,
+                attachmentsContent: ArticleComposeAttachments(state: state),
+                settingsContent: ComposeSettingsSheet(state: state),
+                showSidebar: showSidebar,
+                mainContent: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeOutCubic,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(0, 0.05),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                                  ),
+                              child: child,
+                            ),
+                          );
+                        },
+                    child: isWideScreen(context)
+                        ? Row(
+                            spacing: 16,
+                            children: [
+                              Expanded(child: buildEditorPane()),
+                              if (showPreview.value)
+                                Expanded(child: buildPreviewPane()),
+                            ],
+                          )
+                        : Container(
+                            key: ValueKey('narrow-${showPreview.value}'),
+                            child: showPreview.value
+                                ? buildPreviewPane()
+                                : buildEditorPane(),
                           ),
-                          if (showPreview.value) const VerticalDivider(),
-                          if (showPreview.value)
-                            Expanded(child: buildPreviewPane()),
-                        ],
-                      )
-                    : showPreview.value
-                    ? buildPreviewPane()
-                    : buildEditorPane(),
+                  ),
+                ),
               ),
             ),
 

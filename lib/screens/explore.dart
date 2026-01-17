@@ -1,4 +1,3 @@
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,10 +28,9 @@ import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:island/services/event_bus.dart';
-import 'package:island/widgets/share/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
-import 'package:island/widgets/posts/post_subscription_filter.dart';
+import 'package:island/widgets/post/filters/post_subscription_filter.dart';
 import 'package:island/pods/post/post_list.dart';
 
 class ExploreScreen extends HookConsumerWidget {
@@ -193,118 +191,66 @@ class ExploreScreen extends HookConsumerWidget {
             hasSubscriptionsSelected,
           );
 
-    final dragging = useState(false);
-
-    return DropTarget(
-      onDragDone: (detail) {
-        dragging.value = false;
-        if (detail.files.isNotEmpty) {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => ShareSheet.files(files: detail.files),
-          );
-        }
-      },
-      onDragEntered: (_) => dragging.value = true,
-      onDragExited: (_) => dragging.value = false,
-      child: Stack(
-        children: [
-          AppScaffold(
-            isNoBackground: false,
-            appBar: appBar,
-            floatingActionButton: userInfo.value != null
-                ? FloatingActionButton(
-                    child: const Icon(Symbols.create),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useRootNavigator: true,
-                        builder: (context) => Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Gap(40),
-                            ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Symbols.post_add_rounded),
-                              title: Text('postCompose').tr(),
-                              onTap: () async {
-                                Navigator.of(context).pop();
-                                await PostComposeSheet.show(context);
-                              },
-                            ),
-                            ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Symbols.article),
-                              title: Text('articleCompose').tr(),
-                              onTap: () async {
-                                Navigator.of(context).pop();
-                                GoRouter.of(
-                                  context,
-                                ).pushNamed('articleCompose');
-                              },
-                            ),
-                            const Gap(16),
-                          ],
-                        ),
-                      );
-                    },
-                  ).padding(bottom: MediaQuery.of(context).padding.bottom)
-                : null,
-            body: isWide
-                ? _buildWideBody(
-                    context,
-                    ref,
-                    filterBar,
-                    user,
-                    notificationCount,
-                    query,
-                    events,
-                    selectedDay,
-                    currentFilter.value,
-                    selectedPublisherNames,
-                    selectedCategoryIds,
-                    selectedTagIds,
-                  )
-                : _buildNarrowBody(context, ref, currentFilter.value),
-          ),
-          if (dragging.value)
-            Positioned.fill(
-              child: Container(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withOpacity(0.9),
-                child: Center(
-                  child: Column(
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: appBar,
+      floatingActionButton: userInfo.value != null
+          ? FloatingActionButton(
+              child: const Icon(Symbols.create),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Symbols.upload_file,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.primary,
+                      const Gap(40),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        leading: const Icon(Symbols.post_add_rounded),
+                        title: Text('postCompose').tr(),
+                        onTap: () async {
+                          Navigator.of(context).pop();
+                          await PostComposeSheet.show(context);
+                        },
+                      ),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        leading: const Icon(Symbols.article),
+                        title: Text('articleCompose').tr(),
+                        onTap: () async {
+                          Navigator.of(context).pop();
+                          GoRouter.of(context).pushNamed('articleCompose');
+                        },
                       ),
                       const Gap(16),
-                      Text(
-                        'dropToShare'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
                     ],
                   ),
-                ),
-              ),
-            ),
-        ],
-      ),
+                );
+              },
+            ).padding(bottom: MediaQuery.of(context).padding.bottom)
+          : null,
+      body: isWide
+          ? _buildWideBody(
+              context,
+              ref,
+              filterBar,
+              user,
+              notificationCount,
+              query,
+              events,
+              selectedDay,
+              currentFilter.value,
+              selectedPublisherNames,
+              selectedCategoryIds,
+              selectedTagIds,
+            )
+          : _buildNarrowBody(context, ref, currentFilter.value),
     );
   }
 

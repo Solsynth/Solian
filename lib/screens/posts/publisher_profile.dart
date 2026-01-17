@@ -25,7 +25,7 @@ import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/activity_heatmap.dart';
-import 'package:island/widgets/posts/post_filter.dart';
+import 'package:island/widgets/post/filters/post_filter.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

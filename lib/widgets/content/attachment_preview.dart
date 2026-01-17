@@ -95,6 +95,7 @@ class AttachmentPreview extends HookConsumerWidget {
   final bool isCompact;
   final String? thumbnailId;
   final Function(String?)? onSetThumbnail;
+  final bool bordered;
 
   const AttachmentPreview({
     super.key,
@@ -109,6 +110,7 @@ class AttachmentPreview extends HookConsumerWidget {
     this.isCompact = false,
     this.thumbnailId,
     this.onSetThumbnail,
+    this.bordered = false,
   });
 
   // GlobalKey for selector
@@ -475,7 +477,7 @@ class AttachmentPreview extends HookConsumerWidget {
             item.isOnCloud &&
             (item.data as SnCloudFile).id == thumbnailId)
           Positioned(
-            top: 8,
+            bottom: 8,
             right: 8,
             child: Container(
               padding: const EdgeInsets.all(6),
@@ -493,10 +495,19 @@ class AttachmentPreview extends HookConsumerWidget {
       ],
     );
 
-    final contentWidget = ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
+    final contentWidget = Container(
+      decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
+        border: bordered
+            ? Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                width: 1,
+              )
+            : null,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
         child: Stack(
           children: [
             if (ratio != null)

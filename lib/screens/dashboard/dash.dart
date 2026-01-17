@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -26,8 +27,10 @@ import 'package:island/models/activity.dart';
 import 'package:island/screens/notification.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:slide_countdown/slide_countdown.dart';
-import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/share/share_sheet.dart';
 import 'dart:async';
+
+import 'package:styled_widget/styled_widget.dart';
 
 class DashboardScreen extends HookConsumerWidget {
   const DashboardScreen({super.key});
@@ -51,77 +54,129 @@ class DashboardGrid extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider);
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: isWide
-            ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
-            : MediaQuery.sizeOf(context).height,
-      ),
-      padding: isWide
-          ? EdgeInsets.only(top: devicePadding.top)
-          : EdgeInsets.only(top: 24 + devicePadding.top),
-      child: Column(
-        spacing: 16,
-        mainAxisAlignment: MainAxisAlignment.center,
+    final dragging = useState(false);
+
+    return DropTarget(
+      onDragDone: (detail) {
+        dragging.value = false;
+        if (detail.files.isNotEmpty) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => ShareSheet.files(files: detail.files),
+          );
+        }
+      },
+      onDragEntered: (_) => dragging.value = true,
+      onDragExited: (_) => dragging.value = false,
+      child: Stack(
         children: [
-          // Clock card spans full width
-          if (isWide)
-            ClockCard().padding(horizontal: 24)
-          else
-            Row(
+          Container(
+            constraints: BoxConstraints(
+              maxHeight: isWide
+                  ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
+                  : MediaQuery.sizeOf(context).height,
+            ),
+            padding: isWide
+                ? EdgeInsets.only(top: devicePadding.top)
+                : EdgeInsets.only(top: 24 + devicePadding.top),
+            child: Column(
+              spacing: 16,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Gap(8),
-                Expanded(child: ClockCard(compact: true)),
-                IconButton(
-                  onPressed: () {
-                    eventBus.fire(CommandPaletteTriggerEvent());
-                  },
-                  icon: const Icon(Symbols.search),
-                  tooltip: 'searchAnything'.tr(),
-                ),
+                // Clock card spans full width
+                if (isWide)
+                  ClockCard().padding(horizontal: 24)
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Gap(8),
+                      Expanded(child: ClockCard(compact: true)),
+                      IconButton(
+                        onPressed: () {
+                          eventBus.fire(CommandPaletteTriggerEvent());
+                        },
+                        icon: const Icon(Symbols.search),
+                        tooltip: 'searchAnything'.tr(),
+                      ),
+                    ],
+                  ).padding(horizontal: 24),
+                // Row with two cards side by side
+                if (isWide)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
+                    child: SearchBar(
+                      hintText: 'searchAnything'.tr(),
+                      constraints: const BoxConstraints(minHeight: 56),
+                      leading: const Icon(
+                        Symbols.search,
+                      ).padding(horizontal: 24),
+                      readOnly: true,
+                      onTap: () {
+                        eventBus.fire(CommandPaletteTriggerEvent());
+                      },
+                    ),
+                  ),
+                if (userInfo.value != null)
+                  Expanded(
+                    child:
+                        SingleChildScrollView(
+                              padding: isWide
+                                  ? const EdgeInsets.symmetric(horizontal: 24)
+                                  : EdgeInsets.only(
+                                      bottom: 64 + devicePadding.bottom,
+                                    ),
+                              scrollDirection: isWide
+                                  ? Axis.horizontal
+                                  : Axis.vertical,
+                              child: isWide
+                                  ? _DashboardGridWide()
+                                  : _DashboardGridNarrow(),
+                            )
+                            .clipRRect(
+                              topLeft: isWide ? 0 : 12,
+                              topRight: isWide ? 0 : 12,
+                            )
+                            .padding(horizontal: isWide ? 0 : 16),
+                  )
+                else
+                  Center(
+                    child: _UnauthorizedCard(isWide: isWide),
+                  ).padding(horizontal: isWide ? 24 : 16),
               ],
-            ).padding(horizontal: 24),
-          // Row with two cards side by side
-          if (isWide)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
-              child: SearchBar(
-                hintText: 'searchAnything'.tr(),
-                constraints: const BoxConstraints(minHeight: 56),
-                leading: const Icon(Symbols.search).padding(horizontal: 24),
-                readOnly: true,
-                onTap: () {
-                  eventBus.fire(CommandPaletteTriggerEvent());
-                },
+            ),
+          ),
+          if (dragging.value)
+            Positioned.fill(
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withOpacity(0.9),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.upload_file,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const Gap(16),
+                      Text(
+                        'dropToShare'.tr(),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          if (userInfo.value != null)
-            Expanded(
-              child:
-                  SingleChildScrollView(
-                        padding: isWide
-                            ? const EdgeInsets.symmetric(horizontal: 24)
-                            : EdgeInsets.only(
-                                bottom: 64 + devicePadding.bottom,
-                              ),
-                        scrollDirection: isWide
-                            ? Axis.horizontal
-                            : Axis.vertical,
-                        child: isWide
-                            ? _DashboardGridWide()
-                            : _DashboardGridNarrow(),
-                      )
-                      .clipRRect(
-                        topLeft: isWide ? 0 : 12,
-                        topRight: isWide ? 0 : 12,
-                      )
-                      .padding(horizontal: isWide ? 0 : 16),
-            )
-          else
-            Center(
-              child: _UnauthorizedCard(isWide: isWide),
-            ).padding(horizontal: isWide ? 24 : 16),
         ],
       ),
     );
