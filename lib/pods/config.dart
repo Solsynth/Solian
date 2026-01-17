@@ -42,6 +42,7 @@ const kAppAskedReview = 'app_asked_review';
 const kAppDashSearchEngine = 'app_dash_search_engine';
 const kAppDefaultScreen = 'app_default_screen';
 const kAppShowFediverseContent = 'app_show_fediverse_content';
+const kAppDashboardConfig = 'app_dashboard_config';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -66,6 +67,19 @@ sealed class ThemeColors with _$ThemeColors {
 
   factory ThemeColors.fromJson(Map<String, dynamic> json) =>
       _$ThemeColorsFromJson(json);
+}
+
+@freezed
+sealed class DashboardConfig with _$DashboardConfig {
+  factory DashboardConfig({
+    required List<String> verticalLayouts,
+    required List<String> horizontalLayouts,
+    required bool showSearchBar,
+    required bool showClockAndCountdown,
+  }) = _DashboardConfig;
+
+  factory DashboardConfig.fromJson(Map<String, dynamic> json) =>
+      _$DashboardConfigFromJson(json);
 }
 
 @freezed
@@ -94,6 +108,7 @@ sealed class AppSettings with _$AppSettings {
     required String? dashSearchEngine,
     required String? defaultScreen,
     required bool showFediverseContent,
+    required DashboardConfig? dashboardConfig,
   }) = _AppSettings;
 }
 
@@ -126,6 +141,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
       showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
+      dashboardConfig: _getDashboardConfigFromPrefs(prefs),
     );
   }
 
@@ -153,6 +169,18 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     try {
       final json = jsonDecode(jsonString);
       return ThemeColors.fromJson(json);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  DashboardConfig? _getDashboardConfigFromPrefs(SharedPreferences prefs) {
+    final jsonString = prefs.getString(kAppDashboardConfig);
+    if (jsonString == null) return null;
+
+    try {
+      final json = jsonDecode(jsonString);
+      return DashboardConfig.fromJson(json);
     } catch (e) {
       return null;
     }
@@ -323,6 +351,17 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppShowFediverseContent, value);
     state = state.copyWith(showFediverseContent: value);
+  }
+
+  void setDashboardConfig(DashboardConfig? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      final json = jsonEncode(value.toJson());
+      prefs.setString(kAppDashboardConfig, json);
+    } else {
+      prefs.remove(kAppDashboardConfig);
+    }
+    state = state.copyWith(dashboardConfig: value);
   }
 }
 

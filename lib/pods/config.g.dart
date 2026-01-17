@@ -25,6 +25,26 @@ Map<String, dynamic> _$ThemeColorsToJson(_ThemeColors instance) =>
       'error': instance.error,
     };
 
+_DashboardConfig _$DashboardConfigFromJson(Map<String, dynamic> json) =>
+    _DashboardConfig(
+      verticalLayouts: (json['vertical_layouts'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      horizontalLayouts: (json['horizontal_layouts'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      showSearchBar: json['show_search_bar'] as bool,
+      showClockAndCountdown: json['show_clock_and_countdown'] as bool,
+    );
+
+Map<String, dynamic> _$DashboardConfigToJson(_DashboardConfig instance) =>
+    <String, dynamic>{
+      'vertical_layouts': instance.verticalLayouts,
+      'horizontal_layouts': instance.horizontalLayouts,
+      'show_search_bar': instance.showSearchBar,
+      'show_clock_and_countdown': instance.showClockAndCountdown,
+    };
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
@@ -65,7 +85,7 @@ final class AppSettingsNotifierProvider
 }
 
 String _$appSettingsNotifierHash() =>
-    r'64cf6dfda90fc634336d96bd5313b2a07b19eccb';
+    r'0a7f75bd95850b0c564b29c57912ec8fcac53f09';
 
 abstract class _$AppSettingsNotifier extends $Notifier<AppSettings> {
   AppSettings build();

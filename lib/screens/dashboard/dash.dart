@@ -31,6 +31,8 @@ import 'package:island/widgets/share/share_sheet.dart';
 import 'dart:async';
 
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/screens/dashboard/dash_customize.dart';
+import 'package:island/pods/config.dart';
 
 class DashboardScreen extends HookConsumerWidget {
   const DashboardScreen({super.key});
@@ -43,6 +45,106 @@ class DashboardScreen extends HookConsumerWidget {
     );
   }
 }
+
+// Helper functions for dynamic dashboard rendering
+class DashboardRenderer {
+  // Map individual card IDs to widgets
+  static Widget buildCard(String cardId, WidgetRef ref) {
+    switch (cardId) {
+      case 'checkIn':
+        return CheckInWidget(margin: EdgeInsets.zero);
+      case 'fortuneGraph':
+        return Card(
+          margin: EdgeInsets.zero,
+          child: FortuneGraphWidget(
+            events: ref.watch(
+              eventCalendarProvider(
+                EventCalendarQuery(
+                  uname: 'me',
+                  year: DateTime.now().year,
+                  month: DateTime.now().month,
+                ),
+              ),
+            ),
+          ),
+        );
+      case 'fortuneCard':
+        return FortuneCard(unlimited: true);
+      case 'postFeatured':
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 400),
+          child: PostFeaturedList(),
+        );
+      case 'friendsOverview':
+        return FriendsOverviewWidget();
+      case 'notifications':
+        return NotificationsCard();
+      case 'chatList':
+        return ChatListCard();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  // Map column group IDs to column widgets
+  static Widget buildColumn(String columnId, WidgetRef ref) {
+    switch (columnId) {
+      case 'activityColumn':
+        return SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [
+              CheckInWidget(margin: EdgeInsets.zero),
+              Card(
+                margin: EdgeInsets.zero,
+                child: FortuneGraphWidget(
+                  events: ref.watch(
+                    eventCalendarProvider(
+                      EventCalendarQuery(
+                        uname: 'me',
+                        year: DateTime.now().year,
+                        month: DateTime.now().month,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: FortuneCard()),
+            ],
+          ),
+        );
+      case 'postsColumn':
+        return SizedBox(
+          width: 400,
+          child: PostFeaturedList(collapsable: false),
+        );
+      case 'socialColumn':
+        return SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [
+              FriendsOverviewWidget(),
+              Expanded(child: NotificationsCard()),
+            ],
+          ),
+        );
+      case 'chatsColumn':
+        return SizedBox(
+          width: 400,
+          child: Column(
+            spacing: 16,
+            children: [Expanded(child: ChatListCard())],
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+}
+
+
 
 class DashboardGrid extends HookConsumerWidget {
   const DashboardGrid({super.key});
@@ -148,6 +250,42 @@ class DashboardGrid extends HookConsumerWidget {
               ],
             ),
           ),
+          // Customize button
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: TextButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => const DashboardCustomizationSheet(),
+                );
+              },
+              icon: Icon(
+                Symbols.tune,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: Text(
+                'customize',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
           if (dragging.value)
             Positioned.fill(
               child: Container(
@@ -189,55 +327,26 @@ class _DashboardGridWide extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoProvider);
+    final appSettings = ref.watch(appSettingsProvider);
+
+    final List<Widget> children = [];
+
+    // Always include account unactivated card if user is not activated
+    if (userInfo.value != null && userInfo.value?.activatedAt == null) {
+      children.add(SizedBox(width: 400, child: AccountUnactivatedCard()));
+    }
+
+    // Add configured columns in the specified order
+    final horizontalLayouts = appSettings.dashboardConfig?.horizontalLayouts ??
+        ['activityColumn', 'postsColumn', 'socialColumn', 'chatsColumn'];
+
+    for (final columnId in horizontalLayouts) {
+      children.add(DashboardRenderer.buildColumn(columnId, ref));
+    }
 
     return Row(
       spacing: 16,
-      children: [
-        if (userInfo.value != null && userInfo.value?.activatedAt == null)
-          SizedBox(width: 400, child: AccountUnactivatedCard()),
-        SizedBox(
-          width: 400,
-          child: Column(
-            spacing: 16,
-            children: [
-              CheckInWidget(margin: EdgeInsets.zero),
-              Card(
-                margin: EdgeInsets.zero,
-                child: FortuneGraphWidget(
-                  events: ref.watch(
-                    eventCalendarProvider(
-                      EventCalendarQuery(
-                        uname: 'me',
-                        year: DateTime.now().year,
-                        month: DateTime.now().month,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(child: FortuneCard()),
-            ],
-          ),
-        ),
-        SizedBox(width: 400, child: PostFeaturedList(collapsable: false)),
-        SizedBox(
-          width: 400,
-          child: Column(
-            spacing: 16,
-            children: [
-              FriendsOverviewWidget(),
-              Expanded(child: NotificationsCard()),
-            ],
-          ),
-        ),
-        SizedBox(
-          width: 400,
-          child: Column(
-            spacing: 16,
-            children: [Expanded(child: ChatListCard())],
-          ),
-        ),
-      ],
+      children: children,
     );
   }
 }
@@ -248,36 +357,26 @@ class _DashboardGridNarrow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoProvider);
+    final appSettings = ref.watch(appSettingsProvider);
+
+    final List<Widget> children = [];
+
+    // Always include account unactivated card if user is not activated
+    if (userInfo.value != null && userInfo.value?.activatedAt == null) {
+      children.add(AccountUnactivatedCard());
+    }
+
+    // Add configured cards in the specified order
+    final verticalLayouts = appSettings.dashboardConfig?.verticalLayouts ??
+        ['checkIn', 'fortuneCard', 'postFeatured', 'friendsOverview', 'notifications', 'chatList', 'fortuneGraph'];
+
+    for (final cardId in verticalLayouts) {
+      children.add(DashboardRenderer.buildCard(cardId, ref));
+    }
 
     return Column(
       spacing: 16,
-      children: [
-        if (userInfo.value != null && userInfo.value?.activatedAt == null)
-          AccountUnactivatedCard(),
-        CheckInWidget(margin: EdgeInsets.zero),
-        FortuneCard(unlimited: true),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
-          child: PostFeaturedList(),
-        ),
-        FriendsOverviewWidget(),
-        NotificationsCard(),
-        ChatListCard(),
-        Card(
-          margin: EdgeInsets.zero,
-          child: FortuneGraphWidget(
-            events: ref.watch(
-              eventCalendarProvider(
-                EventCalendarQuery(
-                  uname: 'me',
-                  year: DateTime.now().year,
-                  month: DateTime.now().month,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      children: children,
     );
   }
 }

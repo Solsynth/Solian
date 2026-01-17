@@ -1597,5 +1597,6 @@
   "unsetAsThumbnail": "Unset as thumbnail",
   "sidebar": "Sidebar",
   "dropFilesHere": "Drop your files here",
-  "dragAndDropToAttach": "Drag your files here to attach it"
+  "dragAndDropToAttach": "Drag your files here to attach it",
+  "customize": "Customize"
 }
