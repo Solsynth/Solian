@@ -285,7 +285,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
         if (availableCards.isNotEmpty)
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -117,7 +117,14 @@ class DashboardRenderer {
       case 'postsColumn':
         return SizedBox(
           width: 400,
-          child: PostFeaturedList(collapsable: false),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return PostFeaturedList(
+                collapsable: false,
+                maxHeight: constraints.maxHeight,
+              );
+            },
+          ),
         );
       case 'socialColumn':
         return SizedBox(
@@ -153,6 +160,7 @@ class DashboardGrid extends HookConsumerWidget {
     final devicePadding = MediaQuery.paddingOf(context);
 
     final userInfo = ref.watch(userInfoProvider);
+    final appSettings = ref.watch(appSettingsProvider);
 
     final dragging = useState(false);
 
@@ -185,26 +193,32 @@ class DashboardGrid extends HookConsumerWidget {
               spacing: 16,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Clock card spans full width
-                if (isWide)
+                // Clock card spans full width (only if enabled in settings)
+                if (isWide &&
+                    (appSettings.dashboardConfig?.showClockAndCountdown ??
+                        true))
                   ClockCard().padding(horizontal: 24)
-                else
+                else if (!isWide)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Gap(8),
-                      Expanded(child: ClockCard(compact: true)),
-                      IconButton(
-                        onPressed: () {
-                          eventBus.fire(CommandPaletteTriggerEvent());
-                        },
-                        icon: const Icon(Symbols.search),
-                        tooltip: 'searchAnything'.tr(),
-                      ),
+                      if (appSettings.dashboardConfig?.showClockAndCountdown ??
+                          true)
+                        Expanded(child: ClockCard(compact: true)),
+                      if (appSettings.dashboardConfig?.showSearchBar ?? true)
+                        IconButton(
+                          onPressed: () {
+                            eventBus.fire(CommandPaletteTriggerEvent());
+                          },
+                          icon: const Icon(Symbols.search),
+                          tooltip: 'searchAnything'.tr(),
+                        ),
                     ],
                   ).padding(horizontal: 24),
-                // Row with two cards side by side
-                if (isWide)
+                // Row with two cards side by side (only if enabled in settings)
+                if (isWide &&
+                    (appSettings.dashboardConfig?.showSearchBar ?? true))
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
                     child: SearchBar(
@@ -250,7 +264,7 @@ class DashboardGrid extends HookConsumerWidget {
           ),
           // Customize button
           Positioned(
-            bottom: 16,
+            bottom: isWide ? 16 : 16 + devicePadding.bottom,
             right: 16,
             child: TextButton.icon(
               onPressed: () {
