@@ -414,7 +414,6 @@ class PostComposeCard extends HookConsumerWidget {
               child: ComposeToolbar(
                 state: composeState,
                 originalPost: originalPost,
-                isCompact: true,
                 useSafeArea: isContained,
               ),
             ),

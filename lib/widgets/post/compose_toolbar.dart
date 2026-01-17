@@ -13,14 +13,12 @@ import 'package:styled_widget/styled_widget.dart';
 class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
   final SnPost? originalPost;
-  final bool isCompact;
   final bool useSafeArea;
 
   const ComposeToolbar({
     super.key,
     required this.state,
     this.originalPost,
-    this.isCompact = false,
     this.useSafeArea = false,
   });
 
@@ -95,163 +93,9 @@ class ComposeToolbar extends HookConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (isCompact) {
-      return Material(
-        elevation: 8,
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child:
-                Row(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            UploadMenu(
-                              items: uploadMenuItems,
-                              isCompact: isCompact,
-                            ),
-                            IconButton(
-                              onPressed: linkAttachment,
-                              icon: const Icon(Symbols.attach_file),
-                              tooltip: 'linkAttachment'.tr(),
-                              color: colorScheme.primary,
-                              visualDensity: const VisualDensity(
-                                horizontal: -4,
-                                vertical: -2,
-                              ),
-                            ),
-                            // Poll button with visual state when a poll is linked
-                            ListenableBuilder(
-                              listenable: state.pollId,
-                              builder: (context, _) {
-                                return IconButton(
-                                  onPressed: pickPoll,
-                                  icon: const Icon(Symbols.how_to_vote),
-                                  tooltip: 'poll'.tr(),
-                                  color: colorScheme.primary,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -2,
-                                  ),
-                                  style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(
-                                      state.pollId.value != null
-                                          ? colorScheme.primary.withOpacity(
-                                              0.15,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            // Fund button with visual state when a fund is linked
-                            ListenableBuilder(
-                              listenable: state.fundId,
-                              builder: (context, _) {
-                                return IconButton(
-                                  onPressed: pickFund,
-                                  icon: const Icon(
-                                    Symbols.account_balance_wallet,
-                                  ),
-                                  tooltip: 'fund'.tr(),
-                                  color: colorScheme.primary,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -2,
-                                  ),
-                                  style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(
-                                      state.fundId.value != null
-                                          ? colorScheme.primary.withOpacity(
-                                              0.15,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            // Embed button with visual state when embed is present
-                            ListenableBuilder(
-                              listenable: state.embedView,
-                              builder: (context, _) {
-                                return IconButton(
-                                  onPressed: showEmbedSheet,
-                                  icon: const Icon(Symbols.iframe),
-                                  tooltip: 'embedView'.tr(),
-                                  color: colorScheme.primary,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -2,
-                                  ),
-                                  style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(
-                                      state.embedView.value != null
-                                          ? colorScheme.primary.withOpacity(
-                                              0.15,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (originalPost == null && state.isEmpty)
-                      IconButton(
-                        icon: const Icon(Symbols.draft, size: 20),
-                        color: colorScheme.primary,
-                        onPressed: showDraftManager,
-                        tooltip: 'drafts'.tr(),
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 48,
-                        ),
-                      )
-                    else if (originalPost == null)
-                      IconButton(
-                        icon: const Icon(Symbols.save, size: 20),
-                        color: colorScheme.primary,
-                        onPressed: saveDraft,
-                        onLongPress: showDraftManager,
-                        tooltip: 'saveDraft'.tr(),
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 48,
-                        ),
-                      ),
-                  ],
-                ).padding(
-                  horizontal: 16,
-                  top: 4,
-                  bottom: useSafeArea
-                      ? MediaQuery.of(context).padding.bottom + 4
-                      : 4,
-                ),
-          ),
-        ),
-      );
-    }
-
     return Material(
-      elevation: 4,
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      elevation: 8,
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
@@ -263,10 +107,7 @@ class ComposeToolbar extends HookConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          UploadMenu(
-                            items: uploadMenuItems,
-                            isCompact: isCompact,
-                          ),
+                          UploadMenu(items: uploadMenuItems),
                           IconButton(
                             onPressed: linkAttachment,
                             icon: const Icon(Symbols.attach_file),
