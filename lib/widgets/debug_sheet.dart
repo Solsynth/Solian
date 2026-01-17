@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/audio.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/update_service.dart';
@@ -131,17 +130,26 @@ class DebugSheet extends HookConsumerWidget {
             const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.play_arrow),
+              leading: const Icon(Symbols.error),
               trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('Play untitled'),
-              onTap: () async {
-                final synth = MiniSampleSynth(
-                  sampleAsset: 'assets/audio/messages.mp3',
-                  baseNote: 60,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test Error Alert'),
+              onTap: () {
+                showErrorAlert(
+                  'This is a test error message for debugging purposes.',
                 );
-                await synth.playMidiAsset(
-                  'assets/midi/never-gonna-give-you-up.mid',
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.info),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test Info Alert'),
+              onTap: () {
+                showInfoAlert(
+                  'This is a test info message for debugging purposes.',
+                  'Test Alert',
                 );
               },
             ),

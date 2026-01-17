@@ -7,8 +7,10 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/main.dart';
 import 'package:island/models/account.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/notification.dart';
 import 'package:island/talker.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -241,7 +243,22 @@ bool closeTopmostOverlayDialog() {
 
 const kDialogMaxWidth = 480.0;
 
+Future<void> _playSfx(String assetPath, double volume) async {
+  final player = AudioPlayer();
+  await player.setVolume(volume);
+  await player.setAudioSource(AudioSource.asset(assetPath));
+  await player.play();
+  await player.dispose();
+}
+
 void showErrorAlert(dynamic err, {IconData? icon}) {
+  final context = globalOverlay.currentState!.context;
+  final ref = ProviderScope.containerOf(context);
+  final settings = ref.read(appSettingsProvider);
+  if (settings.soundEffects) {
+    unawaited(_playSfx('assets/audio/alert.reversed.wav', 0.75));
+  }
+
   if (err is Error) {
     talker.error('Something went wrong...', err, err.stackTrace);
   }
@@ -292,6 +309,13 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
 }
 
 void showInfoAlert(String message, String title, {IconData? icon}) {
+  final context = globalOverlay.currentState!.context;
+  final ref = ProviderScope.containerOf(context);
+  final settings = ref.read(appSettingsProvider);
+  if (settings.soundEffects) {
+    unawaited(_playSfx('assets/audio/alert.wav', 0.75));
+  }
+
   showOverlayDialog<void>(
     builder: (context, close) => ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
