@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -19,7 +18,7 @@ import 'package:island/services/file_uploader.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/utils/file_icon_utils.dart';
 import 'package:island/utils/format.dart';
-import 'package:island/utils/text.dart';
+
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/paging/pagination_list.dart';
@@ -40,6 +39,7 @@ class FileListView extends HookConsumerWidget {
   final Function(BuildContext, ValueNotifier<String>) onShowCreateDirectory;
   final ValueNotifier<FileListMode> mode;
   final ValueNotifier<FileListViewMode> viewMode;
+  final ValueNotifier<bool> isSelectionMode;
 
   const FileListView({
     required this.usage,
@@ -50,6 +50,7 @@ class FileListView extends HookConsumerWidget {
     required this.onShowCreateDirectory,
     required this.mode,
     required this.viewMode,
+    required this.isSelectionMode,
     super.key,
   });
 
@@ -159,16 +160,99 @@ class FileListView extends HookConsumerWidget {
       ),
     };
 
-    late Widget pathContent;
+    late Widget pathWidget;
     if (mode.value == FileListMode.unindexed) {
-      pathContent = const Text(
-        'Unindexed Files',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      pathWidget = InkWell(
+        onTap: () async {
+          final result = await showMenu<String>(
+            context: context,
+            position: const RelativeRect.fromLTRB(50, 100, 50, 100),
+            items: [
+              PopupMenuItem<String>(
+                value: 'root',
+                child: Row(
+                  children: [
+                    Icon(Symbols.folder),
+                    const Gap(12),
+                    Text('Root Directory'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'unindexed',
+                child: Row(
+                  children: [
+                    Icon(Symbols.inventory_2),
+                    const Gap(12),
+                    Text('Unindexed Files'),
+                  ],
+                ),
+              ),
+            ],
+          );
+          if (result == 'root') {
+            mode.value = FileListMode.normal;
+            currentPath.value = '/';
+          }
+          // 'unindexed' does nothing as we're already in unindexed mode
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.inventory_2, size: 20),
+            const Gap(8),
+            const Text(
+              'Unindexed Files',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
       );
     } else if (currentPath.value == '/') {
-      pathContent = const Text(
-        'Root Directory',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      pathWidget = InkWell(
+        onTap: () async {
+          final result = await showMenu<String>(
+            context: context,
+            position: const RelativeRect.fromLTRB(50, 100, 50, 100),
+            items: [
+              PopupMenuItem<String>(
+                value: 'unindexed',
+                child: Row(
+                  children: [
+                    Icon(Symbols.inventory_2),
+                    const Gap(12),
+                    Text('Unindexed Files'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'root',
+                child: Row(
+                  children: [
+                    Icon(Symbols.folder),
+                    const Gap(12),
+                    Text('Root Directory'),
+                  ],
+                ),
+              ),
+            ],
+          );
+          if (result == 'unindexed') {
+            mode.value = FileListMode.unindexed;
+          }
+          // 'root' does nothing as we're already at root
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.folder, size: 20),
+            const Gap(8),
+            const Text(
+              'Root Directory',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
       );
     } else {
       final pathParts = currentPath.value
@@ -181,7 +265,17 @@ class FileListView extends HookConsumerWidget {
       breadcrumbs.add(
         InkWell(
           onTap: () => currentPath.value = '/',
-          child: const Text('Root'),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Symbols.folder, size: 20),
+              const Gap(4),
+              const Text(
+                'Root',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ],
+          ),
         ),
       );
 
@@ -197,7 +291,7 @@ class FileListView extends HookConsumerWidget {
           breadcrumbs.add(
             Text(
               pathParts[i],
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           );
         } else {
@@ -205,13 +299,16 @@ class FileListView extends HookConsumerWidget {
           breadcrumbs.add(
             InkWell(
               onTap: () => currentPath.value = path,
-              child: Text(pathParts[i]),
+              child: Text(
+                pathParts[i],
+                style: const TextStyle(color: Colors.blue),
+              ),
             ),
           );
         }
       }
 
-      pathContent = Wrap(
+      pathWidget = Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: breadcrumbs,
       );
@@ -263,10 +360,48 @@ class FileListView extends HookConsumerWidget {
             ? Theme.of(context).primaryColor.withOpacity(0.1)
             : null,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Gap(12),
-            _buildGlobalFilters(
+
+            // Breadcrumbs and view switch at the top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AbsorbPointer(
+                      absorbing: isRefreshing,
+                      child: pathWidget,
+                    ),
+                  ),
+                  const Gap(12),
+                  SegmentedButton<FileListViewMode>(
+                    segments: const [
+                      ButtonSegment<FileListViewMode>(
+                        value: FileListViewMode.list,
+                        icon: Icon(Symbols.list),
+                        tooltip: 'List View',
+                      ),
+                      ButtonSegment<FileListViewMode>(
+                        value: FileListViewMode.waterfall,
+                        icon: Icon(Symbols.view_module),
+                        tooltip: 'Waterfall View',
+                      ),
+                    ],
+                    selected: {viewMode.value},
+                    onSelectionChanged: (Set<FileListViewMode> newSelection) {
+                      viewMode.value = newSelection.first;
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const Gap(12),
+
+            // Chip-based filters
+            _buildChipFilters(
               ref,
               poolsAsync,
               selectedPool,
@@ -280,128 +415,8 @@ class FileListView extends HookConsumerWidget {
               orderDesc,
               queryDebounceTimer,
             ),
-            const Gap(6),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        mode.value == FileListMode.unindexed
-                            ? Symbols.inventory_2
-                            : currentPath.value != '/'
-                            ? Symbols.arrow_back
-                            : Symbols.folder,
-                      ),
-                      onPressed: isRefreshing
-                          ? null
-                          : () {
-                              if (mode.value == FileListMode.unindexed) {
-                                mode.value = FileListMode.normal;
-                                currentPath.value = '/';
-                              } else {
-                                final pathParts = currentPath.value
-                                    .split('/')
-                                    .where((part) => part.isNotEmpty)
-                                    .toList();
-                                if (pathParts.isNotEmpty) {
-                                  pathParts.removeLast();
-                                  currentPath.value = pathParts.isEmpty
-                                      ? '/'
-                                      : '/${pathParts.join('/')}';
-                                }
-                              }
-                            },
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
-                      ),
-                    ),
-                    const Gap(8),
-                    Expanded(
-                      child: AbsorbPointer(
-                        absorbing: isRefreshing,
-                        child: pathContent,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        viewMode.value == FileListViewMode.list
-                            ? Symbols.view_module
-                            : Symbols.list,
-                      ),
-                      onPressed: () => viewMode.value =
-                          viewMode.value == FileListViewMode.list
-                          ? FileListViewMode.waterfall
-                          : FileListViewMode.list,
-                      tooltip: viewMode.value == FileListViewMode.list
-                          ? 'Switch to Waterfall View'
-                          : 'Switch to List View',
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        isSelectionMode.value
-                            ? Symbols.close
-                            : Symbols.select_check_box,
-                      ),
-                      onPressed: () =>
-                          isSelectionMode.value = !isSelectionMode.value,
-                      tooltip: isSelectionMode.value
-                          ? 'Exit Selection Mode'
-                          : 'Enter Selection Mode',
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
-                      ),
-                    ),
-                    if (mode.value == FileListMode.normal)
-                      IconButton(
-                        icon: const Icon(Symbols.create_new_folder),
-                        onPressed: () =>
-                            onShowCreateDirectory(ref.context, currentPath),
-                        tooltip: 'Create Directory',
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                      ),
-                    if (mode.value == FileListMode.unindexed)
-                      IconButton(
-                        icon: Icon(
-                          recycled.value
-                              ? Symbols.delete_forever
-                              : Symbols.restore_from_trash,
-                        ),
-                        onPressed: () {
-                          recycled.value = !recycled.value;
-                          unindexedNotifier.setRecycled(recycled.value);
-                        },
-                        tooltip: recycled.value
-                            ? 'Show Active Files'
-                            : 'Show Recycle Bin',
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                      ),
-                    IconButton(
-                      icon: const Icon(Symbols.upload_file),
-                      onPressed: onPickAndUpload,
-                      tooltip: 'Upload File',
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ).padding(horizontal: 8),
+            const Gap(8),
+
             if (mode.value == FileListMode.unindexed && recycled.value)
               _buildClearRecycledButton(ref).padding(horizontal: 8),
             if (isRefreshing)
@@ -409,8 +424,6 @@ class FileListView extends HookConsumerWidget {
                 minHeight: 4,
               ).padding(horizontal: 16, top: 6, bottom: 4),
             const Gap(8),
-            if (mode.value == FileListMode.normal && currentPath.value == '/')
-              _buildUnindexedFilesEntry(ref).padding(bottom: 12),
             Expanded(
               child:
                   CustomScrollView(
@@ -647,35 +660,6 @@ class FileListView extends HookConsumerWidget {
         },
       ),
     };
-  }
-
-  Widget _buildUnindexedFilesEntry(WidgetRef ref) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(ref.context).colorScheme.outline),
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      child: InkWell(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              const Icon(Symbols.inventory_2).padding(horizontal: 8),
-              const Gap(8),
-              const Text('Unindexed Files').bold(),
-              const Spacer(),
-              const Icon(Symbols.chevron_right).padding(horizontal: 8),
-            ],
-          ),
-        ),
-        onTap: () {
-          mode.value = FileListMode.unindexed;
-          currentPath.value = '/';
-        },
-      ),
-    );
   }
 
   Widget _buildEmptyDirectoryHint(
@@ -1349,7 +1333,7 @@ class FileListView extends HookConsumerWidget {
     );
   }
 
-  Widget _buildGlobalFilters(
+  Widget _buildChipFilters(
     WidgetRef ref,
     AsyncValue<List<SnFilePool>> poolsAsync,
     ValueNotifier<SnFilePool?> selectedPool,
@@ -1363,187 +1347,232 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<bool> orderDesc,
     ObjectRef<Timer?> queryDebounceTimer,
   ) {
-    final poolDropdownItems = poolsAsync.when(
-      data: (pools) => [
-        const DropdownMenuItem<SnFilePool>(
-          value: null,
-          child: Text('All Pools', style: TextStyle(fontSize: 14)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search bar below chips
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: SearchBar(
+            constraints: const BoxConstraints(minHeight: 48),
+            elevation: WidgetStatePropertyAll(2),
+            hintText: 'Search files...',
+            onChanged: (value) {
+              queryDebounceTimer.value?.cancel();
+              queryDebounceTimer.value = Timer(
+                const Duration(milliseconds: 300),
+                () {
+                  query.value = value.isEmpty ? null : value;
+                },
+              );
+            },
+            leading: const Icon(Symbols.search).padding(horizontal: 24),
+          ),
         ),
-        ...pools.map(
-          (p) => DropdownMenuItem<SnFilePool>(
-            value: p,
-            child: Text(p.name, style: const TextStyle(fontSize: 14)),
+
+        const Gap(12),
+
+        // Chips row
+        SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Pool filter dropdown
+              Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(
+                      ref.context,
+                    ).colorScheme.outline.withOpacity(0.5),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<SnFilePool>(
+                    value: selectedPool.value,
+                    items: [
+                      const DropdownMenuItem<SnFilePool>(
+                        value: null,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Symbols.database, size: 16),
+                            Gap(6),
+                            Text('All files', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      ...poolsAsync.maybeWhen(
+                        data: (pools) => pools.map(
+                          (pool) => DropdownMenuItem<SnFilePool>(
+                            value: pool,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Symbols.database, size: 16),
+                                Gap(6),
+                                Text(
+                                  pool.name,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        orElse: () => <DropdownMenuItem<SnFilePool>>[],
+                      ),
+                    ],
+                    onChanged: isRefreshing
+                        ? null
+                        : (value) {
+                            selectedPool.value = value;
+                            if (mode.value == FileListMode.unindexed) {
+                              unindexedNotifier.setPool(value?.id);
+                            } else {
+                              cloudNotifier.setPool(value?.id);
+                            }
+                          },
+                    icon: const Icon(Symbols.arrow_drop_down, size: 16),
+                    isDense: true,
+                  ),
+                ),
+              ),
+
+              const Gap(8),
+
+              // Order filter dropdown
+              Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(
+                      ref.context,
+                    ).colorScheme.outline.withOpacity(0.5),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: order.value ?? 'date',
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: 'date',
+                        child: Row(
+                          spacing: 6,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Symbols.schedule, size: 16),
+                            Text('Date', style: const TextStyle(fontSize: 12)),
+                            if (order.value == 'date')
+                              Icon(
+                                orderDesc.value
+                                    ? Symbols.arrow_downward
+                                    : Symbols.arrow_upward,
+                                size: 14,
+                              ),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'size',
+                        child: Row(
+                          spacing: 6,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Symbols.data_usage, size: 16),
+                            Text(
+                              'fileSize'.tr(),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            if (order.value == 'size')
+                              Icon(
+                                orderDesc.value
+                                    ? Symbols.arrow_downward
+                                    : Symbols.arrow_upward,
+                                size: 16,
+                              ),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'name',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 6,
+                          children: [
+                            Icon(Symbols.sort_by_alpha, size: 16),
+                            Text(
+                              'fileName'.tr(),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            if (order.value == 'name')
+                              Icon(
+                                orderDesc.value
+                                    ? Symbols.arrow_downward
+                                    : Symbols.arrow_upward,
+                                size: 16,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value == order.value) {
+                        // Toggle direction if same option selected
+                        final newValue = !orderDesc.value;
+                        orderDesc.value = newValue;
+                        if (mode.value == FileListMode.unindexed) {
+                          unindexedNotifier.setOrderDesc(newValue);
+                        } else {
+                          cloudNotifier.setOrderDesc(newValue);
+                        }
+                      } else {
+                        // Change sort option
+                        order.value = value;
+                        if (mode.value == FileListMode.unindexed) {
+                          unindexedNotifier.setOrder(value);
+                        } else {
+                          cloudNotifier.setOrder(value);
+                        }
+                      }
+                    },
+                    icon: const SizedBox.shrink(),
+                    isDense: true,
+                  ),
+                ),
+              ),
+
+              const Gap(8),
+
+              // Refresh chip
+              FilterChip(
+                label: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 6,
+                  children: [
+                    Icon(Symbols.refresh, size: 16),
+                    Text('Refresh', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                selected: false,
+                onSelected: (selected) {
+                  if (selected) {
+                    if (mode.value == FileListMode.unindexed) {
+                      ref.invalidate(unindexedFileListProvider);
+                    } else {
+                      cloudNotifier.setPath(currentPath.value);
+                    }
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ],
-      loading: () => const <DropdownMenuItem<SnFilePool>>[],
-      error: (err, stack) => const <DropdownMenuItem<SnFilePool>>[],
     );
-
-    final poolDropdown = DropdownButtonHideUnderline(
-      child: DropdownButton2<SnFilePool>(
-        value: selectedPool.value,
-        items: poolDropdownItems,
-        onChanged: isRefreshing
-            ? null
-            : (value) {
-                selectedPool.value = value;
-                if (mode.value == FileListMode.unindexed) {
-                  unindexedNotifier.setPool(value?.id);
-                } else {
-                  cloudNotifier.setPool(value?.id);
-                }
-              },
-        customButton: Container(
-          height: 28,
-          width: 200,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(ref.context).colorScheme.outline,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 6,
-            children: [
-              const Icon(Symbols.pool, size: 16),
-              Flexible(
-                child: Text(
-                  selectedPool.value?.name ?? 'All files',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ).fontSize(12),
-              ),
-            ],
-          ).height(24),
-        ),
-        buttonStyleData: const ButtonStyleData(
-          padding: EdgeInsets.zero,
-          height: 28,
-          width: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
-        ),
-        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
-      ),
-    );
-
-    final queryField = SizedBox(
-      width: 200,
-      height: 28,
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'fileName'.tr(),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 6,
-          ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        style: const TextStyle(fontSize: 13, height: 1),
-        onChanged: (value) {
-          queryDebounceTimer.value?.cancel();
-          queryDebounceTimer.value = Timer(
-            const Duration(milliseconds: 300),
-            () {
-              query.value = value.isEmpty ? null : value;
-            },
-          );
-        },
-      ),
-    );
-
-    final orderDropdown = DropdownButtonHideUnderline(
-      child: DropdownButton2<String>(
-        value: order.value,
-        items: ['date', 'size', 'name']
-            .map(
-              (e) => DropdownMenuItem(
-                value: e,
-                child: Text(
-                  e == 'date' ? e : 'file${e.capitalizeEachWord()}',
-                  style: const TextStyle(fontSize: 14),
-                ).tr(),
-              ),
-            )
-            .toList(),
-        onChanged: (value) => order.value = value,
-        customButton: Container(
-          height: 28,
-          width: 80,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(ref.context).colorScheme.outline,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              (order.value ?? 'date') == 'date'
-                  ? (order.value ?? 'date')
-                  : 'file${order.value?.capitalizeEachWord()}',
-              style: const TextStyle(fontSize: 12),
-            ).tr(),
-          ),
-        ),
-        buttonStyleData: const ButtonStyleData(
-          height: 28,
-          width: 80,
-          padding: EdgeInsets.zero,
-        ),
-        dropdownStyleData: const DropdownStyleData(maxHeight: 200),
-      ),
-    );
-
-    final orderDescToggle = IconButton(
-      icon: Icon(
-        orderDesc.value ? Symbols.arrow_upward : Symbols.arrow_downward,
-      ),
-      onPressed: () {
-        final newValue = !orderDesc.value;
-        orderDesc.value = newValue;
-        if (mode.value == FileListMode.unindexed) {
-          unindexedNotifier.setOrderDesc(newValue);
-        } else {
-          cloudNotifier.setOrderDesc(newValue);
-        }
-      },
-      tooltip: orderDesc.value ? 'descendingOrder'.tr() : 'ascendingOrder'.tr(),
-      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-    );
-
-    final refreshButton = IconButton(
-      icon: const Icon(Symbols.refresh),
-      onPressed: () {
-        if (mode.value == FileListMode.unindexed) {
-          ref.invalidate(unindexedFileListProvider);
-        } else {
-          cloudNotifier.setPath(currentPath.value);
-        }
-      },
-      tooltip: 'Refresh',
-      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-    );
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          spacing: 12,
-          children: [
-            poolDropdown,
-            queryField,
-            orderDropdown,
-            orderDescToggle,
-            refreshButton,
-          ],
-        ).padding(horizontal: 20, vertical: 8),
-      ),
-    ).padding(horizontal: 12);
   }
 }

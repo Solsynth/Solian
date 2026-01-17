@@ -31,6 +31,10 @@ class FileListScreen extends HookConsumerWidget {
     final quotaAsync = ref.watch(billingQuotaProvider);
 
     final viewMode = useState(FileListViewMode.list);
+    final isSelectionMode = useState<bool>(false);
+    final recycled = useState<bool>(false);
+
+    final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
 
     return AppScaffold(
       isNoBackground: false,
@@ -38,6 +42,36 @@ class FileListScreen extends HookConsumerWidget {
         title: Text('files').tr(),
         leading: const PageBackButton(backTo: '/account'),
         actions: [
+          // Selection mode toggle
+          IconButton(
+            icon: Icon(
+              isSelectionMode.value
+                  ? Symbols.close
+                  : Symbols.select_check_box,
+            ),
+            onPressed: () => isSelectionMode.value = !isSelectionMode.value,
+            tooltip: isSelectionMode.value
+                ? 'Exit Selection Mode'
+                : 'Enter Selection Mode',
+          ),
+
+          // Recycle toggle (only in unindexed mode)
+          if (mode.value == FileListMode.unindexed)
+            IconButton(
+              icon: Icon(
+                recycled.value
+                    ? Symbols.delete_forever
+                    : Symbols.restore_from_trash,
+              ),
+              onPressed: () {
+                recycled.value = !recycled.value;
+                unindexedNotifier.setRecycled(recycled.value);
+              },
+              tooltip: recycled.value
+                  ? 'Show Active Files'
+                  : 'Show Recycle Bin',
+            ),
+
           IconButton(
             icon: const Icon(Symbols.bar_chart),
             onPressed: () =>
@@ -46,6 +80,13 @@ class FileListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
+      floatingActionButton: mode.value == FileListMode.normal
+          ? FloatingActionButton(
+              onPressed: () => _showActionBottomSheet(context, ref, currentPath, selectedPool),
+              child: const Icon(Symbols.add),
+              tooltip: 'Add files or create directory',
+            )
+          : null,
       body: usageAsync.when(
         data: (usage) => quotaAsync.when(
           data: (quota) => FileListView(
@@ -61,6 +102,7 @@ class FileListScreen extends HookConsumerWidget {
             onShowCreateDirectory: _showCreateDirectoryDialog,
             mode: mode,
             viewMode: viewMode,
+            isSelectionMode: isSelectionMode,
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error loading quota')),
@@ -205,6 +247,45 @@ class FileListScreen extends HookConsumerWidget {
           usage: usage,
           quota: quota,
         ).padding(horizontal: 8, vertical: 16),
+      ),
+    );
+  }
+
+  void _showActionBottomSheet(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<String> currentPath,
+    ValueNotifier<SnFilePool?> selectedPool,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Symbols.create_new_folder),
+              title: const Text('Create Directory'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showCreateDirectoryDialog(context, currentPath);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Symbols.upload_file),
+              title: const Text('Upload File'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickAndUploadFile(
+                  ref,
+                  currentPath.value,
+                  selectedPool.value?.id,
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
