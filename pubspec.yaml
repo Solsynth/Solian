@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 3.5.0+164
 
 environment:
-  sdk: '>3.10.0'
+  sdk: ">3.10.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -71,7 +71,6 @@ dependencies:
   cross_file: ^0.3.5+1
   image_picker: ^1.2.1
   file_picker: ^10.3.8
-  flutter_eval: ^0.8.2
   riverpod_annotation: ^4.0.0
   image_picker_platform_interface: ^2.11.1
   image_picker_android: ^0.8.13+10
@@ -175,7 +174,6 @@ dependencies:
   video_thumbnail: ^0.5.6
   just_audio: ^0.10.5
   audio_session: ^0.2.2
-  dart_midi_pro: ^1.0.4+2
 
 dev_dependencies:
   flutter_test:
@@ -195,10 +193,6 @@ dev_dependencies:
   riverpod_lint: ^3.1.0
   drift_dev: ^2.30.1
   flutter_launcher_icons: ^0.14.4
-  msix: ^3.16.12
-
-dependency_overrides:
-  analyzer: ^8.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -212,7 +206,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/midi/
     - assets/i18n/
     - assets/images/
     - assets/images/oidc/
@@ -271,13 +264,3 @@ flutter_native_splash:
   image_dark: "assets/icons/icon-dark.png"
   color: "#ffffff"
   color_dark: "#121212"
-
-msix_config:
-  display_name: Solian
-  publisher_display_name: Solsynth LLC
-  identity_name: dev.solian.app
-  msix_version: 3.2.0.0
-  logo_path: .\assets\icons\icon.png
-  protocol_activation: solian, https
-  app_uri_handler_hosts: solian.app
-  capabilities: internetClientServer, location, microphone, webcam
