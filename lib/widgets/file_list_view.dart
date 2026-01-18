@@ -102,16 +102,16 @@ class FileListView extends HookConsumerWidget {
     useEffect(() {
       // Sync query, order, and orderDesc filters
       if (mode.value == FileListMode.unindexed) {
-        unindexedNotifier.setQuery(this.query.value);
+        unindexedNotifier.setQuery(query.value);
         unindexedNotifier.setOrder(order.value);
         unindexedNotifier.setOrderDesc(orderDesc.value);
       } else {
-        cloudNotifier.setQuery(this.query.value);
+        cloudNotifier.setQuery(query.value);
         cloudNotifier.setOrder(order.value);
         cloudNotifier.setOrderDesc(orderDesc.value);
       }
       return null;
-    }, [this.query.value, order.value, orderDesc.value, mode.value]);
+    }, [query.value, order.value, orderDesc.value, mode.value]);
 
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal

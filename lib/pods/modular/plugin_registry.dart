@@ -263,7 +263,7 @@ class PluginRegistryNotifier extends _$PluginRegistryNotifier {
       } else if (!enabled && appMetadata.isEnabled == true) {
         _registry.unloadMiniApp(id);
         final updatedMetadata = appMetadata.copyWith(isEnabled: false);
-        final evaluatedMiniApp = miniApp as EvaluatedMiniApp;
+        final evaluatedMiniApp = miniApp;
         final updatedMiniApp = EvaluatedMiniApp(
           appMetadata: updatedMetadata,
           entryFunction: evaluatedMiniApp.entryFunction,

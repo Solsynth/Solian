@@ -82,7 +82,14 @@ class PluginRegistry {
       }
 
       final runtime = Runtime(ByteData.sublistView(bytecode));
-      runtime.addPlugin(flutterEvalPlugin);
+      if (flutterEvalPlugin != null) {
+        try {
+          runtime.addPlugin(flutterEvalPlugin);
+          talker.info('[PluginRegistry] FlutterEvalPlugin added to runtime');
+        } catch (e) {
+          talker.error('[PluginRegistry] Failed to add FlutterEvalPlugin: $e');
+        }
+      }
 
       if (onProgress != null) {
         onProgress(0.8, 'Building entry widget...');

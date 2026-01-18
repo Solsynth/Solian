@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/modular/miniapp_loader.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/plugin_registry.dart';
+import 'package:island/pods/modular/plugin_registry.dart';
 import 'package:island/services/update_service.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';

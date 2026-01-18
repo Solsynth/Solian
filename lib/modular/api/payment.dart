@@ -59,16 +59,16 @@ sealed class CreateOrderRequest with _$CreateOrderRequest {
       _$CreateOrderRequestFromJson(json);
 }
 
-class PaymentAPI {
-  static PaymentAPI? _instance;
-  late Dio _dio;
+class PaymentApi {
+  static PaymentApi? _instance;
+  late Dio? _dio;
   late String _serverUrl;
   String? _token;
 
-  PaymentAPI._internal();
+  PaymentApi._internal();
 
-  static PaymentAPI get instance {
-    _instance ??= PaymentAPI._internal();
+  static PaymentApi get instance {
+    _instance ??= PaymentApi._internal();
     return _instance!;
   }
 
@@ -80,7 +80,7 @@ class PaymentAPI {
 
       final tokenString = prefs.getString(kTokenPairStoreKey);
       if (tokenString != null) {
-        final appToken = AppToken.fromJson(jsonDecode(tokenString!));
+        final appToken = AppToken.fromJson(jsonDecode(tokenString));
         _token = await getToken(appToken);
       }
 
@@ -96,7 +96,7 @@ class PaymentAPI {
         ),
       );
 
-      _dio.interceptors.add(
+      _dio?.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) async {
             if (_token != null) {
@@ -113,7 +113,8 @@ class PaymentAPI {
     await _initialize();
 
     try {
-      final response = await _dio.post('/pass/orders', data: request.toJson());
+      if (_dio == null) return null;
+      final response = await _dio!.post('/pass/orders', data: request.toJson());
 
       return SnWalletOrder.fromJson(response.data);
     } catch (e) {
@@ -129,7 +130,8 @@ class PaymentAPI {
     await _initialize();
 
     try {
-      final response = await _dio.post(
+      if (_dio == null) return null;
+      final response = await _dio!.post(
         '/pass/orders/$orderId/pay',
         data: {'pin_code': pinCode},
       );
@@ -164,13 +166,13 @@ class PaymentAPI {
         order = SnWalletOrder(
           id: request!.orderId,
           status: 0,
-          currency: request!.currency,
-          remarks: request!.remarks,
+          currency: request.currency,
+          remarks: request.remarks,
           appIdentifier: 'mini-app',
           meta: {},
-          amount: request!.amount,
+          amount: request.amount,
           expiredAt: DateTime.now().add(const Duration(hours: 1)),
-          payeeWalletId: request!.payeeWalletId,
+          payeeWalletId: request.payeeWalletId,
           transactionId: null,
           issuerAppId: null,
           createdAt: DateTime.now(),
@@ -179,6 +181,7 @@ class PaymentAPI {
         );
       }
 
+      if (!context.mounted) throw PaymentResult(success: false);
       final result = await PaymentOverlay.show(
         context: context,
         order: order,
@@ -198,9 +201,7 @@ class PaymentAPI {
       return PaymentResult(
         success: false,
         error: errorMessage,
-        errorCode: e is DioException
-            ? (e as DioException).response?.statusCode.toString()
-            : null,
+        errorCode: e is DioException ? e.response?.statusCode.toString() : null,
       );
     }
   }
@@ -232,16 +233,14 @@ class PaymentAPI {
       return PaymentResult(
         success: false,
         error: errorMessage,
-        errorCode: e is DioException
-            ? (e as DioException).response?.statusCode.toString()
-            : null,
+        errorCode: e is DioException ? e.response?.statusCode.toString() : null,
       );
     }
   }
 
   String _parsePaymentError(dynamic error) {
     if (error is DioException) {
-      final dioError = error as DioException;
+      final dioError = error;
 
       if (dioError.response?.statusCode == 403 ||
           dioError.response?.statusCode == 401) {
@@ -261,17 +260,18 @@ class PaymentAPI {
   }
 
   Future<void> updateServerUrl() async {
+    if (_dio == null) return;
     final prefs = await SharedPreferences.getInstance();
     _serverUrl =
         prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
-    _dio.options.baseUrl = _serverUrl;
+    _dio!.options.baseUrl = _serverUrl;
   }
 
   Future<void> updateToken() async {
     final prefs = await SharedPreferences.getInstance();
     final tokenString = prefs.getString(kTokenPairStoreKey);
     if (tokenString != null) {
-      final appToken = AppToken.fromJson(jsonDecode(tokenString!));
+      final appToken = AppToken.fromJson(jsonDecode(tokenString));
       _token = await getToken(appToken);
     } else {
       _token = null;
@@ -279,6 +279,6 @@ class PaymentAPI {
   }
 
   void dispose() {
-    _dio.close();
+    _dio?.close();
   }
 }

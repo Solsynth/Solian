@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
+import 'package:island/modular/miniapp_loader.dart';
 import 'package:island/services/analytics_service.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
@@ -188,7 +189,7 @@ void main() async {
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     FlutterNativeSplash.remove();
-    talker.info("[SplashScreen] Now hiding the splash screen...");
+    talker.info("[SplashScreen] Now hiding splash screen...");
   }
 
   runApp(

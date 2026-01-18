@@ -6,7 +6,13 @@ import 'package:flutter/material.dart';
 /// In a real mini-app, PaymentAPI would be accessed through
 /// eval bridge provided by flutter_eval.
 Widget buildEntry() {
-  return const PaymentDemoHome();
+  Widget result;
+  try {
+    result = const PaymentDemoHome();
+  } catch (e) {
+    result = Center(child: Text('Error: $e'));
+  }
+  return result;
 }
 
 class PaymentDemoHome extends StatefulWidget {
@@ -18,6 +24,7 @@ class PaymentDemoHome extends StatefulWidget {
 
 class PaymentDemoHomeState extends State<PaymentDemoHome> {
   String _status = 'Ready';
+  bool _isLoading = false;
 
   void _updateStatus(String status) {
     setState(() {
@@ -25,16 +32,45 @@ class PaymentDemoHomeState extends State<PaymentDemoHome> {
     });
   }
 
-  void _createOrder() {
-    _updateStatus('Order created! Order ID: ORD-001');
+  Future<void> _createOrder() async {
+    setState(() => _isLoading = true);
+    try {
+      _updateStatus('Creating order...');
+      await Future.delayed(const Duration(seconds: 1));
+      _updateStatus('Order created! Order ID: ORD-001\nAmount: 100 USD');
+    } catch (e) {
+      _updateStatus('Failed to create order: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
-  void _processPaymentWithOverlay() {
-    _updateStatus('Payment completed successfully!');
+  Future<void> _processPaymentWithOverlay() async {
+    setState(() => _isLoading = true);
+    try {
+      _updateStatus('Processing payment with overlay...');
+      await Future.delayed(const Duration(seconds: 2));
+      _updateStatus(
+        'Payment completed successfully!\nTransaction ID: TXN-12345',
+      );
+    } catch (e) {
+      _updateStatus('Payment failed: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
-  void _processDirectPayment() {
-    _updateStatus('Direct payment successful!');
+  Future<void> _processDirectPayment() async {
+    setState(() => _isLoading = true);
+    try {
+      _updateStatus('Processing direct payment...');
+      await Future.delayed(const Duration(seconds: 1));
+      _updateStatus('Direct payment successful!\nTransaction ID: TXN-67890');
+    } catch (e) {
+      _updateStatus('Payment failed: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -70,7 +106,11 @@ class PaymentDemoHomeState extends State<PaymentDemoHome> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text(_status, textAlign: TextAlign.center),
+                      Text(
+                        _status,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 14),
+                      ),
                     ],
                   ),
                 ),
@@ -79,15 +119,23 @@ class PaymentDemoHomeState extends State<PaymentDemoHome> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _createOrder(),
-                  child: const Text('Create Order'),
+                  onPressed: _isLoading ? null : () => _createOrder(),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Text('Wait'),
+                        )
+                      : const Text('Create Order'),
                 ),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _processPaymentWithOverlay(),
+                  onPressed: _isLoading
+                      ? null
+                      : () => _processPaymentWithOverlay(),
                   child: const Text('Pay with Overlay'),
                 ),
               ),
@@ -95,7 +143,7 @@ class PaymentDemoHomeState extends State<PaymentDemoHome> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _processDirectPayment(),
+                  onPressed: _isLoading ? null : () => _processDirectPayment(),
                   child: const Text('Direct Payment'),
                 ),
               ),
