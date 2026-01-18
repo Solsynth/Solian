@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/modular/interface.dart';
-import 'package:island/pods/plugin_registry.dart';
+import 'package:island/pods/modular/plugin_registry.dart';
 
 Future<void> showMiniappModal(
   BuildContext context,

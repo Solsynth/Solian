@@ -3,17 +3,15 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_eval/flutter_eval.dart';
 import 'package:island/modular/interface.dart';
-import 'package:island/pods/plugin_registry.dart';
+import 'package:island/modular/registry.dart';
+import 'package:island/pods/modular/plugin_registry.dart';
 import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/dart_miniapp_display.dart';
 import 'package:island/widgets/miniapp_modal.dart';
 
 typedef ProgressCallback = void Function(double progress, String message);
-
-final flutterEvalPlugin = FlutterEvalPlugin();
 
 class MiniappLoader {
   static Future<void> loadMiniappFromSource(
@@ -35,6 +33,7 @@ class MiniappLoader {
       final file = result.files.first;
       final fileName = file.name;
 
+      if (!context.mounted) return;
       if (fileName.endsWith('.dart')) {
         await _loadDartSource(context, file, fileName);
       } else if (fileName.endsWith('.evc')) {

@@ -12,13 +12,13 @@ Payment API (`lib/modular/api/payment.dart`) provides a simple interface for min
 import 'package:island/modular/api/payment.dart';
 
 // Get singleton instance
-final paymentAPI = PaymentAPI.instance;
+final paymentApi = PaymentApi.instance;
 ```
 
 ### Creating a Payment Order
 
 ```dart
-final order = await paymentAPI.createOrder(
+final order = await paymentApi.createOrder(
   CreateOrderRequest(
     amount: 1000, // $10.00 in cents
     currency: 'USD',
@@ -35,7 +35,7 @@ final orderId = order.id;
 ### Processing Payment with Overlay
 
 ```dart
-final result = await paymentAPI.processPaymentWithOverlay(
+final result = await paymentApi.processPaymentWithOverlay(
   context: context,
   createOrderRequest: CreateOrderRequest(
     amount: 1000,
@@ -55,7 +55,7 @@ if (result.success) {
 ### Processing Existing Payment
 
 ```dart
-final result = await paymentAPI.processPaymentWithOverlay(
+final result = await paymentApi.processPaymentWithOverlay(
   context: context,
   request: PaymentRequest(
     orderId: 'order_123',
@@ -71,7 +71,7 @@ final result = await paymentAPI.processPaymentWithOverlay(
 ### Processing Payment Without Overlay (Direct)
 
 ```dart
-final result = await paymentAPI.processDirectPayment(
+final result = await paymentApi.processDirectPayment(
   PaymentRequest(
     orderId: 'order_123',
     amount: 1000,
@@ -300,32 +300,105 @@ class MiniAppPayment extends StatelessWidget {
 
 ## Integration with flutter_eval
 
-To expose this API to mini-apps loaded via flutter_eval:
+### Current Status
 
-1. Add to plugin registry:
+**FlutterEval Plugin Initialization: ✅ Complete**
+- `flutterEvalPlugin` is properly initialized in `lib/modular/miniapp_loader.dart`
+- Initialized from `main()` during app startup
+- Plugin is shared between `miniapp_loader.dart` and `lib/modular/registry.dart`
+- Runtime adds plugin when loading miniapps: `runtime.addPlugin(flutterEvalPlugin)`
+
+**PaymentBridgePlugin: ✅ Created but not yet registered**
+- Located at `lib/modular/api/payment_bridge.dart`
+- Provides simplified wrapper around PaymentApi
+- Designed for easier integration with eval bridge
+
+**Full Eval Bridge: ⚠️ Requires Additional Setup**
+To expose PaymentApi to miniapps through eval, you need to:
+
+1. **Create EvalPlugin Implementation**
+```dart
+// In a new file: lib/modular/api/payment_eval_plugin.dart
+import 'package:dart_eval/dart_eval_bridge.dart';
+import 'package:island/modular/api/payment.dart';
+import 'package:island/modular/api/payment_bridge.dart';
+
+class PaymentEvalPlugin implements EvalPlugin {
+  @override
+  String get identifier => 'package:island/modular/api/payment.dart';
+
+  @override
+  void configureForCompile(BridgeDeclarationRegistry registry) {
+    // Define bridge classes for PaymentRequest, PaymentResult, CreateOrderRequest
+    // Requires using @Bind() annotations or manual bridge definition
+  }
+
+  @override
+  void configureForRuntime(Runtime runtime) {
+    // Register functions that miniapps can call
+    // This requires bridge wrapper classes to be generated or created manually
+  }
+}
+```
+
+2. **Generate or Create Bridge Code**
+   - Option A: Use `dart_eval_annotation` package with `@Bind()` annotations
+     - Add annotations to PaymentApi classes
+     - Run `dart run build_runner build` to generate bridge code
+   - Option B: Manually create bridge wrapper classes
+     - Define `$PaymentRequest`, `$PaymentResult`, etc.
+     - Implement `$Instance` interface for each
+     - Register bridge functions in `configureForRuntime`
+
+3. **Register Plugin in Registry**
 ```dart
 // In lib/modular/registry.dart
-import 'package:island/modular/api/payment.dart';
+import 'package:island/modular/api/payment_eval_plugin.dart';
 
 Future<PluginLoadResult> loadMiniApp(...) async {
   // ... existing code ...
-  
+
   final runtime = Runtime(ByteData.sublistView(bytecode));
   runtime.addPlugin(flutterEvalPlugin);
-  
-  // Register Payment API
-  final paymentAPI = PaymentAPI.instance;
-  // You'll need to create a bridge to expose this to eval
-  
+  runtime.addPlugin(PaymentEvalPlugin()); // Add payment API plugin
+
   // ... rest of loading code
 }
 ```
 
-2. Mini-app can access API:
+4. **Mini-app Usage**
 ```dart
 // mini_app/main.dart
-final paymentAPI = PaymentAPI.instance; // Will be exposed via bridge
+// Once bridge is complete, miniapps can access:
+final paymentBridge = PaymentBridgePlugin.instance;
+final result = await paymentBridge.processDirectPayment(
+  orderId: 'order_123',
+  amount: 1000,
+  currency: 'USD',
+  pinCode: '123456',
+);
 ```
+
+### Simplified Alternative
+
+For quick testing without full bridge setup, miniapps can use the example pattern:
+
+```dart
+// Simulate API calls in miniapp for testing
+Future<void> _testPayment() async {
+  setState(() => _isLoading = true);
+  try {
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() => _status = 'Payment successful!');
+  } catch (e) {
+    setState(() => _status = 'Payment failed: $e');
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
+```
+
+This pattern is demonstrated in `packages/miniapp-example/lib/main.dart`.
 
 ## Security Considerations
 

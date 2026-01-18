@@ -261,11 +261,11 @@ class FileListScreen extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) => SheetScaffold(
+        titleText: 'Usage Overview',
         child: UsageOverviewWidget(
           usage: usage,
           quota: quota,
         ).padding(horizontal: 8, vertical: 16),
-        titleText: 'Usage Overview',
       ),
     );
   }
