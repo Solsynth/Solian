@@ -34,7 +34,7 @@ packages:
     source: hosted
     version: "0.3.3"
   analyzer:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: analyzer
       sha256: a40a0cee526a7e1f387c6847bd8a5ccbf510a75952ef8a28338e989558072cb0
@@ -217,6 +217,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.5"
+  change_case:
+    dependency: transitive
+    description:
+      name: change_case
+      sha256: e41ef3df58521194ef8d7649928954805aeb08061917cf658322305e61568003
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   characters:
     dependency: transitive
     description:
@@ -401,6 +409,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0+8.4.0"
+  dart_eval:
+    dependency: transitive
+    description:
+      name: dart_eval
+      sha256: c541adaa17530870b93fc853b5481382163ad44a246df3582c59afd899bc8214
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.3"
   dart_ipc:
     dependency: "direct main"
     description:
@@ -505,6 +521,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  directed_graph:
+    dependency: transitive
+    description:
+      name: directed_graph
+      sha256: "6582283519fc08a6a14172d8a3798238f09275a1147e7599baf09c6245e3104a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.5"
   dismissible_page:
     dependency: "direct main"
     description:
@@ -593,6 +617,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  exception_templates:
+    dependency: transitive
+    description:
+      name: exception_templates
+      sha256: "57adef649aa2a99a5b324a921355ee9214472a007ca257cbec2f3abae005c93e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   expandable:
     dependency: transitive
     description:
@@ -838,6 +870,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  flutter_eval:
+    dependency: "direct main"
+    description:
+      name: flutter_eval
+      sha256: "1aeba5ecc5bbafc560d6a48bb55b4c19051f596fc67944f4822054cf0005ef69"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.2"
   flutter_expandable_fab:
     dependency: "direct main"
     description:
@@ -1581,6 +1621,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.16"
+  lazy_memo:
+    dependency: transitive
+    description:
+      name: lazy_memo
+      sha256: f3f4afe9c4ccf0f29082213c5319a3711041446fc41cd325a9bf91724d4ea9c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.5"
   leak_tracker:
     dependency: transitive
     description:
@@ -2317,6 +2365,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  quote_buffer:
+    dependency: transitive
+    description:
+      name: quote_buffer
+      sha256: "5be4662a87aac8152aa05cdcf467e421aa2edc3b147f069798e2d26539b7ed0a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.7"
   recase:
     dependency: transitive
     description:
