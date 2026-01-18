@@ -357,6 +357,13 @@ Future<bool> showConfirmAlert(
   IconData? icon,
   bool isDanger = false,
 }) async {
+  final context = globalOverlay.currentState!.context;
+  final ref = ProviderScope.containerOf(context);
+  final settings = ref.read(appSettingsProvider);
+  if (settings.soundEffects) {
+    unawaited(_playSfx('assets/audio/alert.wav', 0.75));
+  }
+
   final result = await showOverlayDialog<bool>(
     builder: (context, close) => ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
@@ -446,3 +453,4 @@ Future<void> openExternalLink(Uri url, WidgetRef ref) async {
     }
   }
 }
+
