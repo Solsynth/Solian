@@ -52,7 +52,7 @@ dependencies:
   flutter_highlight: ^0.7.0
   uuid: ^4.5.2
   url_launcher: ^6.3.2
-  google_fonts: ^7.0.2
+  google_fonts: ^7.1.0
   gap: ^3.0.1
   cached_network_image: ^3.4.1
   web: ^1.1.1
@@ -73,12 +73,12 @@ dependencies:
   file_picker: ^10.3.8
   riverpod_annotation: ^4.0.0
   image_picker_platform_interface: ^2.11.1
-  image_picker_android: ^0.8.13+10
+  image_picker_android: ^0.8.13+11
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
-  firebase_messaging: ^16.1.0
+  firebase_messaging: ^16.1.1
   flutter_udid: ^4.1.1
-  firebase_core: ^4.3.0
+  firebase_core: ^4.4.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2892.0
   drift: ^2.30.1
@@ -131,8 +131,8 @@ dependencies:
   flutter_app_update: ^3.2.2
   archive: ^4.0.7
   process_run: ^1.2.4
-  firebase_crashlytics: ^5.0.6
-  firebase_analytics: ^12.1.0
+  firebase_crashlytics: ^5.0.7
+  firebase_analytics: ^12.1.1
   material_color_utilities: ^0.11.1
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
@@ -150,11 +150,11 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  talker: ^5.1.11
-  talker_flutter: ^5.1.11
-  talker_logger: ^5.1.11
-  talker_dio_logger: ^5.1.11
-  talker_riverpod_logger: ^5.1.11
+  talker: ^5.1.12
+  talker_flutter: ^5.1.12
+  talker_logger: ^5.1.12
+  talker_dio_logger: ^5.1.12
+  talker_riverpod_logger: ^5.1.12
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
   dio_smart_retry: ^7.0.1
