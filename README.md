@@ -68,3 +68,7 @@ flutter build <platform>
 Due to the issues with the flutter build tools, [see](https://github.com/flutter/flutter/issues/160622).
 
 Since there is a watchOS app for iOS, you're unable to use the flutter cli to run iOS app. Use xcode instead.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Solsynth/Solian&type=date&legend=top-left)](https://www.star-history.com/#Solsynth/Solian&type=date&legend=top-left)
