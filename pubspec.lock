@@ -421,10 +421,10 @@ packages:
     dependency: transitive
     description:
       name: dart_webrtc
-      sha256: "51bcda4ba5d7dd9e65a309244ce3ac0b58025e6e1f6d7442cee4cd02134ef65f"
+      sha256: "4ed7b9fa9924e5a81eb39271e2c2356739dd1039d60a13b86ba6c5f448625086"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.0"
+    version: "1.7.0"
   dbus:
     dependency: transitive
     description:
@@ -469,10 +469,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: d90ee57923d1828ac14e492ca49440f65477f4bb1263575900be731a3dac66a9
+      sha256: b9d46faecab38fc8cc286f80bc4d61a3bb5d4ac49e51ed877b4d6706efe57b25
       url: "https://pub.dev"
     source: hosted
-    version: "5.9.0"
+    version: "5.9.1"
   dio_smart_retry:
     dependency: "direct main"
     description:
@@ -613,10 +613,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: d974b6ba2606371ac71dd94254beefb6fa81185bde0b59bdc1df09885da85fde
+      sha256: "57d9a1dd5063f85fa3107fb42d1faffda52fdc948cefd5fe5ea85267a5fc7343"
       url: "https://pub.dev"
     source: hosted
-    version: "10.3.8"
+    version: "10.3.10"
   file_saver:
     dependency: "direct main"
     description:
@@ -978,34 +978,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "19ffb0a8bb7407875555e5e98d7343a633bb73707bae6c6a5f37c90014077875"
+      sha256: "76cd20bcfa72fabe50ea27eeaf165527f446f55d3033021462084b87805b4cac"
       url: "https://pub.dev"
     source: hosted
-    version: "19.5.0"
+    version: "20.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: e3c277b2daab8e36ac5a6820536668d07e83851aeeb79c446e525a70710770a5
+      sha256: dce0116868cedd2cdf768af0365fc37ff1cbef7c02c4f51d0587482e625868d0
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0"
+    version: "7.0.0"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "277d25d960c15674ce78ca97f57d0bae2ee401c844b6ac80fcd972a9c99d09fe"
+      sha256: "23de31678a48c084169d7ae95866df9de5c9d2a44be3e5915a2ff067aeeba899"
       url: "https://pub.dev"
     source: hosted
-    version: "9.1.0"
+    version: "10.0.0"
   flutter_local_notifications_windows:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: "8d658f0d367c48bd420e7cf2d26655e2d1130147bca1eea917e576ca76668aaf"
+      sha256: "7ddd964fa85b6a23e96956c5b63ef55cdb9e5947b71b95712204db42ad46da61"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "2.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -1257,10 +1257,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: "6996212014b996eaa17074e02b1b925b212f5e053832d9048970dc27255a8fb3"
+      sha256: bf1fe61d4a53420a94cbbd4326e07702d247757926f6955af9667765a8324413
       url: "https://pub.dev"
     source: hosted
-    version: "7.1.0"
+    version: "8.0.0"
   graphs:
     dependency: transitive
     description:
@@ -1409,10 +1409,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker_android
-      sha256: "539e0030d442ce11d168896d979e04e66e28ef819eadc59aeb62b9d374a139d7"
+      sha256: "518a16108529fc18657a3e6dde4a043dc465d16596d20ab2abd49a4cac2e703d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13+11"
+    version: "0.8.13+13"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -1425,10 +1425,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_ios
-      sha256: "956c16a42c0c708f914021666ffcd8265dde36e673c9fa68c81f7d085d9774ad"
+      sha256: "46547f6d2812f31ade2c8088ec8cd51010cd6b72c17cf191901167b27776486e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13+3"
+    version: "0.8.13+5"
   image_picker_linux:
     dependency: transitive
     description:
@@ -1841,10 +1841,10 @@ packages:
     dependency: "direct main"
     description:
       name: native_exif
-      sha256: "0d37444c1ed00cbcada69b7510aba1d505fed75d3b6ef3ea3c8c2c970040e4f1"
+      sha256: "044276caf22c14695f97833b3e9cec941a7bf2403f422749436797381fceb857"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.2"
+    version: "0.7.0"
   native_toolchain_c:
     dependency: transitive
     description:
@@ -1881,10 +1881,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: "9922a1ad59ac5afb154cc948aa6ded01987a75003651d0a2866afc23f4da624e"
+      sha256: "983c7fa1501f6dcc0cb7af4e42072e9993cb28d73604d25ebf4dab08165d997e"
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.3"
+    version: "9.2.5"
   octo_image:
     dependency: transitive
     description:
@@ -2426,10 +2426,10 @@ packages:
     dependency: transitive
     description:
       name: safe_local_storage
-      sha256: e9a21b6fec7a8aa62cc2585ff4c1b127df42f3185adbd2aca66b47abe2e80236
+      sha256: "287ea1f667c0b93cdc127dccc707158e2d81ee59fba0459c31a0c7da4d09c755"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.3"
   screen_retriever:
     dependency: transitive
     description:
@@ -2554,10 +2554,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: "83af5c682796c0f7719c2bbf74792d113e40ae97981b8f266fa84574573556bc"
+      sha256: cbc40be9be1c5af4dab4d6e0de4d5d3729e6f3d65b89d21e1815d57705644a6f
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.18"
+    version: "2.4.20"
   shared_preferences_foundation:
     dependency: transitive
     description:
@@ -2975,42 +2975,42 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: a9a76f677905bc5cf62ace21a6eea49303cf06ac187bcad52b2004f0b9623fd7
+      sha256: "4160d27f4da6d87f016212bbe6abfb15c8954b72726a0f154d72f77664c48b8c"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.12"
+    version: "5.1.13"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: "51b0ca82c842abb787fd48d409e4e0299dca1cda010c17b42db74c8a81389b59"
+      sha256: c5769f4b1ee6fcc1a0670cdfc7f3253016a1090b583aeb70e3ccd73f479970a8
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.12"
+    version: "5.1.13"
   talker_flutter:
     dependency: "direct main"
     description:
       name: talker_flutter
-      sha256: "93a287fd7f5a898de6b4b02a5def9acd1cda73ff3f2aa9873877a0cefa943281"
+      sha256: "6a807972565dc7d5bacfb6a980efa0f766bfdbacac5660adf150aa386c440052"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.12"
+    version: "5.1.13"
   talker_logger:
     dependency: "direct main"
     description:
       name: talker_logger
-      sha256: da3d91c36bad10838cba5123b6bdf7d4310411f8f7500539ce364deda3550ac6
+      sha256: ed5f8434f17f3988548abc5f617b88e7a5d2d61d7a975e7c12eee75755848aa8
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.12"
+    version: "5.1.13"
   talker_riverpod_logger:
     dependency: "direct main"
     description:
       name: talker_riverpod_logger
-      sha256: dc20d93765a405f6c5f7a00ac4f890843b8996b9921e3f4c5d04654c0234ae12
+      sha256: "1594134fc35a74aedad03b49408d8fc0cd1e9d64bf0868ddcc58895eb3278726"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.12"
+    version: "5.1.13"
   term_glyph:
     dependency: transitive
     description:
@@ -3207,10 +3207,10 @@ packages:
     dependency: transitive
     description:
       name: vector_graphics_compiler
-      sha256: d354a7ec6931e6047785f4db12a1f61ec3d43b207fc0790f863818543f8ff0dc
+      sha256: "201e876b5d52753626af64b6359cd13ac6011b80728731428fd34bc840f71c9b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.19"
+    version: "1.1.20"
   vector_math:
     dependency: transitive
     description:
@@ -3311,10 +3311,10 @@ packages:
     dependency: transitive
     description:
       name: webrtc_interface
-      sha256: "2e604a31703ad26781782fb14fa8a4ee621154ee2c513d2b9938e486fa695233"
+      sha256: ad0e5786b2acd3be72a3219ef1dde9e1cac071cf4604c685f11b61d63cdd6eb3
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.0"
+    version: "1.4.0"
   win32:
     dependency: "direct main"
     description:
