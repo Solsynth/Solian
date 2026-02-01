@@ -55,7 +55,7 @@ Future<void> initializeLocalNotifications() async {
   );
 
   await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
+    settings: initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) async {
       final payload = response.payload;
       if (payload != null) {
@@ -125,10 +125,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             android: androidNotificationDetails,
           );
           await flutterLocalNotificationsPlugin.show(
-            0,
-            notification.title,
-            notification.content,
-            notificationDetails,
+            id: 0,
+            title: notification.title,
+            body: notification.content,
+            notificationDetails: notificationDetails,
             payload: notification.meta['action_uri'] as String?,
           );
         } else {
