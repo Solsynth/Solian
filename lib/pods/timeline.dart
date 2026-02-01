@@ -16,6 +16,8 @@ class ActivityListNotifier
         AsyncPaginationController<SnTimelineEvent>,
         AsyncPaginationFilter<String?, SnTimelineEvent> {
   static const int pageSize = 20;
+  static const Duration retryAdjustmentDuration = Duration(seconds: 10);
+  static const int maxRetryAttempts = 1;
 
   @override
   FutureOr<PaginationState<SnTimelineEvent>> build() async {
@@ -34,7 +36,7 @@ class ActivityListNotifier
   String? currentFilter;
 
   @override
-  Future<List<SnTimelineEvent>> fetch() async {
+  Future<List<SnTimelineEvent>> fetch({int retryCount = 0}) async {
     final client = ref.read(apiClientProvider);
     final settings = ref.read(appSettingsProvider);
 
@@ -72,7 +74,23 @@ class ActivityListNotifier
       }
     }
 
-    return items;
+    // Check for duplicate items by id
+    final existingItemIds = state.value?.items.map((e) => e.id).toSet() ?? {};
+    final uniqueItems = items.where((item) => !existingItemIds.contains(item.id)).toList();
+
+    // If no new items and we haven't reached max retry attempts, adjust cursor and retry
+    if (uniqueItems.isEmpty && retryCount < maxRetryAttempts) {
+      final prevCursor = DateTime.tryParse(cursor ?? '');
+      if (prevCursor != null) {
+        // Adjust cursor by subtracting retry adjustment duration
+        final adjustedCursor = prevCursor.subtract(retryAdjustmentDuration);
+        cursor = adjustedCursor.toUtc().toIso8601String();
+        // Retry fetch with adjusted cursor
+        return fetch(retryCount: retryCount + 1);
+      }
+    }
+
+    return uniqueItems;
   }
 
   void updateOne(int index, SnTimelineEvent activity) {
