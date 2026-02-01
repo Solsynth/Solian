@@ -347,6 +347,78 @@ class ChatShellScreen extends HookConsumerWidget {
   }
 }
 
+class ChatFabWidget extends HookConsumerWidget {
+  const ChatFabWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
+    if (userInfo.value == null) {
+      return const SizedBox.shrink();
+    }
+
+    return FloatingActionButton(
+      child: const Icon(Symbols.add),
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          useRootNavigator: true,
+          builder: (context) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Gap(40),
+              ListTile(
+                title: const Text('createChatRoom').tr(),
+                leading: const Icon(Symbols.add),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => const EditChatScreen(),
+                  ).then((value) {
+                    if (value != null) {
+                      eventBus.fire(const ChatRoomsRefreshEvent());
+                    }
+                  });
+                },
+              ),
+              ListTile(
+                title: const Text('createDirectMessage').tr(),
+                leading: const Icon(Symbols.person),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                onTap: () async {
+                  final result = await showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => const AccountPickerSheet(),
+                  );
+                  if (result == null) return;
+                  final client = ref.read(apiClientProvider);
+                  try {
+                    await client.post(
+                      '/messager/chat/direct',
+                      data: {'related_user_id': result.id},
+                    );
+                    eventBus.fire(const ChatRoomsRefreshEvent());
+                  } catch (err) {
+                    showErrorAlert(err);
+                  }
+                },
+              ),
+              const Gap(16),
+            ],
+          ),
+        );
+      },
+    ).padding(bottom: MediaQuery.of(context).padding.bottom);
+  }
+}
+
 class ChatListScreen extends HookConsumerWidget {
   final bool isAside;
   final bool isFloating;
@@ -386,61 +458,66 @@ class ChatListScreen extends HookConsumerWidget {
         margin: EdgeInsets.zero,
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-          child: Column(
+          child: Stack(
             children: [
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: TabBar(
-                      dividerColor: Colors.transparent,
-                      controller: tabController,
-                      tabAlignment: TabAlignment.start,
-                      isScrollable: true,
-                      tabs: [
-                        const Tab(icon: Icon(Symbols.chat)),
-                        const Tab(icon: Icon(Symbols.person)),
-                        const Tab(icon: Icon(Symbols.group)),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      icon: Badge(
-                        label: Text(
-                          chatInvites.when(
-                            data: (invites) => invites.length.toString(),
-                            error: (_, _) => '0',
-                            loading: () => '0',
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TabBar(
+                          dividerColor: Colors.transparent,
+                          controller: tabController,
+                          tabAlignment: TabAlignment.start,
+                          isScrollable: true,
+                          tabs: [
+                            const Tab(icon: Icon(Symbols.chat)),
+                            const Tab(icon: Icon(Symbols.person)),
+                            const Tab(icon: Icon(Symbols.group)),
+                          ],
                         ),
-                        isLabelVisible: chatInvites.when(
-                          data: (invites) => invites.isNotEmpty,
-                          error: (_, _) => false,
-                          loading: () => false,
-                        ),
-                        child: const Icon(Symbols.email),
                       ),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          useRootNavigator: true,
-                          isScrollControlled: true,
-                          context: context,
-                          builder: (context) => const _ChatInvitesSheet(),
-                        );
-                      },
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: IconButton(
+                          icon: Badge(
+                            label: Text(
+                              chatInvites.when(
+                                data: (invites) => invites.length.toString(),
+                                error: (_, _) => '0',
+                                loading: () => '0',
+                              ),
+                            ),
+                            isLabelVisible: chatInvites.when(
+                              data: (invites) => invites.isNotEmpty,
+                              error: (_, _) => false,
+                              loading: () => false,
+                            ),
+                            child: const Icon(Symbols.email),
+                          ),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              useRootNavigator: true,
+                              isScrollControlled: true,
+                              context: context,
+                              builder: (context) => const _ChatInvitesSheet(),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ).padding(horizontal: 8),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ChatListBodyWidget(
+                      isFloating: false,
+                      tabController: tabController,
+                      selectedTab: selectedTab,
                     ),
                   ),
                 ],
-              ).padding(horizontal: 8),
-              const Divider(height: 1),
-              Expanded(
-                child: ChatListBodyWidget(
-                  isFloating: false,
-                  tabController: tabController,
-                  selectedTab: selectedTab,
-                ),
               ),
+              Positioned(bottom: 16, right: 16, child: ChatFabWidget()),
             ],
           ),
         ),
@@ -457,70 +534,7 @@ class ChatListScreen extends HookConsumerWidget {
 
     return AppScaffold(
       extendBody: false, // Prevent conflicts with tabs navigation
-      floatingActionButton: userInfo.value != null
-          ? FloatingActionButton(
-              child: const Icon(Symbols.add),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Gap(40),
-                      ListTile(
-                        title: const Text('createChatRoom').tr(),
-                        leading: const Icon(Symbols.add),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                        ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            useRootNavigator: true,
-                            isScrollControlled: true,
-                            builder: (context) => const EditChatScreen(),
-                          ).then((value) {
-                            if (value != null) {
-                              eventBus.fire(const ChatRoomsRefreshEvent());
-                            }
-                          });
-                        },
-                      ),
-                      ListTile(
-                        title: const Text('createDirectMessage').tr(),
-                        leading: const Icon(Symbols.person),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                        ),
-                        onTap: () async {
-                          final result = await showModalBottomSheet(
-                            context: context,
-                            useRootNavigator: true,
-                            isScrollControlled: true,
-                            builder: (context) => const AccountPickerSheet(),
-                          );
-                          if (result == null) return;
-                          final client = ref.read(apiClientProvider);
-                          try {
-                            await client.post(
-                              '/messager/chat/direct',
-                              data: {'related_user_id': result.id},
-                            );
-                            eventBus.fire(const ChatRoomsRefreshEvent());
-                          } catch (err) {
-                            showErrorAlert(err);
-                          }
-                        },
-                      ),
-                      const Gap(16),
-                    ],
-                  ),
-                );
-              },
-            ).padding(bottom: MediaQuery.of(context).padding.bottom)
-          : null,
+      floatingActionButton: const ChatFabWidget(),
       appBar: AppBar(
         flexibleSpace: Container(
           height: 48,
