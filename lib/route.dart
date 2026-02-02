@@ -233,7 +233,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             name: 'universalSearch',
             path: '/search',
-            builder: (context, state) => const UniversalSearchScreen(),
+            builder: (context, state) {
+              final initialTab = state.uri.queryParameters['tab'];
+              SearchTab tab;
+              if (initialTab == 'realms') {
+                tab = SearchTab.realms;
+              } else if (initialTab == 'fediverse') {
+                tab = SearchTab.fediverse;
+              } else {
+                tab = SearchTab.posts;
+              }
+              return UniversalSearchScreen(initialTab: tab);
+            },
           ),
 
           // Main tabs with TabsScreen shell

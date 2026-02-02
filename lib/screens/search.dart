@@ -16,12 +16,13 @@ import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_skeleton.dart';
 import 'package:island/widgets/post/filters/post_filter.dart';
+import 'package:island/widgets/realm/realm_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 const kSearchPostListId = 'search';
 
-enum SearchTab { posts, fediverse }
+enum SearchTab { posts, fediverse, realms }
 
 class UniversalSearchScreen extends HookConsumerWidget {
   final SearchTab initialTab;
@@ -31,7 +32,7 @@ class UniversalSearchScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(
-      initialLength: 2,
+      initialLength: 3,
       initialIndex: initialTab.index,
     );
 
@@ -45,16 +46,75 @@ class UniversalSearchScreen extends HookConsumerWidget {
             tabs: [
               Tab(text: 'posts'.tr()),
               Tab(text: 'fediverseUsers'.tr()),
+              Tab(text: 'realms'.tr()),
             ],
           ),
           Expanded(
             child: TabBarView(
               controller: tabController,
-              children: [_PostsSearchTab(), _FediverseSearchTab()],
+              children: [_PostsSearchTab(), _FediverseSearchTab(), _RealmsSearchTab()],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RealmsSearchTab extends HookConsumerWidget {
+  const _RealmsSearchTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    Timer? debounceTimer;
+    final searchController = useTextEditingController();
+    final currentQuery = useState<String?>(null);
+
+    return Stack(
+      children: [
+        CustomScrollView(
+          slivers: [
+            const SliverGap(88),
+            SliverRealmList(
+              query: currentQuery.value,
+              key: ValueKey(currentQuery.value),
+            ),
+            SliverGap(MediaQuery.of(context).padding.bottom + 16),
+          ],
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: SearchBar(
+                  elevation: WidgetStateProperty.all(4),
+                  controller: searchController,
+                  hintText: 'search'.tr(),
+                  leading: const Icon(Icons.search),
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 24),
+                  ),
+                  onChanged: (value) {
+                    if (debounceTimer?.isActive ?? false) {
+                      debounceTimer?.cancel();
+                    }
+                    debounceTimer = Timer(const Duration(milliseconds: 300), () {
+                      if (currentQuery.value != value) {
+                        currentQuery.value = value;
+                      }
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

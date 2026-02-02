@@ -51,7 +51,7 @@ class RealmListScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.travel_explore),
-            onPressed: () => context.pushNamed('discoveryRealms'),
+            onPressed: () => context.pushNamed('universalSearch', queryParameters: {'tab': 'realms'}),
           ),
           IconButton(
             icon: Badge(

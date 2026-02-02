@@ -9,10 +9,9 @@ import 'package:island/widgets/paging/pagination_list.dart';
 import 'package:island/widgets/realm/realm_list_tile.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final realmListNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<RealmListNotifier, PaginationState<SnRealm>, String?>(
-      RealmListNotifier.new,
-    );
+final realmListNotifierProvider = AsyncNotifierProvider.autoDispose.family(
+  RealmListNotifier.new,
+);
 
 class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
     with AsyncPaginationController<SnRealm> {
@@ -45,7 +44,7 @@ class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
     };
 
     final response = await client.get(
-      '/sphere/discovery/realms',
+      '/pass/realms/public',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
