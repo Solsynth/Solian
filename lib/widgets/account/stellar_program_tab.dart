@@ -120,83 +120,73 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                         ).colorScheme.outline.withOpacity(0.2),
                       ),
                     ),
-                    child:
-                        selectedRecipient != null
-                            ? ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                left: 20,
-                                right: 12,
+                    child: selectedRecipient != null
+                        ? ListTile(
+                            contentPadding: const EdgeInsets.only(
+                              left: 20,
+                              right: 12,
+                            ),
+                            leading: ProfilePictureWidget(
+                              file: selectedRecipient!.profile.picture,
+                            ),
+                            title: Text(
+                              selectedRecipient!.nick,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
-                              leading: ProfilePictureWidget(
-                                file: selectedRecipient!.profile.picture,
+                            ),
+                            subtitle: Text(
+                              'selectedRecipient'.tr(),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            trailing: IconButton(
+                              onPressed: () =>
+                                  setState(() => selectedRecipient = null),
+                              icon: Icon(
+                                Icons.clear,
+                                color: Theme.of(context).colorScheme.error,
                               ),
-                              title: Text(
-                                selectedRecipient!.nick,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              subtitle: Text(
-                                'selectedRecipient'.tr(),
-                                style: Theme.of(
+                              tooltip: 'Clear selection',
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_add_outlined,
+                                size: 48,
+                                color: Theme.of(
                                   context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color:
-                                      Theme.of(
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'noRecipientSelected'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              trailing: IconButton(
-                                onPressed:
-                                    () => setState(
-                                      () => selectedRecipient = null,
                                     ),
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                                tooltip: 'Clear selection',
                               ),
-                            )
-                            : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person_add_outlined,
-                                  size: 48,
-                                  color:
-                                      Theme.of(
+                              const Gap(4),
+                              Text(
+                                'thisWillBeAnOpenGift'.tr(),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  'noRecipientSelected'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const Gap(4),
-                                Text(
-                                  'thisWillBeAnOpenGift'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ).padding(vertical: 32),
+                                    ),
+                              ),
+                            ],
+                          ).padding(vertical: 32),
                   ),
                   const Gap(12),
                   OutlinedButton.icon(
@@ -259,8 +249,8 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                       ),
                     ),
                     maxLines: 3,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                 ],
               ),
@@ -274,13 +264,12 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed:
-                        () => Navigator.of(context).pop(<String, dynamic>{
+                    onPressed: () =>
+                        Navigator.of(context).pop(<String, dynamic>{
                           'recipient': null,
-                          'message':
-                              messageController.text.trim().isEmpty
-                                  ? null
-                                  : messageController.text.trim(),
+                          'message': messageController.text.trim().isEmpty
+                              ? null
+                              : messageController.text.trim(),
                         }),
                     child: Text('skipRecipient'.tr()),
                   ),
@@ -288,13 +277,12 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                 const Gap(8),
                 Expanded(
                   child: FilledButton(
-                    onPressed:
-                        () => Navigator.of(context).pop(<String, dynamic>{
+                    onPressed: () =>
+                        Navigator.of(context).pop(<String, dynamic>{
                           'recipient': selectedRecipient,
-                          'message':
-                              messageController.text.trim().isEmpty
-                                  ? null
-                                  : messageController.text.trim(),
+                          'message': messageController.text.trim().isEmpty
+                              ? null
+                              : messageController.text.trim(),
                         }),
                     child: Text('purchaseGift'.tr()),
                   ),
@@ -336,40 +324,38 @@ class StellarProgramTab extends HookConsumerWidget {
   ) {
     return stellarSubscriptionAsync.when(
       data: (membership) => _buildMembershipContent(context, ref, membership),
-      loading:
-          () => Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).colorScheme.primaryContainer,
-                  Theme.of(context).colorScheme.secondaryContainer,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(child: CircularProgressIndicator()),
+      loading: () => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.secondaryContainer,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-      error:
-          (error, stack) => Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).colorScheme.primaryContainer,
-                  Theme.of(context).colorScheme.secondaryContainer,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text('Error loading membership: $error'),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.secondaryContainer,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text('Error loading membership: $error'),
+      ),
     );
   }
 
@@ -544,118 +530,108 @@ class StellarProgramTab extends HookConsumerWidget {
     ];
 
     return Column(
-      children:
-          tiers.map((tier) {
-            final isCurrentTier = currentMembership?.identifier == tier['id'];
-            final tierColor = tier['color'] as Color;
+      children: tiers.map((tier) {
+        final isCurrentTier = currentMembership?.identifier == tier['id'];
+        final tierColor = tier['color'] as Color;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap:
-                      isCurrentTier
-                          ? null
-                          : () => _purchaseMembership(
-                            context,
-                            ref,
-                            tier['id'] as String,
-                          ),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isCurrentTier
+                  ? null
+                  : () =>
+                        _purchaseMembership(context, ref, tier['id'] as String),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isCurrentTier
+                      ? tierColor.withOpacity(0.1)
+                      : Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color:
-                          isCurrentTier
-                              ? tierColor.withOpacity(0.1)
-                              : Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color:
-                            isCurrentTier
-                                ? tierColor
-                                : Theme.of(
-                                  context,
-                                ).colorScheme.outline.withOpacity(0.2),
-                        width: isCurrentTier ? 2 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: tierColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const Gap(12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    tier['name'] as String,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: isCurrentTier ? tierColor : null,
-                                    ),
-                                  ),
-                                  const Gap(8),
-                                  if (isCurrentTier)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: tierColor,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'membershipCurrentBadge'.tr(),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              Text(
-                                tier['price'] as String,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (!isCurrentTier)
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                      ],
-                    ),
+                  border: Border.all(
+                    color: isCurrentTier
+                        ? tierColor
+                        : Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                    width: isCurrentTier ? 2 : 1,
                   ),
                 ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: tierColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                tier['name'] as String,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isCurrentTier ? tierColor : null,
+                                ),
+                              ),
+                              const Gap(8),
+                              if (isCurrentTier)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: tierColor,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'membershipCurrentBadge'.tr(),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          Text(
+                            tier['price'] as String,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!isCurrentTier)
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  ],
+                ),
               ),
-            );
-          }).toList(),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -825,82 +801,75 @@ class StellarProgramTab extends HookConsumerWidget {
     ];
 
     return Column(
-      children:
-          tiers.map((tier) {
-            final tierColor = tier['color'] as Color;
+      children: tiers.map((tier) {
+        final tierColor = tier['color'] as Color;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap:
-                      () => _showPurchaseGiftDialog(
-                        context,
-                        ref,
-                        tier['id'] as String,
-                      ),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () =>
+                  _showPurchaseGiftDialog(context, ref, tier['id'] as String),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outline.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: tierColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const Gap(12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tier['name'] as String,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                tier['price'] as String,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.2),
+                    width: 1,
                   ),
                 ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: tierColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tier['name'] as String,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            tier['price'] as String,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
-            );
-          }).toList(),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -944,8 +913,8 @@ class StellarProgramTab extends HookConsumerWidget {
               ),
               suffixIcon: IconButton(
                 icon: Icon(Icons.redeem),
-                onPressed:
-                    () => _redeemGift(context, ref, codeController.text.trim()),
+                onPressed: () =>
+                    _redeemGift(context, ref, codeController.text.trim()),
               ),
             ),
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
@@ -966,16 +935,16 @@ class StellarProgramTab extends HookConsumerWidget {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed:
-                () => _showGiftHistorySheet(context, ref, sentGifts, true),
+            onPressed: () =>
+                _showGiftHistorySheet(context, ref, sentGifts, true),
             child: Text('sentGifts'.tr()),
           ),
         ),
         const Gap(8),
         Expanded(
           child: OutlinedButton(
-            onPressed:
-                () => _showGiftHistorySheet(context, ref, receivedGifts, false),
+            onPressed: () =>
+                _showGiftHistorySheet(context, ref, receivedGifts, false),
             child: Text('receivedGifts'.tr()),
           ),
         ),
@@ -993,36 +962,26 @@ class StellarProgramTab extends HookConsumerWidget {
       isScrollControlled: true,
       useRootNavigator: true,
       context: context,
-      builder:
-          (context) => SheetScaffold(
-            titleText: isSent ? 'sentGifts'.tr() : 'receivedGifts'.tr(),
-            child: giftsAsync.when(
-              data:
-                  (gifts) =>
-                      gifts.isEmpty
-                          ? Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(
-                              isSent
-                                  ? 'noSentGifts'.tr()
-                                  : 'noReceivedGifts'.tr(),
-                            ),
-                          )
-                          : ListView.builder(
-                            padding: const EdgeInsets.only(top: 16),
-                            itemCount: gifts.length,
-                            itemBuilder:
-                                (context, index) => _buildGiftItem(
-                                  context,
-                                  ref,
-                                  gifts[index],
-                                  isSent,
-                                ),
-                          ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-            ),
-          ),
+      builder: (context) => SheetScaffold(
+        titleText: isSent ? 'sentGifts'.tr() : 'receivedGifts'.tr(),
+        child: giftsAsync.when(
+          data: (gifts) => gifts.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    isSent ? 'noSentGifts'.tr() : 'noReceivedGifts'.tr(),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.only(top: 16),
+                  itemCount: gifts.length,
+                  itemBuilder: (context, index) =>
+                      _buildGiftItem(context, ref, gifts[index], isSent),
+                ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+        ),
+      ),
     );
   }
 
@@ -1232,10 +1191,10 @@ class StellarProgramTab extends HookConsumerWidget {
         '/pass/subscriptions/gifts/purchase',
         data: {
           'subscription_identifier': subscriptionId,
-          if (recipientId != null) 'recipient_id': recipientId,
+          'recipient_id': ?recipientId,
           'payment_method': 'solian.wallet',
           'payment_details': {'currency': 'golds'},
-          if (message != null) 'message': message,
+          'message': ?message,
           'gift_duration_days': 30,
           'subscription_duration_days': 30,
         },
@@ -1277,83 +1236,75 @@ class StellarProgramTab extends HookConsumerWidget {
         if (context.mounted) {
           await showModalBottomSheet(
             context: context,
-            builder:
-                (context) => SheetScaffold(
-                  titleText: 'giftPurchased'.tr(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
+            builder: (context) => SheetScaffold(
+              titleText: 'giftPurchased'.tr(),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              updatedGift.giftCode,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'monospace',
+                              ),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  updatedGift.giftCode,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () async {
-                                  await Clipboard.setData(
-                                    ClipboardData(text: updatedGift.giftCode),
-                                  );
-                                  if (context.mounted) {
-                                    showSnackBar(
-                                      'giftCodeCopiedToClipboard'.tr(),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.copy),
-                                tooltip: 'copyGiftCode'.tr(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Gap(16),
-                        Text(
-                          'shareCodeWithRecipient'.tr(),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        if (updatedGift.recipientId == null) ...[
-                          const Gap(8),
-                          Text(
-                            'openGiftAnyoneCanRedeem'.tr(),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                            ),
+                          IconButton(
+                            onPressed: () async {
+                              await Clipboard.setData(
+                                ClipboardData(text: updatedGift.giftCode),
+                              );
+                              if (context.mounted) {
+                                showSnackBar('giftCodeCopiedToClipboard'.tr());
+                              }
+                            },
+                            icon: const Icon(Icons.copy),
+                            tooltip: 'copyGiftCode'.tr(),
                           ),
                         ],
-                        const Gap(24),
-                        FilledButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('ok'.tr()),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const Gap(16),
+                    Text(
+                      'shareCodeWithRecipient'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (updatedGift.recipientId == null) ...[
+                      const Gap(8),
+                      Text(
+                        'openGiftAnyoneCanRedeem'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    const Gap(24),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('ok'.tr()),
+                    ),
+                  ],
                 ),
+              ),
+            ),
           );
         }
       }
@@ -1397,17 +1348,16 @@ class StellarProgramTab extends HookConsumerWidget {
         hideLoadingModal(context);
         await showDialog(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: Text('giftRedeemed'.tr()),
-                content: Text('giftRedeemedSuccessfully'.tr()),
-                actions: [
-                  FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('ok'.tr()),
-                  ),
-                ],
+          builder: (context) => AlertDialog(
+            title: Text('giftRedeemed'.tr()),
+            content: Text('giftRedeemedSuccessfully'.tr()),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('ok'.tr()),
               ),
+            ],
+          ),
         );
       }
 

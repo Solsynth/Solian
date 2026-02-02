@@ -97,7 +97,7 @@ class ChatRoomSubtitle extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       layoutBuilder: (currentChild, previousChildren) => Stack(
         alignment: Alignment.centerLeft,
-        children: [...previousChildren, if (currentChild != null) currentChild],
+        children: [...previousChildren, ?currentChild],
       ),
       child: summary.when(
         data: (data) => Container(

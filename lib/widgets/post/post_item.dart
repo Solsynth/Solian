@@ -478,10 +478,7 @@ class PostItem extends HookConsumerWidget {
 
     final translationSection = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (translatedWidget != null) translatedWidget,
-        if (translatableWidget != null) translatableWidget,
-      ],
+      children: [?translatedWidget, ?translatableWidget],
     );
 
     return Column(

@@ -398,10 +398,7 @@ class CallOverlayBar extends HookConsumerWidget {
         layoutBuilder: (currentChild, previousChildren) {
           return Stack(
             alignment: Alignment.topCenter,
-            children: <Widget>[
-              ...previousChildren,
-              if (currentChild != null) currentChild,
-            ],
+            children: <Widget>[...previousChildren, ?currentChild],
           );
         },
         child: child,
