@@ -236,13 +236,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final initialTab = state.uri.queryParameters['tab'];
               SearchTab tab;
-              if (initialTab == 'realms') {
-                tab = SearchTab.realms;
-              } else if (initialTab == 'fediverse') {
-                tab = SearchTab.fediverse;
-              } else {
-                tab = SearchTab.posts;
-              }
+              tab = switch (initialTab) {
+                'realms' => SearchTab.realms,
+                'accounts' => SearchTab.accounts,
+                _ => SearchTab.posts,
+              };
               return UniversalSearchScreen(initialTab: tab);
             },
           ),

@@ -5,10 +5,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/activitypub.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/post/post_list.dart';
 import 'package:island/services/activitypub_service.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/activitypub/actor_list_item.dart';
+import 'package:island/widgets/account/account_picker.dart';
+import 'package:island/widgets/account/account_name.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
@@ -22,7 +26,7 @@ import 'package:styled_widget/styled_widget.dart';
 
 const kSearchPostListId = 'search';
 
-enum SearchTab { posts, fediverse, realms }
+enum SearchTab { posts, accounts, realms }
 
 class UniversalSearchScreen extends HookConsumerWidget {
   final SearchTab initialTab;
@@ -45,14 +49,18 @@ class UniversalSearchScreen extends HookConsumerWidget {
             controller: tabController,
             tabs: [
               Tab(text: 'posts'.tr()),
-              Tab(text: 'fediverseUsers'.tr()),
+              Tab(text: 'accounts'.tr()),
               Tab(text: 'realms'.tr()),
             ],
           ),
           Expanded(
             child: TabBarView(
               controller: tabController,
-              children: [_PostsSearchTab(), _FediverseSearchTab(), _RealmsSearchTab()],
+              children: [
+                _PostsSearchTab(),
+                _FediverseSearchTab(),
+                _RealmsSearchTab(),
+              ],
             ),
           ),
         ],
@@ -103,11 +111,14 @@ class _RealmsSearchTab extends HookConsumerWidget {
                     if (debounceTimer?.isActive ?? false) {
                       debounceTimer?.cancel();
                     }
-                    debounceTimer = Timer(const Duration(milliseconds: 300), () {
-                      if (currentQuery.value != value) {
-                        currentQuery.value = value;
-                      }
-                    });
+                    debounceTimer = Timer(
+                      const Duration(milliseconds: 300),
+                      () {
+                        if (currentQuery.value != value) {
+                          currentQuery.value = value;
+                        }
+                      },
+                    );
                   },
                 ),
               ),
@@ -423,7 +434,8 @@ class _FediverseSearchTab extends HookConsumerWidget {
     final searchController = useTextEditingController();
     final debounce = useMemoized(() => const Duration(milliseconds: 500));
     final debounceTimer = useRef<Timer?>(null);
-    final searchResults = useState<List<SnActivityPubActor>>([]);
+    final fediverseResults = useState<List<SnActivityPubActor>>([]);
+    final internalResults = useState<List<SnAccount>>([]);
     final isSearching = useState(false);
 
     useEffect(() {
@@ -435,15 +447,30 @@ class _FediverseSearchTab extends HookConsumerWidget {
 
     Future<void> performSearch(String query) async {
       if (query.trim().isEmpty) {
-        searchResults.value = [];
+        fediverseResults.value = [];
+        internalResults.value = [];
         return;
       }
 
       isSearching.value = true;
       try {
-        final service = ref.read(activityPubServiceProvider);
-        final results = await service.searchUsers(query);
-        searchResults.value = results;
+        // Search for fediverse users
+        final activityPubService = ref.read(activityPubServiceProvider);
+        final fediverseFuture = activityPubService.searchUsers(query);
+
+        // Search for internal users
+        final internalFuture = ref.read(
+          searchAccountsProvider(query: query).future,
+        );
+
+        // Wait for both searches to complete
+        final [fediverseData, internalData] = await Future.wait([
+          fediverseFuture,
+          internalFuture,
+        ]);
+
+        fediverseResults.value = fediverseData as List<SnActivityPubActor>;
+        internalResults.value = internalData as List<SnAccount>;
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -461,7 +488,7 @@ class _FediverseSearchTab extends HookConsumerWidget {
     }
 
     void updateActorIsFollowing(String actorId, bool isFollowing) {
-      searchResults.value = searchResults.value
+      fediverseResults.value = fediverseResults.value
           .map(
             (a) => a.id == actorId ? a.copyWith(isFollowing: isFollowing) : a,
           )
@@ -504,15 +531,23 @@ class _FediverseSearchTab extends HookConsumerWidget {
       }
     }
 
+    // Combine and display results - local users first
+    final allResults = [
+      ...internalResults.value.map(
+        (account) => {'type': 'internal', 'data': account},
+      ),
+      ...fediverseResults.value.map(
+        (actor) => {'type': 'fediverse', 'data': actor},
+      ),
+    ];
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: SearchBar(
             controller: searchController,
-            hintText: 'searchFediverseHint'.tr(
-              args: ['@username@instance.com'],
-            ),
+            hintText: 'searchAccountsHint'.tr(),
             leading: const Icon(Symbols.search).padding(horizontal: 24),
             onChanged: onSearchChanged,
             onSubmitted: (value) {
@@ -524,7 +559,7 @@ class _FediverseSearchTab extends HookConsumerWidget {
         Expanded(
           child: isSearching.value
               ? const Center(child: CircularProgressIndicator())
-              : searchResults.value.isEmpty
+              : allResults.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -537,12 +572,12 @@ class _FediverseSearchTab extends HookConsumerWidget {
                       const SizedBox(height: 16),
                       if (searchController.text.isEmpty)
                         Text(
-                          'searchFediverseEmpty'.tr(),
+                          'searchUsersEmpty'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
                         )
                       else
                         Text(
-                          'searchFediverseNoResults'.tr(),
+                          'searchUsersNoResults'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                     ],
@@ -552,22 +587,68 @@ class _FediverseSearchTab extends HookConsumerWidget {
                   onRefresh: () => performSearch(searchController.text),
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: searchResults.value.length,
+                    itemCount: allResults.length,
                     separatorBuilder: (context, index) => const Gap(8),
                     itemBuilder: (context, index) {
-                      final actor = searchResults.value[index];
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 560),
-                          child: ApActorListItem(
-                            actor: actor,
-                            isFollowing: actor.isFollowing ?? false,
-                            isLoading: false,
-                            onFollow: () => handleFollow(actor),
-                            onUnfollow: () => handleUnfollow(actor),
+                      final result = allResults[index];
+                      if (result['type'] == 'fediverse') {
+                        final actor = result['data'] as SnActivityPubActor;
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: ApActorListItem(
+                              actor: actor,
+                              isFollowing: actor.isFollowing ?? false,
+                              isLoading: false,
+                              onFollow: () => handleFollow(actor),
+                              onUnfollow: () => handleUnfollow(actor),
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        final account = result['data'] as SnAccount;
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                right: 12,
+                              ),
+                              leading: Stack(
+                                children: [
+                                  ProfilePictureWidget(
+                                    file: account.profile.picture,
+                                  ),
+                                ],
+                              ),
+                              title: AccountName(
+                                account: account,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              subtitle: Row(
+                                children: [
+                                  Text('@${account.name}'),
+                                  if (account.profile.bio.isNotEmpty)
+                                    Expanded(
+                                      child: Text(
+                                        account.profile.bio,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              trailing: const SizedBox(
+                                width: 88,
+                              ), // To align with ApActorListItem
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),

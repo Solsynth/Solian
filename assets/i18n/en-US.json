@@ -1652,5 +1652,6 @@
   "dashboardCardActivityColumnDescription": "Check In, Fortune Graph & Fortune",
   "dashboardCardPostsColumnDescription": "Featured Posts",
   "dashboardCardSocialColumnDescription": "Friends & Notifications",
-  "dashboardCardChatsColumnDescription": "Recent Chats"
+  "dashboardCardChatsColumnDescription": "Recent Chats",
+  "searchAccountsHint": "Search across the Solar Network and fediverse network."
 }
