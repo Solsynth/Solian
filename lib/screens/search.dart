@@ -39,10 +39,27 @@ class UniversalSearchScreen extends HookConsumerWidget {
       initialLength: 3,
       initialIndex: initialTab.index,
     );
+    final searchQuery = useState<String>('');
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('universalSearch'.tr()), elevation: 0),
+      appBar: AppBar(
+        title: SearchBar(
+          constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
+          hintText: 'search'.tr(),
+          hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          onChanged: (value) {
+            searchQuery.value = value;
+          },
+          leading: Icon(
+            Symbols.search,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        elevation: 0,
+      ),
       body: Column(
         children: [
           TabBar(
@@ -57,9 +74,9 @@ class UniversalSearchScreen extends HookConsumerWidget {
             child: TabBarView(
               controller: tabController,
               children: [
-                _PostsSearchTab(),
-                _FediverseSearchTab(),
-                _RealmsSearchTab(),
+                _PostsSearchTab(searchQuery: searchQuery),
+                _AccountSearchTab(searchQuery: searchQuery),
+                _RealmsSearchTab(searchQuery: searchQuery),
               ],
             ),
           ),
@@ -70,60 +87,23 @@ class UniversalSearchScreen extends HookConsumerWidget {
 }
 
 class _RealmsSearchTab extends HookConsumerWidget {
-  const _RealmsSearchTab();
+  final ValueNotifier<String> searchQuery;
+
+  const _RealmsSearchTab({required this.searchQuery});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Timer? debounceTimer;
-    final searchController = useTextEditingController();
-    final currentQuery = useState<String?>(null);
-
     return Stack(
       children: [
         CustomScrollView(
           slivers: [
-            const SliverGap(88),
+            const SliverGap(8),
             SliverRealmList(
-              query: currentQuery.value,
-              key: ValueKey(currentQuery.value),
+              query: searchQuery.value,
+              key: ValueKey(searchQuery.value),
             ),
             SliverGap(MediaQuery.of(context).padding.bottom + 16),
           ],
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SearchBar(
-                  elevation: WidgetStateProperty.all(4),
-                  controller: searchController,
-                  hintText: 'search'.tr(),
-                  leading: const Icon(Icons.search),
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 24),
-                  ),
-                  onChanged: (value) {
-                    if (debounceTimer?.isActive ?? false) {
-                      debounceTimer?.cancel();
-                    }
-                    debounceTimer = Timer(
-                      const Duration(milliseconds: 300),
-                      () {
-                        if (currentQuery.value != value) {
-                          currentQuery.value = value;
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
         ),
       ],
     );
@@ -131,11 +111,12 @@ class _RealmsSearchTab extends HookConsumerWidget {
 }
 
 class _PostsSearchTab extends HookConsumerWidget {
-  const _PostsSearchTab();
+  final ValueNotifier<String> searchQuery;
+
+  const _PostsSearchTab({required this.searchQuery});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchController = useTextEditingController();
     final debounce = useMemoized(() => Duration(milliseconds: 500));
     final debounceTimer = useRef<Timer?>(null);
     final showFilters = useState(false);
@@ -151,7 +132,6 @@ class _PostsSearchTab extends HookConsumerWidget {
 
     useEffect(() {
       return () {
-        searchController.dispose();
         pubNameController.dispose();
         realmController.dispose();
         debounceTimer.value?.cancel();
@@ -188,6 +168,18 @@ class _PostsSearchTab extends HookConsumerWidget {
       );
     }
 
+    // Listen to search query changes and update the search
+    useEffect(() {
+      final query = searchQuery.value;
+      if (query.isNotEmpty) {
+        // Use Future.delayed to defer the provider modification
+        Future.delayed(Duration.zero, () {
+          onSearchChanged(query, skipDebounce: true);
+        });
+      }
+      return null;
+    }, [searchQuery.value]);
+
     return Consumer(
       builder: (context, ref, child) {
         final searchState = ref.watch(
@@ -203,28 +195,7 @@ class _PostsSearchTab extends HookConsumerWidget {
                       onRefresh: noti.refresh,
                       child: CustomScrollView(
                         slivers: [
-                          SliverGap(16),
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              child: SearchBar(
-                                elevation: WidgetStateProperty.all(4),
-                                controller: searchController,
-                                hintText: 'search'.tr(),
-                                leading: const Icon(Icons.search),
-                                padding: WidgetStateProperty.all(
-                                  const EdgeInsets.symmetric(horizontal: 24),
-                                ),
-                                onChanged: onSearchChanged,
-                                onSubmitted: (value) {
-                                  onSearchChanged(value, skipDebounce: true);
-                                },
-                              ),
-                            ),
-                          ),
-                          const SliverGap(12),
+                          SliverGap(4),
                           PaginationList(
                             provider: postListProvider(
                               PostListQueryConfig(id: kSearchPostListId),
@@ -256,14 +227,14 @@ class _PostsSearchTab extends HookConsumerWidget {
                             },
                           ),
                           if (searchState.value?.items.isEmpty == true &&
-                              searchController.text.isNotEmpty &&
+                              searchQuery.value.isNotEmpty &&
                               !searchState.isLoading)
                             SliverFillRemaining(
                               child: Center(child: Text('noResultsFound'.tr())),
                             ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 16),
                         ],
-                      ).padding(left: 8),
+                      ).padding(left: 16),
                     ),
                   ),
                   Flexible(
@@ -271,10 +242,11 @@ class _PostsSearchTab extends HookConsumerWidget {
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(right: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Gap(16),
+                            Gap(8),
                             Card(
                               margin: EdgeInsets.symmetric(horizontal: 8),
                               child: Padding(
@@ -319,28 +291,6 @@ class _PostsSearchTab extends HookConsumerWidget {
               )
             : CustomScrollView(
                 slivers: [
-                  const SliverGap(4),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: SearchBar(
-                        elevation: WidgetStateProperty.all(4),
-                        controller: searchController,
-                        hintText: 'search'.tr(),
-                        leading: const Icon(Icons.search),
-                        padding: WidgetStateProperty.all(
-                          const EdgeInsets.symmetric(horizontal: 24),
-                        ),
-                        onChanged: onSearchChanged,
-                        onSubmitted: (value) {
-                          onSearchChanged(value, skipDebounce: true);
-                        },
-                      ),
-                    ),
-                  ),
                   const SliverGap(8),
                   SliverToBoxAdapter(
                     child: Column(
@@ -396,25 +346,17 @@ class _PostsSearchTab extends HookConsumerWidget {
                       child: const PostItemSkeleton(maxWidth: double.infinity),
                     ),
                     itemBuilder: (context, index, post) {
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 600),
-                          child: Card(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: PostActionableItem(
-                              item: post,
-                              borderRadius: 8,
-                            ),
-                          ),
+                      return Card(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
+                        child: PostActionableItem(item: post, borderRadius: 8),
                       );
                     },
                   ),
                   if (searchState.value?.items.isEmpty == true &&
-                      searchController.text.isNotEmpty &&
+                      searchQuery.value.isNotEmpty &&
                       !searchState.isLoading)
                     SliverFillRemaining(
                       child: Center(child: Text('noResultsFound'.tr())),
@@ -426,12 +368,13 @@ class _PostsSearchTab extends HookConsumerWidget {
   }
 }
 
-class _FediverseSearchTab extends HookConsumerWidget {
-  const _FediverseSearchTab();
+class _AccountSearchTab extends HookConsumerWidget {
+  final ValueNotifier<String> searchQuery;
+
+  const _AccountSearchTab({required this.searchQuery});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchController = useTextEditingController();
     final debounce = useMemoized(() => const Duration(milliseconds: 500));
     final debounceTimer = useRef<Timer?>(null);
     final fediverseResults = useState<List<SnActivityPubActor>>([]);
@@ -440,7 +383,6 @@ class _FediverseSearchTab extends HookConsumerWidget {
 
     useEffect(() {
       return () {
-        searchController.dispose();
         debounceTimer.value?.cancel();
       };
     }, []);
@@ -531,6 +473,18 @@ class _FediverseSearchTab extends HookConsumerWidget {
       }
     }
 
+    // Listen to search query changes and update the search
+    useEffect(() {
+      final query = searchQuery.value;
+      if (query.isNotEmpty) {
+        // Use Future.delayed to defer the provider modification
+        Future.delayed(Duration.zero, () {
+          onSearchChanged(query);
+        });
+      }
+      return null;
+    }, [searchQuery.value]);
+
     // Combine and display results - local users first
     final allResults = [
       ...internalResults.value.map(
@@ -543,19 +497,6 @@ class _FediverseSearchTab extends HookConsumerWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SearchBar(
-            controller: searchController,
-            hintText: 'searchAccountsHint'.tr(),
-            leading: const Icon(Symbols.search).padding(horizontal: 24),
-            onChanged: onSearchChanged,
-            onSubmitted: (value) {
-              onSearchChanged(value);
-              performSearch(value);
-            },
-          ),
-        ),
         Expanded(
           child: isSearching.value
               ? const Center(child: CircularProgressIndicator())
@@ -569,8 +510,8 @@ class _FediverseSearchTab extends HookConsumerWidget {
                         size: 64,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 16),
-                      if (searchController.text.isEmpty)
+                      const Gap(16),
+                      if (searchQuery.value.isEmpty)
                         Text(
                           'searchUsersEmpty'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
@@ -584,7 +525,7 @@ class _FediverseSearchTab extends HookConsumerWidget {
                   ),
                 )
               : ExtendedRefreshIndicator(
-                  onRefresh: () => performSearch(searchController.text),
+                  onRefresh: () => performSearch(searchQuery.value),
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: allResults.length,
