@@ -191,6 +191,7 @@
     "statusActivityEndedTitle": "{} 正在 {} {} 直到 {}",
     "appSettings": "应用设置",
     "accountSettings": "账号设置",
+    "accounts": "账号",
     "settings": "设置",
     "language": "语言",
     "accountLanguageHint": "此语言将用于电子邮件和推送通知。",
