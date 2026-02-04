@@ -39,7 +39,7 @@ dependencies:
   flutter_hooks: ^0.21.3+1
   hooks_riverpod: ^3.1.0
   quick_actions: ^1.1.0
-  go_router: ^17.0.1
+  go_router: ^17.1.0
   styled_widget: ^0.4.1
   shared_preferences: ^2.5.4
   flutter_riverpod: ^3.1.0
@@ -81,7 +81,7 @@ dependencies:
   firebase_core: ^4.4.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2906.0
-  drift: ^2.30.1
+  drift: ^2.31.0
   drift_flutter: ^0.2.8
   path: ^1.9.1
   collection: ^1.19.1
@@ -130,7 +130,7 @@ dependencies:
   waveform_flutter: ^1.2.0
   flutter_app_update: ^3.2.2
   archive: ^4.0.7
-  process_run: ^1.2.4
+  process_run: ^1.3.0
   firebase_crashlytics: ^5.0.7
   firebase_analytics: ^12.1.1
   material_color_utilities: ^0.11.1
@@ -191,7 +191,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.0+1
   custom_lint: ^0.8.1
   riverpod_lint: ^3.1.0
-  drift_dev: ^2.30.1
+  drift_dev: ^2.31.0
   flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
