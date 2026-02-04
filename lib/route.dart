@@ -47,6 +47,7 @@ import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/sites/site_detail.dart';
 import 'package:island/screens/creators/sites/site_list.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
+import 'package:island/screens/fitness_activity.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/compose_article.dart';
 import 'package:island/screens/posts/post_detail.dart';
@@ -436,6 +437,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                       final id = state.pathParameters['id']!;
                       return AbuseReportDetailScreen(reportId: id);
                     },
+                  ),
+                  GoRoute(
+                    name: 'fitnessActivity',
+                    path: '/account/fitness',
+                    builder: (context, state) => const FitnessActivityScreen(),
                   ),
                 ],
               ),
