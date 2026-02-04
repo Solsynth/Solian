@@ -5,6 +5,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/fitness_data.dart';
+import 'package:island/services/fitness_service.dart';
 import 'package:island/services/update_service.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
@@ -194,6 +196,66 @@ class DebugSheet extends HookConsumerWidget {
               title: Text('Clear cache'),
               onTap: () async {
                 DefaultCacheManager().emptyCache();
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.fitness_center),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Load Last 7 Days Workouts'),
+              onTap: () async {
+                try {
+                  final fitnessService = ref.read(fitnessServiceProvider);
+                  
+                  // Check if platform is supported
+                  if (!fitnessService.isPlatformSupported) {
+                    showErrorAlert('Fitness data is only available on iOS and Android devices.');
+                    return;
+                  }
+
+                  // Check permissions first
+                  final permissionStatus = await fitnessService.getPermissionStatus();
+                  if (permissionStatus != FitnessPermissionStatus.granted) {
+                    final granted = await fitnessService.requestPermissions();
+                    if (!granted) {
+                      showErrorAlert('Permission to access fitness data was denied. Please enable it in your device settings.');
+                      return;
+                    }
+                  }
+
+                  // Get workouts from the last 7 days
+                  final workouts = await fitnessService.getWorkoutsLast7Days();
+                  
+                  if (workouts.isEmpty) {
+                    showInfoAlert('No workout data found for the last 7 days.', 'No Data');
+                    return;
+                  }
+
+                  // Format the workout data for display
+                  StringBuffer sb = StringBuffer();
+                  for (final workout in workouts) {
+                    final dateStr = '${workout.startTime.day}/${workout.startTime.month}';
+                    final energyStr = workout.energyBurnedString.isNotEmpty 
+                        ? ' • ${workout.energyBurnedString}' 
+                        : '';
+                    final distanceStr = workout.distanceString.isNotEmpty 
+                        ? ' • ${workout.distanceString}' 
+                        : '';
+                    final stepsStr = workout.stepsString.isNotEmpty 
+                        ? ' • ${workout.stepsString} steps' 
+                        : '';
+                    
+                    sb.write(
+                      '${workout.workoutTypeString} • $dateStr • ${workout.durationString}$energyStr$distanceStr$stepsStr\n',
+                    );
+                  }
+                  
+                  showInfoAlert(sb.toString(), 'Workout Data Retrieved');
+                } catch (e) {
+                  showErrorAlert(e);
+                }
               },
             ),
           ],
