@@ -282,11 +282,25 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
+    // Handle bottom navigation routes properly to prevent navigation bar disappearance
+    // These routes should navigate within the bottom navigation shell
+    final bottomNavRoutes = ['/', '/explore', '/chat', '/realms', '/account'];
+    if (bottomNavRoutes.contains(path)) {
+      // Navigate within the bottom navigation shell using go() to maintain shell context
+      router.go(path);
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
     if (uri.queryParameters.isNotEmpty) {
       path = Uri.parse(
         path,
       ).replace(queryParameters: uri.queryParameters).toString();
     }
+    // For non-bottom navigation routes, use push() to navigate outside the shell
     router.push(path);
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
