@@ -12,7 +12,7 @@ part 'fund_envelope.g.dart';
 @riverpod
 Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/pass/wallets/funds/$fundId');
+  final resp = await apiClient.get('/wallet/wallets/funds/$fundId');
   return SnWalletFund.fromJson(resp.data);
 }
 
@@ -36,202 +36,181 @@ class FundEnvelopeWidget extends HookConsumerWidget {
       width: maxWidth,
       margin: margin ?? const EdgeInsets.symmetric(vertical: 8),
       child: fundAsync.when(
-        loading:
-            () => Card(
-              margin: EdgeInsets.zero,
-              child: const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-        error:
-            (error, stack) => Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'fundEnvelopeLoadFailed'.tr(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
+        loading: () => Card(
+          margin: EdgeInsets.zero,
+          child: const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+        error: (error, stack) => Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: Theme.of(context).colorScheme.error,
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  'fundEnvelopeLoadFailed'.tr(),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
             ),
-        data:
-            (fund) => Card(
-              margin: EdgeInsets.zero,
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => _showClaimDialog(context, ref, fund),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+        ),
+        data: (fund) => Card(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _showClaimDialog(context, ref, fund),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fund title and status
+                  Row(
                     children: [
-                      // Fund title and status
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.account_balance_wallet,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'fundEnvelope'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          _buildStatusChips(context, fund),
-                        ],
+                      Icon(
+                        Icons.account_balance_wallet,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'fundEnvelope'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      _buildStatusChips(context, fund),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
-                      // Amount information
-                      Row(
+                  // Amount information
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${fund.totalAmount.toStringAsFixed(2)} ${fund.currency}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineSmall?.copyWith(
+                          Text(
+                            '${fund.totalAmount.toStringAsFixed(2)} ${fund.currency}',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (fund.remainingAmount != fund.totalAmount)
+                            Text(
+                              'fundEnvelopeRemaining'.tr(
+                                args: [
+                                  fund.remainingAmount.toStringAsFixed(2),
+                                  fund.currency,
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              if (fund.remainingAmount != fund.totalAmount)
-                                Text(
-                                  'fundEnvelopeRemaining'.tr(
-                                    args: [
-                                      fund.remainingAmount.toStringAsFixed(2),
-                                      fund.currency,
-                                    ],
-                                  ),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary,
                                     fontWeight: FontWeight.w500,
                                   ),
-                                ),
-                              Text(
-                                'fundEnvelopeSplit'.tr(
-                                  args: [
-                                    fund.splitType == 0
-                                        ? 'fundEnvelopeSplitEvenly'.tr()
-                                        : 'fundEnvelopeSplitRandomly'.tr(),
-                                  ],
-                                ),
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
+                            ),
+                          Text(
+                            'fundEnvelopeSplit'.tr(
+                              args: [
+                                fund.splitType == 0
+                                    ? 'fundEnvelopeSplitEvenly'.tr()
+                                    : 'fundEnvelopeSplitRandomly'.tr(),
+                              ],
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
                                   color: Theme.of(context)
                                       .textTheme
                                       .bodySmall
                                       ?.color
                                       ?.withOpacity(0.7),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // Recipients overview
-                      if (fund.recipients.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _buildRecipientsOverview(context, fund),
-                      ],
-
-                      // Message
-                      if (fund.message != null && fund.message!.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          '"${fund.message}"',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-
-                      // Creator info
-                      if (fund.creatorAccount != null) ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.person,
-                              size: 16,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              fund.creatorAccount!.nick,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      // Expiry info
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            size: 16,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDate(fund.expiredAt),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+
+                  // Recipients overview
+                  if (fund.recipients.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildRecipientsOverview(context, fund),
+                  ],
+
+                  // Message
+                  if (fund.message != null && fund.message!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      '"${fund.message}"',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+
+                  // Creator info
+                  if (fund.creatorAccount != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          fund.creatorAccount!.nick,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  // Expiry info
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(fund.expiredAt),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+          ),
+        ),
       ),
     );
   }
@@ -243,26 +222,25 @@ class FundEnvelopeWidget extends HookConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder:
-          (dialogContext) => FundClaimDialog(
-            fund: fund,
-            onClaim: () async {
-              try {
-                final apiClient = ref.read(apiClientProvider);
-                await apiClient.post('/pass/wallets/funds/${fund.id}/receive');
+      builder: (dialogContext) => FundClaimDialog(
+        fund: fund,
+        onClaim: () async {
+          try {
+            final apiClient = ref.read(apiClientProvider);
+            await apiClient.post('/wallet/wallets/funds/${fund.id}/receive');
 
-                // Refresh the fund data after claiming
-                ref.invalidate(walletFundProvider(fund.id));
+            // Refresh the fund data after claiming
+            ref.invalidate(walletFundProvider(fund.id));
 
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                  showSnackBar('fundEnvelopeClaimSuccess'.tr());
-                }
-              } catch (e) {
-                showErrorAlert(e);
-              }
-            },
-          ),
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext).pop();
+              showSnackBar('fundEnvelopeClaimSuccess'.tr());
+            }
+          } catch (e) {
+            showErrorAlert(e);
+          }
+        },
+      ),
     );
   }
 
@@ -343,8 +321,9 @@ class FundEnvelopeWidget extends HookConsumerWidget {
 
   Widget _buildRecipientsOverview(BuildContext context, SnWalletFund fund) {
     final claimedCount = fund.recipients.where((r) => r.isReceived).length;
-    final totalCount =
-        fund.isOpen ? fund.amountOfSplits : fund.recipients.length;
+    final totalCount = fund.isOpen
+        ? fund.amountOfSplits
+        : fund.recipients.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,8 +341,9 @@ class FundEnvelopeWidget extends HookConsumerWidget {
         const SizedBox(height: 4),
         LinearProgressIndicator(
           value: totalCount > 0 ? claimedCount / totalCount : 0,
-          backgroundColor:
-              Theme.of(context).colorScheme.surfaceContainerHighest,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
         ),
       ],
     );
@@ -436,15 +416,16 @@ class FundClaimDialog extends HookConsumerWidget {
         !isExpired && hasRemainingAmount && !hasUserClaimed && userAbleToClaim;
 
     // Get claimed recipients for display
-    final claimedRecipients =
-        fund.recipients.where((r) => r.isReceived).toList();
-    final unclaimedRecipients =
-        fund.recipients.where((r) => !r.isReceived).toList();
+    final claimedRecipients = fund.recipients
+        .where((r) => r.isReceived)
+        .toList();
+    final unclaimedRecipients = fund.recipients
+        .where((r) => !r.isReceived)
+        .toList();
 
-    final remainingSplits =
-        fund.isOpen
-            ? fund.amountOfSplits - claimedRecipients.length
-            : unclaimedRecipients.length;
+    final remainingSplits = fund.isOpen
+        ? fund.amountOfSplits - claimedRecipients.length
+        : unclaimedRecipients.length;
 
     return AlertDialog(
       title: Row(
@@ -491,16 +472,14 @@ class FundClaimDialog extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color:
-                    fund.isOpen
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.blue.withOpacity(0.1),
+                color: fund.isOpen
+                    ? Colors.green.withOpacity(0.1)
+                    : Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color:
-                      fund.isOpen
-                          ? Colors.green.withOpacity(0.3)
-                          : Colors.blue.withOpacity(0.3),
+                  color: fund.isOpen
+                      ? Colors.green.withOpacity(0.3)
+                      : Colors.blue.withOpacity(0.3),
                 ),
               ),
               child: Text(
@@ -535,13 +514,13 @@ class FundClaimDialog extends HookConsumerWidget {
                         child: Text(
                           recipient.recipientAccount?.nick ??
                               'fundEnvelopeUnknownUser'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            decoration: TextDecoration.lineThrough,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                decoration: TextDecoration.lineThrough,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ),
                       Text(

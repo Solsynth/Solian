@@ -66,21 +66,20 @@ class PaymentOverlay extends HookConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder:
-          (context) => PaymentOverlay(
-            order: order,
-            enableBiometric: enableBiometric,
-            onPaymentSuccess: (completedOrder) {
-              Navigator.of(context).pop(completedOrder);
-            },
-            onPaymentError: (err) {
-              Navigator.of(context).pop();
-              showErrorAlert(err);
-            },
-            onCancel: () {
-              Navigator.of(context).pop();
-            },
-          ),
+      builder: (context) => PaymentOverlay(
+        order: order,
+        enableBiometric: enableBiometric,
+        onPaymentSuccess: (completedOrder) {
+          Navigator.of(context).pop(completedOrder);
+        },
+        onPaymentError: (err) {
+          Navigator.of(context).pop();
+          showErrorAlert(err);
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 }
@@ -241,7 +240,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.post(
-        '/pass/orders/${widget.order.id}/pay',
+        '/wallet/orders/${widget.order.id}/pay',
         data: {'pin_code': pin},
       );
 
@@ -415,46 +414,42 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildBiometricAuth() {
     return SingleChildScrollView(
-      child:
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(Symbols.fingerprint, size: 48),
-              const Gap(16),
-              Text(
-                'useBiometricToConfirm'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'The biometric data will only be processed on your device',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 11,
-                ),
-                textAlign: TextAlign.center,
-              ).opacity(0.75),
-              const Gap(28),
-              ElevatedButton.icon(
-                onPressed: _authenticateWithBiometric,
-                icon: const Icon(Symbols.fingerprint),
-                label: Text('authenticateNow'.tr()),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () => _fallbackToPinMode(null),
-                child: Text('usePinInstead'.tr()),
-              ),
-            ],
-          ).center(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Symbols.fingerprint, size: 48),
+          const Gap(16),
+          Text(
+            'useBiometricToConfirm'.tr(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            'The biometric data will only be processed on your device',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 11,
+            ),
+            textAlign: TextAlign.center,
+          ).opacity(0.75),
+          const Gap(28),
+          ElevatedButton.icon(
+            onPressed: _authenticateWithBiometric,
+            icon: const Icon(Symbols.fingerprint),
+            label: Text('authenticateNow'.tr()),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _fallbackToPinMode(null),
+            child: Text('usePinInstead'.tr()),
+          ),
+        ],
+      ).center(),
     );
   }
 

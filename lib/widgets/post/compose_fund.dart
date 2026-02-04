@@ -232,7 +232,7 @@ class ComposeFundSheet extends HookConsumerWidget {
                                       showLoadingModal(context);
 
                                       final resp = await client.post(
-                                        '/pass/wallets/funds',
+                                        '/wallet/wallets/funds',
                                         data: result,
                                         options: Options(
                                           headers: {'X-Noop': true},
@@ -253,7 +253,7 @@ class ComposeFundSheet extends HookConsumerWidget {
                                       }
 
                                       final orderResp = await client.post(
-                                        '/pass/wallets/funds/${fund.id}/order',
+                                        '/wallet/wallets/funds/${fund.id}/order',
                                       );
                                       final order = SnWalletOrder.fromJson(
                                         orderResp.data,
@@ -284,7 +284,7 @@ class ComposeFundSheet extends HookConsumerWidget {
 
                                         // Return the created fund
                                         final updatedResp = await client.get(
-                                          '/pass/wallets/funds/${fund.id}',
+                                          '/wallet/wallets/funds/${fund.id}',
                                         );
                                         final updatedFund =
                                             SnWalletFund.fromJson(

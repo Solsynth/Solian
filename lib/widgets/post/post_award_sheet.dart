@@ -311,7 +311,7 @@ class PostAwardSheet extends HookConsumerWidget {
       final orderId = awardResponse.data['order_id'] as String;
 
       // Fetch order details
-      final orderResponse = await client.get('/pass/orders/$orderId');
+      final orderResponse = await client.get('/wallet/orders/$orderId');
       final order = SnWalletOrder.fromJson(orderResponse.data);
 
       if (context.mounted) {

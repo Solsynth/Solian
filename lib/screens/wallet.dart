@@ -30,7 +30,7 @@ part 'wallet.g.dart';
 Future<SnWallet?> walletCurrent(Ref ref) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/pass/wallets');
+    final resp = await apiClient.get('/wallet/wallets');
     return SnWallet.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -43,7 +43,7 @@ Future<SnWallet?> walletCurrent(Ref ref) async {
 @riverpod
 Future<SnWalletStats> walletStats(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/pass/wallets/stats');
+  final resp = await client.get('/wallet/wallets/stats');
   return SnWalletStats.fromJson(resp.data);
 }
 
@@ -976,7 +976,7 @@ class TransactionListNotifier
     final queryParams = {'offset': offset, 'take': pageSize};
 
     final response = await client.get(
-      '/pass/wallets/transactions',
+      '/wallet/wallets/transactions',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
@@ -1003,7 +1003,7 @@ class WalletFundsNotifier extends AsyncNotifier<PaginationState<SnWalletFund>>
     final offset = fetchedCount;
 
     final response = await client.get(
-      '/pass/wallets/funds?offset=$offset&take=$pageSize',
+      '/wallet/wallets/funds?offset=$offset&take=$pageSize',
     );
     // Assuming total count header is present or we just check if list is empty
     final list = (response.data as List)
@@ -1031,7 +1031,7 @@ class WalletFundRecipientsNotifier
     final offset = fetchedCount;
 
     final response = await client.get(
-      '/pass/wallets/funds/recipients?offset=$offset&take=$_pageSize',
+      '/wallet/wallets/funds/recipients?offset=$offset&take=$_pageSize',
     );
     final list = (response.data as List)
         .map((e) => SnWalletFundRecipient.fromJson(e))
@@ -1047,7 +1047,7 @@ class WalletFundRecipientsNotifier
 @riverpod
 Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/pass/wallets/funds/$fundId');
+  final resp = await client.get('/wallet/wallets/funds/$fundId');
   return SnWalletFund.fromJson(resp.data);
 }
 
@@ -1239,7 +1239,7 @@ class WalletScreen extends HookConsumerWidget {
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
       try {
-        await client.post('/pass/wallets');
+        await client.post('/wallet/wallets');
         ref.invalidate(walletCurrentProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -1715,7 +1715,7 @@ class WalletScreen extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.post(
-        '/pass/wallets/funds',
+        '/wallet/wallets/funds',
         data: fundData,
         options: Options(headers: {'X-Noop': true}),
       );
@@ -1723,7 +1723,7 @@ class WalletScreen extends HookConsumerWidget {
       if (fund.status == 0) return; // Already created
 
       final orderResp = await client.post(
-        '/pass/wallets/funds/${fund.id}/order',
+        '/wallet/wallets/funds/${fund.id}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
 
@@ -1763,7 +1763,7 @@ class WalletScreen extends HookConsumerWidget {
     final client = ref.read(apiClientProvider);
     try {
       showLoadingModal(context);
-      await client.post('/pass/wallets/transfer', data: transferData);
+      await client.post('/wallet/wallets/transfer', data: transferData);
 
       if (context.mounted) hideLoadingModal(context);
 

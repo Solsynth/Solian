@@ -31,7 +31,7 @@ class RestorePurchaseSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/pass/subscriptions/order/restore/${selectedProvider.value!}',
+          '/wallet/subscriptions/order/restore/${selectedProvider.value!}',
           data: {'order_id': orderIdController.text.trim()},
         );
 
@@ -79,23 +79,22 @@ class RestorePurchaseSheet extends HookConsumerWidget {
                   hint: Text('selectProvider'.tr()),
                   isExpanded: true,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  items:
-                      providers.map((provider) {
-                        return DropdownMenuItem<String>(
-                          value: provider,
-                          child: Row(
-                            children: [
-                              getProviderIcon(
-                                provider,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const Gap(12),
-                              Text(getLocalizedProviderName(provider)),
-                            ],
+                  items: providers.map((provider) {
+                    return DropdownMenuItem<String>(
+                      value: provider,
+                      child: Row(
+                        children: [
+                          getProviderIcon(
+                            provider,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
-                        );
-                      }).toList(),
+                          const Gap(12),
+                          Text(getLocalizedProviderName(provider)),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                   onChanged: (value) {
                     selectedProvider.value = value;
                   },
@@ -122,14 +121,13 @@ class RestorePurchaseSheet extends HookConsumerWidget {
             // Restore Button
             FilledButton(
               onPressed: isLoading.value ? null : restorePurchase,
-              child:
-                  isLoading.value
-                      ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                      : Text('restore'.tr()),
+              child: isLoading.value
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text('restore'.tr()),
             ),
             const Gap(16),
           ],
