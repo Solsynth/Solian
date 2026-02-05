@@ -419,6 +419,13 @@ class AccountScreen extends HookConsumerWidget {
                       context.pushNamed('reportList');
                     },
                   },
+                  {
+                    'icon': Symbols.fitness_center,
+                    'title': 'fitnessActivity',
+                    'onTap': () {
+                      context.pushNamed('fitnessActivity');
+                    },
+                  },
                 ];
                 return Column(
                   children: menuItems.map((item) {
