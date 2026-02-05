@@ -22,7 +22,7 @@ Future<List<SnLotteryTicket>> lotteryTickets(
   int take = 20,
 }) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/pass/lotteries?offset=$offset&take=$take');
+  final resp = await client.get('/wallet/lotteries?offset=$offset&take=$take');
   return (resp.data as List).map((e) => SnLotteryTicket.fromJson(e)).toList();
 }
 
@@ -34,7 +34,7 @@ Future<List<SnLotteryRecord>> lotteryRecords(
 }) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get(
-    '/pass/lotteries/records?offset=$offset&take=$take',
+    '/wallet/lotteries/records?offset=$offset&take=$take',
   );
   return (resp.data as List).map((e) => SnLotteryRecord.fromJson(e)).toList();
 }
@@ -49,7 +49,10 @@ class LotteryTab extends StatelessWidget {
       child: Column(
         children: [
           TabBar(
-            tabs: [Tab(text: 'myTickets'.tr()), Tab(text: 'drawHistory'.tr())],
+            tabs: [
+              Tab(text: 'myTickets'.tr()),
+              Tab(text: 'drawHistory'.tr()),
+            ],
           ),
           Expanded(
             child: TabBarView(
@@ -226,7 +229,7 @@ class LotteryTicketsList extends HookConsumerWidget {
 
       // The lottery API creates the order for us
       final orderResponse = await client.post(
-        '/pass/lotteries',
+        '/wallet/lotteries',
         data: purchaseData,
       );
 
@@ -349,18 +352,15 @@ class LotteryTicketsList extends HookConsumerWidget {
       textColor = Colors.white;
       borderColor = Colors.green;
     } else {
-      backgroundColor =
-          isSpecial
-              ? Theme.of(context).colorScheme.secondary
-              : Theme.of(context).colorScheme.surface;
-      textColor =
-          isSpecial
-              ? Theme.of(context).colorScheme.onSecondary
-              : Theme.of(context).colorScheme.onSurface;
-      borderColor =
-          isSpecial
-              ? Theme.of(context).colorScheme.secondary
-              : Theme.of(context).colorScheme.outline.withOpacity(0.3);
+      backgroundColor = isSpecial
+          ? Theme.of(context).colorScheme.secondary
+          : Theme.of(context).colorScheme.surface;
+      textColor = isSpecial
+          ? Theme.of(context).colorScheme.onSecondary
+          : Theme.of(context).colorScheme.onSurface;
+      borderColor = isSpecial
+          ? Theme.of(context).colorScheme.secondary
+          : Theme.of(context).colorScheme.outline.withOpacity(0.3);
 
       // Blend with red if all numbers are unmatched
       if (allUnmatched) {
@@ -679,21 +679,17 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
           onTap: () => _toggleNumber(number),
           child: Container(
             decoration: BoxDecoration(
-              color:
-                  isSpecialNumber
-                      ? Theme.of(context).colorScheme.secondary
-                      : isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surface,
+              color: isSpecialNumber
+                  ? Theme.of(context).colorScheme.secondary
+                  : isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surface,
               border: Border.all(
-                color:
-                    isSpecialNumber
-                        ? Theme.of(context).colorScheme.secondary
-                        : isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(
-                          context,
-                        ).colorScheme.outline.withOpacity(0.3),
+                color: isSpecialNumber
+                    ? Theme.of(context).colorScheme.secondary
+                    : isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline.withOpacity(0.3),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -701,12 +697,11 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
               child: Text(
                 number.toString().padLeft(2, '0'),
                 style: TextStyle(
-                  color:
-                      isSpecialNumber
-                          ? Theme.of(context).colorScheme.onSecondary
-                          : isSelected
-                          ? Theme.of(context).colorScheme.onPrimary
-                          : Theme.of(context).colorScheme.onSurface,
+                  color: isSpecialNumber
+                      ? Theme.of(context).colorScheme.onSecondary
+                      : isSelected
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -773,25 +768,22 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children:
-              prizeStructure.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        entry.key == '0+Special'
-                            ? 'specialOnly'.tr()
-                            : entry.key.tr(),
-                      ),
-                      Text(
-                        '${entry.value} ${'walletCurrencyShortPoints'.tr()}',
-                      ),
-                    ],
+          children: prizeStructure.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    entry.key == '0+Special'
+                        ? 'specialOnly'.tr()
+                        : entry.key.tr(),
                   ),
-                );
-              }).toList(),
+                  Text('${entry.value} ${'walletCurrencyShortPoints'.tr()}'),
+                ],
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
