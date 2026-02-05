@@ -1,0 +1,179 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/drive/drive_models/file.dart';
+import 'package:island/realms/realms_models/realm.dart';
+import 'package:island/accounts/accounts_models/account.dart';
+
+part 'chat.freezed.dart';
+part 'chat.g.dart';
+
+@freezed
+sealed class SnChatRoom with _$SnChatRoom {
+  const factory SnChatRoom({
+    required String id,
+    required String? name,
+    required String? description,
+    required int type,
+    @Default(false) bool isPublic,
+    @Default(false) bool isCommunity,
+    required SnCloudFile? picture,
+    required SnCloudFile? background,
+    required String? realmId,
+    required String? accountId,
+    required SnRealm? realm,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required List<SnChatMember>? members,
+    // Frontend data
+    @Default(false) bool isPinned,
+  }) = _SnChatRoom;
+
+  factory SnChatRoom.fromJson(Map<String, dynamic> json) =>
+      _$SnChatRoomFromJson(json);
+}
+
+@freezed
+sealed class SnChatMessage with _$SnChatMessage {
+  const factory SnChatMessage({
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
+    required String id,
+    @Default('text') String type,
+    String? content,
+    String? nonce,
+    @Default({}) Map<String, dynamic> meta,
+    @Default([]) List<String> membersMentioned,
+    DateTime? editedAt,
+    @Default([]) List<SnCloudFile> attachments,
+    @Default([]) List<SnChatReaction> reactions,
+    String? repliedMessageId,
+    String? forwardedMessageId,
+    required String senderId,
+    required SnChatMember sender,
+    required String chatRoomId,
+  }) = _SnChatMessage;
+
+  factory SnChatMessage.fromJson(Map<String, dynamic> json) =>
+      _$SnChatMessageFromJson(json);
+}
+
+@freezed
+sealed class SnChatReaction with _$SnChatReaction {
+  const factory SnChatReaction({
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String id,
+    required String messageId,
+    required String senderId,
+    required SnChatMember sender,
+    required String symbol,
+    required int attitude,
+  }) = _SnChatReaction;
+
+  factory SnChatReaction.fromJson(Map<String, dynamic> json) =>
+      _$SnChatReactionFromJson(json);
+}
+
+@freezed
+sealed class SnChatMember with _$SnChatMember {
+  const factory SnChatMember({
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String id,
+    required String chatRoomId,
+    required SnChatRoom? chatRoom,
+    required String accountId,
+    required SnAccount account,
+    required String? nick,
+    required int notify,
+    required DateTime? joinedAt,
+    required DateTime? breakUntil,
+    required DateTime? timeoutUntil,
+    required SnAccountStatus? status,
+    // Frontend data
+    DateTime? lastTyped,
+  }) = _SnChatMember;
+
+  factory SnChatMember.fromJson(Map<String, dynamic> json) =>
+      _$SnChatMemberFromJson(json);
+}
+
+@freezed
+sealed class SnChatSummary with _$SnChatSummary {
+  const factory SnChatSummary({
+    required int unreadCount,
+    required SnChatMessage? lastMessage,
+  }) = _SnChatSummary;
+
+  factory SnChatSummary.fromJson(Map<String, dynamic> json) =>
+      _$SnChatSummaryFromJson(json);
+}
+
+class MessageChangeAction {
+  static const String create = "create";
+  static const String update = "update";
+  static const String delete = "delete";
+}
+
+@freezed
+sealed class MessageSyncResponse with _$MessageSyncResponse {
+  const factory MessageSyncResponse({
+    @Default([]) List<SnChatMessage> messages,
+    required DateTime currentTimestamp,
+  }) = _MessageSyncResponse;
+
+  factory MessageSyncResponse.fromJson(Map<String, dynamic> json) =>
+      _$MessageSyncResponseFromJson(json);
+}
+
+@freezed
+sealed class ChatRealtimeJoinResponse with _$ChatRealtimeJoinResponse {
+  const factory ChatRealtimeJoinResponse({
+    required String provider,
+    required String endpoint,
+    required String token,
+    required String callId,
+    required String roomName,
+    required bool isAdmin,
+    required List<CallParticipant> participants,
+  }) = _ChatRealtimeJoinResponse;
+
+  factory ChatRealtimeJoinResponse.fromJson(Map<String, dynamic> json) =>
+      _$ChatRealtimeJoinResponseFromJson(json);
+}
+
+@freezed
+sealed class CallParticipant with _$CallParticipant {
+  const factory CallParticipant({
+    required String identity,
+    required String name,
+    required DateTime joinedAt,
+  }) = _CallParticipant;
+
+  factory CallParticipant.fromJson(Map<String, dynamic> json) =>
+      _$CallParticipantFromJson(json);
+}
+
+@freezed
+sealed class SnRealtimeCall with _$SnRealtimeCall {
+  const factory SnRealtimeCall({
+    required String id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required DateTime? endedAt,
+    required String senderId,
+    required SnChatMember sender,
+    required String roomId,
+    required SnChatRoom room,
+    required Map<String, dynamic> upstreamConfig,
+    String? providerName,
+    String? sessionId,
+  }) = _SnRealtimeCall;
+
+  factory SnRealtimeCall.fromJson(Map<String, dynamic> json) =>
+      _$SnRealtimeCallFromJson(json);
+}

@@ -1,0 +1,673 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/posts/posts_models/post.dart';
+import 'package:island/core/network.dart';
+import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/posts/compose.dart';
+import 'package:island/core/services/responsive.dart';
+import 'package:island/posts/posts_widgets/post/post_award_history_sheet.dart';
+import 'package:island/posts/posts_widgets/post/post_award_sheet.dart';
+import 'package:island/posts/posts_widgets/post/post_item.dart';
+import 'package:island/posts/posts_widgets/post/post_pin_sheet.dart';
+import 'package:island/posts/posts_widgets/post/post_quick_reply.dart';
+import 'package:island/posts/posts_widgets/post/post_replies.dart';
+import 'package:island/posts/posts_widgets/post/post_shared.dart';
+import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
+import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/shared/widgets/extended_refresh_indicator.dart';
+import 'package:island/posts/posts_widgets/compose_sheet.dart';
+import 'package:island/shared/widgets/response.dart';
+import 'package:island/core/utils/share_utils.dart';
+import 'package:island/core/widgets/share/share_sheet.dart';
+import 'package:island/thought/thought/think_sheet.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:styled_widget/styled_widget.dart';
+
+part 'post_detail.g.dart';
+
+@riverpod
+Future<SnPost?> post(Ref ref, String id) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/sphere/posts/$id');
+  return SnPost.fromJson(resp.data);
+}
+
+final postStateProvider =
+    NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
+      PostState.new,
+    );
+
+class PostState extends Notifier<AsyncValue<SnPost?>> {
+  final String arg;
+  PostState(this.arg);
+
+  @override
+  AsyncValue<SnPost?> build() {
+    ref.listen<AsyncValue<SnPost?>>(
+      postProvider(arg),
+      (_, next) => state = next,
+    );
+    return const AsyncValue.loading();
+  }
+
+  void updatePost(SnPost? newPost) {
+    if (newPost != null) {
+      state = AsyncData(newPost);
+    }
+  }
+}
+
+bool _isMediaPost(SnPost? post) {
+  return post != null && post.type == 0 && post.attachments.isNotEmpty;
+}
+
+class PostActionButtons extends HookConsumerWidget {
+  final SnPost post;
+  final EdgeInsets renderingPadding;
+  final VoidCallback? onRefresh;
+  final Function(SnPost)? onUpdate;
+
+  const PostActionButtons({
+    super.key,
+    required this.post,
+    this.renderingPadding = EdgeInsets.zero,
+    this.onRefresh,
+    this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
+    final isAuthor =
+        user.value != null && user.value?.id == post.publisher?.accountId;
+
+    String formatScore(int score) {
+      if (score >= 1000000) {
+        double value = score / 1000000;
+        return value % 1 == 0
+            ? '${value.toInt()}m'
+            : '${value.toStringAsFixed(1)}m';
+      } else if (score >= 1000) {
+        double value = score / 1000;
+        return value % 1 == 0
+            ? '${value.toInt()}k'
+            : '${value.toStringAsFixed(1)}k';
+      } else {
+        return score.toString();
+      }
+    }
+
+    final actions = <Widget>[];
+
+    const kButtonHeight = 40.0;
+    const kButtonRadius = 20.0;
+
+    // 1. Author-only actions first
+    if (isAuthor) {
+      // Combined edit/delete actions using custom segmented-style buttons
+      final editButtons = <Widget>[
+        FilledButton.tonal(
+          onPressed: () {
+            if (post.type == 1) {
+              context
+                  .pushNamed('articleEdit', pathParameters: {'id': post.id})
+                  .then((value) {
+                    if (value != null) {
+                      onRefresh?.call();
+                    }
+                  });
+            } else {
+              PostComposeSheet.show(context, originalPost: post).then((value) {
+                if (value == true) {
+                  onRefresh?.call();
+                }
+              });
+            }
+          },
+          style: FilledButton.styleFrom(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(kButtonRadius),
+                bottomLeft: Radius.circular(kButtonRadius),
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Symbols.edit, size: 18),
+              const Gap(4),
+              Text('edit'.tr()),
+            ],
+          ),
+        ),
+        Tooltip(
+          message: 'delete'.tr(),
+          child: FilledButton.tonal(
+            onPressed: () {
+              showConfirmAlert(
+                'deletePostHint'.tr(),
+                'deletePost'.tr(),
+                isDanger: true,
+              ).then((confirm) {
+                if (confirm) {
+                  final client = ref.watch(apiClientProvider);
+                  client
+                      .delete('/sphere/posts/${post.id}')
+                      .catchError((err) {
+                        showErrorAlert(err);
+                        return err;
+                      })
+                      .then((_) {
+                        onRefresh?.call();
+                      });
+                }
+              });
+            },
+            style: FilledButton.styleFrom(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(kButtonRadius),
+                  bottomRight: Radius.circular(kButtonRadius),
+                ),
+              ),
+            ),
+            child: const Icon(Symbols.delete, size: 18),
+          ),
+        ),
+      ];
+
+      actions.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children:
+              editButtons
+                  .map((e) => SizedBox(height: kButtonHeight, child: e))
+                  .expand((widget) => [widget, const VerticalDivider(width: 1)])
+                  .toList()
+                ..removeLast(),
+        ),
+      );
+
+      // Pin/Unpin actions (also author-only)
+      if (post.pinMode == null) {
+        actions.add(
+          FilledButton.tonalIcon(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => PostPinSheet(post: post),
+              ).then((value) {
+                if (value is int) {
+                  onUpdate?.call(post.copyWith(pinMode: value));
+                }
+              });
+            },
+            icon: const Icon(Symbols.keep),
+            label: Text('pinPost'.tr()),
+          ),
+        );
+      } else {
+        actions.add(
+          FilledButton.tonalIcon(
+            onPressed: () {
+              showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+                confirm,
+              ) async {
+                if (confirm) {
+                  final client = ref.watch(apiClientProvider);
+                  try {
+                    if (context.mounted) showLoadingModal(context);
+                    await client.delete('/sphere/posts/${post.id}/pin');
+                    onUpdate?.call(post.copyWith(pinMode: null));
+                  } catch (err) {
+                    showErrorAlert(err);
+                  } finally {
+                    if (context.mounted) hideLoadingModal(context);
+                  }
+                }
+              });
+            },
+            icon: const Icon(Symbols.keep_off),
+            label: Text('unpinPost'.tr()),
+          ),
+        );
+      }
+    }
+
+    // 2. Replies and forwards
+    final replyButtons = <Widget>[
+      FilledButton.tonal(
+        onPressed: () {
+          PostComposeSheet.show(
+            context,
+            initialState: PostComposeInitialState(replyingTo: post),
+          );
+        },
+        style: FilledButton.styleFrom(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(kButtonRadius),
+              bottomLeft: Radius.circular(kButtonRadius),
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.reply, size: 18),
+            const Gap(4),
+            Text('reply'.tr()),
+          ],
+        ),
+      ),
+      Tooltip(
+        message: 'forward'.tr(),
+        child: FilledButton.tonal(
+          onPressed: () {
+            PostComposeSheet.show(
+              context,
+              initialState: PostComposeInitialState(forwardingTo: post),
+            );
+          },
+          style: FilledButton.styleFrom(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(kButtonRadius),
+                bottomRight: Radius.circular(kButtonRadius),
+              ),
+            ),
+          ),
+          child: const Icon(Symbols.forward, size: 18),
+        ),
+      ),
+    ];
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => PostAwardSheet(post: post),
+          );
+        },
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => PostAwardHistorySheet(postId: post.id),
+          );
+        },
+        icon: const Icon(Symbols.emoji_events),
+        label: post.awardedScore > 0
+            ? Text('${formatScore(post.awardedScore)} pts')
+            : Text('award').tr(),
+      ),
+    );
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {
+          ThoughtSheet.show(context, attachedPosts: [post.id]);
+        },
+        icon: const Icon(Symbols.smart_toy),
+        label: Text('aiThought'.tr()),
+      ),
+    );
+
+    actions.add(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: replyButtons
+            .map((e) => SizedBox(height: kButtonHeight, child: e))
+            .toList(),
+      ),
+    );
+
+    // 3. Share, copy link, and report
+    final shareButtons = <Widget>[
+      FilledButton.tonal(
+        onPressed: () {
+          showShareSheetLink(
+            context: context,
+            link: 'https://solian.app/posts/${post.id}',
+            title: 'sharePost'.tr(),
+            toSystem: true,
+          );
+        },
+        style: FilledButton.styleFrom(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(kButtonRadius),
+              bottomLeft: Radius.circular(kButtonRadius),
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.share, size: 18),
+            const Gap(4),
+            Text('share'.tr()),
+          ],
+        ),
+      ),
+    ];
+
+    if (!kIsWeb) {
+      shareButtons.add(
+        Tooltip(
+          message: 'sharePostPhoto'.tr(),
+          child: FilledButton.tonal(
+            onPressed: () => sharePostAsScreenshot(context, ref, post),
+            style: FilledButton.styleFrom(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(kButtonRadius),
+                  bottomRight: Radius.circular(kButtonRadius),
+                ),
+              ),
+            ),
+            child: const Icon(Symbols.share_reviews, size: 18),
+          ),
+        ),
+      );
+    }
+
+    actions.add(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children:
+            shareButtons
+                .map((e) => SizedBox(height: kButtonHeight, child: e))
+                .expand((widget) => [widget, const VerticalDivider(width: 1)])
+                .toList()
+              ..removeLast(),
+      ),
+    );
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {
+          Clipboard.setData(
+            ClipboardData(text: 'https://solian.app/posts/${post.id}'),
+          );
+        },
+        icon: const Icon(Symbols.link),
+        label: Text('copyLink'.tr()),
+      ),
+    );
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {
+          showAbuseReportSheet(context, resourceIdentifier: 'post/${post.id}');
+        },
+        icon: const Icon(Symbols.flag),
+        label: Text('abuseReport'.tr()),
+      ),
+    );
+
+    // Add gaps between actions (excluding first one) using FP style
+    final children = actions.asMap().entries.expand((entry) {
+      final index = entry.key;
+      final action = entry.value;
+      if (index == 0) {
+        return [action];
+      } else {
+        return [const Gap(8), action];
+      }
+    }).toList();
+
+    return Container(
+      height: kButtonHeight,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: renderingPadding.horizontal),
+        children: children,
+      ),
+    );
+  }
+}
+
+class _PostDetailLargeScreenLayout extends StatelessWidget {
+  final SnPost post;
+  final WidgetRef ref;
+  final String postId;
+  final Function(SnPost) onUpdate;
+  final VoidCallback onRefresh;
+
+  const _PostDetailLargeScreenLayout({
+    required this.post,
+    required this.ref,
+    required this.postId,
+    required this.onUpdate,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(userInfoProvider);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: CloudFileList(
+                files: post.attachments,
+                disableConstraint: true,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                elevation: 8,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            PostHeader(
+                              item: post,
+                              isFullPost: true,
+                              isCompact: false,
+                              renderingPadding: EdgeInsets.zero,
+                            ),
+                            const Gap(8),
+                            PostBody(
+                              item: post,
+                              isFullPost: true,
+                              isTextSelectable: true,
+                              renderingPadding: EdgeInsets.zero,
+                              hideAttachments: true,
+                              textScale: post.type == 1 ? 1.2 : 1.1,
+                            ),
+                            const Gap(12),
+                            PostActionButtons(
+                              post: post,
+                              renderingPadding: EdgeInsets.zero,
+                              onRefresh: onRefresh,
+                              onUpdate: onUpdate,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    PostRepliesList(postId: postId, maxWidth: 680),
+                    SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                  ],
+                ),
+              ),
+              if (user.value != null)
+                Positioned(
+                  bottom: 16 + MediaQuery.of(context).padding.bottom,
+                  left: 16,
+                  right: 16,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 680),
+                    child: PostQuickReply(
+                      parent: post,
+                      onPosted: () {
+                        ref
+                            .read(postRepliesProvider(postId).notifier)
+                            .refresh();
+                      },
+                    ),
+                  ).center(),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PostDetailScreen extends HookConsumerWidget {
+  final String id;
+  const PostDetailScreen({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final postState = ref.watch(postStateProvider(id));
+    final user = ref.watch(userInfoProvider);
+
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: Text('postDetail').tr(),
+      ),
+      body: postState.when(
+        data: (post) {
+          final isMediaPostLayout = isWideScreen(context) && _isMediaPost(post);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              ExtendedRefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(postProvider(id));
+                  ref.read(postRepliesProvider(id).notifier).refresh();
+                },
+                child: isMediaPostLayout
+                    ? _PostDetailLargeScreenLayout(
+                        post: post!,
+                        ref: ref,
+                        postId: id,
+                        onUpdate: (newItem) {
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(newItem);
+                        },
+                        onRefresh: () {
+                          ref.invalidate(postProvider(id));
+                          ref.read(postRepliesProvider(id).notifier).refresh();
+                        },
+                      )
+                    : CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: 680),
+                                child: PostItem(
+                                  item: post!,
+                                  isFullPost: true,
+                                  isEmbedReply: false,
+                                  textScale: post.type == 1 ? 1.2 : 1.1,
+                                  onUpdate: (newItem) {
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          SliverToBoxAdapter(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: 680),
+                                child: PostActionButtons(
+                                  post: post,
+                                  renderingPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  onRefresh: () {
+                                    ref.invalidate(postProvider(id));
+                                    ref
+                                        .read(postRepliesProvider(id).notifier)
+                                        .refresh();
+                                  },
+                                  onUpdate: (newItem) {
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          PostRepliesList(postId: id, maxWidth: 680),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                        ],
+                      ),
+              ),
+              if (user.value != null && !isMediaPostLayout)
+                Positioned(
+                  bottom: 16 + MediaQuery.of(context).padding.bottom,
+                  left: 16,
+                  right: 16,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 680),
+                    child: postState.when(
+                      data: (post) => PostQuickReply(
+                        parent: post!,
+                        onPosted: () {
+                          ref.read(postRepliesProvider(id).notifier).refresh();
+                        },
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                    ),
+                  ).center(),
+                ),
+            ],
+          );
+        },
+        loading: () => ResponseLoadingWidget(),
+        error: (e, _) => ResponseErrorWidget(
+          error: e,
+          onRetry: () => ref.invalidate(postProvider(id)),
+        ),
+      ),
+    );
+  }
+}
