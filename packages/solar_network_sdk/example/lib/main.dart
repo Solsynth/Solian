@@ -71,6 +71,11 @@ class _HomePageState extends State<HomePage> {
         });
 
         await _signAndExchange(result.challenge!);
+      } else if (result.status == WebAuthStatus.denied) {
+        setState(() {
+          _status = 'Authentication denied by user';
+          _challenge = null;
+        });
       } else if (result.status == WebAuthStatus.error) {
         setState(() {
           _status = 'Auth request failed';
