@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import '../models/app_token.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 abstract class TokenStorage {
   Future<AppToken?> getToken();
