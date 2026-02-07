@@ -1,0 +1,25 @@
+name: solar_network_sdk
+description: "Solar Network SDK for Flutter - Core networking, authentication, and cloud file services"
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  dio: ^5.9.1
+  shared_preferences: ^2.5.4
+  crypto: ^3.0.7
+  uuid: ^4.5.2
+  device_info_plus: ^11.3.0
+  package_info_plus: ^9.0.0
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
