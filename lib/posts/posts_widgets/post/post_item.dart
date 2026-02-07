@@ -485,7 +485,12 @@ class PostItem extends HookConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Gap(renderingPadding.vertical),
+        if (isShowReference &&
+            !(item.forwardedGone ||
+                item.repliedGone ||
+                item.forwardedPost != null ||
+                item.repliedPost != null))
+          Gap(renderingPadding.vertical),
         if (isShowReference)
           ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
         PostHeader(
