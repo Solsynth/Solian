@@ -1,70 +1,163 @@
-# Solar Network
+# Solian (Solar Network)
 
-![](https://solsynth.dev/_nuxt/alpha.azUGRxzt.webp)
+<p align="center">
+  <img src="assets/icons/icon.png" width="120" alt="Solian Logo">
+</p>
 
-[![Crowdin](https://badges.crowdin.net/solian/localized.svg)](https://crowdin.com/project/solian)
+<p align="center">
+  <b>A peaceful social network</b>
+</p>
 
-*Tap the badge above to help us tranlate!*
+<p align="center">
+  <a href="LICENSE.txt"><img src="https://img.shields.io/github/license/Solsynth/HyperNet.Surface" alt="License"></a>
+  <a href="https://crowdin.com/project/solian"><img src="https://badges.crowdin.net/solian/localized.svg" alt="Localization Status"></a>
+  <a href="https://github.com/Solsynth/HyperNet.Surface/releases"><img src="https://img.shields.io/github/v/release/Solsynth/HyperNet.Surface?include_prereleases" alt="Latest Release"></a>
+</p>
 
-Hello there! Welcome to the main repository of the DysonNetwork (also known as the Solar Network). The code here is mainly about the front-end app (also known as Solian). But you can still post issues here to get help and request new features!
+---
 
-如果你看得懂这行字，你可以前往我们的文档来了解更多：
-[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network)
+Solian (also known as Solar Network) is a social networking platform, designed to help you express yourself freely and connect with others. We're not aiming to replace any major platform—just providing another peaceful community for you to be part of.
 
-## Server
+Note: Fediverse support is currently experimental and limited.
 
-The backend of the Solar Network project is located at [Solsynth/DysonNetwork](https://github.com/Solsynth/DysonNetwork)
+> **Help us translate!** Click the Crowdin badge above to contribute translations.
+>
+> If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network)
 
-## Tech Stack
+---
 
-For those people who want to know the tech stack of this project, the front-end was built by Flutter, which provides cross-platform ability.
-The backend was built in .NET and PostgreSQL.
+## Table of Contents
 
-If you want to contribute to the project, learn more about the [Code of Conduct](./CODE_OF_CONDUCT.md).
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [For Users](#for-users)
+  - [For Developers](#for-developers)
+- [Packages](#packages)
+- [Server](#server)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+
+---
+
+## Features
+
+### Available Now
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Timeline | Done | Chronological feed of posts |
+| Posts, Articles & Moments | Done | Multiple content types for different needs |
+| Instant Messaging | Done | Real-time chat with group support |
+| Realms | Done | Communities organized by shared interests |
+| OAuth Integration | Done | Secure third-party authentication |
+| Check-in | Done | Location and status sharing |
+| Countdown | Done | Track special dates and festivals |
+| RSS Reader | Done | Subscribe to external feeds |
+| Wallet | Done | Credit system for transactions |
+| Stickers | Done | Express yourself with custom stickers |
+| Rich Text Editor | Done | Markdown-based with extended syntax |
+| Social Features | Done | Friends list and blocklist management |
+| File Management | Done | Upload and organize files |
+| AI Features | Done | Smart assistance throughout the app |
+
+### Coming Soon
+
+- **Fitness & Health** - Track your health and exercise goals
+- **SolarWatt Ideask** - An todo and task management app
+
+---
 
 ## Getting Started
 
-The content below will lead you to the world of Solar Network.
+### For Users
 
-### For Normal Users
+1. **Download the App**
+   - Visit [GitHub Releases](https://github.com/Solsynth/HyperNet.Surface/releases) to download the latest version for your platform
+   - **Stable vs Pre-release:** Pre-releases include cutting-edge features but may have untested changes. Since we don't use API versioning, breaking changes may affect stable releases—consider using pre-releases for the best experience.
 
-1. Go to the Github Releases page, and download the latest release / pre-release according to your platform.
-   - **What's the difference between stable and pre-release?** The pre-release is untested by the other users and includes the new cutting-edge features, usually the pre-release is the feature drop. At the same time, due to we're not doing the API versioning, some breaking changes may break the stable release, so use the pre-release one instead.
-2. Create an account on the Solar Network
-3. Go to your email inbox to confirm your registration
-4. Start exploring!
+2. **Create an Account**
+   - Sign up on the Solar Network
+   - Verify your email address
+   - Start exploring!
 
 ### For Developers
 
-To make the Solar Network App run in debug mode on your machine, you need to install the flutter development environment, for more environments, head to https://flutter.dev.
+#### Prerequisites
 
-For the Linux platform, you need to install those extra development libs:
+- [Flutter SDK](https://flutter.dev) installed
+- For Linux development, install additional dependencies:
 
 ```bash
 sudo apt-get update -y
-sudo apt-get install -y ninja-build libgtk-3-dev
-sudo apt-get install -y libmpv-dev mpv
-sudo apt-get install -y libayatana-appindicator3-dev
-sudo apt-get install -y keybinder-3.0
-sudo apt-get install -y libnotify-dev
-sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
-sudo apt-get install -y gstreamer-1.0
+sudo apt-get install -y \
+  ninja-build \
+  libgtk-3-dev \
+  libmpv-dev \
+  mpv \
+  libayatana-appindicator3-dev \
+  keybinder-3.0 \
+  libnotify-dev \
+  libgstreamer1.0-dev \
+  libgstreamer-plugins-base1.0-dev \
+  gstreamer-1.0
 ```
 
-Then, use the flutter run for the app running in debug mode.
+#### Running the App
 
 ```bash
+# Install dependencies
 flutter pub get
-```
 
-If you want to build the release version, use the flutter build command. Learn more from the flutter docs.
+# Run in debug mode
+flutter run
 
-```bash
+# Build release version
 flutter build <platform>
 ```
 
-### Known Issues
+See the [Flutter documentation](https://docs.flutter.dev) for more build options.
 
-Due to the issues with the flutter build tools, [see](https://github.com/flutter/flutter/issues/160622).
+---
 
-Since there is a watchOS app for iOS, you're unable to use the flutter cli to run iOS app. Use xcode instead.
+## Packages
+
+This repository is organized as a monorepo containing useful Dart packages under the `packages/` directory.
+
+Want to build with Solar Network? Check out:
+
+- [Documentation](https://kb.solsynth.dev)
+- [API Reference](https://api.solsynth.dev)
+- [`packages/solar_network_sdk`](./packages/solar_network_sdk) - Official Dart SDK
+
+---
+
+## Server
+
+The backend powering Solar Network is available at:
+**[Solsynth/DysonNetwork](https://github.com/Solsynth/DysonNetwork)**
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Flutter - Cross-platform UI framework |
+| **Backend** | .NET with PostgreSQL database |
+| **Protocols** | ActivityPub (Fediverse), WebSockets, REST API |
+
+---
+
+## Contributing
+
+We welcome contributions! Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before participating.
+
+- [Report bugs](https://github.com/Solsynth/HyperNet.Surface/issues)
+- [Suggest features](https://github.com/Solsynth/HyperNet.Surface/discussions)
+- [Translate the app](https://crowdin.com/project/solian)
+
+---
+
+<p align="center">
+  Made with love by the Solar Network Team
+</p>
