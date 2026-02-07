@@ -22,7 +22,7 @@ Note: Fediverse support is currently experimental and limited.
 
 > **Help us translate!** Click the Crowdin badge above to contribute translations.
 >
-> If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network)
+> If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [中文 README](./README_CN.md)
 
 ---
 
