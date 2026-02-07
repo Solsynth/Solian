@@ -8,5 +8,4 @@ export 'src/core/utils/device_info.dart';
 export 'src/auth/models/auth_session.dart';
 export 'src/auth/models/auth_challenge.dart';
 export 'src/auth/services/auth_service.dart';
-export 'src/auth/web_auth/web_auth_server.dart';
 export 'src/auth/web_auth/web_auth_client.dart';

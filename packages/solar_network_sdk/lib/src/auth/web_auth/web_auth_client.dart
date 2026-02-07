@@ -1,36 +1,37 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class WebAuthClient {
-  final String _baseUrl;
-  final int _port;
+  int _port;
   final String _webUrl;
 
   WebAuthClient({
     required String baseUrl,
     required int port,
     required String webUrl,
-  }) : _baseUrl = baseUrl,
-       _port = port,
+  }) : _port = port,
        _webUrl = webUrl;
+
+  void setPort(int port) {
+    _port = port;
+  }
 
   Future<String> getAuthenticationUrl() async {
     return '$_webUrl/auth/web?port=$_port';
   }
 
   Future<WebAuthResult> waitForAuth() async {
-    final client = http.Client();
+    final client = Dio();
     try {
-      final response = await client.get(
-        Uri.parse('http://127.0.0.1:$_port/alive'),
-      );
+      final response = await client.get('http://127.0.0.1:$_port/alive');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
         return WebAuthResult(
           status: WebAuthStatus.challenge,
-          challenge: data['challenge'] as String?,
+          challenge: response.data['challenge'] as String?,
         );
       }
 
@@ -44,28 +45,29 @@ class WebAuthClient {
     String signedChallenge, [
     Map<String, dynamic>? deviceInfo,
   ]) async {
-    final client = http.Client();
+    final client = Dio();
     try {
       final response = await client.post(
-        Uri.parse('http://127.0.0.1:$_port/exchange'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'signedChallenge': signedChallenge,
-          if (deviceInfo != null) 'deviceInfo': deviceInfo,
+        'http://127.0.0.1:$_port/exchange',
+        data: jsonEncode({
+          'signed_challenge': signedChallenge,
+          'device_info': ?deviceInfo,
         }),
       );
 
+      debugPrint(
+        'Exchange response: statusCode=${response.statusCode} data=${jsonEncode(response.data)}',
+      );
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
         return WebAuthResult(
           status: WebAuthStatus.success,
-          token: data['token'] as String?,
+          token: response.data['token'] as String?,
         );
       } else {
-        final errorData = jsonDecode(response.body) as Map<String, dynamic>;
         return WebAuthResult(
           status: WebAuthStatus.error,
-          error: errorData['error'] as String?,
+          error: response.data['error'] as String?,
         );
       }
     } finally {

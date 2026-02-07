@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/udid.dart';
 import 'package:island/talker.dart';
 
 class WebAuthServer {
@@ -39,7 +41,10 @@ class WebAuthServer {
   Future<int> _findUnusedPort(int start, int end) async {
     for (var port = start; port <= end; port++) {
       try {
-        var socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
+        var socket = await ServerSocket.bind(
+          InternetAddress.loopbackIPv4,
+          port,
+        );
         await socket.close();
         return port;
       } catch (e) {
@@ -56,7 +61,7 @@ class WebAuthServer {
   }
 
   void _addCorsHeaders(HttpResponse response) {
-    const webUrl = 'https://app.solian.fr'; 
+    const webUrl = 'https://app.solian.fr';
 
     response.headers.add('Access-Control-Allow-Origin', webUrl);
     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -100,10 +105,7 @@ class WebAuthServer {
     _challenge = _generateChallenge();
     _challengeTimestamp = DateTime.now();
 
-    final response = {
-      'status': 'ok',
-      'challenge': _challenge,
-    };
+    final response = {'status': 'ok', 'challenge': _challenge};
 
     request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;
@@ -116,9 +118,11 @@ class WebAuthServer {
         _challengeTimestamp == null ||
         DateTime.now().difference(_challengeTimestamp!) > _challengeTtl) {
       request.response.statusCode = HttpStatus.badRequest;
-      request.response.write(jsonEncode({
-        'error': 'Invalid or expired challenge. Please call /alive first.'
-      }));
+      request.response.write(
+        jsonEncode({
+          'error': 'Invalid or expired challenge. Please call /alive first.',
+        }),
+      );
       await request.response.close();
       return;
     }
@@ -134,8 +138,7 @@ class WebAuthServer {
       return;
     }
 
-    final String? signedChallenge = data['signedChallenge'];
-    final Map<String, dynamic>? deviceInfo = data['deviceInfo'];
+    final String? signedChallenge = data['signed_challenge'];
 
     if (signedChallenge == null) {
       request.response.statusCode = HttpStatus.badRequest;
@@ -144,43 +147,114 @@ class WebAuthServer {
       return;
     }
 
-    final currentChallenge = _challenge!;
     _challenge = null;
     _challengeTimestamp = null;
 
     try {
       final dio = _ref.read(apiClientProvider);
-      
+
+      // Call the remote API to generate a new session belongs to the current session
       final response = await dio.post(
         '/pass/auth/login/session',
         data: {
-          'signedChallenge': signedChallenge,
-          'challenge': currentChallenge,
-          ...?deviceInfo,
+          'device_id': await getUdid(),
+          'device_name': await getDeviceName(),
+          'platform': kIsWeb
+              ? 1
+              : switch (defaultTargetPlatform) {
+                  TargetPlatform.iOS => 2,
+                  TargetPlatform.android => 3,
+                  TargetPlatform.macOS => 4,
+                  TargetPlatform.windows => 5,
+                  TargetPlatform.linux => 6,
+                  _ => 0,
+                },
         },
       );
 
       if (response.statusCode == 200 && response.data != null) {
         final webToken = response.data['token'];
         request.response.statusCode = HttpStatus.ok;
+        request.response.headers.contentType = ContentType.json;
         request.response.write(jsonEncode({'token': webToken}));
       } else {
         throw Exception(
-            'Backend exchange failed with status ${response.statusCode}');
+          'Backend exchange failed with status ${response.statusCode}',
+        );
       }
     } on DioException catch (e) {
       talker.error('Backend exchange failed: ${e.response?.data}');
       request.response.statusCode =
           e.response?.statusCode ?? HttpStatus.internalServerError;
+      request.response.headers.contentType = ContentType.json;
       request.response.write(
-          jsonEncode(e.response?.data ?? {'error': 'Backend communication failed'}));
+        jsonEncode(
+          e.response?.data ?? {'error': 'Backend communication failed'},
+        ),
+      );
     } catch (e, st) {
       talker.handle(e, st, 'Error during backend exchange');
       request.response.statusCode = HttpStatus.internalServerError;
-      request.response
-          .write(jsonEncode({'error': 'An unexpected error occurred'}));
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'error': 'An unexpected error occurred'}),
+      );
     } finally {
       await request.response.close();
     }
   }
 }
+
+class WebAuthServerState {
+  final bool isRunning;
+  final int? port;
+  final Object? error;
+
+  WebAuthServerState({this.isRunning = false, this.port, this.error});
+
+  WebAuthServerState copyWith({
+    bool? isRunning,
+    int? port,
+    Object? error,
+    bool clearError = false,
+  }) {
+    return WebAuthServerState(
+      isRunning: isRunning ?? this.isRunning,
+      port: port ?? this.port,
+      error: clearError ? null : error ?? this.error,
+    );
+  }
+}
+
+class WebAuthServerNotifier extends Notifier<WebAuthServerState> {
+  late final WebAuthServer _server;
+
+  @override
+  WebAuthServerState build() {
+    _server = ref.watch(webAuthServerProvider);
+    return WebAuthServerState();
+  }
+
+  Future<void> start() async {
+    try {
+      final port = await _server.start();
+      state = state.copyWith(isRunning: true, port: port, clearError: true);
+    } catch (e) {
+      state = state.copyWith(isRunning: false, error: e);
+    }
+  }
+
+  void stop() {
+    _server.stop();
+    state = state.copyWith(isRunning: false, port: null);
+  }
+}
+
+final webAuthServerProvider = Provider<WebAuthServer>((ref) {
+  return WebAuthServer(ref);
+});
+
+final webAuthServerStateProvider =
+    NotifierProvider<WebAuthServerNotifier, WebAuthServerState>(
+      WebAuthServerNotifier.new,
+    );
