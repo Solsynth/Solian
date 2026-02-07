@@ -33,7 +33,7 @@ class WebAuthClient {
         final status = data['status'] as String?;
 
         if (status == 'denied') {
-          return const WebAuthResult(status: WebAuthStatus.denied);
+          return WebAuthResult(status: WebAuthStatus.denied);
         }
 
         return WebAuthResult(
