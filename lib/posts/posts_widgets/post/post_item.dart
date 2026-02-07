@@ -485,7 +485,7 @@ class PostItem extends HookConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (isShowReference &&
+        if (!isShowReference ||
             !(item.forwardedGone ||
                 item.repliedGone ||
                 item.forwardedPost != null ||
