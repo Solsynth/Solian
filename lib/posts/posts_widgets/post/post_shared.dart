@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -27,6 +25,7 @@ import 'package:styled_widget/styled_widget.dart';
 part 'post_shared.g.dart';
 
 const kMessageEnableEmbedTypes = ['text', 'messages.new'];
+const kPostThreadingLineWidth = 1.0;
 
 /// Converts HTML content to markdown if contentType indicates HTML (contentType == 1)
 String _convertContentToMarkdown(SnPost post) {
@@ -119,7 +118,7 @@ class PostReplyPreview extends HookConsumerWidget {
   final bool isOpenable;
   final bool isCompact;
   final bool isAutoload;
-  final double? itemMaxWidth;
+  final bool isRootNode;
   final VoidCallback? onOpen;
   const PostReplyPreview({
     super.key,
@@ -127,7 +126,7 @@ class PostReplyPreview extends HookConsumerWidget {
     this.isOpenable = false,
     this.isCompact = false,
     this.isAutoload = true,
-    this.itemMaxWidth,
+    this.isRootNode = true,
     this.onOpen,
   });
 
@@ -184,46 +183,89 @@ class PostReplyPreview extends HookConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 8,
-                            children: [
-                              _buildProfilePicture(
-                                context,
-                                post,
-                                radius: 12,
-                              ).padding(top: 4),
-                              if (post.content?.isNotEmpty ?? false)
-                                Expanded(
-                                  child: MarkdownTextContent(
-                                    content: _convertContentToMarkdown(post),
-                                    attachments: post.attachments,
-                                    noMentionChip: post.fediverseUri != null,
-                                  ).padding(top: 2),
-                                )
-                              else
-                                Expanded(
-                                  child:
-                                      Text(
-                                            'postHasAttachments',
-                                            style: TextStyle(height: 2),
-                                          )
-                                          .plural(post.attachments.length)
-                                          .padding(top: 2),
-                                ),
-                            ],
-                          ),
+                      IntrinsicHeight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            // Vertical line column
+                            SizedBox(
+                              width: 24,
+                              child: Column(
+                                children: [
+                                  // Top part of line (connecting from parent)
+                                  if (!isRootNode)
+                                    Container(
+                                      width: kPostThreadingLineWidth,
+                                      height: 6,
+                                      color: Theme.of(context).dividerColor,
+                                    )
+                                  else
+                                    const Gap(6),
+                                  // Avatar
+                                  _buildProfilePicture(
+                                    context,
+                                    post,
+                                    radius: 10,
+                                  ),
+                                  // Bottom part of line (connecting to children)
+                                  if (post.repliesCount > 0)
+                                    Expanded(
+                                      child: Container(
+                                        width: kPostThreadingLineWidth,
+                                        color: Theme.of(context).dividerColor,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Gap(8),
+                            // Content
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: maxWidth),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      spacing: 8,
+                                      children: [
+                                        if (post.content?.isNotEmpty ?? false)
+                                          MarkdownTextContent(
+                                            content: _convertContentToMarkdown(
+                                              post,
+                                            ),
+                                            attachments: post.attachments,
+                                            noMentionChip:
+                                                post.fediverseUri != null,
+                                          ).padding(top: 2)
+                                        else
+                                          Text(
+                                                'postHasAttachments',
+                                                style: TextStyle(height: 2),
+                                              )
+                                              .plural(post.attachments.length)
+                                              .padding(top: 2),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      onOpen?.call();
+                                      context.pushNamed(
+                                        'postDetail',
+                                        pathParameters: {'id': post.id},
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        onTap: () {
-                          onOpen?.call();
-                          context.pushNamed(
-                            'postDetail',
-                            pathParameters: {'id': post.id},
-                          );
-                        },
                       ),
                       if (post.repliesCount > 0)
                         PostReplyPreview(
@@ -231,9 +273,9 @@ class PostReplyPreview extends HookConsumerWidget {
                           isOpenable: true,
                           isCompact: true,
                           isAutoload: false,
-                          itemMaxWidth: math.max(maxWidth - 24, 200),
+                          isRootNode: false,
                           onOpen: onOpen,
-                        ).padding(left: 24),
+                        ),
                     ],
                   ),
                 if (repliesState.loading)
@@ -255,7 +297,23 @@ class PostReplyPreview extends HookConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 8,
                       children: [
-                        const Icon(Symbols.keyboard_arrow_down, size: 20),
+                        Container(
+                          width: 24,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Symbols.keyboard_arrow_down,
+                            size: 18,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
                         Text('repliesLoadMore').tr(),
                       ],
                     ),
@@ -321,7 +379,7 @@ class PostReplyPreview extends HookConsumerWidget {
     }
 
     final contentWidget = isCompact
-        ? itemBuilder(itemMaxWidth ?? MediaQuery.of(context).size.width)
+        ? itemBuilder(MediaQuery.of(context).size.width)
         : Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(

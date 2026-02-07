@@ -48,7 +48,7 @@ class UniversalImage extends HookConsumerWidget {
 
     useEffect(() {
       DefaultCacheManager().getFileFromCache(uri).then((fileInfo) {
-        isCached.value = fileInfo != null;
+        if (context.mounted) isCached.value = fileInfo != null;
       });
       return null;
     }, [uri]);
