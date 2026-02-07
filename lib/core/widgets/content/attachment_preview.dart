@@ -17,7 +17,7 @@ import 'package:island/core/utils/format.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/sensitive.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';

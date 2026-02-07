@@ -6,7 +6,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/wallet/wallet_models/wallet.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/network.dart';
 import 'package:dio/dio.dart';
 import 'package:local_auth/local_auth.dart';

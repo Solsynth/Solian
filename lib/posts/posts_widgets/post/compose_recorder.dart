@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/talker.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart' hide Amplitude;

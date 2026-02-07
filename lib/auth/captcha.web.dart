@@ -2,7 +2,7 @@ import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/auth/captcha.config.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 
@@ -42,12 +42,11 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
 
     final captchaUrl = await ref.watch(captchaUrlProvider.future);
 
-    final iframe =
-        web.HTMLIFrameElement()
-          ..src = captchaUrl
-          ..style.border = 'none'
-          ..width = '100%'
-          ..height = '100%';
+    final iframe = web.HTMLIFrameElement()
+      ..src = captchaUrl
+      ..style.border = 'none'
+      ..width = '100%'
+      ..height = '100%';
 
     web.document.body!.append(iframe);
     ui.platformViewRegistry.registerViewFactory(
@@ -73,10 +72,9 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
   Widget build(BuildContext context) {
     return SheetScaffold(
       titleText: "Anti-Robot",
-      child:
-          _isInitialized
-              ? HtmlElementView(viewType: 'captcha-iframe')
-              : Center(child: CircularProgressIndicator()),
+      child: _isInitialized
+          ? HtmlElementView(viewType: 'captcha-iframe')
+          : Center(child: CircularProgressIndicator()),
     );
   }
 }

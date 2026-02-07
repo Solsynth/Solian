@@ -10,7 +10,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/info_row.dart';
 import 'package:material_symbols_icons/symbols.dart';

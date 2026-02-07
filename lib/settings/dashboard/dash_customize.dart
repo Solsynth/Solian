@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:styled_widget/styled_widget.dart';

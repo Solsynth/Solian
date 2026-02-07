@@ -7,7 +7,7 @@ import 'package:island/wallet/wallet_models/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/widgets/payment/payment_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

@@ -17,7 +17,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 
 part 'edit_app.g.dart';
 

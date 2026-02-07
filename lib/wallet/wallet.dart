@@ -15,7 +15,7 @@ import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/widgets/payment/payment_overlay.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';

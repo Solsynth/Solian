@@ -4,7 +4,7 @@ import 'package:island/pagination/pagination.dart';
 import 'package:island/thought/thought.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 
 final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose(

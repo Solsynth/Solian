@@ -11,7 +11,7 @@ import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/chat_room.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/image.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/drive/drive_models/file.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';

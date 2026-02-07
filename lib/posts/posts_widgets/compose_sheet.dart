@@ -12,7 +12,7 @@ import 'package:island/posts/posts_models/post.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/posts/posts_widgets/post/compose_card.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';
 import 'package:island/posts/posts_widgets/post/compose_state_utils.dart';

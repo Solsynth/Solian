@@ -7,7 +7,7 @@ import 'package:island/drive/drive_models/file.dart';
 import 'package:island/drive/drive_models/file_pool.dart';
 import 'package:island/drive/drive/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';

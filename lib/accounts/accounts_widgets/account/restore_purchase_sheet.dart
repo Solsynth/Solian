@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account/me/settings_connections.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
 

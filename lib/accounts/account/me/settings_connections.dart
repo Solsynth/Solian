@@ -11,7 +11,7 @@ import 'package:island/accounts/account/me/account_settings.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';

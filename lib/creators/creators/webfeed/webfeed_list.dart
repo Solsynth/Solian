@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/creators/webfeed/webfeed_edit.dart';
 import 'package:island/discovery/webfeed.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/empty_state.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';

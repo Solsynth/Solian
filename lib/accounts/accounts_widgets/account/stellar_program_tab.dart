@@ -17,7 +17,7 @@ import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_symbols_icons/symbols.dart';

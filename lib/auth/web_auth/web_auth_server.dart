@@ -1,12 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/talker.dart';
+
+class WebAuthRequestEvent {
+  final String appName;
+  final Completer<String?> completer;
+
+  WebAuthRequestEvent({required this.appName, required this.completer});
+}
 
 class WebAuthServer {
   final Ref _ref;
@@ -14,7 +22,7 @@ class WebAuthServer {
   String? _challenge;
   DateTime? _challengeTimestamp;
 
-  final _challengeTtl = const Duration(seconds: 30);
+  final _challengeTtl = const Duration(seconds: 300);
 
   WebAuthServer(this._ref);
 
@@ -54,16 +62,8 @@ class WebAuthServer {
     throw Exception('No unused port found in range $start-$end');
   }
 
-  String _generateChallenge() {
-    final random = Random.secure();
-    final values = List<int>.generate(32, (i) => random.nextInt(256));
-    return base64Url.encode(values);
-  }
-
   void _addCorsHeaders(HttpResponse response) {
-    const webUrl = 'https://app.solian.fr';
-
-    response.headers.add('Access-Control-Allow-Origin', webUrl);
+    response.headers.add('Access-Control-Allow-Origin', '*');
     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     response.headers.add('Access-Control-Allow-Headers', '*');
   }
@@ -84,6 +84,8 @@ class WebAuthServer {
         await _handleAlive(request);
       } else if (request.method == 'POST' && request.uri.path == '/exchange') {
         await _handleExchange(request);
+      } else if (request.method == 'GET' && request.uri.path == '/me') {
+        await _handleMe(request);
       } else {
         request.response.statusCode = HttpStatus.notFound;
         request.response.write(jsonEncode({'error': 'Not Found'}));
@@ -101,16 +103,81 @@ class WebAuthServer {
     }
   }
 
+  Future<void> _handleMe(HttpRequest request) async {
+    final authHeader = request.headers.value('authorization');
+    if (authHeader == null || !authHeader.startsWith('AtField ')) {
+      request.response.statusCode = HttpStatus.unauthorized;
+      request.response.write(
+        jsonEncode({'error': 'Missing or invalid Authorization header'}),
+      );
+      await request.response.close();
+      return;
+    }
+
+    final token = authHeader.substring(7);
+
+    try {
+      final dio = _ref.read(apiClientProvider);
+      final response = await dio.get(
+        '/pass/accounts/me',
+        options: Options(headers: {'Authorization': 'AtField $token'}),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        request.response.statusCode = HttpStatus.ok;
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(response.data));
+      } else {
+        request.response.statusCode =
+            response.statusCode ?? HttpStatus.badRequest;
+        request.response.write(
+          jsonEncode({'error': 'Failed to get account info'}),
+        );
+      }
+    } catch (e) {
+      talker.error('Failed to get account info: $e');
+      request.response.statusCode = HttpStatus.internalServerError;
+      request.response.write(jsonEncode({'error': e.toString()}));
+    }
+
+    await request.response.close();
+  }
+
   Future<void> _handleAlive(HttpRequest request) async {
-    _challenge = _generateChallenge();
+    final queryParams = request.uri.queryParameters;
+    final appName = queryParams['app'] ?? 'Unknown App';
+
+    talker.info('Auth request from app: $appName');
+
+    final completer = Completer<String?>();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      eventBus.fire(
+        WebAuthRequestEvent(appName: appName, completer: completer),
+      );
+    });
+
+    final challenge = await completer.future;
+
+    if (challenge == null) {
+      request.response.statusCode = HttpStatus.ok;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({'status': 'denied'}));
+      await request.response.close();
+      return;
+    }
+
+    _challenge = challenge;
     _challengeTimestamp = DateTime.now();
 
-    final response = {'status': 'ok', 'challenge': _challenge};
+    final response = {'status': 'ok', 'challenge': challenge};
 
     request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;
     request.response.write(jsonEncode(response));
     await request.response.close();
+
+    talker.info('Challenge sent to $appName');
   }
 
   Future<void> _handleExchange(HttpRequest request) async {
@@ -153,22 +220,12 @@ class WebAuthServer {
     try {
       final dio = _ref.read(apiClientProvider);
 
-      // Call the remote API to generate a new session belongs to the current session
       final response = await dio.post(
         '/pass/auth/login/session',
         data: {
           'device_id': await getUdid(),
           'device_name': await getDeviceName(),
-          'platform': kIsWeb
-              ? 1
-              : switch (defaultTargetPlatform) {
-                  TargetPlatform.iOS => 2,
-                  TargetPlatform.android => 3,
-                  TargetPlatform.macOS => 4,
-                  TargetPlatform.windows => 5,
-                  TargetPlatform.linux => 6,
-                  _ => 0,
-                },
+          'signed_challenge': signedChallenge,
         },
       );
 

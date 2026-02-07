@@ -7,12 +7,15 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - url_launcher_macos (0.0.1):
+    - FlutterMacOS
 
 DEPENDENCIES:
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
 EXTERNAL SOURCES:
   device_info_plus:
@@ -23,12 +26,15 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
+  url_launcher_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 

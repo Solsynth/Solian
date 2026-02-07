@@ -12,7 +12,7 @@ import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/posts/posts_widgets/post/compose_attachments.dart';
 import 'package:island/posts/posts_widgets/post/compose_form_fields.dart';
 import 'package:island/posts/posts_widgets/post/compose_info_banner.dart';

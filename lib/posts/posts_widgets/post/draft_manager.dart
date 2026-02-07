@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class DraftManagerSheet extends HookConsumerWidget {

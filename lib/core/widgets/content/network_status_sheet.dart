@@ -6,7 +6,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 

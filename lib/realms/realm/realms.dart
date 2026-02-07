@@ -10,7 +10,7 @@ import 'package:island/realms/realms_widgets/realm/realm_list_tile.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

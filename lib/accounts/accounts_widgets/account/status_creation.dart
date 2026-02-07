@@ -9,7 +9,7 @@ import 'package:island/accounts/accounts_widgets/account/status.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class AccountStatusCreationSheet extends HookConsumerWidget {

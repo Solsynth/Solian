@@ -8,7 +8,7 @@ import 'package:island/polls/poll/poll_editor.dart';
 import 'package:island/posts/posts_models/poll.dart';
 import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/posts/posts_widgets/post/publishers_modal.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';

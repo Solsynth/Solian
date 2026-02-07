@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/thought/thought/think_sheet.dart';
@@ -109,6 +112,11 @@ class AppWrapper extends HookConsumerWidget {
         if (context.mounted) _showThoughtSheet(context, event);
       });
 
+      // Web auth request listener
+      final webAuthSubs = eventBus.on<WebAuthRequestEvent>().listen((event) {
+        if (context.mounted) _showWebAuthSheet(context, event);
+      });
+
       // Protocol handler listener
       final protocolListener = _ProtocolListenerImpl(
         onProtocolUrlReceived: (url) =>
@@ -139,6 +147,7 @@ class AppWrapper extends HookConsumerWidget {
         composeSheetSubs.cancel();
         notificationSheetSubs.cancel();
         thoughtSheetSubs.cancel();
+        webAuthSubs.cancel();
       };
     }, []);
 
@@ -239,6 +248,33 @@ class AppWrapper extends HookConsumerWidget {
       attachedMessages: event.attachedMessages,
       attachedPosts: event.attachedPosts,
     );
+  }
+
+  void _showWebAuthSheet(BuildContext context, WebAuthRequestEvent event) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) => AuthRequestSheet(
+        appName: event.appName,
+        onAllow: () {
+          Navigator.pop(context);
+          event.completer.complete(_generateWebAuthChallenge());
+        },
+        onDeny: () {
+          Navigator.pop(context);
+          event.completer.complete(null);
+        },
+      ),
+    );
+  }
+
+  String _generateWebAuthChallenge() {
+    final random = Random.secure();
+    final values = List<int>.generate(32, (i) => random.nextInt(256));
+    return base64Url.encode(values);
   }
 
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {

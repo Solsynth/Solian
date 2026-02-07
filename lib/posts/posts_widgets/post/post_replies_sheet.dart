@@ -3,7 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/posts_models/post.dart';
 import 'package:island/accounts/accounts_pod.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/posts/posts_widgets/post/post_quick_reply.dart';
 import 'package:island/posts/posts_widgets/post/post_replies.dart';

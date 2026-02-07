@@ -29,9 +29,16 @@ class WebAuthClient {
       final response = await client.get('http://127.0.0.1:$_port/alive');
 
       if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final status = data['status'] as String?;
+
+        if (status == 'denied') {
+          return const WebAuthResult(status: WebAuthStatus.denied);
+        }
+
         return WebAuthResult(
           status: WebAuthStatus.challenge,
-          challenge: response.data['challenge'] as String?,
+          challenge: data['challenge'] as String?,
         );
       }
 
@@ -76,7 +83,7 @@ class WebAuthClient {
   }
 }
 
-enum WebAuthStatus { challenge, success, error }
+enum WebAuthStatus { challenge, success, error, denied }
 
 class WebAuthResult {
   final WebAuthStatus status;

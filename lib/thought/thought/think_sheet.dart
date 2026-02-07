@@ -4,7 +4,7 @@ import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/core/network.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:island/core/widgets/content/sheet.dart";
+import "package:island/core/widgets/content/sheet_scaffold.dart";
 import "package:island/thought/thought/think.dart";
 import "package:island/thought/thought_widgets/thought/thought_shared.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";

@@ -17,7 +17,7 @@ import 'package:process_run/process_run.dart';
 import 'package:collection/collection.dart'; // Added for firstWhereOrNull
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/talker.dart';
 
 /// Data model for a GitHub release we care about
@@ -264,24 +264,22 @@ class UpdateService {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => _WindowsUpdateDialog(
-            updateUrl: url,
-            onComplete: () {
-              // Close the update sheet
-              Navigator.of(context).pop();
-            },
-          ),
+      builder: (context) => _WindowsUpdateDialog(
+        updateUrl: url,
+        onComplete: () {
+          // Close the update sheet
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 
   /// Fetch the latest release info from GitHub.
   /// Public so other screens (e.g., About) can manually trigger update checks.
   Future<GithubReleaseInfo?> fetchLatestRelease() async {
-    final apiEndpoint =
-        useProxy
-            ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
-            : _releasesLatestApi;
+    final apiEndpoint = useProxy
+        ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
+        : _releasesLatestApi;
 
     talker.info(
       '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
@@ -415,17 +413,16 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
     Navigator.of(context).pop();
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Update Failed'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Update Failed'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -542,11 +539,10 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       talker.info('[Update] Running Windows installer from: $extractDir');
 
       final dir = Directory(extractDir);
-      final exeFiles =
-          dir
-              .listSync()
-              .where((f) => f is File && f.path.endsWith('.exe'))
-              .toList();
+      final exeFiles = dir
+          .listSync()
+          .where((f) => f is File && f.path.endsWith('.exe'))
+          .toList();
 
       if (exeFiles.isEmpty) {
         talker.info('[Update] No .exe file found in extracted directory');
@@ -652,10 +648,9 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                   vertical: 16,
                 ),
                 child: MarkdownTextContent(
-                  content:
-                      widget.release.body.isEmpty
-                          ? 'noChangelogProvided'.tr()
-                          : widget.release.body,
+                  content: widget.release.body.isEmpty
+                      ? 'noChangelogProvided'.tr()
+                      : widget.release.body,
                 ),
               ),
             ),

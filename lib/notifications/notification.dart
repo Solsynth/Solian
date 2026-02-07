@@ -11,7 +11,7 @@ import 'package:island/pagination/pagination.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/markdown.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';

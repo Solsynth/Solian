@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_widgets/account/event_calendar_content.dart';
 import 'package:island/core/models/activity.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 /// A widget that displays a graph of fortune levels over time

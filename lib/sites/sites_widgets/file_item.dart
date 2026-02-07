@@ -10,7 +10,7 @@ import 'package:island/discovery/discovery_models/site_file.dart';
 import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/sites/site_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';

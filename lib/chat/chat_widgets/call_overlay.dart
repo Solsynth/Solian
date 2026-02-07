@@ -13,7 +13,7 @@ import 'package:island/chat/chat_widgets/call_participant_tile.dart';
 import 'package:island/chat/chat_widgets/call_screen.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:livekit_client/livekit_client.dart';

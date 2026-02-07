@@ -55,11 +55,9 @@ class SheetScaffold extends StatelessWidget {
                     Symbols.close,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
-                  onPressed:
-                      () =>
-                          onClose != null
-                              ? onClose?.call()
-                              : Navigator.pop(context),
+                  onPressed: () => onClose != null
+                      ? onClose?.call()
+                      : Navigator.pop(context),
                   style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
                 ),
               ],

@@ -10,7 +10,7 @@ import 'package:island/fitness/fitness_service.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
-import 'package:island/core/widgets/content/sheet.dart';
+import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:talker_flutter/talker_flutter.dart';
