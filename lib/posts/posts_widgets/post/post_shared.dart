@@ -487,52 +487,22 @@ class PostTruncateHint extends StatelessWidget {
   }
 }
 
-class ReferencedPostWidget extends StatelessWidget {
+class ReferencedPostWidget extends HookConsumerWidget {
   final SnPost item;
   final bool isInteractive;
   final EdgeInsets renderingPadding;
+  final bool isCollapsible;
 
   const ReferencedPostWidget({
     super.key,
     required this.item,
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
+    this.isCollapsible = true,
   });
 
-  Widget _buildProfilePicture(
-    BuildContext context,
-    SnPost post, {
-    double radius = 16,
-  }) {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return ProfilePictureWidget(
-        file: post.publisher!.picture,
-        radius: radius,
-      );
-    }
-    // Handle actor case
-    if (post.actor != null) {
-      return ActorPictureWidget(actor: post.actor!, radius: radius);
-    }
-    // Fallback
-    return ProfilePictureWidget(file: null, radius: radius);
-  }
-
-  String _getDisplayName(SnPost post) {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return post.publisher!.nick;
-    }
-    // Handle actor case
-    if (post.actor != null) {
-      return post.actor!.displayName ?? post.actor!.username ?? 'Unknown';
-    }
-    return 'Unknown';
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final referencePost = item.repliedPost ?? item.forwardedPost;
     final isGone = item.repliedGone || item.forwardedGone;
 
@@ -540,181 +510,197 @@ class ReferencedPostWidget extends StatelessWidget {
 
     final isReply = item.repliedPost != null || item.repliedGone;
 
-    final content = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: renderingPadding.horizontal,
-        vertical: 8,
-      ),
-      margin: EdgeInsets.only(
-        top: 8,
-        left: renderingPadding.vertical,
-        right: renderingPadding.vertical,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.5),
-        ),
-      ),
-      child: Column(
+    // Collapsible state - default to expanded (not collapsed)
+    final isCollapsed = useState(false);
+
+    Widget buildContent() {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                isReply ? Symbols.reply : Symbols.forward,
-                size: 16,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                isReply ? 'repliedTo'.tr() : 'forwarded'.tr(),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (isGone)
-            Row(
+          // Header row with icon, label and collapse button
+          InkWell(
+            onTap: isCollapsible
+                ? () => isCollapsed.value = !isCollapsed.value
+                : null,
+            child: Row(
               children: [
                 Icon(
-                  Symbols.visibility_off,
+                  isReply ? Symbols.reply : Symbols.forward,
                   size: 16,
                   color: Theme.of(context).colorScheme.secondary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
-                  'postReferenceUnavailable'.tr(),
+                  isReply ? 'repliedTo'.tr() : 'forwarded'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.secondary,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
                   ),
                 ),
-              ],
-            )
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProfilePicture(context, referencePost!, radius: 16),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getDisplayName(referencePost),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      if (referencePost.visibility != 0)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              PostVisibilityHelpers.getVisibilityIcon(
-                                referencePost.visibility,
-                              ),
-                              size: 12,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              PostVisibilityHelpers.getVisibilityText(
-                                referencePost.visibility,
-                              ).tr(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
-                          ],
-                        ).padding(top: 2, bottom: 2),
-                      if (referencePost.title?.isNotEmpty ?? false)
-                        Text(
-                          referencePost.title!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ).padding(top: 2, bottom: 2),
-                      if (referencePost.description?.isNotEmpty ?? false)
-                        Text(
-                          referencePost.description!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ).padding(bottom: 2),
-                      if (referencePost.content?.isNotEmpty ?? false)
-                        MarkdownTextContent(
-                          content: _convertContentToMarkdown(referencePost),
-                          textStyle: const TextStyle(fontSize: 14),
-                          isSelectable: false,
-                          linesMargin: referencePost.type == 0
-                              ? const EdgeInsets.only(bottom: 4)
-                              : null,
-                          attachments: referencePost.attachments,
-                          noMentionChip: referencePost.fediverseUri != null,
-                        ).padding(bottom: 4),
-                      if (referencePost.isTruncated)
-                        const PostTruncateHint(
-                          isCompact: true,
-                          margin: EdgeInsets.only(top: 4, bottom: 8),
-                        ),
-                      if (referencePost.attachments.isNotEmpty &&
-                          referencePost.type != 1)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.attach_file,
-                              size: 12,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'postHasAttachments'.plural(
-                                referencePost.attachments.length,
-                              ),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ).padding(vertical: 2),
-                    ],
+                const Spacer(),
+                if (isCollapsible)
+                  Icon(
+                    isCollapsed.value
+                        ? Symbols.keyboard_arrow_down
+                        : Symbols.keyboard_arrow_up,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
-                ),
               ],
             ),
+          ),
+          if (!isCollapsed.value) ...[
+            const Gap(8),
+            PostHeader(
+              item: referencePost!,
+              isFullPost: false,
+              isCompact: true,
+              showLowerLine: true,
+              renderingPadding: EdgeInsets.zero,
+              isInteractive: isInteractive,
+            ),
+            if (isGone)
+              Row(
+                children: [
+                  Icon(
+                    Symbols.visibility_off,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'postReferenceUnavailable'.tr(),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              )
+            else
+              // Use PostHeader for the referenced post with threading line
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Threading line column - connects down to current PostHeader
+                    SizedBox(
+                      width: 32,
+                      child: Column(
+                        children: [
+                          // Line extending down from referenced post's avatar area
+                          Expanded(
+                            child: Container(
+                              width: kPostThreadingLineWidth,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Gap(12),
+                    // Referenced post content using PostHeader
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Content
+                          if (referencePost.content?.isNotEmpty ?? false)
+                            MarkdownTextContent(
+                              content: _convertContentToMarkdown(referencePost),
+                              textStyle: const TextStyle(fontSize: 14),
+                              isSelectable: false,
+                              linesMargin: referencePost.type == 0
+                                  ? const EdgeInsets.only(bottom: 4)
+                                  : null,
+                              attachments: referencePost.attachments,
+                              noMentionChip: referencePost.fediverseUri != null,
+                            ).padding(top: 8),
+                          if (referencePost.title?.isNotEmpty ?? false)
+                            Text(
+                              referencePost.title!,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ).padding(top: 8, bottom: 4),
+                          if (referencePost.description?.isNotEmpty ?? false)
+                            Text(
+                              referencePost.description!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ).padding(bottom: 4),
+                          if (referencePost.isTruncated)
+                            const PostTruncateHint(
+                              isCompact: true,
+                              margin: EdgeInsets.only(top: 4, bottom: 4),
+                            ),
+                          // Attachments indicator
+                          if (referencePost.attachments.isNotEmpty &&
+                              referencePost.type != 1)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Symbols.attach_file,
+                                  size: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'postHasAttachments'.plural(
+                                    referencePost.attachments.length,
+                                  ),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ).padding(top: 4),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ],
+      );
+    }
+
+    final content = Padding(
+      padding: EdgeInsets.only(
+        left: renderingPadding.horizontal,
+        right: renderingPadding.horizontal,
+        top: 8,
       ),
+      child: buildContent(),
     );
 
     if (!isInteractive || isGone) {
       return content;
     }
 
-    return content.gestures(
+    return GestureDetector(
       onTap: () => context.pushNamed(
         'postDetail',
         pathParameters: {'id': referencePost!.id},
       ),
+      child: content,
     );
   }
 }
@@ -728,6 +714,8 @@ class PostHeader extends HookConsumerWidget {
   final bool isRelativeTime;
   final bool isCompact;
   final bool hideOverlay;
+  final bool showUpperLine;
+  final bool showLowerLine;
 
   const PostHeader({
     super.key,
@@ -739,6 +727,8 @@ class PostHeader extends HookConsumerWidget {
     this.isRelativeTime = true,
     this.isCompact = false,
     this.hideOverlay = false,
+    this.showUpperLine = false,
+    this.showLowerLine = false,
   });
 
   Widget _buildProfilePicture(
@@ -812,27 +802,45 @@ class PostHeader extends HookConsumerWidget {
     return Column(
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            GestureDetector(
-              onTap: isInteractive && _getPublisherName(item) != null
-                  ? () {
-                      if (item.publisher != null) {
-                        context.pushNamed(
-                          'publisherProfile',
-                          pathParameters: {'name': item.publisher!.name},
-                        );
-                      }
-                    }
-                  : null,
-              child: _buildProfilePicture(context, item, radius: 16),
+            // Avatar column with optional line extension
+            Column(
+              children: [
+                if (showUpperLine)
+                  Container(
+                    width: kPostThreadingLineWidth,
+                    height: 12,
+                    color: Theme.of(context).dividerColor,
+                  ).center().width(28),
+                GestureDetector(
+                  onTap: isInteractive && _getPublisherName(item) != null
+                      ? () {
+                          if (item.publisher != null) {
+                            context.pushNamed(
+                              'publisherProfile',
+                              pathParameters: {'name': item.publisher!.name},
+                            );
+                          }
+                        }
+                      : null,
+                  child: _buildProfilePicture(context, item, radius: 16),
+                ),
+                if (showLowerLine)
+                  Container(
+                    width: kPostThreadingLineWidth,
+                    height: 4,
+                    color: Theme.of(context).dividerColor,
+                  ).center().width(28),
+              ],
             ),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showUpperLine) const Gap(12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 4,
@@ -916,7 +924,10 @@ class PostHeader extends HookConsumerWidget {
           ],
         ),
       ],
-    ).padding(horizontal: renderingPadding.horizontal, bottom: 4);
+    ).padding(
+      horizontal: renderingPadding.horizontal,
+      bottom: showLowerLine ? 0 : 4,
+    );
   }
 }
 

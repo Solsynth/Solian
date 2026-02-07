@@ -486,11 +486,16 @@ class PostItem extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Gap(renderingPadding.vertical),
+        if (isShowReference)
+          ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
         PostHeader(
           item: item,
           isFullPost: isFullPost,
           isCompact: isCompact,
           renderingPadding: renderingPadding,
+          showUpperLine:
+              isShowReference &&
+              (item.repliedPost != null || item.forwardedPost != null),
           trailing: isCompact
               ? null
               : SizedBox(
@@ -588,8 +593,6 @@ class PostItem extends HookConsumerWidget {
             maxHeight: 400,
             borderRadius: BorderRadius.circular(12),
           ).padding(horizontal: renderingPadding.horizontal, vertical: 8),
-        if (isShowReference)
-          ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)
           PostReplyPreview(
             parent: item,
