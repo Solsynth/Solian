@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -113,229 +115,12 @@ class PostVisibilityHelpers {
   }
 }
 
-/// Helper widget for building nested replies with proper hook support
-class _NestedRepliesWidget extends HookConsumerWidget {
-  final SnPost parentPost;
-  final int depth;
-  final VoidCallback? onOpen;
-
-  const _NestedRepliesWidget({
-    required this.parentPost,
-    required this.depth,
-    this.onOpen,
-  });
-
-  Widget _buildProfilePicture(
-    BuildContext context,
-    SnPost post, {
-    double radius = 16,
-  }) {
-    if (post.publisher != null) {
-      return ProfilePictureWidget(
-        file:
-            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
-        radius: radius,
-      );
-    }
-    if (post.actor != null) {
-      return ActorPictureWidget(actor: post.actor!, radius: radius);
-    }
-    return ProfilePictureWidget(file: null, radius: radius);
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final nestedRepliesState = ref.watch(repliesProvider(parentPost.id));
-
-    useEffect(() {
-      Future(() async {
-        try {
-          if (context.mounted) {
-            await ref
-                .read(repliesProvider(parentPost.id).notifier)
-                .fetchMore(3);
-          }
-        } catch (err) {
-          showErrorAlert(err);
-        }
-      });
-      return null;
-    }, [parentPost]);
-
-    if (nestedRepliesState.posts.isEmpty && !nestedRepliesState.loading) {
-      return const SizedBox.shrink();
-    }
-
-    final hasMultipleReplies = nestedRepliesState.posts.length > 1;
-    final needsBorder = hasMultipleReplies && depth > 0;
-
-    Widget repliesContent = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (int i = 0; i < nestedRepliesState.posts.length; i++)
-          _buildReplyItem(
-            context,
-            ref,
-            nestedRepliesState.posts[i],
-            i == 0,
-            i == nestedRepliesState.posts.length - 1,
-          ),
-        if (nestedRepliesState.loading)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(),
-              ),
-              Text('loading').tr(),
-            ],
-          )
-        else if (nestedRepliesState.posts.length < parentPost.repliesCount)
-          GestureDetector(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8,
-              children: [
-                Container(
-                  width: 24,
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Symbols.keyboard_arrow_down,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                Text('repliesLoadMore').tr(),
-              ],
-            ),
-            onTap: () async {
-              try {
-                await ref
-                    .read(repliesProvider(parentPost.id).notifier)
-                    .fetchMore(3);
-              } catch (err) {
-                showErrorAlert(err);
-              }
-            },
-          ),
-      ],
-    );
-
-    if (needsBorder) {
-      repliesContent = Container(
-        margin: EdgeInsets.only(top: 8),
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: repliesContent,
-      );
-    } else {
-      repliesContent = repliesContent.padding(top: 8);
-    }
-
-    return repliesContent;
-  }
-
-  Widget _buildReplyItem(
-    BuildContext context,
-    WidgetRef ref,
-    SnPost post,
-    bool isFirst,
-    bool isLast,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 24,
-          child: Column(
-            children: [
-              if (!isFirst)
-                Container(
-                  width: kPostThreadingLineWidth,
-                  height: 6,
-                  color: Theme.of(context).dividerColor,
-                )
-              else
-                const Gap(6),
-              _buildProfilePicture(context, post, radius: 10),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: kPostThreadingLineWidth,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                )
-              else
-                const Gap(6),
-            ],
-          ),
-        ),
-        const Gap(8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InkWell(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    if (post.content?.isNotEmpty ?? false)
-                      MarkdownTextContent(
-                        content: _convertContentToMarkdown(post),
-                        attachments: post.attachments,
-                        noMentionChip: post.fediverseUri != null,
-                      ).padding(top: 2)
-                    else
-                      Text(
-                        'postHasAttachments',
-                        style: TextStyle(height: 2),
-                      ).plural(post.attachments.length).padding(top: 2),
-                  ],
-                ),
-                onTap: () {
-                  onOpen?.call();
-                  context.pushNamed(
-                    'postDetail',
-                    pathParameters: {'id': post.id},
-                  );
-                },
-              ),
-              if (post.repliesCount > 0)
-                _NestedRepliesWidget(
-                  parentPost: post,
-                  depth: depth + 1,
-                  onOpen: onOpen,
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class PostReplyPreview extends HookConsumerWidget {
   final SnPost parent;
   final bool isOpenable;
   final bool isCompact;
   final bool isAutoload;
-  final bool showUpperLine;
-  final bool showLowerLine;
+  final double? itemMaxWidth;
   final VoidCallback? onOpen;
   const PostReplyPreview({
     super.key,
@@ -343,8 +128,7 @@ class PostReplyPreview extends HookConsumerWidget {
     this.isOpenable = false,
     this.isCompact = false,
     this.isAutoload = true,
-    this.showUpperLine = false,
-    this.showLowerLine = true,
+    this.itemMaxWidth,
     this.onOpen,
   });
 
@@ -353,6 +137,7 @@ class PostReplyPreview extends HookConsumerWidget {
     SnPost post, {
     double radius = 16,
   }) {
+    // Handle publisher case
     if (post.publisher != null) {
       return ProfilePictureWidget(
         file:
@@ -360,103 +145,12 @@ class PostReplyPreview extends HookConsumerWidget {
         radius: radius,
       );
     }
+    // Handle actor case
     if (post.actor != null) {
       return ActorPictureWidget(actor: post.actor!, radius: radius);
     }
+    // Fallback
     return ProfilePictureWidget(file: null, radius: radius);
-  }
-
-  Widget _buildReplyItem(
-    BuildContext context,
-    WidgetRef ref,
-    SnPost post,
-    bool isFirst,
-    bool isLast,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 24,
-          child: Column(
-            children: [
-              if (isFirst && showUpperLine)
-                Container(
-                  width: kPostThreadingLineWidth,
-                  height: 12,
-                  color: Theme.of(context).dividerColor,
-                )
-              else if (!isFirst)
-                Container(
-                  width: kPostThreadingLineWidth,
-                  height: 6,
-                  color: Theme.of(context).dividerColor,
-                )
-              else
-                const Gap(6),
-              _buildProfilePicture(context, post, radius: 10),
-              if (isLast && showLowerLine)
-                Expanded(
-                  child: Container(
-                    width: kPostThreadingLineWidth,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                )
-              else if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: kPostThreadingLineWidth,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                )
-              else
-                const Gap(6),
-            ],
-          ),
-        ),
-        const Gap(8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InkWell(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    if (post.content?.isNotEmpty ?? false)
-                      MarkdownTextContent(
-                        content: _convertContentToMarkdown(post),
-                        attachments: post.attachments,
-                        noMentionChip: post.fediverseUri != null,
-                      ).padding(top: 2)
-                    else
-                      Text(
-                        'postHasAttachments',
-                        style: TextStyle(height: 2),
-                      ).plural(post.attachments.length).padding(top: 2),
-                  ],
-                ),
-                onTap: () {
-                  onOpen?.call();
-                  context.pushNamed(
-                    'postDetail',
-                    pathParameters: {'id': post.id},
-                  );
-                },
-              ),
-              if (post.repliesCount > 0)
-                _NestedRepliesWidget(
-                  parentPost: post,
-                  depth: 1,
-                  onOpen: onOpen,
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -482,18 +176,66 @@ class PostReplyPreview extends HookConsumerWidget {
         ? null
         : ref.watch(postFeaturedReplyProvider(parent.id));
 
-    Widget itemBuilder() {
+    Widget itemBuilder(double maxWidth) {
       return isOpenable
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (int i = 0; i < repliesState.posts.length; i++)
-                  _buildReplyItem(
-                    context,
-                    ref,
-                    repliesState.posts[i],
-                    i == 0,
-                    i == repliesState.posts.length - 1,
+                for (final post in repliesState.posts)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              _buildProfilePicture(
+                                context,
+                                post,
+                                radius: 12,
+                              ).padding(top: 4),
+                              if (post.content?.isNotEmpty ?? false)
+                                Expanded(
+                                  child: MarkdownTextContent(
+                                    content: _convertContentToMarkdown(post),
+                                    attachments: post.attachments,
+                                    noMentionChip: post.fediverseUri != null,
+                                  ).padding(top: 2),
+                                )
+                              else
+                                Expanded(
+                                  child:
+                                      Text(
+                                            'postHasAttachments',
+                                            style: TextStyle(height: 2),
+                                          )
+                                          .plural(post.attachments.length)
+                                          .padding(top: 2),
+                                ),
+                            ],
+                          ),
+                        ),
+                        onTap: () {
+                          onOpen?.call();
+                          context.pushNamed(
+                            'postDetail',
+                            pathParameters: {'id': post.id},
+                          );
+                        },
+                      ),
+                      if (post.repliesCount > 0)
+                        PostReplyPreview(
+                          parent: post,
+                          isOpenable: true,
+                          isCompact: true,
+                          isAutoload: false,
+                          itemMaxWidth: math.max(maxWidth - 24, 200),
+                          onOpen: onOpen,
+                        ).padding(left: 24),
+                    ],
                   ),
                 if (repliesState.loading)
                   Row(
@@ -514,23 +256,7 @@ class PostReplyPreview extends HookConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 8,
                       children: [
-                        Container(
-                          width: 24,
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Symbols.keyboard_arrow_down,
-                            size: 18,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                        ),
+                        const Icon(Symbols.keyboard_arrow_down, size: 20),
                         Text('repliesLoadMore').tr(),
                       ],
                     ),
@@ -547,29 +273,32 @@ class PostReplyPreview extends HookConsumerWidget {
               ],
             )
           : (featuredReply!).map(
-              data: (data) => Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
-                children: [
-                  _buildProfilePicture(
-                    context,
-                    data.value!,
-                    radius: 12,
-                  ).padding(top: 4),
-                  if (data.value?.content?.isNotEmpty ?? false)
-                    Expanded(
-                      child: MarkdownTextContent(
-                        content: _convertContentToMarkdown(data.value!),
-                        attachments: data.value!.attachments,
+              data: (data) => ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    _buildProfilePicture(
+                      context,
+                      data.value!,
+                      radius: 12,
+                    ).padding(top: 4),
+                    if (data.value?.content?.isNotEmpty ?? false)
+                      Expanded(
+                        child: MarkdownTextContent(
+                          content: _convertContentToMarkdown(data.value!),
+                          attachments: data.value!.attachments,
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: Text(
+                          'postHasAttachments',
+                        ).plural(data.value?.attachments.length ?? 0),
                       ),
-                    )
-                  else
-                    Expanded(
-                      child: Text(
-                        'postHasAttachments',
-                      ).plural(data.value?.attachments.length ?? 0),
-                    ),
-                ],
+                  ],
+                ),
               ),
               error: (e) => Row(
                 spacing: 8,
@@ -593,20 +322,20 @@ class PostReplyPreview extends HookConsumerWidget {
     }
 
     final contentWidget = isCompact
-        ? itemBuilder()
-        : LayoutBuilder(
-            builder: (context, constraints) {
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor.withOpacity(0.5),
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-                width: constraints.maxWidth - 32,
-                child: Column(
+        ? itemBuilder(itemMaxWidth ?? MediaQuery.of(context).size.width)
+        : Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            width: double.infinity,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 4,
                   children: [
@@ -615,11 +344,14 @@ class PostReplyPreview extends HookConsumerWidget {
                         .fontSize(15)
                         .bold()
                         .padding(horizontal: 5),
-                    itemBuilder(),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: itemBuilder(constraints.maxWidth),
+                    ),
                   ],
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
 
     return GestureDetector(
