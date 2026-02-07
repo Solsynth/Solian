@@ -20,9 +20,11 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 
 注意：联邦宇宙（Fediverse）支持目前处于实验阶段，功能有限。
 
+提示：中文版本的 README 信息可能更新不及时，请以英文版本的为准。
+
 > **帮助我们翻译！** 点击上方的 Crowdin 徽章参与翻译贡献。
 >
-> 中文文档：[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network)
+> 中文文档：[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [English README](./README.md)
 
 ---
 
