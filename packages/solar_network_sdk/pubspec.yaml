@@ -18,8 +18,13 @@ dependencies:
   device_info_plus: ^11.3.0
   package_info_plus: ^9.0.0
   http: ^1.2.0
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  build_runner: ^2.4.15
+  freezed: ^2.5.8
+  json_serializable: ^6.9.4
