@@ -22,7 +22,7 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
   attachedMessages: (json['attached_messages'] as List<dynamic>?)
       ?.map((e) => e as Map<String, dynamic>)
       .toList(),
-  serviceId: json['service_id'] as String?,
+  bot: json['bot'] as String?,
 );
 
 Map<String, dynamic> _$StreamThinkingRequestToJson(
@@ -33,7 +33,7 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'accpet_proposals': instance.accpetProposals,
   'attached_posts': instance.attachedPosts,
   'attached_messages': instance.attachedMessages,
-  'service_id': instance.serviceId,
+  'bot': instance.bot,
 };
 
 _SnThinkingChunk _$SnThinkingChunkFromJson(Map<String, dynamic> json) =>
@@ -181,23 +181,23 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
 
 _ThoughtService _$ThoughtServiceFromJson(Map<String, dynamic> json) =>
     _ThoughtService(
-      serviceId: json['service_id'] as String,
-      billingMultiplier: (json['billing_multiplier'] as num).toDouble(),
-      perkLevel: (json['perk_level'] as num).toInt(),
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
     );
 
 Map<String, dynamic> _$ThoughtServiceToJson(_ThoughtService instance) =>
     <String, dynamic>{
-      'service_id': instance.serviceId,
-      'billing_multiplier': instance.billingMultiplier,
-      'perk_level': instance.perkLevel,
+      'id': instance.id,
+      'name': instance.name,
+      'description': instance.description,
     };
 
 _ThoughtServicesResponse _$ThoughtServicesResponseFromJson(
   Map<String, dynamic> json,
 ) => _ThoughtServicesResponse(
-  defaultService: json['default_service'] as String,
-  services: (json['services'] as List<dynamic>)
+  defaultBot: json['default_bot'] as String,
+  services: (json['bots'] as List<dynamic>)
       .map((e) => ThoughtService.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
@@ -205,6 +205,6 @@ _ThoughtServicesResponse _$ThoughtServicesResponseFromJson(
 Map<String, dynamic> _$ThoughtServicesResponseToJson(
   _ThoughtServicesResponse instance,
 ) => <String, dynamic>{
-  'default_service': instance.defaultService,
-  'services': instance.services.map((e) => e.toJson()).toList(),
+  'default_bot': instance.defaultBot,
+  'bots': instance.services.map((e) => e.toJson()).toList(),
 };

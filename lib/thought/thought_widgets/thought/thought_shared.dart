@@ -90,15 +90,15 @@ ThoughtChatState useThoughtChat(
 
   // Initialize services and selected service from provider
   final services = useState<List<ThoughtService>>([]);
-  final selectedServiceId = useState<String>('');
+  final selectedAgent = useState<String>('');
 
   // Update state when provider data arrives
   useEffect(() {
     if (servicesAsync.hasValue) {
       final response = servicesAsync.value!;
       services.value = response.services;
-      if (selectedServiceId.value.isEmpty) {
-        selectedServiceId.value = response.defaultService;
+      if (selectedAgent.value.isEmpty) {
+        selectedAgent.value = response.defaultBot;
       }
     }
     return null;
@@ -182,9 +182,7 @@ ThoughtChatState useThoughtChat(
       accpetProposals: ['post_create'],
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
-      serviceId: selectedServiceId.value.isNotEmpty
-          ? selectedServiceId.value
-          : null,
+      bot: selectedAgent.value.isNotEmpty ? selectedAgent.value : 'snchan',
     );
 
     try {
@@ -388,7 +386,7 @@ ThoughtChatState useThoughtChat(
     localThoughts: localThoughts,
     currentTopic: currentTopic,
     services: services,
-    selectedServiceId: selectedServiceId,
+    selectedServiceId: selectedAgent,
     messageController: messageController,
     scrollController: scrollController,
     isStreaming: isStreaming,
@@ -792,13 +790,13 @@ class ThoughtInput extends HookWidget {
                               items: services
                                   .map(
                                     (service) => DropdownMenuItem<String>(
-                                      value: service.serviceId,
+                                      value: service.id,
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            service.serviceId,
+                                            service.name,
                                             style: DefaultTextStyle.of(context)
                                                 .style
                                                 .copyWith(
@@ -807,7 +805,7 @@ class ThoughtInput extends HookWidget {
                                                 ),
                                           ),
                                           Text(
-                                            '${service.billingMultiplier}x, T${service.perkLevel}',
+                                            service.description,
                                             style: DefaultTextStyle.of(context)
                                                 .style
                                                 .copyWith(

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StreamThinkingRequest {
 
- String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages;@JsonKey(name: 'service_id') String? get serviceId;
+ String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages; String? get bot;
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StreamThinkingRequestCopyWith<StreamThinkingRequest> get copyWith => _$StreamTh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&(identical(other.serviceId, serviceId) || other.serviceId == serviceId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),serviceId);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, serviceId: $serviceId)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, bot: $bot)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StreamThinkingRequestCopyWith<$Res>  {
   factory $StreamThinkingRequestCopyWith(StreamThinkingRequest value, $Res Function(StreamThinkingRequest) _then) = _$StreamThinkingRequestCopyWithImpl;
 @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: 'service_id') String? serviceId
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, String? bot
 });
 
 
@@ -65,14 +65,14 @@ class _$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? serviceId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? bot = freezed,}) {
   return _then(_self.copyWith(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self.accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self.attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self.attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,serviceId: freezed == serviceId ? _self.serviceId : serviceId // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -155,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: 'service_id')  String? serviceId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.serviceId);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);case _:
   return orElse();
 
 }
@@ -176,10 +176,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: 'service_id')  String? serviceId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest():
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.serviceId);}
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -193,10 +193,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: 'service_id')  String? serviceId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)?  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.serviceId);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);case _:
   return null;
 
 }
@@ -208,7 +208,7 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 @JsonSerializable()
 
 class _StreamThinkingRequest implements StreamThinkingRequest {
-  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: 'service_id') this.serviceId}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages;
+  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, this.bot}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages;
   factory _StreamThinkingRequest.fromJson(Map<String, dynamic> json) => _$StreamThinkingRequestFromJson(json);
 
 @override final  String userMessage;
@@ -238,7 +238,7 @@ class _StreamThinkingRequest implements StreamThinkingRequest {
   return EqualUnmodifiableListView(value);
 }
 
-@override@JsonKey(name: 'service_id') final  String? serviceId;
+@override final  String? bot;
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -253,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&(identical(other.serviceId, serviceId) || other.serviceId == serviceId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),serviceId);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, serviceId: $serviceId)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, bot: $bot)';
 }
 
 
@@ -273,7 +273,7 @@ abstract mixin class _$StreamThinkingRequestCopyWith<$Res> implements $StreamThi
   factory _$StreamThinkingRequestCopyWith(_StreamThinkingRequest value, $Res Function(_StreamThinkingRequest) _then) = __$StreamThinkingRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: 'service_id') String? serviceId
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, String? bot
 });
 
 
@@ -290,14 +290,14 @@ class __$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? serviceId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? bot = freezed,}) {
   return _then(_StreamThinkingRequest(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self._accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self._attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self._attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,serviceId: freezed == serviceId ? _self.serviceId : serviceId // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -2018,7 +2018,7 @@ $SnThinkingSequenceCopyWith<$Res>? get sequence {
 /// @nodoc
 mixin _$ThoughtService {
 
-@JsonKey(name: 'service_id') String get serviceId; double get billingMultiplier; int get perkLevel;
+ String get id; String get name; String get description;
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2031,16 +2031,16 @@ $ThoughtServiceCopyWith<ThoughtService> get copyWith => _$ThoughtServiceCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtService&&(identical(other.serviceId, serviceId) || other.serviceId == serviceId)&&(identical(other.billingMultiplier, billingMultiplier) || other.billingMultiplier == billingMultiplier)&&(identical(other.perkLevel, perkLevel) || other.perkLevel == perkLevel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceId,billingMultiplier,perkLevel);
+int get hashCode => Object.hash(runtimeType,id,name,description);
 
 @override
 String toString() {
-  return 'ThoughtService(serviceId: $serviceId, billingMultiplier: $billingMultiplier, perkLevel: $perkLevel)';
+  return 'ThoughtService(id: $id, name: $name, description: $description)';
 }
 
 
@@ -2051,7 +2051,7 @@ abstract mixin class $ThoughtServiceCopyWith<$Res>  {
   factory $ThoughtServiceCopyWith(ThoughtService value, $Res Function(ThoughtService) _then) = _$ThoughtServiceCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'service_id') String serviceId, double billingMultiplier, int perkLevel
+ String id, String name, String description
 });
 
 
@@ -2068,12 +2068,12 @@ class _$ThoughtServiceCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? serviceId = null,Object? billingMultiplier = null,Object? perkLevel = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,}) {
   return _then(_self.copyWith(
-serviceId: null == serviceId ? _self.serviceId : serviceId // ignore: cast_nullable_to_non_nullable
-as String,billingMultiplier: null == billingMultiplier ? _self.billingMultiplier : billingMultiplier // ignore: cast_nullable_to_non_nullable
-as double,perkLevel: null == perkLevel ? _self.perkLevel : perkLevel // ignore: cast_nullable_to_non_nullable
-as int,
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -2155,10 +2155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'service_id')  String serviceId,  double billingMultiplier,  int perkLevel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThoughtService() when $default != null:
-return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);case _:
+return $default(_that.id,_that.name,_that.description);case _:
   return orElse();
 
 }
@@ -2176,10 +2176,10 @@ return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'service_id')  String serviceId,  double billingMultiplier,  int perkLevel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description)  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtService():
-return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);}
+return $default(_that.id,_that.name,_that.description);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2193,10 +2193,10 @@ return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'service_id')  String serviceId,  double billingMultiplier,  int perkLevel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description)?  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtService() when $default != null:
-return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);case _:
+return $default(_that.id,_that.name,_that.description);case _:
   return null;
 
 }
@@ -2208,12 +2208,12 @@ return $default(_that.serviceId,_that.billingMultiplier,_that.perkLevel);case _:
 @JsonSerializable()
 
 class _ThoughtService implements ThoughtService {
-  const _ThoughtService({@JsonKey(name: 'service_id') required this.serviceId, required this.billingMultiplier, required this.perkLevel});
+  const _ThoughtService({required this.id, required this.name, required this.description});
   factory _ThoughtService.fromJson(Map<String, dynamic> json) => _$ThoughtServiceFromJson(json);
 
-@override@JsonKey(name: 'service_id') final  String serviceId;
-@override final  double billingMultiplier;
-@override final  int perkLevel;
+@override final  String id;
+@override final  String name;
+@override final  String description;
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
@@ -2228,16 +2228,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtService&&(identical(other.serviceId, serviceId) || other.serviceId == serviceId)&&(identical(other.billingMultiplier, billingMultiplier) || other.billingMultiplier == billingMultiplier)&&(identical(other.perkLevel, perkLevel) || other.perkLevel == perkLevel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serviceId,billingMultiplier,perkLevel);
+int get hashCode => Object.hash(runtimeType,id,name,description);
 
 @override
 String toString() {
-  return 'ThoughtService(serviceId: $serviceId, billingMultiplier: $billingMultiplier, perkLevel: $perkLevel)';
+  return 'ThoughtService(id: $id, name: $name, description: $description)';
 }
 
 
@@ -2248,7 +2248,7 @@ abstract mixin class _$ThoughtServiceCopyWith<$Res> implements $ThoughtServiceCo
   factory _$ThoughtServiceCopyWith(_ThoughtService value, $Res Function(_ThoughtService) _then) = __$ThoughtServiceCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'service_id') String serviceId, double billingMultiplier, int perkLevel
+ String id, String name, String description
 });
 
 
@@ -2265,12 +2265,12 @@ class __$ThoughtServiceCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? serviceId = null,Object? billingMultiplier = null,Object? perkLevel = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,}) {
   return _then(_ThoughtService(
-serviceId: null == serviceId ? _self.serviceId : serviceId // ignore: cast_nullable_to_non_nullable
-as String,billingMultiplier: null == billingMultiplier ? _self.billingMultiplier : billingMultiplier // ignore: cast_nullable_to_non_nullable
-as double,perkLevel: null == perkLevel ? _self.perkLevel : perkLevel // ignore: cast_nullable_to_non_nullable
-as int,
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -2281,7 +2281,7 @@ as int,
 /// @nodoc
 mixin _$ThoughtServicesResponse {
 
-@JsonKey(name: 'default_service') String get defaultService; List<ThoughtService> get services;
+ String get defaultBot;@JsonKey(name: "bots") List<ThoughtService> get services;
 /// Create a copy of ThoughtServicesResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2294,16 +2294,16 @@ $ThoughtServicesResponseCopyWith<ThoughtServicesResponse> get copyWith => _$Thou
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtServicesResponse&&(identical(other.defaultService, defaultService) || other.defaultService == defaultService)&&const DeepCollectionEquality().equals(other.services, services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtServicesResponse&&(identical(other.defaultBot, defaultBot) || other.defaultBot == defaultBot)&&const DeepCollectionEquality().equals(other.services, services));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,defaultService,const DeepCollectionEquality().hash(services));
+int get hashCode => Object.hash(runtimeType,defaultBot,const DeepCollectionEquality().hash(services));
 
 @override
 String toString() {
-  return 'ThoughtServicesResponse(defaultService: $defaultService, services: $services)';
+  return 'ThoughtServicesResponse(defaultBot: $defaultBot, services: $services)';
 }
 
 
@@ -2314,7 +2314,7 @@ abstract mixin class $ThoughtServicesResponseCopyWith<$Res>  {
   factory $ThoughtServicesResponseCopyWith(ThoughtServicesResponse value, $Res Function(ThoughtServicesResponse) _then) = _$ThoughtServicesResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'default_service') String defaultService, List<ThoughtService> services
+ String defaultBot,@JsonKey(name: "bots") List<ThoughtService> services
 });
 
 
@@ -2331,9 +2331,9 @@ class _$ThoughtServicesResponseCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtServicesResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? defaultService = null,Object? services = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? defaultBot = null,Object? services = null,}) {
   return _then(_self.copyWith(
-defaultService: null == defaultService ? _self.defaultService : defaultService // ignore: cast_nullable_to_non_nullable
+defaultBot: null == defaultBot ? _self.defaultBot : defaultBot // ignore: cast_nullable_to_non_nullable
 as String,services: null == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
 as List<ThoughtService>,
   ));
@@ -2417,10 +2417,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'default_service')  String defaultService,  List<ThoughtService> services)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String defaultBot, @JsonKey(name: "bots")  List<ThoughtService> services)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThoughtServicesResponse() when $default != null:
-return $default(_that.defaultService,_that.services);case _:
+return $default(_that.defaultBot,_that.services);case _:
   return orElse();
 
 }
@@ -2438,10 +2438,10 @@ return $default(_that.defaultService,_that.services);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'default_service')  String defaultService,  List<ThoughtService> services)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String defaultBot, @JsonKey(name: "bots")  List<ThoughtService> services)  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtServicesResponse():
-return $default(_that.defaultService,_that.services);}
+return $default(_that.defaultBot,_that.services);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2455,10 +2455,10 @@ return $default(_that.defaultService,_that.services);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'default_service')  String defaultService,  List<ThoughtService> services)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String defaultBot, @JsonKey(name: "bots")  List<ThoughtService> services)?  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtServicesResponse() when $default != null:
-return $default(_that.defaultService,_that.services);case _:
+return $default(_that.defaultBot,_that.services);case _:
   return null;
 
 }
@@ -2470,12 +2470,12 @@ return $default(_that.defaultService,_that.services);case _:
 @JsonSerializable()
 
 class _ThoughtServicesResponse implements ThoughtServicesResponse {
-  const _ThoughtServicesResponse({@JsonKey(name: 'default_service') required this.defaultService, required final  List<ThoughtService> services}): _services = services;
+  const _ThoughtServicesResponse({required this.defaultBot, @JsonKey(name: "bots") required final  List<ThoughtService> services}): _services = services;
   factory _ThoughtServicesResponse.fromJson(Map<String, dynamic> json) => _$ThoughtServicesResponseFromJson(json);
 
-@override@JsonKey(name: 'default_service') final  String defaultService;
+@override final  String defaultBot;
  final  List<ThoughtService> _services;
-@override List<ThoughtService> get services {
+@override@JsonKey(name: "bots") List<ThoughtService> get services {
   if (_services is EqualUnmodifiableListView) return _services;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_services);
@@ -2495,16 +2495,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtServicesResponse&&(identical(other.defaultService, defaultService) || other.defaultService == defaultService)&&const DeepCollectionEquality().equals(other._services, _services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtServicesResponse&&(identical(other.defaultBot, defaultBot) || other.defaultBot == defaultBot)&&const DeepCollectionEquality().equals(other._services, _services));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,defaultService,const DeepCollectionEquality().hash(_services));
+int get hashCode => Object.hash(runtimeType,defaultBot,const DeepCollectionEquality().hash(_services));
 
 @override
 String toString() {
-  return 'ThoughtServicesResponse(defaultService: $defaultService, services: $services)';
+  return 'ThoughtServicesResponse(defaultBot: $defaultBot, services: $services)';
 }
 
 
@@ -2515,7 +2515,7 @@ abstract mixin class _$ThoughtServicesResponseCopyWith<$Res> implements $Thought
   factory _$ThoughtServicesResponseCopyWith(_ThoughtServicesResponse value, $Res Function(_ThoughtServicesResponse) _then) = __$ThoughtServicesResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'default_service') String defaultService, List<ThoughtService> services
+ String defaultBot,@JsonKey(name: "bots") List<ThoughtService> services
 });
 
 
@@ -2532,9 +2532,9 @@ class __$ThoughtServicesResponseCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtServicesResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? defaultService = null,Object? services = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? defaultBot = null,Object? services = null,}) {
   return _then(_ThoughtServicesResponse(
-defaultService: null == defaultService ? _self.defaultService : defaultService // ignore: cast_nullable_to_non_nullable
+defaultBot: null == defaultBot ? _self.defaultBot : defaultBot // ignore: cast_nullable_to_non_nullable
 as String,services: null == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
 as List<ThoughtService>,
   ));
