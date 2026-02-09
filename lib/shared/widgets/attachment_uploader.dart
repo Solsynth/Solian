@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';

@@ -8,7 +8,7 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';

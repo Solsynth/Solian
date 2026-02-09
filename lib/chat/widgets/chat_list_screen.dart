@@ -317,26 +317,28 @@ class ChatShellScreen extends HookConsumerWidget {
     if (isWide) {
       return AppBackground(
         isRoot: true,
-        child: Row(
-          children: [
-            Flexible(
-              flex: 2,
-              child: ChatListScreen(
-                isAside: true,
-                isFloating: true,
-              ).padding(left: 16, vertical: 16),
-            ),
-            const Gap(8),
-            Flexible(
-              flex: 4,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                ),
-                child: child,
-              ).padding(top: 16),
-            ),
-          ],
+        child: SafeArea(
+          child: Row(
+            children: [
+              Flexible(
+                flex: 2,
+                child: ChatListScreen(
+                  isAside: true,
+                  isFloating: true,
+                ).padding(left: 16, vertical: 16),
+              ),
+              const Gap(8),
+              Flexible(
+                flex: 4,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                  ),
+                  child: child,
+                ).padding(top: 16, right: 16),
+              ),
+            ],
+          ),
         ),
       );
     }

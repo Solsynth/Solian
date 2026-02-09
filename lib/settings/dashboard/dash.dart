@@ -27,7 +27,7 @@ import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:slide_countdown/slide_countdown.dart';
-import 'package:island/core/widgets/sharing/share_sheet.dart';
+import 'package:island/sharing/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/settings/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';

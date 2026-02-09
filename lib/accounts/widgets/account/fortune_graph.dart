@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/event_calendar_content.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 

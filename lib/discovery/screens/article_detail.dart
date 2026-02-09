@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/discovery/screens/article_pod.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:island/discovery/models/webfeed.dart';

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:island/core/widgets/sharing/share_sheet.dart';
+import 'package:island/sharing/share_sheet.dart';
 import 'package:share_plus/share_plus.dart';
 
 class SharingIntentService {

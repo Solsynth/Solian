@@ -26,7 +26,7 @@ import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:swipe_to/swipe_to.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 
 class MessageItemAction {
   static const String edit = "edit";
