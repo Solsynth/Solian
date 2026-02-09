@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/discovery/discovery_models/autocomplete_response.dart';
+import 'package:island/discovery/models/autocomplete_response.dart';
 import 'package:island/core/network.dart';
 
 final autocompleteServiceProvider = Provider<AutocompleteService>((ref) {

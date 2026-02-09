@@ -9,7 +9,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
-import 'package:island/thought/thought/think_sheet.dart';
+import 'package:island/thought/screens/think_sheet.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/core/config.dart';

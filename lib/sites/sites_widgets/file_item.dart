@@ -6,7 +6,7 @@ import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/discovery/discovery_models/site_file.dart';
+import 'package:island/discovery/models/site_file.dart';
 import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';

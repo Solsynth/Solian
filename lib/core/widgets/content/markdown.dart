@@ -9,7 +9,7 @@ import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/account/profile.dart';
+import 'package:island/accounts/screens/profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/posts/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';

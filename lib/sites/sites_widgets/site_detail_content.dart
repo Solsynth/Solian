@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/creators/sites/site_detail.dart';
+import 'package:island/creators/screens/sites/site_detail.dart';
 import 'package:island/creators/publication_site.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/sites/sites_widgets/file_management_action_section.dart';

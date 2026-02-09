@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:island/accounts/accounts_widgets/account/account_pfc.dart';
-import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
-import 'package:island/accounts/accounts_widgets/account/status.dart';
-import 'package:island/chat/chat_widgets/chat_room_list_tile.dart';
-import 'package:island/pagination/pagination.dart';
+import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/accounts/widgets/account/account_picker.dart';
+import 'package:island/accounts/widgets/account/status.dart';
+import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_list.dart';

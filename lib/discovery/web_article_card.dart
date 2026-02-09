@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:island/discovery/discovery_models/webfeed.dart';
+import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/core/services/time.dart';
 import 'package:material_symbols_icons/symbols.dart';
 

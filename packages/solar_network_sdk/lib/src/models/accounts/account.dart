@@ -1,8 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:solar_network_sdk/src/models/activity/activity.dart';
-import 'package:solar_network_sdk/src/models/drive/file.dart';
-import 'package:solar_network_sdk/src/models/wallets/wallet.dart';
 
 part 'account.freezed.dart';
 part 'account.g.dart';

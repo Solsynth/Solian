@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pagination/pagination.dart';
 import 'package:island/core/network.dart';
 import 'package:island/realms/realms_widgets/realm/realm_list_tile.dart';
 import 'package:island/shared/widgets/pagination_list.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pagination/pagination.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_item_skeleton.dart';

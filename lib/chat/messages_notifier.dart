@@ -6,7 +6,7 @@ import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/data/drift_db.dart";
 import "package:island/data/message.dart";
-import "package:island/chat/chat_pod/chat_room.dart";
+import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/database.dart";
 import "package:island/core/lifecycle.dart";
 import "package:island/core/network.dart";
@@ -15,7 +15,7 @@ import "package:island/talker.dart";
 import "package:island/shared/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
-import "package:island/accounts/account/profile.dart";
+import "package:island/accounts/screens/profile.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';

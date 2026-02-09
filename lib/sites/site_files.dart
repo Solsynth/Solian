@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/discovery/discovery_models/site_file.dart';
+import 'package:island/discovery/models/site_file.dart';
 import 'package:island/core/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,10 +35,9 @@ Future<SnFileContent> siteFileContent(
   final resp = await apiClient.get(
     '/zone/sites/$siteId/files/content/$relativePath',
   );
-  final content =
-      resp.data is String
-          ? resp.data
-          : SnFileContent.fromJson(resp.data).content;
+  final content = resp.data is String
+      ? resp.data
+      : SnFileContent.fromJson(resp.data).content;
   return SnFileContent(content: content);
 }
 

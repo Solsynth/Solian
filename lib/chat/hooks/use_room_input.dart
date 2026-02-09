@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:island/chat/chat_widgets/message_item.dart';
+import 'package:island/chat/widgets/message_item.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:island/chat/chat_pod/chat_subscribe.dart';
+import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/data/message.dart';
 import 'package:pasteboard/pasteboard.dart';
 
