@@ -20,7 +20,7 @@ import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification.dart';
-import 'package:island/posts/posts_widgets/post/post_featured.dart';
+import 'package:island/posts/widgets/compose/post_featured.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';

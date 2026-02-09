@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/drive/drive/upload_tasks.dart';
+import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';

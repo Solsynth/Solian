@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/posts/posts_widgets/post/article_sidebar_panel.dart';
+import 'package:island/posts/widgets/compose/article_sidebar_panel.dart';
 
 class ResponsiveSidebar extends HookConsumerWidget {
   final Widget attachmentsContent;

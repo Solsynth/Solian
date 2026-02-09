@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/call_participant_card.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';

@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/route.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';

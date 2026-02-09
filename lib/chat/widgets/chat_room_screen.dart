@@ -28,7 +28,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/shared/widgets/response.dart';
-import 'package:island/thought/screens/think_sheet.dart';
+import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 

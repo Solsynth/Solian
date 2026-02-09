@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/drive_service.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';

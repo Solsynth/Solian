@@ -6,8 +6,8 @@ import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/data/message.dart';
 import 'package:island/core/utils/mapping.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/embed/link.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/core/widgets/embeds/link.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MessageListTile extends StatelessWidget {

@@ -11,7 +11,7 @@ import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
