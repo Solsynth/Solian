@@ -9,7 +9,7 @@ import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/file_list_view.dart';
 import 'package:island/accounts/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';

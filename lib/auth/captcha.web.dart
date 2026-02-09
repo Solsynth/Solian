@@ -2,7 +2,7 @@ import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/auth/captcha.config.dart';
-import 'package:island/core/widgets/content/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 

@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/pods/call.dart';
-import 'package:island/core/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';

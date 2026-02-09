@@ -26,7 +26,7 @@ import 'package:island/core/services/timezone/native.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/core/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/services/color_extraction.dart';

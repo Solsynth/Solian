@@ -24,7 +24,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/core/utils/share_utils.dart';
-import 'package:island/core/widgets/sharing/share_sheet.dart';
+import 'package:island/sharing/share_sheet.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

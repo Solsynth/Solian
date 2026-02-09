@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:island/thoughts/thought.dart';
-import 'package:island/core/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/thoughts/widgets/thought_proposal.dart';
 
 class ThoughtContent extends StatelessWidget {
