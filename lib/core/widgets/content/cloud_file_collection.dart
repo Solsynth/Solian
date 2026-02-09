@@ -8,7 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/sensitive.dart';
 import 'package:material_symbols_icons/symbols.dart';

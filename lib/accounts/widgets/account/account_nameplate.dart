@@ -3,7 +3,7 @@ import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 

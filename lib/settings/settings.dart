@@ -21,7 +21,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
-import 'package:island/drive/drive/file_pool.dart';
+import 'package:island/drive/screens/file_pool.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});

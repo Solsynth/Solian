@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/polls/poll/poll_editor.dart';
+import 'package:island/polls/screens/poll_editor.dart';
 import 'package:island/polls/polls_widgets/poll/poll_feedback.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';

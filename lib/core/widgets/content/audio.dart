@@ -63,10 +63,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       final authHeaders = url.startsWith(serverUrl) && token != null
           ? {'Authorization': 'AtField ${token.token}'}
           : null;
-      DefaultCacheManager().downloadFile(
-        url,
-        authHeaders: authHeaders,
-      );
+      DefaultCacheManager().downloadFile(url, authHeaders: authHeaders);
       uri = url;
     } else {
       uri = inCacheInfo.file.path;
@@ -75,7 +72,8 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
 
     final serverUrl = ref.read(serverUrlProvider);
     final token = ref.read(tokenProvider);
-    final Map<String, String>? httpHeaders = uri.startsWith(serverUrl) && token != null
+    final Map<String, String>? httpHeaders =
+        uri.startsWith(serverUrl) && token != null
         ? {'Authorization': 'AtField ${token.token}'}
         : null;
 
@@ -110,14 +108,9 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
                 if (mounted) setState(() {});
               });
             },
-            icon:
-                _player!.state.playing
-                    ? const Icon(Symbols.pause, fill: 1, color: Colors.white)
-                    : const Icon(
-                      Symbols.play_arrow,
-                      fill: 1,
-                      color: Colors.white,
-                    ),
+            icon: _player!.state.playing
+                ? const Icon(Symbols.pause, fill: 1, color: Colors.white)
+                : const Icon(Symbols.play_arrow, fill: 1, color: Colors.white),
           ),
           const Gap(20),
           Expanded(
@@ -127,31 +120,28 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
               children: [
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  child:
-                      (_player!.state.playing || _sliderWorking)
-                          ? SizedBox(
-                            width: double.infinity,
-                            key: const ValueKey('playing'),
-                            child: Text(
-                              '${_position.formatShortDuration()} / ${_duration.formatShortDuration()}',
-                            ),
-                          )
-                          : SizedBox(
-                            width: double.infinity,
-                            key: const ValueKey('filename'),
-                            child: Text(
-                              widget.filename.isEmpty
-                                  ? 'Audio'
-                                  : widget.filename,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                  child: (_player!.state.playing || _sliderWorking)
+                      ? SizedBox(
+                          width: double.infinity,
+                          key: const ValueKey('playing'),
+                          child: Text(
+                            '${_position.formatShortDuration()} / ${_duration.formatShortDuration()}',
                           ),
+                        )
+                      : SizedBox(
+                          width: double.infinity,
+                          key: const ValueKey('filename'),
+                          child: Text(
+                            widget.filename.isEmpty ? 'Audio' : widget.filename,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                 ),
                 Slider(
                   value: _sliderPosition.inMilliseconds.toDouble(),
-                  secondaryTrackValue:
-                      _duartionBuffered.inMilliseconds.toDouble(),
+                  secondaryTrackValue: _duartionBuffered.inMilliseconds
+                      .toDouble(),
                   max: _duration.inMilliseconds.toDouble(),
                   onChangeStart: (_) {
                     _sliderWorking = true;

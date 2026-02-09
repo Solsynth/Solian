@@ -14,7 +14,7 @@ import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/services/timezone/native.dart';
-import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
