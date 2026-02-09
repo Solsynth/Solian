@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:island/accounts/accounts_models/account.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 String? getActivityTitle(String? label, Map<String, dynamic>? meta) {
   if (meta == null) return label;
@@ -18,13 +18,19 @@ String? getActivitySubtitle(Map<String, dynamic>? meta) {
 }
 
 InlineSpan getActivityFullMessage(SnAccountStatus? status) {
-  if (status?.meta == null) return TextSpan(text: 'No activity details available');
+  if (status?.meta == null)
+    return TextSpan(text: 'No activity details available');
   final meta = status!.meta!;
   final List<InlineSpan> spans = [];
   if (meta.containsKey('assets') && meta['assets'] is Map) {
     final assets = meta['assets'] as Map<String, dynamic>;
     if (assets.containsKey('large_text')) {
-      spans.add(TextSpan(text: assets['large_text'], style: TextStyle(fontWeight: FontWeight.bold)));
+      spans.add(
+        TextSpan(
+          text: assets['large_text'],
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
     }
     if (assets.containsKey('small_text')) {
       if (spans.isNotEmpty) spans.add(TextSpan(text: '\n'));
@@ -51,7 +57,9 @@ InlineSpan getActivityFullMessage(SnAccountStatus? status) {
   }
   if (meta.containsKey('party') && meta['party'] is Map) {
     final party = meta['party'] as Map<String, dynamic>;
-    if (party.containsKey('size') && party['size'] is List && party['size'].length >= 2) {
+    if (party.containsKey('size') &&
+        party['size'] is List &&
+        party['size'].length >= 2) {
       final size = party['size'] as List;
       normalText += 'Party: ${size[0]}/${size[1]}\n';
     }
@@ -61,7 +69,15 @@ InlineSpan getActivityFullMessage(SnAccountStatus? status) {
   }
   // Add other keys if present
   meta.forEach((key, value) {
-    if (!['details', 'state', 'timestamps', 'assets', 'party', 'secrets', 'instance'].contains(key)) {
+    if (![
+      'details',
+      'state',
+      'timestamps',
+      'assets',
+      'party',
+      'secrets',
+      'instance',
+    ].contains(key)) {
       normalText += '$key: $value\n';
     }
   });
@@ -104,7 +120,9 @@ Widget buildActivityDetails(SnAccountStatus? status) {
   }
   if (meta.containsKey('party') && meta['party'] is Map) {
     final party = meta['party'] as Map<String, dynamic>;
-    if (party.containsKey('size') && party['size'] is List && party['size'].length >= 2) {
+    if (party.containsKey('size') &&
+        party['size'] is List &&
+        party['size'].length >= 2) {
       final size = party['size'] as List;
       children.add(Text('Party: ${size[0]}/${size[1]}'));
     }
@@ -113,7 +131,21 @@ Widget buildActivityDetails(SnAccountStatus? status) {
     children.add(Text('Instance: ${meta['instance']}'));
   }
   // Add other keys if present
-  children.addAll(meta.entries.where((e) => !['details', 'state', 'timestamps', 'assets', 'party', 'secrets', 'instance'].contains(e.key)).map((e) => Text('${e.key}: ${e.value}')));
+  children.addAll(
+    meta.entries
+        .where(
+          (e) => ![
+            'details',
+            'state',
+            'timestamps',
+            'assets',
+            'party',
+            'secrets',
+            'instance',
+          ].contains(e.key),
+        )
+        .map((e) => Text('${e.key}: ${e.value}')),
+  );
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,

@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
@@ -23,12 +22,13 @@ import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/markdown.dart';
 import 'package:island/core/widgets/content/image.dart';
-import 'package:island/core/widgets/share/share_sheet.dart';
+import 'package:island/core/widgets/sharing/share_sheet.dart';
 import 'package:island/posts/posts_widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kAvailableStickers = {
   'angry',

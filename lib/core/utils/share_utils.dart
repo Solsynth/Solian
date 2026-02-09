@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/posts_widgets/post/post_item_screenshot.dart';
@@ -12,6 +11,7 @@ import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Shares a post as a screenshot image
 Future<void> sharePostAsScreenshot(

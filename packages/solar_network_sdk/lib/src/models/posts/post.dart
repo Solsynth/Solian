@@ -1,11 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/core/models/activitypub.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/post_category.dart';
-import 'package:island/posts/posts_models/post_tag.dart';
-import 'package:island/posts/posts_models/publisher.dart';
-import 'package:island/realms/realms_models/realm.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_sdk/src/models/posts/post_category.dart';
+import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
+import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';

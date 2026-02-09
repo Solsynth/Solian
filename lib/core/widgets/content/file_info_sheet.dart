@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/core/utils/format.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class FileInfoSheet extends StatelessWidget {
   final SnCloudFile item;

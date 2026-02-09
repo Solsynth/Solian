@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ExifInfoOverlay extends StatelessWidget {
   final SnCloudFile item;

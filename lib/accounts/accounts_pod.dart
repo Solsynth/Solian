@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/talker.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
   @override

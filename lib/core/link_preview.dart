@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:island/posts/posts_models/embed.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'link_preview.g.dart';
 

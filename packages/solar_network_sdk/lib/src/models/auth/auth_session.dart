@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:solar_network_sdk/src/models/auth/misc.dart';
 
 part 'auth_session.freezed.dart';
 part 'auth_session.g.dart';
@@ -14,7 +15,7 @@ sealed class SnAuthSession with _$SnAuthSession {
     required List<dynamic> scopes,
     String? ipAddress,
     String? userAgent,
-    String? location,
+    GeoIpLocation? location,
     required int type,
     required String accountId,
     required DateTime createdAt,

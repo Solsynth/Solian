@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account/profile.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/accounts/accounts_widgets/account/status_creation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
@@ -12,6 +11,7 @@ import 'package:island/core/utils/activity_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'status.g.dart';
 

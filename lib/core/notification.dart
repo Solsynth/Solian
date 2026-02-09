@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'notification.g.dart';
 
@@ -81,7 +81,8 @@ class NotificationState extends _$NotificationState {
     _timers.remove(id);
     final index = state.indexWhere((item) => item.id == id);
     if (index != -1) {
-      state = List.from(state)..[index] = state[index].copyWith(dismissed: true);
+      state = List.from(state)
+        ..[index] = state[index].copyWith(dismissed: true);
     }
   }
 

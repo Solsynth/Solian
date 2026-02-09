@@ -1,8 +1,7 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/post_tag.dart';
-import 'package:island/core/utils/text.dart';
+import 'package:solar_network_sdk/src/models/posts/post.dart';
+import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
+import 'package:solar_network_sdk/src/utils/string_utils.dart';
 
 part 'post_category.freezed.dart';
 part 'post_category.g.dart';
@@ -22,12 +21,9 @@ sealed class SnPostCategory with _$SnPostCategory {
   factory SnPostCategory.fromJson(Map<String, dynamic> json) =>
       _$SnPostCategoryFromJson(json);
 
-  String get categoryDisplayTitle {
+  String get categoryTranslationKey {
     final capitalizedSlug = slug.capitalizeEachWord();
-    if ('postCategory$capitalizedSlug'.trExists()) {
-      return 'postCategory$capitalizedSlug'.tr();
-    }
-    return name ?? slug;
+    return 'postCategory$capitalizedSlug';
   }
 }
 

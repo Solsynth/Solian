@@ -5,17 +5,16 @@ import 'dart:io';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:island/auth/auth_models/auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:island/talker.dart';
-
-import 'config.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'network.g.dart';
 

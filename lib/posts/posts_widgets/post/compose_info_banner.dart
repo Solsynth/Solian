@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A reusable widget for displaying info banners in compose screens.
 /// Shows editing, reply, and forward information.

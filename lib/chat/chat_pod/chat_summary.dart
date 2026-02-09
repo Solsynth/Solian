@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/chat/chat_pod/chat_subscribe.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'chat_summary.g.dart';
 

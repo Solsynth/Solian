@@ -7,9 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:island/accounts/accounts_widgets/account/account_name.dart';
 import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
 import 'package:island/accounts/accounts_widgets/activitypub/actor_list_item.dart';
-import 'package:island/core/models/activitypub.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/posts/post/post_list.dart';
+import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/posts_widgets/post/filters/post_filter.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_item_skeleton.dart';
@@ -23,6 +21,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kSearchPostListId = 'search';
 

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/main.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/talker.dart';
@@ -15,6 +14,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 void showSnackBar(String message, {SnackBarAction? action}) {
   final context = globalOverlay.currentState!.context;
@@ -453,4 +453,3 @@ Future<void> openExternalLink(Uri url, WidgetRef ref) async {
     }
   }
 }
-

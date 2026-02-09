@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RealmDiscoveryCard extends ConsumerWidget {
   final SnRealm realm;

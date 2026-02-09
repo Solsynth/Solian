@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/core/models/route_item.dart';
 import 'package:island/chat/chat_pod/chat_room.dart';
 import 'package:island/chat/chat_pod/chat_summary.dart';
@@ -21,6 +20,7 @@ import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CommandPaletteWidget extends HookConsumerWidget {
   final VoidCallback onDismiss;

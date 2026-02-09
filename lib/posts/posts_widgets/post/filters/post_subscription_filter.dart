@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/post_category.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_subscription_filter.g.dart';
 
@@ -194,7 +193,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                     final tag = subscription.tag;
                     final slug = category?.slug ?? tag?.slug;
                     final displayTitle =
-                        category?.categoryDisplayTitle ??
+                        category?.categoryTranslationKey.tr() ??
                         tag?.name ??
                         slug ??
                         '';

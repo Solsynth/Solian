@@ -2,9 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/post/post_list.dart';
-import 'package:island/posts/posts_models/post_category.dart';
-import 'package:island/posts/posts_models/post_tag.dart';
+import 'package:island/posts/pods/post_list.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/posts_widgets/post/post_list.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -12,6 +10,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_category_detail.g.dart';
 
@@ -93,7 +92,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
     );
 
     final postFilterTitle = isCategory
-        ? postCategory?.value?.categoryDisplayTitle ?? 'loading'
+        ? postCategory?.value?.categoryTranslationKey.tr() ?? 'loading'
         : postTag?.value?.name ?? postTag?.value?.slug ?? 'loading';
 
     return AppScaffold(
@@ -114,8 +113,8 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              category.categoryDisplayTitle,
-                            ).bold().fontSize(15),
+                              category.categoryTranslationKey,
+                            ).tr().bold().fontSize(15),
                             Text('A category'),
                             const Gap(8),
                             subscriptionStatus.when(

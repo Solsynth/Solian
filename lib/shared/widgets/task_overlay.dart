@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/drive_task.dart';
 import 'package:island/drive/drive/upload_tasks.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class TaskOverlay extends HookConsumerWidget {
   const TaskOverlay({super.key});
@@ -379,7 +379,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                       if (activeTasks.any(
                                         (task) =>
                                             task.status ==
-                                            DriveTaskStatus.inProgress &&
+                                                DriveTaskStatus.inProgress &&
                                             task.uploadedBytes < task.fileSize,
                                       ))
                                         CircularProgressIndicator(
@@ -535,7 +535,9 @@ class _TaskOverlayContent extends HookConsumerWidget {
   }
 
   double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed || (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) return 1.0;
+    if (task.status == DriveTaskStatus.completed ||
+        (task.uploadedBytes >= task.fileSize && task.fileSize > 0))
+      return 1.0;
     if (task.status != DriveTaskStatus.inProgress) return 0.0;
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
@@ -669,7 +671,9 @@ class UploadTaskTile extends StatefulWidget {
   State<UploadTaskTile> createState() => _UploadTaskTileState();
 
   static double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed || (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) return 1.0;
+    if (task.status == DriveTaskStatus.completed ||
+        (task.uploadedBytes >= task.fileSize && task.fileSize > 0))
+      return 1.0;
     if (task.status == DriveTaskStatus.inProgress) return null;
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;

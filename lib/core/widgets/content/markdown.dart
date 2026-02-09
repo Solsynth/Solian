@@ -10,9 +10,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account/profile.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/core/config.dart';
 import 'package:island/posts/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -24,6 +21,7 @@ import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'image.dart';
 

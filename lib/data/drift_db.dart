@@ -2,10 +2,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:island/data/draft.dart';
 import 'package:island/data/message.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/chat/chat_models/chat.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/realms/realms_models/realm.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'drift_db.g.dart';
 

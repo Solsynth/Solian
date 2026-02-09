@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/post/post_list.dart';
-import 'package:island/posts/posts_models/post.dart';
+import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_item_creator.dart';
 import 'package:island/posts/posts_widgets/post/post_item_skeleton.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Defines which post item widget to use in the list
 enum PostItemType {

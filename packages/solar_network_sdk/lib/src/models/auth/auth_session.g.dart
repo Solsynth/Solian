@@ -18,7 +18,9 @@ _SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
       scopes: json['scopes'] as List<dynamic>,
       ipAddress: json['ipAddress'] as String?,
       userAgent: json['userAgent'] as String?,
-      location: json['location'] as String?,
+      location: json['location'] == null
+          ? null
+          : GeoIpLocation.fromJson(json['location'] as Map<String, dynamic>),
       type: (json['type'] as num).toInt(),
       accountId: json['accountId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),

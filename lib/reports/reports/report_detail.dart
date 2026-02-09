@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/abuse_report.dart';
-import 'package:island/accounts/accounts_models/abuse_report_type.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class AbuseReportDetailScreen extends ConsumerStatefulWidget {
   final String reportId;

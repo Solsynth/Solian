@@ -9,7 +9,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:island/auth/auth_models/auth.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
@@ -23,6 +22,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'captcha.dart';
 

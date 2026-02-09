@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:island/core/widgets/share/share_sheet.dart';
+import 'package:island/core/widgets/sharing/share_sheet.dart';
 import 'package:share_plus/share_plus.dart';
 
 class SharingIntentService {
@@ -76,23 +76,21 @@ class SharingIntentService {
     }
 
     // Convert SharedMediaFile to XFile for files
-    final List<XFile> files =
-        sharedFiles
-            .where(
-              (file) =>
-                  file.type == SharedMediaType.file ||
-                  file.type == SharedMediaType.video ||
-                  file.type == SharedMediaType.image,
-            )
-            .map((file) => XFile(file.path, name: file.path.split('/').last))
-            .toList();
+    final List<XFile> files = sharedFiles
+        .where(
+          (file) =>
+              file.type == SharedMediaType.file ||
+              file.type == SharedMediaType.video ||
+              file.type == SharedMediaType.image,
+        )
+        .map((file) => XFile(file.path, name: file.path.split('/').last))
+        .toList();
 
     // Extract links from shared content
-    final List<String> links =
-        sharedFiles
-            .where((file) => file.type == SharedMediaType.url)
-            .map((file) => file.path)
-            .toList();
+    final List<String> links = sharedFiles
+        .where((file) => file.type == SharedMediaType.url)
+        .map((file) => file.path)
+        .toList();
 
     // Show ShareSheet with the shared files
     if (files.isNotEmpty) {

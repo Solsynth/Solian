@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:island/posts/posts_models/poll.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PollStatsWidget extends StatelessWidget {
   const PollStatsWidget({
@@ -43,14 +43,12 @@ class PollStatsWidget extends StatelessWidget {
       case SnPollQuestionType.yesNo:
         // yes/no: map {true: count, false: count}
         if (raw is Map) {
-          final int yes =
-              (raw['true'] is int)
-                  ? raw['true'] as int
-                  : int.tryParse('${raw['true']}') ?? 0;
-          final int no =
-              (raw['false'] is int)
-                  ? raw['false'] as int
-                  : int.tryParse('${raw['false']}') ?? 0;
+          final int yes = (raw['true'] is int)
+              ? raw['true'] as int
+              : int.tryParse('${raw['true']}') ?? 0;
+          final int no = (raw['false'] is int)
+              ? raw['false'] as int
+              : int.tryParse('${raw['false']}') ?? 0;
           final total = (yes + no).clamp(0, 1 << 31);
           final yesPct = total == 0 ? 0.0 : yes / total;
           final noPct = total == 0 ? 0.0 : no / total;
@@ -191,10 +189,9 @@ class _BarStatRow extends StatelessWidget {
     final bgColor = Theme.of(
       context,
     ).colorScheme.surfaceVariant.withOpacity(0.6);
-    final fg =
-        (fraction.isNaN || fraction.isInfinite)
-            ? 0.0
-            : fraction.clamp(0.0, 1.0);
+    final fg = (fraction.isNaN || fraction.isInfinite)
+        ? 0.0
+        : fraction.clamp(0.0, 1.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

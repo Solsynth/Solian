@@ -1,7 +1,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file_pool.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final poolsProvider = FutureProvider<List<SnFilePool>>((ref) async {
   final dio = ref.watch(apiClientProvider);

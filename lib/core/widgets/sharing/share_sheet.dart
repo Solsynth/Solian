@@ -11,17 +11,16 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/posts/compose.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/posts/posts_widgets/compose_sheet.dart';
 import 'package:island/core/link_preview.dart';
 import 'package:island/core/network.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 enum ShareContentType { text, link, file }
 

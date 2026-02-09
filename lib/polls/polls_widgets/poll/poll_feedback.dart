@@ -6,7 +6,6 @@ import 'package:island/accounts/accounts_widgets/account/account_pfc.dart';
 import 'package:island/creators/creators/poll/poll_list.dart';
 import 'package:island/pagination/pagination.dart';
 import 'package:island/polls/polls_widgets/poll/poll_stats_widget.dart';
-import 'package:island/posts/posts_models/poll.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
@@ -14,6 +13,7 @@ import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose.family(
   PollFeedbackNotifier.new,

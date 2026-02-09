@@ -15,11 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/post_category.dart';
-import 'package:island/posts/posts_models/publisher.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
@@ -28,6 +23,7 @@ import 'package:island/drive/drive/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:island/talker.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ComposeState {
   final TextEditingController titleController;

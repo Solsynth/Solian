@@ -3,8 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/accounts_widgets/account/account_name.dart';
 import 'package:island/accounts/accounts_widgets/account/account_pfc.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MessageSenderInfo extends StatelessWidget {
   final SnChatMember sender;

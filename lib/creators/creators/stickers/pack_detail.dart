@@ -9,7 +9,6 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/stickers/stickers.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/stickers/stickers_models/sticker.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -20,6 +19,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'pack_detail.g.dart';
 part 'pack_detail.freezed.dart';

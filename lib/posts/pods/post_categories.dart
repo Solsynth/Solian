@@ -3,9 +3,8 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/posts/posts_models/post_category.dart';
-import 'package:island/posts/posts_models/post_tag.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final postCategoriesProvider =
     AsyncNotifierProvider.autoDispose<

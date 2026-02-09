@@ -8,7 +8,6 @@ import 'package:island/creators/creators/publishers_form.dart';
 import 'package:island/developers/developers/project_detail_view.dart';
 import 'package:island/developers/developers_models/dev_project.dart';
 import 'package:island/developers/developers_models/developer.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -19,6 +18,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'hub.g.dart';
 

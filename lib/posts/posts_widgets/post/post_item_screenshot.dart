@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/image.dart';
 import 'package:island/core/widgets/content/markdown.dart';
@@ -11,6 +10,7 @@ import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/posts/posts_widgets/post/post_shared.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kAvailableStickers = {
   'angry',

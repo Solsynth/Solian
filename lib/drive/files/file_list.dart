@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/drive/drive_models/file_pool.dart';
 import 'package:island/drive/drive/file_list.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -16,6 +14,7 @@ import 'package:island/drive/drive_widgets/file_list_view.dart';
 import 'package:island/accounts/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class FileListScreen extends HookConsumerWidget {
   const FileListScreen({super.key});

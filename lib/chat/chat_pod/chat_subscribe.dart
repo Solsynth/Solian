@@ -6,12 +6,12 @@ import "package:island/chat/chat_widgets/call_button.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:just_audio/just_audio.dart";
 import "package:island/core/config.dart";
-import "package:island/chat/chat_models/chat.dart";
 import "package:island/chat/chat_pod/chat_room.dart";
 import "package:island/core/lifecycle.dart";
 import "package:island/core/websocket.dart";
 import "package:island/talker.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'chat_subscribe.g.dart';
 

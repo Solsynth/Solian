@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/core/network.dart';
 import 'package:island/pagination/pagination.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
@@ -12,6 +11,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final cloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose(
   CloudFileListNotifier.new,

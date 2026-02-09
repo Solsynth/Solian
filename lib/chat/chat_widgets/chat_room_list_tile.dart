@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_pod.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/chat_summary.dart';
 import 'package:island/chat/chat_widgets/chat_room_widgets.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ChatRoomListTile extends HookConsumerWidget {
   final SnChatRoom room;

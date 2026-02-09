@@ -6,11 +6,6 @@ import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/data/drift_db.dart";
 import "package:island/data/message.dart";
-import "package:island/accounts/accounts_models/account.dart";
-import "package:island/chat/chat_models/chat.dart";
-import "package:island/drive/drive_models/file.dart";
-import "package:island/posts/posts_models/poll.dart";
-import "package:island/wallet/wallet_models/wallet.dart";
 import "package:island/chat/chat_pod/chat_room.dart";
 import "package:island/core/database.dart";
 import "package:island/core/lifecycle.dart";
@@ -21,6 +16,7 @@ import "package:island/shared/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/accounts/account/profile.dart";
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';
 

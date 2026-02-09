@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/chat/chat_widgets/chat_link_attachments.dart';
-import 'package:island/drive/drive_models/file.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomFilePicker {
   final List<UniversalFile> attachments;

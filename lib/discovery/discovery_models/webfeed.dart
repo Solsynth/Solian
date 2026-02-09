@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/posts/posts_models/embed.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'webfeed.freezed.dart';
 part 'webfeed.g.dart';

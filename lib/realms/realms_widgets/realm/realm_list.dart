@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/realms/realms_widgets/realm/realm_list_tile.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final realmListNotifierProvider = AsyncNotifierProvider.autoDispose.family(
   RealmListNotifier.new,

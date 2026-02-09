@@ -9,9 +9,9 @@ import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:island/talker.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'call.g.dart';
 part 'call.freezed.dart';

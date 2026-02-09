@@ -3,9 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_widgets/account/event_calendar_content.dart';
-import 'package:island/core/models/activity.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A widget that displays a graph of fortune levels over time
 /// This can be used alongside the EventCalendarWidget to provide a different visualization

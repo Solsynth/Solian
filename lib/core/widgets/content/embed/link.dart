@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:island/posts/posts_models/embed.dart';
 import 'package:island/core/widgets/content/image.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class EmbedLinkWidget extends StatefulWidget {
   final SnScrappedLink link;

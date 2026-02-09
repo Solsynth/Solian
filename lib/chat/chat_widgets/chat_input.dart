@@ -7,17 +7,10 @@ import "package:flutter_typeahead/flutter_typeahead.dart";
 import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:image_picker/image_picker.dart";
-import "package:island/accounts/accounts_models/account.dart";
 import "package:island/discovery/discovery_models/autocomplete_response.dart";
-import "package:island/chat/chat_models/chat.dart";
-import "package:island/drive/drive_models/file.dart";
-import "package:island/posts/posts_models/poll.dart";
-import "package:island/posts/posts_models/publisher.dart";
 import "package:island/posts/posts_widgets/post/compose_fund.dart";
 import "package:island/posts/posts_widgets/post/compose_poll.dart";
 import "package:island/stickers/stickers_widgets/stickers/sticker_picker.dart";
-import "package:island/wallet/wallet_models/wallet.dart";
-import "package:island/realms/realms_models/realm.dart";
 import "package:island/stickers/stickers_models/sticker.dart";
 import "package:island/core/config.dart";
 import "package:island/accounts/accounts_pod.dart";
@@ -31,6 +24,7 @@ import "package:pasteboard/pasteboard.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:material_symbols_icons/symbols.dart";
 import "package:island/chat/chat_pod/chat_subscribe.dart";
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 void _insertPlaceholder(TextEditingController controller, String placeholder) {
   final text = controller.text;

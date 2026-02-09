@@ -8,9 +8,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file_list_item.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/drive/drive_models/file_pool.dart';
 import 'package:island/drive/drive/file_list.dart';
 import 'package:island/drive/drive/file_pool.dart';
 import 'package:island/core/network.dart';
@@ -18,13 +15,13 @@ import 'package:island/drive/drive_service.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/core/utils/format.dart';
-
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 enum FileListMode { normal, unindexed }
 

@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/post/post_categories.dart';
+import 'package:island/posts/pods/post_categories.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -63,7 +63,7 @@ class _CategoriesTab extends ConsumerWidget {
               leading: const Icon(Symbols.category),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               trailing: const Icon(Symbols.chevron_right),
-              title: Text(category.categoryDisplayTitle),
+              title: Text(category.categoryTranslationKey).tr(),
               subtitle: Text('postCount'.plural(category.usage)),
               onTap: () {
                 context.pushNamed(

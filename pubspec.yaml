@@ -32,7 +32,6 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-
   solar_network_sdk:
     path: packages/solar_network_sdk
 

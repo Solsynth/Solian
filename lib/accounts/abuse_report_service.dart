@@ -1,6 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/abuse_report.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final abuseReportServiceProvider = Provider<AbuseReportService>((ref) {
   return AbuseReportService(ref);

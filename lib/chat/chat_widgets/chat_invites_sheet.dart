@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/chat_room.dart';
 import 'package:island/chat/chat_widgets/chat_room_list_tile.dart';
 import 'package:island/core/network.dart';
@@ -9,6 +8,7 @@ import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/realms/realm/realms.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ChatInvitesSheet extends HookConsumerWidget {
   const ChatInvitesSheet({super.key});

@@ -6,8 +6,6 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/drive/drive_models/drive_task.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive/upload_tasks.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -17,6 +15,7 @@ import 'package:path/path.dart' show extension;
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class FileUploader {
   final Dio _client;

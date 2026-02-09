@@ -9,8 +9,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/accounts/accounts_widgets/account/account_name.dart';
 import 'package:island/core/services/image.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/drive/drive_service.dart';
@@ -20,6 +18,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 const kServerSupportedRegions = ['US', 'JP', 'CN'];

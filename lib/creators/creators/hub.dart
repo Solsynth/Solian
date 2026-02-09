@@ -8,12 +8,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
 import 'package:island/accounts/accounts_widgets/activitypub/actor_profile.dart';
-import 'package:island/core/models/activitypub.dart';
 import 'package:island/creators/creators/publishers_form.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/publisher.dart';
-import 'package:island/posts/posts_models/heatmap.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
@@ -27,6 +23,7 @@ import 'package:island/posts/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'hub.g.dart';
 

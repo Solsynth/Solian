@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/accounts/accounts_models/account.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'chat_online_count.g.dart';
 

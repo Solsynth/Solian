@@ -7,8 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_widgets/account/account_devices.dart';
-import 'package:island/auth/auth_models/auth.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/accounts/account/me/settings_auth_factors.dart';
@@ -22,6 +20,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'account_settings.g.dart';
 

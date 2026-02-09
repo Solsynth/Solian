@@ -25,13 +25,13 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
-import 'package:island/core/models/activity.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:slide_countdown/slide_countdown.dart';
-import 'package:island/core/widgets/share/share_sheet.dart';
+import 'package:island/core/widgets/sharing/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/settings/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class DashboardScreen extends HookConsumerWidget {
   const DashboardScreen({super.key});

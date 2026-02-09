@@ -9,12 +9,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/talker.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 // Windows notification instance
 winty.WindowsNotification? windowsNotification;

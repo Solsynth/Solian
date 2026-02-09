@@ -2,14 +2,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:island/core/config.dart'; // Import config.dart for shared preferences keys and provider
+import 'package:island/core/config.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_featured.g.dart';
 

@@ -5,13 +5,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/wallet/wallet.dart';
-import 'package:island/wallet/wallet_models/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/core/widgets/payment/payment_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Bottom sheet for selecting or creating a fund. Returns SnWalletFund via Navigator.pop.
 class ComposeFundSheet extends HookConsumerWidget {

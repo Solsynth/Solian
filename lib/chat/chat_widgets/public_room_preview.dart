@@ -7,7 +7,6 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/chat_widgets/message_item.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/data/message.dart";
-import "package:island/chat/chat_models/chat.dart";
 import "package:island/chat/chat_pod/chat_room.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/responsive.dart";
@@ -19,6 +18,7 @@ import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 import "package:material_symbols_icons/symbols.dart";
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PublicRoomPreview extends HookConsumerWidget {
   final String id;

@@ -23,7 +23,6 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -31,6 +30,7 @@ import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/thought/thought/think_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;

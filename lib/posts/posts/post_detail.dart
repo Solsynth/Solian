@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/posts/compose.dart';
@@ -25,11 +24,12 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/posts/posts_widgets/compose_sheet.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/core/utils/share_utils.dart';
-import 'package:island/core/widgets/share/share_sheet.dart';
+import 'package:island/core/widgets/sharing/share_sheet.dart';
 import 'package:island/thought/thought/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_detail.g.dart';
 

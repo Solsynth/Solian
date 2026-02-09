@@ -2,15 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/discovery/discovery_models/autocomplete_response.dart';
-import 'package:island/chat/chat_models/chat.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/stickers/stickers_models/sticker.dart';
 import 'package:island/discovery/discovery_service.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A reusable widget for the form fields in compose screens.
 /// Includes title, description, and content text fields.

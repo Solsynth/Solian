@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pagination/pagination.dart';
 import 'package:island/polls/poll/poll_editor.dart';
 import 'package:island/polls/polls_widgets/poll/poll_feedback.dart';
-import 'package:island/posts/posts_models/poll.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -14,6 +13,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'poll_list.g.dart';
 

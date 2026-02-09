@@ -2,12 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/accounts/accounts_widgets/account/event_details_widget.dart';
-import 'package:island/core/models/activity.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A reusable widget for displaying an event calendar with event details
 /// This can be used in various places throughout the app

@@ -10,11 +10,7 @@ import 'package:island/accounts/accounts_widgets/account/account_name.dart';
 import 'package:island/accounts/accounts_widgets/account/badge.dart';
 import 'package:island/accounts/accounts_widgets/account/status.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
-import 'package:island/posts/post/post_list.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/publisher.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/posts/posts_models/heatmap.dart';
+import 'package:island/posts/pods/post_list.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/posts_widgets/post/filters/post_filter.dart';
@@ -30,6 +26,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'publisher_profile.g.dart';
 

@@ -5,12 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/accounts/accounts_widgets/account/account_pfc.dart';
 import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
 import 'package:island/lotteries/lottery.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/wallet/wallet_models/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
@@ -23,6 +21,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'wallet.g.dart';
 

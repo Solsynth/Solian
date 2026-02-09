@@ -8,7 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_widgets/account/account_pfc.dart';
 import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
 import 'package:island/accounts/accounts_widgets/account/status.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/chat_room.dart';
 import 'package:island/chat/chat_widgets/chat_room_form.dart';
 import 'package:island/chat/chat_widgets/chat_search_screen.dart';
@@ -23,6 +22,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'chat_detail_screen.freezed.dart';
 part 'chat_detail_screen.g.dart';

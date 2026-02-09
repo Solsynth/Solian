@@ -40,7 +40,6 @@ import 'package:island/reports/reports/report_detail.dart';
 import 'package:island/reports/reports/report_list.dart';
 import 'package:island/settings/about.dart';
 import 'package:island/settings/dashboard/dash.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/discovery/search.dart';
 import 'package:island/settings/settings.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -64,6 +63,7 @@ import 'package:island/talker.dart';
 import 'package:island/thought/thought/think.dart';
 import 'package:island/wallet/wallet.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();

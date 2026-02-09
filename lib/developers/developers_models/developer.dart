@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/posts/posts_models/publisher.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'developer.freezed.dart';
 part 'developer.g.dart';

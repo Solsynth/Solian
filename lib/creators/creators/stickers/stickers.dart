@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/stickers/pack_detail.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/pagination/pagination.dart';
 import 'package:island/stickers/stickers_models/sticker.dart';
 import 'package:island/core/network.dart';
@@ -19,6 +18,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'stickers.g.dart';
 

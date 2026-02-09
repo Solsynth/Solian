@@ -5,14 +5,13 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/poll/poll_list.dart';
 import 'package:island/polls/poll/poll_editor.dart';
-import 'package:island/posts/posts_models/poll.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/posts/posts_widgets/post/publishers_modal.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Bottom sheet for selecting or creating a poll. Returns SnPoll via Navigator.pop.
 class ComposePollSheet extends HookConsumerWidget {

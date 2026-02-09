@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/heatmap.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Custom data class for selected heatmap item
 class SelectedHeatmapItem {
@@ -115,10 +115,9 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
     }
 
     // Find maximum value for color scaling
-    final maxValue =
-        dataMap.values.isNotEmpty
-            ? dataMap.values.reduce((a, b) => a > b ? a : b)
-            : 1.0;
+    final maxValue = dataMap.values.isNotEmpty
+        ? dataMap.values.reduce((a, b) => a > b ? a : b)
+        : 1.0;
 
     // Helper function to get color based on activity level
     Color getActivityColor(double value) {
@@ -141,17 +140,18 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
                 ...List.generate(weeks.length, (weekIndex) {
                   // Check if this week is the start of a month
                   final monthIndex = monthPositions.indexOf(weekIndex);
-                  final monthText =
-                      monthIndex != -1 ? monthLabels[monthIndex] : null;
+                  final monthText = monthIndex != -1
+                      ? monthLabels[monthIndex]
+                      : null;
 
                   return monthText != null
                       ? Expanded(
-                        child: Text(
-                          monthText,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                      )
+                          child: Text(
+                            monthText,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
                       : SizedBox.shrink();
                 }),
               ],
@@ -212,15 +212,12 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(2),
                                   border:
                                       selectedItem.value != null &&
-                                              selectedItem.value!.dateString ==
-                                                  dateString &&
-                                              selectedItem.value!.dayLabel ==
-                                                  dayLabel
-                                          ? Border.all(
-                                            color: Colors.blue,
-                                            width: 1,
-                                          )
-                                          : null,
+                                          selectedItem.value!.dateString ==
+                                              dateString &&
+                                          selectedItem.value!.dayLabel ==
+                                              dayLabel
+                                      ? Border.all(color: Colors.blue, width: 1)
+                                      : null,
                                 ),
                               ),
                             ),

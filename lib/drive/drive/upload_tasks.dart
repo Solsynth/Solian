@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/drive/drive_models/drive_task.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/talker.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final uploadTasksProvider = NotifierProvider(UploadTasksNotifier.new);
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/call.dart';
 import 'package:island/chat/chat_widgets/call_button.dart';
 import 'package:island/chat/chat_widgets/call_content.dart';
@@ -14,6 +13,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/talker.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CallScreen extends HookConsumerWidget {
   final SnChatRoom room;

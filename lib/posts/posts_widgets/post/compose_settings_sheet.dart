@@ -5,17 +5,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/post/post_categories.dart';
-import 'package:island/posts/posts_models/post_category.dart';
-import 'package:island/posts/posts_models/post_tag.dart';
+import 'package:island/posts/pods/post_categories.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';
 import 'package:island/realms/realm/realms.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ComposeSettingsSheet extends HookConsumerWidget {
   final ComposeState state;
@@ -313,7 +311,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                             const SizedBox(width: 16),
                             Expanded(
                               child: Text(
-                                item.categoryDisplayTitle,
+                                item.categoryTranslationKey.tr(),
                                 style: const TextStyle(fontSize: 14),
                               ),
                             ),
@@ -345,7 +343,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                           ),
                           margin: const EdgeInsets.only(right: 4),
                           child: Text(
-                            category.categoryDisplayTitle,
+                            category.categoryTranslationKey.tr(),
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 13,

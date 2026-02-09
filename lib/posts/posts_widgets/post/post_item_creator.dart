@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
@@ -14,6 +13,7 @@ import 'package:island/posts/posts_widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PostItemCreator extends HookConsumerWidget {
   final Color? backgroundColor;

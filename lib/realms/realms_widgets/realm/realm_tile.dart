@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RealmTile extends HookConsumerWidget {
   final SnRealm realm;
@@ -14,7 +14,10 @@ class RealmTile extends HookConsumerWidget {
       leading: ProfilePictureWidget(file: realm.picture),
       title: Text(realm.name),
       subtitle: Text(realm.description),
-      onTap: () => context.pushNamed('realmDetail', pathParameters: {'slug': realm.slug}),
+      onTap: () => context.pushNamed(
+        'realmDetail',
+        pathParameters: {'slug': realm.slug},
+      ),
     );
   }
 }

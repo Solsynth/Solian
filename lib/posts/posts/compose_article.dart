@@ -6,9 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/publishers_form.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/posts/posts/post_detail.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/services/responsive.dart';
@@ -24,6 +22,7 @@ import 'package:island/core/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ArticleEditScreen extends HookConsumerWidget {
   final String id;

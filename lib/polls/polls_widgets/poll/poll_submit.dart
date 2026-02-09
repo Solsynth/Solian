@@ -4,9 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/creators/poll/poll_list.dart';
 import 'package:island/polls/polls_widgets/poll/poll_stats_widget.dart';
-import 'package:island/posts/posts_models/poll.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({

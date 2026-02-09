@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:island/chat/chat_models/chat.dart';
-import 'package:island/drive/drive_models/file.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MapConverter extends TypeConverter<Map<String, dynamic>, String> {
   const MapConverter();

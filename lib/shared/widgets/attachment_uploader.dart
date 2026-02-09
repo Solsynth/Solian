@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/drive/drive_models/file_pool.dart';
 import 'package:island/drive/drive/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
@@ -13,6 +11,7 @@ import 'package:gap/gap.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class AttachmentUploadConfig {
   final String poolId;

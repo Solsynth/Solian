@@ -13,11 +13,7 @@ import 'package:island/accounts/accounts_widgets/account/badge.dart';
 import 'package:island/accounts/accounts_widgets/account/fortune_graph.dart';
 import 'package:island/accounts/accounts_widgets/account/leveling_progress.dart';
 import 'package:island/accounts/accounts_widgets/account/status.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/developers/developers_models/developer.dart';
-import 'package:island/posts/posts_models/publisher.dart';
-import 'package:island/accounts/accounts_models/relationship.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/core/network.dart';
@@ -38,6 +34,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'profile.g.dart';
 

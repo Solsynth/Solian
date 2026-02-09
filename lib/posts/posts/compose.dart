@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/post.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'compose.freezed.dart';
 part 'compose.g.dart';

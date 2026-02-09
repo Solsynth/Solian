@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_widgets/call_overlay.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomOverlays extends ConsumerWidget {
   final AsyncValue<SnChatRoom?> roomAsync;

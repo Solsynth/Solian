@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/accounts/accounts_models/account.dart';
-import 'package:island/posts/posts_models/publisher.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 
 part 'poll.freezed.dart';
 part 'poll.g.dart';

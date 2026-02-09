@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/widgets/shared/upload_menu.dart';
 import 'package:island/posts/posts_widgets/post/compose_embed_sheet.dart';
@@ -9,6 +8,7 @@ import 'package:island/posts/posts_widgets/post/compose_shared.dart';
 import 'package:island/posts/posts_widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;

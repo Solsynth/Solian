@@ -6,9 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/publishers_form.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
@@ -23,6 +20,7 @@ import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/publishers_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A dialog-compatible card widget for post composition.
 /// This extracts the core compose functionality from PostComposeScreen

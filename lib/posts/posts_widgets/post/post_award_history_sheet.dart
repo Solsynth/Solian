@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final postAwardListNotifierProvider = AsyncNotifierProvider.autoDispose.family(
   PostAwardListNotifier.new,

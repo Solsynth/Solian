@@ -8,7 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/widgets/content/image.dart';
 import 'package:island/core/widgets/content/video.native.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/format.dart';
@@ -18,6 +17,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:island/core/data_saving_gate.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileWidget extends HookConsumerWidget {
   final SnCloudFile item;

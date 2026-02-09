@@ -4,8 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/creators/publishers_form.dart';
-import 'package:island/posts/posts_models/post.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/event_bus.dart';
@@ -15,6 +13,7 @@ import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/posts/posts_widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PostQuickReply extends HookConsumerWidget {
   final SnPost parent;

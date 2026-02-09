@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/posts/posts/post_detail.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/services/responsive.dart';
@@ -17,6 +15,7 @@ import 'package:island/posts/posts_widgets/post/compose_card.dart';
 import 'package:island/posts/posts_widgets/post/compose_shared.dart';
 import 'package:island/posts/posts_widgets/post/compose_state_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A dialog that wraps PostComposeCard for easy use in dialogs.
 /// This provides a convenient way to show the compose interface in a modal dialog.

@@ -8,10 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/services/image.dart';
-import 'package:island/drive/drive_models/file.dart';
-import 'package:island/posts/posts_models/publisher.dart';
 import 'package:island/realms/realm/realms.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/drive/drive_service.dart';
@@ -21,6 +18,7 @@ import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'publishers_form.g.dart';
 

@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/auth/auth_models/auth.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account/me/account_settings.dart';
@@ -17,6 +16,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 // Helper function to get provider icon and localized name
 Widget getProviderIcon(String provider, {double size = 24, Color? color}) {

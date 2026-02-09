@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/chat_widgets/message_item_wrapper.dart';
 import 'package:island/data/message.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/core/config.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomMessageList extends HookConsumerWidget {
   final List<LocalChatMessage> messages;

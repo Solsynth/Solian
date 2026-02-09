@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/realms/realms_widgets/realm/realm_list_tile.dart';
@@ -16,6 +15,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'realms.g.dart';
 

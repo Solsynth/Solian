@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/drive_models/file.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/utils/format.dart';
@@ -21,6 +20,7 @@ import 'package:island/core/widgets/content/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class SensitiveMarksSelector extends StatefulWidget {
   final List<int> initial;

@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/posts/posts_models/post.dart';
+import 'package:solar_network_sdk/src/models/posts/post.dart';
 
 part 'post_tag.freezed.dart';
 part 'post_tag.g.dart';

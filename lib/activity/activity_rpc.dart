@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dio/dio.dart' hide Response;
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/models/activity.dart';
 import 'package:island/core/network.dart';
 import 'package:island/talker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,6 +11,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 // Conditional imports for IPC server - use web stubs on web platform
 import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
@@ -350,10 +350,9 @@ class ServerStateNotifier extends Notifier<ServerState> {
   void _setupHandlers() {
     server.updateHandlers({
       'connection': (socket) {
-        final clientId =
-            socket is _WsSocketWrapper
-                ? socket.clientId
-                : (socket as IpcSocketWrapper).clientId;
+        final clientId = socket is _WsSocketWrapper
+            ? socket.clientId
+            : (socket as IpcSocketWrapper).clientId;
         updateStatus('Client connected (ID: $clientId)');
         socket.send({
           'cmd': 'DISPATCH',

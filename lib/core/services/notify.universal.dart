@@ -12,10 +12,10 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/route.dart';
-import 'package:island/accounts/accounts_models/account.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/talker.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:island/data/drift_db.dart';
-import 'package:island/posts/posts_models/post.dart';
 import 'package:island/core/database.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'compose_storage_db.g.dart';
 

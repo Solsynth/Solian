@@ -5,11 +5,10 @@ import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
 import 'package:island/accounts/accounts_widgets/account/status.dart';
 import 'package:island/chat/chat_widgets/chat_room_list_tile.dart';
 import 'package:island/pagination/pagination.dart';
-import 'package:island/posts/post/post_list.dart';
+import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_list.dart';
 import 'package:flutter/material.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/color_extraction.dart';
@@ -18,7 +17,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/realms/realm/realms.dart';
-import 'package:island/realms/realms_models/realm.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -27,6 +25,7 @@ import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class _RealmPinnedPostsPageView extends HookConsumerWidget {
   final String realmSlug;

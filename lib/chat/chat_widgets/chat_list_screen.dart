@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/accounts/accounts_widgets/account/account_picker.dart';
-import 'package:island/chat/chat_models/chat.dart';
 import 'package:island/chat/chat_pod/chat_room.dart';
 import 'package:island/chat/chat_pod/chat_summary.dart';
 import 'package:island/chat/chat_widgets/chat_invites_sheet.dart';
@@ -24,6 +23,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
