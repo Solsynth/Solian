@@ -6,8 +6,8 @@ part of 'auth_session.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnAuthSessionImpl _$$SnAuthSessionImplFromJson(Map<String, dynamic> json) =>
-    _$SnAuthSessionImpl(
+_SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
+    _SnAuthSession(
       id: json['id'] as String,
       label: json['label'] as String?,
       lastGrantedAt: DateTime.parse(json['lastGrantedAt'] as String),
@@ -28,7 +28,7 @@ _$SnAuthSessionImpl _$$SnAuthSessionImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['deletedAt'] as String),
     );
 
-Map<String, dynamic> _$$SnAuthSessionImplToJson(_$SnAuthSessionImpl instance) =>
+Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
     <String, dynamic>{
       'id': instance.id,
       'label': instance.label,

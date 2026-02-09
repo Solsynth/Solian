@@ -15,16 +15,16 @@ dependencies:
   shared_preferences: ^2.5.4
   crypto: ^3.0.7
   uuid: ^4.5.2
-  device_info_plus: ^11.3.0
+  device_info_plus: ^12.3.0
   package_info_plus: ^9.0.0
-  http: ^1.2.0
+  http: ^1.6.0
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.9.0
+  json_annotation: ^4.10.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.15
-  freezed: ^2.5.8
-  json_serializable: ^6.9.4
+  build_runner: ^2.11.0
+  freezed: ^3.2.5
+  json_serializable: ^6.12.0

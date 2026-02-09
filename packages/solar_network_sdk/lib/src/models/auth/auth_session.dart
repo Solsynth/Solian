@@ -4,7 +4,7 @@ part 'auth_session.freezed.dart';
 part 'auth_session.g.dart';
 
 @freezed
-class SnAuthSession with _$SnAuthSession {
+sealed class SnAuthSession with _$SnAuthSession {
   const factory SnAuthSession({
     required String id,
     String? label,
