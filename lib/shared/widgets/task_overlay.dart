@@ -536,8 +536,9 @@ class _TaskOverlayContent extends HookConsumerWidget {
 
   double? _getTaskProgress(DriveTask task) {
     if (task.status == DriveTaskStatus.completed ||
-        (task.uploadedBytes >= task.fileSize && task.fileSize > 0))
+        (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) {
       return 1.0;
+    }
     if (task.status != DriveTaskStatus.inProgress) return 0.0;
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
@@ -672,8 +673,9 @@ class UploadTaskTile extends StatefulWidget {
 
   static double? _getTaskProgress(DriveTask task) {
     if (task.status == DriveTaskStatus.completed ||
-        (task.uploadedBytes >= task.fileSize && task.fileSize > 0))
+        (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) {
       return 1.0;
+    }
     if (task.status == DriveTaskStatus.inProgress) return null;
 
     return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;

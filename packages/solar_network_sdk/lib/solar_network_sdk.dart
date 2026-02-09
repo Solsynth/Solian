@@ -5,6 +5,8 @@ export 'src/core/storage/token_storage.dart';
 export 'src/core/storage/storage_interface.dart';
 export 'src/core/utils/device_info.dart';
 
+export 'src/pagination/pagination.dart';
+
 // Accounts models
 export 'src/models/accounts/account.dart';
 export 'src/models/accounts/abuse_report.dart';

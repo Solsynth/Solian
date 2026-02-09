@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/discovery/discovery_models/webfeed.dart';
+import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/core/network.dart';
 
 final webFeedListProvider = FutureProvider.autoDispose

@@ -15,7 +15,7 @@ import 'package:island/posts/compose.dart';
 import 'package:island/talker.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/posts_widgets/compose_sheet.dart';
-import 'package:island/thought/thought/think.dart';
+import 'package:island/thought/screens/think.dart';
 import 'package:island/thought/thought_widgets/thought/function_calls_section.dart';
 import 'package:island/thought/thought_widgets/thought/proposals_section.dart';
 import 'package:island/thought/thought_widgets/thought/reasoning_section.dart';

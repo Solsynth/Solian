@@ -6,7 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/posts/post_detail.dart';
-import 'package:island/creators/creators/publishers_form.dart';
+import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/services/responsive.dart';

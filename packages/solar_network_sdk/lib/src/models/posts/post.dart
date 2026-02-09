@@ -1,8 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:solar_network_sdk/src/models/posts/post_category.dart';
-import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
-import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';

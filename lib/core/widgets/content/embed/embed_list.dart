@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/content/embed/link.dart';
-import 'package:island/wallet/wallet_widgets/wallet/fund_envelope.dart';
+import 'package:island/wallets/widgets/fund_envelope.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 

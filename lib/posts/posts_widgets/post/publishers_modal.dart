@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/creators/publishers_form.dart';
+import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 

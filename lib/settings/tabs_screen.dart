@@ -12,7 +12,7 @@ import 'package:island/drive/drive_widgets/cloud_files.dart';
 import 'package:island/core/navigation/conditional_bottom_nav.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/chat/chat_pod/chat_summary.dart';
+import 'package:island/chat/pods/chat_summary.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String?>(

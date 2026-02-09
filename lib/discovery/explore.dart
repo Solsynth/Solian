@@ -10,7 +10,7 @@ import 'package:island/posts/posts_widgets/post/filters/post_subscription_filter
 import 'package:island/posts/posts_widgets/post/post_item.dart';
 import 'package:island/posts/posts_widgets/post/post_item_skeleton.dart';
 import 'package:island/posts/posts_widgets/publisher/publisher_card.dart';
-import 'package:island/discovery/discovery_models/webfeed.dart';
+import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/accounts_pod.dart';

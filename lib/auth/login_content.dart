@@ -13,7 +13,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/accounts/account/me/settings_connections.dart';
+import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';

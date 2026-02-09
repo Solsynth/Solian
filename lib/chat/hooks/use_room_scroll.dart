@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/chat/chat_pod/chat_room.dart';
+import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/data/message.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';

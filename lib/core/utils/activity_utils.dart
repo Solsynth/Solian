@@ -18,8 +18,9 @@ String? getActivitySubtitle(Map<String, dynamic>? meta) {
 }
 
 InlineSpan getActivityFullMessage(SnAccountStatus? status) {
-  if (status?.meta == null)
+  if (status?.meta == null) {
     return TextSpan(text: 'No activity details available');
+  }
   final meta = status!.meta!;
   final List<InlineSpan> spans = [];
   if (meta.containsKey('assets') && meta['assets'] is Map) {
