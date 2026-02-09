@@ -9,49 +9,49 @@ part of 'auth_challenge.dart';
 _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
     _SnAuthChallenge(
       id: json['id'] as String,
-      expiredAt: json['expiredAt'] == null
+      expiredAt: json['expired_at'] == null
           ? null
-          : DateTime.parse(json['expiredAt'] as String),
-      stepRemain: (json['stepRemain'] as num).toInt(),
-      stepTotal: (json['stepTotal'] as num).toInt(),
-      failedAttempts: (json['failedAttempts'] as num).toInt(),
-      blacklistFactors: (json['blacklistFactors'] as List<dynamic>)
+          : DateTime.parse(json['expired_at'] as String),
+      stepRemain: (json['step_remain'] as num).toInt(),
+      stepTotal: (json['step_total'] as num).toInt(),
+      failedAttempts: (json['failed_attempts'] as num).toInt(),
+      blacklistFactors: (json['blacklist_factors'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
       audiences: json['audiences'] as List<dynamic>,
       scopes: json['scopes'] as List<dynamic>,
-      ipAddress: json['ipAddress'] as String,
-      userAgent: json['userAgent'] as String,
+      ipAddress: json['ip_address'] as String,
+      userAgent: json['user_agent'] as String,
       nonce: json['nonce'] as String?,
-      countryCode: json['countryCode'] as String?,
+      countryCode: json['country_code'] as String?,
       country: json['country'] as String?,
       city: json['city'] as String?,
-      accountId: json['accountId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'expiredAt': instance.expiredAt?.toIso8601String(),
-      'stepRemain': instance.stepRemain,
-      'stepTotal': instance.stepTotal,
-      'failedAttempts': instance.failedAttempts,
-      'blacklistFactors': instance.blacklistFactors,
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'step_remain': instance.stepRemain,
+      'step_total': instance.stepTotal,
+      'failed_attempts': instance.failedAttempts,
+      'blacklist_factors': instance.blacklistFactors,
       'audiences': instance.audiences,
       'scopes': instance.scopes,
-      'ipAddress': instance.ipAddress,
-      'userAgent': instance.userAgent,
+      'ip_address': instance.ipAddress,
+      'user_agent': instance.userAgent,
       'nonce': instance.nonce,
-      'countryCode': instance.countryCode,
+      'country_code': instance.countryCode,
       'country': instance.country,
       'city': instance.city,
-      'accountId': instance.accountId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };

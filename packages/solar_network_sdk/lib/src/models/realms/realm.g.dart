@@ -11,24 +11,24 @@ _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   slug: json['slug'] as String,
   name: json['name'] as String? ?? '',
   description: json['description'] as String? ?? '',
-  verifiedAs: json['verifiedAs'] as String?,
-  verifiedAt: json['verifiedAt'] == null
+  verifiedAs: json['verified_as'] as String?,
+  verifiedAt: json['verified_at'] == null
       ? null
-      : DateTime.parse(json['verifiedAt'] as String),
-  isCommunity: json['isCommunity'] as bool,
-  isPublic: json['isPublic'] as bool,
+      : DateTime.parse(json['verified_at'] as String),
+  isCommunity: json['is_community'] as bool,
+  isPublic: json['is_public'] as bool,
   picture: json['picture'] == null
       ? null
       : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
   background: json['background'] == null
       ? null
       : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
-  accountId: json['accountId'] as String,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
+  accountId: json['account_id'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
       ? null
-      : DateTime.parse(json['deletedAt'] as String),
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
@@ -36,37 +36,37 @@ Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
   'slug': instance.slug,
   'name': instance.name,
   'description': instance.description,
-  'verifiedAs': instance.verifiedAs,
-  'verifiedAt': instance.verifiedAt?.toIso8601String(),
-  'isCommunity': instance.isCommunity,
-  'isPublic': instance.isPublic,
-  'picture': instance.picture,
-  'background': instance.background,
-  'accountId': instance.accountId,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt.toIso8601String(),
-  'deletedAt': instance.deletedAt?.toIso8601String(),
+  'verified_as': instance.verifiedAs,
+  'verified_at': instance.verifiedAt?.toIso8601String(),
+  'is_community': instance.isCommunity,
+  'is_public': instance.isPublic,
+  'picture': instance.picture?.toJson(),
+  'background': instance.background?.toJson(),
+  'account_id': instance.accountId,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
 _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
     _SnRealmMember(
-      realmId: json['realmId'] as String,
+      realmId: json['realm_id'] as String,
       realm: json['realm'] == null
           ? null
           : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
-      accountId: json['accountId'] as String,
+      accountId: json['account_id'] as String,
       account: json['account'] == null
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       role: (json['role'] as num).toInt(),
-      joinedAt: json['joinedAt'] == null
+      joinedAt: json['joined_at'] == null
           ? null
-          : DateTime.parse(json['joinedAt'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+          : DateTime.parse(json['joined_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
       status: json['status'] == null
           ? null
           : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
@@ -74,14 +74,14 @@ _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
     <String, dynamic>{
-      'realmId': instance.realmId,
-      'realm': instance.realm,
-      'accountId': instance.accountId,
-      'account': instance.account,
+      'realm_id': instance.realmId,
+      'realm': instance.realm?.toJson(),
+      'account_id': instance.accountId,
+      'account': instance.account?.toJson(),
       'role': instance.role,
-      'joinedAt': instance.joinedAt?.toIso8601String(),
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
-      'status': instance.status,
+      'joined_at': instance.joinedAt?.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'status': instance.status?.toJson(),
     };

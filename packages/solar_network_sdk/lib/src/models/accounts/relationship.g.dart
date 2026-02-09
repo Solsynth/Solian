@@ -8,38 +8,38 @@ part of 'relationship.dart';
 
 _SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>
     _SnRelationship(
-      createdAt: json['createdAt'] == null
+      createdAt: json['created_at'] == null
           ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
           ? null
-          : DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+          : DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
-      accountId: json['accountId'] as String,
+          : DateTime.parse(json['deleted_at'] as String),
+      accountId: json['account_id'] as String,
       account: json['account'] == null
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-      relatedId: json['relatedId'] as String,
+      relatedId: json['related_id'] as String,
       related: json['related'] == null
           ? null
           : SnAccount.fromJson(json['related'] as Map<String, dynamic>),
-      expiredAt: json['expiredAt'] == null
+      expiredAt: json['expired_at'] == null
           ? null
-          : DateTime.parse(json['expiredAt'] as String),
+          : DateTime.parse(json['expired_at'] as String),
       status: (json['status'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SnRelationshipToJson(_SnRelationship instance) =>
     <String, dynamic>{
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
-      'accountId': instance.accountId,
-      'account': instance.account,
-      'relatedId': instance.relatedId,
-      'related': instance.related,
-      'expiredAt': instance.expiredAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'account_id': instance.accountId,
+      'account': instance.account?.toJson(),
+      'related_id': instance.relatedId,
+      'related': instance.related?.toJson(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
       'status': instance.status,
     };

@@ -12,13 +12,13 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
   nick: json['nick'] as String,
   language: json['language'] as String,
   region: json['region'] as String? ?? "",
-  isSuperuser: json['isSuperuser'] as bool,
-  automatedId: json['automatedId'] as String?,
+  isSuperuser: json['is_superuser'] as bool,
+  automatedId: json['automated_id'] as String?,
   profile: SnAccountProfile.fromJson(json['profile'] as Map<String, dynamic>),
-  perkSubscription: json['perkSubscription'] == null
+  perkSubscription: json['perk_subscription'] == null
       ? null
       : SnWalletSubscriptionRef.fromJson(
-          json['perkSubscription'] as Map<String, dynamic>,
+          json['perk_subscription'] as Map<String, dynamic>,
         ),
   badges:
       (json['badges'] as List<dynamic>?)
@@ -30,14 +30,14 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
           ?.map((e) => SnContactMethod.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  activatedAt: json['activatedAt'] == null
+  activatedAt: json['activated_at'] == null
       ? null
-      : DateTime.parse(json['activatedAt'] as String),
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
+      : DateTime.parse(json['activated_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
       ? null
-      : DateTime.parse(json['deletedAt'] as String),
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
@@ -47,16 +47,16 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'nick': instance.nick,
       'language': instance.language,
       'region': instance.region,
-      'isSuperuser': instance.isSuperuser,
-      'automatedId': instance.automatedId,
-      'profile': instance.profile,
-      'perkSubscription': instance.perkSubscription,
-      'badges': instance.badges,
-      'contacts': instance.contacts,
-      'activatedAt': instance.activatedAt?.toIso8601String(),
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'is_superuser': instance.isSuperuser,
+      'automated_id': instance.automatedId,
+      'profile': instance.profile.toJson(),
+      'perk_subscription': instance.perkSubscription?.toJson(),
+      'badges': instance.badges.map((e) => e.toJson()).toList(),
+      'contacts': instance.contacts.map((e) => e.toJson()).toList(),
+      'activated_at': instance.activatedAt?.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _ProfileLink _$ProfileLinkFromJson(Map<String, dynamic> json) =>
@@ -87,31 +87,31 @@ _SnAccountProfile _$SnAccountProfileFromJson(
   Map<String, dynamic> json,
 ) => _SnAccountProfile(
   id: json['id'] as String,
-  firstName: json['firstName'] as String? ?? '',
-  middleName: json['middleName'] as String? ?? '',
-  lastName: json['lastName'] as String? ?? '',
+  firstName: json['first_name'] as String? ?? '',
+  middleName: json['middle_name'] as String? ?? '',
+  lastName: json['last_name'] as String? ?? '',
   bio: json['bio'] as String? ?? '',
   gender: json['gender'] as String? ?? '',
   pronouns: json['pronouns'] as String? ?? '',
   location: json['location'] as String? ?? '',
-  timeZone: json['timeZone'] as String? ?? '',
+  timeZone: json['time_zone'] as String? ?? '',
   birthday: json['birthday'] == null
       ? null
       : DateTime.parse(json['birthday'] as String),
   links: json['links'] == null
       ? const []
       : const ProfileLinkConverter().fromJson(json['links']),
-  lastSeenAt: json['lastSeenAt'] == null
+  lastSeenAt: json['last_seen_at'] == null
       ? null
-      : DateTime.parse(json['lastSeenAt'] as String),
-  activeBadge: json['activeBadge'] == null
+      : DateTime.parse(json['last_seen_at'] as String),
+  activeBadge: json['active_badge'] == null
       ? null
-      : SnAccountBadge.fromJson(json['activeBadge'] as Map<String, dynamic>),
+      : SnAccountBadge.fromJson(json['active_badge'] as Map<String, dynamic>),
   experience: (json['experience'] as num).toInt(),
   level: (json['level'] as num).toInt(),
-  socialCredits: (json['socialCredits'] as num?)?.toDouble() ?? 100,
-  socialCreditsLevel: (json['socialCreditsLevel'] as num?)?.toInt() ?? 0,
-  levelingProgress: (json['levelingProgress'] as num).toDouble(),
+  socialCredits: (json['social_credits'] as num?)?.toDouble() ?? 100,
+  socialCreditsLevel: (json['social_credits_level'] as num?)?.toInt() ?? 0,
+  levelingProgress: (json['leveling_progress'] as num).toDouble(),
   picture: json['picture'] == null
       ? null
       : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
@@ -123,81 +123,81 @@ _SnAccountProfile _$SnAccountProfileFromJson(
       : SnVerificationMark.fromJson(
           json['verification'] as Map<String, dynamic>,
         ),
-  usernameColor: json['usernameColor'] == null
+  usernameColor: json['username_color'] == null
       ? null
-      : UsernameColor.fromJson(json['usernameColor'] as Map<String, dynamic>),
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
+      : UsernameColor.fromJson(json['username_color'] as Map<String, dynamic>),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
       ? null
-      : DateTime.parse(json['deletedAt'] as String),
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'firstName': instance.firstName,
-      'middleName': instance.middleName,
-      'lastName': instance.lastName,
+      'first_name': instance.firstName,
+      'middle_name': instance.middleName,
+      'last_name': instance.lastName,
       'bio': instance.bio,
       'gender': instance.gender,
       'pronouns': instance.pronouns,
       'location': instance.location,
-      'timeZone': instance.timeZone,
+      'time_zone': instance.timeZone,
       'birthday': instance.birthday?.toIso8601String(),
       'links': const ProfileLinkConverter().toJson(instance.links),
-      'lastSeenAt': instance.lastSeenAt?.toIso8601String(),
-      'activeBadge': instance.activeBadge,
+      'last_seen_at': instance.lastSeenAt?.toIso8601String(),
+      'active_badge': instance.activeBadge?.toJson(),
       'experience': instance.experience,
       'level': instance.level,
-      'socialCredits': instance.socialCredits,
-      'socialCreditsLevel': instance.socialCreditsLevel,
-      'levelingProgress': instance.levelingProgress,
-      'picture': instance.picture,
-      'background': instance.background,
-      'verification': instance.verification,
-      'usernameColor': instance.usernameColor,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'social_credits': instance.socialCredits,
+      'social_credits_level': instance.socialCreditsLevel,
+      'leveling_progress': instance.levelingProgress,
+      'picture': instance.picture?.toJson(),
+      'background': instance.background?.toJson(),
+      'verification': instance.verification?.toJson(),
+      'username_color': instance.usernameColor?.toJson(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
     _SnAccountStatus(
       id: json['id'] as String,
       attitude: (json['attitude'] as num).toInt(),
-      isOnline: json['isOnline'] as bool,
-      isInvisible: json['isInvisible'] as bool,
-      isNotDisturb: json['isNotDisturb'] as bool,
-      isCustomized: json['isCustomized'] as bool,
+      isOnline: json['is_online'] as bool,
+      isInvisible: json['is_invisible'] as bool,
+      isNotDisturb: json['is_not_disturb'] as bool,
+      isCustomized: json['is_customized'] as bool,
       label: json['label'] as String? ?? "",
       meta: json['meta'] as Map<String, dynamic>?,
-      clearedAt: json['clearedAt'] == null
+      clearedAt: json['cleared_at'] == null
           ? null
-          : DateTime.parse(json['clearedAt'] as String),
-      accountId: json['accountId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+          : DateTime.parse(json['cleared_at'] as String),
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
     <String, dynamic>{
       'id': instance.id,
       'attitude': instance.attitude,
-      'isOnline': instance.isOnline,
-      'isInvisible': instance.isInvisible,
-      'isNotDisturb': instance.isNotDisturb,
-      'isCustomized': instance.isCustomized,
+      'is_online': instance.isOnline,
+      'is_invisible': instance.isInvisible,
+      'is_not_disturb': instance.isNotDisturb,
+      'is_customized': instance.isCustomized,
       'label': instance.label,
       'meta': instance.meta,
-      'clearedAt': instance.clearedAt?.toIso8601String(),
-      'accountId': instance.accountId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'cleared_at': instance.clearedAt?.toIso8601String(),
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
@@ -207,18 +207,18 @@ _SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
       label: json['label'] as String?,
       caption: json['caption'] as String?,
       meta: json['meta'] as Map<String, dynamic>,
-      expiredAt: json['expiredAt'] == null
+      expiredAt: json['expired_at'] == null
           ? null
-          : DateTime.parse(json['expiredAt'] as String),
-      accountId: json['accountId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      activatedAt: json['activatedAt'] == null
+          : DateTime.parse(json['expired_at'] as String),
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      activatedAt: json['activated_at'] == null
           ? null
-          : DateTime.parse(json['activatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+          : DateTime.parse(json['activated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
@@ -228,53 +228,53 @@ Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
       'label': instance.label,
       'caption': instance.caption,
       'meta': instance.meta,
-      'expiredAt': instance.expiredAt?.toIso8601String(),
-      'accountId': instance.accountId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'activatedAt': instance.activatedAt?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'activated_at': instance.activatedAt?.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnContactMethod _$SnContactMethodFromJson(Map<String, dynamic> json) =>
     _SnContactMethod(
       id: json['id'] as String,
       type: (json['type'] as num).toInt(),
-      verifiedAt: json['verifiedAt'] == null
+      verifiedAt: json['verified_at'] == null
           ? null
-          : DateTime.parse(json['verifiedAt'] as String),
-      isPrimary: json['isPrimary'] as bool,
-      isPublic: json['isPublic'] as bool,
+          : DateTime.parse(json['verified_at'] as String),
+      isPrimary: json['is_primary'] as bool,
+      isPublic: json['is_public'] as bool,
       content: json['content'] as String,
-      accountId: json['accountId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnContactMethodToJson(_SnContactMethod instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
-      'verifiedAt': instance.verifiedAt?.toIso8601String(),
-      'isPrimary': instance.isPrimary,
-      'isPublic': instance.isPublic,
+      'verified_at': instance.verifiedAt?.toIso8601String(),
+      'is_primary': instance.isPrimary,
+      'is_public': instance.isPublic,
       'content': instance.content,
-      'accountId': instance.accountId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
     _SnNotification(
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
       id: json['id'] as String,
       topic: json['topic'] as String,
       title: json['title'] as String,
@@ -282,17 +282,17 @@ _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
       content: json['content'] as String,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
       priority: (json['priority'] as num).toInt(),
-      viewedAt: json['viewedAt'] == null
+      viewedAt: json['viewed_at'] == null
           ? null
-          : DateTime.parse(json['viewedAt'] as String),
-      accountId: json['accountId'] as String,
+          : DateTime.parse(json['viewed_at'] as String),
+      accountId: json['account_id'] as String,
     );
 
 Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
     <String, dynamic>{
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
       'id': instance.id,
       'topic': instance.topic,
       'title': instance.title,
@@ -300,8 +300,8 @@ Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
       'content': instance.content,
       'meta': instance.meta,
       'priority': instance.priority,
-      'viewedAt': instance.viewedAt?.toIso8601String(),
-      'accountId': instance.accountId,
+      'viewed_at': instance.viewedAt?.toIso8601String(),
+      'account_id': instance.accountId,
     };
 
 _SnVerificationMark _$SnVerificationMarkFromJson(Map<String, dynamic> json) =>
@@ -309,7 +309,7 @@ _SnVerificationMark _$SnVerificationMarkFromJson(Map<String, dynamic> json) =>
       type: (json['type'] as num).toInt(),
       title: json['title'] as String?,
       description: json['description'] as String?,
-      verifiedBy: json['verifiedBy'] as String?,
+      verifiedBy: json['verified_by'] as String?,
     );
 
 Map<String, dynamic> _$SnVerificationMarkToJson(_SnVerificationMark instance) =>
@@ -317,83 +317,83 @@ Map<String, dynamic> _$SnVerificationMarkToJson(_SnVerificationMark instance) =>
       'type': instance.type,
       'title': instance.title,
       'description': instance.description,
-      'verifiedBy': instance.verifiedBy,
+      'verified_by': instance.verifiedBy,
     };
 
 _SnAuthDevice _$SnAuthDeviceFromJson(Map<String, dynamic> json) =>
     _SnAuthDevice(
       id: json['id'] as String,
-      deviceId: json['deviceId'] as String,
-      deviceName: json['deviceName'] as String,
-      deviceLabel: json['deviceLabel'] as String?,
-      accountId: json['accountId'] as String,
+      deviceId: json['device_id'] as String,
+      deviceName: json['device_name'] as String,
+      deviceLabel: json['device_label'] as String?,
+      accountId: json['account_id'] as String,
       platform: (json['platform'] as num).toInt(),
-      isCurrent: json['isCurrent'] as bool? ?? false,
+      isCurrent: json['is_current'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'deviceId': instance.deviceId,
-      'deviceName': instance.deviceName,
-      'deviceLabel': instance.deviceLabel,
-      'accountId': instance.accountId,
+      'device_id': instance.deviceId,
+      'device_name': instance.deviceName,
+      'device_label': instance.deviceLabel,
+      'account_id': instance.accountId,
       'platform': instance.platform,
-      'isCurrent': instance.isCurrent,
+      'is_current': instance.isCurrent,
     };
 
 _SnAuthDeviceWithSessione _$SnAuthDeviceWithSessioneFromJson(
   Map<String, dynamic> json,
 ) => _SnAuthDeviceWithSessione(
   id: json['id'] as String,
-  deviceId: json['deviceId'] as String,
-  deviceName: json['deviceName'] as String,
-  deviceLabel: json['deviceLabel'] as String?,
-  accountId: json['accountId'] as String,
+  deviceId: json['device_id'] as String,
+  deviceName: json['device_name'] as String,
+  deviceLabel: json['device_label'] as String?,
+  accountId: json['account_id'] as String,
   platform: (json['platform'] as num).toInt(),
   sessions: (json['sessions'] as List<dynamic>)
       .map((e) => SnAuthSession.fromJson(e as Map<String, dynamic>))
       .toList(),
-  isCurrent: json['isCurrent'] as bool? ?? false,
+  isCurrent: json['is_current'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnAuthDeviceWithSessioneToJson(
   _SnAuthDeviceWithSessione instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'deviceId': instance.deviceId,
-  'deviceName': instance.deviceName,
-  'deviceLabel': instance.deviceLabel,
-  'accountId': instance.accountId,
+  'device_id': instance.deviceId,
+  'device_name': instance.deviceName,
+  'device_label': instance.deviceLabel,
+  'account_id': instance.accountId,
   'platform': instance.platform,
-  'sessions': instance.sessions,
-  'isCurrent': instance.isCurrent,
+  'sessions': instance.sessions.map((e) => e.toJson()).toList(),
+  'is_current': instance.isCurrent,
 };
 
 _SnExperienceRecord _$SnExperienceRecordFromJson(Map<String, dynamic> json) =>
     _SnExperienceRecord(
       id: json['id'] as String,
       delta: (json['delta'] as num).toInt(),
-      reasonType: json['reasonType'] as String,
+      reasonType: json['reason_type'] as String,
       reason: json['reason'] as String,
-      bonusMultiplier: (json['bonusMultiplier'] as num?)?.toDouble() ?? 1.0,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      deletedAt: json['deletedAt'] == null
+      bonusMultiplier: (json['bonus_multiplier'] as num?)?.toDouble() ?? 1.0,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
+          : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnExperienceRecordToJson(_SnExperienceRecord instance) =>
     <String, dynamic>{
       'id': instance.id,
       'delta': instance.delta,
-      'reasonType': instance.reasonType,
+      'reason_type': instance.reasonType,
       'reason': instance.reason,
-      'bonusMultiplier': instance.bonusMultiplier,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'bonus_multiplier': instance.bonusMultiplier,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnSocialCreditRecord _$SnSocialCreditRecordFromJson(
@@ -401,16 +401,16 @@ _SnSocialCreditRecord _$SnSocialCreditRecordFromJson(
 ) => _SnSocialCreditRecord(
   id: json['id'] as String,
   delta: (json['delta'] as num).toDouble(),
-  reasonType: json['reasonType'] as String,
+  reasonType: json['reason_type'] as String,
   reason: json['reason'] as String,
-  expiredAt: json['expiredAt'] == null
+  expiredAt: json['expired_at'] == null
       ? null
-      : DateTime.parse(json['expiredAt'] as String),
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
+      : DateTime.parse(json['expired_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
       ? null
-      : DateTime.parse(json['deletedAt'] as String),
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnSocialCreditRecordToJson(
@@ -418,12 +418,12 @@ Map<String, dynamic> _$SnSocialCreditRecordToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'delta': instance.delta,
-  'reasonType': instance.reasonType,
+  'reason_type': instance.reasonType,
   'reason': instance.reason,
-  'expiredAt': instance.expiredAt?.toIso8601String(),
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt.toIso8601String(),
-  'deletedAt': instance.deletedAt?.toIso8601String(),
+  'expired_at': instance.expiredAt?.toIso8601String(),
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
 _SnFriendOverviewItem _$SnFriendOverviewItemFromJson(
@@ -439,7 +439,7 @@ _SnFriendOverviewItem _$SnFriendOverviewItemFromJson(
 Map<String, dynamic> _$SnFriendOverviewItemToJson(
   _SnFriendOverviewItem instance,
 ) => <String, dynamic>{
-  'account': instance.account,
-  'status': instance.status,
-  'activities': instance.activities,
+  'account': instance.account.toJson(),
+  'status': instance.status.toJson(),
+  'activities': instance.activities.map((e) => e.toJson()).toList(),
 };

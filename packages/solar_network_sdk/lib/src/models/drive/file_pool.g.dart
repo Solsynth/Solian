@@ -10,21 +10,21 @@ _SnFilePool _$SnFilePoolFromJson(Map<String, dynamic> json) => _SnFilePool(
   id: json['id'] as String,
   name: json['name'] as String,
   description: json['description'] as String?,
-  storageConfig: json['storageConfig'] as Map<String, dynamic>?,
-  billingConfig: json['billingConfig'] as Map<String, dynamic>?,
-  policyConfig: json['policyConfig'] as Map<String, dynamic>?,
-  isHidden: json['isHidden'] as bool?,
-  accountId: json['accountId'] as String?,
-  resourceIdentifier: json['resourceIdentifier'] as String?,
-  createdAt: json['createdAt'] == null
+  storageConfig: json['storage_config'] as Map<String, dynamic>?,
+  billingConfig: json['billing_config'] as Map<String, dynamic>?,
+  policyConfig: json['policy_config'] as Map<String, dynamic>?,
+  isHidden: json['is_hidden'] as bool?,
+  accountId: json['account_id'] as String?,
+  resourceIdentifier: json['resource_identifier'] as String?,
+  createdAt: json['created_at'] == null
       ? null
-      : DateTime.parse(json['createdAt'] as String),
-  updatedAt: json['updatedAt'] == null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
+      : DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
       ? null
-      : DateTime.parse(json['deletedAt'] as String),
+      : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnFilePoolToJson(_SnFilePool instance) =>
@@ -32,13 +32,13 @@ Map<String, dynamic> _$SnFilePoolToJson(_SnFilePool instance) =>
       'id': instance.id,
       'name': instance.name,
       'description': instance.description,
-      'storageConfig': instance.storageConfig,
-      'billingConfig': instance.billingConfig,
-      'policyConfig': instance.policyConfig,
-      'isHidden': instance.isHidden,
-      'accountId': instance.accountId,
-      'resourceIdentifier': instance.resourceIdentifier,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'storage_config': instance.storageConfig,
+      'billing_config': instance.billingConfig,
+      'policy_config': instance.policyConfig,
+      'is_hidden': instance.isHidden,
+      'account_id': instance.accountId,
+      'resource_identifier': instance.resourceIdentifier,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
