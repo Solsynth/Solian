@@ -335,7 +335,7 @@ class ChatShellScreen extends HookConsumerWidget {
                     topLeft: Radius.circular(8),
                   ),
                   child: child,
-                ).padding(top: 16, right: 16),
+                ).padding(top: 16),
               ),
             ],
           ),
@@ -415,10 +415,7 @@ class ChatFabWidget extends HookConsumerWidget {
           ),
         );
       },
-    ).padding(
-      bottom: MediaQuery.of(context).padding.bottom + 16,
-      right: 16,
-    );
+    ).padding(bottom: MediaQuery.of(context).padding.bottom + 16, right: 16);
   }
 }
 
