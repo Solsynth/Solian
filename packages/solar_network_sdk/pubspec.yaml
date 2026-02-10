@@ -19,7 +19,7 @@ dependencies:
   package_info_plus: ^9.0.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
-  hooks_riverpod: ^3.2.1
+  hooks_riverpod: 3.1.0
 
 dev_dependencies:
   flutter_test:
