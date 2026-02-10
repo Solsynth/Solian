@@ -18,6 +18,7 @@ import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/realms/realms_widgets/realm/realm_card.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -143,7 +144,7 @@ class ExploreScreen extends HookConsumerWidget {
                   ],
                 ),
                 onTap: () {
-                  context.pushNamed('universalSearch');
+                  context.router.push(UniversalSearchRoute());
                 },
               ),
               PopupMenuItem(
@@ -155,7 +156,7 @@ class ExploreScreen extends HookConsumerWidget {
                   ],
                 ),
                 onTap: () {
-                  context.pushNamed('postCategories');
+                  context.router.push(PostCategoriesListRoute());
                 },
               ),
               PopupMenuItem(
@@ -167,7 +168,7 @@ class ExploreScreen extends HookConsumerWidget {
                   ],
                 ),
                 onTap: () {
-                  context.pushNamed('postShuffle');
+                  context.router.push(PostShuffleRoute());
                 },
               ),
             ],

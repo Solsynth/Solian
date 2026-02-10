@@ -4,28 +4,16 @@ import 'package:island/core/config.dart';
 import 'package:island/auth/captcha.config.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:web/web.dart' as web;
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-@RoutePage()
-class CaptchaScreen extends ConsumerStatefulWidget {
-  static Future<String?> show(BuildContext context) {
-    return Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CaptchaScreen(),
-        fullscreenDialog: true,
-      ),
-    );
-  }
-
-  const CaptchaScreen({super.key});
+class CaptchaScreenContent extends ConsumerStatefulWidget {
+  const CaptchaScreenContent({super.key});
 
   @override
-  ConsumerState<CaptchaScreen> createState() => _CaptchaScreenState();
+  ConsumerState<CaptchaScreenContent> createState() => _CaptchaScreenState();
 }
 
-class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
+class _CaptchaScreenState extends ConsumerState<CaptchaScreenContent> {
   bool _isInitialized = false;
 
   void _setupWebListener(String serverUrl) async {

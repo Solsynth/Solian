@@ -18,15 +18,15 @@ import 'package:island/accounts/screens/me/account_settings.dart' as _i6;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i65;
 import 'package:island/accounts/screens/profile.dart' as _i4;
 import 'package:island/accounts/screens/relationship.dart' as _i58;
-import 'package:island/auth/captcha.web.dart' as _i16;
+import 'package:island/auth/captcha.dart' as _i16;
 import 'package:island/auth/create_account.dart' as _i20;
 import 'package:island/auth/login.dart' as _i40;
-import 'package:island/auth/oidc.web.dart' as _i48;
+import 'package:island/auth/oidc.native.dart' as _i48;
 import 'package:island/chat/widgets/call_screen.dart' as _i15;
 import 'package:island/chat/widgets/chat_detail_screen.dart' as _i17;
-import 'package:island/chat/widgets/chat_list_screen.dart' as _i18;
+import 'package:island/chat/widgets/chat_list_screen.dart' as _i19;
 import 'package:island/chat/widgets/chat_room_form.dart' as _i31;
-import 'package:island/chat/widgets/chat_room_screen.dart' as _i19;
+import 'package:island/chat/widgets/chat_room_screen.dart' as _i18;
 import 'package:island/chat/widgets/chat_search_screen.dart' as _i59;
 import 'package:island/creators/screens/hub.dart' as _i21;
 import 'package:island/creators/screens/poll/poll_list.dart' as _i22;
@@ -61,11 +61,11 @@ import 'package:island/drive/files/file_list.dart' as _i37;
 import 'package:island/fitness/fitness_screen.dart' as _i38;
 import 'package:island/polls/screens/poll_editor.dart' as _i49;
 import 'package:island/posts/compose.dart' as _i72;
-import 'package:island/posts/publisher_profile.dart' as _i55;
 import 'package:island/posts/screens/compose_article.dart' as _i9;
 import 'package:island/posts/screens/post_categories_list.dart' as _i50;
 import 'package:island/posts/screens/post_category_detail.dart' as _i51;
 import 'package:island/posts/screens/post_detail.dart' as _i52;
+import 'package:island/posts/screens/publisher_profile.dart' as _i55;
 import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i53;
 import 'package:island/realms/screens/realm_detail.dart' as _i56;
 import 'package:island/realms/screens/realm_form.dart' as _i34;
@@ -279,49 +279,18 @@ class AccountSettingsRoute extends _i68.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i5.AccountShellScreen]
-class AccountShellRoute extends _i68.PageRouteInfo<AccountShellRouteArgs> {
-  AccountShellRoute({
-    _i69.Key? key,
-    required _i69.Widget child,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         AccountShellRoute.name,
-         args: AccountShellRouteArgs(key: key, child: child),
-         initialChildren: children,
-       );
+class AccountShellRoute extends _i68.PageRouteInfo<void> {
+  const AccountShellRoute({List<_i68.PageRouteInfo>? children})
+    : super(AccountShellRoute.name, initialChildren: children);
 
   static const String name = 'AccountShellRoute';
 
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<AccountShellRouteArgs>();
-      return _i5.AccountShellScreen(key: args.key, child: args.child);
+      return const _i5.AccountShellScreen();
     },
   );
-}
-
-class AccountShellRouteArgs {
-  const AccountShellRouteArgs({this.key, required this.child});
-
-  final _i69.Key? key;
-
-  final _i69.Widget child;
-
-  @override
-  String toString() {
-    return 'AccountShellRouteArgs{key: $key, child: $child}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! AccountShellRouteArgs) return false;
-    return key == other.key && child == other.child;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ child.hashCode;
 }
 
 /// generated route for
@@ -977,73 +946,7 @@ class ChatDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i18.ChatListScreen]
-class ChatListRoute extends _i68.PageRouteInfo<ChatListRouteArgs> {
-  ChatListRoute({
-    _i69.Key? key,
-    bool isAside = false,
-    bool isFloating = false,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         ChatListRoute.name,
-         args: ChatListRouteArgs(
-           key: key,
-           isAside: isAside,
-           isFloating: isFloating,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'ChatListRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<ChatListRouteArgs>(
-        orElse: () => const ChatListRouteArgs(),
-      );
-      return _i18.ChatListScreen(
-        key: args.key,
-        isAside: args.isAside,
-        isFloating: args.isFloating,
-      );
-    },
-  );
-}
-
-class ChatListRouteArgs {
-  const ChatListRouteArgs({
-    this.key,
-    this.isAside = false,
-    this.isFloating = false,
-  });
-
-  final _i69.Key? key;
-
-  final bool isAside;
-
-  final bool isFloating;
-
-  @override
-  String toString() {
-    return 'ChatListRouteArgs{key: $key, isAside: $isAside, isFloating: $isFloating}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! ChatListRouteArgs) return false;
-    return key == other.key &&
-        isAside == other.isAside &&
-        isFloating == other.isFloating;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ isAside.hashCode ^ isFloating.hashCode;
-}
-
-/// generated route for
-/// [_i19.ChatRoomScreen]
+/// [_i18.ChatRoomScreen]
 class ChatRoomRoute extends _i68.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
     _i69.Key? key,
@@ -1061,7 +964,7 @@ class ChatRoomRoute extends _i68.PageRouteInfo<ChatRoomRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ChatRoomRouteArgs>();
-      return _i19.ChatRoomScreen(key: args.key, id: args.id);
+      return _i18.ChatRoomScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -1090,50 +993,19 @@ class ChatRoomRouteArgs {
 }
 
 /// generated route for
-/// [_i18.ChatShellScreen]
-class ChatShellRoute extends _i68.PageRouteInfo<ChatShellRouteArgs> {
-  ChatShellRoute({
-    _i69.Key? key,
-    required _i69.Widget child,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         ChatShellRoute.name,
-         args: ChatShellRouteArgs(key: key, child: child),
-         initialChildren: children,
-       );
+/// [_i19.ChatScreen]
+class ChatRoute extends _i68.PageRouteInfo<void> {
+  const ChatRoute({List<_i68.PageRouteInfo>? children})
+    : super(ChatRoute.name, initialChildren: children);
 
-  static const String name = 'ChatShellRoute';
+  static const String name = 'ChatRoute';
 
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<ChatShellRouteArgs>();
-      return _i18.ChatShellScreen(key: args.key, child: args.child);
+      return const _i19.ChatScreen();
     },
   );
-}
-
-class ChatShellRouteArgs {
-  const ChatShellRouteArgs({this.key, required this.child});
-
-  final _i69.Key? key;
-
-  final _i69.Widget child;
-
-  @override
-  String toString() {
-    return 'ChatShellRouteArgs{key: $key, child: $child}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! ChatShellRouteArgs) return false;
-    return key == other.key && child == other.child;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ child.hashCode;
 }
 
 /// generated route for
@@ -2356,7 +2228,7 @@ class NewRealmRoute extends _i68.PageRouteInfo<void> {
 /// [_i48.OidcScreen]
 class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
   OidcRoute({
-    _i69.Key? key,
+    _i70.Key? key,
     required String provider,
     String? title,
     List<_i68.PageRouteInfo>? children,
@@ -2384,7 +2256,7 @@ class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
 class OidcRouteArgs {
   const OidcRouteArgs({this.key, required this.provider, this.title});
 
-  final _i69.Key? key;
+  final _i70.Key? key;
 
   final String provider;
 
@@ -2923,51 +2795,18 @@ class StickersRouteArgs {
 
 /// generated route for
 /// [_i62.TabsScreen]
-class TabsRoute extends _i68.PageRouteInfo<TabsRouteArgs> {
-  TabsRoute({
-    _i69.Key? key,
-    _i69.Widget? child,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         TabsRoute.name,
-         args: TabsRouteArgs(key: key, child: child),
-         initialChildren: children,
-       );
+class TabsRoute extends _i68.PageRouteInfo<void> {
+  const TabsRoute({List<_i68.PageRouteInfo>? children})
+    : super(TabsRoute.name, initialChildren: children);
 
   static const String name = 'TabsRoute';
 
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<TabsRouteArgs>(
-        orElse: () => const TabsRouteArgs(),
-      );
-      return _i62.TabsScreen(key: args.key, child: args.child);
+      return const _i62.TabsScreen();
     },
   );
-}
-
-class TabsRouteArgs {
-  const TabsRouteArgs({this.key, this.child});
-
-  final _i69.Key? key;
-
-  final _i69.Widget? child;
-
-  @override
-  String toString() {
-    return 'TabsRouteArgs{key: $key, child: $child}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! TabsRouteArgs) return false;
-    return key == other.key && child == other.child;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ child.hashCode;
 }
 
 /// generated route for

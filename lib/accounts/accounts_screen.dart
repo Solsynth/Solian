@@ -23,8 +23,7 @@ import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
 class AccountShellScreen extends HookConsumerWidget {
-  final Widget child;
-  const AccountShellScreen({super.key, required this.child});
+  const AccountShellScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,13 +36,20 @@ class AccountShellScreen extends HookConsumerWidget {
           children: [
             Flexible(flex: 2, child: AccountScreen(isAside: true)),
             VerticalDivider(width: 1),
-            Flexible(flex: 3, child: child),
+            Flexible(flex: 3, child: AutoRouter()),
           ],
         ),
       );
     }
 
-    return AppBackground(isRoot: true, child: child);
+    return AppBackground(
+      isRoot: true,
+      child: AutoRouter(
+        placeholder: (context) {
+          return AccountScreen();
+        },
+      ),
+    );
   }
 }
 
@@ -55,9 +61,6 @@ class AccountScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
-    if (isWide && !isAside) {
-      return const EmptyPageHolder();
-    }
 
     final user = ref.watch(userInfoProvider);
     final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);

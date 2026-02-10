@@ -1,11 +1,9 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -32,40 +30,42 @@ class CurrentRouteNotifier extends Notifier<String?> {
 }
 
 const kWideScreenRouteStart = 5;
-const kTabRoutes = [
-  '/',
-  '/explore',
-  '/chat',
-  '/realms',
-  '/account',
-  '/files',
-  '/thought',
-  '/creators',
-  '/developers',
-];
 
 @RoutePage()
-class TabsScreen extends HookConsumerWidget {
-  final Widget? child;
-  const TabsScreen({super.key, this.child});
+class TabsScreen extends StatelessWidget {
+  const TabsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AutoTabsRouter(
+      builder: (context, child) {
+        return _TabsScreenContent(child: child);
+      },
+    );
+  }
+}
+
+class _TabsScreenContent extends HookConsumerWidget {
+  final Widget child;
+
+  const _TabsScreenContent({required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final useHorizontalLayout = isWideScreen(context);
-    final currentLocation = GoRouterState.of(context).uri.toString();
+    final tabsRouter = AutoTabsRouter.of(context);
 
-    // Update the current route provider whenever the location changes
+    // Update the current route provider whenever the route changes
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(currentRouteProvider.notifier).updateRoute(currentLocation);
+        ref.read(currentRouteProvider.notifier).updateRoute(
+          tabsRouter.currentPath,
+        );
       });
       return null;
-    }, [currentLocation]);
+    }, [tabsRouter.currentPath]);
 
     final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
-
     final chatUnreadCount = ref.watch(chatUnreadCountProvider);
-
     final wideScreen = isWideScreen(context);
 
     final destinations = [
@@ -130,23 +130,13 @@ class TabsScreen extends HookConsumerWidget {
         ]),
     ];
 
-    int getCurrentIndex() {
-      if (currentLocation == '/') return 0;
-      final idx = kTabRoutes.indexWhere(
-        (p) => currentLocation.startsWith(p),
-        1,
-      );
-      final value = math.max(idx, 0);
-      return math.min(value, destinations.length - 1);
-    }
+    final currentIndex = tabsRouter.activeIndex;
 
     void onDestinationSelected(int index) {
-      context.go(kTabRoutes[index]);
+      tabsRouter.setActiveIndex(index);
     }
 
-    final currentIndex = getCurrentIndex();
-
-    if (isWideScreen(context)) {
+    if (wideScreen) {
       return Container(
         color: Theme.of(context).colorScheme.surfaceContainer,
         child: Row(
@@ -176,7 +166,7 @@ class TabsScreen extends HookConsumerWidget {
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                 ),
-                child: child ?? const SizedBox.shrink(),
+                child: child,
               ),
             ),
           ],
@@ -193,7 +183,7 @@ class TabsScreen extends HookConsumerWidget {
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
-        child: child ?? const SizedBox.shrink(),
+        child: child,
       ),
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(

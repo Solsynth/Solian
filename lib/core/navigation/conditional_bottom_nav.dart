@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/settings/tabs_screen.dart';
 import 'package:island/core/services/responsive.dart';
+
+// Tab routes that should show the bottom navigation
+const kTabRoutes = [
+  '/',
+  '/explore',
+  '/chat',
+  '/realms',
+  '/account',
+  '/files',
+  '/thought',
+  '/creators',
+  '/developers',
+];
+
+const kWideScreenRouteStart = 5;
 
 class ConditionalBottomNav extends HookConsumerWidget {
   final Widget child;
@@ -11,7 +25,7 @@ class ConditionalBottomNav extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentLocation = GoRouterState.of(context).uri.toString();
+    final currentLocation = context.router.currentPath;
 
     // Force rebuild when route changes
     useEffect(() {

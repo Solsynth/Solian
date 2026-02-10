@@ -3,7 +3,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
@@ -17,6 +16,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -106,14 +106,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 isDirect: item.type == 1,
                                 onTap: () {
                                   if (isWideScreen(context)) {
-                                    context.replaceNamed(
-                                      'chatRoom',
-                                      pathParameters: {'id': item.id},
+                                    context.router.navigate(
+                                      ChatRoomRoute(id: item.id),
                                     );
                                   } else {
-                                    context.pushNamed(
-                                      'chatRoom',
-                                      pathParameters: {'id': item.id},
+                                    context.router.push(
+                                      ChatRoomRoute(id: item.id),
                                     );
                                   }
                                 },
@@ -201,14 +199,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                         isDirect: room.type == 1,
                                         onTap: () {
                                           if (isWideScreen(context)) {
-                                            context.replaceNamed(
-                                              'chatRoom',
-                                              pathParameters: {'id': room.id},
+                                            context.router.navigate(
+                                              ChatRoomRoute(id: room.id),
                                             );
                                           } else {
-                                            context.pushNamed(
-                                              'chatRoom',
-                                              pathParameters: {'id': room.id},
+                                            context.router.push(
+                                              ChatRoomRoute(id: room.id),
                                             );
                                           }
                                         },
@@ -227,14 +223,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                       isDirect: room.type == 1,
                                       onTap: () {
                                         if (isWideScreen(context)) {
-                                          context.replaceNamed(
-                                            'chatRoom',
-                                            pathParameters: {'id': room.id},
+                                          context.router.navigate(
+                                            ChatRoomRoute(id: room.id),
                                           );
                                         } else {
-                                          context.pushNamed(
-                                            'chatRoom',
-                                            pathParameters: {'id': room.id},
+                                          context.router.push(
+                                            ChatRoomRoute(id: room.id),
                                           );
                                         }
                                       },
@@ -268,14 +262,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                     isDirect: item.type == 1,
                                     onTap: () {
                                       if (isWideScreen(context)) {
-                                        context.replaceNamed(
-                                          'chatRoom',
-                                          pathParameters: {'id': item.id},
+                                        context.router.navigate(
+                                          ChatRoomRoute(id: item.id),
                                         );
                                       } else {
-                                        context.pushNamed(
-                                          'chatRoom',
-                                          pathParameters: {'id': item.id},
+                                        context.router.push(
+                                          ChatRoomRoute(id: item.id),
                                         );
                                       }
                                     },
@@ -308,9 +300,8 @@ class ChatListBodyWidget extends HookConsumerWidget {
 }
 
 @RoutePage()
-class ChatShellScreen extends HookConsumerWidget {
-  final Widget child;
-  const ChatShellScreen({super.key, required this.child});
+class ChatScreen extends HookConsumerWidget {
+  const ChatScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -324,10 +315,7 @@ class ChatShellScreen extends HookConsumerWidget {
             children: [
               Flexible(
                 flex: 2,
-                child: ChatListScreen(
-                  isAside: true,
-                  isFloating: true,
-                ).padding(left: 16, vertical: 16),
+                child: ChatListWidget().padding(left: 16, vertical: 16),
               ),
               const Gap(8),
               Flexible(
@@ -336,7 +324,7 @@ class ChatShellScreen extends HookConsumerWidget {
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8),
                   ),
-                  child: child,
+                  child: AutoRouter(),
                 ).padding(top: 16),
               ),
             ],
@@ -345,7 +333,14 @@ class ChatShellScreen extends HookConsumerWidget {
       );
     }
 
-    return AppBackground(isRoot: true, child: child);
+    return AppBackground(
+      isRoot: true,
+      child: AutoRouter(
+        placeholder: (context) {
+          return ChatListWidget();
+        },
+      ),
+    );
   }
 }
 
@@ -421,21 +416,101 @@ class ChatFabWidget extends HookConsumerWidget {
   }
 }
 
-@RoutePage()
-class ChatListScreen extends HookConsumerWidget {
-  final bool isAside;
-  final bool isFloating;
-  const ChatListScreen({
-    super.key,
-    this.isAside = false,
-    this.isFloating = false,
-  });
+class _ChatListAppBar extends HookConsumerWidget {
+  final TabController tabController;
+
+  const _ChatListAppBar({required this.tabController});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-
     final chatInvites = ref.watch(chatroomInvitesProvider);
+    final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
+
+    return Container(
+      height: 48,
+      margin: EdgeInsets.only(
+        left: 8,
+        right: 8,
+        top: 4 + MediaQuery.of(context).padding.top,
+        bottom: 4,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Row(
+                spacing: 8,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Symbols.inbox,
+                      fill: tabController.index == 0 ? 1 : 0,
+                    ),
+                    color: appbarFeColor,
+                    onPressed: () => tabController.animateTo(0),
+                    tooltip: 'chatTabAll'.tr(),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Symbols.person,
+                      fill: tabController.index == 1 ? 1 : 0,
+                    ),
+                    color: appbarFeColor,
+                    onPressed: () => tabController.animateTo(1),
+                    tooltip: 'chatTabDirect'.tr(),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Symbols.group,
+                      fill: tabController.index == 2 ? 1 : 0,
+                    ),
+                    color: appbarFeColor,
+                    onPressed: () => tabController.animateTo(2),
+                    tooltip: 'chatTabGroup'.tr(),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Badge(
+                label: Text(
+                  chatInvites.when(
+                    data: (invites) => invites.length.toString(),
+                    error: (_, _) => '0',
+                    loading: () => '0',
+                  ),
+                ),
+                isLabelVisible: chatInvites.when(
+                  data: (invites) => invites.isNotEmpty,
+                  error: (_, _) => false,
+                  loading: () => false,
+                ),
+                child: const Icon(Symbols.email),
+              ),
+              color: appbarFeColor,
+              onPressed: () {
+                showModalBottomSheet(
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  context: context,
+                  builder: (context) => const ChatInvitesSheet(),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChatListWidget extends HookConsumerWidget {
+  final bool isAside;
+  const ChatListWidget({super.key, this.isAside = false});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 3);
     final selectedTab = useState(
       0,
@@ -455,6 +530,8 @@ class ChatListScreen extends HookConsumerWidget {
         subscription.cancel();
       };
     }, [tabController]);
+
+    final isAside = isWideScreen(context);
 
     if (isAside) {
       return Card(
@@ -485,17 +562,22 @@ class ChatListScreen extends HookConsumerWidget {
                         child: IconButton(
                           icon: Badge(
                             label: Text(
-                              chatInvites.when(
-                                data: (invites) => invites.length.toString(),
-                                error: (_, _) => '0',
-                                loading: () => '0',
-                              ),
+                              ref
+                                  .watch(chatroomInvitesProvider)
+                                  .when(
+                                    data: (invites) =>
+                                        invites.length.toString(),
+                                    error: (_, _) => '0',
+                                    loading: () => '0',
+                                  ),
                             ),
-                            isLabelVisible: chatInvites.when(
-                              data: (invites) => invites.isNotEmpty,
-                              error: (_, _) => false,
-                              loading: () => false,
-                            ),
+                            isLabelVisible: ref
+                                .watch(chatroomInvitesProvider)
+                                .when(
+                                  data: (invites) => invites.isNotEmpty,
+                                  error: (_, _) => false,
+                                  loading: () => false,
+                                ),
                             child: const Icon(Symbols.email),
                           ),
                           onPressed: () {
@@ -527,94 +609,13 @@ class ChatListScreen extends HookConsumerWidget {
       );
     }
 
-    if (isWide && !isAside) {
-      return const EmptyPageHolder();
-    }
-
-    final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
-
     final userInfo = ref.watch(userInfoProvider);
 
     return AppScaffold(
       extendBody: false, // Prevent conflicts with tabs navigation
       floatingActionButton: const ChatFabWidget(),
       appBar: AppBar(
-        flexibleSpace: Container(
-          height: 48,
-          margin: EdgeInsets.only(
-            left: 8,
-            right: 8,
-            top: 4 + MediaQuery.of(context).padding.top,
-            bottom: 4,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Symbols.inbox,
-                          fill: tabController.index == 0 ? 1 : 0,
-                        ),
-                        color: appbarFeColor,
-                        onPressed: () => tabController.animateTo(0),
-                        tooltip: 'chatTabAll'.tr(),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Symbols.person,
-                          fill: tabController.index == 1 ? 1 : 0,
-                        ),
-                        color: appbarFeColor,
-                        onPressed: () => tabController.animateTo(1),
-                        tooltip: 'chatTabDirect'.tr(),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Symbols.group,
-                          fill: tabController.index == 2 ? 1 : 0,
-                        ),
-                        color: appbarFeColor,
-                        onPressed: () => tabController.animateTo(2),
-                        tooltip: 'chatTabGroup'.tr(),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Badge(
-                    label: Text(
-                      chatInvites.when(
-                        data: (invites) => invites.length.toString(),
-                        error: (_, _) => '0',
-                        loading: () => '0',
-                      ),
-                    ),
-                    isLabelVisible: chatInvites.when(
-                      data: (invites) => invites.isNotEmpty,
-                      error: (_, _) => false,
-                      loading: () => false,
-                    ),
-                    child: const Icon(Symbols.email),
-                  ),
-                  color: appbarFeColor,
-                  onPressed: () {
-                    showModalBottomSheet(
-                      useRootNavigator: true,
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) => const ChatInvitesSheet(),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
+        flexibleSpace: _ChatListAppBar(tabController: tabController),
       ),
       body: userInfo.value == null
           ? const ResponseUnauthorizedWidget()
