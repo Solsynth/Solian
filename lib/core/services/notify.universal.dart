@@ -11,7 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
-import 'package:island/route.dart';
+import 'package:island/legacy_route.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/talker.dart';
 import 'package:url_launcher/url_launcher_string.dart';

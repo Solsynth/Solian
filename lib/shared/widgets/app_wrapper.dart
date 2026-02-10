@@ -15,7 +15,7 @@ import 'package:island/activity/activity_rpc.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/route.dart';
+import 'package:island/legacy_route.dart';
 import 'package:island/auth/login_content.dart';
 import 'package:island/settings/tray_manager.dart';
 import 'package:island/core/services/notify.dart';
@@ -158,7 +158,7 @@ class AppWrapper extends HookConsumerWidget {
       if (settings.defaultScreen != null &&
           settings.defaultScreen != 'dashboard') {
         Future(() {
-          ref.read(routerProvider).goNamed(settings.defaultScreen!);
+          // ref.read(routerProvider).goNamed(settings.defaultScreen!);
         });
       }
       return null;
@@ -312,9 +312,9 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
-    final router = ref.read(routerProvider);
+    // final router = ref.read(routerProvider);
     if (path == '/dashboard') {
-      router.go('/');
+      // router.go('/');
       return;
     }
 
@@ -323,7 +323,7 @@ class AppWrapper extends HookConsumerWidget {
     final bottomNavRoutes = ['/', '/explore', '/chat', '/realms', '/account'];
     if (bottomNavRoutes.contains(path)) {
       // Navigate within the bottom navigation shell using go() to maintain shell context
-      router.go(path);
+      // router.go(path);
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         windowManager.show();
@@ -337,7 +337,7 @@ class AppWrapper extends HookConsumerWidget {
       ).replace(queryParameters: uri.queryParameters).toString();
     }
     // For non-bottom navigation routes, use push() to navigate outside the shell
-    router.push(path);
+    // router.push(path);
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       windowManager.show();

@@ -21,7 +21,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/accounts/accounts_pod.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/route.dart';
+import 'package:island/legacy_route.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
@@ -346,7 +346,7 @@ class IslandApp extends HookConsumerWidget {
       theme: theme.light,
       darkTheme: theme.dark,
       themeMode: getThemeMode(),
-      routerConfig: router,
+      routerConfig: router.config(),
       supportedLocales: context.supportedLocales,
       scrollBehavior: AppScrollBehavior(),
       localizationsDelegates: [

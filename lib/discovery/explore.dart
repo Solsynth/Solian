@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +30,7 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
 

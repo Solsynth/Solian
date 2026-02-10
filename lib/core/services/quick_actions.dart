@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:island/route.dart';
+import 'package:island/legacy_route.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/talker.dart';
 import 'package:quick_actions/quick_actions.dart';
