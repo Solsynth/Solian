@@ -415,7 +415,10 @@ class ChatFabWidget extends HookConsumerWidget {
           ),
         );
       },
-    ).padding(bottom: MediaQuery.of(context).padding.bottom);
+    ).padding(
+      bottom: MediaQuery.of(context).padding.bottom + 16,
+      right: 16,
+    );
   }
 }
 
@@ -517,7 +520,7 @@ class ChatListScreen extends HookConsumerWidget {
                   ),
                 ],
               ),
-              Positioned(bottom: 16, right: 16, child: ChatFabWidget()),
+              Positioned(bottom: 0, right: 0, child: ChatFabWidget()),
             ],
           ),
         ),
