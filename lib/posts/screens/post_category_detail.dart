@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -72,6 +73,7 @@ Future<void> _unsubscribeFromCategoryOrTag(
   ref.invalidate(postCategorySubscriptionProvider(slug, isCategory));
 }
 
+@RoutePage()
 class PostCategoryDetailScreen extends HookConsumerWidget {
   final String slug;
   final bool isCategory;

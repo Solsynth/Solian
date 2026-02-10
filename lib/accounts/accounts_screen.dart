@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
@@ -20,6 +21,7 @@ import 'package:island/notifications/notification.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
+@RoutePage()
 class AccountShellScreen extends HookConsumerWidget {
   final Widget child;
   const AccountShellScreen({super.key, required this.child});
@@ -45,6 +47,7 @@ class AccountShellScreen extends HookConsumerWidget {
   }
 }
 
+@RoutePage()
 class AccountScreen extends HookConsumerWidget {
   final bool isAside;
   const AccountScreen({super.key, this.isAside = false});

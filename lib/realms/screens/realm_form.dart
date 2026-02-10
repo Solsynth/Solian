@@ -1,8 +1,8 @@
 import 'package:croppy/croppy.dart' show CropAspectRatio;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,6 +17,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class NewRealmScreen extends StatelessWidget {
   const NewRealmScreen({super.key});
 
@@ -26,6 +27,7 @@ class NewRealmScreen extends StatelessWidget {
   }
 }
 
+@RoutePage()
 class EditRealmScreen extends HookConsumerWidget {
   final String? slug;
   const EditRealmScreen({super.key, this.slug});
@@ -130,7 +132,7 @@ class EditRealmScreen extends HookConsumerWidget {
           options: Options(method: slug == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.pop(SnRealm.fromJson(resp.data));
+          context.router.pop(SnRealm.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);

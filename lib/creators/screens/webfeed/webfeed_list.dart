@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/screens/webfeed/webfeed_edit.dart';
@@ -9,6 +10,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
+@RoutePage()
 class WebFeedListScreen extends ConsumerWidget {
   final String pubName;
 

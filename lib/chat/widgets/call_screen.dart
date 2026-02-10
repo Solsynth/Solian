@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -15,6 +16,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class CallScreen extends HookConsumerWidget {
   final SnChatRoom room;
   const CallScreen({super.key, required this.room});

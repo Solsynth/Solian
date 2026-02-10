@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -548,6 +549,7 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
   }
 }
 
+@RoutePage()
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
   const PostDetailScreen({super.key, required this.id});

@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:island/developers/screens/edit_app.dart';
 
+@RoutePage()
 class NewCustomAppScreen extends StatelessWidget {
   final String publisherName;
   final String projectId;

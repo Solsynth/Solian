@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -517,6 +518,7 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   return SnHeatmap.fromJson(resp.data);
 }
 
+@RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
   const PublisherProfileScreen({super.key, required this.name});

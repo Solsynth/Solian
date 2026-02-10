@@ -1,3 +1,4 @@
+import "package:auto_route/auto_route.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
@@ -43,6 +44,7 @@ Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
   return ThoughtServicesResponse.fromJson(response.data);
 }
 
+@RoutePage()
 class ThoughtScreen extends HookConsumerWidget {
   const ThoughtScreen({super.key});
 

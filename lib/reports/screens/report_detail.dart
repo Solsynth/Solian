@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
@@ -5,6 +6,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class AbuseReportDetailScreen extends ConsumerStatefulWidget {
   final String reportId;
 

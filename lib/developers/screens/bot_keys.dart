@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -29,6 +30,7 @@ Future<List<SnAccountApiKey>> botKeys(
   return (resp.data as List).map((e) => SnAccountApiKey.fromJson(e)).toList();
 }
 
+@RoutePage()
 class BotKeysScreen extends HookConsumerWidget {
   final String publisherName;
   final String projectId;

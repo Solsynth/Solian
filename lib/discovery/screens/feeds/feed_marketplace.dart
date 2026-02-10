@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +50,7 @@ class MarketplaceWebFeedsNotifier
 }
 
 /// Marketplace screen for browsing web feeds.
+@RoutePage()
 class MarketplaceWebFeedsScreen extends HookConsumerWidget {
   const MarketplaceWebFeedsScreen({super.key});
 

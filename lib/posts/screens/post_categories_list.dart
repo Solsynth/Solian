@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+@RoutePage()
 class PostCategoriesListScreen extends HookConsumerWidget {
   const PostCategoriesListScreen({super.key});
 

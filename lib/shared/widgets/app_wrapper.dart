@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,13 +10,13 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/legacy_route.dart';
 import 'package:island/auth/login_content.dart';
 import 'package:island/settings/tray_manager.dart';
 import 'package:island/core/services/notify.dart';
@@ -314,7 +315,7 @@ class AppWrapper extends HookConsumerWidget {
 
     // final router = ref.read(routerProvider);
     if (path == '/dashboard') {
-      // router.go('/');
+      context.router.navigate(const DashboardRoute());
       return;
     }
 
@@ -323,7 +324,7 @@ class AppWrapper extends HookConsumerWidget {
     final bottomNavRoutes = ['/', '/explore', '/chat', '/realms', '/account'];
     if (bottomNavRoutes.contains(path)) {
       // Navigate within the bottom navigation shell using go() to maintain shell context
-      // router.go(path);
+      context.router.navigatePath(path);
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         windowManager.show();
@@ -337,7 +338,7 @@ class AppWrapper extends HookConsumerWidget {
       ).replace(queryParameters: uri.queryParameters).toString();
     }
     // For non-bottom navigation routes, use push() to navigate outside the shell
-    // router.push(path);
+    context.router.navigatePath(path);
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       windowManager.show();

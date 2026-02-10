@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -21,6 +22,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'stickers.g.dart';
 
+@RoutePage()
 class StickersScreen extends HookConsumerWidget {
   final String pubName;
   const StickersScreen({super.key, required this.pubName});

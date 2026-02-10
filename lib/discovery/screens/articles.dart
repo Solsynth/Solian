@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -103,6 +104,7 @@ Future<List<SnWebFeed>> subscribedFeeds(Ref ref) async {
   return data.map((json) => SnWebFeed.fromJson(json)).toList();
 }
 
+@RoutePage()
 class ArticlesScreen extends ConsumerWidget {
   const ArticlesScreen({super.key});
 

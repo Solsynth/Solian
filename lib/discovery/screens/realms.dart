@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -7,6 +8,7 @@ import 'package:island/realms/realms_widgets/realm/realm_list.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'dart:async';
 
+@RoutePage()
 class DiscoveryRealmsScreen extends HookConsumerWidget {
   const DiscoveryRealmsScreen({super.key});
 

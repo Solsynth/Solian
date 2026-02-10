@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class AbuseReportListScreen extends ConsumerStatefulWidget {
   const AbuseReportListScreen({super.key});
 

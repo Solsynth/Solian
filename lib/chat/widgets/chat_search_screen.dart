@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/message_list_tile.dart';
@@ -103,6 +103,7 @@ class _SearchFilters extends StatelessWidget {
   }
 }
 
+@RoutePage()
 class SearchMessagesScreen extends HookConsumerWidget {
   final String roomId;
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -49,6 +50,7 @@ Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
       .toList();
 }
 
+@RoutePage()
 class AccountSettingsScreen extends HookConsumerWidget {
   const AccountSettingsScreen({super.key});
 

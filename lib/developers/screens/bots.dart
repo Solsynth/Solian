@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
@@ -27,6 +28,7 @@ Future<List<Bot>> bots(Ref ref, String publisherName, String projectId) async {
   return (resp.data as List).map((e) => Bot.fromJson(e)).cast<Bot>().toList();
 }
 
+@RoutePage()
 class BotsScreen extends HookConsumerWidget {
   final String publisherName;
   final String projectId;

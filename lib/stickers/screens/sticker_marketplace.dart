@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -71,6 +72,7 @@ class MarketplaceStickerPacksNotifier
 
 /// User-facing marketplace screen for browsing sticker packs.
 /// This version does NOT rely on publisher name (no pubName).
+@RoutePage()
 class MarketplaceStickersScreen extends HookConsumerWidget {
   const MarketplaceStickersScreen({super.key});
 

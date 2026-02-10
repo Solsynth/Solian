@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:health/health.dart';
@@ -11,6 +12,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:math';
 
+@RoutePage()
 class FitnessActivityScreen extends HookConsumerWidget {
   const FitnessActivityScreen({super.key});
 

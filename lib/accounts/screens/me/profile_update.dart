@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -23,6 +24,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 const kServerSupportedRegions = ['US', 'JP', 'CN'];
 
+@RoutePage()
 class UpdateProfileScreen extends HookConsumerWidget {
   bool _isValidHexColor(String color) {
     if (!color.startsWith('#')) return false;

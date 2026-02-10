@@ -1,9 +1,11 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/auth/captcha.config.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 
+@RoutePage()
 class CaptchaScreen extends ConsumerWidget {
   static Future<String?> show(BuildContext context) {
     return Navigator.push<String>(

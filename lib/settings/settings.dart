@@ -4,8 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -23,6 +23,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 
+@RoutePage()
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 

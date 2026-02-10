@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -10,6 +11,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/loading_indicator.dart';
 import 'package:html2md/html2md.dart' as html2md;
 
+@RoutePage()
 class ArticleDetailScreen extends ConsumerWidget {
   final String articleId;
 

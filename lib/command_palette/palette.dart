@@ -12,7 +12,6 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/accounts_pod.dart';
-import 'package:island/legacy_route.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';

@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -306,6 +307,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
   }
 }
 
+@RoutePage()
 class ChatShellScreen extends HookConsumerWidget {
   final Widget child;
   const ChatShellScreen({super.key, required this.child});
@@ -419,6 +421,7 @@ class ChatFabWidget extends HookConsumerWidget {
   }
 }
 
+@RoutePage()
 class ChatListScreen extends HookConsumerWidget {
   final bool isAside;
   final bool isFloating;

@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -46,6 +47,7 @@ class SiteListNotifier extends AsyncNotifier<PaginationState<SnPublicationSite>>
   }
 }
 
+@RoutePage()
 class CreatorSiteListScreen extends HookConsumerWidget {
   const CreatorSiteListScreen({super.key, required this.pubName});
 

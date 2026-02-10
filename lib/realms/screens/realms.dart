@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +35,7 @@ Future<SnRealm?> realm(Ref ref, String? identifier) async {
   return SnRealm.fromJson(resp.data);
 }
 
+@RoutePage()
 class RealmListScreen extends HookConsumerWidget {
   const RealmListScreen({super.key});
 

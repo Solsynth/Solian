@@ -7,6 +7,7 @@ import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
@@ -175,6 +176,7 @@ final realmChatRoomsProvider = FutureProvider.autoDispose
           .toList();
     });
 
+@RoutePage()
 class RealmDetailScreen extends HookConsumerWidget {
   final String slug;
 
@@ -518,7 +520,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                         client.delete('/pass/realms/$realmSlug');
                         ref.invalidate(realmsJoinedProvider);
                         if (context.mounted) {
-                          context.pop(true);
+                          context.router.pop(true);
                         }
                       }
                     });
@@ -552,7 +554,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                         );
                         ref.invalidate(realmsJoinedProvider);
                         if (context.mounted) {
-                          context.pop(true);
+                          context.router.pop(true);
                         }
                       }
                     });
@@ -585,7 +587,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                   await client.delete('/pass/realms/$realmSlug/members/me');
                   ref.invalidate(realmsJoinedProvider);
                   if (context.mounted) {
-                    context.pop(true);
+                    context.router.pop(true);
                   }
                 }
               });

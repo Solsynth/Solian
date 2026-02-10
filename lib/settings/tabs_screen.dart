@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -43,6 +44,7 @@ const kTabRoutes = [
   '/developers',
 ];
 
+@RoutePage()
 class TabsScreen extends HookConsumerWidget {
   final Widget? child;
   const TabsScreen({super.key, this.child});

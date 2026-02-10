@@ -2,9 +2,9 @@ import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -19,6 +19,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class NewChatScreen extends StatelessWidget {
   const NewChatScreen({super.key});
 
@@ -28,6 +29,7 @@ class NewChatScreen extends StatelessWidget {
   }
 }
 
+@RoutePage()
 class EditChatScreen extends HookConsumerWidget {
   final String? id;
   const EditChatScreen({super.key, this.id});
@@ -136,7 +138,7 @@ class EditChatScreen extends HookConsumerWidget {
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.pop(SnChatRoom.fromJson(resp.data));
+          context.router.pop(SnChatRoom.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);

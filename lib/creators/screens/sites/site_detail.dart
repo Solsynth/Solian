@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -32,6 +33,7 @@ Future<SnPublicationSite> publicationSiteDetail(
   return SnPublicationSite.fromJson(resp.data);
 }
 
+@RoutePage()
 class PublicationSiteDetailScreen extends HookConsumerWidget {
   final String siteSlug;
   final String pubName;

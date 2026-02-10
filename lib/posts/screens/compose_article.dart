@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -24,6 +25,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class ArticleEditScreen extends HookConsumerWidget {
   final String id;
   const ArticleEditScreen({super.key, required this.id});
@@ -45,6 +47,7 @@ class ArticleEditScreen extends HookConsumerWidget {
   }
 }
 
+@RoutePage()
 class ArticleComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;

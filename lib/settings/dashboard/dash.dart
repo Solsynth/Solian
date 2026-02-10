@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -33,6 +34,7 @@ import 'package:island/settings/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+@RoutePage()
 class DashboardScreen extends HookConsumerWidget {
   const DashboardScreen({super.key});
 

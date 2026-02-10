@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
@@ -13,6 +13,7 @@ import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -32,6 +33,7 @@ Future<int> totalMessagesCount(Ref ref, String roomId) async {
   return database.getTotalMessagesForRoom(roomId);
 }
 
+@RoutePage()
 class ChatDetailScreen extends HookConsumerWidget {
   final String id;
   const ChatDetailScreen({super.key, required this.id});
@@ -433,9 +435,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                                 ),
                               ),
                               onTap: () async {
-                                final result = await context.pushNamed(
-                                  'searchMessages',
-                                  pathParameters: {'id': id},
+                                final result = await context.router.push(
+                                  SearchMessagesRoute(roomId: id),
                                 );
                                 if (result is SearchMessagesResult) {
                                   // Navigate back to room screen with message to jump to

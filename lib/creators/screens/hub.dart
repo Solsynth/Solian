@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -304,6 +305,7 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
   }
 }
 
+@RoutePage()
 class CreatorHubScreen extends HookConsumerWidget {
   const CreatorHubScreen({super.key});
 

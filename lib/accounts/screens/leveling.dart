@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -61,6 +62,7 @@ class LevelingHistoryNotifier
   }
 }
 
+@RoutePage()
 class LevelingScreen extends HookConsumerWidget {
   const LevelingScreen({super.key});
 
