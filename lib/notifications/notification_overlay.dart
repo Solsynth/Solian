@@ -60,6 +60,10 @@ class NotificationOverlay extends HookConsumerWidget {
     } else {
       // Non-desktop: use Stack with overlapping
       const double overlap = 20.0;
+      // Calculate actual height needed for notifications
+      // Each notification has some height, and they overlap
+      // We use a reasonable max height estimate (overlap * count + single notification height)
+      final calculatedHeight = overlap * (notifications.length - 1) + 120.0;
 
       return Positioned(
         top: topOffset,
@@ -68,9 +72,10 @@ class NotificationOverlay extends HookConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
-            height: MediaQuery.sizeOf(context).height,
+            height: calculatedHeight,
             child: Stack(
               alignment: Alignment.topCenter,
+              clipBehavior: Clip.none,
               children: notifications.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;
