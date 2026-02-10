@@ -40,34 +40,28 @@ class FileUploader {
     return digest.toString();
   }
 
-  /// Reads the next chunk from a stream subscription.
-  Future<Uint8List> _readNextChunk(
-    StreamSubscription<List<int>> subscription,
-    int size,
-  ) async {
-    final completer = Completer<Uint8List>();
+  /// Reads chunks from a stream and yields them as they fill to the specified size.
+  /// This is memory-efficient as it only holds one chunk at a time.
+  Stream<Uint8List> _readChunksFromStream(
+    Stream<List<int>> stream,
+    int chunkSize,
+  ) async* {
     final buffer = <int>[];
-    int remaining = size;
 
-    void onData(List<int> data) {
+    await for (final data in stream) {
       buffer.addAll(data);
-      remaining -= data.length;
-      if (remaining <= 0) {
-        subscription.pause();
-        completer.complete(Uint8List.fromList(buffer.sublist(0, size)));
+
+      // Yield complete chunks
+      while (buffer.length >= chunkSize) {
+        yield Uint8List.fromList(buffer.sublist(0, chunkSize));
+        buffer.removeRange(0, chunkSize);
       }
     }
 
-    void onDone() {
-      if (!completer.isCompleted) {
-        completer.complete(Uint8List.fromList(buffer));
-      }
+    // Yield any remaining data as the final chunk
+    if (buffer.isNotEmpty) {
+      yield Uint8List.fromList(buffer);
     }
-
-    subscription.onData(onData);
-    subscription.onDone(onDone);
-
-    return completer.future;
   }
 
   /// Creates an upload task for the given file.
@@ -181,7 +175,6 @@ class FileUploader {
 
     final taskId = createResponse['task_id'] as String;
     final chunkSize = createResponse['chunk_size'] as int;
-    final chunksCount = createResponse['chunks_count'] as int;
     int totalSize;
     if (fileData is XFile) {
       totalSize = await fileData.length();
@@ -193,47 +186,44 @@ class FileUploader {
 
     // Step 2: Upload chunks
     int bytesUploaded = 0;
+    int chunkIndex = 0;
     if (fileData is XFile) {
-      // Use stream for XFile
-      final subscription = fileData.openRead().listen(null);
-      subscription.pause();
-      for (int i = 0; i < chunksCount; i++) {
-        subscription.resume();
-        final chunkData = await _readNextChunk(subscription, chunkSize);
+      // Stream chunks from XFile - memory efficient for large files
+      await for (final chunk in _readChunksFromStream(
+        fileData.openRead(),
+        chunkSize,
+      )) {
         await uploadChunk(
           taskId: taskId,
-          chunkIndex: i,
-          chunkData: chunkData,
+          chunkIndex: chunkIndex,
+          chunkData: chunk,
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
           },
         );
-        bytesUploaded += chunkData.length;
+        bytesUploaded += chunk.length;
+        chunkIndex++;
       }
-      subscription.cancel();
     } else if (fileData is Uint8List) {
-      // Use old way for Uint8List
-      final chunks = <Uint8List>[];
+      // For Uint8List, we can use the simple chunked approach
+      // since the data is already in memory
       for (int i = 0; i < fileData.length; i += chunkSize) {
         final end = i + chunkSize > fileData.length
             ? fileData.length
             : i + chunkSize;
-        chunks.add(Uint8List.fromList(fileData.sublist(i, end)));
-      }
-
-      // Upload each chunk
-      for (int i = 0; i < chunks.length; i++) {
+        final chunk = Uint8List.fromList(fileData.sublist(i, end));
         await uploadChunk(
           taskId: taskId,
-          chunkIndex: i,
-          chunkData: chunks[i],
+          chunkIndex: chunkIndex,
+          chunkData: chunk,
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
           },
         );
-        bytesUploaded += chunks[i].length;
+        bytesUploaded += chunk.length;
+        chunkIndex++;
       }
     } else {
       throw ArgumentError('Invalid fileData type');
