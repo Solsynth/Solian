@@ -22,17 +22,17 @@ Future<DevProject?> devProject(Ref ref, String pubName, String id) async {
 }
 
 @RoutePage()
-class EditProjectScreen extends HookConsumerWidget {
-  final String publisherName;
+class DeveloperProjectEditScreen extends HookConsumerWidget {
+  final String pubName;
   final String? id;
-  const EditProjectScreen({super.key, required this.publisherName, this.id});
+  const DeveloperProjectEditScreen({super.key, required this.pubName, this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isNew = id == null;
     final projectData = isNew
         ? null
-        : ref.watch(devProjectProvider(publisherName, id!));
+        : ref.watch(devProjectProvider(pubName, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final submitting = useState(false);
@@ -58,17 +58,14 @@ class EditProjectScreen extends HookConsumerWidget {
         'description': descriptionController.text,
       };
       if (isNew) {
-        await client.post(
-          '/develop/developers/$publisherName/projects',
-          data: data,
-        );
+        await client.post('/develop/developers/$pubName/projects', data: data);
       } else {
         await client.put(
-          '/develop/developers/$publisherName/projects/$id',
+          '/develop/developers/$pubName/projects/$id',
           data: data,
         );
       }
-      ref.invalidate(devProjectsProvider(publisherName));
+      ref.invalidate(devProjectsProvider(pubName));
       if (context.mounted) {
         context.pop();
       }
@@ -83,8 +80,7 @@ class EditProjectScreen extends HookConsumerWidget {
           : projectData?.hasError == true && !isNew
           ? ResponseErrorWidget(
               error: projectData!.error,
-              onRetry: () =>
-                  ref.invalidate(devProjectProvider(publisherName, id!)),
+              onRetry: () => ref.invalidate(devProjectProvider(pubName, id!)),
             )
           : SingleChildScrollView(
               child: Form(

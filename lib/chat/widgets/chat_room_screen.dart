@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -25,6 +24,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/attachment_uploader.dart';
@@ -310,10 +310,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () async {
-              final result = await context.pushNamed(
-                'chatDetail',
-                pathParameters: {'id': id},
-              );
+              final result = await context.router.push(ChatDetailRoute(id: id));
               if (result is SearchMessagesResult && messages.value != null) {
                 final messageId = result.messageId;
                 messagesNotifier.jumpToMessage(messageId).then((index) {

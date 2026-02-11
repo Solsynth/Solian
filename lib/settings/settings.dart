@@ -1011,7 +1011,10 @@ class SettingsScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('settings').tr()),
+      appBar: AppBar(
+        title: Text('settings').tr(),
+        leading: const PageBackButton(backTo: '/account'),
+      ),
       body: Focus(
         autofocus: true,
         onKeyEvent: (node, event) {

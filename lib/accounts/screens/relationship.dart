@@ -292,7 +292,10 @@ class RelationshipScreen extends HookConsumerWidget {
     final requests = ref.watch(friendRequestProvider);
 
     return AppScaffold(
-      appBar: AppBar(title: Text('relationships').tr()),
+      appBar: AppBar(
+        title: Text('relationships').tr(),
+        leading: const PageBackButton(backTo: '/account'),
+      ),
       body: Column(
         children: [
           ListTile(

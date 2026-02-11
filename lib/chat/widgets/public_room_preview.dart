@@ -1,6 +1,6 @@
+import "package:auto_route/auto_route.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
-import "package:go_router/go_router.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
@@ -10,6 +10,7 @@ import "package:island/data/message.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/responsive.dart";
+import "package:island/route.gr.dart";
 import "package:island/shared/widgets/alert.dart";
 import "package:island/shared/widgets/app_scaffold.dart";
 import "package:island/drive/widgets/cloud_files.dart";
@@ -168,7 +169,7 @@ class PublicRoomPreview extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              context.pushNamed('chatDetail', pathParameters: {'id': id});
+              context.router.push(ChatDetailRoute(id: id));
             },
           ),
           const Gap(8),

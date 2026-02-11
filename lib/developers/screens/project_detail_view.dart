@@ -103,7 +103,7 @@ class ProjectDetailView extends HookConsumerWidget {
             child: TabBarView(
               controller: tabController,
               children: [
-                CustomAppsScreen(
+                DeveloperAppListScreen(
                   publisherName: publisherName,
                   projectId: project.id,
                 ),
@@ -134,7 +134,7 @@ class ProjectDetailView extends HookConsumerWidget {
             child: TabBarView(
               controller: tabController,
               children: [
-                CustomAppsScreen(
+                DeveloperAppListScreen(
                   publisherName: publisherName,
                   projectId: project.id,
                 ),

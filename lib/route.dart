@@ -31,7 +31,7 @@ class AppRouter extends RootStackRouter {
     // AutoRoute(page: LogsRoute.page, path: '/logs'),
 
     // Web articles
-    AutoRoute(page: ArticlesRoute.page, path: '/feeds/articles'),
+    AutoRoute(page: ArticleStandRoute.page, path: '/feeds/articles'),
     AutoRoute(page: ArticleDetailRoute.page, path: '/feeds/articles/:id'),
 
     // Auth routes
@@ -143,20 +143,20 @@ class AppRouter extends RootStackRouter {
           page: CreatorHubRoute.page,
           path: 'creators',
           children: [
-            AutoRoute(page: WebFeedListRoute.page, path: ':name/feeds'),
-            AutoRoute(page: CreatorPostListRoute.page, path: ':name/posts'),
-            AutoRoute(page: CreatorPollListRoute.page, path: ':name/polls'),
+            AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
+            AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
+            AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
             AutoRoute(
               page: CreatorSiteListRoute.page,
-              path: ':name/sites',
+              path: ':pubName/sites',
               children: [
-                AutoRoute(
-                  page: PublicationSiteDetailRoute.page,
-                  path: ':siteSlug',
-                ),
+                AutoRoute(page: CreatorSiteDetailRoute.page, path: ':siteSlug'),
               ],
             ),
-            AutoRoute(page: StickersRoute.page, path: ':name/stickers'),
+            AutoRoute(
+              page: CreatorStickerListRoute.page,
+              path: ':pubName/stickers',
+            ),
           ],
         ),
 
@@ -165,17 +165,26 @@ class AppRouter extends RootStackRouter {
           page: DeveloperHubRoute.page,
           path: 'developers',
           children: [
-            AutoRoute(page: NewProjectRoute.page, path: ':name/projects/new'),
             AutoRoute(
-              page: EditProjectRoute.page,
+              page: DeveloperProjectNewRoute.page,
+              path: ':name/projects/new',
+            ),
+            AutoRoute(
+              page: DeveloperProjectEditRoute.page,
               path: ':name/projects/:id/edit',
             ),
             AutoRoute(
-              page: CustomAppsRoute.page,
+              page: DeveloperAppListRoute.page,
               path: ':name/projects/:projectId',
               children: [
-                AutoRoute(page: AppDetailRoute.page, path: 'apps/:appId'),
-                AutoRoute(page: BotDetailRoute.page, path: 'bots/:botId'),
+                AutoRoute(
+                  page: DeveloperAppDetailRoute.page,
+                  path: 'apps/:appId',
+                ),
+                AutoRoute(
+                  page: DeveloperBotDetailRoute.page,
+                  path: 'bots/:botId',
+                ),
               ],
             ),
           ],

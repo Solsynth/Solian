@@ -34,11 +34,11 @@ Future<SnPublicationSite> publicationSiteDetail(
 }
 
 @RoutePage()
-class PublicationSiteDetailScreen extends HookConsumerWidget {
+class CreatorSiteDetailScreen extends HookConsumerWidget {
   final String siteSlug;
   final String pubName;
 
-  const PublicationSiteDetailScreen({
+  const CreatorSiteDetailScreen({
     super.key,
     required this.siteSlug,
     required this.pubName,

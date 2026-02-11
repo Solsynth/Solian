@@ -1,9 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_highlight/themes/a11y-dark.dart';
 import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -75,7 +75,7 @@ class MarkdownTextContent extends HookConsumerWidget {
 
     final onMentionTap = useCallback((String type, String id) {
       final fullPath = '/$type/$id';
-      context.push(fullPath);
+      context.router.pushPath(fullPath);
     }, [context]);
 
     final mentionGenerator = MentionChipGenerator(
@@ -142,7 +142,7 @@ class MarkdownTextContent extends HookConsumerWidget {
               if (url != null) {
                 if (url.scheme == 'solian') {
                   final fullPath = ['/', url.host, url.path].join('');
-                  context.push(fullPath);
+                  context.router.pushPath(fullPath);
                   return;
                 }
                 await openExternalLink(url, ref);

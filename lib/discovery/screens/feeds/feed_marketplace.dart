@@ -3,11 +3,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -79,6 +79,7 @@ class FeedMarketplaceScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: const Text('webFeeds').tr(),
+        leading: const PageBackButton(backTo: '/account'),
         actions: const [Gap(8)],
       ),
       body: Column(
@@ -136,9 +137,8 @@ class FeedMarketplaceScreen extends HookConsumerWidget {
                   trailing: const Icon(Symbols.chevron_right),
                   onTap: () {
                     // Navigate to web feed detail page
-                    context.pushNamed(
-                      'webFeedDetail',
-                      pathParameters: {'feedId': feed.id},
+                    context.router.push(
+                      FeedMarketplaceDetailRoute(id: feed.id),
                     );
                   },
                 );

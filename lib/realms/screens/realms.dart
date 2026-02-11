@@ -1,12 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/discovery/search.dart';
 import 'package:island/realms/realms_widgets/realm/realm_list_tile.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -53,9 +54,8 @@ class RealmListScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.travel_explore),
-            onPressed: () => context.pushNamed(
-              'universalSearch',
-              queryParameters: {'tab': 'realms'},
+            onPressed: () => context.router.push(
+              UniversalSearchRoute(initialTab: SearchTab.realms),
             ),
           ),
           IconButton(
@@ -106,12 +106,12 @@ class RealmListScreen extends HookConsumerWidget {
                         title: Text('createRealm').tr(),
                         onTap: () {
                           Navigator.of(context).pop();
-                          context.pushNamed('realmNew').then((value) {
-                            if (value != null) {
-                              // Fire realm refresh event if needed
-                              // eventBus.fire(const RealmsRefreshEvent());
-                            }
-                          });
+                          // context.router.push('realmNew').then((value) {
+                          //   if (value != null) {
+                          //     // Fire realm refresh event if needed
+                          //     // eventBus.fire(const RealmsRefreshEvent());
+                          //   }
+                          // });
                         },
                       ),
                       const Gap(16),

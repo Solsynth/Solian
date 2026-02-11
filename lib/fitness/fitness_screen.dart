@@ -41,6 +41,7 @@ class FitnessActivityScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('fitnessActivity').tr(),
+        leading: const PageBackButton(backTo: '/account'),
         actions: [
           IconButton(
             icon: const Icon(Symbols.refresh),

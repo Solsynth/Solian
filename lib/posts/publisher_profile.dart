@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -19,6 +18,7 @@ import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -204,9 +204,8 @@ class _PublisherBasisWidget extends StatelessWidget {
                         onTap: () {
                           if (data.account?.name != null) {
                             Navigator.pop(context, true);
-                            context.pushNamed(
-                              'accountProfile',
-                              pathParameters: {'name': data.account!.name},
+                            context.router.push(
+                              AccountProfileRoute(name: data.account!.name),
                             );
                           }
                         },
@@ -244,9 +243,8 @@ class _PublisherBasisWidget extends StatelessWidget {
                           onTap: () {
                             if (data.account?.name != null) {
                               Navigator.pop(context, true);
-                              context.pushNamed(
-                                'accountProfile',
-                                pathParameters: {'name': data.account!.name},
+                              context.router.push(
+                                AccountProfileRoute(name: data.account!.name),
                               );
                             }
                           },

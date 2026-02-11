@@ -1,15 +1,16 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/posts/widgets/compose/compose_card.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
@@ -38,7 +39,7 @@ class PostComposeSheet extends HookConsumerWidget {
   }) {
     // Check if editing an article
     if (originalPost != null && originalPost.type == 1) {
-      context.pushNamed('articleEdit', pathParameters: {'id': originalPost.id});
+      context.router.push(ArticleEditRoute(id: originalPost.id));
       return Future.value(true);
     }
 

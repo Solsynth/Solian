@@ -2,12 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/sites/site_edit.dart';
 import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -100,9 +100,8 @@ class _CreatorSiteItem extends HookConsumerWidget {
       child: InkWell(
         onTap: () {
           // Navigate to site detail screen
-          context.pushNamed(
-            'creatorSiteDetail',
-            pathParameters: {'name': pubName, 'siteSlug': site.slug},
+          context.router.push(
+            CreatorSiteDetailRoute(siteSlug: site.slug, pubName: pubName),
           );
         },
         child: Padding(

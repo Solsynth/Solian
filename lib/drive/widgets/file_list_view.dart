@@ -1,12 +1,12 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/screens/file_pool.dart';
@@ -15,6 +15,7 @@ import 'package:island/drive/drive_service.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -859,7 +860,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode && toggleSelection != null) {
           toggleSelection();
         } else {
-          context.push(getRoutePath(), extra: file);
+          context.router.pushPath(getRoutePath());
         }
       },
       child: Container(
@@ -1103,7 +1104,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode) {
           toggleSelection();
         } else {
-          context.push('/files/${fileItem.fileIndex.id}', extra: file);
+          context.router.push(FileDetailRoute(item: file));
         }
       },
       trailing: IconButton(
@@ -1171,7 +1172,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode) {
           toggleSelection();
         } else {
-          context.push('/files/${file.id}', extra: file);
+          context.router.push(FileDetailRoute(item: file));
         }
       },
       trailing: IconButton(

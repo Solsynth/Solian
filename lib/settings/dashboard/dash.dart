@@ -7,7 +7,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -22,6 +21,7 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/post_featured.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';
@@ -690,10 +690,7 @@ class ChatListCard extends HookConsumerWidget {
                     room: room,
                     isDirect: room.type == 1,
                     onTap: () {
-                      context.pushNamed(
-                        'chatRoom',
-                        pathParameters: {'id': room.id},
-                      );
+                      context.router.push(ChatRoomRoute(id: room.id));
                     },
                   );
                 }).toList(),

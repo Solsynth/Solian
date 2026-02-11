@@ -11,10 +11,10 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
-class WebFeedListScreen extends ConsumerWidget {
+class CreatorFeedListScreen extends ConsumerWidget {
   final String pubName;
 
-  const WebFeedListScreen({super.key, required this.pubName});
+  const CreatorFeedListScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
