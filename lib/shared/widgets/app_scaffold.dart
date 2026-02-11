@@ -421,10 +421,16 @@ class PageBackButton extends StatelessWidget {
 
     if (hasPageAction && isWideScreen(context)) return const SizedBox.shrink();
 
+    // Check if we can pop from the current router
+    final canPop = context.router.canPop();
+
+    // Show back arrow if either current router or inner router can pop
+    final showBackArrow = canPop || context.router is NestedStackRouter;
+
     return IconButton(
       onPressed: () {
         onWillPop?.call();
-        if (context.router.canPop()) {
+        if (showBackArrow) {
           context.router.pop();
         } else {
           context.router.navigatePath(backTo ?? '/');
@@ -432,7 +438,7 @@ class PageBackButton extends StatelessWidget {
       },
       icon: Icon(
         color: color,
-        context.router.canPop()
+        showBackArrow
             ? (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
                   ? Symbols.arrow_back_ios_new
                   : Symbols.arrow_back
