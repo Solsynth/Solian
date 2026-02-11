@@ -1,15 +1,12 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/posts/widgets/compose/compose_card.dart';
@@ -43,14 +40,15 @@ class PostComposeSheet extends HookConsumerWidget {
       return Future.value(true);
     }
 
-    return showModalBottomSheet<bool>(
+    return showDialog<bool>(
       context: context,
-      isScrollControlled: true,
       useRootNavigator: true,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
       builder: (context) => PostComposeSheet(
         originalPost: originalPost,
         initialState: initialState,
-        isBottomSheet: true,
+        isBottomSheet: false,
       ),
     );
   }
@@ -175,26 +173,80 @@ class PostComposeSheet extends HookConsumerWidget {
       ),
     ];
 
-    // Tablet will show a virtual keyboard, so we adjust the height factor accordingly
-    final isTablet =
-        isWideScreen(context) &&
-        !kIsWeb &&
-        (Platform.isAndroid || Platform.isIOS);
+    // Calculate dialog dimensions based on screen size
+    final screenSize = MediaQuery.of(context).size;
+    final isWide = isWideScreen(context);
 
-    return SheetScaffold(
-      heightFactor: isTablet ? 0.95 : 0.8,
-      titleText: 'postCompose'.tr(),
-      actions: actions,
-      child: PostComposeCard(
-        originalPost: effectiveOriginalPost,
-        initialState: restoredInitialState.value ?? initialState,
-        onCancel: () => Navigator.of(context).pop(),
-        onSubmit: () {
-          Navigator.of(context).pop(true);
-        },
-        isContained: true,
-        showHeader: false,
-        providedState: state,
+    // On small screens, use full screen; on larger screens, use centered card
+    final useFullScreen = !isWide;
+    final dialogWidth = useFullScreen ? screenSize.width : 600.0;
+    final dialogHeight = useFullScreen
+        ? screenSize.height
+        : screenSize.height * 0.75;
+
+    return Center(
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          width: dialogWidth,
+          height: dialogHeight,
+          constraints: BoxConstraints(
+            maxWidth: useFullScreen ? double.infinity : 600,
+            maxHeight: useFullScreen
+                ? double.infinity
+                : screenSize.height * 0.8,
+            minHeight: 400,
+          ),
+          decoration: useFullScreen
+              ? BoxDecoration(color: Theme.of(context).colorScheme.surface)
+              : BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+          child: useFullScreen
+              ? SheetScaffold(
+                  heightFactor: 1.0,
+                  titleText: 'postCompose'.tr(),
+                  actions: actions,
+                  child: PostComposeCard(
+                    originalPost: effectiveOriginalPost,
+                    initialState: restoredInitialState.value ?? initialState,
+                    onCancel: () => Navigator.of(context).pop(),
+                    onSubmit: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    isContained: true,
+                    showHeader: false,
+                    providedState: state,
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SheetScaffold(
+                    heightFactor: 1.0,
+                    titleText: 'postCompose'.tr(),
+                    actions: actions,
+                    child: PostComposeCard(
+                      originalPost: effectiveOriginalPost,
+                      initialState: restoredInitialState.value ?? initialState,
+                      onCancel: () => Navigator.of(context).pop(),
+                      onSubmit: () {
+                        Navigator.of(context).pop(true);
+                      },
+                      isContained: true,
+                      showHeader: false,
+                      providedState: state,
+                    ),
+                  ),
+                ),
+        ),
       ),
     );
   }
