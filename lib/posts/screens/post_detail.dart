@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -18,6 +17,7 @@ import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
@@ -118,13 +118,11 @@ class PostActionButtons extends HookConsumerWidget {
         FilledButton.tonal(
           onPressed: () {
             if (post.type == 1) {
-              context
-                  .pushNamed('articleEdit', pathParameters: {'id': post.id})
-                  .then((value) {
-                    if (value != null) {
-                      onRefresh?.call();
-                    }
-                  });
+              context.router.push(ArticleEditRoute(id: post.id)).then((value) {
+                if (value != null) {
+                  onRefresh?.call();
+                }
+              });
             } else {
               PostComposeSheet.show(context, originalPost: post).then((value) {
                 if (value == true) {

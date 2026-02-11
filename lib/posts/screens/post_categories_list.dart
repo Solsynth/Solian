@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/pods/post_categories.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -68,9 +68,11 @@ class _CategoriesTab extends ConsumerWidget {
               title: Text(category.categoryTranslationKey).tr(),
               subtitle: Text('postCount'.plural(category.usage)),
               onTap: () {
-                context.pushNamed(
-                  'postCategoryDetail',
-                  pathParameters: {'slug': category.slug},
+                context.router.push(
+                  PostCategoryDetailRoute(
+                    slug: category.slug,
+                    isCategory: true,
+                  ),
                 );
               },
             ),
@@ -102,9 +104,8 @@ class _TagsTab extends ConsumerWidget {
               trailing: const Icon(Symbols.chevron_right),
               subtitle: Text('postCount'.plural(tag.usage)),
               onTap: () {
-                context.pushNamed(
-                  'postTagDetail',
-                  pathParameters: {'slug': tag.slug},
+                context.router.push(
+                  PostCategoryDetailRoute(slug: tag.slug, isCategory: false),
                 );
               },
             ),

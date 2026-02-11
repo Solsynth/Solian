@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -130,7 +131,7 @@ class _TabsScreenContent extends HookConsumerWidget {
         ]),
     ];
 
-    final currentIndex = tabsRouter.activeIndex;
+    final currentIndex = min(tabsRouter.activeIndex, destinations.length - 1);
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);

@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/foundation.dart';
@@ -5,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/utils/share_utils.dart';
@@ -120,7 +121,7 @@ class PostActionableItem extends HookConsumerWidget {
       ),
       onTap: () {
         onOpen?.call();
-        context.pushNamed('postDetail', pathParameters: {'id': item.id});
+        context.router.push(PostDetailRoute(id: item.id));
       },
     );
 

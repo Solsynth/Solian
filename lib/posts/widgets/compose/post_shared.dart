@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -12,6 +12,7 @@ import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -218,10 +219,7 @@ class PostReplyPreview extends HookConsumerWidget {
                         ),
                         onTap: () {
                           onOpen?.call();
-                          context.pushNamed(
-                            'postDetail',
-                            pathParameters: {'id': post.id},
-                          );
+                          context.router.push(PostDetailRoute(id: post.id));
                         },
                       ),
                       if (post.repliesCount > 0)
@@ -637,10 +635,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
     }
 
     return GestureDetector(
-      onTap: () => context.pushNamed(
-        'postDetail',
-        pathParameters: {'id': referencePost!.id},
-      ),
+      onTap: () => context.router.push(PostDetailRoute(id: referencePost!.id)),
       child: content,
     );
   }
@@ -759,9 +754,8 @@ class PostHeader extends HookConsumerWidget {
                   onTap: isInteractive && _getPublisherName(item) != null
                       ? () {
                           if (item.publisher != null) {
-                            context.pushNamed(
-                              'publisherProfile',
-                              pathParameters: {'name': item.publisher!.name},
+                            context.router.push(
+                              PublisherProfileRoute(name: item.publisher!.name),
                             );
                           }
                         }
@@ -841,9 +835,8 @@ class PostHeader extends HookConsumerWidget {
                                 ],
                               ),
                               onTap: () {
-                                GoRouter.of(context).pushNamed(
-                                  'realmDetail',
-                                  pathParameters: {'slug': item.realm!.slug},
+                                context.router.push(
+                                  RealmDetailRoute(slug: item.realm!.slug),
                                 );
                               },
                             ),
@@ -924,9 +917,11 @@ class PostBody extends ConsumerWidget {
               InkWell(
                 onTap: isInteractive
                     ? () {
-                        GoRouter.of(context).pushNamed(
-                          'postTagDetail',
-                          pathParameters: {'slug': tag.slug},
+                        context.router.push(
+                          PostCategoryDetailRoute(
+                            slug: tag.slug,
+                            isCategory: false,
+                          ),
                         );
                       }
                     : null,
@@ -950,9 +945,11 @@ class PostBody extends ConsumerWidget {
               InkWell(
                 onTap: isInteractive
                     ? () {
-                        GoRouter.of(context).pushNamed(
-                          'postCategoryDetail',
-                          pathParameters: {'slug': category.slug},
+                        context.router.push(
+                          PostCategoryDetailRoute(
+                            slug: category.slug,
+                            isCategory: true,
+                          ),
                         );
                       }
                     : null,
