@@ -2,12 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/edit_bot.dart';
 import 'package:island/developers/screens/new_bot.dart';
 import 'package:island/developers/models/bot.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -196,13 +196,12 @@ class BotsScreen extends HookConsumerWidget {
                               },
                             ),
                             onTap: () {
-                              context.pushNamed(
-                                'developerBotDetail',
-                                pathParameters: {
-                                  'name': publisherName,
-                                  'projectId': projectId,
-                                  'botId': bot.id,
-                                },
+                              context.router.push(
+                                DeveloperBotDetailRoute(
+                                  pubName: publisherName,
+                                  projectId: projectId,
+                                  botId: bot.id,
+                                ),
                               );
                             },
                           ),

@@ -1,14 +1,15 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/core/widgets/content/profile_decoration.dart';
 import 'package:island/shared/widgets/content/video.native.dart';
@@ -138,11 +139,7 @@ class CloudFileWidget extends HookConsumerWidget {
                         size: 16,
                       ),
                       onPressed: () {
-                        context.pushNamed(
-                          'fileDetail',
-                          pathParameters: {'id': item.id},
-                          extra: item,
-                        );
+                        context.router.push(FileDetailRoute(item: item));
                       },
                       padding: EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
@@ -238,11 +235,7 @@ class CloudFileWidget extends HookConsumerWidget {
                         size: 16,
                       ),
                       onPressed: () {
-                        context.pushNamed(
-                          'fileDetail',
-                          pathParameters: {'id': item.id},
-                          extra: item,
-                        );
+                        context.router.push(FileDetailRoute(item: item));
                       },
                       padding: EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
@@ -313,11 +306,7 @@ class CloudFileWidget extends HookConsumerWidget {
                   children: [
                     TextButton.icon(
                       onPressed: () {
-                        context.pushNamed(
-                          'fileDetail',
-                          pathParameters: {'id': item.id},
-                          extra: item,
-                        );
+                        context.router.push(FileDetailRoute(item: item));
                       },
                       icon: const Icon(Symbols.info),
                       label: Text('info').tr(),

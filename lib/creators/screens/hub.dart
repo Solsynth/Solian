@@ -3,7 +3,6 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,6 +12,7 @@ import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -391,9 +391,8 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.ar_stickers),
           onTap: () {
-            context.pushNamed(
-              'creatorStickers',
-              pathParameters: {'name': currentPublisher.value!.name},
+            context.router.push(
+              CreatorSiteListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),
@@ -406,9 +405,8 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.sticky_note_2),
           onTap: () {
-            context.pushNamed(
-              'creatorPosts',
-              pathParameters: {'name': currentPublisher.value!.name},
+            context.router.push(
+              CreatorPostListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),
@@ -421,9 +419,8 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.poll),
           onTap: () {
-            context.pushNamed(
-              'creatorPolls',
-              pathParameters: {'name': currentPublisher.value!.name},
+            context.router.push(
+              CreatorPollListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),
@@ -436,9 +433,8 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.web),
           onTap: () {
-            context.pushNamed(
-              'creatorSites',
-              pathParameters: {'name': currentPublisher.value!.name},
+            context.router.push(
+              CreatorSiteListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),
@@ -451,7 +447,9 @@ class CreatorHubScreen extends HookConsumerWidget {
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.rss_feed),
           onTap: () {
-            context.push('/creators/${currentPublisher.value!.name}/feeds');
+            context.router.push(
+              CreatorFeedListRoute(pubName: currentPublisher.value!.name),
+            );
           },
         ),
       ];

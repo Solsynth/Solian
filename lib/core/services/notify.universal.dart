@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
@@ -61,7 +61,7 @@ Future<void> initializeLocalNotifications() async {
       if (payload != null) {
         if (payload.startsWith('/')) {
           // In-app routes
-          rootNavigatorKey.currentContext?.push(payload);
+          rootNavigatorKey.currentContext?.router.pushPath(payload);
         } else {
           // External URLs
           launchUrlString(payload);

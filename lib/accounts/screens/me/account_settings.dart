@@ -418,6 +418,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('accountSettings').tr(),
+        leading: const PageBackButton(backTo: '/account'),
         actions: isDesktop
             ? [
                 IconButton(

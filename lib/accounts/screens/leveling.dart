@@ -82,6 +82,7 @@ class LevelingScreen extends HookConsumerWidget {
       child: AppScaffold(
         appBar: AppBar(
           title: Text('levelingProgress'.tr()),
+          leading: const PageBackButton(backTo: '/account'),
           bottom: TabBar(
             tabs: [
               Tab(

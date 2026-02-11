@@ -10,18 +10,17 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:go_router/go_router.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
-class BotDetailScreen extends HookConsumerWidget {
-  final String publisherName;
+class DeveloperBotDetailScreen extends HookConsumerWidget {
+  final String pubName;
   final String projectId;
   final String botId;
 
-  const BotDetailScreen({
+  const DeveloperBotDetailScreen({
     super.key,
-    required this.publisherName,
+    required this.pubName,
     required this.projectId,
     required this.botId,
   });
@@ -29,7 +28,7 @@ class BotDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 2);
-    final botData = ref.watch(botProvider(publisherName, projectId, botId));
+    final botData = ref.watch(botProvider(pubName, projectId, botId));
 
     return AppScaffold(
       isNoBackground: false,
@@ -41,14 +40,14 @@ class BotDetailScreen extends HookConsumerWidget {
             onPressed: botData.value == null
                 ? null
                 : () {
-                    context.pushNamed(
-                      'developerBotEdit',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                        'id': botId,
-                      },
-                    );
+                    // context.router.push(
+                    //   'developerBotEdit',
+                    //   pathParameters: {
+                    //     'name': publisherName,
+                    //     'projectId': projectId,
+                    //     'id': botId,
+                    //   },
+                    // );
                   },
           ),
         ],
@@ -97,7 +96,7 @@ class BotDetailScreen extends HookConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: BotKeysScreen(
-                    publisherName: publisherName,
+                    publisherName: pubName,
                     projectId: projectId,
                     botId: botId,
                   ),
@@ -109,8 +108,7 @@ class BotDetailScreen extends HookConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => ResponseErrorWidget(
           error: err,
-          onRetry: () =>
-              ref.invalidate(botProvider(publisherName, projectId, botId)),
+          onRetry: () => ref.invalidate(botProvider(pubName, projectId, botId)),
         ),
       ),
     );

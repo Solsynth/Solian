@@ -1,8 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class WebArticleCard extends StatelessWidget {
@@ -18,7 +19,7 @@ class WebArticleCard extends StatelessWidget {
   });
 
   void _onTap(BuildContext context) {
-    context.pushNamed('articleDetail', pathParameters: {'id': article.id});
+    context.router.push(ArticleDetailRoute(articleId: article.id));
   }
 
   @override
@@ -85,7 +86,7 @@ class WebArticleDiscoveryCard extends StatelessWidget {
   });
 
   void _onTap(BuildContext context) {
-    context.pushNamed('articleDetail', pathParameters: {'id': article.id});
+    context.router.push(ArticleDetailRoute(articleId: article.id));
   }
 
   @override

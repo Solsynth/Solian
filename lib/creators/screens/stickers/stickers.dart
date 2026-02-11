@@ -23,9 +23,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'stickers.g.dart';
 
 @RoutePage()
-class StickersScreen extends HookConsumerWidget {
+class CreatorStickerListScreen extends HookConsumerWidget {
   final String pubName;
-  const StickersScreen({super.key, required this.pubName});
+  const CreatorStickerListScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

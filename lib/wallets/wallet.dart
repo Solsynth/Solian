@@ -1301,6 +1301,7 @@ class WalletScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('wallet').tr(),
+        leading: const PageBackButton(backTo: '/account'),
         actions: [
           if (currentTabIndex.value != 2) // Hide for lottery tab
             IconButton(

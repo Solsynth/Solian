@@ -1,12 +1,13 @@
 import 'dart:io';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -294,7 +295,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
         // Navigate to chat if requested
         if (shouldNavigate == true && mounted) {
-          context.push('/chat/${chatRoom.id}');
+          context.router.push(ChatRoomRoute(id: chatRoom.id));
         }
       }
     } catch (e) {
@@ -411,11 +412,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
           if (mounted) {
             Navigator.of(context).pop(); // Close share sheet
             if (shouldView == true) {
-              context.pushNamed(
-                'fileDetail',
-                pathParameters: {'id': uploadedFiles.first.id},
-                extra: uploadedFiles.first,
-              );
+              context.router.push(FileDetailRoute(item: uploadedFiles.first));
             }
           }
         } else {

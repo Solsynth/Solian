@@ -14,11 +14,11 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -264,10 +264,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     ChatRoomListTile(
                       room: room,
                       onTap: () {
-                        context.pushNamed(
-                          'chatRoom',
-                          pathParameters: {'id': room.id},
-                        );
+                        context.router.push(ChatRoomRoute(id: room.id));
                       },
                     ),
                 ],
@@ -480,10 +477,10 @@ class _RealmActionMenu extends HookConsumerWidget {
         if (isModerator)
           PopupMenuItem(
             onTap: () {
-              context.pushReplacementNamed(
-                'realmEdit',
-                pathParameters: {'slug': realmSlug},
-              );
+              // context.router.push(
+              //   'realmEdit',
+              //   pathParameters: {'slug': realmSlug},
+              // );
             },
             child: Row(
               children: [

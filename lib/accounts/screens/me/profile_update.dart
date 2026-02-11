@@ -224,7 +224,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('updateYourProfile').tr(),
-        leading: const PageBackButton(),
+        leading: const PageBackButton(backTo: '/account'),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),

@@ -3,7 +3,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/app_secrets.dart';
 import 'package:island/developers/screens/apps.dart';
@@ -15,14 +14,14 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
-class AppDetailScreen extends HookConsumerWidget {
-  final String publisherName;
+class DeveloperAppDetailScreen extends HookConsumerWidget {
+  final String pubName;
   final String projectId;
   final String appId;
 
-  const AppDetailScreen({
+  const DeveloperAppDetailScreen({
     super.key,
-    required this.publisherName,
+    required this.pubName,
     required this.projectId,
     required this.appId,
   });
@@ -30,9 +29,7 @@ class AppDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 2);
-    final appData = ref.watch(
-      customAppProvider(publisherName, projectId, appId),
-    );
+    final appData = ref.watch(customAppProvider(pubName, projectId, appId));
 
     return AppScaffold(
       isNoBackground: false,
@@ -44,14 +41,14 @@ class AppDetailScreen extends HookConsumerWidget {
             onPressed: appData.value == null
                 ? null
                 : () {
-                    context.pushNamed(
-                      'developerAppEdit',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                        'id': appId,
-                      },
-                    );
+                    // context.router.push(
+                    //   'developerAppEdit',
+                    //   pathParameters: {
+                    //     'name': publisherName,
+                    //     'projectId': projectId,
+                    //     'id': appId,
+                    //   },
+                    // );
                   },
           ),
           const Gap(8),
@@ -98,7 +95,7 @@ class AppDetailScreen extends HookConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: AppSecretsScreen(
-                    publisherName: publisherName,
+                    publisherName: pubName,
                     projectId: projectId,
                     appId: appId,
                   ),
@@ -110,9 +107,8 @@ class AppDetailScreen extends HookConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => ResponseErrorWidget(
           error: err,
-          onRetry: () => ref.invalidate(
-            customAppProvider(publisherName, projectId, appId),
-          ),
+          onRetry: () =>
+              ref.invalidate(customAppProvider(pubName, projectId, appId)),
         ),
       ),
     );

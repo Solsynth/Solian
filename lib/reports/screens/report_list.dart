@@ -1,11 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -30,7 +30,10 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(title: Text('abuseReports').tr()),
+      appBar: AppBar(
+        title: Text('abuseReports').tr(),
+        leading: const PageBackButton(backTo: '/account'),
+      ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
@@ -59,9 +62,8 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                   ),
                   child: InkWell(
                     onTap: () {
-                      context.pushNamed(
-                        'reportDetail',
-                        pathParameters: {'id': report.id},
+                      context.router.push(
+                        AbuseReportDetailRoute(reportId: report.id),
                       );
                     },
                     child: Padding(

@@ -105,8 +105,8 @@ Future<List<SnWebFeed>> subscribedFeeds(Ref ref) async {
 }
 
 @RoutePage()
-class ArticlesScreen extends ConsumerWidget {
-  const ArticlesScreen({super.key});
+class ArticleStandScreen extends ConsumerWidget {
+  const ArticleStandScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

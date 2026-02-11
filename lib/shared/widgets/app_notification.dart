@@ -1,5 +1,5 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -26,7 +26,7 @@ class NotificationCard extends HookConsumerWidget {
           }
           if (uri.startsWith('/')) {
             // In-app routes
-            rootNavigatorKey.currentContext?.push(
+            rootNavigatorKey.currentContext?.router.pushPath(
               notification.meta['action_uri'],
             );
           } else {

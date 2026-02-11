@@ -1,8 +1,9 @@
 import 'dart:io';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
-import 'package:go_router/go_router.dart';
 import 'package:island/route.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/talker.dart';
 import 'package:quick_actions/quick_actions.dart';
 
@@ -67,15 +68,15 @@ class QuickActionsService {
         break;
 
       case 'explore':
-        context.go('/explore');
+        context.router.navigate(const ExploreRoute());
         break;
 
       case 'chats':
-        context.go('/chat');
+        context.router.navigate(const ChatRoute());
         break;
 
       case 'notifications':
-        context.go('/notifications');
+        eventBus.fire(ShowNotificationSheetEvent());
         break;
 
       default:

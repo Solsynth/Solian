@@ -13,73 +13,73 @@ import 'package:auto_route/auto_route.dart' as _i68;
 import 'package:flutter/foundation.dart' as _i70;
 import 'package:flutter/material.dart' as _i69;
 import 'package:island/accounts/account_screen.dart' as _i5;
-import 'package:island/accounts/screens/leveling.dart' as _i42;
+import 'package:island/accounts/screens/leveling.dart' as _i46;
 import 'package:island/accounts/screens/me/account_settings.dart' as _i6;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i7;
 import 'package:island/accounts/screens/profile.dart' as _i4;
-import 'package:island/accounts/screens/relationship.dart' as _i57;
-import 'package:island/auth/captcha.dart' as _i17;
-import 'package:island/auth/create_account.dart' as _i21;
-import 'package:island/auth/login.dart' as _i43;
-import 'package:island/auth/oidc.native.dart' as _i47;
-import 'package:island/chat/widgets/call_screen.dart' as _i16;
-import 'package:island/chat/widgets/chat_detail_screen.dart' as _i18;
-import 'package:island/chat/widgets/chat_list_screen.dart' as _i20;
-import 'package:island/chat/widgets/chat_room_form.dart' as _i32;
-import 'package:island/chat/widgets/chat_room_screen.dart' as _i19;
-import 'package:island/chat/widgets/chat_search_screen.dart' as _i58;
-import 'package:island/creators/screens/hub.dart' as _i22;
-import 'package:island/creators/screens/poll/poll_list.dart' as _i23;
-import 'package:island/creators/screens/posts/post_manage_list.dart' as _i24;
-import 'package:island/creators/screens/publishers_form.dart' as _i34;
-import 'package:island/creators/screens/sites/site_detail.dart' as _i53;
+import 'package:island/accounts/screens/relationship.dart' as _i59;
+import 'package:island/auth/captcha.dart' as _i15;
+import 'package:island/auth/create_account.dart' as _i19;
+import 'package:island/auth/login.dart' as _i47;
+import 'package:island/auth/oidc.native.dart' as _i50;
+import 'package:island/chat/widgets/call_screen.dart' as _i14;
+import 'package:island/chat/widgets/chat_detail_screen.dart' as _i16;
+import 'package:island/chat/widgets/chat_list_screen.dart' as _i18;
+import 'package:island/chat/widgets/chat_room_form.dart' as _i37;
+import 'package:island/chat/widgets/chat_room_screen.dart' as _i17;
+import 'package:island/chat/widgets/chat_search_screen.dart' as _i60;
+import 'package:island/creators/screens/hub.dart' as _i21;
+import 'package:island/creators/screens/poll/poll_list.dart' as _i22;
+import 'package:island/creators/screens/posts/post_manage_list.dart' as _i23;
+import 'package:island/creators/screens/publishers_form.dart' as _i38;
+import 'package:island/creators/screens/sites/site_detail.dart' as _i24;
 import 'package:island/creators/screens/sites/site_list.dart' as _i25;
-import 'package:island/creators/screens/stickers/stickers.dart' as _i62;
-import 'package:island/creators/screens/webfeed/webfeed_list.dart' as _i67;
-import 'package:island/developers/screens/app_detail.dart' as _i8;
-import 'package:island/developers/screens/app_secrets.dart' as _i9;
-import 'package:island/developers/screens/apps.dart' as _i26;
-import 'package:island/developers/screens/bot_detail.dart' as _i13;
-import 'package:island/developers/screens/bot_keys.dart' as _i14;
-import 'package:island/developers/screens/bots.dart' as _i15;
-import 'package:island/developers/screens/edit_app.dart' as _i30;
-import 'package:island/developers/screens/edit_bot.dart' as _i31;
-import 'package:island/developers/screens/edit_project.dart' as _i33;
-import 'package:island/developers/screens/hub.dart' as _i28;
-import 'package:island/developers/screens/new_app.dart' as _i45;
-import 'package:island/developers/screens/new_bot.dart' as _i44;
-import 'package:island/developers/screens/new_project.dart' as _i46;
-import 'package:island/discovery/explore.dart' as _i36;
-import 'package:island/discovery/screens/article_detail.dart' as _i11;
-import 'package:island/discovery/screens/articles.dart' as _i12;
-import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i37;
-import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i38;
-import 'package:island/discovery/screens/realms.dart' as _i29;
-import 'package:island/discovery/search.dart' as _i65;
-import 'package:island/drive/files/file_detail.dart' as _i39;
-import 'package:island/drive/files/file_list.dart' as _i40;
-import 'package:island/fitness/fitness_screen.dart' as _i41;
-import 'package:island/polls/screens/poll_editor.dart' as _i48;
+import 'package:island/creators/screens/stickers/stickers.dart' as _i26;
+import 'package:island/creators/screens/webfeed/webfeed_list.dart' as _i20;
+import 'package:island/developers/screens/app_detail.dart' as _i28;
+import 'package:island/developers/screens/app_secrets.dart' as _i8;
+import 'package:island/developers/screens/apps.dart' as _i29;
+import 'package:island/developers/screens/bot_detail.dart' as _i30;
+import 'package:island/developers/screens/bot_keys.dart' as _i12;
+import 'package:island/developers/screens/bots.dart' as _i13;
+import 'package:island/developers/screens/edit_app.dart' as _i35;
+import 'package:island/developers/screens/edit_bot.dart' as _i36;
+import 'package:island/developers/screens/edit_project.dart' as _i32;
+import 'package:island/developers/screens/hub.dart' as _i31;
+import 'package:island/developers/screens/new_app.dart' as _i49;
+import 'package:island/developers/screens/new_bot.dart' as _i48;
+import 'package:island/developers/screens/new_project.dart' as _i33;
+import 'package:island/discovery/explore.dart' as _i40;
+import 'package:island/discovery/screens/article_detail.dart' as _i10;
+import 'package:island/discovery/screens/articles.dart' as _i11;
+import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i41;
+import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i42;
+import 'package:island/discovery/screens/realms.dart' as _i34;
+import 'package:island/discovery/search.dart' as _i66;
+import 'package:island/drive/files/file_detail.dart' as _i43;
+import 'package:island/drive/files/file_list.dart' as _i44;
+import 'package:island/fitness/fitness_screen.dart' as _i45;
+import 'package:island/polls/screens/poll_editor.dart' as _i51;
 import 'package:island/posts/compose.dart' as _i72;
-import 'package:island/posts/screens/compose_article.dart' as _i10;
-import 'package:island/posts/screens/post_categories_list.dart' as _i49;
-import 'package:island/posts/screens/post_category_detail.dart' as _i50;
-import 'package:island/posts/screens/post_detail.dart' as _i51;
-import 'package:island/posts/screens/publisher_profile.dart' as _i54;
-import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i52;
-import 'package:island/realms/screens/realm_detail.dart' as _i55;
-import 'package:island/realms/screens/realm_form.dart' as _i35;
-import 'package:island/realms/screens/realms.dart' as _i56;
+import 'package:island/posts/screens/compose_article.dart' as _i9;
+import 'package:island/posts/screens/post_categories_list.dart' as _i52;
+import 'package:island/posts/screens/post_category_detail.dart' as _i53;
+import 'package:island/posts/screens/post_detail.dart' as _i54;
+import 'package:island/posts/screens/publisher_profile.dart' as _i56;
+import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i55;
+import 'package:island/realms/screens/realm_detail.dart' as _i57;
+import 'package:island/realms/screens/realm_form.dart' as _i39;
+import 'package:island/realms/screens/realms.dart' as _i58;
 import 'package:island/reports/screens/report_detail.dart' as _i2;
 import 'package:island/reports/screens/report_list.dart' as _i3;
 import 'package:island/settings/about.dart' as _i1;
 import 'package:island/settings/dashboard/dash.dart' as _i27;
-import 'package:island/settings/settings.dart' as _i59;
-import 'package:island/settings/tabs_screen.dart' as _i63;
-import 'package:island/stickers/screens/pack_detail.dart' as _i60;
-import 'package:island/stickers/screens/sticker_marketplace.dart' as _i61;
-import 'package:island/thoughts/screens/think.dart' as _i64;
-import 'package:island/wallets/wallet.dart' as _i66;
+import 'package:island/settings/settings.dart' as _i61;
+import 'package:island/settings/tabs_screen.dart' as _i64;
+import 'package:island/stickers/screens/pack_detail.dart' as _i62;
+import 'package:island/stickers/screens/sticker_marketplace.dart' as _i63;
+import 'package:island/thoughts/screens/think.dart' as _i65;
+import 'package:island/wallets/wallet.dart' as _i67;
 import 'package:solar_network_sdk/solar_network_sdk.dart' as _i71;
 
 /// generated route for
@@ -261,82 +261,7 @@ class AccountUpdateProfileRoute extends _i68.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i8.AppDetailScreen]
-class AppDetailRoute extends _i68.PageRouteInfo<AppDetailRouteArgs> {
-  AppDetailRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    required String appId,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         AppDetailRoute.name,
-         args: AppDetailRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           appId: appId,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'AppDetailRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<AppDetailRouteArgs>();
-      return _i8.AppDetailScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        appId: args.appId,
-      );
-    },
-  );
-}
-
-class AppDetailRouteArgs {
-  const AppDetailRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    required this.appId,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final String appId;
-
-  @override
-  String toString() {
-    return 'AppDetailRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, appId: $appId}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! AppDetailRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        appId == other.appId;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      appId.hashCode;
-}
-
-/// generated route for
-/// [_i9.AppSecretsScreen]
+/// [_i8.AppSecretsScreen]
 class AppSecretsRoute extends _i68.PageRouteInfo<AppSecretsRouteArgs> {
   AppSecretsRoute({
     _i69.Key? key,
@@ -361,7 +286,7 @@ class AppSecretsRoute extends _i68.PageRouteInfo<AppSecretsRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<AppSecretsRouteArgs>();
-      return _i9.AppSecretsScreen(
+      return _i8.AppSecretsScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -411,7 +336,7 @@ class AppSecretsRouteArgs {
 }
 
 /// generated route for
-/// [_i10.ArticleComposeScreen]
+/// [_i9.ArticleComposeScreen]
 class ArticleComposeRoute extends _i68.PageRouteInfo<ArticleComposeRouteArgs> {
   ArticleComposeRoute({
     _i69.Key? key,
@@ -436,7 +361,7 @@ class ArticleComposeRoute extends _i68.PageRouteInfo<ArticleComposeRouteArgs> {
       final args = data.argsAs<ArticleComposeRouteArgs>(
         orElse: () => const ArticleComposeRouteArgs(),
       );
-      return _i10.ArticleComposeScreen(
+      return _i9.ArticleComposeScreen(
         key: args.key,
         originalPost: args.originalPost,
         initialState: args.initialState,
@@ -478,7 +403,7 @@ class ArticleComposeRouteArgs {
 }
 
 /// generated route for
-/// [_i11.ArticleDetailScreen]
+/// [_i10.ArticleDetailScreen]
 class ArticleDetailRoute extends _i68.PageRouteInfo<ArticleDetailRouteArgs> {
   ArticleDetailRoute({
     _i69.Key? key,
@@ -496,7 +421,7 @@ class ArticleDetailRoute extends _i68.PageRouteInfo<ArticleDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ArticleDetailRouteArgs>();
-      return _i11.ArticleDetailScreen(key: args.key, articleId: args.articleId);
+      return _i10.ArticleDetailScreen(key: args.key, articleId: args.articleId);
     },
   );
 }
@@ -525,7 +450,7 @@ class ArticleDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i10.ArticleEditScreen]
+/// [_i9.ArticleEditScreen]
 class ArticleEditRoute extends _i68.PageRouteInfo<ArticleEditRouteArgs> {
   ArticleEditRoute({
     _i69.Key? key,
@@ -543,7 +468,7 @@ class ArticleEditRoute extends _i68.PageRouteInfo<ArticleEditRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ArticleEditRouteArgs>();
-      return _i10.ArticleEditScreen(key: args.key, id: args.id);
+      return _i9.ArticleEditScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -572,98 +497,23 @@ class ArticleEditRouteArgs {
 }
 
 /// generated route for
-/// [_i12.ArticlesScreen]
-class ArticlesRoute extends _i68.PageRouteInfo<void> {
-  const ArticlesRoute({List<_i68.PageRouteInfo>? children})
-    : super(ArticlesRoute.name, initialChildren: children);
+/// [_i11.ArticleStandScreen]
+class ArticleStandRoute extends _i68.PageRouteInfo<void> {
+  const ArticleStandRoute({List<_i68.PageRouteInfo>? children})
+    : super(ArticleStandRoute.name, initialChildren: children);
 
-  static const String name = 'ArticlesRoute';
+  static const String name = 'ArticleStandRoute';
 
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i12.ArticlesScreen();
+      return const _i11.ArticleStandScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i13.BotDetailScreen]
-class BotDetailRoute extends _i68.PageRouteInfo<BotDetailRouteArgs> {
-  BotDetailRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    required String botId,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         BotDetailRoute.name,
-         args: BotDetailRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           botId: botId,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'BotDetailRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<BotDetailRouteArgs>();
-      return _i13.BotDetailScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        botId: args.botId,
-      );
-    },
-  );
-}
-
-class BotDetailRouteArgs {
-  const BotDetailRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    required this.botId,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final String botId;
-
-  @override
-  String toString() {
-    return 'BotDetailRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, botId: $botId}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! BotDetailRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        botId == other.botId;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      botId.hashCode;
-}
-
-/// generated route for
-/// [_i14.BotKeysScreen]
+/// [_i12.BotKeysScreen]
 class BotKeysRoute extends _i68.PageRouteInfo<BotKeysRouteArgs> {
   BotKeysRoute({
     _i69.Key? key,
@@ -688,7 +538,7 @@ class BotKeysRoute extends _i68.PageRouteInfo<BotKeysRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<BotKeysRouteArgs>();
-      return _i14.BotKeysScreen(
+      return _i12.BotKeysScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -738,7 +588,7 @@ class BotKeysRouteArgs {
 }
 
 /// generated route for
-/// [_i15.BotsScreen]
+/// [_i13.BotsScreen]
 class BotsRoute extends _i68.PageRouteInfo<BotsRouteArgs> {
   BotsRoute({
     _i69.Key? key,
@@ -761,7 +611,7 @@ class BotsRoute extends _i68.PageRouteInfo<BotsRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<BotsRouteArgs>();
-      return _i15.BotsScreen(
+      return _i13.BotsScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -803,7 +653,7 @@ class BotsRouteArgs {
 }
 
 /// generated route for
-/// [_i16.CallScreen]
+/// [_i14.CallScreen]
 class CallRoute extends _i68.PageRouteInfo<CallRouteArgs> {
   CallRoute({
     _i69.Key? key,
@@ -821,7 +671,7 @@ class CallRoute extends _i68.PageRouteInfo<CallRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<CallRouteArgs>();
-      return _i16.CallScreen(key: args.key, room: args.room);
+      return _i14.CallScreen(key: args.key, room: args.room);
     },
   );
 }
@@ -850,7 +700,7 @@ class CallRouteArgs {
 }
 
 /// generated route for
-/// [_i17.CaptchaScreen]
+/// [_i15.CaptchaScreen]
 class CaptchaRoute extends _i68.PageRouteInfo<void> {
   const CaptchaRoute({List<_i68.PageRouteInfo>? children})
     : super(CaptchaRoute.name, initialChildren: children);
@@ -860,13 +710,13 @@ class CaptchaRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i17.CaptchaScreen();
+      return const _i15.CaptchaScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i18.ChatDetailScreen]
+/// [_i16.ChatDetailScreen]
 class ChatDetailRoute extends _i68.PageRouteInfo<ChatDetailRouteArgs> {
   ChatDetailRoute({
     _i69.Key? key,
@@ -884,7 +734,7 @@ class ChatDetailRoute extends _i68.PageRouteInfo<ChatDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ChatDetailRouteArgs>();
-      return _i18.ChatDetailScreen(key: args.key, id: args.id);
+      return _i16.ChatDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -913,7 +763,7 @@ class ChatDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i19.ChatRoomScreen]
+/// [_i17.ChatRoomScreen]
 class ChatRoomRoute extends _i68.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
     _i69.Key? key,
@@ -931,7 +781,7 @@ class ChatRoomRoute extends _i68.PageRouteInfo<ChatRoomRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ChatRoomRouteArgs>();
-      return _i19.ChatRoomScreen(key: args.key, id: args.id);
+      return _i17.ChatRoomScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -960,7 +810,7 @@ class ChatRoomRouteArgs {
 }
 
 /// generated route for
-/// [_i20.ChatScreen]
+/// [_i18.ChatScreen]
 class ChatRoute extends _i68.PageRouteInfo<void> {
   const ChatRoute({List<_i68.PageRouteInfo>? children})
     : super(ChatRoute.name, initialChildren: children);
@@ -970,13 +820,13 @@ class ChatRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i20.ChatScreen();
+      return const _i18.ChatScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i21.CreateAccountScreen]
+/// [_i19.CreateAccountScreen]
 class CreateAccountRoute extends _i68.PageRouteInfo<void> {
   const CreateAccountRoute({List<_i68.PageRouteInfo>? children})
     : super(CreateAccountRoute.name, initialChildren: children);
@@ -986,13 +836,61 @@ class CreateAccountRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i21.CreateAccountScreen();
+      return const _i19.CreateAccountScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i22.CreatorHubScreen]
+/// [_i20.CreatorFeedListScreen]
+class CreatorFeedListRoute
+    extends _i68.PageRouteInfo<CreatorFeedListRouteArgs> {
+  CreatorFeedListRoute({
+    _i69.Key? key,
+    required String pubName,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         CreatorFeedListRoute.name,
+         args: CreatorFeedListRouteArgs(key: key, pubName: pubName),
+         initialChildren: children,
+       );
+
+  static const String name = 'CreatorFeedListRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<CreatorFeedListRouteArgs>();
+      return _i20.CreatorFeedListScreen(key: args.key, pubName: args.pubName);
+    },
+  );
+}
+
+class CreatorFeedListRouteArgs {
+  const CreatorFeedListRouteArgs({this.key, required this.pubName});
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  @override
+  String toString() {
+    return 'CreatorFeedListRouteArgs{key: $key, pubName: $pubName}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CreatorFeedListRouteArgs) return false;
+    return key == other.key && pubName == other.pubName;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ pubName.hashCode;
+}
+
+/// generated route for
+/// [_i21.CreatorHubScreen]
 class CreatorHubRoute extends _i68.PageRouteInfo<void> {
   const CreatorHubRoute({List<_i68.PageRouteInfo>? children})
     : super(CreatorHubRoute.name, initialChildren: children);
@@ -1002,13 +900,13 @@ class CreatorHubRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i22.CreatorHubScreen();
+      return const _i21.CreatorHubScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i23.CreatorPollListScreen]
+/// [_i22.CreatorPollListScreen]
 class CreatorPollListRoute
     extends _i68.PageRouteInfo<CreatorPollListRouteArgs> {
   CreatorPollListRoute({
@@ -1027,7 +925,7 @@ class CreatorPollListRoute
     name,
     builder: (data) {
       final args = data.argsAs<CreatorPollListRouteArgs>();
-      return _i23.CreatorPollListScreen(key: args.key, pubName: args.pubName);
+      return _i22.CreatorPollListScreen(key: args.key, pubName: args.pubName);
     },
   );
 }
@@ -1056,7 +954,7 @@ class CreatorPollListRouteArgs {
 }
 
 /// generated route for
-/// [_i24.CreatorPostListScreen]
+/// [_i23.CreatorPostListScreen]
 class CreatorPostListRoute
     extends _i68.PageRouteInfo<CreatorPostListRouteArgs> {
   CreatorPostListRoute({
@@ -1075,7 +973,7 @@ class CreatorPostListRoute
     name,
     builder: (data) {
       final args = data.argsAs<CreatorPostListRouteArgs>();
-      return _i24.CreatorPostListScreen(key: args.key, pubName: args.pubName);
+      return _i23.CreatorPostListScreen(key: args.key, pubName: args.pubName);
     },
   );
 }
@@ -1101,6 +999,71 @@ class CreatorPostListRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ pubName.hashCode;
+}
+
+/// generated route for
+/// [_i24.CreatorSiteDetailScreen]
+class CreatorSiteDetailRoute
+    extends _i68.PageRouteInfo<CreatorSiteDetailRouteArgs> {
+  CreatorSiteDetailRoute({
+    _i69.Key? key,
+    required String siteSlug,
+    required String pubName,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         CreatorSiteDetailRoute.name,
+         args: CreatorSiteDetailRouteArgs(
+           key: key,
+           siteSlug: siteSlug,
+           pubName: pubName,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'CreatorSiteDetailRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<CreatorSiteDetailRouteArgs>();
+      return _i24.CreatorSiteDetailScreen(
+        key: args.key,
+        siteSlug: args.siteSlug,
+        pubName: args.pubName,
+      );
+    },
+  );
+}
+
+class CreatorSiteDetailRouteArgs {
+  const CreatorSiteDetailRouteArgs({
+    this.key,
+    required this.siteSlug,
+    required this.pubName,
+  });
+
+  final _i69.Key? key;
+
+  final String siteSlug;
+
+  final String pubName;
+
+  @override
+  String toString() {
+    return 'CreatorSiteDetailRouteArgs{key: $key, siteSlug: $siteSlug, pubName: $pubName}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CreatorSiteDetailRouteArgs) return false;
+    return key == other.key &&
+        siteSlug == other.siteSlug &&
+        pubName == other.pubName;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ siteSlug.hashCode ^ pubName.hashCode;
 }
 
 /// generated route for
@@ -1152,68 +1115,54 @@ class CreatorSiteListRouteArgs {
 }
 
 /// generated route for
-/// [_i26.CustomAppsScreen]
-class CustomAppsRoute extends _i68.PageRouteInfo<CustomAppsRouteArgs> {
-  CustomAppsRoute({
+/// [_i26.CreatorStickerListScreen]
+class CreatorStickerListRoute
+    extends _i68.PageRouteInfo<CreatorStickerListRouteArgs> {
+  CreatorStickerListRoute({
     _i69.Key? key,
-    required String publisherName,
-    required String projectId,
+    required String pubName,
     List<_i68.PageRouteInfo>? children,
   }) : super(
-         CustomAppsRoute.name,
-         args: CustomAppsRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-         ),
+         CreatorStickerListRoute.name,
+         args: CreatorStickerListRouteArgs(key: key, pubName: pubName),
          initialChildren: children,
        );
 
-  static const String name = 'CustomAppsRoute';
+  static const String name = 'CreatorStickerListRoute';
 
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<CustomAppsRouteArgs>();
-      return _i26.CustomAppsScreen(
+      final args = data.argsAs<CreatorStickerListRouteArgs>();
+      return _i26.CreatorStickerListScreen(
         key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
+        pubName: args.pubName,
       );
     },
   );
 }
 
-class CustomAppsRouteArgs {
-  const CustomAppsRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-  });
+class CreatorStickerListRouteArgs {
+  const CreatorStickerListRouteArgs({this.key, required this.pubName});
 
   final _i69.Key? key;
 
-  final String publisherName;
-
-  final String projectId;
+  final String pubName;
 
   @override
   String toString() {
-    return 'CustomAppsRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId}';
+    return 'CreatorStickerListRouteArgs{key: $key, pubName: $pubName}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! CustomAppsRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId;
+    if (other is! CreatorStickerListRouteArgs) return false;
+    return key == other.key && pubName == other.pubName;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^ publisherName.hashCode ^ projectId.hashCode;
+  int get hashCode => key.hashCode ^ pubName.hashCode;
 }
 
 /// generated route for
@@ -1233,7 +1182,219 @@ class DashboardRoute extends _i68.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i28.DeveloperHubScreen]
+/// [_i28.DeveloperAppDetailScreen]
+class DeveloperAppDetailRoute
+    extends _i68.PageRouteInfo<DeveloperAppDetailRouteArgs> {
+  DeveloperAppDetailRoute({
+    _i69.Key? key,
+    required String pubName,
+    required String projectId,
+    required String appId,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperAppDetailRoute.name,
+         args: DeveloperAppDetailRouteArgs(
+           key: key,
+           pubName: pubName,
+           projectId: projectId,
+           appId: appId,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperAppDetailRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperAppDetailRouteArgs>();
+      return _i28.DeveloperAppDetailScreen(
+        key: args.key,
+        pubName: args.pubName,
+        projectId: args.projectId,
+        appId: args.appId,
+      );
+    },
+  );
+}
+
+class DeveloperAppDetailRouteArgs {
+  const DeveloperAppDetailRouteArgs({
+    this.key,
+    required this.pubName,
+    required this.projectId,
+    required this.appId,
+  });
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  final String projectId;
+
+  final String appId;
+
+  @override
+  String toString() {
+    return 'DeveloperAppDetailRouteArgs{key: $key, pubName: $pubName, projectId: $projectId, appId: $appId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperAppDetailRouteArgs) return false;
+    return key == other.key &&
+        pubName == other.pubName &&
+        projectId == other.projectId &&
+        appId == other.appId;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ pubName.hashCode ^ projectId.hashCode ^ appId.hashCode;
+}
+
+/// generated route for
+/// [_i29.DeveloperAppListScreen]
+class DeveloperAppListRoute
+    extends _i68.PageRouteInfo<DeveloperAppListRouteArgs> {
+  DeveloperAppListRoute({
+    _i69.Key? key,
+    required String publisherName,
+    required String projectId,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperAppListRoute.name,
+         args: DeveloperAppListRouteArgs(
+           key: key,
+           publisherName: publisherName,
+           projectId: projectId,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperAppListRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperAppListRouteArgs>();
+      return _i29.DeveloperAppListScreen(
+        key: args.key,
+        publisherName: args.publisherName,
+        projectId: args.projectId,
+      );
+    },
+  );
+}
+
+class DeveloperAppListRouteArgs {
+  const DeveloperAppListRouteArgs({
+    this.key,
+    required this.publisherName,
+    required this.projectId,
+  });
+
+  final _i69.Key? key;
+
+  final String publisherName;
+
+  final String projectId;
+
+  @override
+  String toString() {
+    return 'DeveloperAppListRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperAppListRouteArgs) return false;
+    return key == other.key &&
+        publisherName == other.publisherName &&
+        projectId == other.projectId;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ publisherName.hashCode ^ projectId.hashCode;
+}
+
+/// generated route for
+/// [_i30.DeveloperBotDetailScreen]
+class DeveloperBotDetailRoute
+    extends _i68.PageRouteInfo<DeveloperBotDetailRouteArgs> {
+  DeveloperBotDetailRoute({
+    _i69.Key? key,
+    required String pubName,
+    required String projectId,
+    required String botId,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperBotDetailRoute.name,
+         args: DeveloperBotDetailRouteArgs(
+           key: key,
+           pubName: pubName,
+           projectId: projectId,
+           botId: botId,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperBotDetailRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperBotDetailRouteArgs>();
+      return _i30.DeveloperBotDetailScreen(
+        key: args.key,
+        pubName: args.pubName,
+        projectId: args.projectId,
+        botId: args.botId,
+      );
+    },
+  );
+}
+
+class DeveloperBotDetailRouteArgs {
+  const DeveloperBotDetailRouteArgs({
+    this.key,
+    required this.pubName,
+    required this.projectId,
+    required this.botId,
+  });
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  final String projectId;
+
+  final String botId;
+
+  @override
+  String toString() {
+    return 'DeveloperBotDetailRouteArgs{key: $key, pubName: $pubName, projectId: $projectId, botId: $botId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperBotDetailRouteArgs) return false;
+    return key == other.key &&
+        pubName == other.pubName &&
+        projectId == other.projectId &&
+        botId == other.botId;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ pubName.hashCode ^ projectId.hashCode ^ botId.hashCode;
+}
+
+/// generated route for
+/// [_i31.DeveloperHubScreen]
 class DeveloperHubRoute extends _i68.PageRouteInfo<DeveloperHubRouteArgs> {
   DeveloperHubRoute({
     _i69.Key? key,
@@ -1258,7 +1419,7 @@ class DeveloperHubRoute extends _i68.PageRouteInfo<DeveloperHubRouteArgs> {
       final args = data.argsAs<DeveloperHubRouteArgs>(
         orElse: () => const DeveloperHubRouteArgs(),
       );
-      return _i28.DeveloperHubScreen(
+      return _i31.DeveloperHubScreen(
         key: args.key,
         initialPublisherName: args.initialPublisherName,
         initialProjectId: args.initialProjectId,
@@ -1300,7 +1461,124 @@ class DeveloperHubRouteArgs {
 }
 
 /// generated route for
-/// [_i29.DiscoveryRealmsScreen]
+/// [_i32.DeveloperProjectEditScreen]
+class DeveloperProjectEditRoute
+    extends _i68.PageRouteInfo<DeveloperProjectEditRouteArgs> {
+  DeveloperProjectEditRoute({
+    _i69.Key? key,
+    required String pubName,
+    String? id,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperProjectEditRoute.name,
+         args: DeveloperProjectEditRouteArgs(
+           key: key,
+           pubName: pubName,
+           id: id,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperProjectEditRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperProjectEditRouteArgs>();
+      return _i32.DeveloperProjectEditScreen(
+        key: args.key,
+        pubName: args.pubName,
+        id: args.id,
+      );
+    },
+  );
+}
+
+class DeveloperProjectEditRouteArgs {
+  const DeveloperProjectEditRouteArgs({
+    this.key,
+    required this.pubName,
+    this.id,
+  });
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  final String? id;
+
+  @override
+  String toString() {
+    return 'DeveloperProjectEditRouteArgs{key: $key, pubName: $pubName, id: $id}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperProjectEditRouteArgs) return false;
+    return key == other.key && pubName == other.pubName && id == other.id;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ pubName.hashCode ^ id.hashCode;
+}
+
+/// generated route for
+/// [_i33.DeveloperProjectNewScreen]
+class DeveloperProjectNewRoute
+    extends _i68.PageRouteInfo<DeveloperProjectNewRouteArgs> {
+  DeveloperProjectNewRoute({
+    _i69.Key? key,
+    required String publisherName,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperProjectNewRoute.name,
+         args: DeveloperProjectNewRouteArgs(
+           key: key,
+           publisherName: publisherName,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperProjectNewRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperProjectNewRouteArgs>();
+      return _i33.DeveloperProjectNewScreen(
+        key: args.key,
+        publisherName: args.publisherName,
+      );
+    },
+  );
+}
+
+class DeveloperProjectNewRouteArgs {
+  const DeveloperProjectNewRouteArgs({this.key, required this.publisherName});
+
+  final _i69.Key? key;
+
+  final String publisherName;
+
+  @override
+  String toString() {
+    return 'DeveloperProjectNewRouteArgs{key: $key, publisherName: $publisherName}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperProjectNewRouteArgs) return false;
+    return key == other.key && publisherName == other.publisherName;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ publisherName.hashCode;
+}
+
+/// generated route for
+/// [_i34.DiscoveryRealmsScreen]
 class DiscoveryRealmsRoute extends _i68.PageRouteInfo<void> {
   const DiscoveryRealmsRoute({List<_i68.PageRouteInfo>? children})
     : super(DiscoveryRealmsRoute.name, initialChildren: children);
@@ -1310,13 +1588,13 @@ class DiscoveryRealmsRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i29.DiscoveryRealmsScreen();
+      return const _i34.DiscoveryRealmsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i30.EditAppScreen]
+/// [_i35.EditAppScreen]
 class EditAppRoute extends _i68.PageRouteInfo<EditAppRouteArgs> {
   EditAppRoute({
     _i69.Key? key,
@@ -1343,7 +1621,7 @@ class EditAppRoute extends _i68.PageRouteInfo<EditAppRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<EditAppRouteArgs>();
-      return _i30.EditAppScreen(
+      return _i35.EditAppScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -1399,7 +1677,7 @@ class EditAppRouteArgs {
 }
 
 /// generated route for
-/// [_i31.EditBotScreen]
+/// [_i36.EditBotScreen]
 class EditBotRoute extends _i68.PageRouteInfo<EditBotRouteArgs> {
   EditBotRoute({
     _i69.Key? key,
@@ -1426,7 +1704,7 @@ class EditBotRoute extends _i68.PageRouteInfo<EditBotRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<EditBotRouteArgs>();
-      return _i31.EditBotScreen(
+      return _i36.EditBotScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -1482,7 +1760,7 @@ class EditBotRouteArgs {
 }
 
 /// generated route for
-/// [_i32.EditChatScreen]
+/// [_i37.EditChatScreen]
 class EditChatRoute extends _i68.PageRouteInfo<EditChatRouteArgs> {
   EditChatRoute({_i69.Key? key, String? id, List<_i68.PageRouteInfo>? children})
     : super(
@@ -1499,7 +1777,7 @@ class EditChatRoute extends _i68.PageRouteInfo<EditChatRouteArgs> {
       final args = data.argsAs<EditChatRouteArgs>(
         orElse: () => const EditChatRouteArgs(),
       );
-      return _i32.EditChatScreen(key: args.key, id: args.id);
+      return _i37.EditChatScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -1528,67 +1806,7 @@ class EditChatRouteArgs {
 }
 
 /// generated route for
-/// [_i33.EditProjectScreen]
-class EditProjectRoute extends _i68.PageRouteInfo<EditProjectRouteArgs> {
-  EditProjectRoute({
-    _i69.Key? key,
-    required String publisherName,
-    String? id,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         EditProjectRoute.name,
-         args: EditProjectRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           id: id,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'EditProjectRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<EditProjectRouteArgs>();
-      return _i33.EditProjectScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        id: args.id,
-      );
-    },
-  );
-}
-
-class EditProjectRouteArgs {
-  const EditProjectRouteArgs({this.key, required this.publisherName, this.id});
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String? id;
-
-  @override
-  String toString() {
-    return 'EditProjectRouteArgs{key: $key, publisherName: $publisherName, id: $id}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EditProjectRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        id == other.id;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ publisherName.hashCode ^ id.hashCode;
-}
-
-/// generated route for
-/// [_i34.EditPublisherScreen]
+/// [_i38.EditPublisherScreen]
 class EditPublisherRoute extends _i68.PageRouteInfo<EditPublisherRouteArgs> {
   EditPublisherRoute({
     _i69.Key? key,
@@ -1608,7 +1826,7 @@ class EditPublisherRoute extends _i68.PageRouteInfo<EditPublisherRouteArgs> {
       final args = data.argsAs<EditPublisherRouteArgs>(
         orElse: () => const EditPublisherRouteArgs(),
       );
-      return _i34.EditPublisherScreen(key: args.key, name: args.name);
+      return _i38.EditPublisherScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -1637,7 +1855,7 @@ class EditPublisherRouteArgs {
 }
 
 /// generated route for
-/// [_i35.EditRealmScreen]
+/// [_i39.EditRealmScreen]
 class EditRealmRoute extends _i68.PageRouteInfo<EditRealmRouteArgs> {
   EditRealmRoute({
     _i69.Key? key,
@@ -1657,7 +1875,7 @@ class EditRealmRoute extends _i68.PageRouteInfo<EditRealmRouteArgs> {
       final args = data.argsAs<EditRealmRouteArgs>(
         orElse: () => const EditRealmRouteArgs(),
       );
-      return _i35.EditRealmScreen(key: args.key, slug: args.slug);
+      return _i39.EditRealmScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -1686,7 +1904,7 @@ class EditRealmRouteArgs {
 }
 
 /// generated route for
-/// [_i36.ExploreScreen]
+/// [_i40.ExploreScreen]
 class ExploreRoute extends _i68.PageRouteInfo<void> {
   const ExploreRoute({List<_i68.PageRouteInfo>? children})
     : super(ExploreRoute.name, initialChildren: children);
@@ -1696,13 +1914,13 @@ class ExploreRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i36.ExploreScreen();
+      return const _i40.ExploreScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i37.FeedMarketplaceDetailScreen]
+/// [_i41.FeedMarketplaceDetailScreen]
 class FeedMarketplaceDetailRoute
     extends _i68.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
   FeedMarketplaceDetailRoute({
@@ -1721,7 +1939,7 @@ class FeedMarketplaceDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<FeedMarketplaceDetailRouteArgs>();
-      return _i37.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
+      return _i41.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -1750,7 +1968,7 @@ class FeedMarketplaceDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i38.FeedMarketplaceScreen]
+/// [_i42.FeedMarketplaceScreen]
 class FeedMarketplaceRoute extends _i68.PageRouteInfo<void> {
   const FeedMarketplaceRoute({List<_i68.PageRouteInfo>? children})
     : super(FeedMarketplaceRoute.name, initialChildren: children);
@@ -1760,13 +1978,13 @@ class FeedMarketplaceRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i38.FeedMarketplaceScreen();
+      return const _i42.FeedMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i39.FileDetailScreen]
+/// [_i43.FileDetailScreen]
 class FileDetailRoute extends _i68.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
     _i70.Key? key,
@@ -1784,7 +2002,7 @@ class FileDetailRoute extends _i68.PageRouteInfo<FileDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FileDetailRouteArgs>();
-      return _i39.FileDetailScreen(key: args.key, item: args.item);
+      return _i43.FileDetailScreen(key: args.key, item: args.item);
     },
   );
 }
@@ -1813,7 +2031,7 @@ class FileDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i40.FileListScreen]
+/// [_i44.FileListScreen]
 class FileListRoute extends _i68.PageRouteInfo<void> {
   const FileListRoute({List<_i68.PageRouteInfo>? children})
     : super(FileListRoute.name, initialChildren: children);
@@ -1823,13 +2041,13 @@ class FileListRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i40.FileListScreen();
+      return const _i44.FileListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i41.FitnessActivityScreen]
+/// [_i45.FitnessActivityScreen]
 class FitnessActivityRoute extends _i68.PageRouteInfo<void> {
   const FitnessActivityRoute({List<_i68.PageRouteInfo>? children})
     : super(FitnessActivityRoute.name, initialChildren: children);
@@ -1839,13 +2057,13 @@ class FitnessActivityRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i41.FitnessActivityScreen();
+      return const _i45.FitnessActivityScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i42.LevelingScreen]
+/// [_i46.LevelingScreen]
 class LevelingRoute extends _i68.PageRouteInfo<void> {
   const LevelingRoute({List<_i68.PageRouteInfo>? children})
     : super(LevelingRoute.name, initialChildren: children);
@@ -1855,13 +2073,13 @@ class LevelingRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i42.LevelingScreen();
+      return const _i46.LevelingScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i43.LoginScreen]
+/// [_i47.LoginScreen]
 class LoginRoute extends _i68.PageRouteInfo<void> {
   const LoginRoute({List<_i68.PageRouteInfo>? children})
     : super(LoginRoute.name, initialChildren: children);
@@ -1871,13 +2089,13 @@ class LoginRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i43.LoginScreen();
+      return const _i47.LoginScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i44.NewBotScreen]
+/// [_i48.NewBotScreen]
 class NewBotRoute extends _i68.PageRouteInfo<NewBotRouteArgs> {
   NewBotRoute({
     _i69.Key? key,
@@ -1902,7 +2120,7 @@ class NewBotRoute extends _i68.PageRouteInfo<NewBotRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<NewBotRouteArgs>();
-      return _i44.NewBotScreen(
+      return _i48.NewBotScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -1952,7 +2170,7 @@ class NewBotRouteArgs {
 }
 
 /// generated route for
-/// [_i32.NewChatScreen]
+/// [_i37.NewChatScreen]
 class NewChatRoute extends _i68.PageRouteInfo<void> {
   const NewChatRoute({List<_i68.PageRouteInfo>? children})
     : super(NewChatRoute.name, initialChildren: children);
@@ -1962,13 +2180,13 @@ class NewChatRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i32.NewChatScreen();
+      return const _i37.NewChatScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i45.NewCustomAppScreen]
+/// [_i49.NewCustomAppScreen]
 class NewCustomAppRoute extends _i68.PageRouteInfo<NewCustomAppRouteArgs> {
   NewCustomAppRoute({
     _i69.Key? key,
@@ -1993,7 +2211,7 @@ class NewCustomAppRoute extends _i68.PageRouteInfo<NewCustomAppRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<NewCustomAppRouteArgs>();
-      return _i45.NewCustomAppScreen(
+      return _i49.NewCustomAppScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -2043,57 +2261,7 @@ class NewCustomAppRouteArgs {
 }
 
 /// generated route for
-/// [_i46.NewProjectScreen]
-class NewProjectRoute extends _i68.PageRouteInfo<NewProjectRouteArgs> {
-  NewProjectRoute({
-    _i69.Key? key,
-    required String publisherName,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         NewProjectRoute.name,
-         args: NewProjectRouteArgs(key: key, publisherName: publisherName),
-         initialChildren: children,
-       );
-
-  static const String name = 'NewProjectRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<NewProjectRouteArgs>();
-      return _i46.NewProjectScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-      );
-    },
-  );
-}
-
-class NewProjectRouteArgs {
-  const NewProjectRouteArgs({this.key, required this.publisherName});
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  @override
-  String toString() {
-    return 'NewProjectRouteArgs{key: $key, publisherName: $publisherName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! NewProjectRouteArgs) return false;
-    return key == other.key && publisherName == other.publisherName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ publisherName.hashCode;
-}
-
-/// generated route for
-/// [_i34.NewPublisherScreen]
+/// [_i38.NewPublisherScreen]
 class NewPublisherRoute extends _i68.PageRouteInfo<void> {
   const NewPublisherRoute({List<_i68.PageRouteInfo>? children})
     : super(NewPublisherRoute.name, initialChildren: children);
@@ -2103,13 +2271,13 @@ class NewPublisherRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i34.NewPublisherScreen();
+      return const _i38.NewPublisherScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i35.NewRealmScreen]
+/// [_i39.NewRealmScreen]
 class NewRealmRoute extends _i68.PageRouteInfo<void> {
   const NewRealmRoute({List<_i68.PageRouteInfo>? children})
     : super(NewRealmRoute.name, initialChildren: children);
@@ -2119,13 +2287,13 @@ class NewRealmRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i35.NewRealmScreen();
+      return const _i39.NewRealmScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i47.OidcScreen]
+/// [_i50.OidcScreen]
 class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
   OidcRoute({
     _i70.Key? key,
@@ -2144,7 +2312,7 @@ class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<OidcRouteArgs>();
-      return _i47.OidcScreen(
+      return _i50.OidcScreen(
         key: args.key,
         provider: args.provider,
         title: args.title,
@@ -2181,7 +2349,7 @@ class OidcRouteArgs {
 }
 
 /// generated route for
-/// [_i48.PollEditorScreen]
+/// [_i51.PollEditorScreen]
 class PollEditorRoute extends _i68.PageRouteInfo<PollEditorRouteArgs> {
   PollEditorRoute({
     _i70.Key? key,
@@ -2206,7 +2374,7 @@ class PollEditorRoute extends _i68.PageRouteInfo<PollEditorRouteArgs> {
       final args = data.argsAs<PollEditorRouteArgs>(
         orElse: () => const PollEditorRouteArgs(),
       );
-      return _i48.PollEditorScreen(
+      return _i51.PollEditorScreen(
         key: args.key,
         initialPollId: args.initialPollId,
         initialPublisher: args.initialPublisher,
@@ -2248,7 +2416,7 @@ class PollEditorRouteArgs {
 }
 
 /// generated route for
-/// [_i49.PostCategoriesListScreen]
+/// [_i52.PostCategoriesListScreen]
 class PostCategoriesListRoute extends _i68.PageRouteInfo<void> {
   const PostCategoriesListRoute({List<_i68.PageRouteInfo>? children})
     : super(PostCategoriesListRoute.name, initialChildren: children);
@@ -2258,13 +2426,13 @@ class PostCategoriesListRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i49.PostCategoriesListScreen();
+      return const _i52.PostCategoriesListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i50.PostCategoryDetailScreen]
+/// [_i53.PostCategoryDetailScreen]
 class PostCategoryDetailRoute
     extends _i68.PageRouteInfo<PostCategoryDetailRouteArgs> {
   PostCategoryDetailRoute({
@@ -2288,7 +2456,7 @@ class PostCategoryDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<PostCategoryDetailRouteArgs>();
-      return _i50.PostCategoryDetailScreen(
+      return _i53.PostCategoryDetailScreen(
         key: args.key,
         slug: args.slug,
         isCategory: args.isCategory,
@@ -2329,7 +2497,7 @@ class PostCategoryDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i51.PostDetailScreen]
+/// [_i54.PostDetailScreen]
 class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
   PostDetailRoute({
     _i70.Key? key,
@@ -2347,7 +2515,7 @@ class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<PostDetailRouteArgs>();
-      return _i51.PostDetailScreen(key: args.key, id: args.id);
+      return _i54.PostDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2376,7 +2544,7 @@ class PostDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i52.PostShuffleScreen]
+/// [_i55.PostShuffleScreen]
 class PostShuffleRoute extends _i68.PageRouteInfo<void> {
   const PostShuffleRoute({List<_i68.PageRouteInfo>? children})
     : super(PostShuffleRoute.name, initialChildren: children);
@@ -2386,78 +2554,13 @@ class PostShuffleRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i52.PostShuffleScreen();
+      return const _i55.PostShuffleScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i53.PublicationSiteDetailScreen]
-class PublicationSiteDetailRoute
-    extends _i68.PageRouteInfo<PublicationSiteDetailRouteArgs> {
-  PublicationSiteDetailRoute({
-    _i69.Key? key,
-    required String siteSlug,
-    required String pubName,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         PublicationSiteDetailRoute.name,
-         args: PublicationSiteDetailRouteArgs(
-           key: key,
-           siteSlug: siteSlug,
-           pubName: pubName,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'PublicationSiteDetailRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<PublicationSiteDetailRouteArgs>();
-      return _i53.PublicationSiteDetailScreen(
-        key: args.key,
-        siteSlug: args.siteSlug,
-        pubName: args.pubName,
-      );
-    },
-  );
-}
-
-class PublicationSiteDetailRouteArgs {
-  const PublicationSiteDetailRouteArgs({
-    this.key,
-    required this.siteSlug,
-    required this.pubName,
-  });
-
-  final _i69.Key? key;
-
-  final String siteSlug;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'PublicationSiteDetailRouteArgs{key: $key, siteSlug: $siteSlug, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! PublicationSiteDetailRouteArgs) return false;
-    return key == other.key &&
-        siteSlug == other.siteSlug &&
-        pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ siteSlug.hashCode ^ pubName.hashCode;
-}
-
-/// generated route for
-/// [_i54.PublisherProfileScreen]
+/// [_i56.PublisherProfileScreen]
 class PublisherProfileRoute
     extends _i68.PageRouteInfo<PublisherProfileRouteArgs> {
   PublisherProfileRoute({
@@ -2476,7 +2579,7 @@ class PublisherProfileRoute
     name,
     builder: (data) {
       final args = data.argsAs<PublisherProfileRouteArgs>();
-      return _i54.PublisherProfileScreen(key: args.key, name: args.name);
+      return _i56.PublisherProfileScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -2505,7 +2608,7 @@ class PublisherProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i55.RealmDetailScreen]
+/// [_i57.RealmDetailScreen]
 class RealmDetailRoute extends _i68.PageRouteInfo<RealmDetailRouteArgs> {
   RealmDetailRoute({
     _i69.Key? key,
@@ -2523,7 +2626,7 @@ class RealmDetailRoute extends _i68.PageRouteInfo<RealmDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<RealmDetailRouteArgs>();
-      return _i55.RealmDetailScreen(key: args.key, slug: args.slug);
+      return _i57.RealmDetailScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -2552,7 +2655,7 @@ class RealmDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i56.RealmListScreen]
+/// [_i58.RealmListScreen]
 class RealmListRoute extends _i68.PageRouteInfo<void> {
   const RealmListRoute({List<_i68.PageRouteInfo>? children})
     : super(RealmListRoute.name, initialChildren: children);
@@ -2562,13 +2665,13 @@ class RealmListRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i56.RealmListScreen();
+      return const _i58.RealmListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i57.RelationshipScreen]
+/// [_i59.RelationshipScreen]
 class RelationshipRoute extends _i68.PageRouteInfo<void> {
   const RelationshipRoute({List<_i68.PageRouteInfo>? children})
     : super(RelationshipRoute.name, initialChildren: children);
@@ -2578,13 +2681,13 @@ class RelationshipRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i57.RelationshipScreen();
+      return const _i59.RelationshipScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i58.SearchMessagesScreen]
+/// [_i60.SearchMessagesScreen]
 class SearchMessagesRoute extends _i68.PageRouteInfo<SearchMessagesRouteArgs> {
   SearchMessagesRoute({
     _i69.Key? key,
@@ -2602,7 +2705,7 @@ class SearchMessagesRoute extends _i68.PageRouteInfo<SearchMessagesRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SearchMessagesRouteArgs>();
-      return _i58.SearchMessagesScreen(key: args.key, roomId: args.roomId);
+      return _i60.SearchMessagesScreen(key: args.key, roomId: args.roomId);
     },
   );
 }
@@ -2631,7 +2734,7 @@ class SearchMessagesRouteArgs {
 }
 
 /// generated route for
-/// [_i59.SettingsScreen]
+/// [_i61.SettingsScreen]
 class SettingsRoute extends _i68.PageRouteInfo<void> {
   const SettingsRoute({List<_i68.PageRouteInfo>? children})
     : super(SettingsRoute.name, initialChildren: children);
@@ -2641,13 +2744,13 @@ class SettingsRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i59.SettingsScreen();
+      return const _i61.SettingsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i60.StickerMarketplacePackDetailScreen]
+/// [_i62.StickerMarketplacePackDetailScreen]
 class StickerMarketplacePackDetailRoute
     extends _i68.PageRouteInfo<StickerMarketplacePackDetailRouteArgs> {
   StickerMarketplacePackDetailRoute({
@@ -2666,7 +2769,7 @@ class StickerMarketplacePackDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<StickerMarketplacePackDetailRouteArgs>();
-      return _i60.StickerMarketplacePackDetailScreen(
+      return _i62.StickerMarketplacePackDetailScreen(
         key: args.key,
         id: args.id,
       );
@@ -2698,7 +2801,7 @@ class StickerMarketplacePackDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i61.StickerMarketplaceScreen]
+/// [_i63.StickerMarketplaceScreen]
 class StickerMarketplaceRoute extends _i68.PageRouteInfo<void> {
   const StickerMarketplaceRoute({List<_i68.PageRouteInfo>? children})
     : super(StickerMarketplaceRoute.name, initialChildren: children);
@@ -2708,60 +2811,13 @@ class StickerMarketplaceRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i61.StickerMarketplaceScreen();
+      return const _i63.StickerMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i62.StickersScreen]
-class StickersRoute extends _i68.PageRouteInfo<StickersRouteArgs> {
-  StickersRoute({
-    _i69.Key? key,
-    required String pubName,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         StickersRoute.name,
-         args: StickersRouteArgs(key: key, pubName: pubName),
-         initialChildren: children,
-       );
-
-  static const String name = 'StickersRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<StickersRouteArgs>();
-      return _i62.StickersScreen(key: args.key, pubName: args.pubName);
-    },
-  );
-}
-
-class StickersRouteArgs {
-  const StickersRouteArgs({this.key, required this.pubName});
-
-  final _i69.Key? key;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'StickersRouteArgs{key: $key, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! StickersRouteArgs) return false;
-    return key == other.key && pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ pubName.hashCode;
-}
-
-/// generated route for
-/// [_i63.TabsScreen]
+/// [_i64.TabsScreen]
 class TabsRoute extends _i68.PageRouteInfo<void> {
   const TabsRoute({List<_i68.PageRouteInfo>? children})
     : super(TabsRoute.name, initialChildren: children);
@@ -2771,13 +2827,13 @@ class TabsRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i63.TabsScreen();
+      return const _i64.TabsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i64.ThoughtScreen]
+/// [_i65.ThoughtScreen]
 class ThoughtRoute extends _i68.PageRouteInfo<void> {
   const ThoughtRoute({List<_i68.PageRouteInfo>? children})
     : super(ThoughtRoute.name, initialChildren: children);
@@ -2787,18 +2843,18 @@ class ThoughtRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i64.ThoughtScreen();
+      return const _i65.ThoughtScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i65.UniversalSearchScreen]
+/// [_i66.UniversalSearchScreen]
 class UniversalSearchRoute
     extends _i68.PageRouteInfo<UniversalSearchRouteArgs> {
   UniversalSearchRoute({
     _i69.Key? key,
-    _i65.SearchTab initialTab = _i65.SearchTab.posts,
+    _i66.SearchTab initialTab = _i66.SearchTab.posts,
     List<_i68.PageRouteInfo>? children,
   }) : super(
          UniversalSearchRoute.name,
@@ -2814,7 +2870,7 @@ class UniversalSearchRoute
       final args = data.argsAs<UniversalSearchRouteArgs>(
         orElse: () => const UniversalSearchRouteArgs(),
       );
-      return _i65.UniversalSearchScreen(
+      return _i66.UniversalSearchScreen(
         key: args.key,
         initialTab: args.initialTab,
       );
@@ -2825,12 +2881,12 @@ class UniversalSearchRoute
 class UniversalSearchRouteArgs {
   const UniversalSearchRouteArgs({
     this.key,
-    this.initialTab = _i65.SearchTab.posts,
+    this.initialTab = _i66.SearchTab.posts,
   });
 
   final _i69.Key? key;
 
-  final _i65.SearchTab initialTab;
+  final _i66.SearchTab initialTab;
 
   @override
   String toString() {
@@ -2849,7 +2905,7 @@ class UniversalSearchRouteArgs {
 }
 
 /// generated route for
-/// [_i66.WalletScreen]
+/// [_i67.WalletScreen]
 class WalletRoute extends _i68.PageRouteInfo<void> {
   const WalletRoute({List<_i68.PageRouteInfo>? children})
     : super(WalletRoute.name, initialChildren: children);
@@ -2859,54 +2915,7 @@ class WalletRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i66.WalletScreen();
+      return const _i67.WalletScreen();
     },
   );
-}
-
-/// generated route for
-/// [_i67.WebFeedListScreen]
-class WebFeedListRoute extends _i68.PageRouteInfo<WebFeedListRouteArgs> {
-  WebFeedListRoute({
-    _i69.Key? key,
-    required String pubName,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         WebFeedListRoute.name,
-         args: WebFeedListRouteArgs(key: key, pubName: pubName),
-         initialChildren: children,
-       );
-
-  static const String name = 'WebFeedListRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<WebFeedListRouteArgs>();
-      return _i67.WebFeedListScreen(key: args.key, pubName: args.pubName);
-    },
-  );
-}
-
-class WebFeedListRouteArgs {
-  const WebFeedListRouteArgs({this.key, required this.pubName});
-
-  final _i69.Key? key;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'WebFeedListRouteArgs{key: $key, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! WebFeedListRouteArgs) return false;
-    return key == other.key && pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ pubName.hashCode;
 }

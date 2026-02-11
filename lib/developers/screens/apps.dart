@@ -2,13 +2,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/edit_app.dart';
 import 'package:island/developers/screens/new_app.dart';
 import 'package:island/developers/models/custom_app.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -51,10 +51,10 @@ Future<List<CustomApp>> customApps(
 }
 
 @RoutePage()
-class CustomAppsScreen extends HookConsumerWidget {
+class DeveloperAppListScreen extends HookConsumerWidget {
   final String publisherName;
   final String projectId;
-  const CustomAppsScreen({
+  const DeveloperAppListScreen({
     super.key,
     required this.publisherName,
     required this.projectId,
@@ -133,13 +133,12 @@ class CustomAppsScreen extends HookConsumerWidget {
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         onTap: () {
-                          context.pushNamed(
-                            'developerAppDetail',
-                            pathParameters: {
-                              'name': publisherName,
-                              'projectId': projectId,
-                              'appId': app.id,
-                            },
+                          context.router.push(
+                            DeveloperAppDetailRoute(
+                              pubName: publisherName,
+                              projectId: projectId,
+                              appId: app.id,
+                            ),
                           );
                         },
                         child: Column(
