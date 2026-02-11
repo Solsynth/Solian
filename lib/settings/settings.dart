@@ -1015,22 +1015,9 @@ class SettingsScreen extends HookConsumerWidget {
         title: Text('settings').tr(),
         leading: const PageBackButton(backTo: '/account'),
       ),
-      body: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          // Add keyboard shortcuts for desktop
-          if (isDesktop &&
-              event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.escape) {
-            context.pop();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: buildSettingsList(),
-        ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: buildSettingsList(),
       ),
     );
   }

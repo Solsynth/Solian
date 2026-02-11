@@ -16,7 +16,6 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -114,11 +113,6 @@ class WindowScaffold extends HookConsumerWidget {
       const Gap(8),
     ];
 
-    final popHotKey = HotKey(
-      identifier: 'return_previous_page',
-      key: PhysicalKeyboardKey.escape,
-      scope: HotKeyScope.inapp,
-    );
     final cmpHotKey = HotKey(
       identifier: 'open_command_pattle',
       key: PhysicalKeyboardKey.tab,
@@ -128,20 +122,6 @@ class WindowScaffold extends HookConsumerWidget {
 
     useEffect(() {
       if (kIsWeb) return null;
-
-      hotKeyManager.register(
-        popHotKey,
-        keyDownHandler: (_) {
-          if (closeTopmostOverlayDialog()) {
-            return;
-          }
-
-          // If no overlay to close, pop the route
-          if (ref.watch(routerProvider).canPop()) {
-            ref.read(routerProvider).pop();
-          }
-        },
-      );
 
       hotKeyManager.register(
         cmpHotKey,
@@ -160,7 +140,6 @@ class WindowScaffold extends HookConsumerWidget {
       }
 
       return () {
-        hotKeyManager.unregister(popHotKey);
         hotKeyManager.unregister(cmpHotKey);
         detactor?.stopListening();
       };
@@ -417,10 +396,6 @@ class PageBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPageAction = !kIsWeb && Platform.isMacOS;
-
-    if (hasPageAction && isWideScreen(context)) return const SizedBox.shrink();
-
     // Check if we can pop from the current router
     final canPop = context.router.canPop();
 

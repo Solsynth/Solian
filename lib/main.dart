@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -51,10 +52,6 @@ void main() async {
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
-
-  // if (kIsWeb) {
-  //   GoRouter.optionURLReflectsImperativeAPIs = true;
-  // }
 
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     talker.info("[SplashScreen] Initializing desktop window manager...");
@@ -345,7 +342,18 @@ class IslandApp extends HookConsumerWidget {
       theme: theme.light,
       darkTheme: theme.dark,
       themeMode: getThemeMode(),
-      routerConfig: router.config(),
+      routerConfig: router.config(
+        navigatorObservers: () {
+          return [
+            if (kIsWeb ||
+                Platform.isAndroid ||
+                Platform.isIOS ||
+                Platform.isMacOS)
+              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+            TalkerRouteObserver(talker),
+          ];
+        },
+      ),
       supportedLocales: context.supportedLocales,
       scrollBehavior: AppScrollBehavior(),
       localizationsDelegates: [

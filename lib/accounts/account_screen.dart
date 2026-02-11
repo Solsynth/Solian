@@ -36,28 +36,7 @@ class AccountScreen extends HookConsumerWidget {
           children: [
             Flexible(flex: 2, child: AccountFeatureWidget(isAside: true)),
             VerticalDivider(width: 1),
-            Flexible(
-              flex: 3,
-              child: PopScope(
-                canPop: false,
-                onPopInvokedWithResult: (didPop, result) {
-                  if (!didPop) {
-                    // Try to pop from the nested router first
-                    final innerRouter = context.innerRouterOf(AccountRoute.name);
-                    if (innerRouter?.canPop() ?? false) {
-                      innerRouter?.pop();
-                    }
-                    // If inner router can't pop, we're at the "placeholder" state
-                    // The back gesture is handled by the parent navigator
-                  }
-                },
-                child: AutoRouter(
-                  placeholder: (context) => const Center(
-                    child: Icon(Symbols.person, size: 64, color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
+            Flexible(flex: 3, child: AutoRouter()),
           ],
         ),
       );

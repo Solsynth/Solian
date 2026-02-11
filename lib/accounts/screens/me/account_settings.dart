@@ -444,22 +444,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
               ]
             : null,
       ),
-      body: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          // Add keyboard shortcuts for desktop
-          if (isDesktop &&
-              event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.escape) {
-            Navigator.of(context).pop();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: buildSettingsList(),
-        ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: buildSettingsList(),
       ),
     );
   }

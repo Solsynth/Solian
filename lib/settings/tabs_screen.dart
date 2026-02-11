@@ -11,6 +11,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/navigation/conditional_bottom_nav.dart';
 import 'package:island/notifications/notification.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -39,6 +40,43 @@ class TabsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
+      routes: [
+        DashboardRoute(),
+        ExploreRoute(),
+        ChatRoute(),
+        RealmListRoute(),
+        AccountRoute(),
+        FileListRoute(),
+        ThoughtRoute(),
+        CreatorHubRoute(),
+        DeveloperHubRoute(),
+      ],
+      transitionBuilder: (context, child, animation) {
+        // Use vertical animation for wide screens (NavigationRail)
+        // Use horizontal animation for small screens (bottom nav)
+        final wideScreen = isWideScreen(context);
+
+        final slideAnimation = Tween<Offset>(
+          begin: wideScreen ? const Offset(0, 0.02) : const Offset(0.02, 0),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
+
+        final fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: SlideTransition(position: slideAnimation, child: child),
+        );
+      },
       builder: (context, child) {
         return _TabsScreenContent(child: child);
       },
