@@ -73,6 +73,7 @@ class DeveloperProjectEditScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
+        leading: const PageBackButton(backTo: '/developers'),
         title: Text(isNew ? 'createProject'.tr() : 'editProject'.tr()),
       ),
       body: projectData == null && !isNew

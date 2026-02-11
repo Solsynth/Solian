@@ -392,7 +392,7 @@ class CreatorHubScreen extends HookConsumerWidget {
           leading: const Icon(Symbols.ar_stickers),
           onTap: () {
             context.router.push(
-              CreatorSiteListRoute(pubName: currentPublisher.value!.name),
+              CreatorStickerListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),
@@ -582,82 +582,87 @@ class CreatorHubScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        leading: const PageBackButton(backTo: '/account'),
-        title: Text('creatorHub').tr(),
-        actions: [
-          if (!isWideScreen(context))
-            PublisherSelector(
-              currentPublisher: currentPublisher.value,
-              publishersMenu: publishersMenu,
-              onChanged: (value) {
-                currentPublisher.value = value;
-              },
-            ),
-          const Gap(8),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = isWideScreen(context);
-          final maxWidth = isWide ? 800.0 : double.infinity;
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: publisherStats.when(
-                data: (stats) => SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: currentPublisher.value == null
-                      ? ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 640),
-                          child: _PublisherUnselectedWidget(
-                            onPublisherSelected: (publisher) {
-                              currentPublisher.value = publisher;
-                            },
-                          ),
-                        ).center()
-                      : isWide
-                      ? Column(
-                          spacing: 8,
-                          children: [
-                            const SizedBox.shrink(),
-                            PublisherSelector(
-                              currentPublisher: currentPublisher.value,
-                              publishersMenu: publishersMenu,
-                              onChanged: (value) {
-                                currentPublisher.value = value;
-                              },
-                            ),
-                            if (stats != null)
-                              _PublisherStatsWidget(
-                                stats: stats,
-                                heatmap: publisherHeatmap.value,
-                              ).padding(horizontal: 12),
-                            buildNavigationWidget(true),
-                          ],
-                        )
-                      : Column(
-                          spacing: 12,
-                          children: [
-                            if (stats != null)
-                              _PublisherStatsWidget(
-                                stats: stats,
-                                heatmap: publisherHeatmap.value,
-                              ).padding(horizontal: 16),
-                            buildNavigationWidget(false),
-                          ],
-                        ),
+    return AutoRouter(
+      placeholder: (context) {
+        return AppScaffold(
+          isNoBackground: false,
+          appBar: AppBar(
+            leading: const PageBackButton(backTo: '/account'),
+            title: Text('creatorHub').tr(),
+            actions: [
+              if (!isWideScreen(context))
+                PublisherSelector(
+                  currentPublisher: currentPublisher.value,
+                  publishersMenu: publishersMenu,
+                  onChanged: (value) {
+                    currentPublisher.value = value;
+                  },
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-            ),
-          );
-        },
-      ),
+              const Gap(8),
+            ],
+          ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = isWideScreen(context);
+              final maxWidth = isWide ? 800.0 : double.infinity;
+
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: publisherStats.when(
+                    data: (stats) => SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: currentPublisher.value == null
+                          ? ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: 640),
+                              child: _PublisherUnselectedWidget(
+                                onPublisherSelected: (publisher) {
+                                  currentPublisher.value = publisher;
+                                },
+                              ),
+                            ).center()
+                          : isWide
+                          ? Column(
+                              spacing: 8,
+                              children: [
+                                const SizedBox.shrink(),
+                                PublisherSelector(
+                                  currentPublisher: currentPublisher.value,
+                                  publishersMenu: publishersMenu,
+                                  onChanged: (value) {
+                                    currentPublisher.value = value;
+                                  },
+                                ),
+                                if (stats != null)
+                                  _PublisherStatsWidget(
+                                    stats: stats,
+                                    heatmap: publisherHeatmap.value,
+                                  ).padding(horizontal: 12),
+                                buildNavigationWidget(true),
+                              ],
+                            )
+                          : Column(
+                              spacing: 12,
+                              children: [
+                                if (stats != null)
+                                  _PublisherStatsWidget(
+                                    stats: stats,
+                                    heatmap: publisherHeatmap.value,
+                                  ).padding(horizontal: 16),
+                                buildNavigationWidget(false),
+                              ],
+                            ),
+                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

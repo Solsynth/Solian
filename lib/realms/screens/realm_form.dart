@@ -18,19 +18,19 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class NewRealmScreen extends StatelessWidget {
-  const NewRealmScreen({super.key});
+class RealmNewScreen extends StatelessWidget {
+  const RealmNewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const EditRealmScreen();
+    return const RealmEditScreen();
   }
 }
 
 @RoutePage()
-class EditRealmScreen extends HookConsumerWidget {
+class RealmEditScreen extends HookConsumerWidget {
   final String? slug;
-  const EditRealmScreen({super.key, this.slug});
+  const RealmEditScreen({super.key, this.slug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

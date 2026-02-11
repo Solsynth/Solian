@@ -13,62 +13,62 @@ import 'package:auto_route/auto_route.dart' as _i68;
 import 'package:flutter/foundation.dart' as _i70;
 import 'package:flutter/material.dart' as _i69;
 import 'package:island/accounts/account_screen.dart' as _i5;
-import 'package:island/accounts/screens/leveling.dart' as _i46;
+import 'package:island/accounts/screens/leveling.dart' as _i47;
 import 'package:island/accounts/screens/me/account_settings.dart' as _i6;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i7;
 import 'package:island/accounts/screens/profile.dart' as _i4;
 import 'package:island/accounts/screens/relationship.dart' as _i59;
 import 'package:island/auth/captcha.dart' as _i15;
 import 'package:island/auth/create_account.dart' as _i19;
-import 'package:island/auth/login.dart' as _i47;
-import 'package:island/auth/oidc.native.dart' as _i50;
+import 'package:island/auth/login.dart' as _i48;
+import 'package:island/auth/oidc.native.dart' as _i49;
 import 'package:island/chat/widgets/call_screen.dart' as _i14;
 import 'package:island/chat/widgets/chat_detail_screen.dart' as _i16;
 import 'package:island/chat/widgets/chat_list_screen.dart' as _i18;
-import 'package:island/chat/widgets/chat_room_form.dart' as _i37;
+import 'package:island/chat/widgets/chat_room_form.dart' as _i39;
 import 'package:island/chat/widgets/chat_room_screen.dart' as _i17;
 import 'package:island/chat/widgets/chat_search_screen.dart' as _i60;
 import 'package:island/creators/screens/hub.dart' as _i21;
 import 'package:island/creators/screens/poll/poll_list.dart' as _i22;
 import 'package:island/creators/screens/posts/post_manage_list.dart' as _i23;
-import 'package:island/creators/screens/publishers_form.dart' as _i38;
+import 'package:island/creators/screens/publishers_form.dart' as _i40;
 import 'package:island/creators/screens/sites/site_detail.dart' as _i24;
 import 'package:island/creators/screens/sites/site_list.dart' as _i25;
 import 'package:island/creators/screens/stickers/stickers.dart' as _i26;
 import 'package:island/creators/screens/webfeed/webfeed_list.dart' as _i20;
 import 'package:island/developers/screens/app_detail.dart' as _i28;
 import 'package:island/developers/screens/app_secrets.dart' as _i8;
-import 'package:island/developers/screens/apps.dart' as _i29;
-import 'package:island/developers/screens/bot_detail.dart' as _i30;
+import 'package:island/developers/screens/apps.dart' as _i30;
+import 'package:island/developers/screens/bot_detail.dart' as _i32;
 import 'package:island/developers/screens/bot_keys.dart' as _i12;
 import 'package:island/developers/screens/bots.dart' as _i13;
-import 'package:island/developers/screens/edit_app.dart' as _i35;
-import 'package:island/developers/screens/edit_bot.dart' as _i36;
-import 'package:island/developers/screens/edit_project.dart' as _i32;
-import 'package:island/developers/screens/hub.dart' as _i31;
-import 'package:island/developers/screens/new_app.dart' as _i49;
-import 'package:island/developers/screens/new_bot.dart' as _i48;
-import 'package:island/developers/screens/new_project.dart' as _i33;
-import 'package:island/discovery/explore.dart' as _i40;
+import 'package:island/developers/screens/edit_app.dart' as _i29;
+import 'package:island/developers/screens/edit_bot.dart' as _i33;
+import 'package:island/developers/screens/edit_project.dart' as _i36;
+import 'package:island/developers/screens/hub.dart' as _i35;
+import 'package:island/developers/screens/new_app.dart' as _i31;
+import 'package:island/developers/screens/new_bot.dart' as _i34;
+import 'package:island/developers/screens/new_project.dart' as _i37;
+import 'package:island/discovery/explore.dart' as _i41;
 import 'package:island/discovery/screens/article_detail.dart' as _i10;
 import 'package:island/discovery/screens/articles.dart' as _i11;
-import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i41;
-import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i42;
-import 'package:island/discovery/screens/realms.dart' as _i34;
+import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i42;
+import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i43;
+import 'package:island/discovery/screens/realms.dart' as _i38;
 import 'package:island/discovery/search.dart' as _i66;
-import 'package:island/drive/files/file_detail.dart' as _i43;
-import 'package:island/drive/files/file_list.dart' as _i44;
-import 'package:island/fitness/fitness_screen.dart' as _i45;
-import 'package:island/polls/screens/poll_editor.dart' as _i51;
+import 'package:island/drive/files/file_detail.dart' as _i44;
+import 'package:island/drive/files/file_list.dart' as _i45;
+import 'package:island/fitness/fitness_screen.dart' as _i46;
+import 'package:island/polls/screens/poll_editor.dart' as _i50;
 import 'package:island/posts/compose.dart' as _i72;
 import 'package:island/posts/screens/compose_article.dart' as _i9;
-import 'package:island/posts/screens/post_categories_list.dart' as _i52;
-import 'package:island/posts/screens/post_category_detail.dart' as _i53;
-import 'package:island/posts/screens/post_detail.dart' as _i54;
-import 'package:island/posts/screens/publisher_profile.dart' as _i56;
-import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i55;
-import 'package:island/realms/screens/realm_detail.dart' as _i57;
-import 'package:island/realms/screens/realm_form.dart' as _i39;
+import 'package:island/posts/screens/post_categories_list.dart' as _i51;
+import 'package:island/posts/screens/post_category_detail.dart' as _i52;
+import 'package:island/posts/screens/post_detail.dart' as _i53;
+import 'package:island/posts/screens/publisher_profile.dart' as _i55;
+import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i54;
+import 'package:island/realms/screens/realm_detail.dart' as _i56;
+import 'package:island/realms/screens/realm_form.dart' as _i57;
 import 'package:island/realms/screens/realms.dart' as _i58;
 import 'package:island/reports/screens/report_detail.dart' as _i2;
 import 'package:island/reports/screens/report_list.dart' as _i3;
@@ -1255,7 +1255,91 @@ class DeveloperAppDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i29.DeveloperAppListScreen]
+/// [_i29.DeveloperAppEditScreen]
+class DeveloperAppEditRoute
+    extends _i68.PageRouteInfo<DeveloperAppEditRouteArgs> {
+  DeveloperAppEditRoute({
+    _i69.Key? key,
+    required String pubName,
+    required String projectId,
+    String? id,
+    bool isModal = false,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperAppEditRoute.name,
+         args: DeveloperAppEditRouteArgs(
+           key: key,
+           pubName: pubName,
+           projectId: projectId,
+           id: id,
+           isModal: isModal,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperAppEditRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperAppEditRouteArgs>();
+      return _i29.DeveloperAppEditScreen(
+        key: args.key,
+        pubName: args.pubName,
+        projectId: args.projectId,
+        id: args.id,
+        isModal: args.isModal,
+      );
+    },
+  );
+}
+
+class DeveloperAppEditRouteArgs {
+  const DeveloperAppEditRouteArgs({
+    this.key,
+    required this.pubName,
+    required this.projectId,
+    this.id,
+    this.isModal = false,
+  });
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  final String projectId;
+
+  final String? id;
+
+  final bool isModal;
+
+  @override
+  String toString() {
+    return 'DeveloperAppEditRouteArgs{key: $key, pubName: $pubName, projectId: $projectId, id: $id, isModal: $isModal}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperAppEditRouteArgs) return false;
+    return key == other.key &&
+        pubName == other.pubName &&
+        projectId == other.projectId &&
+        id == other.id &&
+        isModal == other.isModal;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      pubName.hashCode ^
+      projectId.hashCode ^
+      id.hashCode ^
+      isModal.hashCode;
+}
+
+/// generated route for
+/// [_i30.DeveloperAppListScreen]
 class DeveloperAppListRoute
     extends _i68.PageRouteInfo<DeveloperAppListRouteArgs> {
   DeveloperAppListRoute({
@@ -1279,7 +1363,7 @@ class DeveloperAppListRoute
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperAppListRouteArgs>();
-      return _i29.DeveloperAppListScreen(
+      return _i30.DeveloperAppListScreen(
         key: args.key,
         publisherName: args.publisherName,
         projectId: args.projectId,
@@ -1321,7 +1405,83 @@ class DeveloperAppListRouteArgs {
 }
 
 /// generated route for
-/// [_i30.DeveloperBotDetailScreen]
+/// [_i31.DeveloperAppNewScreen]
+class DeveloperAppNewRoute
+    extends _i68.PageRouteInfo<DeveloperAppNewRouteArgs> {
+  DeveloperAppNewRoute({
+    _i69.Key? key,
+    required String publisherName,
+    required String projectId,
+    bool isModal = false,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperAppNewRoute.name,
+         args: DeveloperAppNewRouteArgs(
+           key: key,
+           publisherName: publisherName,
+           projectId: projectId,
+           isModal: isModal,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperAppNewRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperAppNewRouteArgs>();
+      return _i31.DeveloperAppNewScreen(
+        key: args.key,
+        publisherName: args.publisherName,
+        projectId: args.projectId,
+        isModal: args.isModal,
+      );
+    },
+  );
+}
+
+class DeveloperAppNewRouteArgs {
+  const DeveloperAppNewRouteArgs({
+    this.key,
+    required this.publisherName,
+    required this.projectId,
+    this.isModal = false,
+  });
+
+  final _i69.Key? key;
+
+  final String publisherName;
+
+  final String projectId;
+
+  final bool isModal;
+
+  @override
+  String toString() {
+    return 'DeveloperAppNewRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, isModal: $isModal}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperAppNewRouteArgs) return false;
+    return key == other.key &&
+        publisherName == other.publisherName &&
+        projectId == other.projectId &&
+        isModal == other.isModal;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      publisherName.hashCode ^
+      projectId.hashCode ^
+      isModal.hashCode;
+}
+
+/// generated route for
+/// [_i32.DeveloperBotDetailScreen]
 class DeveloperBotDetailRoute
     extends _i68.PageRouteInfo<DeveloperBotDetailRouteArgs> {
   DeveloperBotDetailRoute({
@@ -1347,7 +1507,7 @@ class DeveloperBotDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperBotDetailRouteArgs>();
-      return _i30.DeveloperBotDetailScreen(
+      return _i32.DeveloperBotDetailScreen(
         key: args.key,
         pubName: args.pubName,
         projectId: args.projectId,
@@ -1394,7 +1554,167 @@ class DeveloperBotDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i31.DeveloperHubScreen]
+/// [_i33.DeveloperBotEditScreen]
+class DeveloperBotEditRoute
+    extends _i68.PageRouteInfo<DeveloperBotEditRouteArgs> {
+  DeveloperBotEditRoute({
+    _i69.Key? key,
+    required String pubName,
+    required String projectId,
+    String? id,
+    bool isModal = false,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperBotEditRoute.name,
+         args: DeveloperBotEditRouteArgs(
+           key: key,
+           pubName: pubName,
+           projectId: projectId,
+           id: id,
+           isModal: isModal,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperBotEditRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperBotEditRouteArgs>();
+      return _i33.DeveloperBotEditScreen(
+        key: args.key,
+        pubName: args.pubName,
+        projectId: args.projectId,
+        id: args.id,
+        isModal: args.isModal,
+      );
+    },
+  );
+}
+
+class DeveloperBotEditRouteArgs {
+  const DeveloperBotEditRouteArgs({
+    this.key,
+    required this.pubName,
+    required this.projectId,
+    this.id,
+    this.isModal = false,
+  });
+
+  final _i69.Key? key;
+
+  final String pubName;
+
+  final String projectId;
+
+  final String? id;
+
+  final bool isModal;
+
+  @override
+  String toString() {
+    return 'DeveloperBotEditRouteArgs{key: $key, pubName: $pubName, projectId: $projectId, id: $id, isModal: $isModal}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperBotEditRouteArgs) return false;
+    return key == other.key &&
+        pubName == other.pubName &&
+        projectId == other.projectId &&
+        id == other.id &&
+        isModal == other.isModal;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      pubName.hashCode ^
+      projectId.hashCode ^
+      id.hashCode ^
+      isModal.hashCode;
+}
+
+/// generated route for
+/// [_i34.DeveloperBotNewScreen]
+class DeveloperBotNewRoute
+    extends _i68.PageRouteInfo<DeveloperBotNewRouteArgs> {
+  DeveloperBotNewRoute({
+    _i69.Key? key,
+    required String publisherName,
+    required String projectId,
+    bool isModal = false,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         DeveloperBotNewRoute.name,
+         args: DeveloperBotNewRouteArgs(
+           key: key,
+           publisherName: publisherName,
+           projectId: projectId,
+           isModal: isModal,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'DeveloperBotNewRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DeveloperBotNewRouteArgs>();
+      return _i34.DeveloperBotNewScreen(
+        key: args.key,
+        publisherName: args.publisherName,
+        projectId: args.projectId,
+        isModal: args.isModal,
+      );
+    },
+  );
+}
+
+class DeveloperBotNewRouteArgs {
+  const DeveloperBotNewRouteArgs({
+    this.key,
+    required this.publisherName,
+    required this.projectId,
+    this.isModal = false,
+  });
+
+  final _i69.Key? key;
+
+  final String publisherName;
+
+  final String projectId;
+
+  final bool isModal;
+
+  @override
+  String toString() {
+    return 'DeveloperBotNewRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, isModal: $isModal}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DeveloperBotNewRouteArgs) return false;
+    return key == other.key &&
+        publisherName == other.publisherName &&
+        projectId == other.projectId &&
+        isModal == other.isModal;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      publisherName.hashCode ^
+      projectId.hashCode ^
+      isModal.hashCode;
+}
+
+/// generated route for
+/// [_i35.DeveloperHubScreen]
 class DeveloperHubRoute extends _i68.PageRouteInfo<DeveloperHubRouteArgs> {
   DeveloperHubRoute({
     _i69.Key? key,
@@ -1419,7 +1739,7 @@ class DeveloperHubRoute extends _i68.PageRouteInfo<DeveloperHubRouteArgs> {
       final args = data.argsAs<DeveloperHubRouteArgs>(
         orElse: () => const DeveloperHubRouteArgs(),
       );
-      return _i31.DeveloperHubScreen(
+      return _i35.DeveloperHubScreen(
         key: args.key,
         initialPublisherName: args.initialPublisherName,
         initialProjectId: args.initialProjectId,
@@ -1461,7 +1781,7 @@ class DeveloperHubRouteArgs {
 }
 
 /// generated route for
-/// [_i32.DeveloperProjectEditScreen]
+/// [_i36.DeveloperProjectEditScreen]
 class DeveloperProjectEditRoute
     extends _i68.PageRouteInfo<DeveloperProjectEditRouteArgs> {
   DeveloperProjectEditRoute({
@@ -1485,7 +1805,7 @@ class DeveloperProjectEditRoute
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperProjectEditRouteArgs>();
-      return _i32.DeveloperProjectEditScreen(
+      return _i36.DeveloperProjectEditScreen(
         key: args.key,
         pubName: args.pubName,
         id: args.id,
@@ -1524,7 +1844,7 @@ class DeveloperProjectEditRouteArgs {
 }
 
 /// generated route for
-/// [_i33.DeveloperProjectNewScreen]
+/// [_i37.DeveloperProjectNewScreen]
 class DeveloperProjectNewRoute
     extends _i68.PageRouteInfo<DeveloperProjectNewRouteArgs> {
   DeveloperProjectNewRoute({
@@ -1546,7 +1866,7 @@ class DeveloperProjectNewRoute
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperProjectNewRouteArgs>();
-      return _i33.DeveloperProjectNewScreen(
+      return _i37.DeveloperProjectNewScreen(
         key: args.key,
         publisherName: args.publisherName,
       );
@@ -1578,7 +1898,7 @@ class DeveloperProjectNewRouteArgs {
 }
 
 /// generated route for
-/// [_i34.DiscoveryRealmsScreen]
+/// [_i38.DiscoveryRealmsScreen]
 class DiscoveryRealmsRoute extends _i68.PageRouteInfo<void> {
   const DiscoveryRealmsRoute({List<_i68.PageRouteInfo>? children})
     : super(DiscoveryRealmsRoute.name, initialChildren: children);
@@ -1588,179 +1908,13 @@ class DiscoveryRealmsRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i34.DiscoveryRealmsScreen();
+      return const _i38.DiscoveryRealmsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i35.EditAppScreen]
-class EditAppRoute extends _i68.PageRouteInfo<EditAppRouteArgs> {
-  EditAppRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    String? id,
-    bool isModal = false,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         EditAppRoute.name,
-         args: EditAppRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           id: id,
-           isModal: isModal,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'EditAppRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<EditAppRouteArgs>();
-      return _i35.EditAppScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        id: args.id,
-        isModal: args.isModal,
-      );
-    },
-  );
-}
-
-class EditAppRouteArgs {
-  const EditAppRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    this.id,
-    this.isModal = false,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final String? id;
-
-  final bool isModal;
-
-  @override
-  String toString() {
-    return 'EditAppRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, id: $id, isModal: $isModal}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EditAppRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        id == other.id &&
-        isModal == other.isModal;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      id.hashCode ^
-      isModal.hashCode;
-}
-
-/// generated route for
-/// [_i36.EditBotScreen]
-class EditBotRoute extends _i68.PageRouteInfo<EditBotRouteArgs> {
-  EditBotRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    String? id,
-    bool isModal = false,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         EditBotRoute.name,
-         args: EditBotRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           id: id,
-           isModal: isModal,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'EditBotRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<EditBotRouteArgs>();
-      return _i36.EditBotScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        id: args.id,
-        isModal: args.isModal,
-      );
-    },
-  );
-}
-
-class EditBotRouteArgs {
-  const EditBotRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    this.id,
-    this.isModal = false,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final String? id;
-
-  final bool isModal;
-
-  @override
-  String toString() {
-    return 'EditBotRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, id: $id, isModal: $isModal}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EditBotRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        id == other.id &&
-        isModal == other.isModal;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      id.hashCode ^
-      isModal.hashCode;
-}
-
-/// generated route for
-/// [_i37.EditChatScreen]
+/// [_i39.EditChatScreen]
 class EditChatRoute extends _i68.PageRouteInfo<EditChatRouteArgs> {
   EditChatRoute({_i69.Key? key, String? id, List<_i68.PageRouteInfo>? children})
     : super(
@@ -1777,7 +1931,7 @@ class EditChatRoute extends _i68.PageRouteInfo<EditChatRouteArgs> {
       final args = data.argsAs<EditChatRouteArgs>(
         orElse: () => const EditChatRouteArgs(),
       );
-      return _i37.EditChatScreen(key: args.key, id: args.id);
+      return _i39.EditChatScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -1806,7 +1960,7 @@ class EditChatRouteArgs {
 }
 
 /// generated route for
-/// [_i38.EditPublisherScreen]
+/// [_i40.EditPublisherScreen]
 class EditPublisherRoute extends _i68.PageRouteInfo<EditPublisherRouteArgs> {
   EditPublisherRoute({
     _i69.Key? key,
@@ -1826,7 +1980,7 @@ class EditPublisherRoute extends _i68.PageRouteInfo<EditPublisherRouteArgs> {
       final args = data.argsAs<EditPublisherRouteArgs>(
         orElse: () => const EditPublisherRouteArgs(),
       );
-      return _i38.EditPublisherScreen(key: args.key, name: args.name);
+      return _i40.EditPublisherScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -1855,56 +2009,7 @@ class EditPublisherRouteArgs {
 }
 
 /// generated route for
-/// [_i39.EditRealmScreen]
-class EditRealmRoute extends _i68.PageRouteInfo<EditRealmRouteArgs> {
-  EditRealmRoute({
-    _i69.Key? key,
-    String? slug,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         EditRealmRoute.name,
-         args: EditRealmRouteArgs(key: key, slug: slug),
-         initialChildren: children,
-       );
-
-  static const String name = 'EditRealmRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<EditRealmRouteArgs>(
-        orElse: () => const EditRealmRouteArgs(),
-      );
-      return _i39.EditRealmScreen(key: args.key, slug: args.slug);
-    },
-  );
-}
-
-class EditRealmRouteArgs {
-  const EditRealmRouteArgs({this.key, this.slug});
-
-  final _i69.Key? key;
-
-  final String? slug;
-
-  @override
-  String toString() {
-    return 'EditRealmRouteArgs{key: $key, slug: $slug}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EditRealmRouteArgs) return false;
-    return key == other.key && slug == other.slug;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ slug.hashCode;
-}
-
-/// generated route for
-/// [_i40.ExploreScreen]
+/// [_i41.ExploreScreen]
 class ExploreRoute extends _i68.PageRouteInfo<void> {
   const ExploreRoute({List<_i68.PageRouteInfo>? children})
     : super(ExploreRoute.name, initialChildren: children);
@@ -1914,13 +2019,13 @@ class ExploreRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i40.ExploreScreen();
+      return const _i41.ExploreScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i41.FeedMarketplaceDetailScreen]
+/// [_i42.FeedMarketplaceDetailScreen]
 class FeedMarketplaceDetailRoute
     extends _i68.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
   FeedMarketplaceDetailRoute({
@@ -1939,7 +2044,7 @@ class FeedMarketplaceDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<FeedMarketplaceDetailRouteArgs>();
-      return _i41.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
+      return _i42.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -1968,7 +2073,7 @@ class FeedMarketplaceDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i42.FeedMarketplaceScreen]
+/// [_i43.FeedMarketplaceScreen]
 class FeedMarketplaceRoute extends _i68.PageRouteInfo<void> {
   const FeedMarketplaceRoute({List<_i68.PageRouteInfo>? children})
     : super(FeedMarketplaceRoute.name, initialChildren: children);
@@ -1978,13 +2083,13 @@ class FeedMarketplaceRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i42.FeedMarketplaceScreen();
+      return const _i43.FeedMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i43.FileDetailScreen]
+/// [_i44.FileDetailScreen]
 class FileDetailRoute extends _i68.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
     _i70.Key? key,
@@ -2002,7 +2107,7 @@ class FileDetailRoute extends _i68.PageRouteInfo<FileDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FileDetailRouteArgs>();
-      return _i43.FileDetailScreen(key: args.key, item: args.item);
+      return _i44.FileDetailScreen(key: args.key, item: args.item);
     },
   );
 }
@@ -2031,7 +2136,7 @@ class FileDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i44.FileListScreen]
+/// [_i45.FileListScreen]
 class FileListRoute extends _i68.PageRouteInfo<void> {
   const FileListRoute({List<_i68.PageRouteInfo>? children})
     : super(FileListRoute.name, initialChildren: children);
@@ -2041,13 +2146,13 @@ class FileListRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i44.FileListScreen();
+      return const _i45.FileListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i45.FitnessActivityScreen]
+/// [_i46.FitnessActivityScreen]
 class FitnessActivityRoute extends _i68.PageRouteInfo<void> {
   const FitnessActivityRoute({List<_i68.PageRouteInfo>? children})
     : super(FitnessActivityRoute.name, initialChildren: children);
@@ -2057,13 +2162,13 @@ class FitnessActivityRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i45.FitnessActivityScreen();
+      return const _i46.FitnessActivityScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i46.LevelingScreen]
+/// [_i47.LevelingScreen]
 class LevelingRoute extends _i68.PageRouteInfo<void> {
   const LevelingRoute({List<_i68.PageRouteInfo>? children})
     : super(LevelingRoute.name, initialChildren: children);
@@ -2073,13 +2178,13 @@ class LevelingRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i46.LevelingScreen();
+      return const _i47.LevelingScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i47.LoginScreen]
+/// [_i48.LoginScreen]
 class LoginRoute extends _i68.PageRouteInfo<void> {
   const LoginRoute({List<_i68.PageRouteInfo>? children})
     : super(LoginRoute.name, initialChildren: children);
@@ -2089,88 +2194,13 @@ class LoginRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i47.LoginScreen();
+      return const _i48.LoginScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i48.NewBotScreen]
-class NewBotRoute extends _i68.PageRouteInfo<NewBotRouteArgs> {
-  NewBotRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    bool isModal = false,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         NewBotRoute.name,
-         args: NewBotRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           isModal: isModal,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'NewBotRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<NewBotRouteArgs>();
-      return _i48.NewBotScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        isModal: args.isModal,
-      );
-    },
-  );
-}
-
-class NewBotRouteArgs {
-  const NewBotRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    this.isModal = false,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final bool isModal;
-
-  @override
-  String toString() {
-    return 'NewBotRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, isModal: $isModal}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! NewBotRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        isModal == other.isModal;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      isModal.hashCode;
-}
-
-/// generated route for
-/// [_i37.NewChatScreen]
+/// [_i39.NewChatScreen]
 class NewChatRoute extends _i68.PageRouteInfo<void> {
   const NewChatRoute({List<_i68.PageRouteInfo>? children})
     : super(NewChatRoute.name, initialChildren: children);
@@ -2180,88 +2210,13 @@ class NewChatRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i37.NewChatScreen();
+      return const _i39.NewChatScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i49.NewCustomAppScreen]
-class NewCustomAppRoute extends _i68.PageRouteInfo<NewCustomAppRouteArgs> {
-  NewCustomAppRoute({
-    _i69.Key? key,
-    required String publisherName,
-    required String projectId,
-    bool isModal = false,
-    List<_i68.PageRouteInfo>? children,
-  }) : super(
-         NewCustomAppRoute.name,
-         args: NewCustomAppRouteArgs(
-           key: key,
-           publisherName: publisherName,
-           projectId: projectId,
-           isModal: isModal,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'NewCustomAppRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<NewCustomAppRouteArgs>();
-      return _i49.NewCustomAppScreen(
-        key: args.key,
-        publisherName: args.publisherName,
-        projectId: args.projectId,
-        isModal: args.isModal,
-      );
-    },
-  );
-}
-
-class NewCustomAppRouteArgs {
-  const NewCustomAppRouteArgs({
-    this.key,
-    required this.publisherName,
-    required this.projectId,
-    this.isModal = false,
-  });
-
-  final _i69.Key? key;
-
-  final String publisherName;
-
-  final String projectId;
-
-  final bool isModal;
-
-  @override
-  String toString() {
-    return 'NewCustomAppRouteArgs{key: $key, publisherName: $publisherName, projectId: $projectId, isModal: $isModal}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! NewCustomAppRouteArgs) return false;
-    return key == other.key &&
-        publisherName == other.publisherName &&
-        projectId == other.projectId &&
-        isModal == other.isModal;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^
-      publisherName.hashCode ^
-      projectId.hashCode ^
-      isModal.hashCode;
-}
-
-/// generated route for
-/// [_i38.NewPublisherScreen]
+/// [_i40.NewPublisherScreen]
 class NewPublisherRoute extends _i68.PageRouteInfo<void> {
   const NewPublisherRoute({List<_i68.PageRouteInfo>? children})
     : super(NewPublisherRoute.name, initialChildren: children);
@@ -2271,29 +2226,13 @@ class NewPublisherRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i38.NewPublisherScreen();
+      return const _i40.NewPublisherScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i39.NewRealmScreen]
-class NewRealmRoute extends _i68.PageRouteInfo<void> {
-  const NewRealmRoute({List<_i68.PageRouteInfo>? children})
-    : super(NewRealmRoute.name, initialChildren: children);
-
-  static const String name = 'NewRealmRoute';
-
-  static _i68.PageInfo page = _i68.PageInfo(
-    name,
-    builder: (data) {
-      return const _i39.NewRealmScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i50.OidcScreen]
+/// [_i49.OidcScreen]
 class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
   OidcRoute({
     _i70.Key? key,
@@ -2312,7 +2251,7 @@ class OidcRoute extends _i68.PageRouteInfo<OidcRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<OidcRouteArgs>();
-      return _i50.OidcScreen(
+      return _i49.OidcScreen(
         key: args.key,
         provider: args.provider,
         title: args.title,
@@ -2349,7 +2288,7 @@ class OidcRouteArgs {
 }
 
 /// generated route for
-/// [_i51.PollEditorScreen]
+/// [_i50.PollEditorScreen]
 class PollEditorRoute extends _i68.PageRouteInfo<PollEditorRouteArgs> {
   PollEditorRoute({
     _i70.Key? key,
@@ -2374,7 +2313,7 @@ class PollEditorRoute extends _i68.PageRouteInfo<PollEditorRouteArgs> {
       final args = data.argsAs<PollEditorRouteArgs>(
         orElse: () => const PollEditorRouteArgs(),
       );
-      return _i51.PollEditorScreen(
+      return _i50.PollEditorScreen(
         key: args.key,
         initialPollId: args.initialPollId,
         initialPublisher: args.initialPublisher,
@@ -2416,7 +2355,7 @@ class PollEditorRouteArgs {
 }
 
 /// generated route for
-/// [_i52.PostCategoriesListScreen]
+/// [_i51.PostCategoriesListScreen]
 class PostCategoriesListRoute extends _i68.PageRouteInfo<void> {
   const PostCategoriesListRoute({List<_i68.PageRouteInfo>? children})
     : super(PostCategoriesListRoute.name, initialChildren: children);
@@ -2426,13 +2365,13 @@ class PostCategoriesListRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i52.PostCategoriesListScreen();
+      return const _i51.PostCategoriesListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i53.PostCategoryDetailScreen]
+/// [_i52.PostCategoryDetailScreen]
 class PostCategoryDetailRoute
     extends _i68.PageRouteInfo<PostCategoryDetailRouteArgs> {
   PostCategoryDetailRoute({
@@ -2456,7 +2395,7 @@ class PostCategoryDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<PostCategoryDetailRouteArgs>();
-      return _i53.PostCategoryDetailScreen(
+      return _i52.PostCategoryDetailScreen(
         key: args.key,
         slug: args.slug,
         isCategory: args.isCategory,
@@ -2497,7 +2436,7 @@ class PostCategoryDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i54.PostDetailScreen]
+/// [_i53.PostDetailScreen]
 class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
   PostDetailRoute({
     _i70.Key? key,
@@ -2515,7 +2454,7 @@ class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<PostDetailRouteArgs>();
-      return _i54.PostDetailScreen(key: args.key, id: args.id);
+      return _i53.PostDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2544,7 +2483,7 @@ class PostDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i55.PostShuffleScreen]
+/// [_i54.PostShuffleScreen]
 class PostShuffleRoute extends _i68.PageRouteInfo<void> {
   const PostShuffleRoute({List<_i68.PageRouteInfo>? children})
     : super(PostShuffleRoute.name, initialChildren: children);
@@ -2554,13 +2493,13 @@ class PostShuffleRoute extends _i68.PageRouteInfo<void> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      return const _i55.PostShuffleScreen();
+      return const _i54.PostShuffleScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i56.PublisherProfileScreen]
+/// [_i55.PublisherProfileScreen]
 class PublisherProfileRoute
     extends _i68.PageRouteInfo<PublisherProfileRouteArgs> {
   PublisherProfileRoute({
@@ -2579,7 +2518,7 @@ class PublisherProfileRoute
     name,
     builder: (data) {
       final args = data.argsAs<PublisherProfileRouteArgs>();
-      return _i56.PublisherProfileScreen(key: args.key, name: args.name);
+      return _i55.PublisherProfileScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -2608,7 +2547,7 @@ class PublisherProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i57.RealmDetailScreen]
+/// [_i56.RealmDetailScreen]
 class RealmDetailRoute extends _i68.PageRouteInfo<RealmDetailRouteArgs> {
   RealmDetailRoute({
     _i69.Key? key,
@@ -2626,7 +2565,7 @@ class RealmDetailRoute extends _i68.PageRouteInfo<RealmDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<RealmDetailRouteArgs>();
-      return _i57.RealmDetailScreen(key: args.key, slug: args.slug);
+      return _i56.RealmDetailScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -2655,6 +2594,55 @@ class RealmDetailRouteArgs {
 }
 
 /// generated route for
+/// [_i57.RealmEditScreen]
+class RealmEditRoute extends _i68.PageRouteInfo<RealmEditRouteArgs> {
+  RealmEditRoute({
+    _i69.Key? key,
+    String? slug,
+    List<_i68.PageRouteInfo>? children,
+  }) : super(
+         RealmEditRoute.name,
+         args: RealmEditRouteArgs(key: key, slug: slug),
+         initialChildren: children,
+       );
+
+  static const String name = 'RealmEditRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RealmEditRouteArgs>(
+        orElse: () => const RealmEditRouteArgs(),
+      );
+      return _i57.RealmEditScreen(key: args.key, slug: args.slug);
+    },
+  );
+}
+
+class RealmEditRouteArgs {
+  const RealmEditRouteArgs({this.key, this.slug});
+
+  final _i69.Key? key;
+
+  final String? slug;
+
+  @override
+  String toString() {
+    return 'RealmEditRouteArgs{key: $key, slug: $slug}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RealmEditRouteArgs) return false;
+    return key == other.key && slug == other.slug;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ slug.hashCode;
+}
+
+/// generated route for
 /// [_i58.RealmListScreen]
 class RealmListRoute extends _i68.PageRouteInfo<void> {
   const RealmListRoute({List<_i68.PageRouteInfo>? children})
@@ -2666,6 +2654,22 @@ class RealmListRoute extends _i68.PageRouteInfo<void> {
     name,
     builder: (data) {
       return const _i58.RealmListScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i57.RealmNewScreen]
+class RealmNewRoute extends _i68.PageRouteInfo<void> {
+  const RealmNewRoute({List<_i68.PageRouteInfo>? children})
+    : super(RealmNewRoute.name, initialChildren: children);
+
+  static const String name = 'RealmNewRoute';
+
+  static _i68.PageInfo page = _i68.PageInfo(
+    name,
+    builder: (data) {
+      return const _i57.RealmNewScreen();
     },
   );
 }

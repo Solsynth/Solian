@@ -37,14 +37,14 @@ Future<CustomApp?> customApp(
 }
 
 @RoutePage()
-class EditAppScreen extends HookConsumerWidget {
-  final String publisherName;
+class DeveloperAppEditScreen extends HookConsumerWidget {
+  final String pubName;
   final String projectId;
   final String? id;
   final bool isModal;
-  const EditAppScreen({
+  const DeveloperAppEditScreen({
     super.key,
-    required this.publisherName,
+    required this.pubName,
     required this.projectId,
     this.id,
     this.isModal = false,
@@ -55,7 +55,7 @@ class EditAppScreen extends HookConsumerWidget {
     final isNew = id == null;
     final app = isNew
         ? null
-        : ref.watch(customAppProvider(publisherName, projectId, id!));
+        : ref.watch(customAppProvider(pubName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
@@ -297,12 +297,12 @@ class EditAppScreen extends HookConsumerWidget {
         showLoadingModal(context);
         if (isNew) {
           await client.post(
-            '/develop/developers/$publisherName/projects/$projectId/apps',
+            '/develop/developers/$pubName/projects/$projectId/apps',
             data: data,
           );
         } else {
           await client.patch(
-            '/develop/developers/$publisherName/projects/$projectId/apps/$id',
+            '/develop/developers/$pubName/projects/$projectId/apps/$id',
             data: data,
           );
         }
@@ -312,7 +312,7 @@ class EditAppScreen extends HookConsumerWidget {
       } finally {
         if (context.mounted) hideLoadingModal(context);
       }
-      ref.invalidate(customAppsProvider(publisherName, projectId));
+      ref.invalidate(customAppsProvider(pubName, projectId));
       if (context.mounted) {
         Navigator.pop(context);
       }
@@ -323,9 +323,8 @@ class EditAppScreen extends HookConsumerWidget {
         : app?.hasError == true && !isNew
         ? ResponseErrorWidget(
             error: app!.error,
-            onRetry: () => ref.invalidate(
-              customAppProvider(publisherName, projectId, id!),
-            ),
+            onRetry: () =>
+                ref.invalidate(customAppProvider(pubName, projectId, id!)),
           )
         : SingleChildScrollView(
             child: Column(
@@ -589,6 +588,7 @@ class EditAppScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: const PageBackButton(backTo: '/developers'),
         title: Text(isNew ? 'createCustomApp'.tr() : 'editCustomApp'.tr()),
       ),
       body: bodyContent,

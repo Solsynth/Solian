@@ -477,10 +477,7 @@ class _RealmActionMenu extends HookConsumerWidget {
         if (isModerator)
           PopupMenuItem(
             onTap: () {
-              // context.router.push(
-              //   'realmEdit',
-              //   pathParameters: {'slug': realmSlug},
-              // );
+              context.router.push(RealmEditRoute(slug: realmSlug));
             },
             child: Row(
               children: [

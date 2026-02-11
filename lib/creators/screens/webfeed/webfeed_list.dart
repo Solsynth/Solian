@@ -22,7 +22,10 @@ class CreatorFeedListScreen extends ConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: const Text('Web Feeds')),
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
+        title: const Text('Web Feeds'),
+      ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),
         onPressed: () {

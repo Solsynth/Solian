@@ -35,14 +35,14 @@ Future<Bot?> bot(
 }
 
 @RoutePage()
-class EditBotScreen extends HookConsumerWidget {
-  final String publisherName;
+class DeveloperBotEditScreen extends HookConsumerWidget {
+  final String pubName;
   final String projectId;
   final String? id;
   final bool isModal;
-  const EditBotScreen({
+  const DeveloperBotEditScreen({
     super.key,
-    required this.publisherName,
+    required this.pubName,
     required this.projectId,
     this.id,
     this.isModal = false,
@@ -53,7 +53,7 @@ class EditBotScreen extends HookConsumerWidget {
     final isNew = id == null;
     final botData = isNew
         ? null
-        : ref.watch(botProvider(publisherName, projectId, id!));
+        : ref.watch(botProvider(pubName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final submitting = useState(false);
@@ -171,12 +171,12 @@ class EditBotScreen extends HookConsumerWidget {
         showLoadingModal(context);
         if (isNew) {
           await client.post(
-            '/develop/developers/$publisherName/projects/$projectId/bots',
+            '/develop/developers/$pubName/projects/$projectId/bots',
             data: data,
           );
         } else {
           await client.patch(
-            '/develop/developers/$publisherName/projects/$projectId/bots/$id',
+            '/develop/developers/$pubName/projects/$projectId/bots/$id',
             data: data,
           );
         }
@@ -196,8 +196,7 @@ class EditBotScreen extends HookConsumerWidget {
         : botData?.hasError == true && !isNew
         ? ResponseErrorWidget(
             error: botData!.error,
-            onRetry: () =>
-                ref.invalidate(botProvider(publisherName, projectId, id!)),
+            onRetry: () => ref.invalidate(botProvider(pubName, projectId, id!)),
           )
         : SingleChildScrollView(
             child: Column(

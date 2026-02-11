@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:island/developers/screens/edit_app.dart';
 
 @RoutePage()
-class NewCustomAppScreen extends StatelessWidget {
+class DeveloperAppNewScreen extends StatelessWidget {
   final String publisherName;
   final String projectId;
   final bool isModal;
-  const NewCustomAppScreen({
+  const DeveloperAppNewScreen({
     super.key,
     required this.publisherName,
     required this.projectId,
@@ -16,8 +16,8 @@ class NewCustomAppScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EditAppScreen(
-      publisherName: publisherName,
+    return DeveloperAppEditScreen(
+      pubName: publisherName,
       projectId: projectId,
       isModal: isModal,
     );

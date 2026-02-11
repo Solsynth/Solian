@@ -34,8 +34,8 @@ class CreatorStickerListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
         title: const Text('stickers').tr(),
-        actions: [const Gap(8)],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

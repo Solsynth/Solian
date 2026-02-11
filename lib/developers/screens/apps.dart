@@ -80,7 +80,7 @@ class DeveloperAppListScreen extends HookConsumerWidget {
                       isScrollControlled: true,
                       builder: (context) => SheetScaffold(
                         titleText: 'createCustomApp'.tr(),
-                        child: NewCustomAppScreen(
+                        child: DeveloperAppNewScreen(
                           publisherName: publisherName,
                           projectId: projectId,
                           isModal: true,
@@ -111,7 +111,7 @@ class DeveloperAppListScreen extends HookConsumerWidget {
                         isScrollControlled: true,
                         builder: (context) => SheetScaffold(
                           titleText: 'createCustomApp'.tr(),
-                          child: NewCustomAppScreen(
+                          child: DeveloperAppNewScreen(
                             publisherName: publisherName,
                             projectId: projectId,
                             isModal: true,
@@ -201,8 +201,8 @@ class DeveloperAppListScreen extends HookConsumerWidget {
                                       isScrollControlled: true,
                                       builder: (context) => SheetScaffold(
                                         titleText: 'editCustomApp'.tr(),
-                                        child: EditAppScreen(
-                                          publisherName: publisherName,
+                                        child: DeveloperAppEditScreen(
+                                          pubName: publisherName,
                                           projectId: projectId,
                                           id: app.id,
                                           isModal: true,

@@ -65,7 +65,10 @@ class CreatorSiteListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('publicationSites'.tr())),
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
+        title: Text('publicationSites'.tr()),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createSite(context),
         child: Icon(Icons.add),

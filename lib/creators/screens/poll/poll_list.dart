@@ -83,7 +83,10 @@ class CreatorPollListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: const Text('Polls')),
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
+        title: const Text('Polls'),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createPoll(context),
         child: const Icon(Icons.add),

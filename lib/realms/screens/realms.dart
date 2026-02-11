@@ -106,12 +106,14 @@ class RealmListScreen extends HookConsumerWidget {
                         title: Text('createRealm').tr(),
                         onTap: () {
                           Navigator.of(context).pop();
-                          // context.router.push('realmNew').then((value) {
-                          //   if (value != null) {
-                          //     // Fire realm refresh event if needed
-                          //     // eventBus.fire(const RealmsRefreshEvent());
-                          //   }
-                          // });
+                          context.router.push(const RealmNewRoute()).then((
+                            value,
+                          ) {
+                            if (value != null) {
+                              // Fire realm refresh event if needed
+                              // eventBus.fire(const RealmsRefreshEvent());
+                            }
+                          });
                         },
                       ),
                       const Gap(16),

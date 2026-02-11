@@ -109,9 +109,9 @@ class AppRouter extends RootStackRouter {
           page: RealmListRoute.page,
           path: 'realms',
           children: [
-            // AutoRoute(page: RealmNewRoute.page, path: 'new'),
+            AutoRoute(page: RealmNewRoute.page, path: 'new'),
             AutoRoute(page: RealmDetailRoute.page, path: ':slug'),
-            // AutoRoute(page: RealmEditRoute.page, path: ':slug/edit'),
+            AutoRoute(page: RealmEditRoute.page, path: ':slug/edit'),
           ],
         ),
 
@@ -192,25 +192,39 @@ class AppRouter extends RootStackRouter {
           children: [
             AutoRoute(
               page: DeveloperProjectNewRoute.page,
-              path: ':name/projects/new',
+              path: ':pubName/projects/new',
             ),
             AutoRoute(
               page: DeveloperProjectEditRoute.page,
-              path: ':name/projects/:id/edit',
+              path: ':pubName/projects/:id/edit',
             ),
             AutoRoute(
               page: DeveloperAppListRoute.page,
-              path: ':name/projects/:projectId',
-              children: [
-                AutoRoute(
-                  page: DeveloperAppDetailRoute.page,
-                  path: 'apps/:appId',
-                ),
-                AutoRoute(
-                  page: DeveloperBotDetailRoute.page,
-                  path: 'bots/:botId',
-                ),
-              ],
+              path: ':pubName/projects/:projectId',
+            ),
+            AutoRoute(
+              page: DeveloperAppDetailRoute.page,
+              path: ':pubName/projects/:projectId/apps/:appId',
+            ),
+            AutoRoute(
+              page: DeveloperAppNewRoute.page,
+              path: ':pubName/projects/:projectId/apps/new',
+            ),
+            AutoRoute(
+              page: DeveloperAppEditRoute.page,
+              path: ':pubName/projects/:projectId/apps/:appId/edit',
+            ),
+            AutoRoute(
+              page: DeveloperBotDetailRoute.page,
+              path: ':pubName/projects/:projectId/bots/:botId',
+            ),
+            AutoRoute(
+              page: DeveloperBotNewRoute.page,
+              path: ':pubName/projects/:projectId/bots/new',
+            ),
+            AutoRoute(
+              page: DeveloperBotEditRoute.page,
+              path: ':pubName/projects/:projectId/bots/:botId/edit',
             ),
           ],
         ),

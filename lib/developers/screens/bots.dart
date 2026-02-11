@@ -58,7 +58,7 @@ class BotsScreen extends HookConsumerWidget {
                       isScrollControlled: true,
                       builder: (context) => SheetScaffold(
                         titleText: 'createBot'.tr(),
-                        child: NewBotScreen(
+                        child: DeveloperBotNewScreen(
                           publisherName: publisherName,
                           projectId: projectId,
                           isModal: true,
@@ -89,7 +89,7 @@ class BotsScreen extends HookConsumerWidget {
                         isScrollControlled: true,
                         builder: (context) => SheetScaffold(
                           titleText: 'createBot'.tr(),
-                          child: NewBotScreen(
+                          child: DeveloperBotNewScreen(
                             publisherName: publisherName,
                             projectId: projectId,
                             isModal: true,
@@ -166,8 +166,8 @@ class BotsScreen extends HookConsumerWidget {
                                     isScrollControlled: true,
                                     builder: (context) => SheetScaffold(
                                       titleText: 'editBot'.tr(),
-                                      child: EditBotScreen(
-                                        publisherName: publisherName,
+                                      child: DeveloperBotEditScreen(
+                                        pubName: publisherName,
                                         projectId: projectId,
                                         id: bot.id,
                                         isModal: true,

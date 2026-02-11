@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:island/developers/screens/edit_bot.dart';
 
 @RoutePage()
-class NewBotScreen extends StatelessWidget {
+class DeveloperBotNewScreen extends StatelessWidget {
   final String publisherName;
   final String projectId;
   final bool isModal;
-  const NewBotScreen({
+  const DeveloperBotNewScreen({
     super.key,
     required this.publisherName,
     required this.projectId,
@@ -16,8 +16,8 @@ class NewBotScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EditBotScreen(
-      publisherName: publisherName,
+    return DeveloperBotEditScreen(
+      pubName: publisherName,
       projectId: projectId,
       isModal: isModal,
     );

@@ -84,72 +84,76 @@ class DeveloperHubScreen extends HookConsumerWidget {
       developerStatsProvider(currentDeveloper.value?.publisher?.name),
     );
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: _ConsoleAppBar(
-        currentDeveloper: currentDeveloper.value,
-        currentProject: currentProject.value,
-        onProjectChanged: (value) {
-          currentProject.value = value;
-        },
-        onDeveloperChanged: (value) {
-          currentDeveloper.value = value;
-        },
-      ),
-      body: Column(
-        children: [
-          // Main Content
-          if (currentProject.value != null)
-            Expanded(
-              child: ProjectDetailView(
-                publisherName: currentDeveloper.value!.publisher!.name,
-                project: currentProject.value!,
-                onBackToHub: () {
-                  currentProject.value = null;
-                },
-              ),
-            )
-          else
-            Expanded(
-              child: Center(
-                child: _MainContentSection(
-                  currentDeveloper: currentDeveloper.value,
-                  projects: projects,
-                  developerStats: developerStats,
-                  onProjectSelected: (project) {
-                    currentProject.value = project;
-                  },
-                  onDeveloperSelected: (developer) {
-                    currentDeveloper.value = developer;
-                  },
-                  onCreateProject: () {
-                    if (currentDeveloper.value != null) {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => SheetScaffold(
-                          titleText: 'createProject'.tr(),
-                          child: ProjectForm(
-                            publisherName:
-                                currentDeveloper.value!.publisher!.name,
-                          ),
-                        ),
-                      ).then((value) {
-                        if (value != null) {
-                          ref.invalidate(
-                            devProjectsProvider(
-                              currentDeveloper.value!.publisher!.name,
+    return AutoRouter(
+      placeholder: (context) {
+        return AppScaffold(
+          isNoBackground: false,
+          appBar: _ConsoleAppBar(
+            currentDeveloper: currentDeveloper.value,
+            currentProject: currentProject.value,
+            onProjectChanged: (value) {
+              currentProject.value = value;
+            },
+            onDeveloperChanged: (value) {
+              currentDeveloper.value = value;
+            },
+          ),
+          body: Column(
+            children: [
+              // Main Content
+              if (currentProject.value != null)
+                Expanded(
+                  child: ProjectDetailView(
+                    publisherName: currentDeveloper.value!.publisher!.name,
+                    project: currentProject.value!,
+                    onBackToHub: () {
+                      currentProject.value = null;
+                    },
+                  ),
+                )
+              else
+                Expanded(
+                  child: Center(
+                    child: _MainContentSection(
+                      currentDeveloper: currentDeveloper.value,
+                      projects: projects,
+                      developerStats: developerStats,
+                      onProjectSelected: (project) {
+                        currentProject.value = project;
+                      },
+                      onDeveloperSelected: (developer) {
+                        currentDeveloper.value = developer;
+                      },
+                      onCreateProject: () {
+                        if (currentDeveloper.value != null) {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => SheetScaffold(
+                              titleText: 'createProject'.tr(),
+                              child: ProjectForm(
+                                publisherName:
+                                    currentDeveloper.value!.publisher!.name,
+                              ),
                             ),
-                          );
+                          ).then((value) {
+                            if (value != null) {
+                              ref.invalidate(
+                                devProjectsProvider(
+                                  currentDeveloper.value!.publisher!.name,
+                                ),
+                              );
+                            }
+                          });
                         }
-                      });
-                    }
-                  },
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

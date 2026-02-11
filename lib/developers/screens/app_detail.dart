@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/app_secrets.dart';
 import 'package:island/developers/screens/apps.dart';
 import 'package:island/developers/models/custom_app.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -34,6 +35,7 @@ class DeveloperAppDetailScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: const PageBackButton(backTo: '/developers'),
         title: Text(appData.value?.name ?? 'appDetails'.tr()),
         actions: [
           IconButton(
@@ -41,14 +43,13 @@ class DeveloperAppDetailScreen extends HookConsumerWidget {
             onPressed: appData.value == null
                 ? null
                 : () {
-                    // context.router.push(
-                    //   'developerAppEdit',
-                    //   pathParameters: {
-                    //     'name': publisherName,
-                    //     'projectId': projectId,
-                    //     'id': appId,
-                    //   },
-                    // );
+                    context.router.push(
+                      DeveloperAppEditRoute(
+                        pubName: pubName,
+                        projectId: projectId,
+                        id: appId,
+                      ),
+                    );
                   },
           ),
           const Gap(8),

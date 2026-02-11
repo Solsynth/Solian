@@ -18,7 +18,10 @@ class CreatorPostListScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('posts').tr()),
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
+        title: Text('posts').tr(),
+      ),
       body: CustomScrollView(
         key: ValueKey(refreshKey.value),
         slivers: [
