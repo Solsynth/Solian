@@ -14,7 +14,7 @@ import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/posts/posts_pod.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/realms/realms_widgets/realm/realm_card.dart';

@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/status_creation.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/activity_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';

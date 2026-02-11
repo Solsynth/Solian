@@ -13,7 +13,7 @@ import "package:island/posts/widgets/compose/compose_poll.dart";
 import "package:island/stickers/widgets/stickers/sticker_picker.dart";
 import "package:island/stickers/models/sticker.dart";
 import "package:island/core/config.dart";
-import "package:island/accounts/accounts_pod.dart";
+import "package:island/accounts/account_pod.dart";
 import "package:island/discovery/discovery_service.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/core/widgets/content/attachment_preview.dart";

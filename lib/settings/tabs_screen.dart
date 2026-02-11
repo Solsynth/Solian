@@ -5,7 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/navigation/conditional_bottom_nav.dart';
@@ -57,9 +57,9 @@ class _TabsScreenContent extends HookConsumerWidget {
     // Update the current route provider whenever the route changes
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(currentRouteProvider.notifier).updateRoute(
-          tabsRouter.currentPath,
-        );
+        ref
+            .read(currentRouteProvider.notifier)
+            .updateRoute(tabsRouter.currentPath);
       });
       return null;
     }, [tabsRouter.currentPath]);

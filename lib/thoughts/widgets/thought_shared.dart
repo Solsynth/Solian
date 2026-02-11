@@ -10,7 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/thoughts/thought.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/talker.dart';
 import 'package:island/shared/widgets/alert.dart';

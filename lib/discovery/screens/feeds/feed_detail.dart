@@ -74,9 +74,9 @@ Future<bool> marketplaceWebFeedSubscription(
 }
 
 @RoutePage()
-class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
+class FeedMarketplaceDetailScreen extends HookConsumerWidget {
   final String id;
-  const MarketplaceWebFeedDetailScreen({super.key, required this.id});
+  const FeedMarketplaceDetailScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -11,7 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/services/image.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -25,7 +25,9 @@ const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 const kServerSupportedRegions = ['US', 'JP', 'CN'];
 
 @RoutePage()
-class UpdateProfileScreen extends HookConsumerWidget {
+class AccountUpdateProfileScreen extends HookConsumerWidget {
+  const AccountUpdateProfileScreen({super.key});
+
   bool _isValidHexColor(String color) {
     if (!color.startsWith('#')) return false;
     if (color.length != 7) return false; // #RRGGBB format
@@ -36,8 +38,6 @@ class UpdateProfileScreen extends HookConsumerWidget {
       return false;
     }
   }
-
-  const UpdateProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

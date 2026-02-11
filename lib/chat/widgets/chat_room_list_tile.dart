@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
