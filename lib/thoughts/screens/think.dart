@@ -87,15 +87,16 @@ class ThoughtScreen extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.only(top: 12, left: 18, right: 16, bottom: 12),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     'Conversations',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -109,9 +110,10 @@ class ThoughtScreen extends HookConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: ThoughtSequenceList(
+              selectedSequenceId: selectedSequenceId.value,
               onSequenceSelected: (sequenceId) {
                 selectedSequenceId.value = sequenceId;
-                showSidebar.value = false;
+                // Keep sidebar open after selection
               },
             ),
           ),
@@ -205,6 +207,18 @@ class ThoughtScreen extends HookConsumerWidget {
         leading: const PageBackButton(),
         actions: [
           IconButton(
+            icon: const Icon(Symbols.add),
+            onPressed: () {
+              // Invalidate the current sequence provider to clear cached data
+              if (selectedSequenceId.value != null) {
+                ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
+              }
+              selectedSequenceId.value = null;
+              showSidebar.value = false;
+            },
+            tooltip: 'New Conversation',
+          ),
+          IconButton(
             icon: const Icon(Symbols.history),
             onPressed: () => showSidebar.value = !showSidebar.value,
             tooltip: 'Conversations',
@@ -224,25 +238,54 @@ class ThoughtScreen extends HookConsumerWidget {
 
 /// A widget that displays a list of thought sequences for selection
 class ThoughtSequenceList extends HookConsumerWidget {
+  final String? selectedSequenceId;
   final Function(String) onSequenceSelected;
 
   const ThoughtSequenceList({
     super.key,
+    this.selectedSequenceId,
     required this.onSequenceSelected,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = thoughtSequenceListNotifierProvider;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return PaginationList(
+      padding: EdgeInsets.zero,
       provider: provider,
       notifier: provider.notifier,
       itemBuilder: (context, index, sequence) {
-        return ListTile(
-          title: Text(sequence.topic ?? 'Untitled Conversation'),
-          subtitle: Text(sequence.createdAt.formatSystem()),
-          leading: const Icon(Symbols.chat_bubble_outline),
-          onTap: () => onSequenceSelected(sequence.id),
+        final isSelected = sequence.id == selectedSequenceId;
+        return Container(
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: colorScheme.primaryContainer.withAlpha(64),
+                  border: Border(
+                    left: BorderSide(
+                      color: colorScheme.primary,
+                      width: 3,
+                    ),
+                  ),
+                )
+              : null,
+          child: ListTile(
+            selected: isSelected,
+            selectedColor: colorScheme.onPrimaryContainer,
+            title: Text(
+              sequence.topic ?? 'Untitled Conversation',
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            subtitle: Text(sequence.createdAt.formatSystem()),
+            leading: Icon(
+              isSelected ? Symbols.chat_bubble : Symbols.chat_bubble_outline,
+              fill: isSelected ? 1 : 0,
+            ),
+            onTap: () => onSequenceSelected(sequence.id),
+          ),
         );
       },
     );

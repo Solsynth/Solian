@@ -85,6 +85,26 @@ ThoughtChatState useThoughtChat(
   );
   final currentTopic = useState<String?>(initialTopic ?? 'aiThought'.tr());
 
+  // Sync localThoughts when initialThoughts changes (e.g., when switching conversations)
+  useEffect(() {
+    localThoughts.value = initialThoughts ?? [];
+    return null;
+  }, [initialThoughts]);
+
+  // Sync topic when initialTopic changes
+  useEffect(() {
+    if (initialTopic != null) {
+      currentTopic.value = initialTopic;
+    }
+    return null;
+  }, [initialTopic]);
+
+  // Sync sequenceId when initialSequenceId changes
+  useEffect(() {
+    sequenceId.value = initialSequenceId;
+    return null;
+  }, [initialSequenceId]);
+
   // Watch the provider for services
   final servicesAsync = ref.watch(thoughtServicesProvider);
 
