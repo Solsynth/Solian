@@ -7,7 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';

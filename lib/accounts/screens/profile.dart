@@ -18,7 +18,7 @@ import 'package:island/developers/models/developer.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';

@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/leveling_progress.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/credits.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';

@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:island/core/services/image.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';

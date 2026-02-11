@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:easy_localization/easy_localization.dart';

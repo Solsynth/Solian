@@ -70,11 +70,9 @@ class MarketplaceStickerPacksNotifier
   }
 }
 
-/// User-facing marketplace screen for browsing sticker packs.
-/// This version does NOT rely on publisher name (no pubName).
 @RoutePage()
-class MarketplaceStickersScreen extends HookConsumerWidget {
-  const MarketplaceStickersScreen({super.key});
+class StickerMarketplaceScreen extends HookConsumerWidget {
+  const StickerMarketplaceScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -11,8 +10,9 @@ import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/accounts_pod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -22,8 +22,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
-class AccountShellScreen extends HookConsumerWidget {
-  const AccountShellScreen({super.key});
+class AccountScreen extends HookConsumerWidget {
+  const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +34,7 @@ class AccountShellScreen extends HookConsumerWidget {
         isRoot: true,
         child: Row(
           children: [
-            Flexible(flex: 2, child: AccountScreen(isAside: true)),
+            Flexible(flex: 2, child: AccountFeatureWidget(isAside: true)),
             VerticalDivider(width: 1),
             Flexible(flex: 3, child: AutoRouter()),
           ],
@@ -46,17 +46,16 @@ class AccountShellScreen extends HookConsumerWidget {
       isRoot: true,
       child: AutoRouter(
         placeholder: (context) {
-          return AccountScreen();
+          return AccountFeatureWidget();
         },
       ),
     );
   }
 }
 
-@RoutePage()
-class AccountScreen extends HookConsumerWidget {
+class AccountFeatureWidget extends HookConsumerWidget {
   final bool isAside;
-  const AccountScreen({super.key, this.isAside = false});
+  const AccountFeatureWidget({super.key, this.isAside = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,9 +105,8 @@ class AccountScreen extends HookConsumerWidget {
                               radius: 32,
                             ),
                             onTap: () {
-                              context.pushNamed(
-                                'accountProfile',
-                                pathParameters: {'name': user.value!.name},
+                              context.router.push(
+                                AccountProfileRoute(name: user.value!.name),
                               );
                             },
                           ),
@@ -130,9 +128,8 @@ class AccountScreen extends HookConsumerWidget {
                                 radius: 24,
                               ),
                               onTap: () {
-                                context.pushNamed(
-                                  'accountProfile',
-                                  pathParameters: {'name': user.value!.name},
+                                context.router.push(
+                                  AccountProfileRoute(name: user.value!.name),
                                 );
                               },
                             ).padding(bottom: 12),
@@ -208,7 +205,7 @@ class AccountScreen extends HookConsumerWidget {
               experience: user.value!.profile.experience,
               progress: user.value!.profile.levelingProgress,
               onTap: () {
-                context.pushNamed('leveling');
+                context.router.push(const LevelingRoute());
               },
             ).padding(horizontal: 12),
             if (!isWideScreen(context)) const SizedBox.shrink(),
@@ -238,7 +235,7 @@ class AccountScreen extends HookConsumerWidget {
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
-                          context.goNamed('creatorHub');
+                          context.router.navigate(const CreatorHubRoute());
                         },
                       ),
                     ).height(140),
@@ -265,7 +262,7 @@ class AccountScreen extends HookConsumerWidget {
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
-                          context.goNamed('developerHub');
+                          context.router.navigate(DeveloperHubRoute());
                         },
                       ),
                     ).height(140),
@@ -297,7 +294,7 @@ class AccountScreen extends HookConsumerWidget {
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
-                          context.pushNamed('settings');
+                          context.router.push(const SettingsRoute());
                         },
                       ),
                     ),
@@ -313,7 +310,9 @@ class AccountScreen extends HookConsumerWidget {
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
-                          context.pushNamed('profileUpdate');
+                          context.router.push(
+                            const AccountUpdateProfileRoute(),
+                          );
                         },
                       ),
                     ),
@@ -329,7 +328,7 @@ class AccountScreen extends HookConsumerWidget {
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
-                          context.pushNamed('accountSettings');
+                          context.router.push(const AccountSettingsRoute());
                         },
                       ),
                     ),
@@ -379,7 +378,7 @@ class AccountScreen extends HookConsumerWidget {
                       'icon': Symbols.files,
                       'title': 'files',
                       'onTap': () {
-                        context.goNamed('files');
+                        context.router.navigate(const FileListRoute());
                       },
                     },
                   if (!isWideScreen(context))
@@ -387,49 +386,49 @@ class AccountScreen extends HookConsumerWidget {
                       'icon': Symbols.groups_3,
                       'title': 'realms',
                       'onTap': () {
-                        context.goNamed('realmList');
+                        context.router.navigate(const RealmListRoute());
                       },
                     },
                   {
                     'icon': Symbols.wallet,
                     'title': 'wallet',
                     'onTap': () {
-                      context.pushNamed('wallet');
+                      context.router.push(const WalletRoute());
                     },
                   },
                   {
                     'icon': Symbols.people,
                     'title': 'relationships',
                     'onTap': () {
-                      context.pushNamed('relationships');
+                      context.router.push(const RelationshipRoute());
                     },
                   },
                   {
                     'icon': Symbols.sticker_rounded,
                     'title': 'stickers',
                     'onTap': () {
-                      context.pushNamed('stickerMarketplace');
+                      context.router.push(const StickerMarketplaceRoute());
                     },
                   },
                   {
                     'icon': Symbols.rss_feed,
                     'title': 'webFeeds',
                     'onTap': () {
-                      context.pushNamed('webFeedMarketplace');
+                      context.router.push(const FeedMarketplaceRoute());
                     },
                   },
                   {
                     'icon': Symbols.gavel,
                     'title': 'abuseReport',
                     'onTap': () {
-                      context.pushNamed('reportList');
+                      context.router.push(const AbuseReportListRoute());
                     },
                   },
                   {
                     'icon': Symbols.fitness_center,
                     'title': 'fitnessActivity',
                     'onTap': () {
-                      context.pushNamed('fitnessActivity');
+                      context.router.push(const FitnessActivityRoute());
                     },
                   },
                 ];
@@ -465,7 +464,7 @@ class AccountScreen extends HookConsumerWidget {
               dense: true,
               title: Text('about').tr(),
               onTap: () {
-                context.pushNamed('about');
+                context.router.push(const AboutRoute());
               },
             ),
             ListTile(
@@ -528,7 +527,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 child: InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                   onTap: () {
-                    context.pushNamed('createAccount');
+                    context.router.push(const CreateAccountRoute());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -551,7 +550,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 child: InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                   onTap: () {
-                    context.pushNamed('login');
+                    context.router.push(const LoginRoute());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -573,7 +572,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    context.pushNamed('about');
+                    context.router.push(const AboutRoute());
                   },
                   iconSize: 18,
                   color: Theme.of(context).colorScheme.secondary,
@@ -594,7 +593,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    context.pushNamed('settings');
+                    context.router.push(const SettingsRoute());
                   },
                   icon: const Icon(Icons.settings, fill: 1),
                   iconSize: 18,

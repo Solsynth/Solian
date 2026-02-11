@@ -51,8 +51,8 @@ class MarketplaceWebFeedsNotifier
 
 /// Marketplace screen for browsing web feeds.
 @RoutePage()
-class MarketplaceWebFeedsScreen extends HookConsumerWidget {
-  const MarketplaceWebFeedsScreen({super.key});
+class FeedMarketplaceScreen extends HookConsumerWidget {
+  const FeedMarketplaceScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
