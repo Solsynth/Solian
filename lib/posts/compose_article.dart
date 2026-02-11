@@ -19,7 +19,7 @@ import 'package:island/posts/widgets/compose/publishers_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
-import 'package:island/shared/widgets/responsive_sidebar.dart';
+import 'package:island/posts/widgets/compose/article_responsive_sidebar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -393,7 +393,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         body: Column(
           children: [
             Expanded(
-              child: ResponsiveSidebar(
+              child: ArticleResponsiveSidebar(
                 sidebarWidth: 480,
                 attachmentsContent: ArticleComposeAttachments(state: state),
                 settingsContent: ComposeSettingsSheet(state: state),

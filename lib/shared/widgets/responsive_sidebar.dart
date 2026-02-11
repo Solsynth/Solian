@@ -2,33 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/posts/widgets/compose/article_sidebar_panel.dart';
 
+/// A general-purpose responsive sidebar widget that adapts to screen size.
+///
+/// On wide screens: Shows the sidebar as a sliding panel next to the main content
+/// On narrow screens: Shows the sidebar in an end drawer
 class ResponsiveSidebar extends HookConsumerWidget {
-  final Widget attachmentsContent;
-  final Widget settingsContent;
+  /// The content to display in the sidebar
+  final Widget sidebarContent;
+
+  /// The main content widget
   final Widget mainContent;
+
+  /// The width of the sidebar when displayed on wide screens
   final double sidebarWidth;
+
+  /// Controls whether the sidebar is visible
   final ValueNotifier<bool> showSidebar;
+
+  /// Optional custom drawer widget for narrow screens.
+  /// If not provided, [sidebarContent] will be used inside a default [Drawer].
+  final Widget? drawerWidget;
+
+  /// Background color for the sidebar on wide screens.
+  /// If not provided, uses [Theme.of(context).colorScheme.surfaceContainer].
+  final Color? sidebarBackgroundColor;
+
+  /// Elevation for the sidebar on wide screens
+  final double sidebarElevation;
+
+  /// Duration for the sidebar slide animation
+  final Duration animationDuration;
+
+  /// Curve for the sidebar slide animation
+  final Curve animationCurve;
 
   const ResponsiveSidebar({
     super.key,
-    required this.attachmentsContent,
-    required this.settingsContent,
+    required this.sidebarContent,
     required this.mainContent,
-    this.sidebarWidth = 480,
     required this.showSidebar,
+    this.sidebarWidth = 480,
+    this.drawerWidget,
+    this.sidebarBackgroundColor,
+    this.sidebarElevation = 8,
+    this.animationDuration = const Duration(milliseconds: 300),
+    this.animationCurve = Curves.easeInOut,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
     final animationController = useAnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: animationDuration,
     );
     final animation = useMemoized(
       () => Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
+        CurvedAnimation(parent: animationController, curve: animationCurve),
       ),
       [animationController],
     );
@@ -102,8 +132,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
                       child: _buildWideScreenSidebar(
                         context,
                         animation,
-                        attachmentsContent,
-                        settingsContent,
+                        sidebarContent,
                         closeSidebar,
                       ),
                     ),
@@ -114,21 +143,20 @@ class ResponsiveSidebar extends HookConsumerWidget {
         },
       );
     } else {
+      final effectiveDrawer = drawerWidget ??
+          Drawer(
+            width: sidebarWidth,
+            child: sidebarContent,
+          );
+
       return Scaffold(
         key: scaffoldKey,
-        endDrawer: Drawer(
-          width: sidebarWidth,
-          child: ArticleSidebarPanelWidget(
-            attachmentsContent: attachmentsContent,
-            settingsContent: settingsContent,
-            onClose: () {
-              showSidebar.value = false;
-              Navigator.of(context).pop();
-            },
-            isWide: false,
-            width: sidebarWidth,
-          ),
-        ),
+        endDrawer: effectiveDrawer,
+        onEndDrawerChanged: (isOpen) {
+          if (!isOpen) {
+            showSidebar.value = false;
+          }
+        },
         body: mainContent,
       );
     }
@@ -152,24 +180,20 @@ class ResponsiveSidebar extends HookConsumerWidget {
   Widget _buildWideScreenSidebar(
     BuildContext context,
     Animation<double> animation,
-    Widget attachmentsContent,
-    Widget settingsContent,
+    Widget sidebarContent,
     VoidCallback onClose,
   ) {
+    final bgColor = sidebarBackgroundColor ??
+        Theme.of(context).colorScheme.surfaceContainer;
+
     return Transform.translate(
       offset: Offset((1 - animation.value) * sidebarWidth, 0),
       child: SizedBox(
         width: sidebarWidth,
         child: Material(
-          elevation: 8,
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          child: ArticleSidebarPanelWidget(
-            attachmentsContent: attachmentsContent,
-            settingsContent: settingsContent,
-            onClose: onClose,
-            isWide: true,
-            width: sidebarWidth,
-          ),
+          elevation: sidebarElevation,
+          color: bgColor,
+          child: sidebarContent,
         ),
       ),
     );

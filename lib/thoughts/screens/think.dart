@@ -9,8 +9,11 @@ import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/thoughts/thought.dart";
 import "package:island/core/network.dart";
+import "package:island/core/services/time.dart";
 import "package:island/shared/widgets/alert.dart";
 import "package:island/shared/widgets/app_scaffold.dart";
+import "package:island/shared/widgets/pagination_list.dart";
+import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 
@@ -51,6 +54,8 @@ class ThoughtScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSequenceId = useState<String?>(null);
+    final showSidebar = useState(false);
+
     final thoughts = selectedSequenceId.value != null
         ? ref.watch(thoughtSequenceProvider(selectedSequenceId.value!))
         : const AsyncValue<List<SnThinkingThought>>.data([]);
@@ -76,30 +81,47 @@ class ThoughtScreen extends HookConsumerWidget {
 
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        title: Text(initialTopic ?? 'aiThought'.tr()),
-        leading: const PageBackButton(),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.history),
-            onPressed: () {
-              // Show sequence selector
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => ThoughtSequenceSelector(
-                  onSequenceSelected: (sequenceId) {
-                    selectedSequenceId.value = sequenceId;
-                  },
+    // Build the sidebar content for conversation selection
+    Widget buildSidebarContent() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Conversations',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
-              );
-            },
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => showSidebar.value = false,
+                  tooltip: 'close'.tr(),
+                ),
+              ],
+            ),
           ),
-          const Gap(8),
+          const Divider(height: 1),
+          Expanded(
+            child: ThoughtSequenceList(
+              onSequenceSelected: (sequenceId) {
+                selectedSequenceId.value = sequenceId;
+                showSidebar.value = false;
+              },
+            ),
+          ),
         ],
-      ),
-      body: statusAsync.maybeWhen(
+      );
+    }
+
+    // Build the main content (chat interface)
+    Widget buildMainContent() {
+      return statusAsync.maybeWhen(
         data: (status) {
           final retry = useMemoized(
             () => () async {
@@ -173,7 +195,56 @@ class ThoughtScreen extends HookConsumerWidget {
                 : null,
           ),
         ),
+      );
+    }
+
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        title: Text(initialTopic ?? 'aiThought'.tr()),
+        leading: const PageBackButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.history),
+            onPressed: () => showSidebar.value = !showSidebar.value,
+            tooltip: 'Conversations',
+          ),
+          const Gap(8),
+        ],
       ),
+      body: ResponsiveSidebar(
+        showSidebar: showSidebar,
+        sidebarWidth: 360,
+        sidebarContent: buildSidebarContent(),
+        mainContent: buildMainContent(),
+      ),
+    );
+  }
+}
+
+/// A widget that displays a list of thought sequences for selection
+class ThoughtSequenceList extends HookConsumerWidget {
+  final Function(String) onSequenceSelected;
+
+  const ThoughtSequenceList({
+    super.key,
+    required this.onSequenceSelected,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = thoughtSequenceListNotifierProvider;
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      itemBuilder: (context, index, sequence) {
+        return ListTile(
+          title: Text(sequence.topic ?? 'Untitled Conversation'),
+          subtitle: Text(sequence.createdAt.formatSystem()),
+          leading: const Icon(Symbols.chat_bubble_outline),
+          onTap: () => onSequenceSelected(sequence.id),
+        );
+      },
     );
   }
 }
