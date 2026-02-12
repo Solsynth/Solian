@@ -53,9 +53,7 @@ class ThoughtContent extends StatelessWidget {
             )
           : null,
       child: MarkdownTextContent(
-        linesMargin: thought?.role == ThinkingThoughtRole.user
-            ? EdgeInsets.zero
-            : null,
+        linesMargin: EdgeInsets.zero,
         isSelectable: true,
         content: content,
         extraBlockSyntaxList: [ProposalBlockSyntax()],

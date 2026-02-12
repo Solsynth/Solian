@@ -354,7 +354,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         SnThinkingMessagePart(
           type: ThinkingMessagePartType.text,
           text: userMessage,
-          files: state.attachments
+          files: attachments
               .where((a) => a.isOnCloud)
               .map((a) => a.data)
               .cast<SnCloudFile>()
