@@ -445,7 +445,11 @@ class ReferencedPostWidget extends HookConsumerWidget {
     final referencePost = item.repliedPost ?? item.forwardedPost;
     final isGone = item.repliedGone || item.forwardedGone;
 
-    if (referencePost == null && !isGone) return const SizedBox.shrink();
+    if (referencePost == null) {
+      if (!isGone) return const SizedBox.shrink();
+      // When the post is gone (deleted), we still show a placeholder
+      // but we can't show the PostHeader since referencePost is null
+    }
 
     final isReply = item.repliedPost != null || item.repliedGone;
 
@@ -491,14 +495,16 @@ class ReferencedPostWidget extends HookConsumerWidget {
           ),
           if (!isCollapsed.value) ...[
             const Gap(8),
-            PostHeader(
-              item: referencePost!,
-              isFullPost: false,
-              isCompact: true,
-              showLowerLine: true,
-              renderingPadding: EdgeInsets.zero,
-              isInteractive: isInteractive,
-            ),
+            // Only show PostHeader if referencePost is not null
+            if (referencePost != null)
+              PostHeader(
+                item: referencePost,
+                isFullPost: false,
+                isCompact: true,
+                showLowerLine: true,
+                renderingPadding: EdgeInsets.zero,
+                isInteractive: isInteractive,
+              ),
             if (isGone)
               Row(
                 children: [
@@ -517,8 +523,8 @@ class ReferencedPostWidget extends HookConsumerWidget {
                     ),
                   ),
                 ],
-              )
-            else
+              ).padding(left: 8, bottom: 8)
+            else if (referencePost != null)
               // Use PostHeader for the referenced post with threading line
               IntrinsicHeight(
                 child: Row(
@@ -630,12 +636,12 @@ class ReferencedPostWidget extends HookConsumerWidget {
       child: buildContent(),
     );
 
-    if (!isInteractive || isGone) {
+    if (!isInteractive || isGone || referencePost == null) {
       return content;
     }
 
     return GestureDetector(
-      onTap: () => context.router.push(PostDetailRoute(id: referencePost!.id)),
+      onTap: () => context.router.push(PostDetailRoute(id: referencePost.id)),
       child: content,
     );
   }
