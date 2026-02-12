@@ -57,13 +57,15 @@ class CloudFilePicker extends HookConsumerWidget {
         for (var idx = 0; idx < files.value.length; idx++) {
           uploadPosition.value = idx;
           final file = files.value[idx];
-          final cloudFile = await FileUploader.createCloudFile(
-            fileData: file,
-            ref: ref,
-            onProgress: (progress, _) {
-              uploadProgress.value = progress;
-            },
-          ).future;
+          final cloudFile = await ref
+              .read(driveFileUploaderProvider)
+              .createCloudFile(
+                fileData: file,
+                onProgress: (progress, _) {
+                  uploadProgress.value = progress;
+                },
+              )
+              .future;
           if (cloudFile == null) {
             throw ArgumentError('Failed to upload the file...');
           }

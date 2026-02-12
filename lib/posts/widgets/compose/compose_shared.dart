@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
@@ -209,10 +210,10 @@ class ComposeLogic {
         final attachment = state.attachments.value[i];
         if (attachment.data is! SnCloudFile) {
           try {
-            final cloudFile = await FileUploader.createCloudFile(
-              ref: ref,
-              fileData: attachment,
-            ).future;
+            final cloudFile = await ref
+                .read(driveFileUploaderProvider)
+                .createCloudFile(fileData: attachment)
+                .future;
             if (cloudFile != null) {
               // Update attachments list with cloud file
               final clone = List.of(state.attachments.value);
@@ -533,22 +534,27 @@ class ComposeLogic {
       SnCloudFile? cloudFile;
 
       final pools = await ref.read(poolsProvider.future);
-      final selectedPoolId = resolveDefaultPoolId(ref, pools);
+      final selectedPoolId = resolveDefaultPoolId(
+        ref.read(appSettingsProvider),
+        pools,
+      );
 
-      cloudFile = await FileUploader.createCloudFile(
-        ref: ref,
-        fileData: attachment,
-        poolId: poolId ?? selectedPoolId,
-        mode: attachment.type == UniversalFileType.file
-            ? FileUploadMode.generic
-            : FileUploadMode.mediaSafe,
-        onProgress: (progress, _) {
-          state.attachmentProgress.value = {
-            ...state.attachmentProgress.value,
-            index: progress ?? 0.0,
-          };
-        },
-      ).future;
+      cloudFile = await ref
+          .read(driveFileUploaderProvider)
+          .createCloudFile(
+            fileData: attachment,
+            poolId: poolId ?? selectedPoolId,
+            mode: attachment.type == UniversalFileType.file
+                ? FileUploadMode.generic
+                : FileUploadMode.mediaSafe,
+            onProgress: (progress, _) {
+              state.attachmentProgress.value = {
+                ...state.attachmentProgress.value,
+                index: progress ?? 0.0,
+              };
+            },
+          )
+          .future;
 
       if (cloudFile == null) {
         throw ArgumentError('Failed to upload the file...');

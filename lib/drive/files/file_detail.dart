@@ -143,7 +143,8 @@ class FileDetailScreen extends HookConsumerWidget {
           actions.add(
             IconButton(
               icon: Icon(Icons.save_alt),
-              onPressed: () => FileDownloadService(ref).saveToGallery(item),
+              onPressed: () =>
+                  ref.read(driveFileDownloaderProvider).saveToGallery(item),
             ),
           );
         }
@@ -154,8 +155,9 @@ class FileDetailScreen extends HookConsumerWidget {
           actions.add(
             IconButton(
               icon: Icon(Icons.save_alt),
-              onPressed: () =>
-                  FileDownloadService(ref).downloadWithProgress(item),
+              onPressed: () => ref
+                  .read(driveFileDownloaderProvider)
+                  .downloadWithProgress(item),
             ),
           );
         }

@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -623,7 +622,10 @@ class SettingsScreen extends HookConsumerWidget {
         pools.when(
           data: (data) {
             final validPools = data;
-            final currentPoolId = resolveDefaultPoolId(ref, data);
+            final currentPoolId = resolveDefaultPoolId(
+              ref.read(appSettingsProvider),
+              data,
+            );
 
             return ListTile(
               isThreeLine: true,

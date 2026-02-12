@@ -140,10 +140,15 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final cloudFile = await FileUploader.createCloudFile(
-          ref: ref,
-          fileData: UniversalFile(data: result, type: UniversalFileType.image),
-        ).future;
+        final cloudFile = await ref
+            .read(driveFileUploaderProvider)
+            .createCloudFile(
+              fileData: UniversalFile(
+                data: result,
+                type: UniversalFileType.image,
+              ),
+            )
+            .future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }

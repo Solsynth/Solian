@@ -71,8 +71,7 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
     @Default([]) List<String> accpetProposals,
     List<String>? attachedPosts,
     List<Map<String, dynamic>>? attachedMessages,
-    @JsonKey(name: "attached_attachments_ids")
-    List<int>? attachedAttachmentsIds,
+    List<String>? attachedFiles,
     String? bot,
   }) = _StreamThinkingRequest;
 
@@ -134,6 +133,8 @@ sealed class SnThinkingMessagePart with _$SnThinkingMessagePart {
   const factory SnThinkingMessagePart({
     @ThinkingMessagePartTypeConverter() required ThinkingMessagePartType type,
     String? text,
+    Map<String, dynamic>? metadata,
+    List<SnCloudFile>? files,
     SnFunctionCall? functionCall,
     SnFunctionResult? functionResult,
   }) = _SnThinkingMessagePart;

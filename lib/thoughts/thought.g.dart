@@ -22,8 +22,8 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
   attachedMessages: (json['attached_messages'] as List<dynamic>?)
       ?.map((e) => e as Map<String, dynamic>)
       .toList(),
-  attachedAttachmentsIds: (json['attached_attachments_ids'] as List<dynamic>?)
-      ?.map((e) => (e as num).toInt())
+  attachedFiles: (json['attached_files'] as List<dynamic>?)
+      ?.map((e) => e as String)
       .toList(),
   bot: json['bot'] as String?,
 );
@@ -36,7 +36,7 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'accpet_proposals': instance.accpetProposals,
   'attached_posts': instance.attachedPosts,
   'attached_messages': instance.attachedMessages,
-  'attached_attachments_ids': instance.attachedAttachmentsIds,
+  'attached_files': instance.attachedFiles,
   'bot': instance.bot,
 };
 
@@ -89,6 +89,10 @@ _SnThinkingMessagePart _$SnThinkingMessagePartFromJson(
     (json['type'] as num).toInt(),
   ),
   text: json['text'] as String?,
+  metadata: json['metadata'] as Map<String, dynamic>?,
+  files: (json['files'] as List<dynamic>?)
+      ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+      .toList(),
   functionCall: json['function_call'] == null
       ? null
       : SnFunctionCall.fromJson(json['function_call'] as Map<String, dynamic>),
@@ -104,6 +108,8 @@ Map<String, dynamic> _$SnThinkingMessagePartToJson(
 ) => <String, dynamic>{
   'type': const ThinkingMessagePartTypeConverter().toJson(instance.type),
   'text': instance.text,
+  'metadata': instance.metadata,
+  'files': instance.files?.map((e) => e.toJson()).toList(),
   'function_call': instance.functionCall?.toJson(),
   'function_result': instance.functionResult?.toJson(),
 };

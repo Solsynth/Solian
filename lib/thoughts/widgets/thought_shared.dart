@@ -8,7 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:island/chat/widgets/chat_link_attachments.dart';
 import 'package:island/core/utils/text.dart';
+import 'package:island/core/widgets/content/attachment_preview.dart';
+import 'package:island/drive/widgets/upload_menu.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -21,11 +25,11 @@ import 'package:island/thoughts/widgets/thought_content.dart';
 import 'package:island/thoughts/widgets/thought_header.dart';
 import 'package:island/thoughts/widgets/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
-export 'thought_chat_notifier.dart'
-    show ThoughtChatArgs, ThoughtChatState, ThoughtChatNotifier, StreamItem;
+import 'package:island/drive/widgets/cloud_files.dart';
 
 class ThoughtChatInterface extends HookConsumerWidget {
   final List<SnThinkingThought>? initialThoughts;
@@ -259,6 +263,12 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 attachedMessages: attachedMessages,
                 attachedPosts: attachedPosts,
                 isDisabled: isDisabled,
+                // Attachment support
+                attachments: chatState.attachments,
+                attachmentProgress: chatState.attachmentProgress,
+                onUploadAttachment: notifier.uploadAttachment,
+                onDeleteAttachment: notifier.deleteAttachment,
+                onAttachmentsChanged: notifier.updateAttachments,
               ),
             ),
           ),
@@ -430,6 +440,12 @@ class ThoughtInput extends HookWidget {
   final List<Map<String, dynamic>>? attachedMessages;
   final List<String>? attachedPosts;
   final bool isDisabled;
+  // Attachment support
+  final List<UniversalFile> attachments;
+  final Map<int, double?> attachmentProgress;
+  final Function(int) onUploadAttachment;
+  final Function(int) onDeleteAttachment;
+  final Function(List<UniversalFile>) onAttachmentsChanged;
 
   const ThoughtInput({
     super.key,
@@ -439,7 +455,72 @@ class ThoughtInput extends HookWidget {
     this.attachedMessages,
     this.attachedPosts,
     this.isDisabled = false,
+    // Attachment support
+    this.attachments = const [],
+    this.attachmentProgress = const {},
+    required this.onUploadAttachment,
+    required this.onDeleteAttachment,
+    required this.onAttachmentsChanged,
   });
+
+  Future<void> _pickFile() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      _addAttachment(picked);
+    }
+  }
+
+  Future<void> _linkAttachment(BuildContext context) async {
+    final cloudFile = await showModalBottomSheet<SnCloudFile?>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ChatLinkAttachment(),
+    );
+    if (cloudFile == null) return;
+
+    final newAttachments = [
+      ...attachments,
+      UniversalFile(
+        data: cloudFile,
+        type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+          'image' => UniversalFileType.image,
+          'video' => UniversalFileType.video,
+          'audio' => UniversalFileType.audio,
+          _ => UniversalFileType.file,
+        },
+        isLink: true,
+      ),
+    ];
+    onAttachmentsChanged(newAttachments);
+  }
+
+  void _addAttachment(XFile file) {
+    final newAttachment = UniversalFile(
+      displayName: file.name,
+      data: file,
+      type: _getFileType(file),
+    );
+    onAttachmentsChanged([...attachments, newAttachment]);
+  }
+
+  UniversalFileType _getFileType(XFile file) {
+    final mimeType = file.mimeType ?? '';
+    if (mimeType.startsWith('image/')) return UniversalFileType.image;
+    if (mimeType.startsWith('video/')) return UniversalFileType.video;
+    if (mimeType.startsWith('audio/')) return UniversalFileType.audio;
+    return UniversalFileType.image;
+  }
+
+  void _onMoveAttachment(int index, int delta) {
+    final newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= attachments.length) return;
+    final newAttachments = [...attachments];
+    final item = newAttachments.removeAt(index);
+    newAttachments.insert(newIndex, item);
+    onAttachmentsChanged(newAttachments);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -457,6 +538,63 @@ class ThoughtInput extends HookWidget {
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Column(
             children: [
+              // Attachment preview list
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.1),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: attachments.isNotEmpty
+                    ? SizedBox(
+                        key: ValueKey('attachments-${attachments.length}'),
+                        height: 180,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: attachments.length,
+                          itemBuilder: (context, idx) {
+                            return SizedBox(
+                              width: 180,
+                              child: AttachmentPreview(
+                                isCompact: true,
+                                item: attachments[idx],
+                                progress: attachmentProgress[idx],
+                                isUploading: attachmentProgress.containsKey(
+                                  idx,
+                                ),
+                                onRequestUpload: () => onUploadAttachment(idx),
+                                onDelete: () => onDeleteAttachment(idx),
+                                onUpdate: (value) {
+                                  final newAttachments = [...attachments];
+                                  newAttachments[idx] = value;
+                                  onAttachmentsChanged(newAttachments);
+                                },
+                                onMove: (delta) =>
+                                    _onMoveAttachment(idx, delta),
+                              ),
+                            );
+                          },
+                          separatorBuilder: (_, _) => const Gap(8),
+                        ),
+                      ).padding(vertical: 12)
+                    : const SizedBox.shrink(key: ValueKey('no-attachments')),
+              ),
+              // Attached messages/posts indicator
               if ((attachedMessages?.isNotEmpty ?? false) ||
                   (attachedPosts?.isNotEmpty ?? false))
                 Container(
@@ -525,6 +663,22 @@ class ThoughtInput extends HookWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Upload menu
+                  UploadMenu(
+                    items: [
+                      UploadMenuItemData(
+                        Symbols.add_a_photo,
+                        'addPhoto',
+                        () => _pickFile(),
+                      ),
+                      UploadMenuItemData(
+                        Symbols.attach_file,
+                        'linkAttachment',
+                        () => _linkAttachment(context),
+                      ),
+                    ],
+                    iconColor: Theme.of(context).colorScheme.onSurface,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: messageController,
@@ -726,6 +880,15 @@ class ThoughtItem extends StatelessWidget {
       widgets.add(buildTextRow(currentText));
     }
 
+    // Render files from thought parts (not streaming)
+    if (!isStreaming && thought != null) {
+      for (final part in thought!.parts) {
+        if (part.files != null && part.files!.isNotEmpty) {
+          widgets.add(_buildFilesWidget(part.files!));
+        }
+      }
+    }
+
     // Add spinner at the end if streaming
     if (isStreaming) {
       widgets.add(
@@ -783,5 +946,21 @@ class ThoughtItem extends StatelessWidget {
       default:
         throw 'unknown item type ${item.type}';
     }
+  }
+
+  Widget _buildFilesWidget(List<SnCloudFile> files) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: files.map((file) {
+        return SizedBox(
+          width: 200,
+          child: CloudFileWidget(
+            item: file,
+            fit: BoxFit.cover,
+          ),
+        );
+      }).toList(),
+    );
   }
 }

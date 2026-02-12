@@ -36,7 +36,7 @@ class CloudFileLightbox extends HookConsumerWidget {
     final showExif = useState(hasExifData);
 
     void saveToGallery() {
-      FileDownloadService(ref).saveToGallery(item);
+      ref.read(driveFileDownloaderProvider).saveToGallery(item);
     }
 
     void showInfoSheet() {

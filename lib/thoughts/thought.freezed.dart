@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StreamThinkingRequest {
 
- String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages;@JsonKey(name: "attached_attachments_ids") List<int>? get attachedAttachmentsIds; String? get bot;
+ String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages; List<String>? get attachedFiles; String? get bot;
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StreamThinkingRequestCopyWith<StreamThinkingRequest> get copyWith => _$StreamTh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&const DeepCollectionEquality().equals(other.attachedAttachmentsIds, attachedAttachmentsIds)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&const DeepCollectionEquality().equals(other.attachedFiles, attachedFiles)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),const DeepCollectionEquality().hash(attachedAttachmentsIds),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),const DeepCollectionEquality().hash(attachedFiles),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedAttachmentsIds: $attachedAttachmentsIds, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StreamThinkingRequestCopyWith<$Res>  {
   factory $StreamThinkingRequestCopyWith(StreamThinkingRequest value, $Res Function(StreamThinkingRequest) _then) = _$StreamThinkingRequestCopyWithImpl;
 @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds, String? bot
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot
 });
 
 
@@ -65,15 +65,15 @@ class _$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedAttachmentsIds = freezed,Object? bot = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,}) {
   return _then(_self.copyWith(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self.accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self.attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self.attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,attachedAttachmentsIds: freezed == attachedAttachmentsIds ? _self.attachedAttachmentsIds : attachedAttachmentsIds // ignore: cast_nullable_to_non_nullable
-as List<int>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,attachedFiles: freezed == attachedFiles ? _self.attachedFiles : attachedFiles // ignore: cast_nullable_to_non_nullable
+as List<String>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -156,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);case _:
   return orElse();
 
 }
@@ -177,10 +177,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest():
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);}
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +194,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)?  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);case _:
   return null;
 
 }
@@ -209,7 +209,7 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 @JsonSerializable()
 
 class _StreamThinkingRequest implements StreamThinkingRequest {
-  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids") final  List<int>? attachedAttachmentsIds, this.bot}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages,_attachedAttachmentsIds = attachedAttachmentsIds;
+  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, final  List<String>? attachedFiles, this.bot}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages,_attachedFiles = attachedFiles;
   factory _StreamThinkingRequest.fromJson(Map<String, dynamic> json) => _$StreamThinkingRequestFromJson(json);
 
 @override final  String userMessage;
@@ -239,11 +239,11 @@ class _StreamThinkingRequest implements StreamThinkingRequest {
   return EqualUnmodifiableListView(value);
 }
 
- final  List<int>? _attachedAttachmentsIds;
-@override@JsonKey(name: "attached_attachments_ids") List<int>? get attachedAttachmentsIds {
-  final value = _attachedAttachmentsIds;
+ final  List<String>? _attachedFiles;
+@override List<String>? get attachedFiles {
+  final value = _attachedFiles;
   if (value == null) return null;
-  if (_attachedAttachmentsIds is EqualUnmodifiableListView) return _attachedAttachmentsIds;
+  if (_attachedFiles is EqualUnmodifiableListView) return _attachedFiles;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(value);
 }
@@ -263,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&const DeepCollectionEquality().equals(other._attachedAttachmentsIds, _attachedAttachmentsIds)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&const DeepCollectionEquality().equals(other._attachedFiles, _attachedFiles)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),const DeepCollectionEquality().hash(_attachedAttachmentsIds),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),const DeepCollectionEquality().hash(_attachedFiles),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedAttachmentsIds: $attachedAttachmentsIds, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot)';
 }
 
 
@@ -283,7 +283,7 @@ abstract mixin class _$StreamThinkingRequestCopyWith<$Res> implements $StreamThi
   factory _$StreamThinkingRequestCopyWith(_StreamThinkingRequest value, $Res Function(_StreamThinkingRequest) _then) = __$StreamThinkingRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds, String? bot
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot
 });
 
 
@@ -300,15 +300,15 @@ class __$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedAttachmentsIds = freezed,Object? bot = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,}) {
   return _then(_StreamThinkingRequest(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self._accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self._attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self._attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,attachedAttachmentsIds: freezed == attachedAttachmentsIds ? _self._attachedAttachmentsIds : attachedAttachmentsIds // ignore: cast_nullable_to_non_nullable
-as List<int>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,attachedFiles: freezed == attachedFiles ? _self._attachedFiles : attachedFiles // ignore: cast_nullable_to_non_nullable
+as List<String>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1114,7 +1114,7 @@ as bool,
 /// @nodoc
 mixin _$SnThinkingMessagePart {
 
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; Map<String, dynamic>? get metadata; List<SnCloudFile>? get files; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1127,16 +1127,16 @@ $SnThinkingMessagePartCopyWith<SnThinkingMessagePart> get copyWith => _$SnThinki
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.files, files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,text,functionCall,functionResult);
+int get hashCode => Object.hash(runtimeType,type,text,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(files),functionCall,functionResult);
 
 @override
 String toString() {
-  return 'SnThinkingMessagePart(type: $type, text: $text, functionCall: $functionCall, functionResult: $functionResult)';
+  return 'SnThinkingMessagePart(type: $type, text: $text, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
 }
 
 
@@ -1147,7 +1147,7 @@ abstract mixin class $SnThinkingMessagePartCopyWith<$Res>  {
   factory $SnThinkingMessagePartCopyWith(SnThinkingMessagePart value, $Res Function(SnThinkingMessagePart) _then) = _$SnThinkingMessagePartCopyWithImpl;
 @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1164,11 +1164,13 @@ class _$SnThinkingMessagePartCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? text = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? text = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,files: freezed == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
 as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
 as SnFunctionResult?,
   ));
@@ -1276,10 +1278,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
-return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);case _:
+return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
   return orElse();
 
 }
@@ -1297,10 +1299,10 @@ return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart():
-return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);}
+return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1314,10 +1316,10 @@ return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
-return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);case _:
+return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
   return null;
 
 }
@@ -1329,11 +1331,29 @@ return $default(_that.type,_that.text,_that.functionCall,_that.functionResult);c
 @JsonSerializable()
 
 class _SnThinkingMessagePart implements SnThinkingMessagePart {
-  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, this.functionCall, this.functionResult});
+  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, final  Map<String, dynamic>? metadata, final  List<SnCloudFile>? files, this.functionCall, this.functionResult}): _metadata = metadata,_files = files;
   factory _SnThinkingMessagePart.fromJson(Map<String, dynamic> json) => _$SnThinkingMessagePartFromJson(json);
 
 @override@ThinkingMessagePartTypeConverter() final  ThinkingMessagePartType type;
 @override final  String? text;
+ final  Map<String, dynamic>? _metadata;
+@override Map<String, dynamic>? get metadata {
+  final value = _metadata;
+  if (value == null) return null;
+  if (_metadata is EqualUnmodifiableMapView) return _metadata;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+ final  List<SnCloudFile>? _files;
+@override List<SnCloudFile>? get files {
+  final value = _files;
+  if (value == null) return null;
+  if (_files is EqualUnmodifiableListView) return _files;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 @override final  SnFunctionCall? functionCall;
 @override final  SnFunctionResult? functionResult;
 
@@ -1350,16 +1370,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._files, _files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,text,functionCall,functionResult);
+int get hashCode => Object.hash(runtimeType,type,text,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_files),functionCall,functionResult);
 
 @override
 String toString() {
-  return 'SnThinkingMessagePart(type: $type, text: $text, functionCall: $functionCall, functionResult: $functionResult)';
+  return 'SnThinkingMessagePart(type: $type, text: $text, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
 }
 
 
@@ -1370,7 +1390,7 @@ abstract mixin class _$SnThinkingMessagePartCopyWith<$Res> implements $SnThinkin
   factory _$SnThinkingMessagePartCopyWith(_SnThinkingMessagePart value, $Res Function(_SnThinkingMessagePart) _then) = __$SnThinkingMessagePartCopyWithImpl;
 @override @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1387,11 +1407,13 @@ class __$SnThinkingMessagePartCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? text = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? text = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
   return _then(_SnThinkingMessagePart(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,files: freezed == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
 as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
 as SnFunctionResult?,
   ));
