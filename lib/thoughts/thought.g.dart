@@ -22,6 +22,9 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
   attachedMessages: (json['attached_messages'] as List<dynamic>?)
       ?.map((e) => e as Map<String, dynamic>)
       .toList(),
+  attachedAttachmentsIds: (json['attached_attachments_ids'] as List<dynamic>?)
+      ?.map((e) => (e as num).toInt())
+      .toList(),
   bot: json['bot'] as String?,
 );
 
@@ -33,6 +36,7 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'accpet_proposals': instance.accpetProposals,
   'attached_posts': instance.attachedPosts,
   'attached_messages': instance.attachedMessages,
+  'attached_attachments_ids': instance.attachedAttachmentsIds,
   'bot': instance.bot,
 };
 
@@ -116,6 +120,12 @@ _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
+      agentInitiated: json['agent_initiated'] as bool? ?? false,
+      userLastReadAt: json['user_last_read_at'] == null
+          ? null
+          : DateTime.parse(json['user_last_read_at'] as String),
+      lastMessageAt: DateTime.parse(json['last_message_at'] as String),
+      isPublic: json['is_public'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
@@ -128,6 +138,10 @@ Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'agent_initiated': instance.agentInitiated,
+      'user_last_read_at': instance.userLastReadAt?.toIso8601String(),
+      'last_message_at': instance.lastMessageAt.toIso8601String(),
+      'is_public': instance.isPublic,
     };
 
 _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>

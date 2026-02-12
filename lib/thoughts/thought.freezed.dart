@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StreamThinkingRequest {
 
- String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages; String? get bot;
+ String get userMessage; String? get sequenceId; List<String> get accpetProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages;@JsonKey(name: "attached_attachments_ids") List<int>? get attachedAttachmentsIds; String? get bot;
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StreamThinkingRequestCopyWith<StreamThinkingRequest> get copyWith => _$StreamTh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&const DeepCollectionEquality().equals(other.attachedAttachmentsIds, attachedAttachmentsIds)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),const DeepCollectionEquality().hash(attachedAttachmentsIds),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedAttachmentsIds: $attachedAttachmentsIds, bot: $bot)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StreamThinkingRequestCopyWith<$Res>  {
   factory $StreamThinkingRequestCopyWith(StreamThinkingRequest value, $Res Function(StreamThinkingRequest) _then) = _$StreamThinkingRequestCopyWithImpl;
 @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, String? bot
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds, String? bot
 });
 
 
@@ -65,14 +65,15 @@ class _$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? bot = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedAttachmentsIds = freezed,Object? bot = freezed,}) {
   return _then(_self.copyWith(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self.accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self.attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self.attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,attachedAttachmentsIds: freezed == attachedAttachmentsIds ? _self.attachedAttachmentsIds : attachedAttachmentsIds // ignore: cast_nullable_to_non_nullable
+as List<int>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest():
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);}
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -193,10 +194,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  String? bot)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids")  List<int>? attachedAttachmentsIds,  String? bot)?  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedAttachmentsIds,_that.bot);case _:
   return null;
 
 }
@@ -208,7 +209,7 @@ return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals,_that.a
 @JsonSerializable()
 
 class _StreamThinkingRequest implements StreamThinkingRequest {
-  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, this.bot}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages;
+  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, @JsonKey(name: "attached_attachments_ids") final  List<int>? attachedAttachmentsIds, this.bot}): _accpetProposals = accpetProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages,_attachedAttachmentsIds = attachedAttachmentsIds;
   factory _StreamThinkingRequest.fromJson(Map<String, dynamic> json) => _$StreamThinkingRequestFromJson(json);
 
 @override final  String userMessage;
@@ -238,6 +239,15 @@ class _StreamThinkingRequest implements StreamThinkingRequest {
   return EqualUnmodifiableListView(value);
 }
 
+ final  List<int>? _attachedAttachmentsIds;
+@override@JsonKey(name: "attached_attachments_ids") List<int>? get attachedAttachmentsIds {
+  final value = _attachedAttachmentsIds;
+  if (value == null) return null;
+  if (_attachedAttachmentsIds is EqualUnmodifiableListView) return _attachedAttachmentsIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 @override final  String? bot;
 
 /// Create a copy of StreamThinkingRequest
@@ -253,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&const DeepCollectionEquality().equals(other._attachedAttachmentsIds, _attachedAttachmentsIds)&&(identical(other.bot, bot) || other.bot == bot));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),const DeepCollectionEquality().hash(_attachedAttachmentsIds),bot);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedAttachmentsIds: $attachedAttachmentsIds, bot: $bot)';
 }
 
 
@@ -273,7 +283,7 @@ abstract mixin class _$StreamThinkingRequestCopyWith<$Res> implements $StreamThi
   factory _$StreamThinkingRequestCopyWith(_StreamThinkingRequest value, $Res Function(_StreamThinkingRequest) _then) = __$StreamThinkingRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, String? bot
+ String userMessage, String? sequenceId, List<String> accpetProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages,@JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds, String? bot
 });
 
 
@@ -290,14 +300,15 @@ class __$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? bot = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedAttachmentsIds = freezed,Object? bot = freezed,}) {
   return _then(_StreamThinkingRequest(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String?,accpetProposals: null == accpetProposals ? _self._accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
 as List<String>,attachedPosts: freezed == attachedPosts ? _self._attachedPosts : attachedPosts // ignore: cast_nullable_to_non_nullable
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self._attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,attachedAttachmentsIds: freezed == attachedAttachmentsIds ? _self._attachedAttachmentsIds : attachedAttachmentsIds // ignore: cast_nullable_to_non_nullable
+as List<int>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1417,7 +1428,7 @@ $SnFunctionResultCopyWith<$Res>? get functionResult {
 /// @nodoc
 mixin _$SnThinkingSequence {
 
- String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;@JsonKey(name: "agent_initiated") bool get agentInitiated;@JsonKey(name: "user_last_read_at") DateTime? get userLastReadAt;@JsonKey(name: "last_message_at") DateTime get lastMessageAt;@JsonKey(name: "is_public") bool get isPublic;
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1430,16 +1441,16 @@ $SnThinkingSequenceCopyWith<SnThinkingSequence> get copyWith => _$SnThinkingSequ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic)';
 }
 
 
@@ -1450,7 +1461,7 @@ abstract mixin class $SnThinkingSequenceCopyWith<$Res>  {
   factory $SnThinkingSequenceCopyWith(SnThinkingSequence value, $Res Function(SnThinkingSequence) _then) = _$SnThinkingSequenceCopyWithImpl;
 @useResult
 $Res call({
- String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic
 });
 
 
@@ -1467,7 +1478,7 @@ class _$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
@@ -1477,7 +1488,11 @@ as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cas
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,agentInitiated: null == agentInitiated ? _self.agentInitiated : agentInitiated // ignore: cast_nullable_to_non_nullable
+as bool,userLastReadAt: freezed == userLastReadAt ? _self.userLastReadAt : userLastReadAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastMessageAt: null == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
+as DateTime,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -1559,10 +1574,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);case _:
   return orElse();
 
 }
@@ -1580,10 +1595,10 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence():
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1597,10 +1612,10 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);case _:
   return null;
 
 }
@@ -1612,7 +1627,7 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 @JsonSerializable()
 
 class _SnThinkingSequence implements SnThinkingSequence {
-  const _SnThinkingSequence({required this.id, this.topic, this.totalToken = 0, this.paidToken = 0, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _SnThinkingSequence({required this.id, this.topic, this.totalToken = 0, this.paidToken = 0, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt, @JsonKey(name: "agent_initiated") this.agentInitiated = false, @JsonKey(name: "user_last_read_at") this.userLastReadAt, @JsonKey(name: "last_message_at") required this.lastMessageAt, @JsonKey(name: "is_public") this.isPublic = false});
   factory _SnThinkingSequence.fromJson(Map<String, dynamic> json) => _$SnThinkingSequenceFromJson(json);
 
 @override final  String id;
@@ -1623,6 +1638,10 @@ class _SnThinkingSequence implements SnThinkingSequence {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
+@override@JsonKey(name: "agent_initiated") final  bool agentInitiated;
+@override@JsonKey(name: "user_last_read_at") final  DateTime? userLastReadAt;
+@override@JsonKey(name: "last_message_at") final  DateTime lastMessageAt;
+@override@JsonKey(name: "is_public") final  bool isPublic;
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
@@ -1637,16 +1656,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic)';
 }
 
 
@@ -1657,7 +1676,7 @@ abstract mixin class _$SnThinkingSequenceCopyWith<$Res> implements $SnThinkingSe
   factory _$SnThinkingSequenceCopyWith(_SnThinkingSequence value, $Res Function(_SnThinkingSequence) _then) = __$SnThinkingSequenceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic
 });
 
 
@@ -1674,7 +1693,7 @@ class __$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,}) {
   return _then(_SnThinkingSequence(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
@@ -1684,7 +1703,11 @@ as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cas
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,agentInitiated: null == agentInitiated ? _self.agentInitiated : agentInitiated // ignore: cast_nullable_to_non_nullable
+as bool,userLastReadAt: freezed == userLastReadAt ? _self.userLastReadAt : userLastReadAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,lastMessageAt: null == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
+as DateTime,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

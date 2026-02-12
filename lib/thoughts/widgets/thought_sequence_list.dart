@@ -20,7 +20,12 @@ class ThoughtSequenceListNotifier
   Future<List<SnThinkingSequence>> fetch() async {
     final client = ref.read(apiClientProvider);
 
-    final queryParams = {'offset': fetchedCount, 'take': pageSize};
+    final queryParams = {
+      'offset': fetchedCount,
+      'take': pageSize,
+      'sort_by': 'last_message_at',
+      'sort_order': 'desc',
+    };
 
     final response = await client.get(
       '/insight/thought/sequences',
@@ -29,6 +34,30 @@ class ThoughtSequenceListNotifier
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
     return data.map((json) => SnThinkingSequence.fromJson(json)).toList();
+  }
+
+  /// Deletes a sequence and refreshes the list
+  Future<void> deleteSequence(String sequenceId) async {
+    final client = ref.read(apiClientProvider);
+    await client.delete('/insight/thought/sequences/$sequenceId');
+    refresh();
+  }
+
+  /// Updates the sharing settings of a sequence
+  Future<void> updateSharing(String sequenceId, bool isPublic) async {
+    final client = ref.read(apiClientProvider);
+    await client.patch(
+      '/insight/thought/sequences/$sequenceId/sharing',
+      data: {'is_public': isPublic},
+    );
+    refresh();
+  }
+
+  /// Marks a sequence as read
+  Future<void> markAsRead(String sequenceId) async {
+    final client = ref.read(apiClientProvider);
+    await client.post('/insight/thought/sequences/$sequenceId/read');
+    refresh();
   }
 }
 

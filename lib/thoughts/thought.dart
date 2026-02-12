@@ -71,6 +71,7 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
     @Default([]) List<String> accpetProposals,
     List<String>? attachedPosts,
     List<Map<String, dynamic>>? attachedMessages,
+    @JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds,
     String? bot,
   }) = _StreamThinkingRequest;
 
@@ -151,6 +152,10 @@ sealed class SnThinkingSequence with _$SnThinkingSequence {
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
+    @JsonKey(name: "agent_initiated") @Default(false) bool agentInitiated,
+    @JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,
+    @JsonKey(name: "last_message_at") required DateTime lastMessageAt,
+    @JsonKey(name: "is_public") @Default(false) bool isPublic,
   }) = _SnThinkingSequence;
 
   factory SnThinkingSequence.fromJson(Map<String, dynamic> json) =>

@@ -160,3 +160,225 @@ final class ThoughtServicesProvider
 }
 
 String _$thoughtServicesHash() => r'0ddeaec713ecfcdc9786c197f3d4cb41d36c26a5';
+
+@ProviderFor(deleteThoughtSequence)
+final deleteThoughtSequenceProvider = DeleteThoughtSequenceFamily._();
+
+final class DeleteThoughtSequenceProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  DeleteThoughtSequenceProvider._({
+    required DeleteThoughtSequenceFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'deleteThoughtSequenceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteThoughtSequenceHash();
+
+  @override
+  String toString() {
+    return r'deleteThoughtSequenceProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as String;
+    return deleteThoughtSequence(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DeleteThoughtSequenceProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$deleteThoughtSequenceHash() =>
+    r'ddd1c74e9b97af23f372b4a8f3d6d8bc24e3cbd6';
+
+final class DeleteThoughtSequenceFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, String> {
+  DeleteThoughtSequenceFamily._()
+    : super(
+        retry: null,
+        name: r'deleteThoughtSequenceProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  DeleteThoughtSequenceProvider call(String sequenceId) =>
+      DeleteThoughtSequenceProvider._(argument: sequenceId, from: this);
+
+  @override
+  String toString() => r'deleteThoughtSequenceProvider';
+}
+
+@ProviderFor(updateThoughtSequenceSharing)
+final updateThoughtSequenceSharingProvider =
+    UpdateThoughtSequenceSharingFamily._();
+
+final class UpdateThoughtSequenceSharingProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  UpdateThoughtSequenceSharingProvider._({
+    required UpdateThoughtSequenceSharingFamily super.from,
+    required (String, {bool isPublic}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'updateThoughtSequenceSharingProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateThoughtSequenceSharingHash();
+
+  @override
+  String toString() {
+    return r'updateThoughtSequenceSharingProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as (String, {bool isPublic});
+    return updateThoughtSequenceSharing(
+      ref,
+      argument.$1,
+      isPublic: argument.isPublic,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UpdateThoughtSequenceSharingProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$updateThoughtSequenceSharingHash() =>
+    r'a3545aefefe4a78c02d7e36bbc09ea1e095a1c11';
+
+final class UpdateThoughtSequenceSharingFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, (String, {bool isPublic})> {
+  UpdateThoughtSequenceSharingFamily._()
+    : super(
+        retry: null,
+        name: r'updateThoughtSequenceSharingProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  UpdateThoughtSequenceSharingProvider call(
+    String sequenceId, {
+    required bool isPublic,
+  }) => UpdateThoughtSequenceSharingProvider._(
+    argument: (sequenceId, isPublic: isPublic),
+    from: this,
+  );
+
+  @override
+  String toString() => r'updateThoughtSequenceSharingProvider';
+}
+
+@ProviderFor(markThoughtSequenceAsRead)
+final markThoughtSequenceAsReadProvider = MarkThoughtSequenceAsReadFamily._();
+
+final class MarkThoughtSequenceAsReadProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  MarkThoughtSequenceAsReadProvider._({
+    required MarkThoughtSequenceAsReadFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'markThoughtSequenceAsReadProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$markThoughtSequenceAsReadHash();
+
+  @override
+  String toString() {
+    return r'markThoughtSequenceAsReadProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as String;
+    return markThoughtSequenceAsRead(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MarkThoughtSequenceAsReadProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$markThoughtSequenceAsReadHash() =>
+    r'ed81846b259769c2922688b79372add11780a729';
+
+final class MarkThoughtSequenceAsReadFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, String> {
+  MarkThoughtSequenceAsReadFamily._()
+    : super(
+        retry: null,
+        name: r'markThoughtSequenceAsReadProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  MarkThoughtSequenceAsReadProvider call(String sequenceId) =>
+      MarkThoughtSequenceAsReadProvider._(argument: sequenceId, from: this);
+
+  @override
+  String toString() => r'markThoughtSequenceAsReadProvider';
+}

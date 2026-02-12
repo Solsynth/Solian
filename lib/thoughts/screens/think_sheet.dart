@@ -1,14 +1,19 @@
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
+import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:island/core/network.dart";
-import "package:island/shared/widgets/alert.dart";
-import "package:island/shared/widgets/layouts/sheet_scaffold.dart";
+import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/thoughts/screens/think.dart";
+import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
+import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 
+/// A sheet-based thought chat interface that uses [ResponsiveSidebar].
+///
+/// This provides a modal bottom sheet with a sidebar for conversation selection
+/// and a main chat area. The sidebar adapts responsively based on screen size.
 class ThoughtSheet extends HookConsumerWidget {
   final String? initialMessage;
   final List<Map<String, dynamic>> attachedMessages;
@@ -21,6 +26,7 @@ class ThoughtSheet extends HookConsumerWidget {
     this.attachedPosts = const [],
   });
 
+  /// Shows the thought sheet as a modal bottom sheet.
   static Future<void> show(
     BuildContext context, {
     String? initialMessage,
@@ -49,61 +55,75 @@ class ThoughtSheet extends HookConsumerWidget {
     );
 
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
+    final showSidebar = useState(false);
 
-    return SheetScaffold(
-      titleText: chatState.currentTopic.value ?? 'aiThought'.tr(),
-      child: statusAsync.maybeWhen(
-        data: (status) {
-          final retry = useMemoized(
-            () => () async {
-              showLoadingModal(context);
-              try {
-                await ref
-                    .read(apiClientProvider)
-                    .post('/insight/billing/retry');
-                showSnackBar('Retried billing process');
-                ref.invalidate(thoughtAvailableStausProvider);
-              } catch (e) {
-                showSnackBar('Failed to retry billing');
-              }
-              if (context.mounted) hideLoadingModal(context);
-            },
-            [context, ref],
-          );
+    void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
 
-          final chatInterface = ThoughtChatInterface(
-            attachedMessages: attachedMessages,
-            attachedPosts: attachedPosts,
-            isDisabled: !status,
-          );
-          return status
-              ? chatInterface
-              : Column(
-                  children: [
-                    MaterialBanner(
-                      leading: const Icon(Symbols.error),
-                      content: const Text(
-                        'You have unpaid orders. Please settle your payment to continue using the service.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            retry();
-                          },
-                          child: Text('retry'.tr()),
-                        ),
-                      ],
-                    ),
-                    Expanded(child: chatInterface),
-                  ],
-                );
-        },
-        orElse: () => ThoughtChatInterface(
-          attachedMessages: attachedMessages,
-          attachedPosts: attachedPosts,
-        ),
-      ),
+    void startNewConversation() {
+      chatState.sequenceId.value = null;
+      chatState.localThoughts.value = [];
+      chatState.currentTopic.value = 'aiThought'.tr();
+      showSidebar.value = false;
+    }
+
+    void toggleSidebar() => showSidebar.value = !showSidebar.value;
+
+    void closeSidebar() => showSidebar.value = false;
+
+    void handleSequenceSelected(String sequenceId) {
+      // TODO: Load the selected sequence
+      // For now, just close the sidebar
+      showSidebar.value = false;
+    }
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(chatState.currentTopic.value ?? 'aiThought'.tr()),
+            leading: IconButton(
+              icon: const Icon(Symbols.close),
+              onPressed: () => Navigator.of(context).pop(),
+              tooltip: 'close'.tr(),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Symbols.add),
+                onPressed: startNewConversation,
+                tooltip: 'newConversation'.tr(),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.history),
+                onPressed: toggleSidebar,
+                tooltip: 'conversations'.tr(),
+              ),
+              const Gap(8),
+            ],
+          ),
+          body: ResponsiveSidebar(
+            showSidebar: showSidebar,
+            sidebarWidth: 320,
+            sidebarContent: ThoughtSidebar(
+              selectedSequenceId: chatState.sequenceId.value,
+              onSequenceSelected: handleSequenceSelected,
+              onClose: closeSidebar,
+            ),
+            mainContent: BillingStatusHandler(
+              statusAsync: statusAsync,
+              onRefreshStatus: refreshStatus,
+              child: ThoughtChatInterface(
+                attachedMessages: attachedMessages,
+                attachedPosts: attachedPosts,
+                isDisabled: statusAsync.value == false,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -3,16 +3,14 @@ import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
-import "package:island/thoughts/widgets/thought_sequence_list.dart";
-import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/thoughts/thought.dart";
+import "package:island/thoughts/widgets/billing_status_handler.dart";
+import "package:island/thoughts/widgets/thought_shared.dart";
+import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:island/core/network.dart";
-import "package:island/core/services/time.dart";
-import "package:island/shared/widgets/alert.dart";
 import "package:island/shared/widgets/app_scaffold.dart";
-import "package:island/shared/widgets/pagination_list.dart";
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -45,6 +43,31 @@ Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/insight/thought/services');
   return ThoughtServicesResponse.fromJson(response.data);
+}
+
+@riverpod
+Future<void> deleteThoughtSequence(Ref ref, String sequenceId) async {
+  final apiClient = ref.watch(apiClientProvider);
+  await apiClient.delete('/insight/thought/sequences/$sequenceId');
+}
+
+@riverpod
+Future<void> updateThoughtSequenceSharing(
+  Ref ref,
+  String sequenceId, {
+  required bool isPublic,
+}) async {
+  final apiClient = ref.watch(apiClientProvider);
+  await apiClient.patch(
+    '/insight/thought/sequences/$sequenceId/sharing',
+    data: {'is_public': isPublic},
+  );
+}
+
+@riverpod
+Future<void> markThoughtSequenceAsRead(Ref ref, String sequenceId) async {
+  final apiClient = ref.watch(apiClientProvider);
+  await apiClient.post('/insight/thought/sequences/$sequenceId/read');
 }
 
 @RoutePage()
@@ -81,123 +104,30 @@ class ThoughtScreen extends HookConsumerWidget {
 
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
 
-    // Build the sidebar content for conversation selection
-    Widget buildSidebarContent() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: EdgeInsets.only(top: 12, left: 18, right: 16, bottom: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Conversations',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => showSidebar.value = false,
-                  tooltip: 'close'.tr(),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ThoughtSequenceList(
-              selectedSequenceId: selectedSequenceId.value,
-              onSequenceSelected: (sequenceId) {
-                selectedSequenceId.value = sequenceId;
-                // Keep sidebar open after selection
-              },
-            ),
-          ),
-        ],
-      );
+    void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
+
+    void invalidateThoughtSequence() {
+      if (selectedSequenceId.value != null) {
+        ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
+      }
     }
 
-    // Build the main content (chat interface)
-    Widget buildMainContent() {
-      return statusAsync.maybeWhen(
-        data: (status) {
-          final retry = useMemoized(
-            () => () async {
-              showLoadingModal(context);
-              try {
-                await ref
-                    .read(apiClientProvider)
-                    .post('/insight/billing/retry');
-                showSnackBar('Retried billing process');
-                ref.invalidate(thoughtAvailableStausProvider);
-              } catch (e) {
-                showSnackBar('Failed to retry billing');
-              }
-              if (context.mounted) hideLoadingModal(context);
-            },
-            [context, ref],
-          );
+    void startNewConversation() {
+      if (selectedSequenceId.value != null) {
+        ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
+      }
+      selectedSequenceId.value = null;
+      showSidebar.value = false;
+    }
 
-          final thoughtsBody = thoughts.when(
-            data: (thoughtList) => ThoughtChatInterface(
-              initialThoughts: thoughtList,
-              initialSequenceId: sequenceIdFromThoughts,
-              initialTopic: initialTopic,
-              isDisabled: !status,
-            ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => ResponseErrorWidget(
-              error: error,
-              onRetry: () => selectedSequenceId.value != null
-                  ? ref.invalidate(
-                      thoughtSequenceProvider(selectedSequenceId.value!),
-                    )
-                  : null,
-            ),
-          );
-          return status
-              ? thoughtsBody
-              : Column(
-                  children: [
-                    MaterialBanner(
-                      leading: const Icon(Symbols.error),
-                      content: const Text(
-                        'You have unpaid orders. Please settle your payment to continue using the service.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            retry();
-                          },
-                          child: Text('retry'.tr()),
-                        ),
-                      ],
-                    ),
-                    Expanded(child: thoughtsBody),
-                  ],
-                );
-        },
-        orElse: () => thoughts.when(
-          data: (thoughtList) => ThoughtChatInterface(
-            initialThoughts: thoughtList,
-            initialTopic: initialTopic,
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => ResponseErrorWidget(
-            error: error,
-            onRetry: () => selectedSequenceId.value != null
-                ? ref.invalidate(
-                    thoughtSequenceProvider(selectedSequenceId.value!),
-                  )
-                : null,
-          ),
-        ),
-      );
+    void toggleSidebar() => showSidebar.value = !showSidebar.value;
+
+    void closeSidebar() => showSidebar.value = false;
+
+    void handleSequenceSelected(String sequenceId) {
+      selectedSequenceId.value = sequenceId;
+      // Mark the conversation as read
+      ref.read(markThoughtSequenceAsReadProvider(sequenceId));
     }
 
     return AppScaffold(
@@ -208,20 +138,13 @@ class ThoughtScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.add),
-            onPressed: () {
-              // Invalidate the current sequence provider to clear cached data
-              if (selectedSequenceId.value != null) {
-                ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
-              }
-              selectedSequenceId.value = null;
-              showSidebar.value = false;
-            },
-            tooltip: 'New Conversation',
+            onPressed: startNewConversation,
+            tooltip: 'newConversation'.tr(),
           ),
           IconButton(
             icon: const Icon(Symbols.history),
-            onPressed: () => showSidebar.value = !showSidebar.value,
-            tooltip: 'Conversations',
+            onPressed: toggleSidebar,
+            tooltip: 'conversations'.tr(),
           ),
           const Gap(8),
         ],
@@ -229,65 +152,71 @@ class ThoughtScreen extends HookConsumerWidget {
       body: ResponsiveSidebar(
         showSidebar: showSidebar,
         sidebarWidth: 360,
-        sidebarContent: buildSidebarContent(),
-        mainContent: buildMainContent(),
+        sidebarContent: ThoughtSidebar(
+          selectedSequenceId: selectedSequenceId.value,
+          onSequenceSelected: handleSequenceSelected,
+          onClose: closeSidebar,
+        ),
+        mainContent: _ThoughtMainContent(
+          thoughts: thoughts,
+          initialTopic: initialTopic,
+          sequenceIdFromThoughts: sequenceIdFromThoughts,
+          statusAsync: statusAsync,
+          onRefreshStatus: refreshStatus,
+          onRetry: invalidateThoughtSequence,
+          hasSelectedSequence: selectedSequenceId.value != null,
+        ),
       ),
     );
   }
 }
 
-/// A widget that displays a list of thought sequences for selection
-class ThoughtSequenceList extends HookConsumerWidget {
-  final String? selectedSequenceId;
-  final Function(String) onSequenceSelected;
+/// The main content area for the thought screen.
+///
+/// Handles displaying the chat interface with billing status wrapper,
+/// loading states, and error handling.
+class _ThoughtMainContent extends StatelessWidget {
+  final AsyncValue<List<SnThinkingThought>> thoughts;
+  final String? initialTopic;
+  final String? sequenceIdFromThoughts;
+  final AsyncValue<bool> statusAsync;
+  final VoidCallback onRefreshStatus;
+  final VoidCallback onRetry;
+  final bool hasSelectedSequence;
 
-  const ThoughtSequenceList({
-    super.key,
-    this.selectedSequenceId,
-    required this.onSequenceSelected,
+  const _ThoughtMainContent({
+    required this.thoughts,
+    required this.initialTopic,
+    required this.sequenceIdFromThoughts,
+    required this.statusAsync,
+    required this.onRefreshStatus,
+    required this.onRetry,
+    required this.hasSelectedSequence,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final provider = thoughtSequenceListNotifierProvider;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return PaginationList(
-      padding: EdgeInsets.zero,
-      provider: provider,
-      notifier: provider.notifier,
-      itemBuilder: (context, index, sequence) {
-        final isSelected = sequence.id == selectedSequenceId;
-        return Container(
-          decoration: isSelected
-              ? BoxDecoration(
-                  color: colorScheme.primaryContainer.withAlpha(64),
-                  border: Border(
-                    left: BorderSide(
-                      color: colorScheme.primary,
-                      width: 3,
-                    ),
-                  ),
-                )
-              : null,
-          child: ListTile(
-            selected: isSelected,
-            selectedColor: colorScheme.onPrimaryContainer,
-            title: Text(
-              sequence.topic ?? 'Untitled Conversation',
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+  Widget build(BuildContext context) {
+    return BillingStatusHandler(
+      statusAsync: statusAsync,
+      onRefreshStatus: onRefreshStatus,
+      child: thoughts.when(
+        data: (thoughtList) => ThoughtChatInterface(
+          initialThoughts: thoughtList,
+          initialSequenceId: sequenceIdFromThoughts,
+          initialTopic: initialTopic,
+          isDisabled: statusAsync.value == false,
+        ),
+        loading: () => hasSelectedSequence
+            ? const Center(child: CircularProgressIndicator())
+            : ThoughtChatInterface(
+                initialTopic: initialTopic,
+                isDisabled: statusAsync.value == false,
               ),
-            ),
-            subtitle: Text(sequence.createdAt.formatSystem()),
-            leading: Icon(
-              isSelected ? Symbols.chat_bubble : Symbols.chat_bubble_outline,
-              fill: isSelected ? 1 : 0,
-            ),
-            onTap: () => onSequenceSelected(sequence.id),
-          ),
-        );
-      },
+        error: (error, _) => ResponseErrorWidget(
+          error: error,
+          onRetry: hasSelectedSequence ? onRetry : () {},
+        ),
+      ),
     );
   }
 }

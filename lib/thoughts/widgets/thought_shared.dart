@@ -23,6 +23,7 @@ import 'package:island/thoughts/widgets/thought_content.dart';
 import 'package:island/thoughts/widgets/thought_header.dart';
 import 'package:island/thoughts/widgets/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
@@ -51,6 +52,10 @@ class ThoughtChatState {
   final ValueNotifier<List<StreamItem>> streamingItems;
   final ListController listController;
   final ValueNotifier<ValueNotifier<double>> bottomGradientNotifier;
+  final ValueNotifier<List<UniversalFile>> attachments;
+  final Function(int) onUploadAttachment;
+  final Function(int) onDeleteAttachment;
+  final Function(List<UniversalFile>) onAttachmentsChanged;
   final Future<void> Function() sendMessage;
 
   ThoughtChatState({
@@ -65,6 +70,10 @@ class ThoughtChatState {
     required this.streamingItems,
     required this.listController,
     required this.bottomGradientNotifier,
+    required this.attachments,
+    required this.onUploadAttachment,
+    required this.onDeleteAttachment,
+    required this.onAttachmentsChanged,
     required this.sendMessage,
   });
 }
@@ -128,11 +137,63 @@ ThoughtChatState useThoughtChat(
   final scrollController = useScrollController();
   final isStreaming = useState(false);
   final streamingItems = useState<List<StreamItem>>([]);
+  final attachments = useState<List<UniversalFile>>([]);
+  final attachmentProgress = useState<Map<int, double?>>({});
 
   final listController = useMemoized(() => ListController(), []);
 
   // Scroll animation notifiers
   final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
+
+  // Attachment handlers
+  void onAttachmentsChanged(List<UniversalFile> newAttachments) {
+    attachments.value = newAttachments;
+  }
+
+  void onDeleteAttachment(int index) {
+    final newAttachments = [...attachments.value];
+    newAttachments.removeAt(index);
+    attachments.value = newAttachments;
+  }
+
+  Future<void> onUploadAttachment(int index) async {
+    final attachment = attachments.value[index];
+    if (attachment.isOnCloud) return;
+
+    attachmentProgress.value = {...attachmentProgress.value, index: 0.0};
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          attachment.data.path,
+          filename: attachment.displayName,
+        ),
+      });
+
+      final response = await apiClient.post(
+        '/drive/files',
+        data: formData,
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            attachmentProgress.value = {
+              ...attachmentProgress.value,
+              index: sent / total,
+            };
+          }
+        },
+      );
+
+      final uploadedFile = SnCloudFile.fromJson(response.data);
+      final newAttachments = [...attachments.value];
+      newAttachments[index] = UniversalFile.fromAttachment(uploadedFile);
+      attachments.value = newAttachments;
+      attachmentProgress.value = {...attachmentProgress.value}..remove(index);
+    } catch (e) {
+      attachmentProgress.value = {...attachmentProgress.value}..remove(index);
+      showSnackBar('Failed to upload attachment');
+    }
+  }
 
   // Scroll to bottom when thoughts change or streaming state changes
   useEffect(() {
@@ -171,6 +232,28 @@ ThoughtChatState useThoughtChat(
 
     final userMessage = message ?? messageController.text.trim();
 
+    // Upload any pending attachments first
+    List<int>? attachmentIds;
+    if (attachments.value.isNotEmpty) {
+      showLoadingModal(ref.context);
+      try {
+        for (int i = 0; i < attachments.value.length; i++) {
+          if (!attachments.value[i].isOnCloud) {
+            await onUploadAttachment(i);
+          }
+        }
+        attachmentIds = attachments.value
+            .where((a) => a.isOnCloud)
+            .map((a) => int.parse((a.data as SnCloudFile).id))
+            .toList();
+      } finally {
+        if (ref.context.mounted) hideLoadingModal(ref.context);
+      }
+    }
+
+    // Clear attachments after upload
+    attachments.value = [];
+
     // Add user message to local thoughts
     final userInfo = ref.read(userInfoProvider);
     final now = DateTime.now();
@@ -192,6 +275,7 @@ ThoughtChatState useThoughtChat(
         accountId: userInfo.value!.id,
         createdAt: now,
         updatedAt: now,
+        lastMessageAt: now,
       ),
     );
     localThoughts.value = [userThought, ...localThoughts.value];
@@ -202,6 +286,7 @@ ThoughtChatState useThoughtChat(
       accpetProposals: ['post_create'],
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
+      attachedAttachmentsIds: attachmentIds,
       bot: selectedAgent.value.isNotEmpty ? selectedAgent.value : 'snchan',
     );
 
@@ -321,6 +406,7 @@ ThoughtChatState useThoughtChat(
                 accountId: '',
                 createdAt: now,
                 updatedAt: now,
+                lastMessageAt: now,
               ),
             );
             localThoughts.value = [errorThought, ...localThoughts.value];
@@ -353,6 +439,7 @@ ThoughtChatState useThoughtChat(
               accountId: '',
               createdAt: now,
               updatedAt: now,
+              lastMessageAt: now,
             ),
           );
           localThoughts.value = [errorThought, ...localThoughts.value];
@@ -386,6 +473,7 @@ ThoughtChatState useThoughtChat(
           accountId: userInfo.value!.id,
           createdAt: now,
           updatedAt: now,
+          lastMessageAt: now,
         ),
       );
       localThoughts.value = [errorThought, ...localThoughts.value];
@@ -413,6 +501,10 @@ ThoughtChatState useThoughtChat(
     streamingItems: streamingItems,
     listController: listController,
     bottomGradientNotifier: bottomGradientNotifier,
+    attachments: attachments,
+    onUploadAttachment: onUploadAttachment,
+    onDeleteAttachment: onDeleteAttachment,
+    onAttachmentsChanged: onAttachmentsChanged,
     sendMessage: sendMessage,
   );
 }
