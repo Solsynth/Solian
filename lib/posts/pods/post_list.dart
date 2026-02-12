@@ -165,4 +165,35 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
           .toList();
     }
   }
+
+  void addPost(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedItems = [post, ...currentState.items];
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void updatePostById(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final index = currentState.items.indexWhere((p) => p.id == post.id);
+    if (index == -1) return;
+
+    final updatedItems = [...currentState.items];
+    updatedItems[index] = post;
+
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void removePost(String postId) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedItems = currentState.items
+        .where((p) => p.id != postId)
+        .toList();
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
 }

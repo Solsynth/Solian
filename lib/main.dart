@@ -21,6 +21,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
+import 'package:island/posts/pods/realtime_posts.dart';
 import 'package:island/route.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/widget_sync_service.dart';
@@ -311,6 +312,9 @@ class IslandApp extends HookConsumerWidget {
       final userNotifier = ref.read(userInfoProvider.notifier);
       ref.listen(websocketStateProvider, (_, state) {
         talker.info('[WebSocket] $state');
+        if (state == WebSocketState.connected()) {
+          ref.read(realtimePostsProvider).startListening();
+        }
       });
       ref.listen(userInfoProvider, (_, user) {
         if (user.value != null) {

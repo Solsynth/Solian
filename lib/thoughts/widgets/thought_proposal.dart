@@ -65,19 +65,20 @@ class ProposalGenerator extends SpanNodeGeneratorWithTag {
     required Color borderColor,
   }) : super(
          tag: 'proposal',
-         generator: (
-           markdown.Element element,
-           MarkdownConfig config,
-           WidgetVisitor visitor,
-         ) {
-           return ProposalSpanNode(
-             text: element.textContent,
-             type: element.attributes['type'] ?? '',
-             backgroundColor: backgroundColor,
-             foregroundColor: foregroundColor,
-             borderColor: borderColor,
-           );
-         },
+         generator:
+             (
+               markdown.Element element,
+               MarkdownConfig config,
+               WidgetVisitor visitor,
+             ) {
+               return ProposalSpanNode(
+                 text: element.textContent,
+                 type: element.attributes['type'] ?? '',
+                 backgroundColor: backgroundColor,
+                 foregroundColor: foregroundColor,
+                 borderColor: borderColor,
+               );
+             },
        );
 }
 
@@ -101,6 +102,7 @@ class ProposalSpanNode extends SpanNode {
     return WidgetSpan(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: backgroundColor,
           border: Border.all(color: borderColor, width: 1),

@@ -24,7 +24,6 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/web_article_card.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
@@ -46,14 +45,6 @@ class ExploreScreen extends HookConsumerWidget {
       currentFilter.value = filter;
       notifier.applyFilter(filter);
     }
-
-    // Listen for post creation events to refresh activities
-    useEffect(() {
-      final subscription = eventBus.on<PostCreatedEvent>().listen((event) {
-        ref.read(activityListProvider.notifier).refresh();
-      });
-      return subscription.cancel;
-    }, []);
 
     final now = DateTime.now();
 

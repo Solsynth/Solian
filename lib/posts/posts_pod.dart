@@ -103,4 +103,70 @@ class ActivityListNotifier
 
     state = AsyncData(currentState.copyWith(items: updatedItems));
   }
+
+  void addPost(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final now = DateTime.now();
+    final timelineEvent = SnTimelineEvent(
+      id: post.id,
+      type: 'posts.created',
+      resourceIdentifier: post.id,
+      data: post,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    );
+
+    final updatedItems = [timelineEvent, ...currentState.items];
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void updatePostById(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final index = currentState.items.indexWhere((item) {
+      if (item.resourceIdentifier == post.id) {
+        return true;
+      }
+      final itemData = item.data;
+      if (itemData is SnPost && itemData.id == post.id) {
+        return true;
+      }
+      return false;
+    });
+
+    if (index == -1) return;
+
+    final existingEvent = currentState.items[index];
+    final updatedEvent = existingEvent.copyWith(
+      data: post,
+      updatedAt: DateTime.now(),
+    );
+
+    final updatedItems = [...currentState.items];
+    updatedItems[index] = updatedEvent;
+
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void removePost(String postId) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedItems = currentState.items.where((item) {
+      if (item.resourceIdentifier == postId) {
+        return false;
+      }
+      final itemData = item.data;
+      if (itemData is SnPost && itemData.id == postId) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
 }
