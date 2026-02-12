@@ -11,6 +11,7 @@ import "package:island/thoughts/widgets/thought_chat_notifier.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:styled_widget/styled_widget.dart";
 
 /// A dialog-based thought chat interface that uses [ResponsiveSidebar].
 ///
@@ -321,13 +322,18 @@ class _ThoughtPanel extends HookConsumerWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               automaticallyImplyLeading: false,
-              title: ServiceSelector(
-                services: chatState.services,
-                selectedServiceId: chatState.selectedServiceId,
-                onServiceChanged: chatNotifier.setSelectedServiceId,
-                isStreaming: chatState.isStreaming,
-                isDisabled: statusAsync.value == false,
-              ),
+              flexibleSpace: Row(
+                children: [
+                  const Gap(16),
+                  ServiceSelector(
+                    services: chatState.services,
+                    selectedServiceId: chatState.selectedServiceId,
+                    onServiceChanged: chatNotifier.setSelectedServiceId,
+                    isStreaming: chatState.isStreaming,
+                    isDisabled: statusAsync.value == false,
+                  ),
+                ],
+              ).center(),
               actions: [
                 IconButton(
                   icon: const Icon(Symbols.close),
