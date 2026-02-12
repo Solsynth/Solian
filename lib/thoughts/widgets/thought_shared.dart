@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
+import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 
 class ThoughtChatInterface extends HookConsumerWidget {
@@ -772,7 +774,7 @@ class ThoughtItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
-              children: buildWidgetsList(),
+              children: buildWidgetsList(context),
             ),
           ),
         ],
@@ -780,7 +782,7 @@ class ThoughtItem extends StatelessWidget {
     );
   }
 
-  List<Widget> buildWidgetsList() {
+  List<Widget> buildWidgetsList(BuildContext context) {
     final List<StreamItem> items = isStreaming
         ? (streamingItems ?? [])
         : thought!.parts.map((p) {
@@ -884,7 +886,7 @@ class ThoughtItem extends StatelessWidget {
     if (!isStreaming && thought != null) {
       for (final part in thought!.parts) {
         if (part.files != null && part.files!.isNotEmpty) {
-          widgets.add(_buildFilesWidget(part.files!));
+          widgets.add(_buildFilesWidget(context, part.files!));
         }
       }
     }
@@ -948,16 +950,29 @@ class ThoughtItem extends StatelessWidget {
     }
   }
 
-  Widget _buildFilesWidget(List<SnCloudFile> files) {
+  Widget _buildFilesWidget(BuildContext context, List<SnCloudFile> files) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: files.map((file) {
-        return SizedBox(
-          width: 200,
-          child: CloudFileWidget(
-            item: file,
-            fit: BoxFit.cover,
+        final heroTag = 'cloud-file-thought-${file.id}';
+        return InkWell(
+          onTap: () {
+            context.pushTransparentRoute(
+              CloudFileLightbox(item: file, heroTag: heroTag),
+            );
+          },
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: SizedBox(
+              width: 200,
+              child: CloudFileWidget(
+                item: file,
+                heroTag: heroTag,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
         );
       }).toList(),

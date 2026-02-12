@@ -267,9 +267,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   }
 
   /// Uploads an attachment at the given index
-  Future<void> uploadAttachment(int index) async {
+  Future<UniversalFile> uploadAttachment(int index) async {
     final attachment = state.attachments[index];
-    if (attachment.isOnCloud) return;
+    if (attachment.isOnCloud) return attachment;
 
     state = state.copyWith(
       attachmentProgress: {...state.attachmentProgress, index: 0.0},
@@ -310,8 +310,10 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       final clone = List.of(state.attachments);
       clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
       state.copyWith(attachments: clone);
+      return clone[index];
     } catch (err) {
       showErrorAlert(err);
+      return attachment;
     } finally {
       state = state.copyWith(
         attachmentProgress: {...state.attachmentProgress}..remove(index),
@@ -329,13 +331,15 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
 
     // Upload any pending attachments first
     List<String>? attachmentIds;
-    if (state.attachments.isNotEmpty) {
-      for (int i = 0; i < state.attachments.length; i++) {
-        if (!state.attachments[i].isOnCloud) {
-          await uploadAttachment(i);
+    final attachments = List.from(state.attachments);
+    if (attachments.isNotEmpty) {
+      for (int i = 0; i < attachments.length; i++) {
+        if (!attachments[i].isOnCloud) {
+          final newFile = await uploadAttachment(i);
+          attachments[i] = newFile;
         }
       }
-      attachmentIds = state.attachments
+      attachmentIds = attachments
           .where((a) => a.isOnCloud)
           .map((a) => (a.data as SnCloudFile).id)
           .toList();
@@ -531,7 +535,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           text: 'Error: $errorMessage',
         ),
       ],
-      files: [],
       role: ThinkingThoughtRole.assistant,
       sequenceId: state.sequenceId ?? '',
       createdAt: now,

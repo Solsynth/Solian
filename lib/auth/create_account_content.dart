@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:animations/animations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +17,7 @@ import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -986,7 +988,7 @@ class _PostCreateModal extends HookConsumerWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.pushReplacementNamed('login');
+                context.router.replace(const LoginRoute());
               },
               child: Text('login'.tr()),
             ),

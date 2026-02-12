@@ -161,11 +161,6 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
               )
               .toList() ??
           const [],
-      files:
-          (json['files'] as List<dynamic>?)
-              ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
       role: const ThinkingThoughtRoleConverter().fromJson(
         (json['role'] as num).toInt(),
       ),
@@ -189,7 +184,6 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
     <String, dynamic>{
       'id': instance.id,
       'parts': instance.parts.map((e) => e.toJson()).toList(),
-      'files': instance.files.map((e) => e.toJson()).toList(),
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
       'token_count': instance.tokenCount,
       'model_name': instance.modelName,

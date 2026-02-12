@@ -5,7 +5,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -24,6 +23,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/services/timezone/native.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -493,9 +493,8 @@ class _AccountPublisherList extends StatelessWidget {
               ),
               onTap: () {
                 Navigator.pop(context, true);
-                context.pushNamed(
-                  'publisherProfile',
-                  pathParameters: {'name': publisher.name},
+                context.router.push(
+                  PublisherProfileRoute(name: publisher.name),
                 );
               },
             ),
@@ -796,10 +795,7 @@ class AccountProfileScreen extends HookConsumerWidget {
     Future<void> directMessageAction() async {
       if (!account.hasValue) return;
       if (accountChat.value != null) {
-        context.pushNamed(
-          'chatRoom',
-          pathParameters: {'id': accountChat.value!.id},
-        );
+        context.router.push(ChatRoomRoute(id: accountChat.value!.id));
         return;
       }
       showLoadingModal(context);
@@ -811,7 +807,7 @@ class AccountProfileScreen extends HookConsumerWidget {
         );
         final chat = SnChatRoom.fromJson(resp.data);
         if (context.mounted) {
-          context.pushNamed('chatRoom', pathParameters: {'id': chat.id});
+          context.router.push(ChatRoomRoute(id: chat.id));
         }
         ref.invalidate(accountDirectChatProvider(name));
       } catch (err) {

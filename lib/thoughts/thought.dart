@@ -169,7 +169,6 @@ sealed class SnThinkingThought with _$SnThinkingThought {
   const factory SnThinkingThought({
     required String id,
     @Default([]) List<SnThinkingMessagePart> parts,
-    @Default([]) List<SnCloudFile> files,
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
     int? tokenCount,
     String? modelName,
