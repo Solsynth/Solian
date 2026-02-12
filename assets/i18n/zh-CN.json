@@ -1547,5 +1547,9 @@
     "settingsDashSearchEngineHelper": "请使用 %s 作为搜索词的占位符。",
     "settingsDefaultScreen": "默认起始页面",
     "notableDayChristmas": "圣诞节",
-    "notableDayNewYear": "新年"
+    "notableDayNewYear": "新年",
+  "thinkServiceSnchan": "SN 酱",
+  "thinkServiceSnchanDescription": "可以帮助你解决问题的 Solar Network 小精灵。",
+  "thinkServiceMichan": "咩酱",
+  "thinkServiceMichanDescription": "可可爱爱，没有脑袋。"
 }

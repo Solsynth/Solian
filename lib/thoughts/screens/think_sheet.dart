@@ -7,6 +7,7 @@ import "package:island/core/services/responsive.dart";
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/thoughts/screens/think.dart";
 import "package:island/thoughts/widgets/billing_status_handler.dart";
+import "package:island/thoughts/widgets/thought_chat_notifier.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -73,22 +74,24 @@ class ThoughtSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = useThoughtChat(
-      ref,
+    final statusAsync = ref.watch(thoughtAvailableStausProvider);
+    final showSidebar = useState(false);
+
+    // Create args for the chat notifier
+    final args = ThoughtChatArgs(
       initialMessage: initialMessage,
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
 
-    final statusAsync = ref.watch(thoughtAvailableStausProvider);
-    final showSidebar = useState(false);
+    // Watch the notifier
+    final chatState = ref.watch(thoughtChatProvider(args));
+    final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
 
     void startNewConversation() {
-      chatState.sequenceId.value = null;
-      chatState.localThoughts.value = [];
-      chatState.currentTopic.value = 'aiThought'.tr();
+      chatNotifier.clearChat();
       showSidebar.value = false;
     }
 
@@ -103,7 +106,7 @@ class ThoughtSheet extends HookConsumerWidget {
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(chatState.currentTopic.value ?? 'aiThought'.tr()),
+          title: Text(chatState.currentTopic ?? 'aiThought'.tr()),
           leading: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -113,9 +116,10 @@ class ThoughtSheet extends HookConsumerWidget {
                 tooltip: 'close'.tr(),
               ),
               ServiceSelector(
-                services: chatState.services.value,
+                services: chatState.services,
                 selectedServiceId: chatState.selectedServiceId,
-                isStreaming: chatState.isStreaming.value,
+                onServiceChanged: chatNotifier.setSelectedServiceId,
+                isStreaming: chatState.isStreaming,
                 isDisabled: statusAsync.value == false,
               ),
             ],
@@ -138,13 +142,14 @@ class ThoughtSheet extends HookConsumerWidget {
           showSidebar: showSidebar,
           sidebarWidth: 320,
           sidebarContent: ThoughtSidebar(
-            selectedSequenceId: chatState.sequenceId.value,
+            selectedSequenceId: chatState.sequenceId,
             onClose: closeSidebar,
           ),
           mainContent: BillingStatusHandler(
             statusAsync: statusAsync,
             onRefreshStatus: refreshStatus,
             child: ThoughtChatInterface(
+              initialMessage: initialMessage,
               attachedMessages: attachedMessages,
               attachedPosts: attachedPosts,
               isDisabled: statusAsync.value == false,
@@ -272,14 +277,19 @@ class _ThoughtPanel extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = useThoughtChat(
-      ref,
+    final statusAsync = ref.watch(thoughtAvailableStausProvider);
+    final showSidebar = useState(false);
+
+    // Create args for the chat notifier
+    final args = ThoughtChatArgs(
       initialMessage: initialMessage,
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
-    final statusAsync = ref.watch(thoughtAvailableStausProvider);
-    final showSidebar = useState(false);
+
+    // Watch the notifier
+    final chatState = ref.watch(thoughtChatProvider(args));
+    final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
     // Panel width
     const panelWidth = 480.0;
@@ -312,9 +322,10 @@ class _ThoughtPanel extends HookConsumerWidget {
               elevation: 0,
               automaticallyImplyLeading: false,
               title: ServiceSelector(
-                services: chatState.services.value,
+                services: chatState.services,
                 selectedServiceId: chatState.selectedServiceId,
-                isStreaming: chatState.isStreaming.value,
+                onServiceChanged: chatNotifier.setSelectedServiceId,
+                isStreaming: chatState.isStreaming,
                 isDisabled: statusAsync.value == false,
               ),
               actions: [
@@ -331,13 +342,14 @@ class _ThoughtPanel extends HookConsumerWidget {
               showSidebar: showSidebar,
               sidebarWidth: 280,
               sidebarContent: ThoughtSidebar(
-                selectedSequenceId: chatState.sequenceId.value,
+                selectedSequenceId: chatState.sequenceId,
                 onClose: closeSidebar,
               ),
               mainContent: BillingStatusHandler(
                 statusAsync: statusAsync,
                 onRefreshStatus: refreshStatus,
                 child: ThoughtChatInterface(
+                  initialMessage: initialMessage,
                   attachedMessages: attachedMessages,
                   attachedPosts: attachedPosts,
                   isDisabled: statusAsync.value == false,

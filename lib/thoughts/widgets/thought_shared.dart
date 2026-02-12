@@ -1,513 +1,31 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
-import 'package:dio/dio.dart';
+
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/thoughts/thought.dart';
-import 'package:island/core/network.dart';
-import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/utils/text.dart';
 import 'package:island/posts/compose.dart';
-import 'package:island/talker.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';
-import 'package:island/thoughts/screens/think.dart';
+import 'package:island/shared/widgets/alert.dart';
+import 'package:island/thoughts/thought.dart';
 import 'package:island/thoughts/widgets/function_calls_section.dart';
 import 'package:island/thoughts/widgets/proposals_section.dart';
 import 'package:island/thoughts/widgets/reasoning_section.dart';
+import 'package:island/thoughts/widgets/thought_chat_notifier.dart';
 import 'package:island/thoughts/widgets/thought_content.dart';
 import 'package:island/thoughts/widgets/thought_header.dart';
 import 'package:island/thoughts/widgets/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
-class StreamItem {
-  const StreamItem(this.type, this.data);
-  final String type;
-  final dynamic data;
-}
-
-class FunctionCallPair {
-  const FunctionCallPair(this.call, [this.result]);
-
-  final StreamItem? call;
-  final StreamItem? result;
-}
-
-class ThoughtChatState {
-  final ValueNotifier<String?> sequenceId;
-  final ValueNotifier<List<SnThinkingThought>> localThoughts;
-  final ValueNotifier<String?> currentTopic;
-  final ValueNotifier<List<ThoughtService>> services;
-  final ValueNotifier<String> selectedServiceId;
-  final TextEditingController messageController;
-  final ScrollController scrollController;
-  final ValueNotifier<bool> isStreaming;
-  final ValueNotifier<List<StreamItem>> streamingItems;
-  final ListController listController;
-  final ValueNotifier<ValueNotifier<double>> bottomGradientNotifier;
-  final ValueNotifier<List<UniversalFile>> attachments;
-  final Function(int) onUploadAttachment;
-  final Function(int) onDeleteAttachment;
-  final Function(List<UniversalFile>) onAttachmentsChanged;
-  final Future<void> Function() sendMessage;
-
-  ThoughtChatState({
-    required this.sequenceId,
-    required this.localThoughts,
-    required this.currentTopic,
-    required this.services,
-    required this.selectedServiceId,
-    required this.messageController,
-    required this.scrollController,
-    required this.isStreaming,
-    required this.streamingItems,
-    required this.listController,
-    required this.bottomGradientNotifier,
-    required this.attachments,
-    required this.onUploadAttachment,
-    required this.onDeleteAttachment,
-    required this.onAttachmentsChanged,
-    required this.sendMessage,
-  });
-}
-
-ThoughtChatState useThoughtChat(
-  WidgetRef ref, {
-  String? initialSequenceId,
-  List<SnThinkingThought>? initialThoughts,
-  String? initialTopic,
-  String? initialMessage,
-  List<Map<String, dynamic>> attachedMessages = const [],
-  List<String> attachedPosts = const [],
-  VoidCallback? onSequenceIdChanged,
-}) {
-  final sequenceId = useState<String?>(initialSequenceId);
-  final localThoughts = useState<List<SnThinkingThought>>(
-    initialThoughts ?? [],
-  );
-  final currentTopic = useState<String?>(initialTopic ?? 'aiThought'.tr());
-
-  // Sync localThoughts when initialThoughts changes (e.g., when switching conversations)
-  useEffect(() {
-    localThoughts.value = initialThoughts ?? [];
-    return null;
-  }, [initialThoughts]);
-
-  // Sync topic when initialTopic changes
-  useEffect(() {
-    if (initialTopic != null) {
-      currentTopic.value = initialTopic;
-    }
-    return null;
-  }, [initialTopic]);
-
-  // Sync sequenceId when initialSequenceId changes
-  useEffect(() {
-    sequenceId.value = initialSequenceId;
-    return null;
-  }, [initialSequenceId]);
-
-  // Watch the provider for services
-  final servicesAsync = ref.watch(thoughtServicesProvider);
-
-  // Initialize services and selected service from provider
-  final services = useState<List<ThoughtService>>([]);
-  final selectedAgent = useState<String>('');
-
-  // Update state when provider data arrives
-  useEffect(() {
-    if (servicesAsync.hasValue) {
-      final response = servicesAsync.value!;
-      services.value = response.services;
-      if (selectedAgent.value.isEmpty) {
-        selectedAgent.value = response.defaultBot;
-      }
-    }
-    return null;
-  }, [servicesAsync]);
-
-  final messageController = useTextEditingController();
-  final scrollController = useScrollController();
-  final isStreaming = useState(false);
-  final streamingItems = useState<List<StreamItem>>([]);
-  final attachments = useState<List<UniversalFile>>([]);
-  final attachmentProgress = useState<Map<int, double?>>({});
-
-  final listController = useMemoized(() => ListController(), []);
-
-  // Scroll animation notifiers
-  final bottomGradientNotifier = useState(ValueNotifier<double>(0.0));
-
-  // Attachment handlers
-  void onAttachmentsChanged(List<UniversalFile> newAttachments) {
-    attachments.value = newAttachments;
-  }
-
-  void onDeleteAttachment(int index) {
-    final newAttachments = [...attachments.value];
-    newAttachments.removeAt(index);
-    attachments.value = newAttachments;
-  }
-
-  Future<void> onUploadAttachment(int index) async {
-    final attachment = attachments.value[index];
-    if (attachment.isOnCloud) return;
-
-    attachmentProgress.value = {...attachmentProgress.value, index: 0.0};
-
-    try {
-      final apiClient = ref.read(apiClientProvider);
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          attachment.data.path,
-          filename: attachment.displayName,
-        ),
-      });
-
-      final response = await apiClient.post(
-        '/drive/files',
-        data: formData,
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            attachmentProgress.value = {
-              ...attachmentProgress.value,
-              index: sent / total,
-            };
-          }
-        },
-      );
-
-      final uploadedFile = SnCloudFile.fromJson(response.data);
-      final newAttachments = [...attachments.value];
-      newAttachments[index] = UniversalFile.fromAttachment(uploadedFile);
-      attachments.value = newAttachments;
-      attachmentProgress.value = {...attachmentProgress.value}..remove(index);
-    } catch (e) {
-      attachmentProgress.value = {...attachmentProgress.value}..remove(index);
-      showSnackBar('Failed to upload attachment');
-    }
-  }
-
-  // Scroll to bottom when thoughts change or streaming state changes
-  useEffect(() {
-    if (localThoughts.value.isNotEmpty || isStreaming.value) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
-    return null;
-  }, [localThoughts.value.length, isStreaming.value]);
-
-  // Add scroll listener for gradient animations
-  useEffect(() {
-    void onScroll() {
-      // Update gradient animations
-      final pixels = scrollController.position.pixels;
-
-      // Bottom gradient: appears when not at bottom (pixels > 0)
-      bottomGradientNotifier.value.value = (pixels / 500.0).clamp(0.0, 1.0);
-    }
-
-    scrollController.addListener(onScroll);
-    return () => scrollController.removeListener(onScroll);
-  }, [scrollController]);
-
-  Future<void> sendMessage({String? message}) async {
-    if (message == null && messageController.text.trim().isEmpty) {
-      return;
-    }
-
-    final userMessage = message ?? messageController.text.trim();
-
-    // Upload any pending attachments first
-    List<int>? attachmentIds;
-    if (attachments.value.isNotEmpty) {
-      showLoadingModal(ref.context);
-      try {
-        for (int i = 0; i < attachments.value.length; i++) {
-          if (!attachments.value[i].isOnCloud) {
-            await onUploadAttachment(i);
-          }
-        }
-        attachmentIds = attachments.value
-            .where((a) => a.isOnCloud)
-            .map((a) => int.parse((a.data as SnCloudFile).id))
-            .toList();
-      } finally {
-        if (ref.context.mounted) hideLoadingModal(ref.context);
-      }
-    }
-
-    // Clear attachments after upload
-    attachments.value = [];
-
-    // Add user message to local thoughts
-    final userInfo = ref.read(userInfoProvider);
-    final now = DateTime.now();
-    final userThought = SnThinkingThought(
-      id: 'user-${DateTime.now().millisecondsSinceEpoch}',
-      parts: [
-        SnThinkingMessagePart(
-          type: ThinkingMessagePartType.text,
-          text: userMessage,
-        ),
-      ],
-      files: [],
-      role: ThinkingThoughtRole.user,
-      sequenceId: sequenceId.value ?? '',
-      createdAt: now,
-      updatedAt: now,
-      sequence: SnThinkingSequence(
-        id: sequenceId.value ?? '',
-        accountId: userInfo.value!.id,
-        createdAt: now,
-        updatedAt: now,
-        lastMessageAt: now,
-      ),
-    );
-    localThoughts.value = [userThought, ...localThoughts.value];
-
-    final request = StreamThinkingRequest(
-      userMessage: userMessage,
-      sequenceId: sequenceId.value,
-      accpetProposals: ['post_create'],
-      attachedMessages: attachedMessages,
-      attachedPosts: attachedPosts,
-      attachedAttachmentsIds: attachmentIds,
-      bot: selectedAgent.value.isNotEmpty ? selectedAgent.value : 'snchan',
-    );
-
-    try {
-      isStreaming.value = true;
-      streamingItems.value = [];
-
-      final apiClient = ref.read(apiClientProvider);
-      final response = await apiClient.post(
-        '/insight/thought',
-        data: request.toJson(),
-        options: Options(
-          responseType: ResponseType.stream,
-          sendTimeout: Duration(hours: 1),
-          receiveTimeout: Duration(hours: 1),
-        ),
-      );
-
-      final stream = response.data.stream;
-      final lineBuffer = StringBuffer();
-
-      stream.listen(
-        (data) {
-          final chunk = utf8.decode(data);
-          lineBuffer.write(chunk);
-          final lines = lineBuffer.toString().split('\n');
-          lineBuffer.clear();
-          lineBuffer.write(lines.last); // keep incomplete line
-
-          for (final line in lines.sublist(0, lines.length - 1)) {
-            if (line.trim().isEmpty) continue;
-            try {
-              if (line.startsWith('data: ')) {
-                final jsonStr = line.substring(6);
-                final event = jsonDecode(jsonStr);
-                final type = event['type'];
-                final eventData = event['data'];
-                if (type != 'text') {
-                  talker.info('[Thought] Received event: $type');
-                }
-                switch (type) {
-                  case 'text':
-                    streamingItems.value = [
-                      ...streamingItems.value,
-                      StreamItem('text', eventData),
-                    ];
-                    break;
-                  case 'function_call':
-                    streamingItems.value = [
-                      ...streamingItems.value,
-                      StreamItem(
-                        'function_call',
-                        SnFunctionCall.fromJson(eventData),
-                      ),
-                    ];
-                    break;
-                  case 'function_result':
-                    streamingItems.value = [
-                      ...streamingItems.value,
-                      StreamItem(
-                        'function_result',
-                        SnFunctionResult.fromJson(eventData),
-                      ),
-                    ];
-                    break;
-                  case 'reasoning':
-                    streamingItems.value = [
-                      ...streamingItems.value,
-                      StreamItem('reasoning', eventData),
-                    ];
-                    break;
-                  default:
-                    // ignore unknown types
-                    break;
-                }
-              } else if (line.startsWith('topic: ')) {
-                final jsonStr = line.substring(7);
-                final event = jsonDecode(jsonStr);
-                currentTopic.value = event['data'];
-              } else if (line.startsWith('thought: ')) {
-                final jsonStr = line.substring(9);
-                final event = jsonDecode(jsonStr);
-                final aiThought = SnThinkingThought.fromJson(event['data']);
-                localThoughts.value = [aiThought, ...localThoughts.value];
-                if (sequenceId.value == null &&
-                    aiThought.sequenceId.isNotEmpty) {
-                  sequenceId.value = aiThought.sequenceId;
-                  onSequenceIdChanged?.call();
-                }
-                isStreaming.value = false;
-              }
-            } catch (e) {
-              // Ignore parsing errors for individual events
-            }
-          }
-        },
-        onDone: () {
-          if (isStreaming.value) {
-            isStreaming.value = false;
-            // Add error thought to the list for incomplete response
-            final now = DateTime.now();
-            final errorThought = SnThinkingThought(
-              id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-              parts: [
-                SnThinkingMessagePart(
-                  type: ThinkingMessagePartType.text,
-                  text: 'Error: ${'thoughtParseError'.tr()}',
-                ),
-              ],
-              files: [],
-              role: ThinkingThoughtRole.assistant,
-              sequenceId: sequenceId.value ?? '',
-              createdAt: now,
-              updatedAt: now,
-              sequence: SnThinkingSequence(
-                id: sequenceId.value ?? '',
-                accountId: '',
-                createdAt: now,
-                updatedAt: now,
-                lastMessageAt: now,
-              ),
-            );
-            localThoughts.value = [errorThought, ...localThoughts.value];
-          }
-        },
-        onError: (error) {
-          isStreaming.value = false;
-
-          // Add error thought to the list
-          final now = DateTime.now();
-          final errorMessage =
-              error is DioException && error.response?.data is ResponseBody
-              ? 'toughtParseError'.tr()
-              : error.toString();
-          final errorThought = SnThinkingThought(
-            id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-            parts: [
-              SnThinkingMessagePart(
-                type: ThinkingMessagePartType.text,
-                text: 'Error: $errorMessage',
-              ),
-            ],
-            files: [],
-            role: ThinkingThoughtRole.assistant,
-            sequenceId: sequenceId.value ?? '',
-            createdAt: now,
-            updatedAt: now,
-            sequence: SnThinkingSequence(
-              id: sequenceId.value ?? '',
-              accountId: '',
-              createdAt: now,
-              updatedAt: now,
-              lastMessageAt: now,
-            ),
-          );
-          localThoughts.value = [errorThought, ...localThoughts.value];
-        },
-      );
-
-      messageController.clear();
-      FocusManager.instance.primaryFocus?.unfocus();
-    } catch (error) {
-      isStreaming.value = false;
-
-      // Add error thought to the list for initial request errors
-      final now = DateTime.now();
-      final userInfo = ref.read(userInfoProvider);
-      final errorMessage = error.toString();
-      final errorThought = SnThinkingThought(
-        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-        parts: [
-          SnThinkingMessagePart(
-            type: ThinkingMessagePartType.text,
-            text: 'Error: $errorMessage',
-          ),
-        ],
-        files: [],
-        role: ThinkingThoughtRole.assistant,
-        sequenceId: sequenceId.value ?? '',
-        createdAt: now,
-        updatedAt: now,
-        sequence: SnThinkingSequence(
-          id: sequenceId.value ?? '',
-          accountId: userInfo.value!.id,
-          createdAt: now,
-          updatedAt: now,
-          lastMessageAt: now,
-        ),
-      );
-      localThoughts.value = [errorThought, ...localThoughts.value];
-    }
-  }
-
-  useEffect(() {
-    if (initialMessage?.isNotEmpty ?? false) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        sendMessage(message: initialMessage);
-      });
-    }
-    return null;
-  }, [initialMessage]);
-
-  return ThoughtChatState(
-    sequenceId: sequenceId,
-    localThoughts: localThoughts,
-    currentTopic: currentTopic,
-    services: services,
-    selectedServiceId: selectedAgent,
-    messageController: messageController,
-    scrollController: scrollController,
-    isStreaming: isStreaming,
-    streamingItems: streamingItems,
-    listController: listController,
-    bottomGradientNotifier: bottomGradientNotifier,
-    attachments: attachments,
-    onUploadAttachment: onUploadAttachment,
-    onDeleteAttachment: onDeleteAttachment,
-    onAttachmentsChanged: onAttachmentsChanged,
-    sendMessage: sendMessage,
-  );
-}
+export 'thought_chat_notifier.dart'
+    show ThoughtChatArgs, ThoughtChatState, ThoughtChatNotifier, StreamItem;
 
 class ThoughtChatInterface extends HookConsumerWidget {
   final List<SnThinkingThought>? initialThoughts;
@@ -517,6 +35,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
   final bool isDisabled;
+  final VoidCallback? onSequenceIdChanged;
 
   const ThoughtChatInterface({
     super.key,
@@ -527,6 +46,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
     this.attachedMessages = const [],
     this.attachedPosts = const [],
     this.isDisabled = false,
+    this.onSequenceIdChanged,
   });
 
   @override
@@ -537,8 +57,8 @@ class ThoughtChatInterface extends HookConsumerWidget {
     // Track previous height for smooth animations
     final previousInputHeight = usePrevious<double>(inputHeight.value);
 
-    final chatState = useThoughtChat(
-      ref,
+    // Create args for the provider
+    final args = ThoughtChatArgs(
       initialSequenceId: initialSequenceId,
       initialThoughts: initialThoughts,
       initialTopic: initialTopic,
@@ -546,6 +66,46 @@ class ThoughtChatInterface extends HookConsumerWidget {
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
+
+    // Watch the notifier
+    final chatState = ref.watch(thoughtChatProvider(args));
+    final notifier = ref.read(thoughtChatProvider(args).notifier);
+
+    // Sync external state changes
+    useEffect(() {
+      Future(() {
+        notifier.updateSequenceId(initialSequenceId);
+      });
+      return null;
+    }, [initialSequenceId]);
+
+    useEffect(() {
+      Future(() {
+        if (initialThoughts != null) {
+          notifier.updateThoughts(initialThoughts!);
+        }
+      });
+      return null;
+    }, [initialThoughts]);
+
+    useEffect(() {
+      Future(() {
+        if (initialTopic != null) {
+          notifier.updateTopic(initialTopic);
+        }
+      });
+      return null;
+    }, [initialTopic]);
+
+    // Listen for sequence ID changes from the notifier
+    useEffect(() {
+      Future(() {
+        if (chatState.sequenceId != null && onSequenceIdChanged != null) {
+          onSequenceIdChanged!();
+        }
+      });
+      return null;
+    }, [chatState.sequenceId]);
 
     // Periodic height measurement for dynamic sizing
     useEffect(() {
@@ -567,7 +127,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
         // Thoughts list
         Center(
           child: Container(
-            constraints: BoxConstraints(maxWidth: 640),
+            constraints: const BoxConstraints(maxWidth: 640),
             child: Column(
               children: [
                 Expanded(
@@ -583,8 +143,8 @@ class ThoughtChatInterface extends HookConsumerWidget {
                           curve: Curves.easeOut,
                           builder: (context, height, child) =>
                               SuperListView.builder(
-                                listController: chatState.listController,
-                                controller: chatState.scrollController,
+                                listController: notifier.listController,
+                                controller: notifier.scrollController,
                                 padding: EdgeInsets.only(
                                   top: 16,
                                   bottom:
@@ -594,31 +154,31 @@ class ThoughtChatInterface extends HookConsumerWidget {
                                 ),
                                 reverse: true,
                                 itemCount:
-                                    chatState.localThoughts.value.length +
-                                    (chatState.isStreaming.value ? 1 : 0),
+                                    chatState.localThoughts.length +
+                                    (chatState.isStreaming ? 1 : 0),
                                 itemBuilder: (context, index) {
-                                  if (chatState.isStreaming.value &&
-                                      index == 0) {
+                                  if (chatState.isStreaming && index == 0) {
                                     return ThoughtItem(
                                       isStreaming: true,
-                                      streamingItems:
-                                          chatState.streamingItems.value,
+                                      streamingItems: chatState.streamingItems,
+                                      agentService: chatState.selectedServiceId,
                                     );
                                   }
-                                  final thoughtIndex =
-                                      chatState.isStreaming.value
+                                  final thoughtIndex = chatState.isStreaming
                                       ? index - 1
                                       : index;
-                                  final thought = chatState
-                                      .localThoughts
-                                      .value[thoughtIndex];
-                                  return ThoughtItem(thought: thought);
+                                  final thought =
+                                      chatState.localThoughts[thoughtIndex];
+                                  return ThoughtItem(
+                                    thought: thought,
+                                    agentService: chatState.selectedServiceId,
+                                  );
                                 },
                               ),
                         )
                       : SuperListView.builder(
-                          listController: chatState.listController,
-                          controller: chatState.scrollController,
+                          listController: notifier.listController,
+                          controller: notifier.scrollController,
                           padding: EdgeInsets.only(
                             top: 16,
                             bottom:
@@ -628,21 +188,25 @@ class ThoughtChatInterface extends HookConsumerWidget {
                           ),
                           reverse: true,
                           itemCount:
-                              chatState.localThoughts.value.length +
-                              (chatState.isStreaming.value ? 1 : 0),
+                              chatState.localThoughts.length +
+                              (chatState.isStreaming ? 1 : 0),
                           itemBuilder: (context, index) {
-                            if (chatState.isStreaming.value && index == 0) {
+                            if (chatState.isStreaming && index == 0) {
                               return ThoughtItem(
                                 isStreaming: true,
-                                streamingItems: chatState.streamingItems.value,
+                                streamingItems: chatState.streamingItems,
+                                agentService: chatState.selectedServiceId,
                               );
                             }
-                            final thoughtIndex = chatState.isStreaming.value
+                            final thoughtIndex = chatState.isStreaming
                                 ? index - 1
                                 : index;
                             final thought =
-                                chatState.localThoughts.value[thoughtIndex];
-                            return ThoughtItem(thought: thought);
+                                chatState.localThoughts[thoughtIndex];
+                            return ThoughtItem(
+                              thought: thought,
+                              agentService: chatState.selectedServiceId,
+                            );
                           },
                         ),
                 ),
@@ -652,13 +216,13 @@ class ThoughtChatInterface extends HookConsumerWidget {
         ),
         // Bottom gradient - appears when scrolling towards newer thoughts (behind thought input)
         AnimatedBuilder(
-          animation: chatState.bottomGradientNotifier.value,
+          animation: notifier.bottomGradientNotifier,
           builder: (context, child) => Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: Opacity(
-              opacity: chatState.bottomGradientNotifier.value.value,
+              opacity: notifier.bottomGradientNotifier.value,
               child: Container(
                 height: math.min(MediaQuery.of(context).size.height * 0.1, 128),
                 decoration: BoxDecoration(
@@ -686,12 +250,12 @@ class ThoughtChatInterface extends HookConsumerWidget {
           bottom: 0, // At the very bottom, above gradient
           child: Center(
             child: Container(
-              constraints: BoxConstraints(maxWidth: 640),
+              constraints: const BoxConstraints(maxWidth: 640),
               child: ThoughtInput(
                 key: inputKey,
-                messageController: chatState.messageController,
-                isStreaming: chatState.isStreaming.value,
-                onSend: chatState.sendMessage,
+                messageController: notifier.messageController,
+                isStreaming: chatState.isStreaming,
+                onSend: notifier.sendMessage,
                 attachedMessages: attachedMessages,
                 attachedPosts: attachedPosts,
                 isDisabled: isDisabled,
@@ -733,9 +297,10 @@ void _handleProposalAction(BuildContext context, Map<String, String> proposal) {
 }
 
 /// A service selector dropdown widget for use in app bars
-class ServiceSelector extends StatelessWidget {
+class ServiceSelector extends ConsumerWidget {
   final List<ThoughtService> services;
-  final ValueNotifier<String> selectedServiceId;
+  final String selectedServiceId;
+  final ValueChanged<String> onServiceChanged;
   final bool isStreaming;
   final bool isDisabled;
 
@@ -743,19 +308,23 @@ class ServiceSelector extends StatelessWidget {
     super.key,
     required this.services,
     required this.selectedServiceId,
+    required this.onServiceChanged,
     this.isStreaming = false,
     this.isDisabled = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (services.isEmpty) return const SizedBox.shrink();
+
+    // Ensure the selected value is valid
+    final currentValue = selectedServiceId;
+    final isValueValid =
+        currentValue.isNotEmpty && services.any((s) => s.id == currentValue);
 
     return DropdownButtonHideUnderline(
       child: DropdownButton2<String>(
-        value: selectedServiceId.value.isEmpty
-            ? null
-            : selectedServiceId.value,
+        value: isValueValid ? currentValue : null,
         customButton: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -773,14 +342,10 @@ class ServiceSelector extends StatelessWidget {
               ),
               Flexible(
                 child: Text(
-                  selectedServiceId.value.isEmpty
-                      ? 'Select Service'
-                      : services
-                          .firstWhere(
-                            (s) => s.id == selectedServiceId.value,
-                            orElse: () => services.first,
-                          )
-                          .name,
+                  isValueValid
+                      ? 'thinkService${services.firstWhere((s) => s.id == currentValue).id.capitalizeEachWord()}'
+                            .tr()
+                      : 'Select Service',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -806,24 +371,22 @@ class ServiceSelector extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      service.name,
+                      'thinkService${service.id.capitalizeEachWord()}'.tr(),
                       style: DefaultTextStyle.of(context).style.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                    ),
-                    if (service.description.isNotEmpty)
-                      Text(
-                        service.description,
-                        style: DefaultTextStyle.of(context).style.copyWith(
-                              fontSize: 12,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
+                    ),
+                    Text(
+                      'thinkService${service.id.capitalizeEachWord()}Description'
+                          .tr(),
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -832,13 +395,16 @@ class ServiceSelector extends StatelessWidget {
         onChanged: !isStreaming && !isDisabled
             ? (value) {
                 if (value != null) {
-                  selectedServiceId.value = value;
+                  onServiceChanged(value);
                 }
               }
             : null,
         isDense: true,
         buttonStyleData: const ButtonStyleData(
           padding: EdgeInsets.zero,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
         ),
         dropdownStyleData: DropdownStyleData(
           maxHeight: 300,
@@ -956,7 +522,6 @@ class ThoughtInput extends HookWidget {
                     ],
                   ),
                 ),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1005,11 +570,13 @@ class ThoughtInput extends HookWidget {
 
 // Unified thought item widget
 class ThoughtItem extends StatelessWidget {
+  final String agentService;
   const ThoughtItem({
     super.key,
     this.thought,
     this.isStreaming = false,
     this.streamingItems,
+    required this.agentService,
   }) : assert(
          (streamingItems != null && isStreaming) ||
              (thought != null && !isStreaming),
@@ -1030,7 +597,12 @@ class ThoughtItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          ThoughtHeader(isStreaming: isStreaming, isUser: isUser),
+          ThoughtHeader(
+            agentService: agentService,
+            item: thought,
+            isStreaming: isStreaming,
+            isUser: isUser,
+          ),
           const Gap(8),
           // Content
           Container(
