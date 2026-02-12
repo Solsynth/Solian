@@ -1316,10 +1316,8 @@
   "specialOnly": "Special Only",
   "matches": "Matches",
   "thoughtDefaultTopic": "Reflection",
-  "thoughtAiName": "SN-chan",
-  "thoughtUserName": "You",
-  "thoughtStreamingHint": "Sn-chan is thinking...",
-  "thoughtInputHint": "Ask sn-chan anything...",
+  "thoughtStreamingHint": "Thinking...",
+  "thoughtInputHint": "Ask anything...",
   "thoughtNewConversation": "Start New Conversation",
   "thoughtParseError": "Failed to parse AI response",
   "thoughtFunctionCall": "Use {}",
@@ -1739,5 +1737,9 @@
   "fitnessWorkoutTypeWalking": "Walking",
   "fitnessWorkoutTypeWeightlifting": "Weightlifting",
   "fitnessWorkoutTypeYoga": "Yoga",
-  "fitnessWorkoutTypeDefault": "Fitness"
+  "fitnessWorkoutTypeDefault": "Fitness",
+  "thinkServiceSnchan": "SN-chan",
+  "thinkServiceSnchanDescription": "The helpful assistant who can help you to solve problems on the Solar Network.",
+  "thinkServiceMichan": "Mi-chan",
+  "thinkServiceMichanDescription": "A cute, outgoing, mysterious girl"
 }

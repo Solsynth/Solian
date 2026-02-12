@@ -71,7 +71,8 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
     @Default([]) List<String> accpetProposals,
     List<String>? attachedPosts,
     List<Map<String, dynamic>>? attachedMessages,
-    @JsonKey(name: "attached_attachments_ids") List<int>? attachedAttachmentsIds,
+    @JsonKey(name: "attached_attachments_ids")
+    List<int>? attachedAttachmentsIds,
     String? bot,
   }) = _StreamThinkingRequest;
 
@@ -171,6 +172,7 @@ sealed class SnThinkingThought with _$SnThinkingThought {
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
     int? tokenCount,
     String? modelName,
+    String? botName,
     required String sequenceId,
     SnThinkingSequence? sequence,
     required DateTime createdAt,

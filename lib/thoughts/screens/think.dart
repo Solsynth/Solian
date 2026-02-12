@@ -1,8 +1,10 @@
 import "package:auto_route/auto_route.dart";
+import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
+import "package:island/thoughts/widgets/thought_chat_notifier.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/thoughts/thought.dart";
@@ -14,6 +16,7 @@ import "package:island/shared/widgets/app_scaffold.dart";
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:styled_widget/styled_widget.dart";
 
 part 'think.g.dart';
 
@@ -45,28 +48,25 @@ Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
   return ThoughtServicesResponse.fromJson(response.data);
 }
 
-@riverpod
-Future<void> deleteThoughtSequence(Ref ref, String sequenceId) async {
-  final apiClient = ref.watch(apiClientProvider);
+/// Deletes a thought sequence by ID.
+Future<void> deleteThoughtSequence(Dio apiClient, String sequenceId) async {
   await apiClient.delete('/insight/thought/sequences/$sequenceId');
 }
 
-@riverpod
+/// Updates the sharing status of a thought sequence.
 Future<void> updateThoughtSequenceSharing(
-  Ref ref,
+  Dio apiClient,
   String sequenceId, {
   required bool isPublic,
 }) async {
-  final apiClient = ref.watch(apiClientProvider);
   await apiClient.patch(
     '/insight/thought/sequences/$sequenceId/sharing',
     data: {'is_public': isPublic},
   );
 }
 
-@riverpod
-Future<void> markThoughtSequenceAsRead(Ref ref, String sequenceId) async {
-  final apiClient = ref.watch(apiClientProvider);
+/// Marks a thought sequence as read.
+Future<void> markThoughtSequenceAsRead(Dio apiClient, String sequenceId) async {
   await apiClient.post('/insight/thought/sequences/$sequenceId/read');
 }
 
@@ -104,13 +104,16 @@ class ThoughtScreen extends HookConsumerWidget {
 
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
 
-    // Get chat state for service selector
-    final chatState = useThoughtChat(
-      ref,
+    // Create args for the chat notifier
+    final args = ThoughtChatArgs(
       initialSequenceId: sequenceIdFromThoughts,
       initialThoughts: initialThoughts,
       initialTopic: initialTopic,
     );
+
+    // Get chat state for service selector from the notifier
+    final chatState = ref.watch(thoughtChatProvider(args));
+    final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
 
@@ -135,25 +138,26 @@ class ThoughtScreen extends HookConsumerWidget {
     void handleSequenceSelected(String sequenceId) {
       selectedSequenceId.value = sequenceId;
       // Mark the conversation as read
-      ref.read(markThoughtSequenceAsReadProvider(sequenceId));
+      markThoughtSequenceAsRead(ref.read(apiClientProvider), sequenceId);
     }
 
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
+        leading: const PageBackButton(),
+        flexibleSpace: Row(
           children: [
-            const PageBackButton(),
+            const Gap(8 + 44),
             ServiceSelector(
-              services: chatState.services.value,
+              services: chatState.services,
               selectedServiceId: chatState.selectedServiceId,
-              isStreaming: chatState.isStreaming.value,
+              onServiceChanged: chatNotifier.setSelectedServiceId,
+              isStreaming: chatState.isStreaming,
               isDisabled: statusAsync.value == false,
             ),
           ],
-        ),
+        ).center(),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add),

@@ -165,6 +165,7 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
       ),
       tokenCount: (json['token_count'] as num?)?.toInt(),
       modelName: json['model_name'] as String?,
+      botName: json['bot_name'] as String?,
       sequenceId: json['sequence_id'] as String,
       sequence: json['sequence'] == null
           ? null
@@ -186,6 +187,7 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
       'token_count': instance.tokenCount,
       'model_name': instance.modelName,
+      'bot_name': instance.botName,
       'sequence_id': instance.sequenceId,
       'sequence': instance.sequence?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),

@@ -1,10 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/utils/text.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/thoughts/thought.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
-class ThoughtHeader extends StatelessWidget {
+class ThoughtHeader extends HookConsumerWidget {
+  final String agentService;
+  final SnThinkingThought? item;
   const ThoughtHeader({
     super.key,
+    required this.agentService,
+    required this.item,
     required this.isStreaming,
     required this.isUser,
   });
@@ -13,28 +22,38 @@ class ThoughtHeader extends StatelessWidget {
   final bool isUser;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
     if (!isStreaming) {
       return Row(
         spacing: 6,
         children: [
-          Icon(
-            isUser ? Symbols.person : Symbols.smart_toy,
-            size: 16,
-            color:
-                isUser
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.secondary,
-            fill: 1,
-          ),
+          if (isUser)
+            ProfilePictureWidget(
+              file: userInfo.value?.profile.picture,
+              radius: 8,
+            )
+          else
+            Icon(
+              Symbols.smart_toy,
+              size: 16,
+              color: isUser
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.secondary,
+              fill: 1,
+            ),
           Text(
-            isUser ? 'thoughtUserName'.tr() : 'thoughtAiName'.tr(),
+            isUser
+                ? userInfo.value?.nick ?? 'unknown'.tr()
+                : item?.botName != null
+                ? 'thinkService${item?.botName!.capitalizeEachWord()}'.tr()
+                : 'thinkService${agentService.capitalizeEachWord()}'.tr(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
               fontWeight: FontWeight.w600,
-              color:
-                  isUser
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.secondary,
+              color: isUser
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.secondary,
             ),
           ),
         ],
@@ -46,20 +65,18 @@ class ThoughtHeader extends StatelessWidget {
           Icon(
             Symbols.smart_toy,
             size: 16,
-            color:
-                isUser
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.secondary,
+            color: isUser
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.secondary,
             fill: 1,
           ),
           Text(
             'thoughtAiName'.tr(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
               fontWeight: FontWeight.w600,
-              color:
-                  isUser
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.secondary,
+              color: isUser
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.secondary,
             ),
           ),
         ],
