@@ -577,17 +577,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
-        final cloudFile = await FileUploader.createCloudFile(
-          ref: outerRef,
-          fileData: attachments[idx],
-          onProgress: (progress, _) {
-            _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
-            onProgress?.call(
-              localMessage.id,
-              _fileUploadProgress[localMessage.id] ?? {},
-            );
-          },
-        ).future;
+        final cloudFile = await ref
+            .read(driveFileUploaderProvider)
+            .createCloudFile(
+              fileData: attachments[idx],
+              onProgress: (progress, _) {
+                _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
+                onProgress?.call(
+                  localMessage.id,
+                  _fileUploadProgress[localMessage.id] ?? {},
+                );
+              },
+            )
+            .future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }

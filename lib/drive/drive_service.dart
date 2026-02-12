@@ -5,7 +5,6 @@ import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -15,12 +14,20 @@ import 'package:path/path.dart' show extension;
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class FileUploader {
-  final Dio _client;
+part 'drive_service.g.dart';
 
-  FileUploader(this._client);
+@Riverpod(keepAlive: true)
+FileUploader driveFileUploader(Ref ref) {
+  return FileUploader(ref);
+}
+
+class FileUploader {
+  final Ref ref;
+  late final Dio _client = ref.watch(apiClientProvider);
+  FileUploader(this.ref);
 
   /// Calculates the MD5 hash of file bytes.
   String _calculateFileHash(Uint8List bytes) {
@@ -234,9 +241,8 @@ class FileUploader {
     return await completeUpload(taskId);
   }
 
-  static Completer<SnCloudFile?> createCloudFile({
+  Completer<SnCloudFile?> createCloudFile({
     required UniversalFile fileData,
-    required WidgetRef ref,
     String? poolId,
     String? path,
     FileUploadMode? mode,
@@ -274,20 +280,13 @@ class FileUploader {
               await exif.writeAttributes(gpsAttributes);
             })
             .then(
-              (_) => _processUpload(
-                fileData,
-                ref,
-                poolId,
-                path,
-                onProgress,
-                completer,
-              ),
+              (_) =>
+                  _processUpload(fileData, poolId, path, onProgress, completer),
             )
             .catchError((e) {
               debugPrint('Error removing GPS EXIF data: $e');
               return _processUpload(
                 fileData,
-                ref,
                 poolId,
                 path,
                 onProgress,
@@ -299,14 +298,13 @@ class FileUploader {
       }
     }
 
-    _processUpload(fileData, ref, poolId, path, onProgress, completer);
+    _processUpload(fileData, poolId, path, onProgress, completer);
     return completer;
   }
 
   // Helper method to process the upload with enhanced uploader
-  static Completer<SnCloudFile?> _processUpload(
+  Completer<SnCloudFile?> _processUpload(
     UniversalFile fileData,
-    WidgetRef ref,
     String? poolId,
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
@@ -325,7 +323,6 @@ class FileUploader {
         fileName: fileData.displayName ?? data.name,
         path: path,
         contentType: actualMimetype,
-        ref: ref,
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
@@ -353,7 +350,6 @@ class FileUploader {
         fileName: actualFilename,
         contentType: actualMimetype,
         path: path,
-        ref: ref,
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
@@ -364,18 +360,17 @@ class FileUploader {
   }
 
   // Helper method to perform the actual upload with enhanced uploader
-  static void _performUpload({
+  void _performUpload({
     required dynamic fileData,
     required String fileName,
     required String contentType,
-    required WidgetRef ref,
     String? poolId,
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
     // Use the enhanced uploader with task tracking
-    final uploader = ref.read(enhancedFileUploaderProvider);
+    final uploader = EnhancedFileUploader(ref);
 
     // Call progress start
     onProgress?.call(null, Duration.zero);
@@ -435,14 +430,8 @@ class FileUploader {
 
 enum FileUploadMode { generic, mediaSafe }
 
-// Riverpod provider for the FileUploader service
-final fileUploaderProvider = Provider<FileUploader>((ref) {
-  final dio = ref.watch(apiClientProvider);
-  return FileUploader(dio);
-});
-
 class FileDownloadService {
-  final WidgetRef ref;
+  final Ref ref;
 
   FileDownloadService(this.ref);
 
@@ -554,4 +543,9 @@ class FileDownloadService {
       showErrorAlert(e);
     }
   }
+}
+
+@Riverpod(keepAlive: true)
+FileDownloadService driveFileDownloader(Ref ref) {
+  return FileDownloadService(ref);
 }

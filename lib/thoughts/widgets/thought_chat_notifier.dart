@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/drive/drive_service.dart';
+import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/talker.dart';
 import 'package:island/thoughts/screens/think.dart';
@@ -235,13 +237,13 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   /// Updates the services list and default service
   void updateServices(ThoughtServicesResponse response) {
     final currentValue = state.selectedServiceId;
-    final isValueValid = currentValue.isNotEmpty &&
+    final isValueValid =
+        currentValue.isNotEmpty &&
         response.services.any((s) => s.id == currentValue);
 
     state = state.copyWith(
       services: response.services,
-      selectedServiceId:
-          isValueValid ? currentValue : response.defaultBot,
+      selectedServiceId: isValueValid ? currentValue : response.defaultBot,
     );
   }
 
@@ -274,45 +276,46 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     );
 
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          attachment.data.path,
-          filename: attachment.displayName,
-        ),
-      });
+      SnCloudFile? cloudFile;
 
-      final response = await apiClient.post(
-        '/drive/files',
-        data: formData,
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            state = state.copyWith(
-              attachmentProgress: {
-                ...state.attachmentProgress,
-                index: sent / total,
-              },
-            );
-          }
-        },
+      final pools = await ref.read(poolsProvider.future);
+      final selectedPoolId = resolveDefaultPoolId(
+        ref.read(appSettingsProvider),
+        pools,
       );
 
-      final uploadedFile = SnCloudFile.fromJson(response.data);
-      final newAttachments = [...state.attachments];
-      newAttachments[index] = UniversalFile.fromAttachment(uploadedFile);
+      cloudFile = await ref
+          .read(driveFileUploaderProvider)
+          .createCloudFile(
+            fileData: attachment,
+            poolId: selectedPoolId,
+            mode: attachment.type == UniversalFileType.file
+                ? FileUploadMode.generic
+                : FileUploadMode.mediaSafe,
+            onProgress: (progress, _) {
+              state = state.copyWith(
+                attachmentProgress: {
+                  ...state.attachmentProgress,
+                  index: progress ?? 0.0,
+                },
+              );
+            },
+          )
+          .future;
 
-      final newProgress = Map<int, double?>.from(state.attachmentProgress);
-      newProgress.remove(index);
+      if (cloudFile == null) {
+        throw ArgumentError('Failed to upload the file...');
+      }
 
+      final clone = List.of(state.attachments);
+      clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
+      state.copyWith(attachments: clone);
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
       state = state.copyWith(
-        attachments: newAttachments,
-        attachmentProgress: newProgress,
+        attachmentProgress: {...state.attachmentProgress}..remove(index),
       );
-    } catch (e) {
-      final newProgress = Map<int, double?>.from(state.attachmentProgress);
-      newProgress.remove(index);
-      state = state.copyWith(attachmentProgress: newProgress);
-      showSnackBar('Failed to upload attachment');
     }
   }
 
@@ -325,7 +328,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     final userMessage = message ?? messageController.text.trim();
 
     // Upload any pending attachments first
-    List<int>? attachmentIds;
+    List<String>? attachmentIds;
     if (state.attachments.isNotEmpty) {
       for (int i = 0; i < state.attachments.length; i++) {
         if (!state.attachments[i].isOnCloud) {
@@ -334,12 +337,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       }
       attachmentIds = state.attachments
           .where((a) => a.isOnCloud)
-          .map((a) => int.parse((a.data as SnCloudFile).id))
+          .map((a) => (a.data as SnCloudFile).id)
           .toList();
     }
-
-    // Clear attachments after upload
-    state = state.copyWith(attachments: []);
 
     // Add user message to local thoughts
     final userInfo = ref.read(userInfoProvider);
@@ -350,9 +350,13 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         SnThinkingMessagePart(
           type: ThinkingMessagePartType.text,
           text: userMessage,
+          files: state.attachments
+              .where((a) => a.isOnCloud)
+              .map((a) => a.data)
+              .cast<SnCloudFile>()
+              .toList(),
         ),
       ],
-      files: [],
       role: ThinkingThoughtRole.user,
       sequenceId: state.sequenceId ?? '',
       createdAt: now,
@@ -365,6 +369,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         lastMessageAt: now,
       ),
     );
+
+    // Clear attachments after upload
+    state = state.copyWith(attachments: []);
 
     state = state.copyWith(
       localThoughts: [userThought, ...state.localThoughts],
@@ -381,8 +388,10 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       accpetProposals: ['post_create'],
       attachedMessages: shouldIncludeAttachments ? _attachedMessages : const [],
       attachedPosts: shouldIncludeAttachments ? _attachedPosts : const [],
-      attachedAttachmentsIds: attachmentIds,
-      bot: state.selectedServiceId.isNotEmpty ? state.selectedServiceId : 'snchan',
+      attachedFiles: attachmentIds,
+      bot: state.selectedServiceId.isNotEmpty
+          ? state.selectedServiceId
+          : 'snchan',
     );
 
     // Mark initial attachments as sent after first message
@@ -391,10 +400,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
 
     try {
-      state = state.copyWith(
-        isStreaming: true,
-        streamingItems: [],
-      );
+      state = state.copyWith(isStreaming: true, streamingItems: []);
 
       final apiClient = ref.read(apiClientProvider);
       final response = await apiClient.post(
@@ -502,8 +508,8 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         onError: (error) {
           final errorMessage =
               error is DioException && error.response?.data is ResponseBody
-                  ? 'thoughtParseError'.tr()
-                  : error.toString();
+              ? 'thoughtParseError'.tr()
+              : error.toString();
           _handleStreamError(errorMessage);
         },
       );

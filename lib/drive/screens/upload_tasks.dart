@@ -1,22 +1,25 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/talker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-final uploadTasksProvider = NotifierProvider(UploadTasksNotifier.new);
+part 'upload_tasks.g.dart';
 
-class UploadTasksNotifier extends Notifier<List<DriveTask>> {
+@riverpod
+class UploadTasks extends _$UploadTasks {
   StreamSubscription? _websocketSubscription;
   final Map<String, Map<String, dynamic>> _pendingUploads = {};
 
   @override
   List<DriveTask> build() {
     _listenToWebSocket();
+    ref.onDispose(() {
+      _websocketSubscription?.cancel();
+    });
     return [];
   }
 
@@ -51,32 +54,14 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
           _handleUploadCompleted(taskId!, data);
           break;
         case 'upload.completed':
-          // For upload.completed, we need to find the taskId differently
-          // Since data is null, we can't get task_id from data
-          // We'll need to mark all in-progress uploads as completed
-          // For now, assume we need to handle it per task, but since no task_id,
-          // perhaps it's a broadcast or we need to modify the logic
-          // Actually, looking at the logs, upload.completed has data: null, but maybe in real scenario it has task_id?
-          // For now, let's assume it needs task_id, and modify accordingly
-          // But since the original code expects data, perhaps the server sends data with task_id
-          // Wait, in the logs: "upload.completed null" - the null is data, but perhaps in code it's null
-          // To be safe, let's modify to handle upload.completed even with null data, but we need task_id
-          // Perhaps search for in-progress tasks and complete them
-          // But that's risky. Let's see the log again: the previous task.progress had task_id: YvvfVbaWSxj5vUnFnzJDu
-          // So probably upload.completed should have the same task_id
-          // Perhaps the server sends it with data containing task_id
-          // The log says "upload.completed null" meaning data is null
-          // But maybe it's a logging issue. To fix, let's assume data has task_id for upload.completed
-          // If not, we can modify _handleUploadCompleted to accept null data and find the task
           if (data != null && data['task_id'] != null) {
             _handleUploadCompleted(data['task_id'], data);
           } else {
-            // If no data, perhaps complete the most recent in-progress task
             final inProgressTasks = state
                 .where((task) => task.status == DriveTaskStatus.inProgress)
                 .toList();
             if (inProgressTasks.isNotEmpty) {
-              final task = inProgressTasks.last; // Assume the last one
+              final task = inProgressTasks.last;
               _handleUploadCompleted(task.taskId, {});
             }
           }
@@ -91,13 +76,11 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
   void _handleTaskCreated(String taskId, Map<String, dynamic> data) {
     talker.info('[UploadTasks] Handling task.created for taskId: $taskId');
 
-    // Check if task already exists (might have been created locally)
     final existingTask = state
         .where((task) => task.taskId == taskId)
         .firstOrNull;
     if (existingTask != null) {
       talker.info('[UploadTasks] Task already exists, updating status');
-      // Task already exists, just update its status to confirm server creation
       state = state.map((task) {
         if (task.taskId == taskId) {
           return task.copyWith(
@@ -110,13 +93,11 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
       return;
     }
 
-    // Check if we have stored metadata for this task
     final metadata = _pendingUploads[taskId];
     talker.info('[UploadTasks] Metadata for taskId $taskId: $metadata');
 
     if (metadata != null) {
       talker.info('[UploadTasks] Creating task with full metadata');
-      // Create task with full metadata
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
@@ -140,11 +121,9 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
       talker.info(
         '[UploadTasks] Task created successfully. Total tasks: ${state.length}',
       );
-      // Clean up stored metadata
       _pendingUploads.remove(taskId);
     } else {
       talker.info('[UploadTasks] No metadata found, creating minimal task');
-      // Create minimal task if no metadata is stored
       final params = data['parameters'];
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -195,7 +174,6 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
           status: DriveTaskStatus.completed,
           uploadedChunks: task.totalChunks,
           uploadedBytes: task.fileSize,
-          // Update file information from Results if available
           fileName: results?['file_name'] as String? ?? task.fileName,
           fileSize: results?['file_size'] as int? ?? task.fileSize,
           contentType: results?['mime_type'] as String? ?? task.contentType,
@@ -371,22 +349,10 @@ class UploadTasksNotifier extends Notifier<List<DriveTask>> {
     state = [...state, task];
     return taskId;
   }
-
-  void dispose() {
-    _websocketSubscription?.cancel();
-  }
 }
 
-// Provider for the enhanced FileUploader that integrates with upload tasks
-final enhancedFileUploaderProvider = Provider<EnhancedFileUploader>((ref) {
-  final dio = ref.watch(apiClientProvider);
-  return EnhancedFileUploader(dio, ref);
-});
-
 class EnhancedFileUploader extends FileUploader {
-  final Ref ref;
-
-  EnhancedFileUploader(super.client, this.ref);
+  EnhancedFileUploader(super.ref);
 
   /// Reads the next chunk from a stream subscription.
   Future<Uint8List> _readNextChunkFromStream(

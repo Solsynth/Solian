@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -66,7 +67,10 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
             return Center(child: Text('errorLoadingPools'.tr()));
           }
           final pools = snapshot.data!;
-          selectedPoolId ??= resolveDefaultPoolId(widget.ref, pools);
+          selectedPoolId ??= resolveDefaultPoolId(
+            widget.ref.read(appSettingsProvider),
+            pools,
+          );
 
           return Column(
             children: [

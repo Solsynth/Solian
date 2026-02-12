@@ -155,18 +155,21 @@ class FileListScreen extends HookConsumerWidget {
             );
 
             // Upload the file with the current path
-            final completer = FileUploader.createCloudFile(
-              fileData: universalFile,
-              ref: ref,
-              path: currentPath,
-              poolId: poolId,
-              onProgress: (progress, _) {
-                // Progress is handled by the upload tasks system
-                if (progress != null) {
-                  debugPrint('Upload progress: ${(progress * 100).toInt()}%');
-                }
-              },
-            );
+            final completer = ref
+                .read(driveFileUploaderProvider)
+                .createCloudFile(
+                  fileData: universalFile,
+                  path: currentPath,
+                  poolId: poolId,
+                  onProgress: (progress, _) {
+                    // Progress is handled by the upload tasks system
+                    if (progress != null) {
+                      debugPrint(
+                        'Upload progress: ${(progress * 100).toInt()}%',
+                      );
+                    }
+                  },
+                );
 
             completer.future
                 .then((uploadedFile) {

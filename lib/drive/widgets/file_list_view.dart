@@ -324,18 +324,21 @@ class FileListView extends HookConsumerWidget {
             displayName: file.name,
           );
 
-          final completer = FileUploader.createCloudFile(
-            fileData: universalFile,
-            ref: ref,
-            path: mode.value == FileListMode.normal ? currentPath.value : null,
-            poolId: selectedPool.value?.id,
-            onProgress: (progress, _) {
-              // Progress is handled by the upload tasks system
-              if (progress != null) {
-                debugPrint('Upload progress: ${(progress * 100).toInt()}%');
-              }
-            },
-          );
+          final completer = ref
+              .read(driveFileUploaderProvider)
+              .createCloudFile(
+                fileData: universalFile,
+                path: mode.value == FileListMode.normal
+                    ? currentPath.value
+                    : null,
+                poolId: selectedPool.value?.id,
+                onProgress: (progress, _) {
+                  // Progress is handled by the upload tasks system
+                  if (progress != null) {
+                    debugPrint('Upload progress: ${(progress * 100).toInt()}%');
+                  }
+                },
+              );
 
           completer.future
               .then((uploadedFile) {

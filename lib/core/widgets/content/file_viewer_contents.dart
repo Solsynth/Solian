@@ -286,7 +286,8 @@ class GenericFileContent extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               FilledButton.icon(
-                onPressed: () => FileDownloadService(ref).downloadFile(item),
+                onPressed: () =>
+                    ref.read(driveFileDownloaderProvider).downloadFile(item),
                 icon: const Icon(Symbols.download),
                 label: Text('download').tr(),
               ),

@@ -233,20 +233,22 @@ class ChatRoomScreen extends HookConsumerWidget {
       try {
         inputManager.updateAttachmentProgress('chat-upload', 0);
 
-        final cloudFile = await FileUploader.createCloudFile(
-          ref: ref,
-          fileData: attachment,
-          poolId: config.poolId,
-          mode: attachment.type == UniversalFileType.file
-              ? FileUploadMode.generic
-              : FileUploadMode.mediaSafe,
-          onProgress: (progress, _) {
-            inputManager.updateAttachmentProgress(
-              'chat-upload',
-              progress ?? 0.0,
-            );
-          },
-        ).future;
+        final cloudFile = await ref
+            .read(driveFileUploaderProvider)
+            .createCloudFile(
+              fileData: attachment,
+              poolId: config.poolId,
+              mode: attachment.type == UniversalFileType.file
+                  ? FileUploadMode.generic
+                  : FileUploadMode.mediaSafe,
+              onProgress: (progress, _) {
+                inputManager.updateAttachmentProgress(
+                  'chat-upload',
+                  progress ?? 0.0,
+                );
+              },
+            )
+            .future;
 
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload file...');

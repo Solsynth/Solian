@@ -242,17 +242,20 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             // Upload each file
             for (var idx = 0; idx < universalFiles.length; idx++) {
               final file = universalFiles[idx];
-              final cloudFile = await FileUploader.createCloudFile(
-                ref: ref,
-                fileData: file,
-                onProgress: (progress, _) {
-                  if (mounted) {
-                    setState(() {
-                      _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
-                    });
-                  }
-                },
-              ).future;
+              final cloudFile = await ref
+                  .read(driveFileUploaderProvider)
+                  .createCloudFile(
+                    fileData: file,
+                    onProgress: (progress, _) {
+                      if (mounted) {
+                        setState(() {
+                          _fileUploadProgress[messageId]?[idx] =
+                              progress ?? 0.0;
+                        });
+                      }
+                    },
+                  )
+                  .future;
 
               if (cloudFile == null) {
                 throw Exception('Failed to upload file: ${file.data.name}');
@@ -379,17 +382,19 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       // Upload each file
       for (var idx = 0; idx < universalFiles.length; idx++) {
         final file = universalFiles[idx];
-        final cloudFile = await FileUploader.createCloudFile(
-          ref: ref,
-          fileData: file,
-          onProgress: (progress, _) {
-            if (mounted) {
-              setState(() {
-                _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
-              });
-            }
-          },
-        ).future;
+        final cloudFile = await ref
+            .read(driveFileUploaderProvider)
+            .createCloudFile(
+              fileData: file,
+              onProgress: (progress, _) {
+                if (mounted) {
+                  setState(() {
+                    _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
+                  });
+                }
+              },
+            )
+            .future;
 
         if (cloudFile == null) {
           throw Exception('Failed to upload file: ${file.data.name}');

@@ -12,9 +12,7 @@ final poolsProvider = FutureProvider<List<SnFilePool>>((ref) async {
       .toList();
 });
 
-String? resolveDefaultPoolId(WidgetRef ref, List<SnFilePool> pools) {
-  final settings = ref.watch(appSettingsProvider);
-
+String? resolveDefaultPoolId(AppSettings settings, List<SnFilePool> pools) {
   final configuredId = settings.defaultPoolId;
   if (configuredId != null && pools.any((p) => p.id == configuredId)) {
     return configuredId;
