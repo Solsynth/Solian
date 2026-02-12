@@ -12,7 +12,7 @@ class ThoughtSidebar extends StatelessWidget {
   final String? selectedSequenceId;
 
   /// Callback when a sequence is selected
-  final Function(String) onSequenceSelected;
+  final Function(String)? onSequenceSelected;
 
   /// Callback when the close button is pressed
   final VoidCallback onClose;
@@ -20,7 +20,7 @@ class ThoughtSidebar extends StatelessWidget {
   const ThoughtSidebar({
     super.key,
     this.selectedSequenceId,
-    required this.onSequenceSelected,
+    this.onSequenceSelected,
     required this.onClose,
   });
 
@@ -30,7 +30,12 @@ class ThoughtSidebar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.only(top: 12, left: 18, right: 16, bottom: 12),
+          padding: const EdgeInsets.only(
+            top: 12,
+            left: 18,
+            right: 16,
+            bottom: 12,
+          ),
           child: Row(
             children: [
               Expanded(

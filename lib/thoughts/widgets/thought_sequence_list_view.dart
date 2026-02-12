@@ -14,12 +14,12 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 /// context. This widget is designed for the sidebar with selection highlighting.
 class ThoughtSequenceListView extends HookConsumerWidget {
   final String? selectedSequenceId;
-  final Function(String) onSequenceSelected;
+  final Function(String)? onSequenceSelected;
 
   const ThoughtSequenceListView({
     super.key,
     this.selectedSequenceId,
-    required this.onSequenceSelected,
+    this.onSequenceSelected,
   });
 
   @override
@@ -42,10 +42,7 @@ class ThoughtSequenceListView extends HookConsumerWidget {
             color: colorScheme.error,
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 16),
-            child: Icon(
-              Symbols.delete,
-              color: colorScheme.onError,
-            ),
+            child: Icon(Symbols.delete, color: colorScheme.onError),
           ),
           confirmDismiss: (_) => _confirmDelete(context, ref, sequence),
           child: Container(
@@ -53,10 +50,7 @@ class ThoughtSequenceListView extends HookConsumerWidget {
                 ? BoxDecoration(
                     color: colorScheme.primaryContainer.withAlpha(64),
                     border: Border(
-                      left: BorderSide(
-                        color: colorScheme.primary,
-                        width: 3,
-                      ),
+                      left: BorderSide(color: colorScheme.primary, width: 3),
                     ),
                   )
                 : null,
@@ -81,8 +75,8 @@ class ThoughtSequenceListView extends HookConsumerWidget {
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : isUnread
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -110,18 +104,14 @@ class ThoughtSequenceListView extends HookConsumerWidget {
                 isSelected
                     ? Symbols.chat_bubble
                     : isUnread
-                        ? Symbols.mark_chat_unread
-                        : Symbols.chat_bubble_outline,
+                    ? Symbols.mark_chat_unread
+                    : Symbols.chat_bubble_outline,
                 fill: isSelected || isUnread ? 1 : 0,
               ),
               trailing: sequence.isPublic
-                  ? Icon(
-                      Symbols.public,
-                      size: 16,
-                      color: colorScheme.outline,
-                    )
+                  ? Icon(Symbols.public, size: 16, color: colorScheme.outline)
                   : null,
-              onTap: () => onSequenceSelected(sequence.id),
+              onTap: () => onSequenceSelected?.call(sequence.id),
               onLongPress: () => _showOptions(context, ref, sequence),
             ),
           ),
@@ -223,7 +213,11 @@ class ThoughtSequenceListView extends HookConsumerWidget {
               ),
               onTap: () async {
                 Navigator.of(context).pop();
-                final shouldDelete = await _confirmDelete(context, ref, sequence);
+                final shouldDelete = await _confirmDelete(
+                  context,
+                  ref,
+                  sequence,
+                );
                 if (shouldDelete && context.mounted) {
                   Navigator.of(context).pop();
                 }

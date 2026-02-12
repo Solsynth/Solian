@@ -695,8 +695,6 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 attachedMessages: attachedMessages,
                 attachedPosts: attachedPosts,
                 isDisabled: isDisabled,
-                services: chatState.services.value,
-                selectedServiceId: chatState.selectedServiceId,
               ),
             ),
           ),
@@ -734,6 +732,131 @@ void _handleProposalAction(BuildContext context, Map<String, String> proposal) {
   }
 }
 
+/// A service selector dropdown widget for use in app bars
+class ServiceSelector extends StatelessWidget {
+  final List<ThoughtService> services;
+  final ValueNotifier<String> selectedServiceId;
+  final bool isStreaming;
+  final bool isDisabled;
+
+  const ServiceSelector({
+    super.key,
+    required this.services,
+    required this.selectedServiceId,
+    this.isStreaming = false,
+    this.isDisabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (services.isEmpty) return const SizedBox.shrink();
+
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<String>(
+        value: selectedServiceId.value.isEmpty
+            ? null
+            : selectedServiceId.value,
+        customButton: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              Icon(
+                Symbols.smart_toy,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              Flexible(
+                child: Text(
+                  selectedServiceId.value.isEmpty
+                      ? 'Select Service'
+                      : services
+                          .firstWhere(
+                            (s) => s.id == selectedServiceId.value,
+                            orElse: () => services.first,
+                          )
+                          .name,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Symbols.keyboard_arrow_down,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+        items: services
+            .map(
+              (service) => DropdownMenuItem<String>(
+                value: service.id,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      service.name,
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                    if (service.description.isNotEmpty)
+                      Text(
+                        service.description,
+                        style: DefaultTextStyle.of(context).style.copyWith(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: !isStreaming && !isDisabled
+            ? (value) {
+                if (value != null) {
+                  selectedServiceId.value = value;
+                }
+              }
+            : null,
+        isDense: true,
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+        ),
+        dropdownStyleData: DropdownStyleData(
+          maxHeight: 300,
+          width: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceContainer,
+          ),
+        ),
+        menuItemStyleData: const MenuItemStyleData(
+          height: 56,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+      ),
+    );
+  }
+}
+
 class ThoughtInput extends HookWidget {
   final TextEditingController messageController;
   final bool isStreaming;
@@ -741,8 +864,6 @@ class ThoughtInput extends HookWidget {
   final List<Map<String, dynamic>>? attachedMessages;
   final List<String>? attachedPosts;
   final bool isDisabled;
-  final List<ThoughtService> services;
-  final ValueNotifier<String> selectedServiceId;
 
   const ThoughtInput({
     super.key,
@@ -752,8 +873,6 @@ class ThoughtInput extends HookWidget {
     this.attachedMessages,
     this.attachedPosts,
     this.isDisabled = false,
-    required this.services,
-    required this.selectedServiceId,
   });
 
   @override
@@ -868,100 +987,6 @@ class ThoughtInput extends HookWidget {
                           ? (_) => onSend()
                           : null,
                     ),
-                  ),
-                  Row(
-                    children: [
-                      if (services.isNotEmpty)
-                        SizedBox(
-                          height: 40,
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton2<String>(
-                              value: selectedServiceId.value.isEmpty
-                                  ? null
-                                  : selectedServiceId.value,
-                              customButton: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(24),
-                                  ),
-                                ),
-                                child: Row(
-                                  spacing: 8,
-                                  children: [
-                                    Text(selectedServiceId.value),
-                                    const Icon(
-                                      Symbols.keyboard_arrow_down,
-                                      size: 14,
-                                    ).padding(right: 4),
-                                  ],
-                                ).padding(vertical: 2, horizontal: 6),
-                              ),
-                              items: services
-                                  .map(
-                                    (service) => DropdownMenuItem<String>(
-                                      value: service.id,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            service.name,
-                                            style: DefaultTextStyle.of(context)
-                                                .style
-                                                .copyWith(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                          ),
-                                          Text(
-                                            service.description,
-                                            style: DefaultTextStyle.of(context)
-                                                .style
-                                                .copyWith(
-                                                  fontSize: 12,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: !isStreaming && !isDisabled
-                                  ? (value) {
-                                      if (value != null) {
-                                        selectedServiceId.value = value;
-                                      }
-                                    }
-                                  : null,
-                              hint: const Text('Select Service'),
-                              isDense: true,
-                              buttonStyleData: ButtonStyleData(
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(24),
-                                  ),
-                                ),
-                              ),
-                              menuItemStyleData: MenuItemStyleData(
-                                selectedMenuItemBuilder: (context, child) {
-                                  return child;
-                                },
-                                height: 56,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 8,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
                   ),
                   IconButton(
                     icon: Icon(isStreaming ? Symbols.stop : Icons.send),

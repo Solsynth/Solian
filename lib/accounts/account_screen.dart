@@ -290,7 +290,12 @@ class AccountFeatureWidget extends HookConsumerWidget {
                           spacing: 8,
                           children: [
                             Icon(Symbols.settings, size: 20),
-                            Text('appSettings').tr().fontSize(13).bold(),
+                            Flexible(
+                              child: Text(
+                                'appSettings',
+                                maxLines: 1,
+                              ).tr().fontSize(13).bold(),
+                            ),
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
@@ -306,7 +311,12 @@ class AccountFeatureWidget extends HookConsumerWidget {
                           spacing: 8,
                           children: [
                             Icon(Symbols.person_edit, size: 20),
-                            Text('updateYourProfile').tr().fontSize(13).bold(),
+                            Flexible(
+                              child: Text(
+                                'updateYourProfile',
+                                maxLines: 1,
+                              ).tr().fontSize(13).bold(),
+                            ),
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {
@@ -324,7 +334,12 @@ class AccountFeatureWidget extends HookConsumerWidget {
                           spacing: 8,
                           children: [
                             Icon(Symbols.manage_accounts, size: 20),
-                            Text('accountSettings').tr().fontSize(13).bold(),
+                            Flexible(
+                              child: Text(
+                                'accountSettings',
+                                maxLines: 1,
+                              ).tr().fontSize(13).bold(),
+                            ),
                           ],
                         ).padding(horizontal: 16, vertical: 12),
                         onTap: () {

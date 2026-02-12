@@ -104,6 +104,14 @@ class ThoughtScreen extends HookConsumerWidget {
 
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
 
+    // Get chat state for service selector
+    final chatState = useThoughtChat(
+      ref,
+      initialSequenceId: sequenceIdFromThoughts,
+      initialThoughts: initialThoughts,
+      initialTopic: initialTopic,
+    );
+
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
 
     void invalidateThoughtSequence() {
@@ -134,7 +142,18 @@ class ThoughtScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        leading: const PageBackButton(),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const PageBackButton(),
+            ServiceSelector(
+              services: chatState.services.value,
+              selectedServiceId: chatState.selectedServiceId,
+              isStreaming: chatState.isStreaming.value,
+              isDisabled: statusAsync.value == false,
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add),
