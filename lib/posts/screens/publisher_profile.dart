@@ -519,7 +519,10 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
-  const PublisherProfileScreen({super.key, required this.name});
+  const PublisherProfileScreen({
+    super.key,
+    @PathParam("name") required this.name,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

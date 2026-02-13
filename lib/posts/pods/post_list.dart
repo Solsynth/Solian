@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_list.freezed.dart';
@@ -50,12 +51,40 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
   final PostListQueryConfig config;
   PostListNotifier(this.config) : id = config.id;
 
+  StreamSubscription? _postUpdateSubscription;
+  StreamSubscription? _postDeleteSubscription;
+  StreamSubscription? _postReactionSubscription;
+
   @override
   late PostListQuery currentFilter;
 
   @override
   FutureOr<PaginationState<SnPost>> build() async {
     currentFilter = config.initialFilter;
+
+    // Listen to real-time post update events
+    _postUpdateSubscription = eventBus.on<PostUpdateEvent>().listen((event) {
+      updatePostById(event.post);
+    });
+
+    // Listen to real-time post delete events
+    _postDeleteSubscription = eventBus.on<PostDeleteEvent>().listen((event) {
+      removePost(event.postId);
+    });
+
+    // Listen to real-time reaction update events
+    _postReactionSubscription =
+        eventBus.on<PostReactionUpdateEvent>().listen((event) {
+      _handleReactionUpdate(event);
+    });
+
+    // Cancel subscriptions when the notifier is cancelled
+    ref.onCancel(() {
+      _postUpdateSubscription?.cancel();
+      _postDeleteSubscription?.cancel();
+      _postReactionSubscription?.cancel();
+    });
+
     final items = await fetch();
     return PaginationState(
       items: items,
@@ -65,6 +94,31 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
       hasMore: hasMore,
       cursor: cursor,
     );
+  }
+
+  void _handleReactionUpdate(PostReactionUpdateEvent event) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final postId = event.reaction.postId;
+    final symbol = event.reaction.symbol;
+    final delta = event.action == ReactionAction.added ? 1 : -1;
+
+    final index = currentState.items.indexWhere((p) => p.id == postId);
+    if (index == -1) return;
+
+    final post = currentState.items[index];
+    final updatedReactionsCount =
+        Map<String, int>.from(post.reactionsCount);
+    updatedReactionsCount[symbol] = (updatedReactionsCount[symbol] ?? 0) + delta;
+
+    // Remove the reaction count if it becomes 0 or less
+    if (updatedReactionsCount[symbol]! <= 0) {
+      updatedReactionsCount.remove(symbol);
+    }
+
+    final updatedPost = post.copyWith(reactionsCount: updatedReactionsCount);
+    updatePostById(updatedPost);
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:event_bus/event_bus.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Global event bus instance for the application
 final eventBus = EventBus();
@@ -10,6 +11,34 @@ class PostCreatedEvent {
   final String? content;
 
   const PostCreatedEvent({this.postId, this.title, this.content});
+}
+
+/// Event fired when a post is updated
+class PostUpdateEvent {
+  final SnPost post;
+
+  const PostUpdateEvent(this.post);
+}
+
+/// Event fired when a post is deleted
+class PostDeleteEvent {
+  final String postId;
+
+  const PostDeleteEvent(this.postId);
+}
+
+/// Enum for reaction update actions
+enum ReactionAction { added, removed }
+
+/// Event fired when a post reaction is added or removed
+class PostReactionUpdateEvent {
+  final SnPostReaction reaction;
+  final ReactionAction action;
+
+  const PostReactionUpdateEvent({
+    required this.reaction,
+    required this.action,
+  });
 }
 
 /// Event fired when chat rooms need to be refreshed
