@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:island/route.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
@@ -167,8 +167,11 @@ class NotificationTile extends StatelessWidget {
           var uri = notification.meta['action_uri'] as String;
           if (uri.startsWith('/')) {
             // In-app routes
-            rootNavigatorKey.currentContext?.router.pushPath(
+            context.router.pushPath(
               notification.meta['action_uri'],
+              onFailure: (err) {
+                showErrorAlert('Unable to open page: $err');
+              },
             );
           } else {
             // External URLs

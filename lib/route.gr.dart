@@ -2445,6 +2445,7 @@ class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
   }) : super(
          PostDetailRoute.name,
          args: PostDetailRouteArgs(key: key, id: id),
+         rawPathParams: {'id': id},
          initialChildren: children,
        );
 
@@ -2453,7 +2454,10 @@ class PostDetailRoute extends _i68.PageRouteInfo<PostDetailRouteArgs> {
   static _i68.PageInfo page = _i68.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<PostDetailRouteArgs>();
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<PostDetailRouteArgs>(
+        orElse: () => PostDetailRouteArgs(id: pathParams.getString('id')),
+      );
       return _i53.PostDetailScreen(key: args.key, id: args.id);
     },
   );

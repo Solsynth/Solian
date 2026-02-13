@@ -550,7 +550,7 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
 @RoutePage()
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
-  const PostDetailScreen({super.key, required this.id});
+  const PostDetailScreen({super.key, @PathParam('id') required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
