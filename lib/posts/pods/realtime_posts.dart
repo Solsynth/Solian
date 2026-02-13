@@ -4,7 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/post_list.dart';
-import 'package:island/posts/posts_pod.dart';
 import 'package:island/talker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -64,8 +63,11 @@ class RealtimePostsHandler {
         '[RealtimePosts] Post created: ${post.id} - ${post.title ?? "Untitled"}',
       );
 
-      _addPostToTimeline(post);
-      _addPostToPostLists(post);
+      // Broadcast event for other parts of the app to handle
+      eventBus.fire(PostCreatedEvent(post));
+
+      // Invalidate post lists to fetch fresh data
+      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
       talker.error('[RealtimePosts] Failed to parse post.created: $e');
     }
@@ -82,8 +84,8 @@ class RealtimePostsHandler {
       // Broadcast event for other parts of the app to handle
       eventBus.fire(PostUpdateEvent(post));
 
-      _updatePostInTimeline(post);
-      _updatePostInPostLists(post);
+      // Invalidate post lists to fetch fresh data
+      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
       talker.error('[RealtimePosts] Failed to parse post.updated: $e');
     }
@@ -100,8 +102,8 @@ class RealtimePostsHandler {
       // Broadcast event for other parts of the app to handle
       eventBus.fire(PostDeleteEvent(post.id));
 
-      _removePostFromTimeline(post.id);
-      _removePostFromPostLists(post.id);
+      // Invalidate post lists to fetch fresh data
+      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
       talker.error('[RealtimePosts] Failed to parse post.deleted: $e');
     }
@@ -122,9 +124,6 @@ class RealtimePostsHandler {
         reaction: reaction,
         action: ReactionAction.added,
       ));
-
-      _updateReactionInTimeline(reaction.postId, reaction.symbol, 1);
-      _updateReactionInPostLists(reaction.postId, reaction.symbol, 1);
     } catch (e) {
       talker.error('[RealtimePosts] Failed to parse post.reaction.added: $e');
     }
@@ -145,127 +144,8 @@ class RealtimePostsHandler {
         reaction: reaction,
         action: ReactionAction.removed,
       ));
-
-      _updateReactionInTimeline(reaction.postId, reaction.symbol, -1);
-      _updateReactionInPostLists(reaction.postId, reaction.symbol, -1);
     } catch (e) {
       talker.error('[RealtimePosts] Failed to parse post.reaction.removed: $e');
-    }
-  }
-
-  void _addPostToTimeline(SnPost post) {
-    try {
-      _ref.read(activityListProvider.notifier).addPost(post);
-    } catch (e) {
-      talker.error('[RealtimePosts] Failed to add post to timeline: $e');
-    }
-  }
-
-  void _updatePostInTimeline(SnPost post) {
-    try {
-      _ref.read(activityListProvider.notifier).updatePostById(post);
-    } catch (e) {
-      talker.error('[RealtimePosts] Failed to update post in timeline: $e');
-    }
-  }
-
-  void _removePostFromTimeline(String postId) {
-    try {
-      _ref.read(activityListProvider.notifier).removePost(postId);
-    } catch (e) {
-      talker.error('[RealtimePosts] Failed to remove post from timeline: $e');
-    }
-  }
-
-  void _addPostToPostLists(SnPost post) {
-    try {
-      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
-    } catch (e) {
-      talker.debug('[RealtimePosts] Could not invalidate home feed: $e');
-    }
-  }
-
-  void _updatePostInPostLists(SnPost post) {
-    try {
-      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
-    } catch (e) {
-      talker.debug('[RealtimePosts] Could not invalidate post lists: $e');
-    }
-  }
-
-  void _removePostFromPostLists(String postId) {
-    try {
-      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
-    } catch (e) {
-      talker.debug('[RealtimePosts] Could not invalidate post lists: $e');
-    }
-  }
-
-  void _updateReactionInTimeline(
-    String postId,
-    String symbol,
-    int delta,
-  ) {
-    try {
-      final notifier = _ref.read(activityListProvider.notifier);
-      final currentState = _ref.read(activityListProvider);
-      final items = currentState.value?.items ?? [];
-
-      final index = items.indexWhere((item) {
-        if (item.resourceIdentifier == postId) {
-          return true;
-        }
-        final itemData = item.data;
-        if (itemData is SnPost && itemData.id == postId) {
-          return true;
-        }
-        return false;
-      });
-
-      if (index == -1) {
-        // Post not found in timeline, invalidate to refresh
-        _ref.invalidate(activityListProvider);
-        return;
-      }
-
-      final item = items[index];
-      final itemData = item.data;
-      if (itemData is! SnPost) {
-        _ref.invalidate(activityListProvider);
-        return;
-      }
-
-      final updatedReactionsCount =
-          Map<String, int>.from(itemData.reactionsCount);
-      updatedReactionsCount[symbol] =
-          (updatedReactionsCount[symbol] ?? 0) + delta;
-
-      // Remove the reaction count if it becomes 0 or less
-      if (updatedReactionsCount[symbol]! <= 0) {
-        updatedReactionsCount.remove(symbol);
-      }
-
-      final updatedPost = itemData.copyWith(
-        reactionsCount: updatedReactionsCount,
-      );
-
-      notifier.updatePostById(updatedPost);
-    } catch (e) {
-      talker.error(
-        '[RealtimePosts] Failed to update reaction in timeline: $e',
-      );
-    }
-  }
-
-  void _updateReactionInPostLists(
-    String postId,
-    String symbol,
-    int delta,
-  ) {
-    try {
-      _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
-    } catch (e) {
-      talker.debug('[RealtimePosts] Could not invalidate post lists: $e');
     }
   }
 

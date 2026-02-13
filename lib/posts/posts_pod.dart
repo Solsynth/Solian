@@ -17,20 +17,26 @@ class ActivityListNotifier
   static const Duration retryAdjustmentDuration = Duration(seconds: 10);
   static const int maxRetryAttempts = 1;
 
+  StreamSubscription? _postCreatedSubscription;
   StreamSubscription? _postUpdateSubscription;
   StreamSubscription? _postDeleteSubscription;
   StreamSubscription? _postReactionSubscription;
 
   @override
   FutureOr<PaginationState<SnTimelineEvent>> build() async {
+    // Listen to real-time post created events
+    _postCreatedSubscription = eventBus.on<PostCreatedEvent>().listen((event) {
+      _handlePostCreated(event.post);
+    });
+
     // Listen to real-time post update events
     _postUpdateSubscription = eventBus.on<PostUpdateEvent>().listen((event) {
-      updatePostById(event.post);
+      _handlePostUpdate(event.post);
     });
 
     // Listen to real-time post delete events
     _postDeleteSubscription = eventBus.on<PostDeleteEvent>().listen((event) {
-      removePost(event.postId);
+      _handlePostDelete(event.postId);
     });
 
     // Listen to real-time reaction update events
@@ -41,6 +47,7 @@ class ActivityListNotifier
     });
 
     ref.onCancel(() {
+      _postCreatedSubscription?.cancel();
       _postDeleteSubscription?.cancel();
       _postReactionSubscription?.cancel();
       _postUpdateSubscription?.cancel();
@@ -55,6 +62,75 @@ class ActivityListNotifier
       hasMore: hasMore,
       cursor: cursor,
     );
+  }
+
+  void _handlePostCreated(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    // Check for duplicate
+    if (currentState.items.any((item) => item.id == post.id)) return;
+
+    final now = DateTime.now();
+    final timelineEvent = SnTimelineEvent(
+      id: post.id,
+      type: 'posts.created',
+      resourceIdentifier: post.id,
+      data: post,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    );
+
+    final updatedItems = [timelineEvent, ...currentState.items];
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void _handlePostUpdate(SnPost post) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final index = currentState.items.indexWhere((item) {
+      if (item.resourceIdentifier == post.id) {
+        return true;
+      }
+      final itemData = item.data;
+      if (itemData is SnPost && itemData.id == post.id) {
+        return true;
+      }
+      return false;
+    });
+
+    if (index == -1) return;
+
+    final existingEvent = currentState.items[index];
+    final updatedEvent = existingEvent.copyWith(
+      data: post,
+      updatedAt: DateTime.now(),
+    );
+
+    final updatedItems = [...currentState.items];
+    updatedItems[index] = updatedEvent;
+
+    state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  void _handlePostDelete(String postId) {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedItems = currentState.items.where((item) {
+      if (item.resourceIdentifier == postId) {
+        return false;
+      }
+      final itemData = item.data;
+      if (itemData is SnPost && itemData.id == postId) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    state = AsyncData(currentState.copyWith(items: updatedItems));
   }
 
   void _handleReactionUpdate(PostReactionUpdateEvent event) {

@@ -6,11 +6,9 @@ final eventBus = EventBus();
 
 /// Event fired when a post is successfully created
 class PostCreatedEvent {
-  final String? postId;
-  final String? title;
-  final String? content;
+  final SnPost post;
 
-  const PostCreatedEvent({this.postId, this.title, this.content});
+  const PostCreatedEvent(this.post);
 }
 
 /// Event fired when a post is updated
