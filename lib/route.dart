@@ -80,6 +80,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 
+    AutoRoute(page: RealmNewRoute.page, path: '/realms/new'),
+    AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
+    AutoRoute(page: RealmEditRoute.page, path: '/realms/:slug/edit'),
+
     // Main tabs shell route
     AutoRoute(
       page: TabsRoute.page,
@@ -103,16 +107,8 @@ class AppRouter extends RootStackRouter {
           ],
         ),
 
-        // Realms tab with nested routes
-        AutoRoute(
-          page: RealmListRoute.page,
-          path: 'realms',
-          children: [
-            AutoRoute(page: RealmNewRoute.page, path: 'new'),
-            AutoRoute(page: RealmDetailRoute.page, path: ':slug'),
-            AutoRoute(page: RealmEditRoute.page, path: ':slug/edit'),
-          ],
-        ),
+        // Realms tab
+        AutoRoute(page: RealmListRoute.page, path: 'realms'),
 
         // Account tab with nested shell
         AutoRoute(
