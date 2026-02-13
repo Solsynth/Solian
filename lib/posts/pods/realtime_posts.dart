@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/posts_pod.dart';
@@ -78,6 +79,9 @@ class RealtimePostsHandler {
 
       talker.info('[RealtimePosts] Post updated: ${post.id}');
 
+      // Broadcast event for other parts of the app to handle
+      eventBus.fire(PostUpdateEvent(post));
+
       _updatePostInTimeline(post);
       _updatePostInPostLists(post);
     } catch (e) {
@@ -92,6 +96,9 @@ class RealtimePostsHandler {
       final post = SnPost.fromJson(packet.data!);
 
       talker.info('[RealtimePosts] Post deleted: ${post.id}');
+
+      // Broadcast event for other parts of the app to handle
+      eventBus.fire(PostDeleteEvent(post.id));
 
       _removePostFromTimeline(post.id);
       _removePostFromPostLists(post.id);
@@ -110,6 +117,12 @@ class RealtimePostsHandler {
         '[RealtimePosts] Reaction added: ${reaction.symbol} on post ${reaction.postId}',
       );
 
+      // Broadcast event for other parts of the app to handle
+      eventBus.fire(PostReactionUpdateEvent(
+        reaction: reaction,
+        action: ReactionAction.added,
+      ));
+
       _updateReactionInTimeline(reaction.postId, reaction.symbol, 1);
       _updateReactionInPostLists(reaction.postId, reaction.symbol, 1);
     } catch (e) {
@@ -126,6 +139,12 @@ class RealtimePostsHandler {
       talker.info(
         '[RealtimePosts] Reaction removed: ${reaction.symbol} from post ${reaction.postId}',
       );
+
+      // Broadcast event for other parts of the app to handle
+      eventBus.fire(PostReactionUpdateEvent(
+        reaction: reaction,
+        action: ReactionAction.removed,
+      ));
 
       _updateReactionInTimeline(reaction.postId, reaction.symbol, -1);
       _updateReactionInPostLists(reaction.postId, reaction.symbol, -1);

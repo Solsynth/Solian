@@ -77,9 +77,8 @@ class AppRouter extends RootStackRouter {
     // Navigate programmatically: PostCategoryDetailRoute(slug: 'tag', isCategory: false)
     AutoRoute(page: PostDetailRoute.page, path: '/posts/:id'),
     AutoRoute(page: PublisherProfileRoute.page, path: '/publishers/:name'),
-    AutoRoute(page: DiscoveryRealmsRoute.page, path: '/discovery/realms'),
-    AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
+    AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 
     // Main tabs shell route
     AutoRoute(

@@ -737,7 +737,10 @@ Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
-  const AccountProfileScreen({super.key, required this.name});
+  const AccountProfileScreen({
+    super.key,
+    @PathParam("name") required this.name,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
