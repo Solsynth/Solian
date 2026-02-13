@@ -44,6 +44,44 @@ class ChatRoomsRefreshEvent {
   const ChatRoomsRefreshEvent();
 }
 
+/// Event fired when a new chat message is received
+class ChatMessageNewEvent {
+  final SnChatMessage message;
+
+  const ChatMessageNewEvent(this.message);
+}
+
+/// Event fired when a chat message is updated
+class ChatMessageUpdateEvent {
+  final SnChatMessage message;
+
+  const ChatMessageUpdateEvent(this.message);
+}
+
+/// Event fired when a chat message is deleted
+class ChatMessageDeleteEvent {
+  final String messageId;
+  final String roomId;
+
+  const ChatMessageDeleteEvent({
+    required this.messageId,
+    required this.roomId,
+  });
+}
+
+/// Event fired when a user is typing in a chat room
+class ChatTypingEvent {
+  final String roomId;
+  final SnChatMember sender;
+  final bool isTyping;
+
+  const ChatTypingEvent({
+    required this.roomId,
+    required this.sender,
+    required this.isTyping,
+  });
+}
+
 /// Event fired when OIDC auth callback is received
 class OidcAuthCallbackEvent {
   final String challengeId;

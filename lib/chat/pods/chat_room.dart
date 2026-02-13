@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/drift_db.dart';
 import 'package:island/data/message.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -64,9 +67,135 @@ Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
 /// Global chat sync notifier that syncs messages from all chat rooms
 @Riverpod(keepAlive: true)
 class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
+  StreamSubscription? _wsSubscription;
+
   @override
   Future<void> build() async {
-    // Empty initial state - sync is triggered manually
+    // Set up global WebSocket listener for real-time message handling
+    final ws = ref.watch(websocketProvider);
+    _wsSubscription = ws.dataStream.listen(_handleWebSocketMessage);
+
+    ref.onDispose(() {
+      _wsSubscription?.cancel();
+    });
+  }
+
+  /// Handle incoming WebSocket messages globally
+  Future<void> _handleWebSocketMessage(WebSocketPacket pkt) async {
+    if (!pkt.type.startsWith('messages')) return;
+    if (['messages.read'].contains(pkt.type)) return;
+
+    final db = ref.read(databaseProvider);
+
+    // Handle typing events
+    if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
+      final roomId = pkt.data?['room_id'];
+      if (roomId == null) return;
+
+      final sender = SnChatMember.fromJson(pkt.data?['sender']);
+      eventBus.fire(ChatTypingEvent(
+        roomId: roomId,
+        sender: sender,
+        isTyping: true,
+      ));
+      return;
+    }
+
+    // Handle message events
+    final message = SnChatMessage.fromJson(pkt.data!);
+    final roomId = message.chatRoomId;
+
+    switch (pkt.type) {
+      case 'messages.new':
+        {
+          final localMessage = LocalChatMessage.fromRemoteMessage(
+            message,
+            MessageStatus.sent,
+          );
+          await db.saveMessageWithSender(localMessage);
+          eventBus.fire(ChatMessageNewEvent(message));
+        }
+      case 'messages.update':
+      case 'messages.update.links':
+        {
+          final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
+          final existingMsg = await _fetchMessageFromDb(db, targetId, roomId);
+
+          if (existingMsg != null) {
+            final existingRemote = existingMsg.toRemoteMessage();
+            final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
+            mergedMeta.addAll(message.meta);
+            mergedMeta.remove('message_id');
+
+            final updatedRemote = existingRemote.copyWith(
+              meta: mergedMeta,
+              editedAt: message.createdAt,
+            );
+
+            final updatedMessage = LocalChatMessage.fromRemoteMessage(
+              updatedRemote,
+              existingMsg.status,
+            );
+            await db.saveMessageWithSender(updatedMessage);
+          } else {
+            // Message doesn't exist, treat as new
+            final localMessage = LocalChatMessage.fromRemoteMessage(
+              message,
+              MessageStatus.sent,
+            );
+            await db.saveMessageWithSender(localMessage);
+          }
+          eventBus.fire(ChatMessageUpdateEvent(message));
+        }
+      case 'messages.delete':
+        {
+          final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
+          await _markMessageAsDeleted(db, targetId, roomId);
+          eventBus.fire(ChatMessageDeleteEvent(
+            messageId: targetId,
+            roomId: roomId,
+          ));
+        }
+    }
+  }
+
+  Future<LocalChatMessage?> _fetchMessageFromDb(
+    AppDatabase db,
+    String messageId,
+    String roomId,
+  ) async {
+    try {
+      final msg = await (db.select(db.chatMessages)
+            ..where((m) => m.id.equals(messageId))
+            ..where((m) => m.roomId.equals(roomId)))
+          .getSingleOrNull();
+      if (msg != null) {
+        return db.companionToMessage(msg);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _markMessageAsDeleted(
+    AppDatabase db,
+    String messageId,
+    String roomId,
+  ) async {
+    final existingMsg = await _fetchMessageFromDb(db, messageId, roomId);
+    if (existingMsg == null) return;
+
+    final remote = existingMsg.toRemoteMessage();
+    final updatedRemote = remote.copyWith(
+      content: 'This message was deleted',
+      deletedAt: DateTime.now(),
+      attachments: [],
+    );
+
+    final deletedMessage = LocalChatMessage.fromRemoteMessage(
+      updatedRemote,
+      existingMsg.status,
+    );
+    await db.saveMessageWithSender(deletedMessage);
   }
 
   /// Perform global sync to fetch messages from all chat rooms

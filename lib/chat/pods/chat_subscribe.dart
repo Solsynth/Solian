@@ -8,6 +8,7 @@ import "package:just_audio/just_audio.dart";
 import "package:island/core/config.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/lifecycle.dart";
+import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
 import "package:island/talker.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
@@ -37,14 +38,15 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   Timer? _typingCleanupTimer;
   Timer? _typingCooldownTimer;
   Timer? _periodicSubscribeTimer;
-  StreamSubscription? _wsSubscription;
   Function? _sendMessage;
 
+  // Event bus subscriptions
+  StreamSubscription<ChatMessageNewEvent>? _newMessageSub;
+  StreamSubscription<ChatMessageUpdateEvent>? _updateMessageSub;
+  StreamSubscription<ChatMessageDeleteEvent>? _deleteMessageSub;
+  StreamSubscription<ChatTypingEvent>? _typingSub;
+
   void _cleanupResources() {
-    if (_wsSubscription != null) {
-      _wsSubscription!.cancel();
-      _wsSubscription = null;
-    }
     if (_typingCleanupTimer != null) {
       _typingCleanupTimer!.cancel();
       _typingCleanupTimer = null;
@@ -53,11 +55,14 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       _periodicSubscribeTimer!.cancel();
       _periodicSubscribeTimer = null;
     }
+    _newMessageSub?.cancel();
+    _updateMessageSub?.cancel();
+    _deleteMessageSub?.cancel();
+    _typingSub?.cancel();
   }
 
   @override
   List<SnChatMember> build(String roomId) {
-    final ws = ref.watch(websocketProvider);
     final chatRoomAsync = ref.watch(chatRoomProvider(roomId));
     final chatIdentityAsync = ref.watch(chatRoomIdentityProvider(roomId));
     _messagesNotifier = ref.watch(messagesProvider(roomId).notifier);
@@ -96,8 +101,63 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Send initial read receipt
     sendReadReceipt();
 
-    // Set up WebSocket listener
-    _wsSubscription = ws.dataStream.listen(onMessage);
+    // Set up Event Bus listeners for real-time updates (DB operations handled by ChatGlobalSyncNotifier)
+    _newMessageSub = eventBus.on<ChatMessageNewEvent>().listen((event) {
+      if (event.message.chatRoomId != _chatRoom.id) return;
+
+      // Handle call messages
+      if (event.message.type.startsWith('call')) {
+        ref.invalidate(ongoingCallProvider(event.message.chatRoomId));
+      }
+
+      // Update local messages state (DB already updated by ChatGlobalSyncNotifier)
+      _messagesNotifier.receiveMessage(event.message);
+
+      // Send read receipt for new message
+      sendReadReceipt();
+
+      // Play sound for new messages when app is unfocused
+      if (!ref.mounted) return;
+      if (event.message.senderId != _chatIdentity.id &&
+          ref.read(appLifecycleStateProvider).value !=
+              AppLifecycleState.resumed &&
+          ref.read(appSettingsProvider).soundEffects) {
+        _playNotificationSound();
+      }
+    });
+
+    // Listen for message update events
+    _updateMessageSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
+      if (event.message.chatRoomId != _chatRoom.id) return;
+      _messagesNotifier.receiveMessageUpdate(event.message);
+    });
+
+    // Listen for message delete events
+    _deleteMessageSub = eventBus.on<ChatMessageDeleteEvent>().listen((event) {
+      if (event.roomId != _chatRoom.id) return;
+      _messagesNotifier.receiveMessageDeletion(event.messageId);
+    });
+
+    // Listen for typing events via Event Bus
+    _typingSub = eventBus.on<ChatTypingEvent>().listen((event) {
+      if (event.roomId != _chatRoom.id) return;
+      if (event.sender.id == _chatIdentity.id) return;
+
+      // Check if the sender is already in the typing list
+      final existingIndex = _typingStatuses.indexWhere(
+        (member) => member.id == event.sender.id,
+      );
+      if (existingIndex >= 0) {
+        // Update the existing entry with new timestamp
+        _typingStatuses[existingIndex] = event.sender.copyWith(
+          lastTyped: DateTime.now(),
+        );
+      } else {
+        // Add new typing status
+        _typingStatuses.add(event.sender.copyWith(lastTyped: DateTime.now()));
+      }
+      if (ref.mounted) state = List.of(_typingStatuses);
+    });
 
     // Set up typing status cleanup timer
     _typingCleanupTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -110,7 +170,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
               DateTime.now().subtract(const Duration(milliseconds: 1350));
           return now.difference(lastTyped).inSeconds > 5;
         });
-        state = List.of(_typingStatuses);
+        if (ref.mounted) state = List.of(_typingStatuses);
       }
     });
 
@@ -200,62 +260,12 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     return _typingStatuses;
   }
 
-  Future<void> onMessage(WebSocketPacket pkt) async {
-    if (!pkt.type.startsWith('messages')) return;
-    if (['messages.read'].contains(pkt.type)) return;
-
-    if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
-      if (pkt.data?['room_id'] != _chatRoom.id) return;
-      if (pkt.data?['sender_id'] == _chatIdentity.id) return;
-
-      final sender = SnChatMember.fromJson(
-        pkt.data?['sender'],
-      ).copyWith(lastTyped: DateTime.now());
-
-      // Check if the sender is already in the typing list
-      final existingIndex = _typingStatuses.indexWhere(
-        (member) => member.id == sender.id,
-      );
-      if (existingIndex >= 0) {
-        // Update the existing entry with new timestamp
-        _typingStatuses[existingIndex] = sender;
-      } else {
-        // Add new typing status
-        _typingStatuses.add(sender);
-      }
-      if (ref.mounted) state = List.of(_typingStatuses);
-      return;
-    }
-
-    final message = SnChatMessage.fromJson(pkt.data!);
-    if (message.chatRoomId != _chatRoom.id) return;
-    switch (pkt.type) {
-      case 'messages.new':
-      case 'messages.update':
-      case 'messages.delete':
-        if (message.type.startsWith('call')) {
-          // Handle the ongoing call.
-          ref.invalidate(ongoingCallProvider(message.chatRoomId));
-        }
-        _messagesNotifier.receiveMessage(message);
-        // Send read receipt for new message
-        sendReadReceipt();
-        // Play sound for new messages when app is unfocused
-        if (!ref.mounted) return;
-        if (pkt.type == 'messages.new' &&
-            message.senderId != _chatIdentity.id &&
-            ref.read(appLifecycleStateProvider).value !=
-                AppLifecycleState.resumed &&
-            ref.read(appSettingsProvider).soundEffects) {
-          final player = AudioPlayer();
-          await player.setVolume(0.75);
-          await player.setAudioSource(
-            AudioSource.asset('assets/audio/messages.mp3'),
-          );
-          await player.play();
-          player.dispose();
-        }
-    }
+  Future<void> _playNotificationSound() async {
+    final player = AudioPlayer();
+    await player.setVolume(0.75);
+    await player.setAudioSource(AudioSource.asset('assets/audio/messages.mp3'));
+    await player.play();
+    player.dispose();
   }
 
   void sendReadReceipt() {
