@@ -347,32 +347,55 @@ class AppScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
+    final keyboardFocusNode = useFocusNode();
+
+    // Request focus to capture keyboard events
+    useEffect(() {
+      keyboardFocusNode.requestFocus();
+      return null;
+    }, []);
 
     final noBackground = isNoBackground ?? isWideScreen(context);
 
-    final builtWidget = Scaffold(
-      extendBody: extendBody ?? true,
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          IgnorePointer(
-            child: SizedBox(
-              height: appBar != null ? appBarHeight + safeTop : 0,
+    final builtWidget = Focus(
+      focusNode: keyboardFocusNode,
+      onKeyEvent: (node, event) {
+        // Check for escape key press
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.escape) {
+          final router = context.router;
+          // Only pop if there are pages to pop
+          if (router.canPop()) {
+            router.pop();
+          }
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Scaffold(
+        extendBody: extendBody ?? true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            IgnorePointer(
+              child: SizedBox(
+                height: appBar != null ? appBarHeight + safeTop : 0,
+              ),
             ),
-          ),
-          if (body != null) Expanded(child: body!),
-        ],
+            if (body != null) Expanded(child: body!),
+          ],
+        ),
+        appBar: appBar,
+        bottomNavigationBar: bottomNavigationBar,
+        bottomSheet: bottomSheet,
+        drawer: drawer,
+        endDrawer: endDrawer,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonAnimator: floatingActionButtonAnimator,
+        onDrawerChanged: onDrawerChanged,
+        onEndDrawerChanged: onEndDrawerChanged,
       ),
-      appBar: appBar,
-      bottomNavigationBar: bottomNavigationBar,
-      bottomSheet: bottomSheet,
-      drawer: drawer,
-      endDrawer: endDrawer,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonAnimator: floatingActionButtonAnimator,
-      onDrawerChanged: onDrawerChanged,
-      onEndDrawerChanged: onEndDrawerChanged,
     );
 
     return noBackground
@@ -394,10 +417,18 @@ class PageBackButton extends StatelessWidget {
     this.backTo,
   });
 
+  static bool isDesktop() =>
+      (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows));
+
   @override
   Widget build(BuildContext context) {
     // Check if we can pop from the current router
     final canPop = context.router.canPop();
+
+    // Hide the back button when escape key is available (can pop)
+    if (canPop || isDesktop()) {
+      return const SizedBox.shrink();
+    }
 
     // Show back arrow if either current router or inner router can pop
     final showBackArrow = canPop || context.router is NestedStackRouter;

@@ -148,7 +148,10 @@ class ThoughtScreen extends HookConsumerWidget {
         leading: const PageBackButton(),
         flexibleSpace: Row(
           children: [
-            const Gap(8 + 44),
+            if (PageBackButton.isDesktop())
+              const Gap(12)
+            else
+              const Gap(12 + 40),
             ServiceSelector(
               services: chatState.services,
               selectedServiceId: chatState.selectedServiceId,
