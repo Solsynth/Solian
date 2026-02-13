@@ -25,6 +25,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/talker.dart';
 
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
@@ -74,9 +75,23 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   .toList();
 
               return ExtendedRefreshIndicator(
-                onRefresh: () => Future.sync(() {
+                onRefresh: () async {
+                  // Invalidate the chat room provider to refresh the list
                   ref.invalidate(chatRoomJoinedProvider);
-                }),
+
+                  // Also trigger global chat sync to fetch all messages from all rooms
+                  try {
+                    await ref
+                        .read(chatGlobalSyncProvider.notifier)
+                        .syncAllMessages();
+                    talker.log('Pull-to-refresh: Global chat sync completed');
+                  } catch (e) {
+                    talker.log(
+                      'Pull-to-refresh: Global chat sync failed',
+                      exception: e,
+                    );
+                  }
+                },
                 child: Theme(
                   data: Theme.of(
                     context,

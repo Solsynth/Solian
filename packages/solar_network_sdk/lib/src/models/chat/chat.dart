@@ -122,6 +122,7 @@ class MessageChangeAction {
 sealed class MessageSyncResponse with _$MessageSyncResponse {
   const factory MessageSyncResponse({
     @Default([]) List<SnChatMessage> messages,
+    @Default(0) int totalCount,
     required DateTime currentTimestamp,
   }) = _MessageSyncResponse;
 

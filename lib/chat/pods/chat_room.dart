@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/drift_db.dart';
+import 'package:island/data/message.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/talker.dart';
 
 part 'chat_room.g.dart';
 
@@ -34,6 +36,89 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
   }
 
   void clear() => state = {};
+}
+
+/// Get the latest message timestamp from local database
+Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
+  try {
+    // Query for the latest message across all rooms
+    final result = await db
+        .customSelect(
+          'SELECT MAX(created_at) as latest_timestamp FROM chat_messages',
+          readsFrom: {db.chatMessages},
+        )
+        .getSingleOrNull();
+
+    if (result != null) {
+      final latestTimestamp = result.read<DateTime?>('latest_timestamp');
+      if (latestTimestamp != null) {
+        return latestTimestamp.millisecondsSinceEpoch;
+      }
+    }
+  } catch (e) {
+    talker.log('Error getting latest message timestamp: $e');
+  }
+  return 0;
+}
+
+/// Global chat sync notifier that syncs messages from all chat rooms
+@Riverpod(keepAlive: true)
+class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
+  @override
+  Future<void> build() async {
+    // Empty initial state - sync is triggered manually
+  }
+
+  /// Perform global sync to fetch messages from all chat rooms
+  Future<void> syncAllMessages() async {
+    talker.log('Starting global chat sync...');
+
+    try {
+      final client = ref.read(apiClientProvider);
+      final db = ref.read(databaseProvider);
+
+      // Get last sync timestamp from local database (latest message)
+      final lastSyncTimestamp = await _getLatestMessageTimestamp(db);
+
+      talker.log('Global sync with timestamp: $lastSyncTimestamp');
+
+      // Call the global sync endpoint
+      final resp = await client.post(
+        '/messager/chat/sync',
+        data: {'last_sync_timestamp': lastSyncTimestamp},
+      );
+      final rsp = MessageSyncResponse.fromJson(resp.data);
+
+      // Parse the response
+      final messages = rsp.messages;
+      final currentTimestamp = rsp.currentTimestamp;
+
+      talker.log(
+        'Global sync received ${messages.length} messages, timestamp: $currentTimestamp',
+      );
+
+      // Save all messages to database
+      for (final msg in messages) {
+        try {
+          final localMessage = LocalChatMessage.fromRemoteMessage(
+            msg,
+            MessageStatus.sent,
+          );
+          await db.saveMessageWithSender(localMessage);
+        } catch (e) {
+          talker.log('Error saving message from global sync: $e');
+        }
+      }
+
+      talker.log('Global sync complete: ${messages.length} messages saved');
+    } catch (e, stackTrace) {
+      talker.log(
+        'Error during global chat sync',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 }
 
 @riverpod
@@ -98,9 +183,12 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           }),
         );
 
-        // Background sync
+        // Background sync using global endpoint
         Future(() async {
           try {
+            await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
+
+            // Also refresh room list
             final client = ref.read(apiClientProvider);
             final resp = await client.get('/messager/chat');
             final remoteRooms = resp.data

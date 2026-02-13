@@ -26,7 +26,6 @@ const Set<String> kSilentMessageTypes = {'messages.update.links'};
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
-  late SnChatRoom _room;
   late SnChatMember _identity;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
@@ -65,7 +64,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (room == null) {
       throw Exception('Room not found');
     }
-    _room = room;
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
@@ -320,80 +318,22 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isSyncing = true;
     _allRemoteMessagesFetched = false;
 
-    talker.log('Starting message sync');
+    talker.log('Starting message sync (loading from cache)');
     // Use Future.microtask to set syncing state, but check disposal to avoid errors
     Future.microtask(() {
       if (!!ref.mounted) {
         ref.read(chatSyncingProvider.notifier).set(true);
       }
     });
+
+    // NOTE: Global sync is now handled by ChatGlobalSyncNotifier
+    // This method now only loads messages from local cache
+    // The global sync is triggered elsewhere (app startup, pull-to-refresh, etc.)
+
     try {
-      final dbMessages = await _database.getMessagesForRoom(
-        _room.id,
-        offset: 0,
-        limit: 1,
-      );
-      final lastMessage = dbMessages.isEmpty
-          ? null
-          : await _database.companionToMessage(
-              dbMessages.first,
-              fetchAccount: _fetchAccount,
-            );
-
-      if (lastMessage == null) {
-        talker.log('No local messages, fetching from network');
-        final newMessages = await _fetchAndCacheMessages(
-          offset: 0,
-          take: _pageSize,
-        );
-        if (ref.mounted) state = AsyncValue.data(newMessages);
-        return;
-      }
-
-      // Sync with pagination support using timestamp-based cursor
-      int? totalMessages;
-      int syncedCount = 0;
-      int lastSyncTimestamp = lastMessage
-          .toRemoteMessage()
-          .updatedAt
-          .millisecondsSinceEpoch;
-
-      do {
-        final resp = await _apiClient.post(
-          '/messager/chat/${_room.id}/sync',
-          data: {'last_sync_timestamp': lastSyncTimestamp},
-        );
-
-        // Read total count from header on first request
-        if (totalMessages == null) {
-          totalMessages = int.parse(
-            resp.headers['x-total']?.firstOrNull ?? '0',
-          );
-          talker.log('Total messages to sync: $totalMessages');
-        }
-
-        final response = MessageSyncResponse.fromJson(resp.data);
-        final messagesCount = response.messages.length;
-        talker.log(
-          'Sync page: synced=$syncedCount/$totalMessages, count=$messagesCount',
-        );
-
-        for (final message in response.messages) {
-          await receiveMessage(message);
-        }
-
-        syncedCount += messagesCount;
-
-        // Update cursor to the last message's createdAt for next page
-        if (response.messages.isNotEmpty) {
-          lastSyncTimestamp =
-              response.messages.last.createdAt.millisecondsSinceEpoch;
-        }
-
-        // Continue if there are more messages to fetch
-      } while (syncedCount < totalMessages);
-
-      talker.log('Sync complete: synced $syncedCount messages');
+      // Just load from local cache - no network call needed
+      // New messages will be synced via the global sync mechanism
+      talker.log('Using cached messages - global sync handles network updates');
     } catch (err, stackTrace) {
       talker.log(
         'Error syncing messages',

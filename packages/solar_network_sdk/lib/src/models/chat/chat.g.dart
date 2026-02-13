@@ -216,6 +216,7 @@ _MessageSyncResponse _$MessageSyncResponseFromJson(Map<String, dynamic> json) =>
               ?.map((e) => SnChatMessage.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
       currentTimestamp: DateTime.parse(json['current_timestamp'] as String),
     );
 
@@ -223,6 +224,7 @@ Map<String, dynamic> _$MessageSyncResponseToJson(
   _MessageSyncResponse instance,
 ) => <String, dynamic>{
   'messages': instance.messages.map((e) => e.toJson()).toList(),
+  'total_count': instance.totalCount,
   'current_timestamp': instance.currentTimestamp.toIso8601String(),
 };
 

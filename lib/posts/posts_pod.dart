@@ -74,7 +74,7 @@ class ActivityListNotifier
     final now = DateTime.now();
     final timelineEvent = SnTimelineEvent(
       id: post.id,
-      type: 'posts.created',
+      type: 'posts.new',
       resourceIdentifier: post.id,
       data: post,
       createdAt: now,
