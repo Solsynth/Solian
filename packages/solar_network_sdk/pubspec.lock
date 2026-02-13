@@ -258,10 +258,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_riverpod
-      sha256: e2026c72738a925a60db30258ff1f29974e40716749f3c9850aabf34ffc1a14c
+      sha256: "38ec6c303e2c83ee84512f5fc2a82ae311531021938e63d7137eccc107bf3c02"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.1.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -316,10 +316,10 @@ packages:
     dependency: "direct main"
     description:
       name: hooks_riverpod
-      sha256: "402a0969af107ebb42d0300dd68aa48df136671dacb70593d164f04b30af43f4"
+      sha256: b880efcd17757af0aa242e5dceac2fb781a014c22a32435a5daa8f17e9d5d8a9
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.1.0"
   http:
     dependency: transitive
     description:
@@ -556,10 +556,10 @@ packages:
     dependency: transitive
     description:
       name: riverpod
-      sha256: "8c22216be8ad3ef2b44af3a329693558c98eca7b8bd4ef495c92db0bba279f83"
+      sha256: "16ff608d21e8ea64364f2b7c049c94a02ab81668f78845862b6e88b71dd4935a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.1.0"
   shared_preferences:
     dependency: "direct main"
     description:

@@ -1696,7 +1696,7 @@ $SnChatMessageCopyWith<$Res>? get lastMessage {
 /// @nodoc
 mixin _$MessageSyncResponse {
 
- List<SnChatMessage> get messages; DateTime get currentTimestamp;
+ List<SnChatMessage> get messages; int get totalCount; DateTime get currentTimestamp;
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1709,16 +1709,16 @@ $MessageSyncResponseCopyWith<MessageSyncResponse> get copyWith => _$MessageSyncR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageSyncResponse&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageSyncResponse&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.totalCount, totalCount) || other.totalCount == totalCount)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(messages),currentTimestamp);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(messages),totalCount,currentTimestamp);
 
 @override
 String toString() {
-  return 'MessageSyncResponse(messages: $messages, currentTimestamp: $currentTimestamp)';
+  return 'MessageSyncResponse(messages: $messages, totalCount: $totalCount, currentTimestamp: $currentTimestamp)';
 }
 
 
@@ -1729,7 +1729,7 @@ abstract mixin class $MessageSyncResponseCopyWith<$Res>  {
   factory $MessageSyncResponseCopyWith(MessageSyncResponse value, $Res Function(MessageSyncResponse) _then) = _$MessageSyncResponseCopyWithImpl;
 @useResult
 $Res call({
- List<SnChatMessage> messages, DateTime currentTimestamp
+ List<SnChatMessage> messages, int totalCount, DateTime currentTimestamp
 });
 
 
@@ -1746,10 +1746,11 @@ class _$MessageSyncResponseCopyWithImpl<$Res>
 
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? messages = null,Object? currentTimestamp = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? messages = null,Object? totalCount = null,Object? currentTimestamp = null,}) {
   return _then(_self.copyWith(
 messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
-as List<SnChatMessage>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
+as List<SnChatMessage>,totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
+as int,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -1832,10 +1833,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  DateTime currentTimestamp)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  int totalCount,  DateTime currentTimestamp)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse() when $default != null:
-return $default(_that.messages,_that.currentTimestamp);case _:
+return $default(_that.messages,_that.totalCount,_that.currentTimestamp);case _:
   return orElse();
 
 }
@@ -1853,10 +1854,10 @@ return $default(_that.messages,_that.currentTimestamp);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  DateTime currentTimestamp)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  int totalCount,  DateTime currentTimestamp)  $default,) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse():
-return $default(_that.messages,_that.currentTimestamp);}
+return $default(_that.messages,_that.totalCount,_that.currentTimestamp);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1870,10 +1871,10 @@ return $default(_that.messages,_that.currentTimestamp);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<SnChatMessage> messages,  DateTime currentTimestamp)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<SnChatMessage> messages,  int totalCount,  DateTime currentTimestamp)?  $default,) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse() when $default != null:
-return $default(_that.messages,_that.currentTimestamp);case _:
+return $default(_that.messages,_that.totalCount,_that.currentTimestamp);case _:
   return null;
 
 }
@@ -1885,7 +1886,7 @@ return $default(_that.messages,_that.currentTimestamp);case _:
 @JsonSerializable()
 
 class _MessageSyncResponse implements MessageSyncResponse {
-  const _MessageSyncResponse({final  List<SnChatMessage> messages = const [], required this.currentTimestamp}): _messages = messages;
+  const _MessageSyncResponse({final  List<SnChatMessage> messages = const [], this.totalCount = 0, required this.currentTimestamp}): _messages = messages;
   factory _MessageSyncResponse.fromJson(Map<String, dynamic> json) => _$MessageSyncResponseFromJson(json);
 
  final  List<SnChatMessage> _messages;
@@ -1895,6 +1896,7 @@ class _MessageSyncResponse implements MessageSyncResponse {
   return EqualUnmodifiableListView(_messages);
 }
 
+@override@JsonKey() final  int totalCount;
 @override final  DateTime currentTimestamp;
 
 /// Create a copy of MessageSyncResponse
@@ -1910,16 +1912,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageSyncResponse&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageSyncResponse&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.totalCount, totalCount) || other.totalCount == totalCount)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),currentTimestamp);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),totalCount,currentTimestamp);
 
 @override
 String toString() {
-  return 'MessageSyncResponse(messages: $messages, currentTimestamp: $currentTimestamp)';
+  return 'MessageSyncResponse(messages: $messages, totalCount: $totalCount, currentTimestamp: $currentTimestamp)';
 }
 
 
@@ -1930,7 +1932,7 @@ abstract mixin class _$MessageSyncResponseCopyWith<$Res> implements $MessageSync
   factory _$MessageSyncResponseCopyWith(_MessageSyncResponse value, $Res Function(_MessageSyncResponse) _then) = __$MessageSyncResponseCopyWithImpl;
 @override @useResult
 $Res call({
- List<SnChatMessage> messages, DateTime currentTimestamp
+ List<SnChatMessage> messages, int totalCount, DateTime currentTimestamp
 });
 
 
@@ -1947,10 +1949,11 @@ class __$MessageSyncResponseCopyWithImpl<$Res>
 
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? currentTimestamp = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? totalCount = null,Object? currentTimestamp = null,}) {
   return _then(_MessageSyncResponse(
 messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
-as List<SnChatMessage>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
+as List<SnChatMessage>,totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
+as int,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

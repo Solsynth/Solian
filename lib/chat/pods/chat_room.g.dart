@@ -8,6 +8,56 @@ part of 'chat_room.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Global chat sync notifier that syncs messages from all chat rooms
+
+@ProviderFor(ChatGlobalSyncNotifier)
+final chatGlobalSyncProvider = ChatGlobalSyncNotifierProvider._();
+
+/// Global chat sync notifier that syncs messages from all chat rooms
+final class ChatGlobalSyncNotifierProvider
+    extends $AsyncNotifierProvider<ChatGlobalSyncNotifier, void> {
+  /// Global chat sync notifier that syncs messages from all chat rooms
+  ChatGlobalSyncNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'chatGlobalSyncProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$chatGlobalSyncNotifierHash();
+
+  @$internal
+  @override
+  ChatGlobalSyncNotifier create() => ChatGlobalSyncNotifier();
+}
+
+String _$chatGlobalSyncNotifierHash() =>
+    r'2067c90736ac9497ddce96623e6df501149a27b2';
+
+/// Global chat sync notifier that syncs messages from all chat rooms
+
+abstract class _$ChatGlobalSyncNotifier extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 @ProviderFor(ChatRoomJoinedNotifier)
 final chatRoomJoinedProvider = ChatRoomJoinedNotifierProvider._();
@@ -34,7 +84,7 @@ final class ChatRoomJoinedNotifierProvider
 }
 
 String _$chatRoomJoinedNotifierHash() =>
-    r'b3726e10298b99a8529c5e28a5c402b95016f096';
+    r'7f85a651cf562d426c21d5ab7c54154e544dfa74';
 
 abstract class _$ChatRoomJoinedNotifier
     extends $AsyncNotifier<List<SnChatRoom>> {
