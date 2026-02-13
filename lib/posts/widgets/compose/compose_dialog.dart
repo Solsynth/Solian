@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/posts/widgets/compose/compose_card.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
@@ -113,7 +112,6 @@ class PostComposeDialog extends HookConsumerWidget {
         forwardedPost: forwardedPost,
         onSuccess: () {
           // Fire event to notify listeners that a post was created
-          eventBus.fire(PostCreatedEvent());
           Navigator.of(context).pop(true);
         },
       );
@@ -150,7 +148,6 @@ class PostComposeDialog extends HookConsumerWidget {
         onCancel: () => Navigator.of(context).pop(),
         onSubmit: () {
           // Fire event to notify listeners that a post was created
-          eventBus.fire(PostCreatedEvent());
           Navigator.of(context).pop(true);
         },
         isContained: true,

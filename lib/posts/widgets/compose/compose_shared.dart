@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_poll.dart';
@@ -759,7 +758,6 @@ class ComposeLogic {
 
       // Call the success callback
       onSuccess();
-      eventBus.fire(PostCreatedEvent());
 
       final postTypeStr = state.postType == 0 ? 'regular' : 'article';
       final visibilityStr = state.visibility.value.toString();

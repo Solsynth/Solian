@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/compose.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -61,7 +60,6 @@ class PostQuickReply extends HookConsumerWidget {
         );
         contentController.clear();
         onPosted?.call();
-        eventBus.fire(PostCreatedEvent());
       } catch (err) {
         showErrorAlert(err);
       } finally {

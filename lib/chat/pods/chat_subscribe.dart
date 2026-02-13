@@ -241,6 +241,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         // Send read receipt for new message
         sendReadReceipt();
         // Play sound for new messages when app is unfocused
+        if (!ref.mounted) return;
         if (pkt.type == 'messages.new' &&
             message.senderId != _chatIdentity.id &&
             ref.read(appLifecycleStateProvider).value !=
