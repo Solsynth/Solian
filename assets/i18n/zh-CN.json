@@ -1551,5 +1551,6 @@
   "thinkServiceSnchan": "SN 酱",
   "thinkServiceSnchanDescription": "可以帮助你解决问题的 Solar Network 小精灵。",
   "thinkServiceMichan": "咩酱",
-  "thinkServiceMichanDescription": "可可爱爱，没有脑袋。"
+  "thinkServiceMichanDescription": "可可爱爱，没有脑袋。",
+  "retrievingData": "正在收取……"
 }

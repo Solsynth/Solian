@@ -1679,7 +1679,6 @@
   "noWorkoutsOnDate": "No workouts on {}",
   "noWorkoutsOnDateDescription": "No workouts found for this date.",
   "workoutsOnDate": "Workouts on {}",
-  "refresh": "Refresh",
   "fitnessWorkoutTypeBadminton": "Badminton",
   "fitnessWorkoutTypeBaseball": "Baseball",
   "fitnessWorkoutTypeBasketball": "Basketball",
@@ -1741,5 +1740,6 @@
   "thinkServiceSnchan": "SN-chan",
   "thinkServiceSnchanDescription": "The helpful assistant who can help you to solve problems on the Solar Network.",
   "thinkServiceMichan": "Mi-chan",
-  "thinkServiceMichanDescription": "A cute, outgoing, mysterious girl"
+  "thinkServiceMichanDescription": "A cute, outgoing, mysterious girl",
+  "retrievingData": "Retrieving data..."
 }

@@ -21,6 +21,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
@@ -46,18 +47,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
 
     Widget bodyWidget = Column(
       children: [
-        Consumer(
-          builder: (context, ref, _) {
-            final summaryState = ref.watch(chatSummaryProvider);
-            return summaryState.maybeWhen(
-              loading: () => const LinearProgressIndicator(
-                minHeight: 2,
-                borderRadius: BorderRadius.zero,
-              ),
-              orElse: () => const SizedBox.shrink(),
-            );
-          },
-        ),
         Expanded(
           child: chats.when(
             data: (items) {
@@ -439,6 +428,7 @@ class _ChatListAppBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatInvites = ref.watch(chatroomInvitesProvider);
+    final isSyncing = ref.watch(chatSyncingProvider);
     final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
 
     return Container(
@@ -487,6 +477,16 @@ class _ChatListAppBar extends HookConsumerWidget {
                 ],
               ),
             ),
+            // Sync indicator
+            if (isSyncing)
+              const Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
             IconButton(
               icon: Badge(
                 label: Text(
@@ -617,6 +617,8 @@ class ChatListWidget extends HookConsumerWidget {
                   ),
                 ],
               ),
+              // Animated sync indicator for wide layout
+              ChatSyncIndicator(),
               Positioned(bottom: 0, right: 0, child: ChatFabWidget()),
             ],
           ),
@@ -630,7 +632,12 @@ class ChatListWidget extends HookConsumerWidget {
       extendBody: false, // Prevent conflicts with tabs navigation
       floatingActionButton: const ChatFabWidget(),
       appBar: AppBar(
-        flexibleSpace: _ChatListAppBar(tabController: tabController),
+        flexibleSpace: Stack(
+          children: [
+            _ChatListAppBar(tabController: tabController),
+            ChatSyncIndicator(height: 64),
+          ],
+        ),
       ),
       body: userInfo.value == null
           ? const ResponseUnauthorizedWidget()
