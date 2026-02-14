@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -58,10 +57,6 @@ class ThoughtChatInterface extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inputKey = useMemoized(() => GlobalKey());
-    final inputHeight = useState<double>(80.0);
-
-    // Track previous height for smooth animations
-    final previousInputHeight = usePrevious<double>(inputHeight.value);
 
     // Create args for the provider
     final args = ThoughtChatArgs(
@@ -113,169 +108,66 @@ class ThoughtChatInterface extends HookConsumerWidget {
       return null;
     }, [chatState.sequenceId]);
 
-    // Periodic height measurement for dynamic sizing
-    useEffect(() {
-      final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
-        final renderBox =
-            inputKey.currentContext?.findRenderObject() as RenderBox?;
-        if (renderBox != null) {
-          final newHeight = renderBox.size.height;
-          if (newHeight != inputHeight.value) {
-            inputHeight.value = newHeight;
-          }
-        }
-      });
-      return timer.cancel;
-    }, []);
-
-    return Stack(
-      children: [
-        // Thoughts list
-        Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Column(
-              children: [
-                Expanded(
-                  child:
-                      previousInputHeight != null &&
-                          previousInputHeight != inputHeight.value
-                      ? TweenAnimationBuilder<double>(
-                          tween: Tween<double>(
-                            begin: previousInputHeight,
-                            end: inputHeight.value,
-                          ),
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                          builder: (context, height, child) =>
-                              SuperListView.builder(
-                                listController: notifier.listController,
-                                controller: notifier.scrollController,
-                                padding: EdgeInsets.only(
-                                  top: 16,
-                                  bottom:
-                                      MediaQuery.of(context).padding.bottom +
-                                      8 +
-                                      height,
-                                ),
-                                reverse: true,
-                                itemCount:
-                                    chatState.localThoughts.length +
-                                    (chatState.isStreaming ? 1 : 0),
-                                itemBuilder: (context, index) {
-                                  if (chatState.isStreaming && index == 0) {
-                                    return ThoughtItem(
-                                      isStreaming: true,
-                                      streamingItems: chatState.streamingItems,
-                                      agentService: chatState.selectedServiceId,
-                                    );
-                                  }
-                                  final thoughtIndex = chatState.isStreaming
-                                      ? index - 1
-                                      : index;
-                                  final thought =
-                                      chatState.localThoughts[thoughtIndex];
-                                  return ThoughtItem(
-                                    thought: thought,
-                                    agentService: chatState.selectedServiceId,
-                                  );
-                                },
-                              ),
-                        )
-                      : SuperListView.builder(
-                          listController: notifier.listController,
-                          controller: notifier.scrollController,
-                          padding: EdgeInsets.only(
-                            top: 16,
-                            bottom:
-                                MediaQuery.of(context).padding.bottom +
-                                8 +
-                                inputHeight.value,
-                          ),
-                          reverse: true,
-                          itemCount:
-                              chatState.localThoughts.length +
-                              (chatState.isStreaming ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (chatState.isStreaming && index == 0) {
-                              return ThoughtItem(
-                                isStreaming: true,
-                                streamingItems: chatState.streamingItems,
-                                agentService: chatState.selectedServiceId,
-                              );
-                            }
-                            final thoughtIndex = chatState.isStreaming
-                                ? index - 1
-                                : index;
-                            final thought =
-                                chatState.localThoughts[thoughtIndex];
-                            return ThoughtItem(
-                              thought: thought,
-                              agentService: chatState.selectedServiceId,
-                            );
-                          },
-                        ),
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: Column(
+          children: [
+            Expanded(
+              child: SuperListView.builder(
+                listController: notifier.listController,
+                controller: notifier.scrollController,
+                padding: EdgeInsets.only(
+                  top: 16,
+                  bottom: MediaQuery.of(context).padding.bottom + 8,
                 ),
-              ],
+                reverse: true,
+                itemCount:
+                    chatState.localThoughts.length +
+                    (chatState.isStreaming ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (chatState.isStreaming && index == 0) {
+                    return ThoughtItem(
+                      isStreaming: true,
+                      streamingItems: chatState.streamingItems,
+                      agentService: chatState.selectedServiceId,
+                    );
+                  }
+                  final thoughtIndex = chatState.isStreaming
+                      ? index - 1
+                      : index;
+                  final thought = chatState.localThoughts[thoughtIndex];
+                  return ThoughtItem(
+                    thought: thought,
+                    agentService: chatState.selectedServiceId,
+                  );
+                },
+              ),
             ),
-          ),
-        ),
-        // Bottom gradient - appears when scrolling towards newer thoughts (behind thought input)
-        AnimatedBuilder(
-          animation: notifier.bottomGradientNotifier,
-          builder: (context, child) => Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Opacity(
-              opacity: notifier.bottomGradientNotifier.value,
+            Align(
+              alignment: Alignment.bottomCenter,
               child: Container(
-                height: math.min(MediaQuery.of(context).size.height * 0.1, 128),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer.withOpacity(0.8),
-                      Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainer.withOpacity(0.0),
-                    ],
-                  ),
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: ThoughtInput(
+                  key: inputKey,
+                  messageController: notifier.messageController,
+                  isStreaming: chatState.isStreaming,
+                  onSend: notifier.sendMessage,
+                  attachedMessages: attachedMessages,
+                  attachedPosts: attachedPosts,
+                  isDisabled: isDisabled,
+                  // Attachment support
+                  attachments: chatState.attachments,
+                  attachmentProgress: chatState.attachmentProgress,
+                  onUploadAttachment: notifier.uploadAttachment,
+                  onDeleteAttachment: notifier.deleteAttachment,
+                  onAttachmentsChanged: notifier.updateAttachments,
                 ),
               ),
             ),
-          ),
+          ],
         ),
-        // Thought Input positioned above gradient (higher z-index)
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0, // At the very bottom, above gradient
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: ThoughtInput(
-                key: inputKey,
-                messageController: notifier.messageController,
-                isStreaming: chatState.isStreaming,
-                onSend: notifier.sendMessage,
-                attachedMessages: attachedMessages,
-                attachedPosts: attachedPosts,
-                isDisabled: isDisabled,
-                // Attachment support
-                attachments: chatState.attachments,
-                attachmentProgress: chatState.attachmentProgress,
-                onUploadAttachment: notifier.uploadAttachment,
-                onDeleteAttachment: notifier.deleteAttachment,
-                onAttachmentsChanged: notifier.updateAttachments,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
