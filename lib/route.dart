@@ -101,8 +101,16 @@ class AppRouter extends RootStackRouter {
           page: ChatRoute.page,
           path: 'chat',
           children: [
+            // Default child route -> Chat list
+            AutoRoute(page: ChatListRoute.page, path: '', initial: true),
+
+            // Chat room
             AutoRoute(page: ChatRoomRoute.page, path: ':id'),
+
+            // Chat room detail
             AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
+
+            // Search inside a chat room
             AutoRoute(page: SearchMessagesRoute.page, path: ':id/search'),
           ],
         ),
@@ -176,6 +184,12 @@ class AppRouter extends RootStackRouter {
             AutoRoute(
               page: CreatorStickerListRoute.page,
               path: ':pubName/stickers',
+              children: [
+                AutoRoute(
+                  page: CreatorStickerPackDetailRoute.page,
+                  path: ':packId',
+                ),
+              ],
             ),
           ],
         ),

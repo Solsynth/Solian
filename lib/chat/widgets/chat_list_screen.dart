@@ -299,6 +299,17 @@ class ChatListBodyWidget extends HookConsumerWidget {
 }
 
 @RoutePage()
+class ChatListScreen extends StatelessWidget {
+  const ChatListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWideScreen(context)) return const SizedBox.shrink();
+    return const ChatListWidget();
+  }
+}
+
+@RoutePage()
 class ChatScreen extends HookConsumerWidget {
   const ChatScreen({super.key});
 
@@ -306,38 +317,32 @@ class ChatScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
 
-    if (isWide) {
-      return AppBackground(
-        isRoot: true,
-        child: SafeArea(
-          child: Row(
-            children: [
-              Flexible(
-                flex: 2,
-                child: ChatListWidget().padding(left: 16, vertical: 16),
-              ),
-              const Gap(8),
-              Flexible(
-                flex: 4,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                  ),
-                  child: AutoRouter(),
-                ).padding(top: 16),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return AppBackground(
       isRoot: true,
-      child: AutoRouter(
-        placeholder: (context) {
-          return ChatListWidget();
-        },
+      child: SafeArea(
+        child: isWide
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: const ChatListWidget().padding(
+                      left: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  const Gap(8),
+                  Flexible(
+                    flex: 4,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                      ),
+                      child: const AutoRouter(),
+                    ).padding(top: 16),
+                  ),
+                ],
+              )
+            : const AutoRouter(),
       ),
     );
   }
@@ -624,9 +629,15 @@ class ChatListWidget extends HookConsumerWidget {
     final userInfo = ref.watch(userInfoProvider);
 
     return AppScaffold(
-      extendBody: false, // Prevent conflicts with tabs navigation
+      extendBody: false,
       floatingActionButton: const ChatFabWidget(),
       appBar: AppBar(
+        leading: context.router.canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.router.maybePop(),
+              )
+            : null,
         flexibleSpace: Stack(
           children: [
             _ChatListAppBar(tabController: tabController),
