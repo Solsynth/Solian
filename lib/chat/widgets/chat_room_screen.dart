@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +11,6 @@ import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
 import 'package:island/chat/widgets/room_app_bar.dart';
 import 'package:island/chat/widgets/room_message_list.dart';
-import 'package:island/chat/widgets/room_overlays.dart';
 import 'package:island/chat/widgets/room_selection_mode.dart';
 import 'package:island/chat/hooks/use_room_file_picker.dart';
 import 'package:island/chat/hooks/use_room_input.dart';
@@ -40,14 +37,17 @@ class ChatRoomScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mediaQuery = MediaQuery.of(context);
     final chatRoom = ref.watch(chatRoomProvider(id));
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
     final onlineCount = ref.watch(chatOnlineCountProvider(id));
     final settings = ref.watch(appSettingsProvider);
 
+    final analyticsLogged = useRef(false);
     useEffect(() {
-      if (!chatRoom.isLoading && chatRoom.value != null) {
+      if (!analyticsLogged.value &&
+          !chatRoom.isLoading &&
+          chatRoom.value != null) {
+        analyticsLogged.value = true;
         AnalyticsService().logChatRoomOpened(
           id,
           chatRoom.value!.isCommunity == true ? 'group' : 'direct',
@@ -153,31 +153,36 @@ class ChatRoomScreen extends HookConsumerWidget {
       return null;
     }, [inputHeight.value]);
 
+    final hasTrackedInputHeight = useRef(false);
     useEffect(() {
-      final timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      if (hasTrackedInputHeight.value) return;
+      hasTrackedInputHeight.value = true;
+
+      void measureHeight() {
         final renderBox =
             inputKey.currentContext?.findRenderObject() as RenderBox?;
-        if (renderBox != null) {
-          final newHeight = renderBox.size.height;
-          if (newHeight != inputHeight.value) {
-            inputHeight.value = newHeight;
-          }
+        if (renderBox != null && renderBox.hasSize) {
+          inputHeight.value = renderBox.size.height;
         }
-      });
-      return timer.cancel;
+      }
+
+      measureHeight();
+      WidgetsBinding.instance.addPostFrameCallback((_) => measureHeight());
+
+      return null;
     }, []);
 
     final isSelectionMode = useState<bool>(false);
     final selectedMessages = useState<Set<String>>({});
 
-    void toggleSelectionMode() {
+    final toggleSelectionMode = useCallback(() {
       isSelectionMode.value = !isSelectionMode.value;
       if (!isSelectionMode.value) {
         selectedMessages.value = {};
       }
-    }
+    }, [isSelectionMode, selectedMessages]);
 
-    void toggleMessageSelection(String messageId) {
+    final toggleMessageSelection = useCallback((String messageId) {
       final newSelection = Set<String>.from(selectedMessages.value);
       if (newSelection.contains(messageId)) {
         newSelection.remove(messageId);
@@ -185,9 +190,9 @@ class ChatRoomScreen extends HookConsumerWidget {
         newSelection.add(messageId);
       }
       selectedMessages.value = newSelection;
-    }
+    }, [selectedMessages]);
 
-    void openThinkingSheet() {
+    final openThinkingSheet = useCallback(() {
       if (selectedMessages.value.isEmpty) return;
 
       final selectedMessageData =
@@ -212,9 +217,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
 
       toggleSelectionMode();
-    }
+    }, [selectedMessages, messages, toggleSelectionMode]);
 
-    Future<void> uploadAttachment(int index) async {
+    final uploadAttachment = useCallback((int index) async {
       final attachment = inputManager.attachments[index];
       if (attachment.isOnCloud) return;
 
@@ -264,7 +269,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         );
         newProgress.remove('chat-upload');
       }
-    }
+    }, [inputManager, ref, context]);
 
     final filePicker = useRoomFilePicker(
       context,
@@ -272,7 +277,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       inputManager.updateAttachments,
     );
 
-    void onJump(String messageId) {
+    final onJump = useCallback((String messageId) {
       messages.when(
         data: (messageList) {
           scrollManager.scrollToMessage(
@@ -283,7 +288,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         loading: () {},
         error: (_, _) {},
       );
-    }
+    }, [messages, scrollManager]);
 
     return AppScaffold(
       appBar: AppBar(
@@ -337,78 +342,58 @@ class ChatRoomScreen extends HookConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                    child: messages.when(
-                      data: (messageList) => messageList.isEmpty
-                          ? Center(
-                              key: const ValueKey('empty-messages'),
-                              child: Text('No messages yet'.tr()),
-                            )
-                          : RoomMessageList(
-                              key: const ValueKey('message-list'),
-                              messages: messageList,
-                              roomAsync: chatRoom,
-                              chatIdentity: chatIdentity,
-                              scrollController: scrollManager.scrollController,
-                              listController: scrollManager.listController,
-                              isSelectionMode: isSelectionMode.value,
-                              selectedMessages: selectedMessages.value,
-                              toggleSelectionMode: toggleSelectionMode,
-                              toggleMessageSelection: toggleMessageSelection,
-                              onMessageAction: inputManager.onMessageAction,
-                              onJump: onJump,
-                              attachmentProgress:
-                                  inputManager.attachmentProgress,
-                              inputHeight: inputHeight.value,
-                              previousInputHeight: previousInputHeightRef.value,
-                              roomOpenTime: roomOpenTime,
-                              disableAnimation: settings.disableAnimation,
-                            ),
-                      loading: () => const Center(
-                        key: ValueKey('loading-messages'),
-                        child: CircularProgressIndicator(),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: messages.when(
+                data: (messageList) => messageList.isEmpty
+                    ? Center(
+                        key: const ValueKey('empty-messages'),
+                        child: Text('No messages yet'.tr()),
+                      )
+                    : RoomMessageList(
+                        key: const ValueKey('message-list'),
+                        messages: messageList,
+                        roomAsync: chatRoom,
+                        chatIdentity: chatIdentity,
+                        scrollController: scrollManager.scrollController,
+                        listController: scrollManager.listController,
+                        isSelectionMode: isSelectionMode.value,
+                        selectedMessages: selectedMessages.value,
+                        toggleSelectionMode: toggleSelectionMode,
+                        toggleMessageSelection: toggleMessageSelection,
+                        onMessageAction: inputManager.onMessageAction,
+                        onJump: onJump,
+                        attachmentProgress: inputManager.attachmentProgress,
+                        previousInputHeight: previousInputHeightRef.value,
+                        roomOpenTime: roomOpenTime,
+                        disableAnimation: settings.disableAnimation,
                       ),
-                      error: (error, _) => ResponseErrorWidget(
-                        key: const ValueKey('error-messages'),
-                        error: error,
-                        onRetry: () => messagesNotifier.loadInitial(),
-                      ),
-                    ),
-                  ),
+                loading: () => const Center(
+                  key: ValueKey('loading-messages'),
+                  child: CircularProgressIndicator(),
                 ),
-              ],
+                error: (error, _) => ResponseErrorWidget(
+                  key: const ValueKey('error-messages'),
+                  error: error,
+                  onRetry: () => messagesNotifier.loadInitial(),
+                ),
+              ),
             ),
           ),
-          RoomOverlays(
-            roomAsync: chatRoom,
-            showGradient: !isSelectionMode.value,
-            bottomGradientOpacity: scrollManager.bottomGradientOpacity.value,
-            inputHeight: inputHeight.value,
-          ),
           if (!isSelectionMode.value)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: mediaQuery.padding.bottom,
-              child: chatRoom.when(
-                data: (room) => room != null
-                    ? ChatInput(
+            chatRoom.when(
+              data: (room) => room != null
+                  ? Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ChatInput(
                         key: inputKey,
                         messageController: inputManager.messageController,
                         chatRoom: room,
@@ -465,23 +450,18 @@ class ChatRoomScreen extends HookConsumerWidget {
                         },
                         onAttachmentsChanged: inputManager.updateAttachments,
                         attachmentProgress: inputManager.attachmentProgress,
-                      )
-                    : const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-              ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
             ),
           if (isSelectionMode.value)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: RoomSelectionMode(
-                visible: isSelectionMode.value,
-                selectedCount: selectedMessages.value.length,
-                onClose: toggleSelectionMode,
-                onAIThink: openThinkingSheet,
-              ),
+            RoomSelectionMode(
+              visible: isSelectionMode.value,
+              selectedCount: selectedMessages.value.length,
+              onClose: toggleSelectionMode,
+              onAIThink: openThinkingSheet,
             ),
         ],
       ),
