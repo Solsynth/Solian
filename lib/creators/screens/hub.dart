@@ -762,7 +762,8 @@ class _PublisherStatsWidget extends StatelessWidget {
               ),
             ],
           ),
-          if (heatmap != null) ActivityHeatmapWidget(heatmap: heatmap!),
+          if (heatmap != null)
+            ActivityHeatmapWidget(heatmap: heatmap!, forceDense: true),
         ],
       ),
     );

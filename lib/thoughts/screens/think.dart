@@ -154,7 +154,7 @@ class ThoughtScreen extends HookConsumerWidget {
               onServiceChanged: chatNotifier.setSelectedServiceId,
               isStreaming: chatState.isStreaming,
               isDisabled: statusAsync.value == false,
-            ),
+            ).padding(left: 12),
           ],
         ).center(),
         actions: [
