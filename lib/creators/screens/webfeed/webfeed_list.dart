@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/screens/webfeed/webfeed_edit.dart';
 import 'package:island/discovery/webfeed.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/empty_state.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -23,7 +23,7 @@ class CreatorFeedListScreen extends ConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/creators'),
+        leading: const AutoLeadingButton(),
         title: const Text('Web Feeds'),
       ),
       floatingActionButton: FloatingActionButton(

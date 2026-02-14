@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'login_content.dart';
@@ -28,7 +28,7 @@ class LoginScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(),
+        leading: const AutoLeadingButton(),
         title: Text('login').tr(),
       ),
       body: LoginContent(),

@@ -14,7 +14,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -596,7 +596,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
         title: Text('creatorHub').tr(),
         actions: [
           if (!isWideScreen(context))
@@ -662,8 +662,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
                           ],
                         ),
                 ),
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, _) => const SizedBox.shrink(),
               ),
             ),
@@ -693,13 +692,12 @@ class CreatorHubScreen extends HookConsumerWidget {
                     child: Card(
                       margin: EdgeInsets.zero,
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
+                        ),
                         child: const CreatorHubContentWidget(),
                       ),
-                    ).padding(
-                      left: 16,
-                      vertical: 16,
-                    ),
+                    ).padding(left: 16, vertical: 16),
                   ),
                   const Gap(8),
                   Flexible(

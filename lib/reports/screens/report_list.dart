@@ -6,7 +6,7 @@ import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
@@ -32,7 +32,7 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
     return AppScaffold(
       appBar: AppBar(
         title: Text('abuseReports').tr(),
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),

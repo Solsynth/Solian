@@ -20,7 +20,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -281,10 +281,7 @@ class RealmDetailScreen extends HookConsumerWidget {
           ? realmState.when(
               data: (realm) => AppBar(
                 foregroundColor: appbarColor.value,
-                leading: PageBackButton(
-                  color: appbarColor.value,
-                  shadows: [iconShadow],
-                ),
+                leading: AutoLeadingButton(),
                 flexibleSpace: Stack(
                   children: [
                     Positioned.fill(
@@ -326,8 +323,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                   const Gap(8),
                 ],
               ),
-              error: (_, _) => AppBar(leading: PageBackButton()),
-              loading: () => AppBar(leading: PageBackButton()),
+              error: (_, _) => AppBar(leading: AutoLeadingButton()),
+              loading: () => AppBar(leading: AutoLeadingButton()),
             )
           : null,
       body: realmState.when(
@@ -379,10 +376,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     expandedHeight: 180,
                     pinned: true,
                     foregroundColor: appbarColor.value,
-                    leading: PageBackButton(
-                      color: appbarColor.value,
-                      shadows: [iconShadow],
-                    ),
+                    leading: AutoLeadingButton(),
                     flexibleSpace: Stack(
                       children: [
                         Positioned.fill(

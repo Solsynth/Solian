@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/file_list_view.dart';
 import 'package:island/accounts/usage_overview.dart';
@@ -56,7 +56,7 @@ class FileListScreen extends HookConsumerWidget {
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
         actions: [
           // Selection mode toggle
           IconButton(

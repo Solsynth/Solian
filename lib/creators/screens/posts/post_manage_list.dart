@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 
 @RoutePage()
 class CreatorPostListScreen extends HookConsumerWidget {
@@ -19,7 +19,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/creators'),
+        leading: const AutoLeadingButton(),
         title: Text('posts').tr(),
       ),
       body: CustomScrollView(

@@ -11,7 +11,7 @@ import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -150,7 +150,7 @@ class RealmEditScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text(slug == null ? 'createRealm'.tr() : 'editRealm'.tr()),
-        leading: const PageBackButton(),
+        leading: const AutoLeadingButton(),
       ),
       body: SingleChildScrollView(
         child: Column(

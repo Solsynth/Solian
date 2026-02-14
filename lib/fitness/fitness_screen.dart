@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/fitness_service.dart';
 import 'package:island/fitness/fitness_data.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:math';
@@ -41,7 +41,7 @@ class FitnessActivityScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('fitnessActivity').tr(),
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
         actions: [
           IconButton(
             icon: const Icon(Symbols.refresh),

@@ -7,7 +7,7 @@ import 'package:island/developers/screens/bot_keys.dart';
 import 'package:island/developers/screens/edit_bot.dart';
 import 'package:island/developers/models/bot.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -34,7 +34,7 @@ class DeveloperBotDetailScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/developers'),
+        leading: const AutoLeadingButton(),
         title: Text(botData.value?.account.nick ?? 'botDetails'.tr()),
         actions: [
           IconButton(

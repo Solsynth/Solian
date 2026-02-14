@@ -10,7 +10,7 @@ import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/credits.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -82,7 +82,7 @@ class LevelingScreen extends HookConsumerWidget {
       child: AppScaffold(
         appBar: AppBar(
           title: Text('levelingProgress'.tr()),
-          leading: const PageBackButton(backTo: '/account'),
+          leading: const AutoLeadingButton(),
           bottom: TabBar(
             tabs: [
               Tab(

@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/core/network.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -79,7 +79,7 @@ class FeedMarketplaceScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: const Text('webFeeds').tr(),
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
         actions: const [Gap(8)],
       ),
       body: Column(

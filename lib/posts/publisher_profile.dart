@@ -20,7 +20,7 @@ import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -590,10 +590,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
         appBar: isWideScreen(context)
             ? AppBar(
                 foregroundColor: appbarColor.value,
-                leading: PageBackButton(
-                  color: appbarColor.value,
-                  shadows: [appbarShadow],
-                ),
+                leading: AutoLeadingButton(),
                 title: Text(
                   data.nick,
                   style: TextStyle(
@@ -667,10 +664,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     foregroundColor: appbarColor.value,
                     expandedHeight: 180,
                     pinned: true,
-                    leading: PageBackButton(
-                      color: appbarColor.value,
-                      shadows: [appbarShadow],
-                    ),
+                    leading: AutoLeadingButton(),
                     flexibleSpace: Stack(
                       children: [
                         Positioned.fill(
@@ -740,12 +734,12 @@ class PublisherProfileScreen extends HookConsumerWidget {
       ),
       error: (error, stackTrace) => AppScaffold(
         isNoBackground: false,
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: Center(child: Text(error.toString())),
       ),
       loading: () => AppScaffold(
         isNoBackground: false,
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: Center(child: CircularProgressIndicator()),
       ),
     );

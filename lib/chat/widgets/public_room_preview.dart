@@ -12,7 +12,7 @@ import "package:island/core/network.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/route.gr.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:island/shared/widgets/app_scaffold.dart";
+import "package:island/shared/widgets/app_scaffold.dart" hide AutoLeadingButton;
 import "package:island/drive/widgets/cloud_files.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -161,7 +161,7 @@ class PublicRoomPreview extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        leading: !compactHeader ? const Center(child: PageBackButton()) : null,
+        leading: !compactHeader ? Center(child: AutoLeadingButton()) : null,
         automaticallyImplyLeading: false,
         toolbarHeight: compactHeader ? null : 64,
         title: compactHeader ? compactHeaderWidget() : comfortHeaderWidget(),

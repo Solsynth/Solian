@@ -12,7 +12,7 @@ import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:island/core/network.dart";
-import "package:island/shared/widgets/app_scaffold.dart";
+import "package:island/shared/widgets/app_scaffold.dart" hide AutoLeadingButton;
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -145,13 +145,9 @@ class ThoughtScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        leading: const PageBackButton(),
+        leading: const AutoLeadingButton(),
         flexibleSpace: Row(
           children: [
-            if (PageBackButton.isDesktop())
-              const Gap(12)
-            else
-              const Gap(12 + 40),
             ServiceSelector(
               services: chatState.services,
               selectedServiceId: chatState.selectedServiceId,

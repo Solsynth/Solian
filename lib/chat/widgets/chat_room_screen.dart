@@ -22,7 +22,7 @@ import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';

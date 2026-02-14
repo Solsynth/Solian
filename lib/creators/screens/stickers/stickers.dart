@@ -10,7 +10,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -47,7 +47,7 @@ class CreatorStickerListScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/creators'),
+        leading: const AutoLeadingButton(),
         title: const Text('stickers').tr(),
       ),
       floatingActionButton: FloatingActionButton(
@@ -85,7 +85,7 @@ class _StickerPackListSidebar extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: true,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/creators'),
+        leading: const AutoLeadingButton(),
         title: const Text('stickers').tr(),
         actions: [
           IconButton(

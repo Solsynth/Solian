@@ -17,7 +17,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -277,7 +277,7 @@ class ChatDetailScreen extends HookConsumerWidget {
             SliverAppBar(
               expandedHeight: 180,
               pinned: true,
-              leading: PageBackButton(shadows: [iconShadow]),
+              leading: AutoLeadingButton(),
               flexibleSpace: FlexibleSpaceBar(
                 background:
                     (currentRoom!.type == 1 && currentRoom.background != null)

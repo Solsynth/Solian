@@ -11,7 +11,7 @@ import 'package:island/developers/models/custom_app.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -593,7 +593,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(backTo: '/developers'),
+        leading: const AutoLeadingButton(),
         title: Text(isNew ? 'createCustomApp'.tr() : 'editCustomApp'.tr()),
       ),
       body: bodyContent,

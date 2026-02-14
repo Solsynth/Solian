@@ -369,13 +369,13 @@ class AppScaffold extends HookConsumerWidget {
   }
 }
 
-class PageBackButton extends StatelessWidget {
+class AutoLeadingButton extends StatelessWidget {
   final Color? color;
   final List<Shadow>? shadows;
   final VoidCallback? onWillPop;
   final String? backTo;
   final bool forcePop;
-  const PageBackButton({
+  const AutoLeadingButton({
     super.key,
     this.shadows,
     this.onWillPop,

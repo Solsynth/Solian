@@ -17,7 +17,7 @@ import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/compose_toolbar.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/article_responsive_sidebar.dart';
@@ -36,11 +36,11 @@ class ArticleEditScreen extends HookConsumerWidget {
     return post.when(
       data: (post) => ArticleComposeScreen(originalPost: post),
       loading: () => AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: Text('Error: $e', textAlign: TextAlign.center),
       ),
     );
@@ -290,7 +290,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
       child: AppScaffold(
         isNoBackground: false,
         appBar: AppBar(
-          leading: const PageBackButton(),
+          leading: const AutoLeadingButton(),
           title: ValueListenableBuilder<TextEditingValue>(
             valueListenable: state.titleController,
             builder: (context, titleValue, _) {

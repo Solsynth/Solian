@@ -25,7 +25,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/core/services/timezone/native.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
@@ -834,10 +834,7 @@ class AccountProfileScreen extends HookConsumerWidget {
           appBar: isWideScreen(context)
               ? AppBar(
                   foregroundColor: appbarColor.value,
-                  leading: PageBackButton(
-                    color: appbarColor.value,
-                    shadows: [appbarShadow],
-                  ),
+                  leading: AutoLeadingButton(),
                   title: Text(
                     data.nick,
                     style: TextStyle(
@@ -953,10 +950,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       foregroundColor: appbarColor.value,
                       expandedHeight: 180,
                       pinned: true,
-                      leading: PageBackButton(
-                        color: appbarColor.value,
-                        shadows: [appbarShadow],
-                      ),
+                      leading: AutoLeadingButton(),
                       flexibleSpace: Stack(
                         children: [
                           Positioned.fill(
@@ -1074,11 +1068,11 @@ class AccountProfileScreen extends HookConsumerWidget {
         );
       },
       error: (error, stackTrace) => AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: Center(child: Text(error.toString())),
       ),
       loading: () => AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: Center(child: CircularProgressIndicator()),
       ),
     );

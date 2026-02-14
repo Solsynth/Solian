@@ -10,7 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/core/network.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -1300,7 +1300,7 @@ class WalletScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text('wallet').tr(),
-        leading: const PageBackButton(backTo: '/account'),
+        leading: const AutoLeadingButton(),
       ),
       body: wallet.when(
         data: (data) {
