@@ -2,13 +2,11 @@ import "dart:async";
 import "package:dio/dio.dart";
 import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
-import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:island/chat/pods/chat_room.dart";
 import "package:island/data/drift_db.dart";
 import "package:island/data/message.dart";
-import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/database.dart";
-import "package:island/core/lifecycle.dart";
 import "package:island/core/network.dart";
 import "package:island/drive/drive_service.dart";
 import "package:island/talker.dart";
@@ -41,7 +39,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isJumping = false;
   bool _isUpdatingState = false;
   bool _allRemoteMessagesFetched = false;
-  DateTime? _lastPauseTime;
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
@@ -72,30 +69,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('MessagesNotifier built for room $roomId');
 
-    // Only setup sync and lifecycle listeners if user is a member
-    if (identity != null) {
-      ref.listen(appLifecycleStateProvider, (_, next) {
-        next.whenData((state) {
-          if (!ref.mounted) return; // Check disposal before accessing ref
-          if (state == AppLifecycleState.paused) {
-            _lastPauseTime = DateTime.now();
-            talker.log('App paused, recording time');
-          } else if (state == AppLifecycleState.resumed) {
-            if (_lastPauseTime != null) {
-              final diff = DateTime.now().difference(_lastPauseTime!);
-              if (diff > const Duration(minutes: 1)) {
-                talker.log('App resumed after >1 min, syncing messages');
-                if (!!ref.mounted) {
-                  syncMessages(); // Check disposal before calling syncMessages
-                }
-              } else {
-                talker.log('App resumed within 1 min, skipping sync');
-              }
-            }
-          }
-        });
-      });
-    }
+    // NOTE: Global sync is now handled elsewhere (app startup, pull-to-refresh, etc.)
+    // No need to trigger sync from here as it would cause duplicate syncs
 
     loadInitial();
     return [];
@@ -318,22 +293,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isSyncing = true;
     _allRemoteMessagesFetched = false;
 
-    talker.log('Starting message sync (loading from cache)');
-    // Use Future.microtask to set syncing state, but check disposal to avoid errors
-    Future.microtask(() {
-      if (!!ref.mounted) {
-        ref.read(chatSyncingProvider.notifier).set(true);
-      }
-    });
-
-    // NOTE: Global sync is now handled by ChatGlobalSyncNotifier
-    // This method now only loads messages from local cache
-    // The global sync is triggered elsewhere (app startup, pull-to-refresh, etc.)
+    talker.log('Starting message sync via global sync');
 
     try {
-      // Just load from local cache - no network call needed
-      // New messages will be synced via the global sync mechanism
-      talker.log('Using cached messages - global sync handles network updates');
+      // Use the global sync notifier to sync all messages
+      await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
     } catch (err, stackTrace) {
       talker.log(
         'Error syncing messages',
@@ -343,10 +307,6 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       talker.log('Finished message sync');
-      // Always reset global syncing state, regardless of disposal
-      Future.microtask(() {
-        if (ref.mounted) ref.read(chatSyncingProvider.notifier).set(false);
-      });
       _isSyncing = false;
     }
   }
@@ -422,9 +382,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void> loadInitial() async {
     talker.log('Loading initial messages');
     _allRemoteMessagesFetched = false;
-    if (_searchQuery == null || _searchQuery!.isEmpty) {
-      syncMessages();
-    }
+    // NOTE: Global sync is now handled elsewhere (app startup, pull-to-refresh, etc.)
+    // No need to trigger sync here as it would cause duplicate syncs when switching chats
 
     final messages = await _getCachedMessages(
       offset: 0,
@@ -443,9 +402,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_hasMore || state is AsyncLoading) return;
     talker.log('Loading more messages');
 
-    if (!!ref.mounted) {
+    if (ref.mounted) {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     }
+
     try {
       final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final offset = currentMessages.length;

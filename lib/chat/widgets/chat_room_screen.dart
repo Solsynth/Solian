@@ -43,7 +43,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
     final chatRoom = ref.watch(chatRoomProvider(id));
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
-    final isSyncing = ref.watch(chatSyncingProvider);
     final onlineCount = ref.watch(chatOnlineCountProvider(id));
     final settings = ref.watch(appSettingsProvider);
 
@@ -398,7 +397,6 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           RoomOverlays(
             roomAsync: chatRoom,
-            isSyncing: isSyncing,
             showGradient: !isSelectionMode.value,
             bottomGradientOpacity: scrollManager.bottomGradientOpacity.value,
             inputHeight: inputHeight.value,

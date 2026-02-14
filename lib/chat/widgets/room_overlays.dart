@@ -7,7 +7,6 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomOverlays extends ConsumerWidget {
   final AsyncValue<SnChatRoom?> roomAsync;
-  final bool isSyncing;
   final bool showGradient;
   final double bottomGradientOpacity;
   final double inputHeight;
@@ -15,7 +14,6 @@ class RoomOverlays extends ConsumerWidget {
   const RoomOverlays({
     super.key,
     required this.roomAsync,
-    required this.isSyncing,
     required this.showGradient,
     required this.bottomGradientOpacity,
     required this.inputHeight,
@@ -37,40 +35,6 @@ class RoomOverlays extends ConsumerWidget {
             loading: () => const SizedBox.shrink(),
           ),
         ),
-        if (isSyncing)
-          Positioned(
-            top: 8,
-            right: 16,
-            child: Container(
-              padding: EdgeInsets.fromLTRB(
-                8,
-                8,
-                8,
-                8 + MediaQuery.of(context).padding.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).scaffoldBackgroundColor.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Syncing...',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ),
         if (showGradient)
           Positioned(
             left: 0,

@@ -93,11 +93,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       if (roomId == null) return;
 
       final sender = SnChatMember.fromJson(pkt.data?['sender']);
-      eventBus.fire(ChatTypingEvent(
-        roomId: roomId,
-        sender: sender,
-        isTyping: true,
-      ));
+      eventBus.fire(
+        ChatTypingEvent(roomId: roomId, sender: sender, isTyping: true),
+      );
       return;
     }
 
@@ -151,10 +149,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         {
           final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
           await _markMessageAsDeleted(db, targetId, roomId);
-          eventBus.fire(ChatMessageDeleteEvent(
-            messageId: targetId,
-            roomId: roomId,
-          ));
+          eventBus.fire(
+            ChatMessageDeleteEvent(messageId: targetId, roomId: roomId),
+          );
         }
     }
   }
@@ -165,10 +162,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     String roomId,
   ) async {
     try {
-      final msg = await (db.select(db.chatMessages)
-            ..where((m) => m.id.equals(messageId))
-            ..where((m) => m.roomId.equals(roomId)))
-          .getSingleOrNull();
+      final msg =
+          await (db.select(db.chatMessages)
+                ..where((m) => m.id.equals(messageId))
+                ..where((m) => m.roomId.equals(roomId)))
+              .getSingleOrNull();
       if (msg != null) {
         return db.companionToMessage(msg);
       }
@@ -201,6 +199,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   /// Perform global sync to fetch messages from all chat rooms
   Future<void> syncAllMessages() async {
     talker.log('Starting global chat sync...');
+
+    Future.microtask(() {
+      if (ref.mounted) {
+        ref.read(chatSyncingProvider.notifier).set(true);
+      }
+    });
 
     try {
       final client = ref.read(apiClientProvider);
@@ -246,6 +250,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         exception: e,
         stackTrace: stackTrace,
       );
+    } finally {
+      Future.microtask(() {
+        if (ref.mounted) {
+          ref.read(chatSyncingProvider.notifier).set(false);
+        }
+      });
     }
   }
 }
