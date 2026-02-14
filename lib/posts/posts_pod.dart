@@ -76,7 +76,7 @@ class ActivityListNotifier
       id: post.id,
       type: 'posts.new',
       resourceIdentifier: post.id,
-      data: post,
+      data: post.toJson(),
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -91,11 +91,8 @@ class ActivityListNotifier
     if (currentState == null) return;
 
     final index = currentState.items.indexWhere((item) {
-      if (item.resourceIdentifier == post.id) {
-        return true;
-      }
       final itemData = item.data;
-      if (itemData is SnPost && itemData.id == post.id) {
+      if (item.type.startsWith('posts.new') && itemData['id'] == post.id) {
         return true;
       }
       return false;
@@ -105,7 +102,7 @@ class ActivityListNotifier
 
     final existingEvent = currentState.items[index];
     final updatedEvent = existingEvent.copyWith(
-      data: post,
+      data: post.toJson(),
       updatedAt: DateTime.now(),
     );
 
@@ -120,14 +117,11 @@ class ActivityListNotifier
     if (currentState == null) return;
 
     final updatedItems = currentState.items.where((item) {
-      if (item.resourceIdentifier == postId) {
-        return false;
-      }
       final itemData = item.data;
-      if (itemData is SnPost && itemData.id == postId) {
-        return false;
+      if (item.type.startsWith('posts.new') && itemData['id'] == postId) {
+        return true;
       }
-      return true;
+      return false;
     }).toList();
 
     state = AsyncData(currentState.copyWith(items: updatedItems));

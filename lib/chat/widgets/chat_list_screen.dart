@@ -44,24 +44,33 @@ class ChatListBodyWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chats = ref.watch(chatRoomJoinedProvider);
     final settings = ref.watch(appSettingsProvider);
+    final summaries = ref.watch(chatSummaryProvider);
+    final selectedTabValue = selectedTab.value;
 
     Widget bodyWidget = Column(
       children: [
         Expanded(
           child: chats.when(
             data: (items) {
-              final filteredItems = items.where(
-                (item) =>
-                    selectedTab.value == 0 ||
-                    (selectedTab.value == 1 && item.type == 1) ||
-                    (selectedTab.value == 2 && item.type != 1),
+              final filteredItems = useMemoized(
+                () => items
+                    .where(
+                      (item) =>
+                          selectedTabValue == 0 ||
+                          (selectedTabValue == 1 && item.type == 1) ||
+                          (selectedTabValue == 2 && item.type != 1),
+                    )
+                    .toList(),
+                [items, selectedTabValue],
               );
-              final pinnedItems = filteredItems
-                  .where((item) => item.isPinned)
-                  .toList();
-              final unpinnedItems = filteredItems
-                  .where((item) => !item.isPinned)
-                  .toList();
+              final pinnedItems = useMemoized(
+                () => filteredItems.where((item) => item.isPinned).toList(),
+                [filteredItems],
+              );
+              final unpinnedItems = useMemoized(
+                () => filteredItems.where((item) => !item.isPinned).toList(),
+                [filteredItems],
+              );
 
               return ExtendedRefreshIndicator(
                 onRefresh: () async {
@@ -123,17 +132,13 @@ class ChatListBodyWidget extends HookConsumerWidget {
                           ],
                         ),
                       Expanded(
-                        child: Consumer(
-                          builder: (context, ref, _) {
-                            final summaries =
-                                ref
-                                    .watch(chatSummaryProvider)
-                                    .whenData((data) => data)
-                                    .value ??
-                                {};
+                        child: Builder(
+                          builder: (context) {
+                            final summariesData =
+                                summaries.whenData((data) => data).value ?? {};
 
                             if (settings.groupedChatList &&
-                                selectedTab.value == 0) {
+                                selectedTabValue == 0) {
                               // Group by realm (include both pinned and unpinned)
                               final realmGroups = <String?, List<SnChatRoom>>{};
                               final ungrouped = <SnChatRoom>[];
@@ -158,12 +163,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 final realmName =
                                     realm?.name ?? 'Unknown Realm';
 
-                                // Calculate total unread count for this realm
                                 final totalUnread = rooms.fold<int>(
                                   0,
                                   (sum, room) =>
                                       sum +
-                                      (summaries[room.id]?.unreadCount ?? 0),
+                                      (summariesData[room.id]?.unreadCount ??
+                                          0),
                                 );
 
                                 children.add(
@@ -246,19 +251,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 children: children,
                               );
                             } else {
-                              // Normal list view
                               return SuperListView.builder(
                                 padding: EdgeInsets.only(bottom: 96),
-                                itemCount: unpinnedItems
-                                    .where(
-                                      (item) =>
-                                          selectedTab.value == 0 ||
-                                          (selectedTab.value == 1 &&
-                                              item.type == 1) ||
-                                          (selectedTab.value == 2 &&
-                                              item.type != 1),
-                                    )
-                                    .length,
+                                itemCount: unpinnedItems.length,
                                 itemBuilder: (context, index) {
                                   final item = unpinnedItems[index];
                                   return ChatRoomListTile(
