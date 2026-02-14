@@ -52,7 +52,7 @@ PODS:
   - Firebase/Messaging (12.8.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.8.0)
-  - firebase_analytics (12.1.1):
+  - firebase_analytics (12.1.2):
     - firebase_core
     - FirebaseAnalytics (= 12.8.0)
     - Flutter
@@ -533,7 +533,7 @@ SPEC CHECKSUMS:
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 6cdbcddd690cb02b0c1a0c225b37cd805c2bf8b6
   Firebase: 9a58fdbc9d8655ed7b79a19cf9690bb007d3d46d
-  firebase_analytics: b5a19eaf3e4bf4187b0815ef4850b8916e2bc549
+  firebase_analytics: a3285a9ab410456957496cdb659f00c1cf19a95f
   firebase_core: ee30637e6744af8e0c12a6a1e8a9718506ec2398
   firebase_crashlytics: 28b8f39df8104131376393e6af658b8b77dd120f
   firebase_messaging: 343de01a8d3e18b60df0c6d37f7174c44ae38e02
