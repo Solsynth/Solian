@@ -422,21 +422,19 @@ class PageBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if we can pop from the current router
-    final canPop = context.router.canPop();
-
-    // Hide the back button when escape key is available (can pop)
-    if (canPop || isDesktop()) {
+    // On desktop, hide the back button (escape key handles navigation)
+    if (isDesktop()) {
       return const SizedBox.shrink();
     }
 
-    // Show back arrow if either current router or inner router can pop
-    final showBackArrow = canPop || context.router is NestedStackRouter;
+    // On narrow screens (mobile), always show the back button
+    // Check if we can pop from the current router
+    final canPop = context.router.canPop();
 
     return IconButton(
       onPressed: () {
         onWillPop?.call();
-        if (showBackArrow) {
+        if (canPop) {
           context.router.pop();
         } else {
           context.router.navigatePath(backTo ?? '/');
@@ -444,7 +442,7 @@ class PageBackButton extends StatelessWidget {
       },
       icon: Icon(
         color: color,
-        showBackArrow
+        canPop
             ? (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
                   ? Symbols.arrow_back_ios_new
                   : Symbols.arrow_back
