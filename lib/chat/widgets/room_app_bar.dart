@@ -15,14 +15,8 @@ List<SnChatMember> getValidMembers(List<SnChatMember> members, String? userId) {
 class RoomAppBar extends ConsumerWidget {
   final SnChatRoom room;
   final int onlineCount;
-  final bool compact;
 
-  const RoomAppBar({
-    super.key,
-    required this.room,
-    required this.onlineCount,
-    required this.compact,
-  });
+  const RoomAppBar({super.key, required this.room, required this.onlineCount});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,43 +26,20 @@ class RoomAppBar extends ConsumerWidget {
       userInfo.value?.id,
     );
 
-    if (compact) {
-      return Row(
-        spacing: 8,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _OnlineCountBadge(
-            onlineCount: onlineCount,
-            child: _RoomAvatar(
-              room: room,
-              validMembers: validMembers,
-              size: 28,
-            ),
-          ),
-          Text(
-            (room.type == 1 && room.name == null)
-                ? validMembers.map((e) => e.account.nick).join(', ')
-                : room.name!,
-          ).fontSize(19),
-        ],
-      );
-    }
-
-    return Column(
-      spacing: 4,
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
+      spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         _OnlineCountBadge(
           onlineCount: onlineCount,
-          child: _RoomAvatar(room: room, validMembers: validMembers, size: 26),
+          child: _RoomAvatar(room: room, validMembers: validMembers, size: 28),
         ),
         Text(
           (room.type == 1 && room.name == null)
               ? validMembers.map((e) => e.account.nick).join(', ')
               : room.name!,
-        ).fontSize(15),
+        ).fontSize(19),
       ],
     );
   }

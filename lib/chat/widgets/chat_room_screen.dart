@@ -19,7 +19,6 @@ import 'package:island/chat/messages_notifier.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -58,7 +57,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
+        appBar: AppBar(leading: const AutoLeadingButton()),
         body: const Center(child: CircularProgressIndicator()),
       );
     } else if (chatIdentity.value == null) {
@@ -68,7 +67,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             return PublicRoomPreview(id: id, room: room);
           } else {
             return AppScaffold(
-              appBar: AppBar(leading: const PageBackButton()),
+              appBar: AppBar(leading: const AutoLeadingButton()),
               body: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 280),
@@ -118,11 +117,11 @@ class ChatRoomScreen extends HookConsumerWidget {
           }
         },
         loading: () => AppScaffold(
-          appBar: AppBar(leading: const PageBackButton()),
+          appBar: AppBar(leading: const AutoLeadingButton()),
           body: const Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => AppScaffold(
-          appBar: AppBar(leading: const PageBackButton()),
+          appBar: AppBar(leading: const AutoLeadingButton()),
           body: ResponseErrorWidget(
             error: error,
             onRetry: () => ref.refresh(chatRoomProvider(id)),
@@ -133,7 +132,6 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
-    final compactHeader = isWideScreen(context);
 
     final scrollManager = useRoomScrollManager(
       ref,
@@ -292,15 +290,12 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        leading: !compactHeader ? const Center(child: PageBackButton()) : null,
+        leading: const AutoLeadingButton(),
+        centerTitle: false,
         automaticallyImplyLeading: false,
-        toolbarHeight: compactHeader ? null : 74,
         title: chatRoom.when(
-          data: (room) => RoomAppBar(
-            room: room!,
-            onlineCount: onlineCount.value ?? 0,
-            compact: compactHeader,
-          ),
+          data: (room) =>
+              RoomAppBar(room: room!, onlineCount: onlineCount.value ?? 0),
           loading: () => const Text('Loading...'),
           error: (err, _) => ResponseErrorWidget(
             error: err,
