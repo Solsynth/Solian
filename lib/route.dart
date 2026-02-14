@@ -122,15 +122,10 @@ class AppRouter extends RootStackRouter {
           children: [
             // Default child route -> Account list
             AutoRoute(page: AccountListRoute.page, path: '', initial: true),
+            AutoRoute(page: StickerMarketplaceRoute.page, path: 'stickers'),
             AutoRoute(
-              page: StickerMarketplaceRoute.page,
-              path: 'stickers',
-              children: [
-                AutoRoute(
-                  page: StickerMarketplacePackDetailRoute.page,
-                  path: ':id',
-                ),
-              ],
+              page: StickerMarketplacePackDetailRoute.page,
+              path: 'stickers/:id',
             ),
             AutoRoute(
               page: FeedMarketplaceRoute.page,
@@ -147,15 +142,9 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
             AutoRoute(page: AccountSettingsRoute.page, path: 'me/settings'),
-            AutoRoute(
-              page: AbuseReportListRoute.page,
-              path: 'safety/reports/me',
-            ),
-            AutoRoute(
-              page: AbuseReportDetailRoute.page,
-              path: 'safety/reports/me/:id',
-            ),
-            AutoRoute(page: FitnessActivityRoute.page, path: 'fitness'),
+            // Ticket routes
+            AutoRoute(page: TicketListRoute.page, path: 'tickets'),
+            AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
           ],
         ),
 

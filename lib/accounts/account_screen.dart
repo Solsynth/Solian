@@ -443,17 +443,10 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.gavel,
-                    'title': 'abuseReport',
+                    'icon': Symbols.mobile_ticket,
+                    'title': 'tickets',
                     'onTap': () {
-                      context.router.push(const AbuseReportListRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.fitness_center,
-                    'title': 'fitnessActivity',
-                    'onTap': () {
-                      context.router.push(const FitnessActivityRoute());
+                      context.router.push(const TicketListRoute());
                     },
                   },
                 ];

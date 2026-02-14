@@ -5,33 +5,32 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
-import 'package:island/route.gr.dart';
+import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
-import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/route.gr.dart';
 
 @RoutePage()
-class AbuseReportListScreen extends ConsumerStatefulWidget {
-  const AbuseReportListScreen({super.key});
+class TicketListScreen extends ConsumerStatefulWidget {
+  const TicketListScreen({super.key});
 
   @override
-  ConsumerState<AbuseReportListScreen> createState() =>
-      _AbuseReportListScreenState();
+  ConsumerState<TicketListScreen> createState() => _TicketListScreenState();
 }
 
-class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
-  Future<List<SnAbuseReport>>? _reportsFuture;
+class _TicketListScreenState extends ConsumerState<TicketListScreen> {
+  Future<List<SnTicket>>? _ticketsFuture;
 
   @override
   void initState() {
     super.initState();
-    _reportsFuture = ref.read(abuseReportServiceProvider).getReports();
+    _ticketsFuture = ref.read(ticketServiceProvider).getTickets();
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppBar(
-        title: Text('abuseReports').tr(),
+        title: Text('tickets').tr(),
         leading: const AutoLeadingButton(),
       ),
       floatingActionButton: FloatingActionButton(
@@ -40,20 +39,20 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
           showAbuseReportSheet(context, resourceIdentifier: 'unidentified');
         },
       ),
-      body: FutureBuilder<List<SnAbuseReport>>(
-        future: _reportsFuture,
+      body: FutureBuilder<List<SnTicket>>(
+        future: _ticketsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            final reports = snapshot.data!;
+            final tickets = snapshot.data!;
             return ListView.builder(
               padding: EdgeInsets.zero,
-              itemCount: reports.length,
+              itemCount: tickets.length,
               itemBuilder: (context, index) {
-                final report = reports[index];
+                final ticket = tickets[index];
                 return Card(
                   elevation: 2,
                   margin: const EdgeInsets.symmetric(
@@ -63,7 +62,7 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                   child: InkWell(
                     onTap: () {
                       context.router.push(
-                        AbuseReportDetailRoute(reportId: report.id),
+                        TicketDetailRoute(ticketId: ticket.id),
                       );
                     },
                     child: Padding(
@@ -72,9 +71,18 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            report.reason,
+                            ticket.title,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
+                          if (ticket.description != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              ticket.description!,
+                              style: Theme.of(context).textTheme.bodySmall,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,7 +92,7 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                report.id,
+                                ticket.id,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -98,9 +106,21 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                AbuseReportType.fromValue(
-                                  report.type,
-                                ).displayName,
+                                ticket.type.toString(),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Priority',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              Text(
+                                ticket.priority.toString(),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -114,7 +134,7 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                '${report.createdAt.formatRelative(context)} · ${report.createdAt.formatSystem()}',
+                                '${ticket.createdAt.formatRelative(context)} · ${ticket.createdAt.formatSystem()}',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -128,13 +148,15 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                report.resolvedAt != null
-                                    ? 'Resolved'
-                                    : 'Unresolved',
+                                ticket.status.toString(),
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                      color: report.resolvedAt != null
+                                      color:
+                                          ticket.status == 'resolved' ||
+                                              ticket.status == 'closed'
                                           ? Colors.green
+                                          : ticket.status == 'in_progress'
+                                          ? Colors.blue
                                           : Colors.orange,
                                     ),
                               ),

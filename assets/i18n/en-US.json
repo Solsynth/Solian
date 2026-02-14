@@ -1754,5 +1754,17 @@
   "seeAll": "See all",
   "food": "Food",
   "shopping": "Shopping",
-  "transport": "Transport"
+  "transport": "Transport",
+  "tickets": "Tickets",
+  "createTicket": "Create Ticket",
+  "ticketTitle": "Title",
+  "ticketTitleHint": "Enter ticket title",
+  "ticketDescriptionField": "Description",
+  "ticketDescriptionHint": "Describe your issue in detail...",
+  "ticketDescription": "Create a support ticket to get help from our team.",
+  "ticketType": "Ticket Type",
+  "ticketPriority": "Priority",
+  "createTicketSubmit": "Submit",
+  "ticketCreatedTitle": "Ticket Created",
+  "ticketCreated": "Your ticket has been created successfully."
 }

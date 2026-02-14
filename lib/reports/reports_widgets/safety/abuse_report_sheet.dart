@@ -3,52 +3,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/network.dart';
+import 'package:island/accounts/abuse_report_service.dart';
+import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class AbuseReportSheet extends HookConsumerWidget {
-  final String resourceIdentifier;
-  final String? initialReason;
+class TicketCreateSheet extends HookConsumerWidget {
+  final String? resourceIdentifier;
+  final String? initialTitle;
 
-  const AbuseReportSheet({
+  const TicketCreateSheet({
     super.key,
-    required this.resourceIdentifier,
-    this.initialReason,
+    this.resourceIdentifier,
+    this.initialTitle,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reasonController = useTextEditingController(
-      text: initialReason ?? '',
+    final titleController = useTextEditingController(
+      text: initialTitle ?? '',
     );
-    final selectedType = useState<int>(0);
+    final descriptionController = useTextEditingController();
+    final selectedType = useState<TicketType>(TicketType.support);
+    final selectedPriority = useState<TicketPriority>(TicketPriority.medium);
     final isSubmitting = useState<bool>(false);
 
-    final reportTypes = [
-      {'value': 0, 'label': 'abuseReportTypeCopyright'.tr()},
-      {'value': 1, 'label': 'abuseReportTypeHarassment'.tr()},
-      {'value': 2, 'label': 'abuseReportTypeImpersonation'.tr()},
-      {'value': 3, 'label': 'abuseReportTypeOffensiveContent'.tr()},
-      {'value': 4, 'label': 'abuseReportTypeSpam'.tr()},
-      {'value': 5, 'label': 'abuseReportTypePrivacyViolation'.tr()},
-      {'value': 6, 'label': 'abuseReportTypeIllegalContent'.tr()},
-      {'value': 7, 'label': 'abuseReportTypeOther'.tr()},
-    ];
+    Future<void> submitTicket() async {
+      if (titleController.text.trim().isEmpty) {
+        showErrorAlert('Title is required');
+        return;
+      }
 
-    Future<void> submitReport() async {
       isSubmitting.value = true;
 
       try {
-        final client = ref.read(apiClientProvider);
-        await client.post(
-          '/pass/safety/reports',
-          data: {
-            'resource_identifier': resourceIdentifier,
-            'type': selectedType.value,
-            'reason': reasonController.text.trim(),
-          },
+        await ref.read(ticketServiceProvider).createTicket(
+          title: titleController.text.trim(),
+          description: descriptionController.text.trim().isEmpty
+              ? null
+              : descriptionController.text.trim(),
+          type: selectedType.value.value,
+          priority: selectedPriority.value.value,
         );
 
         if (context.mounted) {
@@ -61,8 +57,8 @@ class AbuseReportSheet extends HookConsumerWidget {
                 color: Colors.green,
                 size: 36,
               ),
-              title: Text('abuseReportSuccessTitle'.tr()),
-              content: Text('abuseReportSuccess'.tr()),
+              title: Text('ticketCreatedTitle'.tr()),
+              content: Text('ticketCreated'.tr()),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -83,7 +79,7 @@ class AbuseReportSheet extends HookConsumerWidget {
     }
 
     return SheetScaffold(
-      titleText: 'abuseReportTitle'.tr(),
+      titleText: 'createTicket'.tr(),
       child: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -106,7 +102,7 @@ class AbuseReportSheet extends HookConsumerWidget {
                   const Gap(8),
                   Expanded(
                     child: Text(
-                      'abuseReportDescription'.tr(),
+                      'ticketDescription'.tr(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -117,39 +113,18 @@ class AbuseReportSheet extends HookConsumerWidget {
             ),
             const Gap(24),
 
-            // Report type selection
+            // Title text field
             Text(
-              'abuseReportType'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const Gap(12),
-            ...reportTypes.map((type) {
-              return RadioListTile<int>(
-                value: type['value'] as int,
-                groupValue: selectedType.value,
-                onChanged: (value) => selectedType.value = value!,
-                title: Text(type['label'] as String),
-                contentPadding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              );
-            }),
-            const Gap(24),
-
-            // Reason text field
-            Text(
-              'abuseReportReason'.tr(),
+              'ticketTitle'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const Gap(8),
             TextField(
-              controller: reasonController,
-              maxLines: 4,
+              controller: titleController,
               decoration: InputDecoration(
-                hintText: 'abuseReportReasonHint'.tr(),
+                hintText: 'ticketTitleHint'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -159,18 +134,80 @@ class AbuseReportSheet extends HookConsumerWidget {
             ),
             const Gap(24),
 
+            // Description text field
+            Text(
+              'ticketDescriptionField'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const Gap(8),
+            TextField(
+              controller: descriptionController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: 'ticketDescriptionHint'.tr(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+            const Gap(24),
+
+            // Ticket type selection
+            Text(
+              'ticketType'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const Gap(12),
+            ...TicketType.values.map((type) {
+              return RadioListTile<TicketType>(
+                value: type,
+                groupValue: selectedType.value,
+                onChanged: (value) => selectedType.value = value!,
+                title: Text(type.displayName),
+                contentPadding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              );
+            }),
+            const Gap(24),
+
+            // Priority selection
+            Text(
+              'ticketPriority'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const Gap(12),
+            ...TicketPriority.values.map((priority) {
+              return RadioListTile<TicketPriority>(
+                value: priority,
+                groupValue: selectedPriority.value,
+                onChanged: (value) => selectedPriority.value = value!,
+                title: Text(priority.displayName),
+                contentPadding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              );
+            }),
+            const Gap(24),
+
             // Submit button
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: isSubmitting.value ? null : submitReport,
+                onPressed: isSubmitting.value ? null : submitTicket,
                 child: isSubmitting.value
                     ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text('abuseReportSubmit'.tr()),
+                    : Text('createTicketSubmit'.tr()),
               ),
             ),
             const Gap(16),
@@ -179,4 +216,16 @@ class AbuseReportSheet extends HookConsumerWidget {
       ),
     );
   }
+}
+
+// Backward compatibility alias
+class AbuseReportSheet extends TicketCreateSheet {
+  const AbuseReportSheet({
+    super.key,
+    required String resourceIdentifier,
+    String? initialReason,
+  }) : super(
+          resourceIdentifier: resourceIdentifier,
+          initialTitle: initialReason,
+        );
 }

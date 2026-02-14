@@ -2,84 +2,112 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
+import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class AbuseReportDetailScreen extends ConsumerStatefulWidget {
-  final String reportId;
+class TicketDetailScreen extends ConsumerStatefulWidget {
+  final String ticketId;
 
-  const AbuseReportDetailScreen({super.key, required this.reportId});
+  const TicketDetailScreen({super.key, required this.ticketId});
 
   @override
-  ConsumerState<AbuseReportDetailScreen> createState() =>
-      _AbuseReportDetailScreenState();
+  ConsumerState<TicketDetailScreen> createState() => _TicketDetailScreenState();
 }
 
-class _AbuseReportDetailScreenState
-    extends ConsumerState<AbuseReportDetailScreen> {
-  Future<SnAbuseReport>? _reportFuture;
+class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
+  Future<SnTicket>? _ticketFuture;
 
   @override
   void initState() {
     super.initState();
-    _reportFuture = ref
-        .read(abuseReportServiceProvider)
-        .getReport(widget.reportId);
+    _ticketFuture = ref.read(ticketServiceProvider).getTicket(widget.ticketId);
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(title: const Text('Abuse Report Details')),
-      body: FutureBuilder<SnAbuseReport>(
-        future: _reportFuture,
+      appBar: AppBar(title: const Text('Ticket Details')),
+      body: FutureBuilder<SnTicket>(
+        future: _ticketFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            final report = snapshot.data!;
+            final ticket = snapshot.data!;
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDetailRow(context, 'Report ID', report.id),
+                  _buildDetailRow(context, 'Ticket ID', ticket.id),
+                  _buildDetailRow(context, 'Title', ticket.title),
+                  if (ticket.description != null)
+                    _buildDetailRow(
+                      context,
+                      'Description',
+                      ticket.description!,
+                    ),
+                  _buildDetailRow(context, 'Type', ticket.type.toString()),
+                  _buildDetailRow(context, 'Status', ticket.status.toString()),
                   _buildDetailRow(
                     context,
-                    'Resource Identifier',
-                    report.resourceIdentifier,
+                    'Priority',
+                    ticket.priority.toString(),
                   ),
-                  _buildDetailRow(
-                    context,
-                    'Type',
-                    AbuseReportType.fromValue(report.type).displayName,
-                  ),
-                  _buildDetailRow(context, 'Reason', report.reason),
+                  _buildDetailRow(context, 'Creator ID', ticket.creatorId),
+                  if (ticket.assigneeId != null)
+                    _buildDetailRow(context, 'Assignee ID', ticket.assigneeId!),
                   _buildDetailRow(
                     context,
                     'Resolved At',
-                    report.resolvedAt?.toString() ?? 'N/A',
+                    ticket.resolvedAt?.toString() ?? 'N/A',
                   ),
-                  _buildDetailRow(
-                    context,
-                    'Resolution',
-                    report.resolution ?? 'N/A',
-                  ),
-                  _buildDetailRow(context, 'Account ID', report.accountId),
                   _buildDetailRow(
                     context,
                     'Created At',
-                    report.createdAt.toString(),
+                    ticket.createdAt.toString(),
                   ),
                   _buildDetailRow(
                     context,
                     'Updated At',
-                    report.updatedAt.toString(),
+                    ticket.updatedAt.toString(),
                   ),
+                  if (ticket.messages.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      'Messages',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ).bold(),
+                    const SizedBox(height: 8),
+                    ...ticket.messages.map(
+                      (msg) => Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                msg.senderId,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(msg.content),
+                              const SizedBox(height: 4),
+                              Text(
+                                msg.createdAt.toString(),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );
