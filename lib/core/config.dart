@@ -32,6 +32,7 @@ const kAppCardTransparent = 'app_card_transparent';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
+const kAppAttachmentsListStyle = 'app_attachments_list_style';
 const kAppThemeMode = 'app_theme_mode';
 const kAppDisableAnimation = 'app_disable_animation';
 const kAppGroupedChatList = 'app_grouped_chat_list';
@@ -100,6 +101,7 @@ sealed class AppSettings with _$AppSettings {
     required double cardTransparency, // The card background opacity
     required String? defaultPoolId,
     required String messageDisplayStyle,
+    required String attachmentsListStyle,
     required String? themeMode,
     required bool disableAnimation,
     required bool groupedChatList,
@@ -133,6 +135,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       cardTransparency: prefs.getDouble(kAppCardTransparent) ?? 1.0,
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
+      attachmentsListStyle: prefs.getString(kAppAttachmentsListStyle) ?? 'row',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
       groupedChatList: prefs.getBool(kAppGroupedChatList) ?? false,
@@ -274,6 +277,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppMessageDisplayStyle, value);
     state = state.copyWith(messageDisplayStyle: value);
+  }
+
+  void setAttachmentsListStyle(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppAttachmentsListStyle, value);
+    state = state.copyWith(attachmentsListStyle: value);
   }
 
   void setWindowOpacity(double value) {

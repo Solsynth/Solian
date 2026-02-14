@@ -25,6 +25,7 @@ class CloudFileList extends HookConsumerWidget {
   final bool disableConstraint;
   final EdgeInsets? padding;
   final bool isColumn;
+  final bool initiallyCollapsed;
   const CloudFileList({
     super.key,
     required this.files,
@@ -35,6 +36,7 @@ class CloudFileList extends HookConsumerWidget {
     this.disableConstraint = false,
     this.padding,
     this.isColumn = false,
+    this.initiallyCollapsed = true,
   });
 
   double calculateAspectRatio() {
@@ -146,10 +148,19 @@ class CloudFileList extends HookConsumerWidget {
 
     if (files.isEmpty) return const SizedBox.shrink();
 
-    if (isColumn) {
+    final settings = ref.watch(appSettingsProvider);
+
+    final renderInColumn =
+        settings.attachmentsListStyle == 'column' || isColumn;
+
+    if (renderInColumn) {
+      final isExpanded = useState(!initiallyCollapsed);
+
       final children = <Widget>[];
       const maxFiles = 2;
-      final filesToShow = files.take(maxFiles).toList();
+      final filesToShow = isExpanded.value
+          ? files
+          : files.take(maxFiles).toList();
 
       for (var i = 0; i < filesToShow.length; i++) {
         final file = filesToShow[i];
@@ -191,11 +202,11 @@ class CloudFileList extends HookConsumerWidget {
         }
       }
 
-      if (files.length > maxFiles) {
+      if (!isExpanded.value && files.length > maxFiles) {
         children.add(const Gap(8));
         children.add(
           Text(
-            'filesListAdditional'.plural(files.length - filesToShow.length),
+            'filesListAdditional'.plural(files.length - maxFiles),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -209,10 +220,43 @@ class CloudFileList extends HookConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
+          children: [
+            ...children,
+            if (files.length > maxFiles) ...[
+              const Gap(4),
+              InkWell(
+                onTap: () => isExpanded.value = !isExpanded.value,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isExpanded.value
+                            ? Symbols.expand_less
+                            : Symbols.expand_more,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const Gap(4),
+                      Text(
+                        isExpanded.value ? 'collapse' : 'expand',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
+                        ),
+                      ).tr(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       );
     }
+
     if (files.length == 1) {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
       final isAudio = files.first.mimeType?.startsWith('audio') ?? false;

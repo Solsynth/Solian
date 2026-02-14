@@ -229,6 +229,44 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Attachments list style settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsAttachmentsListStyle').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.attachment),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: 'row',
+                child: Text('Row').fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'column',
+                child: Text('Column').fontSize(14),
+              ),
+            ],
+            value: settings.attachmentsListStyle,
+            onChanged: (String? value) {
+              if (value != null) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setAttachmentsListStyle(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
+          ),
+        ),
+      ),
+
       // Color scheme settings
       Theme(
         data: Theme.of(
