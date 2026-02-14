@@ -167,48 +167,97 @@ class PublisherSelector extends StatelessWidget {
       ).center().padding(right: 8);
     }
 
+    // Ensure the selected value is valid
+    final currentValue = currentPublisher;
+    final isValueValid =
+        currentValue != null &&
+        publishersMenu.any((item) => item.value?.id == currentValue.id);
+
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnPublisher>(
-        value: currentPublisher,
-        hint: CircleAvatar(
-          radius: 16,
-          child: Icon(
-            Symbols.person,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSecondaryContainer.withOpacity(0.9),
-            fill: 1,
+        value: isValueValid ? currentValue : null,
+        customButton: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
           ),
-        ).center().padding(right: 8),
-        items: publishersMenu,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              ProfilePictureWidget(
+                radius: 10,
+                file: isValueValid ? currentValue.picture : null,
+              ),
+              Flexible(
+                child: Text(
+                  isValueValid ? currentValue.nick : 'Select Publisher',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Symbols.keyboard_arrow_down,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+        items: publishersMenu
+            .map(
+              (item) => DropdownMenuItem<SnPublisher>(
+                value: item.value,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.value?.nick ?? '',
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      '@${item.value?.name ?? ''}',
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
         onChanged: onChanged,
-        selectedItemBuilder: (context) {
-          return publishersMenu
-              .map(
-                (e) => ProfilePictureWidget(
-                  radius: 16,
-                  file: e.value?.picture,
-                ).center().padding(right: 8),
-              )
-              .toList();
-        },
-        buttonStyleData: ButtonStyleData(
-          height: 40,
-          padding: const EdgeInsets.only(left: 14, right: 8),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+        isDense: true,
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
         ),
         dropdownStyleData: DropdownStyleData(
-          width: 320,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+          maxHeight: 300,
+          width: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceContainer,
+          ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 64,
-          padding: EdgeInsets.only(left: 14, right: 14),
-        ),
-        iconStyleData: const IconStyleData(
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 19,
+          height: 56,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );

@@ -340,117 +340,109 @@ class ProjectSelector extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final List<DropdownMenuItem<DevProject>> projectsMenu = projects.value!
-        .map(
-          (item) => DropdownMenuItem<DevProject>(
-            value: item,
-            child: ListTile(
-              minTileHeight: 48,
-              leading: CircleAvatar(
-                radius: 16,
+    // Ensure the selected value is valid
+    final currentValue = currentProject;
+    final isValueValid =
+        currentValue != null &&
+        projects.value!.any((p) => p.id == currentValue.id);
+
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<DevProject>(
+        value: isValueValid ? currentValue : null,
+        customButton: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              CircleAvatar(
+                radius: 10,
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 child: Text(
-                  item.name.isNotEmpty ? item.name[0].toUpperCase() : '?',
+                  isValueValid && currentValue.name.isNotEmpty
+                      ? currentValue.name[0].toUpperCase()
+                      : '?',
                   style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ),
-              title: Text(item.name),
-              subtitle: Text(
-                item.description ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Flexible(
+                child: Text(
+                  isValueValid ? currentValue.name : 'Select Project',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              trailing: currentProject?.id == item.id
-                  ? const Icon(Icons.check)
-                  : null,
-              contentPadding: EdgeInsets.symmetric(horizontal: 8),
-            ),
+              Icon(
+                Symbols.keyboard_arrow_down,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
           ),
-        )
-        .toList();
-
-    return DropdownButtonHideUnderline(
-      child: DropdownButton2<DevProject>(
-        value: currentProject,
-        hint: CircleAvatar(
-          radius: 16,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: Text(
-            '?',
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-          ),
-        ).center().padding(right: 8),
-        items: projectsMenu,
-        onChanged: onProjectChanged,
-        selectedItemBuilder: (context) {
-          final isWider = isWiderScreen(context);
-          return projectsMenu
-              .map(
-                (e) => isWider
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            child: Text(
-                              e.value?.name.isNotEmpty ?? false
-                                  ? e.value!.name[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                            ),
-                          ),
-                          const Gap(8),
-                          Text(
-                            e.value?.name ?? '?',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).appBarTheme.foregroundColor,
-                            ),
-                          ),
-                        ],
-                      ).padding(right: 8)
-                    : CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: Text(
-                          e.value?.name.isNotEmpty ?? false
-                              ? e.value!.name[0].toUpperCase()
-                              : '?',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
+        ),
+        items: projects.value!
+            .map(
+              (project) => DropdownMenuItem<DevProject>(
+                value: project,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      project.name,
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    if (project.description != null &&
+                        project.description!.isNotEmpty)
+                      Text(
+                        project.description!,
+                        style: DefaultTextStyle.of(context).style.copyWith(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
-                      ).center().padding(right: 8),
-              )
-              .toList();
-        },
-        buttonStyleData: ButtonStyleData(
-          height: 40,
-          padding: const EdgeInsets.only(left: 14, right: 8),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: onProjectChanged,
+        isDense: true,
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
         ),
         dropdownStyleData: DropdownStyleData(
-          width: 320,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+          maxHeight: 300,
+          width: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceContainer,
+          ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 64,
-          padding: EdgeInsets.only(left: 14, right: 14),
-        ),
-        iconStyleData: IconStyleData(
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 19,
-          iconEnabledColor: Theme.of(context).appBarTheme.foregroundColor!,
-          iconDisabledColor: Theme.of(context).appBarTheme.foregroundColor!,
+          height: 56,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );
