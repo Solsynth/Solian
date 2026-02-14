@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/screens/stickers/pack_detail.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
@@ -29,7 +29,20 @@ class CreatorStickerListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final content = SliverStickerPacksList(pubName: pubName);
+    final isWide = isWideScreen(context);
+
+    if (isWide) {
+      return AppBackground(
+        isRoot: true,
+        child: Row(
+          children: [
+            Flexible(flex: 2, child: _StickerPackListSidebar(pubName: pubName)),
+            const VerticalDivider(width: 1),
+            const Flexible(flex: 3, child: AutoRouter()),
+          ],
+        ),
+      );
+    }
 
     return AppScaffold(
       isNoBackground: false,
@@ -54,23 +67,48 @@ class CreatorStickerListScreen extends HookConsumerWidget {
         },
         child: const Icon(Symbols.add),
       ),
-      body: isWideScreen(context)
-          ? Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 640),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                  ),
-                  margin: const EdgeInsets.only(top: 16),
-                  child: content,
+      body: AutoRouter(
+        placeholder: (context) {
+          return SliverStickerPacksList(pubName: pubName);
+        },
+      ),
+    );
+  }
+}
+
+class _StickerPackListSidebar extends HookConsumerWidget {
+  final String pubName;
+  const _StickerPackListSidebar({required this.pubName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppScaffold(
+      isNoBackground: true,
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/creators'),
+        title: const Text('stickers').tr(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.add),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => SheetScaffold(
+                  titleText: 'createStickerPack'.tr(),
+                  child: StickerPackForm(pubName: pubName),
                 ),
-              ),
-            )
-          : content,
+              ).then((value) {
+                if (value != null) {
+                  ref.invalidate(stickerPacksProvider(pubName));
+                }
+              });
+            },
+          ),
+          const Gap(8),
+        ],
+      ),
+      body: SliverStickerPacksList(pubName: pubName),
     );
   }
 }
@@ -94,40 +132,10 @@ class SliverStickerPacksList extends HookConsumerWidget {
           subtitle: Text(sticker.description),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => SheetScaffold(
-                titleText: sticker.name,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Symbols.add_circle),
-                    onPressed: () {
-                      final id = sticker.id;
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => SheetScaffold(
-                          titleText: 'createSticker'.tr(),
-                          child: StickerForm(packId: id),
-                        ),
-                      ).then((value) {
-                        if (value != null) {
-                          ref.invalidate(stickerPackContentProvider(id));
-                        }
-                      });
-                    },
-                  ),
-                  StickerPackActionMenu(
-                    pubName: pubName,
-                    packId: sticker.id,
-                    iconShadow: Shadow(),
-                  ),
-                ],
-                child: StickerPackDetailContent(
-                  id: sticker.id,
-                  pubName: pubName,
-                ),
+            context.router.push(
+              CreatorStickerPackDetailRoute(
+                pubName: pubName,
+                packId: sticker.id,
               ),
             );
           },

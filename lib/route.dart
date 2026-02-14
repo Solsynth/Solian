@@ -103,13 +103,10 @@ class AppRouter extends RootStackRouter {
           children: [
             // Default child route -> Chat list
             AutoRoute(page: ChatListRoute.page, path: '', initial: true),
-
             // Chat room
             AutoRoute(page: ChatRoomRoute.page, path: ':id'),
-
             // Chat room detail
             AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
-
             // Search inside a chat room
             AutoRoute(page: SearchMessagesRoute.page, path: ':id/search'),
           ],
@@ -123,6 +120,8 @@ class AppRouter extends RootStackRouter {
           page: AccountRoute.page,
           path: 'account',
           children: [
+            // Default child route -> Account list
+            AutoRoute(page: AccountListRoute.page, path: '', initial: true),
             AutoRoute(
               page: StickerMarketplaceRoute.page,
               path: 'stickers',
@@ -171,6 +170,8 @@ class AppRouter extends RootStackRouter {
           page: CreatorHubRoute.page,
           path: 'creators',
           children: [
+            // Default child route -> Creator hub list
+            AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
             AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
             AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
@@ -199,6 +200,12 @@ class AppRouter extends RootStackRouter {
           page: DeveloperHubRoute.page,
           path: 'developers',
           children: [
+            // Default child route -> Developer hub list
+            AutoRoute(
+              page: DeveloperHubListRoute.page,
+              path: '',
+              initial: true,
+            ),
             AutoRoute(
               page: DeveloperProjectNewRoute.page,
               path: ':pubName/projects/new',

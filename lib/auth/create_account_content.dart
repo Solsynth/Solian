@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -822,7 +821,7 @@ class CreateAccountContent extends HookConsumerWidget {
           } else {
             // Existing user, switch to login
             showSnackBar('Account already exists. Redirecting to login.');
-            if (context.mounted) context.goNamed('login');
+            if (context.mounted) context.router.push(const LoginRoute());
           }
         } catch (err) {
           showErrorAlert(err);

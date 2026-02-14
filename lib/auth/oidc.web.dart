@@ -7,10 +7,8 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:web/web.dart' as web;
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-@RoutePage()
 class OidcScreen extends ConsumerStatefulWidget {
   final String provider;
   final String? title;

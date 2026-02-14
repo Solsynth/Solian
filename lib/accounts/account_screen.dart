@@ -22,6 +22,17 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
+class AccountListScreen extends StatelessWidget {
+  const AccountListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWideScreen(context)) return const SizedBox.shrink();
+    return const AccountFeatureWidget();
+  }
+}
+
+@RoutePage()
 class AccountScreen extends HookConsumerWidget {
   const AccountScreen({super.key});
 
@@ -29,25 +40,24 @@ class AccountScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
 
-    if (isWide) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            Flexible(flex: 2, child: AccountFeatureWidget(isAside: true)),
-            VerticalDivider(width: 1),
-            Flexible(flex: 3, child: AutoRouter()),
-          ],
-        ),
-      );
-    }
-
     return AppBackground(
       isRoot: true,
-      child: AutoRouter(
-        placeholder: (context) {
-          return AccountFeatureWidget();
-        },
+      child: SafeArea(
+        child: isWide
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      child: const AccountFeatureWidget(isAside: true),
+                    ),
+                  ),
+                  const VerticalDivider(width: 1),
+                  Flexible(flex: 3, child: const AutoRouter()),
+                ],
+              )
+            : const AutoRouter(),
       ),
     );
   }

@@ -90,6 +90,17 @@ Future<SnActorStatusResponse> publisherActorStatus(
   return SnActorStatusResponse.fromJson(response.data);
 }
 
+@RoutePage()
+class CreatorHubListScreen extends StatelessWidget {
+  const CreatorHubListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWideScreen(context)) return const SizedBox.shrink();
+    return const CreatorHubContentWidget();
+  }
+}
+
 final publisherMemberListNotifierProvider = AsyncNotifierProvider.family
     .autoDispose(PublisherMemberListNotifier.new);
 
@@ -305,9 +316,9 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
   }
 }
 
-@RoutePage()
-class CreatorHubScreen extends HookConsumerWidget {
-  const CreatorHubScreen({super.key});
+// Extracted widget for the Creator Hub content
+class CreatorHubContentWidget extends HookConsumerWidget {
+  const CreatorHubContentWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -582,87 +593,128 @@ class CreatorHubScreen extends HookConsumerWidget {
       }
     }
 
-    return AutoRouter(
-      placeholder: (context) {
-        return AppScaffold(
-          isNoBackground: false,
-          appBar: AppBar(
-            leading: const PageBackButton(backTo: '/account'),
-            title: Text('creatorHub').tr(),
-            actions: [
-              if (!isWideScreen(context))
-                PublisherSelector(
-                  currentPublisher: currentPublisher.value,
-                  publishersMenu: publishersMenu,
-                  onChanged: (value) {
-                    currentPublisher.value = value;
-                  },
-                ),
-              const Gap(8),
-            ],
-          ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = isWideScreen(context);
-              final maxWidth = isWide ? 800.0 : double.infinity;
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        leading: const PageBackButton(backTo: '/account'),
+        title: Text('creatorHub').tr(),
+        actions: [
+          if (!isWideScreen(context))
+            PublisherSelector(
+              currentPublisher: currentPublisher.value,
+              publishersMenu: publishersMenu,
+              onChanged: (value) {
+                currentPublisher.value = value;
+              },
+            ),
+          const Gap(8),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = isWideScreen(context);
+          final maxWidth = isWide ? 800.0 : double.infinity;
 
-              return Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: publisherStats.when(
-                    data: (stats) => SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: currentPublisher.value == null
-                          ? ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: 640),
-                              child: _PublisherUnselectedWidget(
-                                onPublisherSelected: (publisher) {
-                                  currentPublisher.value = publisher;
-                                },
-                              ),
-                            ).center()
-                          : isWide
-                          ? Column(
-                              spacing: 8,
-                              children: [
-                                const SizedBox.shrink(),
-                                PublisherSelector(
-                                  currentPublisher: currentPublisher.value,
-                                  publishersMenu: publishersMenu,
-                                  onChanged: (value) {
-                                    currentPublisher.value = value;
-                                  },
-                                ),
-                                if (stats != null)
-                                  _PublisherStatsWidget(
-                                    stats: stats,
-                                    heatmap: publisherHeatmap.value,
-                                  ).padding(horizontal: 12),
-                                buildNavigationWidget(true),
-                              ],
-                            )
-                          : Column(
-                              spacing: 12,
-                              children: [
-                                if (stats != null)
-                                  _PublisherStatsWidget(
-                                    stats: stats,
-                                    heatmap: publisherHeatmap.value,
-                                  ).padding(horizontal: 16),
-                                buildNavigationWidget(false),
-                              ],
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: publisherStats.when(
+                data: (stats) => SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: currentPublisher.value == null
+                      ? ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 640),
+                          child: _PublisherUnselectedWidget(
+                            onPublisherSelected: (publisher) {
+                              currentPublisher.value = publisher;
+                            },
+                          ),
+                        ).center()
+                      : isWide
+                      ? Column(
+                          spacing: 8,
+                          children: [
+                            const SizedBox.shrink(),
+                            PublisherSelector(
+                              currentPublisher: currentPublisher.value,
+                              publishersMenu: publishersMenu,
+                              onChanged: (value) {
+                                currentPublisher.value = value;
+                              },
                             ),
-                    ),
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
+                            if (stats != null)
+                              _PublisherStatsWidget(
+                                stats: stats,
+                                heatmap: publisherHeatmap.value,
+                              ).padding(horizontal: 12),
+                            buildNavigationWidget(true),
+                          ],
+                        )
+                      : Column(
+                          spacing: 12,
+                          children: [
+                            if (stats != null)
+                              _PublisherStatsWidget(
+                                stats: stats,
+                                heatmap: publisherHeatmap.value,
+                              ).padding(horizontal: 16),
+                            buildNavigationWidget(false),
+                          ],
+                        ),
                 ),
-              );
-            },
-          ),
-        );
-      },
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (_, _) => const SizedBox.shrink(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+@RoutePage()
+class CreatorHubScreen extends HookConsumerWidget {
+  const CreatorHubScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWide = isWideScreen(context);
+
+    return AppBackground(
+      isRoot: true,
+      child: SafeArea(
+        child: isWide
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        child: const CreatorHubContentWidget(),
+                      ),
+                    ).padding(
+                      left: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  const Gap(8),
+                  Flexible(
+                    flex: 3,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                      ),
+                      child: const AutoRouter(),
+                    ).padding(top: 16),
+                  ),
+                ],
+              )
+            : const AutoRouter(),
+      ),
     );
   }
 }

@@ -53,108 +53,13 @@ Future<List<DevProject>> devProjects(Ref ref, String pubName) async {
 }
 
 @RoutePage()
-class DeveloperHubScreen extends HookConsumerWidget {
-  final String? initialPublisherName;
-  final String? initialProjectId;
-
-  const DeveloperHubScreen({
-    super.key,
-    this.initialPublisherName,
-    this.initialProjectId,
-  });
+class DeveloperHubListScreen extends StatelessWidget {
+  const DeveloperHubListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final developers = ref.watch(developersProvider);
-    final currentDeveloper = useState<SnDeveloper?>(
-      developers.value?.firstOrNull,
-    );
-
-    final projects = currentDeveloper.value?.publisher?.name != null
-        ? ref.watch(
-            devProjectsProvider(currentDeveloper.value!.publisher!.name),
-          )
-        : const AsyncValue<List<DevProject>>.data([]);
-
-    final currentProject = useState<DevProject?>(
-      projects.value?.where((p) => p.id == initialProjectId).firstOrNull,
-    );
-
-    final developerStats = ref.watch(
-      developerStatsProvider(currentDeveloper.value?.publisher?.name),
-    );
-
-    return AutoRouter(
-      placeholder: (context) {
-        return AppScaffold(
-          isNoBackground: false,
-          appBar: _ConsoleAppBar(
-            currentDeveloper: currentDeveloper.value,
-            currentProject: currentProject.value,
-            onProjectChanged: (value) {
-              currentProject.value = value;
-            },
-            onDeveloperChanged: (value) {
-              currentDeveloper.value = value;
-            },
-          ),
-          body: Column(
-            children: [
-              // Main Content
-              if (currentProject.value != null)
-                Expanded(
-                  child: ProjectDetailView(
-                    publisherName: currentDeveloper.value!.publisher!.name,
-                    project: currentProject.value!,
-                    onBackToHub: () {
-                      currentProject.value = null;
-                    },
-                  ),
-                )
-              else
-                Expanded(
-                  child: Center(
-                    child: _MainContentSection(
-                      currentDeveloper: currentDeveloper.value,
-                      projects: projects,
-                      developerStats: developerStats,
-                      onProjectSelected: (project) {
-                        currentProject.value = project;
-                      },
-                      onDeveloperSelected: (developer) {
-                        currentDeveloper.value = developer;
-                      },
-                      onCreateProject: () {
-                        if (currentDeveloper.value != null) {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (context) => SheetScaffold(
-                              titleText: 'createProject'.tr(),
-                              child: ProjectForm(
-                                publisherName:
-                                    currentDeveloper.value!.publisher!.name,
-                              ),
-                            ),
-                          ).then((value) {
-                            if (value != null) {
-                              ref.invalidate(
-                                devProjectsProvider(
-                                  currentDeveloper.value!.publisher!.name,
-                                ),
-                              );
-                            }
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
+  Widget build(BuildContext context) {
+    if (isWideScreen(context)) return const SizedBox.shrink();
+    return const DeveloperHubContentWidget();
   }
 }
 
@@ -948,6 +853,163 @@ class _DeveloperEnrollmentSheet extends HookConsumerWidget {
           error: error,
           onRetry: () => ref.invalidate(publishersManagedProvider),
         ),
+      ),
+    );
+  }
+}
+
+// Extracted widget for the Developer Hub content
+class DeveloperHubContentWidget extends HookConsumerWidget {
+  final String? initialPublisherName;
+  final String? initialProjectId;
+
+  const DeveloperHubContentWidget({
+    super.key,
+    this.initialPublisherName,
+    this.initialProjectId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final developers = ref.watch(developersProvider);
+    final currentDeveloper = useState<SnDeveloper?>(
+      developers.value?.firstOrNull,
+    );
+
+    final projects = currentDeveloper.value?.publisher?.name != null
+        ? ref.watch(
+            devProjectsProvider(currentDeveloper.value!.publisher!.name),
+          )
+        : const AsyncValue<List<DevProject>>.data([]);
+
+    final currentProject = useState<DevProject?>(
+      projects.value?.where((p) => p.id == initialProjectId).firstOrNull,
+    );
+
+    final developerStats = ref.watch(
+      developerStatsProvider(currentDeveloper.value?.publisher?.name),
+    );
+
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: _ConsoleAppBar(
+        currentDeveloper: currentDeveloper.value,
+        currentProject: currentProject.value,
+        onProjectChanged: (value) {
+          currentProject.value = value;
+        },
+        onDeveloperChanged: (value) {
+          currentDeveloper.value = value;
+        },
+      ),
+      body: Column(
+        children: [
+          // Main Content
+          if (currentProject.value != null)
+            Expanded(
+              child: ProjectDetailView(
+                publisherName: currentDeveloper.value!.publisher!.name,
+                project: currentProject.value!,
+                onBackToHub: () {
+                  currentProject.value = null;
+                },
+              ),
+            )
+          else
+            Expanded(
+              child: Center(
+                child: _MainContentSection(
+                  currentDeveloper: currentDeveloper.value,
+                  projects: projects,
+                  developerStats: developerStats,
+                  onProjectSelected: (project) {
+                    currentProject.value = project;
+                  },
+                  onDeveloperSelected: (developer) {
+                    currentDeveloper.value = developer;
+                  },
+                  onCreateProject: () {
+                    if (currentDeveloper.value != null) {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => SheetScaffold(
+                          titleText: 'createProject'.tr(),
+                          child: ProjectForm(
+                            publisherName:
+                                currentDeveloper.value!.publisher!.name,
+                          ),
+                        ),
+                      ).then((value) {
+                        if (value != null) {
+                          ref.invalidate(
+                            devProjectsProvider(
+                              currentDeveloper.value!.publisher!.name,
+                            ),
+                          );
+                        }
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+@RoutePage()
+class DeveloperHubScreen extends HookConsumerWidget {
+  final String? initialPublisherName;
+  final String? initialProjectId;
+
+  const DeveloperHubScreen({
+    super.key,
+    this.initialPublisherName,
+    this.initialProjectId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWide = isWideScreen(context);
+
+    return AppBackground(
+      isRoot: true,
+      child: SafeArea(
+        child: isWide
+            ? Row(
+                children: [
+                  Flexible(
+                    flex: 2,
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        child: DeveloperHubContentWidget(
+                          initialPublisherName: initialPublisherName,
+                          initialProjectId: initialProjectId,
+                        ),
+                      ),
+                    ).padding(
+                      left: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  const Gap(8),
+                  Flexible(
+                    flex: 3,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                      ),
+                      child: const AutoRouter(),
+                    ).padding(top: 16),
+                  ),
+                ],
+              )
+            : const AutoRouter(),
       ),
     );
   }

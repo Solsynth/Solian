@@ -5,13 +5,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gap/gap.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:island/command_palette/palette.dart';
 import 'package:island/core/config.dart';
-import 'package:island/route.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
@@ -88,31 +86,6 @@ class WindowScaffold extends HookConsumerWidget {
     );
     useEffect(() => subscription.cancel, [subscription]);
 
-    final router = ref.watch(routerProvider);
-
-    final pageActionsButton = [
-      if (router.canPop())
-        IconButton(
-          icon: Icon(Symbols.close),
-          onPressed: router.canPop() ? () => router.pop() : null,
-          iconSize: 16,
-          padding: EdgeInsets.all(8),
-          constraints: BoxConstraints(),
-          color: Theme.of(context).iconTheme.color,
-        )
-      else
-        IconButton(
-          icon: Icon(Symbols.home),
-          // onPressed: () => router.go('/'),
-          onPressed: () {},
-          iconSize: 16,
-          padding: EdgeInsets.all(8),
-          constraints: BoxConstraints(),
-          color: Theme.of(context).iconTheme.color,
-        ),
-      const Gap(8),
-    ];
-
     final cmpHotKey = HotKey(
       identifier: 'open_command_pattle',
       key: PhysicalKeyboardKey.tab,
@@ -159,15 +132,7 @@ class WindowScaffold extends HookConsumerWidget {
                       ? Stack(
                           alignment: Alignment.center,
                           children: [
-                            if (isWideScreen(context))
-                              Row(
-                                children: [
-                                  const Spacer(),
-                                  ...pageActionsButton,
-                                ],
-                              )
-                            else
-                              SizedBox(height: 32),
+                            const SizedBox(height: 32),
                             Text(
                               'Solar Network',
                               textAlign: TextAlign.center,
@@ -409,12 +374,14 @@ class PageBackButton extends StatelessWidget {
   final List<Shadow>? shadows;
   final VoidCallback? onWillPop;
   final String? backTo;
+  final bool forcePop;
   const PageBackButton({
     super.key,
     this.shadows,
     this.onWillPop,
     this.color,
     this.backTo,
+    this.forcePop = false,
   });
 
   static bool isDesktop() =>
@@ -423,7 +390,7 @@ class PageBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // On desktop, hide the back button (escape key handles navigation)
-    if (isDesktop()) {
+    if (isDesktop() && backTo != null && !forcePop) {
       return const SizedBox.shrink();
     }
 
@@ -434,10 +401,10 @@ class PageBackButton extends StatelessWidget {
     return IconButton(
       onPressed: () {
         onWillPop?.call();
-        if (canPop) {
+        if (canPop || forcePop) {
           context.router.pop();
         } else {
-          context.router.navigatePath(backTo ?? '/');
+          context.router.replacePath(backTo ?? '/');
         }
       },
       icon: Icon(
