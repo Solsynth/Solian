@@ -221,7 +221,86 @@ class CloudFileList extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ...children,
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (var i = 0; i < filesToShow.length; i++)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      child:
+                          filesToShow[i].mimeType?.startsWith('audio') ?? false
+                          ? SizedBox(
+                              height: 120,
+                              child: _CloudFileListEntry(
+                                file: filesToShow[i],
+                                heroTag: heroTags[i],
+                                isImage: false,
+                                disableZoomIn: disableZoomIn,
+                                onTap: () {
+                                  if (!disableZoomIn) {
+                                    context.pushTransparentRoute(
+                                      CloudFileLightbox(
+                                        item: filesToShow[i],
+                                        heroTag: heroTags[i],
+                                      ),
+                                      rootNavigator: true,
+                                    );
+                                  }
+                                },
+                              ),
+                            )
+                          : AspectRatio(
+                              aspectRatio:
+                                  filesToShow[i].fileMeta?['ratio']
+                                      as double? ??
+                                  1.0,
+                              child: _CloudFileListEntry(
+                                file: filesToShow[i],
+                                heroTag: heroTags[i],
+                                isImage:
+                                    filesToShow[i].mimeType?.startsWith(
+                                      'image',
+                                    ) ??
+                                    false,
+                                disableZoomIn: disableZoomIn,
+                                onTap: () {
+                                  if (!(filesToShow[i].mimeType?.startsWith(
+                                        'image',
+                                      ) ??
+                                      false)) {
+                                    return;
+                                  }
+                                  if (!disableZoomIn) {
+                                    context.pushTransparentRoute(
+                                      CloudFileLightbox(
+                                        item: filesToShow[i],
+                                        heroTag: heroTags[i],
+                                      ),
+                                      rootNavigator: true,
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                    ).clipRRect(all: 8),
+                ],
+              ),
+            ),
+            if (!isExpanded.value && files.length > maxFiles) ...[
+              const Gap(8),
+              Text(
+                'filesListAdditional'.plural(files.length - maxFiles),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
             if (files.length > maxFiles) ...[
               const Gap(4),
               InkWell(
