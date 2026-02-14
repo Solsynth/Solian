@@ -206,15 +206,9 @@ class PublisherSelector extends StatelessWidget {
           height: 64,
           padding: EdgeInsets.only(left: 14, right: 14),
         ),
-        iconStyleData: IconStyleData(
+        iconStyleData: const IconStyleData(
           icon: Icon(Icons.arrow_drop_down),
           iconSize: 19,
-          iconEnabledColor: isWideScreen(context)
-              ? null
-              : Theme.of(context).appBarTheme.foregroundColor!,
-          iconDisabledColor: isWideScreen(context)
-              ? null
-              : Theme.of(context).appBarTheme.foregroundColor!,
         ),
       ),
     );
@@ -391,7 +385,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       publisherFeaturesProvider(currentPublisher.value?.name),
     );
 
-    Widget buildNavigationWidget(bool isWide) {
+    Widget buildNavigationWidget() {
       final leftItems = [
         ListTile(
           shape: RoundedRectangleBorder(
@@ -564,33 +558,12 @@ class CreatorHubContentWidget extends HookConsumerWidget {
         ),
       ];
 
-      if (isWide) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 8,
-          children: [
-            Expanded(
-              child: Card(
-                margin: EdgeInsets.zero,
-                child: Column(children: leftItems),
-              ),
-            ),
-            Expanded(
-              child: Card(
-                margin: EdgeInsets.zero,
-                child: Column(children: rightItems),
-              ),
-            ),
-          ],
-        ).padding(horizontal: 12);
-      } else {
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [...leftItems, const Divider(height: 8), ...rightItems],
-          ),
-        );
-      }
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [...leftItems, const Divider(height: 8), ...rightItems],
+        ),
+      );
     }
 
     return AppScaffold(
@@ -599,75 +572,42 @@ class CreatorHubContentWidget extends HookConsumerWidget {
         leading: const AutoLeadingButton(),
         title: Text('creatorHub').tr(),
         actions: [
-          if (!isWideScreen(context))
-            PublisherSelector(
-              currentPublisher: currentPublisher.value,
-              publishersMenu: publishersMenu,
-              onChanged: (value) {
-                currentPublisher.value = value;
-              },
-            ),
+          PublisherSelector(
+            currentPublisher: currentPublisher.value,
+            publishersMenu: publishersMenu,
+            onChanged: (value) {
+              currentPublisher.value = value;
+            },
+          ),
           const Gap(8),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = isWideScreen(context);
-          final maxWidth = isWide ? 800.0 : double.infinity;
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: publisherStats.when(
-                data: (stats) => SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: currentPublisher.value == null
-                      ? ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 640),
-                          child: _PublisherUnselectedWidget(
-                            onPublisherSelected: (publisher) {
-                              currentPublisher.value = publisher;
-                            },
-                          ),
-                        ).center()
-                      : isWide
-                      ? Column(
-                          spacing: 8,
-                          children: [
-                            const SizedBox.shrink(),
-                            PublisherSelector(
-                              currentPublisher: currentPublisher.value,
-                              publishersMenu: publishersMenu,
-                              onChanged: (value) {
-                                currentPublisher.value = value;
-                              },
-                            ),
-                            if (stats != null)
-                              _PublisherStatsWidget(
-                                stats: stats,
-                                heatmap: publisherHeatmap.value,
-                              ).padding(horizontal: 12),
-                            buildNavigationWidget(true),
-                          ],
-                        )
-                      : Column(
-                          spacing: 12,
-                          children: [
-                            if (stats != null)
-                              _PublisherStatsWidget(
-                                stats: stats,
-                                heatmap: publisherHeatmap.value,
-                              ).padding(horizontal: 16),
-                            buildNavigationWidget(false),
-                          ],
-                        ),
+      body: publisherStats.when(
+        data: (stats) => SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: currentPublisher.value == null
+              ? ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: _PublisherUnselectedWidget(
+                    onPublisherSelected: (publisher) {
+                      currentPublisher.value = publisher;
+                    },
+                  ),
+                ).center()
+              : Column(
+                  spacing: 12,
+                  children: [
+                    if (stats != null)
+                      _PublisherStatsWidget(
+                        stats: stats,
+                        heatmap: publisherHeatmap.value,
+                      ).padding(horizontal: 16),
+                    buildNavigationWidget(),
+                  ],
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-            ),
-          );
-        },
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => const SizedBox.shrink(),
       ),
     );
   }
