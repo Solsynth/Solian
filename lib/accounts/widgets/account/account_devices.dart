@@ -117,55 +117,57 @@ class _DeviceListTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text('authDeviceChallenges'.tr()),
         ),
-        ...device.sessions
-            .map(
-              (session) => Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        InfoRow(
-                          label: 'createdAt'.tr(
-                            args: [session.createdAt.toLocal().formatSystem()],
+        if (device.sessions.isNotEmpty) ...[
+          ...device.sessions
+              .map(
+                (session) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
+                          InfoRow(
+                            label: 'createdAt'.tr(
+                              args: [session.createdAt.toLocal().formatSystem()],
+                            ),
+                            icon: Symbols.join,
                           ),
-                          icon: Symbols.join,
-                        ),
-                        InfoRow(
-                          label: 'lastActiveAt'.tr(
-                            args: [
-                              session.lastGrantedAt.toLocal().formatSystem(),
-                            ],
+                          InfoRow(
+                            label: 'lastActiveAt'.tr(
+                              args: [
+                                session.lastGrantedAt.toLocal().formatSystem(),
+                              ],
+                            ),
+                            icon: Symbols.refresh_rounded,
                           ),
-                          icon: Symbols.refresh_rounded,
-                        ),
-                        InfoRow(
-                          label:
-                              '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
-                          icon: Symbols.pin_drop,
-                        ),
-                        InfoRow(
-                          label:
-                              '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
-                          icon: Symbols.dns,
-                        ),
-                      ],
+                          InfoRow(
+                            label:
+                                '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
+                            icon: Symbols.pin_drop,
+                          ),
+                          InfoRow(
+                            label:
+                                '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
+                            icon: Symbols.dns,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.logout),
-                    tooltip: 'authSessionLogout'.tr(),
-                    onPressed: () => logoutSession(session.id),
-                  ),
-                  const Gap(4),
-                ],
-              ).padding(horizontal: 20, vertical: 8),
-            )
-            .expand((element) => [element, const Divider(height: 1)])
-            .toList()
-          ..removeLast(),
+                    IconButton(
+                      icon: Icon(Icons.logout),
+                      tooltip: 'authSessionLogout'.tr(),
+                      onPressed: () => logoutSession(session.id),
+                    ),
+                    const Gap(4),
+                  ],
+                ).padding(horizontal: 20, vertical: 8),
+              )
+              .expand((element) => [element, const Divider(height: 1)])
+              .toList()
+            ..removeLast(),
+        ],
       ],
     );
   }
