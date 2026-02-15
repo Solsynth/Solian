@@ -390,28 +390,36 @@ class ChatRoomScreen extends HookConsumerWidget {
       return null;
     })();
 
-    final jumpToLastReadAnchor = useCallback(() {
-      final targetId = lastReadAnchorMessageId.value;
-      if (targetId == null || targetId.isEmpty) return;
+    final jumpToLastReadAnchor = useCallback(
+      () {
+        final targetId = lastReadAnchorMessageId.value;
+        if (targetId == null || targetId.isEmpty) return;
 
-      messagesNotifier.jumpToMessage(targetId).then((index) {
-        if (index != -1 && context.mounted) {
-          ref
-              .read(flashingMessagesProvider.notifier)
-              .update((set) => set.union({targetId}));
-          messages.when(
-            data: (messageList) {
-              scrollManager.scrollToMessage(
-                messageId: targetId,
-                messageList: messageList,
-              );
-            },
-            loading: () {},
-            error: (_, _) {},
-          );
-        }
-      });
-    }, [lastReadAnchorMessageId.value, messagesNotifier, messages, scrollManager]);
+        messagesNotifier.jumpToMessage(targetId).then((index) {
+          if (index != -1 && context.mounted) {
+            ref
+                .read(flashingMessagesProvider.notifier)
+                .update((set) => set.union({targetId}));
+            messages.when(
+              data: (messageList) {
+                scrollManager.scrollToMessage(
+                  messageId: targetId,
+                  messageList: messageList,
+                );
+              },
+              loading: () {},
+              error: (_, _) {},
+            );
+          }
+        });
+      },
+      [
+        lastReadAnchorMessageId.value,
+        messagesNotifier,
+        messages,
+        scrollManager,
+      ],
+    );
 
     return Stack(
       children: [
@@ -464,63 +472,77 @@ class ChatRoomScreen extends HookConsumerWidget {
                   }
                 },
               ),
-              if (visibleLastReadAnchorMessageId != null)
-                IconButton(
-                  tooltip: 'Follow back',
-                  icon: const Icon(Icons.bookmark_added_outlined),
-                  onPressed: jumpToLastReadAnchor,
-                ),
               const SizedBox(width: 8),
             ],
           ),
           body: Column(
             children: [
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                  child: messages.when(
-                    data: (messageList) => messageList.isEmpty
-                        ? Center(
-                            key: const ValueKey('empty-messages'),
-                            child: Text('No messages yet'.tr()),
-                          )
-                        : RoomMessageList(
-                            key: const ValueKey('message-list'),
-                            messages: messageList,
-                            roomAsync: chatRoom,
-                            chatIdentity: chatIdentity,
-                            scrollController: scrollManager.scrollController,
-                            listController: scrollManager.listController,
-                            isSelectionMode: isSelectionMode.value,
-                            selectedMessages: selectedMessages.value,
-                            toggleSelectionMode: toggleSelectionMode,
-                            toggleMessageSelection: toggleMessageSelection,
-                            onMessageAction: inputManager.onMessageAction,
-                            onJump: onJump,
-                            attachmentProgress: inputManager.attachmentProgress,
-                            previousInputHeight: previousInputHeightRef.value,
-                            roomOpenTime: roomOpenTime,
-                            lastReadAnchorMessageId:
-                                visibleLastReadAnchorMessageId,
-                            onFollowBack: jumpToLastReadAnchor,
-                            disableAnimation: settings.disableAnimation,
-                          ),
-                    loading: () => const Center(
-                      key: ValueKey('loading-messages'),
-                      child: CircularProgressIndicator(),
+                child: Stack(
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                      child: messages.when(
+                        data: (messageList) => messageList.isEmpty
+                            ? Center(
+                                key: const ValueKey('empty-messages'),
+                                child: Text('No messages yet'.tr()),
+                              )
+                            : RoomMessageList(
+                                key: const ValueKey('message-list'),
+                                messages: messageList,
+                                roomAsync: chatRoom,
+                                chatIdentity: chatIdentity,
+                                scrollController:
+                                    scrollManager.scrollController,
+                                listController: scrollManager.listController,
+                                isSelectionMode: isSelectionMode.value,
+                                selectedMessages: selectedMessages.value,
+                                toggleSelectionMode: toggleSelectionMode,
+                                toggleMessageSelection: toggleMessageSelection,
+                                onMessageAction: inputManager.onMessageAction,
+                                onJump: onJump,
+                                attachmentProgress:
+                                    inputManager.attachmentProgress,
+                                previousInputHeight:
+                                    previousInputHeightRef.value,
+                                roomOpenTime: roomOpenTime,
+                                lastReadAnchorMessageId:
+                                    visibleLastReadAnchorMessageId,
+                                onFollowBack: jumpToLastReadAnchor,
+                                disableAnimation: settings.disableAnimation,
+                              ),
+                        loading: () => const Center(
+                          key: ValueKey('loading-messages'),
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (error, _) => ResponseErrorWidget(
+                          key: const ValueKey('error-messages'),
+                          error: error,
+                          onRetry: () => messagesNotifier.loadInitial(),
+                        ),
+                      ),
                     ),
-                    error: (error, _) => ResponseErrorWidget(
-                      key: const ValueKey('error-messages'),
-                      error: error,
-                      onRetry: () => messagesNotifier.loadInitial(),
-                    ),
-                  ),
+                    if (visibleLastReadAnchorMessageId != null)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: FilledButton.tonalIcon(
+                          onPressed: jumpToLastReadAnchor,
+                          icon: const Icon(Icons.bookmark_added_outlined),
+                          label: const Text('Follow back'),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               if (!isSelectionMode.value)
