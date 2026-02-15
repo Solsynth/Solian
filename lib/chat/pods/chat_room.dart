@@ -5,6 +5,7 @@ import 'package:island/data/drift_db.dart';
 import 'package:island/data/message.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -41,28 +42,7 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
   void clear() => state = {};
 }
 
-/// Get the latest message timestamp from local database
-Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
-  try {
-    // Query for the latest message across all rooms
-    final result = await db
-        .customSelect(
-          'SELECT MAX(created_at) as latest_timestamp FROM chat_messages',
-          readsFrom: {db.chatMessages},
-        )
-        .getSingleOrNull();
-
-    if (result != null) {
-      final latestTimestamp = result.read<DateTime?>('latest_timestamp');
-      if (latestTimestamp != null) {
-        return latestTimestamp.millisecondsSinceEpoch;
-      }
-    }
-  } catch (e) {
-    talker.log('Error getting latest message timestamp: $e');
-  }
-  return 0;
-}
+const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
 
 /// Global chat sync notifier that syncs messages from all chat rooms
 @Riverpod(keepAlive: true)
@@ -209,15 +189,18 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       final client = ref.read(apiClientProvider);
       final db = ref.read(databaseProvider);
+      final prefs = ref.read(sharedPreferencesProvider);
 
-      // Get last sync timestamp from local database (latest message)
-      final lastSyncTimestamp = await _getLatestMessageTimestamp(db);
+      // Use a dedicated persisted sync cursor instead of DB max(created_at).
+      // This prevents websocket-received newer messages from skipping older
+      // offline windows during the next API sync.
+      var currentSyncTimestamp = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
 
-      talker.log('Global sync with timestamp: $lastSyncTimestamp');
+      talker.log('Global sync with cursor: $currentSyncTimestamp');
 
       // Use a loop to handle pagination - continue syncing until all messages are fetched
-      var currentSyncTimestamp = lastSyncTimestamp;
       var totalSynced = 0;
+      var maxSeenTimestamp = currentSyncTimestamp;
 
       while (true) {
         // Call the global sync endpoint
@@ -244,6 +227,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               MessageStatus.sent,
             );
             await db.saveMessageWithSender(localMessage);
+            final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+            if (createdAtMs > maxSeenTimestamp) {
+              maxSeenTimestamp = createdAtMs;
+            }
           } catch (e) {
             talker.log('Error saving message from global sync: $e');
           }
@@ -254,16 +241,28 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         // Check if there are more messages to sync
         // If messages.length < totalMessages, we need to continue with pagination
         if (messages.length < totalMessages) {
-          // Update timestamp and continue syncing
+          // Keep using the server cursor for paging within this sync session.
           currentSyncTimestamp = currentTimestamp.millisecondsSinceEpoch;
-          talker.log('More messages to sync, continuing with timestamp: $currentSyncTimestamp');
+          talker.log(
+            'More messages to sync, continuing with cursor: $currentSyncTimestamp',
+          );
         } else {
           // No more messages to sync
           break;
         }
       }
 
-      talker.log('Global sync complete: $totalSynced messages saved');
+      // Persist the farthest cursor we've reached for next sync run.
+      // We use max(server cursor, latest created_at seen) for monotonic progress.
+      final nextCursor = [
+        maxSeenTimestamp,
+        currentSyncTimestamp,
+      ].reduce((a, b) => a > b ? a : b);
+      await prefs.setInt(_chatSyncCursorStoreKey, nextCursor);
+
+      talker.log(
+        'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
+      );
     } catch (e, stackTrace) {
       talker.log(
         'Error during global chat sync',

@@ -15,6 +15,7 @@ import "package:island/shared/widgets/alert.dart";
 import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
 import "package:island/drive/widgets/cloud_files.dart";
 import "package:island/shared/widgets/response.dart";
+import "package:island/talker.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
@@ -42,8 +43,14 @@ class PublicRoomPreview extends HookConsumerWidget {
       void onScroll() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
+          talker.log(
+            'Public preview reached pagination threshold '
+            '(roomId=$id, pixels=${scrollController.position.pixels}, '
+            'max=${scrollController.position.maxScrollExtent}, isLoading=$isLoading)',
+          );
           if (isLoading) return;
           isLoading = true;
+          talker.log('Public preview triggering loadMore (roomId=$id)');
           messagesNotifier.loadMore().then((_) => isLoading = false);
         }
       }

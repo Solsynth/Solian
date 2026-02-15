@@ -137,24 +137,37 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
-    final pausedTime = useRef<DateTime?>(null);
+    final previousLifecycleState = useRef<AppLifecycleState?>(null);
+    final isResyncingAfterResume = useState(false);
 
     useEffect(() {
-      lifecycleState.whenData((state) async {
-        if (state == AppLifecycleState.paused) {
-          pausedTime.value = DateTime.now();
-        } else if (state == AppLifecycleState.resumed &&
-            pausedTime.value != null) {
-          final elapsed = DateTime.now().difference(pausedTime.value!);
-          if (elapsed.inMinutes >= 1) {
+      final nextState = lifecycleState.value;
+      if (nextState == null) return null;
+
+      final previousState = previousLifecycleState.value;
+      final resumedFromBackground =
+          nextState == AppLifecycleState.resumed &&
+          (previousState == AppLifecycleState.paused ||
+              previousState == AppLifecycleState.inactive ||
+              previousState == AppLifecycleState.detached);
+
+      if (resumedFromBackground && !isResyncingAfterResume.value) {
+        isResyncingAfterResume.value = true;
+        Future<void>(() async {
+          try {
             await messagesNotifier.syncMessages();
-            await messagesNotifier.loadInitial();
+            await messagesNotifier.loadInitial(forceRemoteRefresh: true);
+          } finally {
+            if (context.mounted) {
+              isResyncingAfterResume.value = false;
+            }
           }
-          pausedTime.value = null;
-        }
-      });
+        });
+      }
+
+      previousLifecycleState.value = nextState;
       return null;
-    }, [lifecycleState]);
+    }, [lifecycleState.value, messagesNotifier]);
 
     final scrollManager = useRoomScrollManager(
       ref,

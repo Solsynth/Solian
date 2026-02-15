@@ -38,6 +38,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isSyncing = false;
   bool _isJumping = false;
   bool _isUpdatingState = false;
+  bool _isLoadingInitial = false;
   bool _allRemoteMessagesFetched = false;
 
   late Future<SnAccount?> Function(String) _fetchAccount;
@@ -69,11 +70,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('MessagesNotifier built for room $roomId');
 
-    // NOTE: Global sync is now handled elsewhere (app startup, pull-to-refresh, etc.)
-    // No need to trigger sync from here as it would cause duplicate syncs
-
-    loadInitial();
-    return [];
+    return _loadInitialMessages(forceRemoteRefresh: false);
   }
 
   List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
@@ -317,14 +314,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool synced = false,
   }) async {
     try {
-      if (offset == 0 &&
-          !synced &&
-          (_searchQuery == null || _searchQuery!.isEmpty)) {
-        _fetchAndCacheMessages(offset: 0, take: take).catchError((_) {
-          return <LocalChatMessage>[];
-        });
-      }
-
       final localMessages = await _getCachedMessages(
         offset: offset,
         take: take,
@@ -385,13 +374,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  Future<void> loadInitial() async {
-    talker.log('Loading initial messages');
+  Future<List<LocalChatMessage>> _loadInitialMessages({
+    bool forceRemoteRefresh = true,
+  }) async {
     _allRemoteMessagesFetched = false;
-    // NOTE: Global sync is now handled elsewhere (app startup, pull-to-refresh, etc.)
-    // No need to trigger sync here as it would cause duplicate syncs when switching chats
 
-    final messages = await _getCachedMessages(
+    final cachedMessages = await _getCachedMessages(
       offset: 0,
       take: _pageSize,
       searchQuery: _searchQuery,
@@ -399,23 +387,78 @@ class MessagesNotifier extends _$MessagesNotifier {
       withAttachments: _withAttachments,
     );
 
-    _hasMore = messages.length == _pageSize;
+    final canFetchRemote =
+        (_searchQuery == null || _searchQuery!.isEmpty) &&
+        _withLinks != true &&
+        _withAttachments != true;
+    final shouldRefreshRemote =
+        canFetchRemote && (forceRemoteRefresh || cachedMessages.isEmpty);
 
-    if (ref.mounted) state = AsyncValue.data(messages);
+    if (!shouldRefreshRemote) {
+      _hasMore = cachedMessages.length == _pageSize;
+      return cachedMessages;
+    }
+
+    try {
+      // Reset total count so resumed sessions and long-lived notifiers do not
+      // keep stale pagination metadata.
+      _totalCount = null;
+      await _fetchAndCacheMessages(offset: 0, take: _pageSize);
+      final refreshedMessages = await _getCachedMessages(
+        offset: 0,
+        take: _pageSize,
+        searchQuery: _searchQuery,
+        withLinks: _withLinks,
+        withAttachments: _withAttachments,
+      );
+      _hasMore = refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
+      return refreshedMessages;
+    } catch (err, stackTrace) {
+      talker.log(
+        'Error refreshing initial messages from remote, falling back to cache',
+        exception: err,
+        stackTrace: stackTrace,
+      );
+      _hasMore = cachedMessages.length == _pageSize;
+      return cachedMessages;
+    }
+  }
+
+  Future<void> loadInitial({bool forceRemoteRefresh = true}) async {
+    if (_isLoadingInitial) {
+      talker.log('Initial load already in progress, skipping.');
+      return;
+    }
+
+    talker.log('Loading initial messages');
+    _isLoadingInitial = true;
+
+    try {
+      final messages = await _loadInitialMessages(
+        forceRemoteRefresh: forceRemoteRefresh,
+      );
+      if (ref.mounted) state = AsyncValue.data(messages);
+    } finally {
+      _isLoadingInitial = false;
+    }
   }
 
   Future<void> loadMore() async {
-    if (!_hasMore || state is AsyncLoading) return;
-    talker.log('Loading more messages');
+    if (!_hasMore || state is AsyncLoading) {
+      talker.log(
+        'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading})',
+      );
+      return;
+    }
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final offset = currentMessages.length;
+    talker.log('Loading more messages (offset=$offset, take=$_pageSize)');
 
     if (ref.mounted) {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
     }
 
     try {
-      final currentMessages = (ref.mounted ? state.value : null) ?? [];
-      final offset = currentMessages.length;
-
       final newMessages = await listMessages(offset: offset, take: _pageSize);
 
       if (newMessages.isEmpty || newMessages.length < _pageSize) {
@@ -427,6 +470,9 @@ class MessagesNotifier extends _$MessagesNotifier {
           _sortMessages([...currentMessages, ...newMessages]),
         );
       }
+      talker.log(
+        'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore)',
+      );
     } catch (err, stackTrace) {
       talker.log(
         'Error loading more messages',

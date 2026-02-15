@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/data/message.dart';
+import 'package:island/talker.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class RoomScrollManager {
@@ -99,8 +100,15 @@ RoomScrollManager useRoomScrollManager(
         data: (messageList) {
           if (scrollController.position.pixels >=
               scrollController.position.maxScrollExtent - 200) {
+            talker.log(
+              'Room scroll reached pagination threshold '
+              '(roomId=$roomId, pixels=${scrollController.position.pixels}, '
+              'max=${scrollController.position.maxScrollExtent}, '
+              'isLoading=$isLoading, localCount=${messageList.length})',
+            );
             if (!isLoading) {
               isLoading = true;
+              talker.log('Room scroll triggering loadMore (roomId=$roomId)');
               messagesNotifier.loadMore().then((_) => isLoading = false);
             }
           }
