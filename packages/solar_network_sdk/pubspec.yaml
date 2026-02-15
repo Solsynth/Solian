@@ -15,7 +15,7 @@ dependencies:
   shared_preferences: ^2.5.4
   crypto: ^3.0.7
   uuid: ^4.5.2
-  device_info_plus: 11.5.0
+  device_info_plus: ^11.3.0
   package_info_plus: ^9.0.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.10.0

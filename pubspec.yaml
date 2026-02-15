@@ -67,7 +67,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   animations: ^2.1.1
   package_info_plus: ^9.0.0
-  device_info_plus: ^11.5.0
+  device_info_plus: ^11.3.0
   protocol_handler: ^0.2.0
   cross_file: ^0.3.5+2
   image_picker: ^1.2.1
@@ -196,9 +196,6 @@ dev_dependencies:
   drift_dev: ^2.31.0
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
-
-dependency_overrides:
-  win32_registry: ^2.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
