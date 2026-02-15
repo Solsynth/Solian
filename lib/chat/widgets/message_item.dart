@@ -258,8 +258,8 @@ class MessageItem extends HookConsumerWidget {
         ),
         if (isHovered.value && !isMobile)
           Positioned(
-            top: -15,
-            right: 15,
+            top: 4,
+            right: 8,
             child: MouseRegion(
               onEnter: (_) => isHovered.value = true,
               onExit: (_) => isHovered.value = false,

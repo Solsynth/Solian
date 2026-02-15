@@ -22,6 +22,8 @@ class RoomMessageList extends HookConsumerWidget {
   final bool disableAnimation;
   final DateTime roomOpenTime;
   final double? previousInputHeight;
+  final String? lastReadAnchorMessageId;
+  final VoidCallback? onFollowBack;
 
   const RoomMessageList({
     super.key,
@@ -39,6 +41,8 @@ class RoomMessageList extends HookConsumerWidget {
     required this.attachmentProgress,
     required this.disableAnimation,
     required this.roomOpenTime,
+    this.lastReadAnchorMessageId,
+    this.onFollowBack,
     this.previousInputHeight,
   });
 
@@ -103,22 +107,62 @@ class RoomMessageList extends HookConsumerWidget {
                 3;
 
         final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
+        final showLastReadMarker =
+            lastReadAnchorMessageId != null &&
+            message.id == lastReadAnchorMessageId;
 
-        return MessageItemWrapper(
+        return Column(
           key: key,
-          message: message,
-          index: index,
-          isLastInGroup: isLastInGroup,
-          isSelectionMode: isSelectionMode,
-          selectedMessages: selectedMessages,
-          chatIdentity: chatIdentity,
-          toggleSelectionMode: toggleSelectionMode,
-          toggleMessageSelection: toggleMessageSelection,
-          onMessageAction: onMessageAction,
-          onJump: onJump,
-          attachmentProgress: attachmentProgress,
-          disableAnimation: settings.disableAnimation,
-          roomOpenTime: roomOpenTime,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showLastReadMarker)
+              Container(
+                margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bookmark_added,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Last read position',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    if (onFollowBack != null)
+                      TextButton(
+                        onPressed: onFollowBack,
+                        child: const Text('Follow back'),
+                      ),
+                  ],
+                ),
+              ),
+            MessageItemWrapper(
+              message: message,
+              index: index,
+              isLastInGroup: isLastInGroup,
+              isSelectionMode: isSelectionMode,
+              selectedMessages: selectedMessages,
+              chatIdentity: chatIdentity,
+              toggleSelectionMode: toggleSelectionMode,
+              toggleMessageSelection: toggleMessageSelection,
+              onMessageAction: onMessageAction,
+              onJump: onJump,
+              attachmentProgress: attachmentProgress,
+              disableAnimation: settings.disableAnimation,
+              roomOpenTime: roomOpenTime,
+            ),
+          ],
         );
       },
     );
