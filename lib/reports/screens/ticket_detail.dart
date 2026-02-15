@@ -136,7 +136,7 @@ class TicketDetailScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: const Text('Ticket Details'),
-        leading: const AutoLeadingButton(),
+        leading: const PageBackButton(),
         actions: [
           PopupMenuButton<int>(
             icon: const Icon(Symbols.more_vert),

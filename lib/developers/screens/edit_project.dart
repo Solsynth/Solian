@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/hub.dart';
 import 'package:island/developers/models/dev_project.dart';
 import 'package:island/core/network.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

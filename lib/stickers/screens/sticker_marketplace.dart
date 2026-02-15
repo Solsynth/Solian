@@ -10,7 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';

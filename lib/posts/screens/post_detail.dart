@@ -19,7 +19,7 @@ import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/reports/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/posts/widgets/compose_sheet.dart';

@@ -12,7 +12,7 @@ import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:island/core/network.dart";
-import "package:island/shared/widgets/app_scaffold.dart" hide AutoLeadingButton;
+import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";

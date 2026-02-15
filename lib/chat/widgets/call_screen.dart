@@ -10,7 +10,7 @@ import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/talker.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';

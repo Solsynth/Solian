@@ -17,7 +17,7 @@ import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/compose_toolbar.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/article_responsive_sidebar.dart';

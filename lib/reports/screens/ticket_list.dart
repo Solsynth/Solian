@@ -7,7 +7,7 @@ import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/reports/widgets/ticket_fire.dart';
 import 'package:island/reports/ticket_models.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/route.gr.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -151,12 +151,14 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                TicketStatus.fromValue(ticket.status).displayName,
+                                TicketStatus.fromValue(
+                                  ticket.status,
+                                ).displayName,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color:
                                           ticket.status == 2 ||
-                                          ticket.status == 3
+                                              ticket.status == 3
                                           ? Colors.green
                                           : ticket.status == 1
                                           ? Colors.blue

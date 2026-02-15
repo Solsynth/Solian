@@ -10,7 +10,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
