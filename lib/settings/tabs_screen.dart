@@ -39,7 +39,7 @@ class TabsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter(
+    return AutoTabsRouter.pageView(
       routes: [
         DashboardRoute(),
         ExploreRoute(),
@@ -51,33 +51,7 @@ class TabsScreen extends StatelessWidget {
         CreatorHubRoute(),
         DeveloperHubRoute(),
       ],
-      transitionBuilder: (context, child, animation) {
-        // Use vertical animation for wide screens (NavigationRail)
-        // Use horizontal animation for small screens (bottom nav)
-        final wideScreen = isWideScreen(context);
-
-        final slideAnimation = Tween<Offset>(
-          begin: wideScreen ? const Offset(0, 0.02) : const Offset(0.02, 0),
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
-
-        final fadeAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOut,
-        );
-
-        return FadeTransition(
-          opacity: fadeAnimation,
-          child: SlideTransition(position: slideAnimation, child: child),
-        );
-      },
-      builder: (context, child) {
+      builder: (context, child, animation) {
         return _TabsScreenContent(child: child);
       },
     );

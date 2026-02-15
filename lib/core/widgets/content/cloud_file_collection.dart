@@ -229,7 +229,9 @@ class CloudFileList extends HookConsumerWidget {
                 children: [
                   for (var i = 0; i < filesToShow.length; i++)
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 320),
+                      constraints: BoxConstraints(
+                        maxWidth: files.length == 1 ? double.infinity : 320,
+                      ),
                       child:
                           filesToShow[i].mimeType?.startsWith('audio') ?? false
                           ? SizedBox(
@@ -254,7 +256,8 @@ class CloudFileList extends HookConsumerWidget {
                             )
                           : AspectRatio(
                               aspectRatio:
-                                  (filesToShow[i].fileMeta?['ratio'] as num?)?.toDouble() ??
+                                  (filesToShow[i].fileMeta?['ratio'] as num?)
+                                      ?.toDouble() ??
                                   1.0,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
