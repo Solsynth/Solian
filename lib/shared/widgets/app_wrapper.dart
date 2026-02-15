@@ -10,6 +10,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
+import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:protocol_handler/protocol_handler.dart';
@@ -50,8 +51,9 @@ class AppWrapper extends HookConsumerWidget {
           !triedOpen) {
         networkStateShowing.value = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
           showModalBottomSheet(
-            context: context,
+            context: ctx,
             isScrollControlled: true,
             builder: (context) => NetworkStatusSheet(autoClose: true),
           ).then((_) => networkStateShowing.value = false);
@@ -64,8 +66,9 @@ class AppWrapper extends HookConsumerWidget {
           !triedOpen) {
         networkStateShowing.value = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
           showModalBottomSheet(
-            context: context,
+            context: ctx,
             isScrollControlled: true,
             builder: (context) => const NetworkStatusSheet(),
           ).then((_) => networkStateShowing.value = false);
@@ -98,30 +101,36 @@ class AppWrapper extends HookConsumerWidget {
       final composeSheetSubs = eventBus.on<ShowComposeSheetEvent>().listen((
         event,
       ) {
-        if (context.mounted) _showComposeSheet(context);
+        final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+        if (ctx.mounted) _showComposeSheet(ctx);
       });
 
       final notificationSheetSubs = eventBus
           .on<ShowNotificationSheetEvent>()
           .listen((event) {
-            if (context.mounted) _showNotificationSheet(context);
+            final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+            if (ctx.mounted) _showNotificationSheet(ctx);
           });
 
       final thoughtSheetSubs = eventBus.on<ShowThoughtSheetEvent>().listen((
         event,
       ) {
-        if (context.mounted) _showThoughtSheet(context, event);
+        final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+        if (ctx.mounted) _showThoughtSheet(ctx, event);
       });
 
       // Web auth request listener
       final webAuthSubs = eventBus.on<WebAuthRequestEvent>().listen((event) {
-        if (context.mounted) _showWebAuthSheet(context, event);
+        final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+        if (ctx.mounted) _showWebAuthSheet(ctx, event);
       });
 
       // Protocol handler listener
       final protocolListener = _ProtocolListenerImpl(
-        onProtocolUrlReceived: (url) =>
-            _handleDeepLink(Uri.parse(url), ref, context),
+        onProtocolUrlReceived: (url) {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+          _handleDeepLink(Uri.parse(url), ref, ctx);
+        },
       );
       protocolHandler.addListener(protocolListener);
 
@@ -129,7 +138,8 @@ class AppWrapper extends HookConsumerWidget {
       protocolHandler.getInitialUrl().then((initialUrl) {
         if (initialUrl != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _handleDeepLink(Uri.parse(initialUrl), ref, context);
+            final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+            _handleDeepLink(Uri.parse(initialUrl), ref, ctx);
           });
         }
       });
@@ -159,7 +169,7 @@ class AppWrapper extends HookConsumerWidget {
       if (settings.defaultScreen != null &&
           settings.defaultScreen != 'dashboard') {
         Future(() {
-          // ref.read(routerProvider).goNamed(settings.defaultScreen!);
+          ref.read(routerProvider).navigatePath('/${settings.defaultScreen!}');
         });
       }
       return null;
