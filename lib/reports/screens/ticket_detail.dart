@@ -1,16 +1,28 @@
+import 'dart:async';
 import 'package:auto_route/auto_route.dart' hide AutoLeadingButton;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/drive/widgets/upload_menu.dart';
 import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
+
+class SelectedFile {
+  final XFile file;
+  final String name;
+  final bool isImage;
+
+  SelectedFile({required this.file, required this.name, required this.isImage});
+}
 
 @RoutePage()
 class TicketDetailScreen extends HookConsumerWidget {
@@ -22,19 +34,25 @@ class TicketDetailScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
+    final inputFocusNode = useFocusNode();
     final isSubmitting = useState(false);
+    final attachments = useState<List<SelectedFile>>([]);
     final ticketService = ref.watch(ticketServiceProvider);
 
     final sendMessage = useCallback(() async {
-      if (messageController.text.trim().isEmpty || isSubmitting.value) return;
+      if (messageController.text.trim().isEmpty && attachments.value.isEmpty ||
+          isSubmitting.value)
+        return;
 
       isSubmitting.value = true;
 
       try {
+        // TODO: Handle file uploads and attach fileIds to message
         await ref
             .read(ticketServiceProvider)
             .addMessage(ticketId, messageController.text.trim());
         messageController.clear();
+        attachments.value = [];
 
         // Refresh the ticket to get updated messages
         ref.invalidate(ticketServiceProvider);
@@ -57,7 +75,48 @@ class TicketDetailScreen extends HookConsumerWidget {
       } finally {
         isSubmitting.value = false;
       }
-    }, [messageController, isSubmitting, ref, ticketId]);
+    }, [messageController, isSubmitting, ref, ticketId, attachments]);
+
+    final pickFile = useCallback((bool isPhoto) async {
+      final picker = ImagePicker();
+      final picked = isPhoto
+          ? await picker.pickImage(source: ImageSource.gallery)
+          : await picker.pickVideo(source: ImageSource.gallery);
+      if (picked != null) {
+        attachments.value = [
+          ...attachments.value,
+          SelectedFile(
+            file: XFile(picked.path),
+            name: picked.name,
+            isImage: isPhoto,
+          ),
+        ];
+      }
+    }, [attachments]);
+
+    final pickGeneralFile = useCallback(() async {
+      // Use document picker via file_selector for general files
+      // For now, just use image picker as fallback
+      final picker = ImagePicker();
+      // Try to pick an image as a workaround
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        attachments.value = [
+          ...attachments.value,
+          SelectedFile(
+            file: XFile(picked.path),
+            name: picked.name,
+            isImage: true,
+          ),
+        ];
+      }
+    }, [attachments]);
+
+    final removeAttachment = useCallback((int index) {
+      final newAttachments = List<SelectedFile>.from(attachments.value);
+      newAttachments.removeAt(index);
+      attachments.value = newAttachments;
+    }, [attachments]);
 
     final updateStatus = useCallback((int status) async {
       try {
@@ -156,12 +215,17 @@ class TicketDetailScreen extends HookConsumerWidget {
                   ),
                 ),
 
-                // Message input
+                // Message input - chat-like design
                 _buildMessageInput(
                   context,
                   messageController,
+                  inputFocusNode,
                   isSubmitting,
+                  attachments,
                   sendMessage,
+                  pickFile,
+                  pickGeneralFile,
+                  removeAttachment,
                 ),
               ],
             );
@@ -418,58 +482,114 @@ class TicketDetailScreen extends HookConsumerWidget {
   Widget _buildMessageInput(
     BuildContext context,
     TextEditingController messageController,
+    FocusNode inputFocusNode,
     ValueNotifier<bool> isSubmitting,
+    ValueNotifier<List<SelectedFile>> attachments,
     VoidCallback sendMessage,
+    Function(bool) pickFile,
+    VoidCallback pickGeneralFile,
+    Function(int) removeAttachment,
   ) {
     return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: messageController,
-              maxLines: null,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => sendMessage(),
-              decoration: InputDecoration(
-                hintText: 'Type a message...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+      margin: const EdgeInsets.all(16),
+      child: Material(
+        elevation: 2,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(32),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Attachments preview
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: attachments.value.isNotEmpty
+                    ? SizedBox(
+                        key: ValueKey(
+                          'attachments-${attachments.value.length}',
+                        ),
+                        height: 100,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          itemCount: attachments.value.length,
+                          itemBuilder: (context, idx) {
+                            final file = attachments.value[idx];
+                            return _AttachmentPreview(
+                              file: file,
+                              onRemove: () => removeAttachment(idx),
+                            );
+                          },
+                          separatorBuilder: (_, _) => const Gap(8),
+                        ),
+                      ).padding(vertical: 8)
+                    : const SizedBox.shrink(key: ValueKey('no-attachments')),
               ),
-            ),
+              // Input row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Upload menu
+                  UploadMenu(
+                    items: [
+                      UploadMenuItemData(
+                        Symbols.add_a_photo,
+                        'addPhoto',
+                        () => pickFile(true),
+                      ),
+                      UploadMenuItemData(
+                        Symbols.videocam,
+                        'addVideo',
+                        () => pickFile(false),
+                      ),
+                      UploadMenuItemData(
+                        Symbols.file_upload,
+                        'uploadFile',
+                        pickGeneralFile,
+                      ),
+                    ],
+                    iconColor: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  // Text field
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      focusNode: inputFocusNode,
+                      maxLines: 5,
+                      minLines: 1,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => sendMessage(),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Send button
+                  IconButton(
+                    icon: isSubmitting.value
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Symbols.send,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    onPressed: isSubmitting.value ? null : sendMessage,
+                  ),
+                ],
+              ),
+            ],
           ),
-          const Gap(8),
-          IconButton.filled(
-            onPressed: isSubmitting.value ? null : sendMessage,
-            icon: isSubmitting.value
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Symbols.send),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -547,5 +667,66 @@ class TicketDetailScreen extends HookConsumerWidget {
       default:
         return Symbols.remove;
     }
+  }
+}
+
+class _AttachmentPreview extends StatelessWidget {
+  final SelectedFile file;
+  final VoidCallback onRemove;
+
+  const _AttachmentPreview({required this.file, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                file.isImage ? Symbols.image : Symbols.insert_drive_file,
+                size: 24,
+              ),
+              const Gap(4),
+              Text(
+                file.name.length > 10
+                    ? '${file.name.substring(0, 8)}...'
+                    : file.name,
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Symbols.close, size: 14, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
