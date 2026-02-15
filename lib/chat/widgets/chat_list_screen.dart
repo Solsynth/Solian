@@ -319,9 +319,9 @@ class ChatScreen extends HookConsumerWidget {
 
     return AppBackground(
       isRoot: true,
-      child: SafeArea(
-        child: isWide
-            ? Row(
+      child: isWide
+          ? SafeArea(
+              child: Row(
                 children: [
                   Flexible(
                     flex: 2,
@@ -341,9 +341,9 @@ class ChatScreen extends HookConsumerWidget {
                     ).padding(top: 16),
                   ),
                 ],
-              )
-            : const AutoRouter(),
-      ),
+              ),
+            )
+          : const AutoRouter(),
     );
   }
 }

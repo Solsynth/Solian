@@ -21,10 +21,12 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -288,178 +290,194 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     }, [messages, scrollManager]);
 
-    return AppScaffold(
-      appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        title: chatRoom.when(
-          data: (room) =>
-              RoomAppBar(room: room!, onlineCount: onlineCount.value ?? 0),
-          loading: () => const Text('Loading...'),
-          error: (err, _) => ResponseErrorWidget(
-            error: err,
-            onRetry: () => messagesNotifier.loadInitial(),
-          ),
-        ),
-        actions: [
-          chatRoom.when(
-            data: (data) => AudioCallButton(room: data!),
-            error: (_, _) => const SizedBox.shrink(),
-            loading: () => const SizedBox.shrink(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () async {
-              final result = await context.router.push(ChatDetailRoute(id: id));
-              if (result is SearchMessagesResult && messages.value != null) {
-                final messageId = result.messageId;
-                messagesNotifier.jumpToMessage(messageId).then((index) {
-                  if (index != -1 && context.mounted) {
-                    ref
-                        .read(flashingMessagesProvider.notifier)
-                        .update((set) => set.union({messageId}));
-                    messages.when(
-                      data: (messageList) {
-                        scrollManager.scrollToMessage(
-                          messageId: messageId,
-                          messageList: messageList,
-                        );
-                      },
-                      loading: () {},
-                      error: (_, _) {},
-                    );
-                  }
-                });
-              }
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              child: messages.when(
-                data: (messageList) => messageList.isEmpty
-                    ? Center(
-                        key: const ValueKey('empty-messages'),
-                        child: Text('No messages yet'.tr()),
-                      )
-                    : RoomMessageList(
-                        key: const ValueKey('message-list'),
-                        messages: messageList,
-                        roomAsync: chatRoom,
-                        chatIdentity: chatIdentity,
-                        scrollController: scrollManager.scrollController,
-                        listController: scrollManager.listController,
-                        isSelectionMode: isSelectionMode.value,
-                        selectedMessages: selectedMessages.value,
-                        toggleSelectionMode: toggleSelectionMode,
-                        toggleMessageSelection: toggleMessageSelection,
-                        onMessageAction: inputManager.onMessageAction,
-                        onJump: onJump,
-                        attachmentProgress: inputManager.attachmentProgress,
-                        previousInputHeight: previousInputHeightRef.value,
-                        roomOpenTime: roomOpenTime,
-                        disableAnimation: settings.disableAnimation,
-                      ),
-                loading: () => const Center(
-                  key: ValueKey('loading-messages'),
-                  child: CircularProgressIndicator(),
-                ),
-                error: (error, _) => ResponseErrorWidget(
-                  key: const ValueKey('error-messages'),
-                  error: error,
-                  onRetry: () => messagesNotifier.loadInitial(),
-                ),
+    return Stack(
+      children: [
+        AppScaffold(
+          appBar: AppBar(
+            leading: const AutoLeadingButton(),
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            title: chatRoom.when(
+              data: (room) =>
+                  RoomAppBar(room: room!, onlineCount: onlineCount.value ?? 0),
+              loading: () => const Text('Loading...'),
+              error: (err, _) => ResponseErrorWidget(
+                error: err,
+                onRetry: () => messagesNotifier.loadInitial(),
               ),
             ),
-          ),
-          if (!isSelectionMode.value)
-            chatRoom.when(
-              data: (room) => room != null
-                  ? Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ChatInput(
-                        key: inputKey,
-                        messageController: inputManager.messageController,
-                        chatRoom: room,
-                        onSend: () => inputManager.sendMessage(ref),
-                        onClear: () {
-                          if (inputManager.messageEditingTo != null) {
-                            inputManager.clearAttachmentsOnly();
-                          }
-                          inputManager.setEditingTo(null);
-                          inputManager.setReplyingTo(null);
-                          inputManager.setForwardingTo(null);
-                          inputManager.setPoll(null);
-                          inputManager.setFund(null);
-                        },
-                        messageEditingTo: inputManager.messageEditingTo,
-                        messageReplyingTo: inputManager.messageReplyingTo,
-                        messageForwardingTo: inputManager.messageForwardingTo,
-                        selectedPoll: inputManager.selectedPoll,
-                        onPollSelected: (poll) => inputManager.setPoll(poll),
-                        selectedFund: inputManager.selectedFund,
-                        onFundSelected: (fund) => inputManager.setFund(fund),
-                        onPickFile: (isPhoto) {
-                          if (isPhoto) {
-                            filePicker.pickPhotos();
-                          } else {
-                            filePicker.pickVideos();
-                          }
-                        },
-                        onPickAudio: filePicker.pickAudio,
-                        onPickGeneralFile: filePicker.pickFiles,
-                        onLinkAttachment: filePicker.linkAttachment,
-                        attachments: inputManager.attachments,
-                        onUploadAttachment: uploadAttachment,
-                        onDeleteAttachment: (index) async {
-                          final attachment = inputManager.attachments[index];
-                          if (attachment.isOnCloud && !attachment.isLink) {
-                            final client = ref.watch(apiClientProvider);
-                            await client.delete(
-                              '/drive/files/${attachment.data.id}',
+            actions: [
+              chatRoom.when(
+                data: (data) => AudioCallButton(room: data!),
+                error: (_, _) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+              ),
+              IconButton(
+                icon: const Icon(Icons.more_vert),
+                onPressed: () async {
+                  final result = await context.router.push(
+                    ChatDetailRoute(id: id),
+                  );
+                  if (result is SearchMessagesResult &&
+                      messages.value != null) {
+                    final messageId = result.messageId;
+                    messagesNotifier.jumpToMessage(messageId).then((index) {
+                      if (index != -1 && context.mounted) {
+                        ref
+                            .read(flashingMessagesProvider.notifier)
+                            .update((set) => set.union({messageId}));
+                        messages.when(
+                          data: (messageList) {
+                            scrollManager.scrollToMessage(
+                              messageId: messageId,
+                              messageList: messageList,
                             );
-                          }
-                          final clone = List.of(inputManager.attachments);
-                          clone.removeAt(index);
-                          inputManager.updateAttachments(clone);
-                        },
-                        onMoveAttachment: (idx, delta) {
-                          if (idx + delta < 0 ||
-                              idx + delta >= inputManager.attachments.length) {
-                            return;
-                          }
-                          final clone = List.of(inputManager.attachments);
-                          clone.insert(idx + delta, clone.removeAt(idx));
-                          inputManager.updateAttachments(clone);
-                        },
-                        onAttachmentsChanged: inputManager.updateAttachments,
-                        attachmentProgress: inputManager.attachmentProgress,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-              error: (_, _) => const SizedBox.shrink(),
-              loading: () => const SizedBox.shrink(),
-            ),
-          if (isSelectionMode.value)
-            RoomSelectionMode(
-              visible: isSelectionMode.value,
-              selectedCount: selectedMessages.value.length,
-              onClose: toggleSelectionMode,
-              onAIThink: openThinkingSheet,
-            ),
-        ],
-      ),
+                          },
+                          loading: () {},
+                          error: (_, _) {},
+                        );
+                      }
+                    });
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                  child: messages.when(
+                    data: (messageList) => messageList.isEmpty
+                        ? Center(
+                            key: const ValueKey('empty-messages'),
+                            child: Text('No messages yet'.tr()),
+                          )
+                        : RoomMessageList(
+                            key: const ValueKey('message-list'),
+                            messages: messageList,
+                            roomAsync: chatRoom,
+                            chatIdentity: chatIdentity,
+                            scrollController: scrollManager.scrollController,
+                            listController: scrollManager.listController,
+                            isSelectionMode: isSelectionMode.value,
+                            selectedMessages: selectedMessages.value,
+                            toggleSelectionMode: toggleSelectionMode,
+                            toggleMessageSelection: toggleMessageSelection,
+                            onMessageAction: inputManager.onMessageAction,
+                            onJump: onJump,
+                            attachmentProgress: inputManager.attachmentProgress,
+                            previousInputHeight: previousInputHeightRef.value,
+                            roomOpenTime: roomOpenTime,
+                            disableAnimation: settings.disableAnimation,
+                          ),
+                    loading: () => const Center(
+                      key: ValueKey('loading-messages'),
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (error, _) => ResponseErrorWidget(
+                      key: const ValueKey('error-messages'),
+                      error: error,
+                      onRetry: () => messagesNotifier.loadInitial(),
+                    ),
+                  ),
+                ),
+              ),
+              if (!isSelectionMode.value)
+                chatRoom.when(
+                  data: (room) => room != null
+                      ? Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ChatInput(
+                            key: inputKey,
+                            messageController: inputManager.messageController,
+                            chatRoom: room,
+                            onSend: () => inputManager.sendMessage(ref),
+                            onClear: () {
+                              if (inputManager.messageEditingTo != null) {
+                                inputManager.clearAttachmentsOnly();
+                              }
+                              inputManager.setEditingTo(null);
+                              inputManager.setReplyingTo(null);
+                              inputManager.setForwardingTo(null);
+                              inputManager.setPoll(null);
+                              inputManager.setFund(null);
+                            },
+                            messageEditingTo: inputManager.messageEditingTo,
+                            messageReplyingTo: inputManager.messageReplyingTo,
+                            messageForwardingTo:
+                                inputManager.messageForwardingTo,
+                            selectedPoll: inputManager.selectedPoll,
+                            onPollSelected: (poll) =>
+                                inputManager.setPoll(poll),
+                            selectedFund: inputManager.selectedFund,
+                            onFundSelected: (fund) =>
+                                inputManager.setFund(fund),
+                            onPickFile: (isPhoto) {
+                              if (isPhoto) {
+                                filePicker.pickPhotos();
+                              } else {
+                                filePicker.pickVideos();
+                              }
+                            },
+                            onPickAudio: filePicker.pickAudio,
+                            onPickGeneralFile: filePicker.pickFiles,
+                            onLinkAttachment: filePicker.linkAttachment,
+                            attachments: inputManager.attachments,
+                            onUploadAttachment: uploadAttachment,
+                            onDeleteAttachment: (index) async {
+                              final attachment =
+                                  inputManager.attachments[index];
+                              if (attachment.isOnCloud && !attachment.isLink) {
+                                final client = ref.watch(apiClientProvider);
+                                await client.delete(
+                                  '/drive/files/${attachment.data.id}',
+                                );
+                              }
+                              final clone = List.of(inputManager.attachments);
+                              clone.removeAt(index);
+                              inputManager.updateAttachments(clone);
+                            },
+                            onMoveAttachment: (idx, delta) {
+                              if (idx + delta < 0 ||
+                                  idx + delta >=
+                                      inputManager.attachments.length) {
+                                return;
+                              }
+                              final clone = List.of(inputManager.attachments);
+                              clone.insert(idx + delta, clone.removeAt(idx));
+                              inputManager.updateAttachments(clone);
+                            },
+                            onAttachmentsChanged:
+                                inputManager.updateAttachments,
+                            attachmentProgress: inputManager.attachmentProgress,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  loading: () => const SizedBox.shrink(),
+                ),
+              if (isSelectionMode.value)
+                RoomSelectionMode(
+                  visible: isSelectionMode.value,
+                  selectedCount: selectedMessages.value.length,
+                  onClose: toggleSelectionMode,
+                  onAIThink: openThinkingSheet,
+                ),
+            ],
+          ),
+        ),
+        // Chat sync indicator for non-wide screen
+        if (!isWideScreen(context)) const ChatSyncIndicator(height: 64),
+      ],
     );
   }
 }

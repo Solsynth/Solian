@@ -45,6 +45,6 @@ class ChatSyncIndicator extends HookConsumerWidget {
               ).padding(horizontal: 22),
             )
           : const SizedBox(key: ValueKey('no-sync')),
-    );
+    ).padding(top: MediaQuery.paddingOf(context).top);
   }
 }

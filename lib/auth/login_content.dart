@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
@@ -375,8 +374,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
       context,
     ).colorScheme.onSurface.withAlpha((255 * 0.75).round());
 
-    final hintController = useTextEditingController();
-
     void performGetFactorCode() async {
       if (factorPicked.value == null) return;
 
@@ -386,9 +383,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
       try {
         await client.post(
           '/pass/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
-          data: hintController.text.isNotEmpty
-              ? jsonEncode(hintController.text)
-              : null,
         );
         onPickFactor(factors!.where((x) => x == factorPicked.value).first);
         onNext();
@@ -451,16 +445,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
                 List.empty(),
           ),
         ),
-        if ([1].contains(factorPicked.value?.type))
-          TextField(
-            controller: hintController,
-            decoration: InputDecoration(
-              isDense: true,
-              border: const OutlineInputBorder(),
-              labelText: 'authFactorHint'.tr(),
-              helperText: 'authFactorHintHelper'.tr(),
-            ),
-          ).padding(top: 12, bottom: 4, horizontal: 4),
         const Gap(8),
         Text(
           'loginMultiFactor'.plural(challenge!.stepRemain),
