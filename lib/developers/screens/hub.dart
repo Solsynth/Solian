@@ -12,7 +12,7 @@ import 'package:island/developers/models/developer.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -82,7 +82,7 @@ class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: const AutoLeadingButton(),
+      leading: const PageBackButton(),
       title: Text('developerHub').tr(),
       actions: [
         if (currentProject != null)
@@ -969,9 +969,9 @@ class DeveloperHubScreen extends HookConsumerWidget {
 
     return AppBackground(
       isRoot: true,
-      child: SafeArea(
-        child: isWide
-            ? Row(
+      child: isWide
+          ? SafeArea(
+              child: Row(
                 children: [
                   Flexible(
                     flex: 2,
@@ -999,9 +999,9 @@ class DeveloperHubScreen extends HookConsumerWidget {
                     ).padding(top: 16),
                   ),
                 ],
-              )
-            : const AutoRouter(),
-      ),
+              ),
+            )
+          : const AutoRouter(),
     );
   }
 }

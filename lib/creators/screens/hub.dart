@@ -14,7 +14,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -618,7 +618,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const AutoLeadingButton(),
+        leading: const PageBackButton(),
         title: Text('creatorHub').tr(),
         actions: [
           PublisherSelector(
@@ -672,9 +672,9 @@ class CreatorHubScreen extends HookConsumerWidget {
 
     return AppBackground(
       isRoot: true,
-      child: SafeArea(
-        child: isWide
-            ? Row(
+      child: isWide
+          ? SafeArea(
+              child: Row(
                 children: [
                   Flexible(
                     flex: 2,
@@ -699,9 +699,9 @@ class CreatorHubScreen extends HookConsumerWidget {
                     ).padding(top: 16),
                   ),
                 ],
-              )
-            : const AutoRouter(),
-      ),
+              ),
+            )
+          : const AutoRouter(),
     );
   }
 }

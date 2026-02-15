@@ -34,11 +34,11 @@ class ArticleEditScreen extends HookConsumerWidget {
     return post.when(
       data: (post) => ArticleComposeScreen(originalPost: post),
       loading: () => AppScaffold(
-        appBar: AppBar(leading: const AutoLeadingButton()),
+        appBar: AppBar(leading: const PageBackButton()),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => AppScaffold(
-        appBar: AppBar(leading: const AutoLeadingButton()),
+        appBar: AppBar(leading: const PageBackButton()),
         body: Text('Error: $e', textAlign: TextAlign.center),
       ),
     );
@@ -287,7 +287,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
       child: AppScaffold(
         isNoBackground: false,
         appBar: AppBar(
-          leading: const AutoLeadingButton(),
+          leading: const PageBackButton(),
           title: ValueListenableBuilder<TextEditingValue>(
             valueListenable: state.titleController,
             builder: (context, titleValue, _) {

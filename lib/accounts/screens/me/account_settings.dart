@@ -15,7 +15,7 @@ import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:island/auth/login.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

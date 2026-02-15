@@ -15,6 +15,7 @@ import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification_overlay.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -369,13 +370,13 @@ class AppScaffold extends HookConsumerWidget {
   }
 }
 
-class AutoLeadingButton extends StatelessWidget {
+class PageBackButton extends StatelessWidget {
   final Color? color;
   final List<Shadow>? shadows;
   final VoidCallback? onWillPop;
   final String? backTo;
   final bool forcePop;
-  const AutoLeadingButton({
+  const PageBackButton({
     super.key,
     this.shadows,
     this.onWillPop,
@@ -404,7 +405,7 @@ class AutoLeadingButton extends StatelessWidget {
         if (canPop || forcePop) {
           context.router.pop();
         } else {
-          context.router.replacePath(backTo ?? '/');
+          context.router.navigate(const DashboardRoute());
         }
       },
       icon: Icon(

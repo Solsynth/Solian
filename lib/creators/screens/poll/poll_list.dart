@@ -7,7 +7,7 @@ import 'package:island/polls/screens/poll_editor.dart';
 import 'package:island/polls/polls_widgets/poll/poll_feedback.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
+import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
