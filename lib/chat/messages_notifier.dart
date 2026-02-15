@@ -333,9 +333,14 @@ class MessagesNotifier extends _$MessagesNotifier {
         withAttachments: _withAttachments,
       );
 
-      // If we have local messages AND we've fetched all remote messages, return local
-      if (localMessages.isNotEmpty &&
-          (offset > 0 || _allRemoteMessagesFetched)) {
+      // If local returned full page, return local - no need to fetch remote
+      if (localMessages.length >= take) {
+        return localMessages;
+      }
+
+      // If local has some messages but less than requested, check if we've
+      // already fetched all remote data. If so, return local.
+      if (localMessages.isNotEmpty && _allRemoteMessagesFetched) {
         return localMessages;
       }
 
