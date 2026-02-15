@@ -175,7 +175,6 @@ dependencies:
   video_thumbnail: ^0.5.6
   just_audio: ^0.10.5
   audio_session: ^0.2.2
-  health: ^13.1.4
   auto_route: ^11.1.0
 
 dev_dependencies:

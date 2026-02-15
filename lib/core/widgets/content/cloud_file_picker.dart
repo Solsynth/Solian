@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -176,6 +177,26 @@ class CloudFilePicker extends HookConsumerWidget {
       if (context.mounted) hideLoadingModal(context);
     }
 
+    void pickLinkAttachment() async {
+      final result = await showModalBottomSheet<SnCloudFile>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => const ComposeLinkAttachment(),
+      );
+
+      if (result != null) {
+        // For link attachments, we add the already uploaded cloud file directly
+        // This is different from local files which need to be uploaded first
+        if (allowMultiple) {
+          // When allowMultiple is true, we need to return via Navigator
+          // Since this is a link attachment (already on cloud), we return it directly
+          if (context.mounted) Navigator.pop(context, [result]);
+        } else {
+          if (context.mounted) Navigator.pop(context, result);
+        }
+      }
+    }
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.5,
@@ -270,6 +291,14 @@ class CloudFilePicker extends HookConsumerWidget {
                     margin: EdgeInsets.zero,
                     child: Column(
                       children: [
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          leading: const Icon(Symbols.link),
+                          title: Text('addLinkAttachment'.tr()),
+                          onTap: () => pickLinkAttachment(),
+                        ),
                         if (allowedTypes.contains(UniversalFileType.image))
                           ListTile(
                             shape: RoundedRectangleBorder(

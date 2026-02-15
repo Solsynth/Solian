@@ -17,7 +17,7 @@ class TicketService {
   }
 
   Future<List<SnTicket>> getTickets({
-    String? status,
+    int? status,
     int offset = 0,
     int take = 20,
   }) async {
@@ -34,7 +34,7 @@ class TicketService {
 
   Future<SnTicket> createTicket({
     required String title,
-    String? description,
+    String? content,
     required int type,
     int priority = 1,
     List<String>? fileIds,
@@ -45,7 +45,7 @@ class TicketService {
           '/pass/tickets',
           data: {
             'title': title,
-            'description': description,
+            'content': content,
             'type': type,
             'priority': priority,
             'file_ids': fileIds,
@@ -57,9 +57,9 @@ class TicketService {
   Future<SnTicket> updateTicket(
     String id, {
     String? title,
-    String? description,
-    String? type,
-    String? priority,
+    String? content,
+    int? type,
+    int? priority,
   }) async {
     final response = await ref
         .read(apiClientProvider)
@@ -67,7 +67,7 @@ class TicketService {
           '/pass/tickets/$id',
           data: {
             'title': ?title,
-            'description': ?description,
+            'content': ?content,
             'type': ?type,
             'priority': ?priority,
           },
@@ -79,14 +79,21 @@ class TicketService {
     await ref.read(apiClientProvider).delete('/pass/tickets/$id');
   }
 
-  Future<SnTicketMessage> addMessage(String ticketId, String content) async {
+  Future<SnTicketMessage> addMessage(
+    String ticketId,
+    String content, {
+    List<String>? fileIds,
+  }) async {
     final response = await ref
         .read(apiClientProvider)
-        .post('/pass/tickets/$ticketId/messages', data: {'content': content});
+        .post(
+          '/pass/tickets/$ticketId/messages',
+          data: {'content': content, 'file_ids': fileIds},
+        );
     return SnTicketMessage.fromJson(response.data);
   }
 
-  Future<SnTicket> updateTicketStatus(String ticketId, String status) async {
+  Future<SnTicket> updateTicketStatus(String ticketId, int status) async {
     final response = await ref
         .read(apiClientProvider)
         .post('/pass/tickets/$ticketId/status', data: {'status': status});

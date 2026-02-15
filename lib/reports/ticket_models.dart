@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'ticket_models.freezed.dart';
 part 'ticket_models.g.dart';
@@ -8,18 +9,20 @@ sealed class SnTicket with _$SnTicket {
   const factory SnTicket({
     required String id,
     required String title,
-    String? description,
+    String? content,
     required int type,
     required int status,
     required int priority,
     required String creatorId,
+    required SnAccount creator,
     String? assigneeId,
+    SnAccount? assignee,
     DateTime? resolvedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
     @Default([]) List<SnTicketMessage> messages,
-    @Default([]) List<SnTicketFile> files,
+    @Default([]) List<String> fileIds,
   }) = _SnTicket;
 
   factory SnTicket.fromJson(Map<String, dynamic> json) =>
@@ -32,29 +35,16 @@ sealed class SnTicketMessage with _$SnTicketMessage {
     required String id,
     required String ticketId,
     required String senderId,
+    required SnAccount sender,
     required String content,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
+    required List<SnCloudFile> files,
   }) = _SnTicketMessage;
 
   factory SnTicketMessage.fromJson(Map<String, dynamic> json) =>
       _$SnTicketMessageFromJson(json);
-}
-
-@freezed
-sealed class SnTicketFile with _$SnTicketFile {
-  const factory SnTicketFile({
-    required String id,
-    required String ticketId,
-    required String fileId,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    DateTime? deletedAt,
-  }) = _SnTicketFile;
-
-  factory SnTicketFile.fromJson(Map<String, dynamic> json) =>
-      _$SnTicketFileFromJson(json);
 }
 
 @freezed
@@ -105,18 +95,18 @@ sealed class TicketType with _$TicketType {
 
 @freezed
 sealed class TicketStatus with _$TicketStatus {
-  const factory TicketStatus(String value, String displayName) = _TicketStatus;
+  const factory TicketStatus(int value, String displayName) = _TicketStatus;
 
   const TicketStatus._();
 
-  static const open = TicketStatus('open', 'Open');
-  static const inProgress = TicketStatus('in_progress', 'In Progress');
-  static const resolved = TicketStatus('resolved', 'Resolved');
-  static const closed = TicketStatus('closed', 'Closed');
+  static const open = TicketStatus(0, 'Open');
+  static const inProgress = TicketStatus(1, 'In Progress');
+  static const resolved = TicketStatus(2, 'Resolved');
+  static const closed = TicketStatus(3, 'Closed');
 
   static List<TicketStatus> get values => [open, inProgress, resolved, closed];
 
-  static TicketStatus fromValue(String value) {
+  static TicketStatus fromValue(int value) {
     return values.firstWhere((e) => e.value == value, orElse: () => open);
   }
 }

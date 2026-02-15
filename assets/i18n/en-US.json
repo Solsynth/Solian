@@ -1766,5 +1766,8 @@
   "ticketPriority": "Priority",
   "createTicketSubmit": "Submit",
   "ticketCreatedTitle": "Ticket Created",
-  "ticketCreated": "Your ticket has been created successfully."
+  "ticketCreated": "Your ticket has been created successfully.",
+  "ticketAttachments": "Attachments",
+  "addAttachment": "Add Attachment",
+  "addLinkAttachment": "Link Attachment"
 }

@@ -4,9 +4,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
+import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class TicketCreateSheet extends HookConsumerWidget {
@@ -22,10 +25,11 @@ class TicketCreateSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final titleController = useTextEditingController(text: initialTitle ?? '');
-    final descriptionController = useTextEditingController();
+    final contentController = useTextEditingController();
     final selectedType = useState<TicketType>(TicketType.support);
     final selectedPriority = useState<TicketPriority>(TicketPriority.medium);
     final isSubmitting = useState<bool>(false);
+    final attachments = useState<List<SnCloudFile>>([]);
 
     Future<void> submitTicket() async {
       if (titleController.text.trim().isEmpty) {
@@ -40,35 +44,22 @@ class TicketCreateSheet extends HookConsumerWidget {
             .read(ticketServiceProvider)
             .createTicket(
               title: titleController.text.trim(),
-              description: descriptionController.text.trim().isEmpty
+              content: contentController.text.trim().isEmpty
                   ? null
-                  : descriptionController.text.trim(),
+                  : contentController.text.trim(),
               type: selectedType.value.value,
               priority: selectedPriority.value.value,
+              fileIds: attachments.value.isEmpty
+                  ? null
+                  : attachments.value.map((e) => e.id).toList(),
             );
 
         if (context.mounted) {
           Navigator.of(context).pop();
-          showDialog(
-            context: context,
-            builder: (contextDialog) => AlertDialog(
-              icon: const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 36,
-              ),
-              title: Text('ticketCreatedTitle'.tr()),
-              content: Text('ticketCreated'.tr()),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(contextDialog).pop();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
+          showInfoAlert(
+            'ticketCreated'.tr(),
+            'ticketCreatedTitle'.tr(),
+            icon: Symbols.check_circle,
           );
         }
       } catch (err) {
@@ -115,7 +106,7 @@ class TicketCreateSheet extends HookConsumerWidget {
                 ),
                 const Gap(8),
                 TextField(
-                  controller: descriptionController,
+                  controller: contentController,
                   maxLines: 4,
                   decoration: InputDecoration(
                     hintText: 'ticketDescriptionHint'.tr(),
@@ -166,6 +157,105 @@ class TicketCreateSheet extends HookConsumerWidget {
                 visualDensity: VisualDensity.compact,
               );
             }),
+            const Gap(24),
+
+            // Attachments section
+            Text(
+              'ticketAttachments'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ).padding(horizontal: 24),
+            const Gap(12),
+            if (attachments.value.isNotEmpty)
+              SizedBox(
+                height: 100,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  itemCount: attachments.value.length,
+                  itemBuilder: (context, index) {
+                    final file = attachments.value[index];
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Symbols.attach_file, size: 24),
+                              const Gap(4),
+                              Text(
+                                file.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                              attachments.value = [
+                                ...attachments.value.where(
+                                  (e) => e.id != file.id,
+                                ),
+                              ];
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Symbols.close,
+                                size: 14,
+                                color: Theme.of(context).colorScheme.onError,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  separatorBuilder: (_, _) => const Gap(8),
+                ),
+              ),
+            const Gap(8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) =>
+                          const CloudFilePicker(allowMultiple: true),
+                    ).then((value) {
+                      if (value != null && value.isNotEmpty) {
+                        attachments.value = [...attachments.value, ...value];
+                      }
+                    });
+                  },
+                  icon: const Icon(Symbols.add),
+                  label: Text('addAttachment'.tr()),
+                ),
+              ),
+            ),
             const Gap(24),
 
             // Submit button

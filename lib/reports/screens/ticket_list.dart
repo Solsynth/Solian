@@ -75,10 +75,10 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                             ticket.title,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
-                          if (ticket.description != null) ...[
+                          if (ticket.content != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              ticket.description!,
+                              ticket.content!,
                               style: Theme.of(context).textTheme.bodySmall,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -151,12 +151,12 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                TicketStatus.values[ticket.status].displayName,
+                                TicketStatus.fromValue(ticket.status).displayName,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color:
                                           ticket.status == 2 ||
-                                              ticket.status == 3
+                                          ticket.status == 3
                                           ? Colors.green
                                           : ticket.status == 1
                                           ? Colors.blue
