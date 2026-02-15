@@ -39,15 +39,15 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_hooks: ^0.21.3+1
-  hooks_riverpod: 3.1.0
+  hooks_riverpod: ^3.2.1
   quick_actions: ^1.1.0
   styled_widget: ^0.4.1
   shared_preferences: ^2.5.4
-  flutter_riverpod: 3.1.0
+  flutter_riverpod: ^3.2.1
   path_provider: ^2.1.5
   dio: ^5.9.1
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.9.0
+  json_annotation: ^4.10.0
   flutter_markdown_latex: ^0.3.4
   markdown: ^7.3.0
   flutter_highlight: ^0.7.0
@@ -67,12 +67,12 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   animations: ^2.1.1
   package_info_plus: ^9.0.0
-  device_info_plus: ^11.3.0
+  device_info_plus: ^11.5.0
   protocol_handler: ^0.2.0
   cross_file: ^0.3.5+2
   image_picker: ^1.2.1
   file_picker: ^10.3.10
-  riverpod_annotation: ^4.0.0
+  riverpod_annotation: ^4.0.2
   image_picker_platform_interface: ^2.11.1
   image_picker_android: ^0.8.13+13
   super_context_menu: ^0.9.1
@@ -134,7 +134,7 @@ dependencies:
   process_run: ^1.3.0
   firebase_crashlytics: ^5.0.7
   firebase_analytics: ^12.1.2
-  material_color_utilities: ^0.11.1
+  material_color_utilities: ^0.13.0
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
   file_saver: ^0.3.1
@@ -189,14 +189,16 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   build_runner: ^2.11.1
-  freezed: ^3.2.3
-  json_serializable: ^6.11.2
-  riverpod_generator: ^4.0.0+1
-  custom_lint: ^0.8.1
-  riverpod_lint: ^3.1.0
+  freezed: ^3.2.5
+  json_serializable: ^6.12.0
+  riverpod_generator: ^4.0.3
+  riverpod_lint: ^3.1.3
   drift_dev: ^2.31.0
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
+
+dependency_overrides:
+  win32_registry: ^2.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
