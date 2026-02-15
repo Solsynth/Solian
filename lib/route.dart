@@ -21,32 +21,8 @@ final routerProvider = Provider((ref) {
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType => RouteType.custom(
-    enablePredictiveBackGesture: true,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      // Custom slide + fade transition for all routes
-      final slideAnimation =
-          Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero).animate(
-            CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-              reverseCurve: Curves.easeInCubic,
-            ),
-          );
-
-      final fadeAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeInOut,
-      );
-
-      return FadeTransition(
-        opacity: fadeAnimation,
-        child: SlideTransition(position: slideAnimation, child: child),
-      );
-    },
-    durationInMilliseconds: 250,
-    reverseDurationInMilliseconds: 200,
-  );
+  RouteType get defaultRouteType =>
+      RouteType.adaptive(enablePredictiveBackGesture: true);
 
   @override
   List<AutoRoute> get routes => [

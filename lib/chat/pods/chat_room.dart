@@ -215,35 +215,55 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
       talker.log('Global sync with timestamp: $lastSyncTimestamp');
 
-      // Call the global sync endpoint
-      final resp = await client.post(
-        '/messager/chat/sync',
-        data: {'last_sync_timestamp': lastSyncTimestamp},
-      );
-      final rsp = MessageSyncResponse.fromJson(resp.data);
+      // Use a loop to handle pagination - continue syncing until all messages are fetched
+      var currentSyncTimestamp = lastSyncTimestamp;
+      var totalSynced = 0;
 
-      // Parse the response
-      final messages = rsp.messages;
-      final currentTimestamp = rsp.currentTimestamp;
+      while (true) {
+        // Call the global sync endpoint
+        final resp = await client.post(
+          '/messager/chat/sync',
+          data: {'last_sync_timestamp': currentSyncTimestamp},
+        );
+        final rsp = MessageSyncResponse.fromJson(resp.data);
 
-      talker.log(
-        'Global sync received ${messages.length} messages, timestamp: $currentTimestamp',
-      );
+        // Parse the response
+        final messages = rsp.messages;
+        final currentTimestamp = rsp.currentTimestamp;
+        final totalMessages = rsp.totalCount;
 
-      // Save all messages to database
-      for (final msg in messages) {
-        try {
-          final localMessage = LocalChatMessage.fromRemoteMessage(
-            msg,
-            MessageStatus.sent,
-          );
-          await db.saveMessageWithSender(localMessage);
-        } catch (e) {
-          talker.log('Error saving message from global sync: $e');
+        talker.log(
+          'Global sync received ${messages.length} messages, timestamp: $currentTimestamp (total: $totalMessages)',
+        );
+
+        // Save all messages to database
+        for (final msg in messages) {
+          try {
+            final localMessage = LocalChatMessage.fromRemoteMessage(
+              msg,
+              MessageStatus.sent,
+            );
+            await db.saveMessageWithSender(localMessage);
+          } catch (e) {
+            talker.log('Error saving message from global sync: $e');
+          }
+        }
+
+        totalSynced += messages.length;
+
+        // Check if there are more messages to sync
+        // If messages.length < totalMessages, we need to continue with pagination
+        if (messages.length < totalMessages) {
+          // Update timestamp and continue syncing
+          currentSyncTimestamp = currentTimestamp.millisecondsSinceEpoch;
+          talker.log('More messages to sync, continuing with timestamp: $currentSyncTimestamp');
+        } else {
+          // No more messages to sync
+          break;
         }
       }
 
-      talker.log('Global sync complete: ${messages.length} messages saved');
+      talker.log('Global sync complete: $totalSynced messages saved');
     } catch (e, stackTrace) {
       talker.log(
         'Error during global chat sync',

@@ -42,9 +42,9 @@ class AccountScreen extends HookConsumerWidget {
 
     return AppBackground(
       isRoot: true,
-      child: SafeArea(
-        child: isWide
-            ? Row(
+      child: isWide
+          ? SafeArea(
+              child: Row(
                 children: [
                   Flexible(
                     flex: 2,
@@ -56,9 +56,9 @@ class AccountScreen extends HookConsumerWidget {
                   const VerticalDivider(width: 1),
                   Flexible(flex: 3, child: const AutoRouter()),
                 ],
-              )
-            : const AutoRouter(),
-      ),
+              ),
+            )
+          : const AutoRouter(),
     );
   }
 }
