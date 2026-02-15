@@ -458,7 +458,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
                           onAccept: () => handleFriendRequest(request, true),
                           onDecline: () => handleFriendRequest(request, false),
                           currentUserId: user.value?.id,
-                          showRelatedAccount: true,
+                          showRelatedAccount: false,
                         );
                       },
                     ),
