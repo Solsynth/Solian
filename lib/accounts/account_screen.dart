@@ -443,7 +443,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.mobile_ticket,
+                    'icon': Symbols.confirmation_number,
                     'title': 'tickets',
                     'onTap': () {
                       context.router.push(const TicketListRoute());

@@ -1756,7 +1756,7 @@
   "shopping": "Shopping",
   "transport": "Transport",
   "tickets": "Tickets",
-  "createTicket": "Create Ticket",
+  "createTicket": "Fire a Ticket",
   "ticketTitle": "Title",
   "ticketTitleHint": "Enter ticket title",
   "ticketDescriptionField": "Description",

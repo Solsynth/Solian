@@ -7,7 +7,7 @@ import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class TicketCreateSheet extends HookConsumerWidget {
   final String? resourceIdentifier;
@@ -21,9 +21,7 @@ class TicketCreateSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final titleController = useTextEditingController(
-      text: initialTitle ?? '',
-    );
+    final titleController = useTextEditingController(text: initialTitle ?? '');
     final descriptionController = useTextEditingController();
     final selectedType = useState<TicketType>(TicketType.support);
     final selectedPriority = useState<TicketPriority>(TicketPriority.medium);
@@ -38,14 +36,16 @@ class TicketCreateSheet extends HookConsumerWidget {
       isSubmitting.value = true;
 
       try {
-        await ref.read(ticketServiceProvider).createTicket(
-          title: titleController.text.trim(),
-          description: descriptionController.text.trim().isEmpty
-              ? null
-              : descriptionController.text.trim(),
-          type: selectedType.value.value,
-          priority: selectedPriority.value.value,
-        );
+        await ref
+            .read(ticketServiceProvider)
+            .createTicket(
+              title: titleController.text.trim(),
+              description: descriptionController.text.trim().isEmpty
+                  ? null
+                  : descriptionController.text.trim(),
+              type: selectedType.value.value,
+              priority: selectedPriority.value.value,
+            );
 
         if (context.mounted) {
           Navigator.of(context).pop();
@@ -81,79 +81,51 @@ class TicketCreateSheet extends HookConsumerWidget {
     return SheetScaffold(
       titleText: 'createTicket'.tr(),
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Information text
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Symbols.info,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title text field
+                Text(
+                  'ticketTitle'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const Gap(8),
-                  Expanded(
-                    child: Text(
-                      'ticketDescription'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                ),
+                const Gap(8),
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    hintText: 'ticketTitleHint'.tr(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const Gap(24),
-
-            // Title text field
-            Text(
-              'ticketTitle'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const Gap(8),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                hintText: 'ticketTitleHint'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-              ),
-            ),
-            const Gap(24),
-
-            // Description text field
-            Text(
-              'ticketDescriptionField'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const Gap(8),
-            TextField(
-              controller: descriptionController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'ticketDescriptionHint'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                const Gap(24),
+                // Description text field
+                Text(
+                  'ticketDescriptionField'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-              ),
-            ),
+                const Gap(8),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'ticketDescriptionHint'.tr(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ).padding(horizontal: 24),
             const Gap(24),
 
             // Ticket type selection
@@ -162,7 +134,7 @@ class TicketCreateSheet extends HookConsumerWidget {
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
+            ).padding(horizontal: 24),
             const Gap(12),
             ...TicketType.values.map((type) {
               return RadioListTile<TicketType>(
@@ -170,7 +142,7 @@ class TicketCreateSheet extends HookConsumerWidget {
                 groupValue: selectedType.value,
                 onChanged: (value) => selectedType.value = value!,
                 title: Text(type.displayName),
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 visualDensity: VisualDensity.compact,
               );
             }),
@@ -182,7 +154,7 @@ class TicketCreateSheet extends HookConsumerWidget {
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
+            ).padding(horizontal: 24),
             const Gap(12),
             ...TicketPriority.values.map((priority) {
               return RadioListTile<TicketPriority>(
@@ -190,7 +162,7 @@ class TicketCreateSheet extends HookConsumerWidget {
                 groupValue: selectedPriority.value,
                 onChanged: (value) => selectedPriority.value = value!,
                 title: Text(priority.displayName),
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 visualDensity: VisualDensity.compact,
               );
             }),
@@ -209,7 +181,7 @@ class TicketCreateSheet extends HookConsumerWidget {
                       )
                     : Text('createTicketSubmit'.tr()),
               ),
-            ),
+            ).padding(horizontal: 24),
             const Gap(16),
           ],
         ),
@@ -225,7 +197,7 @@ class AbuseReportSheet extends TicketCreateSheet {
     required String resourceIdentifier,
     String? initialReason,
   }) : super(
-          resourceIdentifier: resourceIdentifier,
-          initialTitle: initialReason,
-        );
+         resourceIdentifier: resourceIdentifier,
+         initialTitle: initialReason,
+       );
 }
