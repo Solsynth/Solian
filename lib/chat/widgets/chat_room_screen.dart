@@ -17,6 +17,7 @@ import 'package:island/chat/hooks/use_room_input.dart';
 import 'package:island/chat/hooks/use_room_scroll.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
@@ -134,6 +135,26 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
+
+    final lifecycleState = ref.watch(appLifecycleStateProvider);
+    final pausedTime = useRef<DateTime?>(null);
+
+    useEffect(() {
+      lifecycleState.whenData((state) async {
+        if (state == AppLifecycleState.paused) {
+          pausedTime.value = DateTime.now();
+        } else if (state == AppLifecycleState.resumed &&
+            pausedTime.value != null) {
+          final elapsed = DateTime.now().difference(pausedTime.value!);
+          if (elapsed.inMinutes >= 1) {
+            await messagesNotifier.syncMessages();
+            await messagesNotifier.loadInitial();
+          }
+          pausedTime.value = null;
+        }
+      });
+      return null;
+    }, [lifecycleState]);
 
     final scrollManager = useRoomScrollManager(
       ref,

@@ -39,7 +39,7 @@ class TabsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter.pageView(
+    return AutoTabsRouter(
       routes: [
         DashboardRoute(),
         ExploreRoute(),
@@ -51,7 +51,8 @@ class TabsScreen extends StatelessWidget {
         CreatorHubRoute(),
         DeveloperHubRoute(),
       ],
-      builder: (context, child, animation) {
+      transitionBuilder: (context, child, animation) => child,
+      builder: (context, child) {
         return _TabsScreenContent(child: child);
       },
     );
