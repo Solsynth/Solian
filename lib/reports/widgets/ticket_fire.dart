@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:island/reports/reports_widgets/safety/abuse_report_sheet.dart';
+import 'package:island/reports/widgets/ticket_fire_sheet.dart';
 
 /// Helper function to show the ticket create sheet
 ///

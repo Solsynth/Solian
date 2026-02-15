@@ -334,7 +334,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       // If we have local messages AND we've fetched all remote messages, return local
-      if (localMessages.isNotEmpty && _allRemoteMessagesFetched) {
+      if (localMessages.isNotEmpty &&
+          (offset > 0 || _allRemoteMessagesFetched)) {
         return localMessages;
       }
 

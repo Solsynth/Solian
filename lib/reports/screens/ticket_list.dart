@@ -1,13 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
+import 'package:island/reports/widgets/ticket_fire.dart';
 import 'package:island/reports/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide AutoLeadingButton;
 import 'package:island/route.gr.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
 class TicketListScreen extends ConsumerStatefulWidget {
@@ -38,7 +40,7 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
         onPressed: () {
           showAbuseReportSheet(context, resourceIdentifier: 'unidentified');
         },
-      ),
+      ).padding(bottom: MediaQuery.paddingOf(context).bottom + 8),
       body: FutureBuilder<List<SnTicket>>(
         future: _ticketsFuture,
         builder: (context, snapshot) {
@@ -48,18 +50,17 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final tickets = snapshot.data!;
-            return ListView.builder(
-              padding: EdgeInsets.zero,
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(vertical: 8),
               itemCount: tickets.length,
+              separatorBuilder: (_, _) => const Gap(16),
               itemBuilder: (context, index) {
                 final ticket = tickets[index];
                 return Card(
                   elevation: 2,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
                     onTap: () {
                       context.router.push(
                         TicketDetailRoute(ticketId: ticket.id),
@@ -106,7 +107,7 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                ticket.type.toString(),
+                                TicketType.values[ticket.type].displayName,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -120,7 +121,9 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                ticket.priority.toString(),
+                                TicketPriority
+                                    .values[ticket.priority]
+                                    .displayName,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -148,14 +151,14 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                               Text(
-                                ticket.status.toString(),
+                                TicketStatus.values[ticket.status].displayName,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color:
-                                          ticket.status == 'resolved' ||
-                                              ticket.status == 'closed'
+                                          ticket.status == 2 ||
+                                              ticket.status == 3
                                           ? Colors.green
-                                          : ticket.status == 'in_progress'
+                                          : ticket.status == 1
                                           ? Colors.blue
                                           : Colors.orange,
                                     ),

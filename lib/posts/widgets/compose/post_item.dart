@@ -20,7 +20,7 @@ import 'package:island/posts/widgets/compose/post_award_sheet.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
-import 'package:island/reports/reports_widgets/safety/abuse_report_helper.dart';
+import 'package:island/reports/widgets/ticket_fire.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
