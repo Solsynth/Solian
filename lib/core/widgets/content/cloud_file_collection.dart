@@ -192,7 +192,7 @@ class CloudFileList extends HookConsumerWidget {
           item = SizedBox(height: 120, child: widgetItem);
         } else {
           item = AspectRatio(
-            aspectRatio: file.fileMeta?['ratio'] as double? ?? 1.0,
+            aspectRatio: (file.fileMeta?['ratio'] as num?)?.toDouble() ?? 1.0,
             child: widgetItem,
           );
         }
@@ -254,8 +254,7 @@ class CloudFileList extends HookConsumerWidget {
                             )
                           : AspectRatio(
                               aspectRatio:
-                                  filesToShow[i].fileMeta?['ratio']
-                                      as double? ??
+                                  (filesToShow[i].fileMeta?['ratio'] as num?)?.toDouble() ??
                                   1.0,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],

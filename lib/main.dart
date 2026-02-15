@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
@@ -376,7 +377,7 @@ class IslandApp extends HookConsumerWidget {
                   talker: talker,
                   options: const TalkerWrapperOptions(enableErrorAlerts: true),
                   child: WindowScaffold(
-                    child: child ?? const SizedBox.shrink(),
+                    child: AppWrapper(child: child ?? const SizedBox.shrink()),
                   ),
                 );
               },
