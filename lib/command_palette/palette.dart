@@ -12,8 +12,9 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
+import 'package:island/route.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -370,16 +371,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
   void _navigateToChat(BuildContext context, WidgetRef ref, SnChatRoom room) {
     onDismiss();
-    if (isWideScreen(context)) {
-      debugPrint('${room.name}');
-      // ref
-      //     .read(routerProvider)
-      //     .replaceNamed('chatRoom', pathParameters: {'id': room.id});
-    } else {
-      // ref
-      //     .read(routerProvider)
-      //     .pushNamed('chatRoom', pathParameters: {'id': room.id});
-    }
+    ref.read(routerProvider).navigate(ChatRoomRoute(id: room.id));
   }
 
   void _navigateToRoute(BuildContext context, WidgetRef ref, RouteItem route) {

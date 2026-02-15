@@ -38,7 +38,7 @@ class CreatorStickerListScreen extends HookConsumerWidget {
           children: [
             Flexible(flex: 2, child: _StickerPackListSidebar(pubName: pubName)),
             const VerticalDivider(width: 1),
-            const Flexible(flex: 3, child: AutoRouter()),
+            const Flexible(flex: 3, child: _StickerPackDetailPlaceholder()),
           ],
         ),
       );
@@ -67,11 +67,7 @@ class CreatorStickerListScreen extends HookConsumerWidget {
         },
         child: const Icon(Symbols.add),
       ),
-      body: AutoRouter(
-        placeholder: (context) {
-          return SliverStickerPacksList(pubName: pubName);
-        },
-      ),
+      body: SliverStickerPacksList(pubName: pubName),
     );
   }
 }
@@ -352,5 +348,14 @@ class StickerPackForm extends HookConsumerWidget {
         ),
       ],
     ).padding(horizontal: 24, vertical: 16);
+  }
+}
+
+class _StickerPackDetailPlaceholder extends StatelessWidget {
+  const _StickerPackDetailPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Select a sticker pack to view details'));
   }
 }

@@ -88,15 +88,13 @@ class WebSocketService {
               ? utf8.decode(data)
               : data.toString();
           final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
+          talker.info('[WebSocket] Received packet: ${packet.type}');
           if (packet.type == 'error.dupe') {
             _statusStreamController.sink.add(WebSocketState.duplicateDevice());
             _channel!.sink.close();
             return;
           }
           _streamController.sink.add(packet);
-          talker.info(
-            "[WebSocket] Received packet: ${packet.type} ${packet.errorMessage}",
-          );
           if (packet.type == 'pong' && _heartbeatAt != null) {
             var now = DateTime.now();
             heartbeatDelay = now.difference(_heartbeatAt!);

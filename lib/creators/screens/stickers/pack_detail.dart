@@ -365,7 +365,10 @@ class StickerForm extends HookConsumerWidget {
                       CloudFilePicker(allowedTypes: {UniversalFileType.image}),
                 ).then((value) {
                   if (value == null) return;
-                  image.value = value[0].id;
+                  final files = value is List
+                      ? value.cast<SnCloudFile>()
+                      : [value];
+                  image.value = files[0].id;
                 });
               },
               icon: const Icon(Symbols.cloud_upload),

@@ -185,14 +185,10 @@ class CloudFilePicker extends HookConsumerWidget {
       );
 
       if (result != null) {
-        // For link attachments, we add the already uploaded cloud file directly
-        // This is different from local files which need to be uploaded first
         if (allowMultiple) {
-          // When allowMultiple is true, we need to return via Navigator
-          // Since this is a link attachment (already on cloud), we return it directly
-          if (context.mounted) Navigator.pop(context, [result]);
+          Navigator.pop(context, [result]);
         } else {
-          if (context.mounted) Navigator.pop(context, result);
+          Navigator.pop(context, result);
         }
       }
     }
