@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -109,6 +110,46 @@ class MessageContent extends StatelessWidget {
                   ).colorScheme.onSurfaceVariant.withOpacity(0.6),
                 ),
               ),
+          ],
+        );
+      case 'messages.reaction.added':
+      case 'messages.reaction.removed':
+        final symbol =
+            item.meta['symbol']?.toString() ??
+            (item.meta['reaction'] is Map
+                ? (item.meta['reaction'] as Map)['symbol']?.toString()
+                : null);
+        final isAdded = item.type == 'messages.reaction.added';
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              isAdded ? Symbols.add_reaction : Symbols.do_not_disturb_on,
+              size: 16,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
+            const Gap(6),
+            if (symbol != null && symbol.isNotEmpty)
+              buildReactionIcon(symbol, 18, iconSize: 14),
+            if (symbol != null && symbol.isNotEmpty) const Gap(6),
+            Text(
+              symbol == null || symbol.isEmpty
+                  ? (isAdded
+                        ? 'Added a reaction'
+                        : 'Removed a reaction')
+                  : (isAdded
+                        ? 'Reacted with $symbol'
+                        : 'Removed reaction $symbol'),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
         );
       case 'text':

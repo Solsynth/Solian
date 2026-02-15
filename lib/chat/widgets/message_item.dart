@@ -10,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/chat/widgets/message_content.dart';
+import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/chat/messages_notifier.dart';
@@ -20,6 +21,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
@@ -27,6 +29,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MessageItemAction {
   static const String edit = "edit";
@@ -34,6 +37,21 @@ class MessageItemAction {
   static const String reply = "reply";
   static const String forward = "forward";
   static const String resend = "resend";
+}
+
+Map<String, int> getMessageReactionsCount(LocalChatMessage message) {
+  final raw = message.data['reactions_count'];
+  if (raw is! Map) return {};
+  return raw.map((key, value) {
+    final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+    return MapEntry(key.toString(), count);
+  });
+}
+
+Map<String, bool> getMessageReactionsMade(LocalChatMessage message) {
+  final raw = message.data['reactions_made'];
+  if (raw is! Map) return {};
+  return raw.map((key, value) => MapEntry(key.toString(), value == true));
 }
 
 class MessageItem extends HookConsumerWidget {
@@ -63,11 +81,13 @@ class MessageItem extends HookConsumerWidget {
   });
 
   static const kFlashDuration = 300;
+  static const kFlashInterval = 120;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
     final settings = ref.watch(appSettingsProvider);
+    final messagesNotifier = ref.read(messagesProvider(message.roomId).notifier);
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
@@ -103,26 +123,6 @@ class MessageItem extends HookConsumerWidget {
       }
     }
 
-    void showActionMenu() {
-      if (onAction == null) return;
-      showModalBottomSheet(
-        context: context,
-        builder: (context) => MessageActionSheet(
-          isCurrentUser: isCurrentUser,
-          onAction: onAction,
-          translatableLanguage: translatableLanguage,
-          translating: translating.value,
-          translatedText: translatedText.value,
-          translate: translate,
-          isMobile: isMobile,
-          remoteMessage: remoteMessage,
-          message: message,
-          onToggleSelection: onToggleSelection,
-          onEnterSelectionMode: onEnterSelectionMode,
-        ),
-      );
-    }
-
     final flashing = ref.watch(
       flashingMessagesProvider.select((set) => set.contains(message.id)),
     );
@@ -135,7 +135,7 @@ class MessageItem extends HookConsumerWidget {
         flashTimer.value?.cancel();
         isFlashing.value = true;
         flashTimer.value = Timer.periodic(
-          const Duration(milliseconds: kFlashDuration),
+          const Duration(milliseconds: kFlashInterval),
           (timer) {
             isFlashing.value = !isFlashing.value;
             if (timer.tick >= 6) {
@@ -164,6 +164,54 @@ class MessageItem extends HookConsumerWidget {
         : Colors.transparent;
 
     final isHovered = useState(false);
+    final reacting = useState(false);
+    final reactionsCount = getMessageReactionsCount(message);
+    final reactionsMade = getMessageReactionsMade(message);
+
+    Future<void> reactMessage(String symbol, int attitude) async {
+      if (reacting.value) return;
+      reacting.value = true;
+      await messagesNotifier.reactToMessage(
+        message.id,
+        symbol: symbol,
+        attitude: attitude,
+      );
+      reacting.value = false;
+    }
+
+    void openReactionSheet() {
+      showModalBottomSheet(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) => ChatMessageReactionSheet(
+          reactionsCount: reactionsCount,
+          reactionsMade: reactionsMade,
+          onReact: reactMessage,
+        ),
+      );
+    }
+
+    void showActionMenu() {
+      if (onAction == null) return;
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => MessageActionSheet(
+          isCurrentUser: isCurrentUser,
+          onAction: onAction,
+          onReact: openReactionSheet,
+          translatableLanguage: translatableLanguage,
+          translating: translating.value,
+          translatedText: translatedText.value,
+          translate: translate,
+          isMobile: isMobile,
+          remoteMessage: remoteMessage,
+          message: message,
+          onToggleSelection: onToggleSelection,
+          onEnterSelectionMode: onEnterSelectionMode,
+        ),
+      );
+    }
 
     return Stack(
       clipBehavior: Clip.none,
@@ -220,37 +268,49 @@ class MessageItem extends HookConsumerWidget {
                 onExit: (_) => isHovered.value = false,
                 child: AnimatedContainer(
                   curve: Curves.easeInOut,
-                  duration: const Duration(milliseconds: kFlashDuration),
+                  duration: Duration.zero,
                   decoration: BoxDecoration(color: flashColor),
-                  child: switch (settings.messageDisplayStyle) {
-                    'compact' => MessageItemDisplayIRC(
-                      message: message,
-                      isCurrentUser: isCurrentUser,
-                      progress: progress,
-                      showAvatar: showAvatar,
-                      onJump: onJump,
-                      translatedText: translatedText.value,
-                      translating: translating.value,
-                    ),
-                    'column' => MessageItemDisplayDiscord(
-                      message: message,
-                      isCurrentUser: isCurrentUser,
-                      progress: progress,
-                      showAvatar: showAvatar,
-                      onJump: onJump,
-                      translatedText: translatedText.value,
-                      translating: translating.value,
-                    ),
-                    _ => MessageItemDisplayBubble(
-                      message: message,
-                      isCurrentUser: isCurrentUser,
-                      progress: progress,
-                      showAvatar: showAvatar,
-                      onJump: onJump,
-                      translatedText: translatedText.value,
-                      translating: translating.value,
-                    ),
-                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      switch (settings.messageDisplayStyle) {
+                        'compact' => MessageItemDisplayIRC(
+                          message: message,
+                          isCurrentUser: isCurrentUser,
+                          progress: progress,
+                          showAvatar: showAvatar,
+                          onJump: onJump,
+                          translatedText: translatedText.value,
+                          translating: translating.value,
+                        ),
+                        'column' => MessageItemDisplayDiscord(
+                          message: message,
+                          isCurrentUser: isCurrentUser,
+                          progress: progress,
+                          showAvatar: showAvatar,
+                          onJump: onJump,
+                          translatedText: translatedText.value,
+                          translating: translating.value,
+                        ),
+                        _ => MessageItemDisplayBubble(
+                          message: message,
+                          isCurrentUser: isCurrentUser,
+                          progress: progress,
+                          showAvatar: showAvatar,
+                          onJump: onJump,
+                          translatedText: translatedText.value,
+                          translating: translating.value,
+                        ),
+                      },
+                      MessageReactionChips(
+                        message: message,
+                        reactionsCount: reactionsCount,
+                        reactionsMade: reactionsMade,
+                        submitting: reacting.value,
+                        onReact: reactMessage,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -266,6 +326,7 @@ class MessageItem extends HookConsumerWidget {
               child: MessageHoverActionMenu(
                 isCurrentUser: isCurrentUser,
                 onAction: onAction,
+                onReact: openReactionSheet,
                 translatableLanguage: translatableLanguage,
                 translating: translating.value,
                 translatedText: translatedText.value,
@@ -282,6 +343,7 @@ class MessageItem extends HookConsumerWidget {
 class MessageActionSheet extends StatefulWidget {
   final bool isCurrentUser;
   final Function(String action)? onAction;
+  final VoidCallback onReact;
   final bool translatableLanguage;
   final bool translating;
   final String? translatedText;
@@ -296,6 +358,7 @@ class MessageActionSheet extends StatefulWidget {
     super.key,
     required this.isCurrentUser,
     required this.onAction,
+    required this.onReact,
     required this.translatableLanguage,
     required this.translating,
     required this.translatedText,
@@ -482,6 +545,14 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 Navigator.pop(context);
               },
             ),
+            _ActionListTile(
+              leading: const Icon(Symbols.add_reaction),
+              title: Text('react'.tr()),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onReact();
+              },
+            ),
 
             // AI Selection action
             _ActionListTile(
@@ -573,6 +644,7 @@ class _ActionListTile extends StatelessWidget {
 class MessageHoverActionMenu extends StatelessWidget {
   final bool isCurrentUser;
   final Function(String action)? onAction;
+  final VoidCallback onReact;
   final bool translatableLanguage;
   final bool translating;
   final String? translatedText;
@@ -583,6 +655,7 @@ class MessageHoverActionMenu extends StatelessWidget {
     super.key,
     required this.isCurrentUser,
     required this.onAction,
+    required this.onReact,
     required this.translatableLanguage,
     required this.translating,
     required this.translatedText,
@@ -618,6 +691,13 @@ class MessageHoverActionMenu extends StatelessWidget {
         icon: Icon(Symbols.forward, size: 16),
         onPressed: () => onAction?.call(MessageItemAction.forward),
         tooltip: 'forward'.tr(),
+        padding: const EdgeInsets.all(8),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      ),
+      IconButton(
+        icon: const Icon(Symbols.add_reaction, size: 16),
+        onPressed: onReact,
+        tooltip: 'react'.tr(),
         padding: const EdgeInsets.all(8),
         constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       ),
@@ -680,6 +760,81 @@ class MessageHoverActionMenu extends StatelessWidget {
             ),
           // Author actions (right side)
           ...authorActions,
+        ],
+      ),
+    );
+  }
+}
+
+class MessageReactionChips extends HookConsumerWidget {
+  final LocalChatMessage message;
+  final Map<String, int> reactionsCount;
+  final Map<String, bool> reactionsMade;
+  final bool submitting;
+  final Future<void> Function(String symbol, int attitude) onReact;
+
+  const MessageReactionChips({
+    super.key,
+    required this.message,
+    required this.reactionsCount,
+    required this.reactionsMade,
+    required this.submitting,
+    required this.onReact,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (reactionsCount.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final baseUrl = ref.watch(serverUrlProvider);
+    final orderedSymbols = reactionsCount.keys.toList()
+      ..sort((a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0));
+
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 4),
+        children: [
+          for (final symbol in orderedSymbols)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ActionChip(
+                avatar: symbol.contains('+')
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: UniversalImage(
+                          uri: '$baseUrl/sphere/stickers/lookup/$symbol/open',
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                    : buildReactionIcon(symbol, 24, iconSize: 18),
+                label: Row(
+                  spacing: 4,
+                  children: [
+                    Text(symbol).fontSize(12),
+                    Text('x${reactionsCount[symbol] ?? 0}').bold().fontSize(12),
+                  ],
+                ),
+                backgroundColor: reactionsMade[symbol] == true
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : null,
+                onPressed: submitting
+                    ? null
+                    : () {
+                        onReact(symbol, kReactionTemplates[symbol]?.attitude ?? 1);
+                      },
+                visualDensity: const VisualDensity(
+                  horizontal: VisualDensity.minimumDensity,
+                  vertical: VisualDensity.minimumDensity,
+                ),
+              ),
+            ),
         ],
       ),
     );

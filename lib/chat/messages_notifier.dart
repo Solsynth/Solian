@@ -18,13 +18,18 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';
 
-const Set<String> kSilentMessageTypes = {'messages.update.links'};
+const Set<String> kSilentMessageTypes = {
+  'messages.update.links',
+  'messages.reaction.added',
+  'messages.reaction.removed',
+};
 
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatMember _identity;
+  bool _hasIdentity = false;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -66,6 +71,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Allow building even if identity is null for public rooms
     if (identity != null) {
       _identity = identity;
+      _hasIdentity = true;
     }
 
     talker.log('MessagesNotifier built for room $roomId');
@@ -257,21 +263,38 @@ class MessagesNotifier extends _$MessagesNotifier {
     final List<dynamic> data = response.data;
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
-    final messages = data.map((json) {
+    final messages = <LocalChatMessage>[];
+    for (final json in data) {
       final remoteMessage = SnChatMessage.fromJson(json);
-      return LocalChatMessage.fromRemoteMessage(
+
+      final localMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
       );
-    }).toList();
 
-    for (final message in messages) {
-      await _database.saveMessageWithSender(message);
-      if (message.nonce != null) {
+      final existing =
+          await (_database.select(_database.chatMessages)
+                ..where((tbl) => tbl.id.equals(localMessage.id)))
+              .getSingleOrNull();
+
+      if ((remoteMessage.type == 'messages.reaction.added' ||
+              remoteMessage.type == 'messages.reaction.removed') &&
+          existing == null) {
+        // Apply reaction update exactly once for each sync-message id.
+        if (remoteMessage.type == 'messages.reaction.added') {
+          await receiveReactionAdded(remoteMessage);
+        } else {
+          await receiveReactionRemoved(remoteMessage);
+        }
+      }
+
+      await _database.saveMessageWithSender(localMessage);
+      if (localMessage.nonce != null) {
         _pendingMessages.removeWhere(
-          (_, pendingMsg) => pendingMsg.nonce == message.nonce,
+          (_, pendingMsg) => pendingMsg.nonce == localMessage.nonce,
         );
       }
+      messages.add(localMessage);
     }
 
     // Check if we've fetched all remote messages
@@ -749,6 +772,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       case "messages.update":
       case "messages.update.links":
         await receiveMessageUpdate(remoteMessage);
+      case "messages.reaction.added":
+        await receiveReactionAdded(remoteMessage);
+      case "messages.reaction.removed":
+        await receiveReactionRemoved(remoteMessage);
     }
   }
 
@@ -762,6 +789,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     talker.log('Received message update ${remoteMessage.id}');
+
+    if (remoteMessage.type == 'messages.reaction.added') {
+      await receiveReactionAdded(remoteMessage);
+      return;
+    }
+    if (remoteMessage.type == 'messages.reaction.removed') {
+      await receiveReactionRemoved(remoteMessage);
+      return;
+    }
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
 
@@ -897,6 +933,166 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       showErrorAlert(err);
     }
+  }
+
+  Map<String, int> _extractReactionsCount(LocalChatMessage message) {
+    final raw = message.data['reactions_count'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
+  Map<String, bool> _extractReactionsMade(LocalChatMessage message) {
+    final raw = message.data['reactions_made'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  LocalChatMessage _copyWithReactionMaps(
+    LocalChatMessage message, {
+    required Map<String, int> reactionsCount,
+    required Map<String, bool> reactionsMade,
+  }) {
+    final updatedData = Map<String, dynamic>.from(message.data);
+    updatedData['reactions_count'] = reactionsCount;
+    updatedData['reactions_made'] = reactionsMade;
+
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: updatedData,
+      createdAt: message.createdAt,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  Future<void> _applyReactionDelta({
+    required String messageId,
+    required String symbol,
+    required int delta,
+    bool? madeByCurrentUser,
+  }) async {
+    final message = await fetchMessageById(messageId);
+    if (message == null) {
+      talker.log('Cannot apply reaction delta: message $messageId not found');
+      return;
+    }
+
+    final reactionsCount = _extractReactionsCount(message);
+    final reactionsMade = _extractReactionsMade(message);
+
+    final nextCount = (reactionsCount[symbol] ?? 0) + delta;
+    if (nextCount > 0) {
+      reactionsCount[symbol] = nextCount;
+    } else {
+      reactionsCount.remove(symbol);
+    }
+
+    if (madeByCurrentUser != null) {
+      if (madeByCurrentUser) {
+        reactionsMade[symbol] = true;
+      } else {
+        reactionsMade.remove(symbol);
+      }
+    }
+
+    final updatedMessage = _copyWithReactionMaps(
+      message,
+      reactionsCount: reactionsCount,
+      reactionsMade: reactionsMade,
+    );
+
+    await _database.updateMessage(_database.messageToCompanion(updatedMessage));
+
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final index = currentMessages.indexWhere((m) => m.id == messageId);
+    if (ref.mounted && index >= 0) {
+      final newList = [...currentMessages];
+      newList[index] = updatedMessage;
+      state = AsyncValue.data(newList);
+    }
+  }
+
+  Future<void> reactToMessage(
+    String messageId, {
+    required String symbol,
+    required int attitude,
+  }) async {
+    try {
+      await _apiClient.post(
+        '/messager/chat/$roomId/messages/$messageId/reactions',
+        data: {'symbol': symbol, 'attitude': attitude},
+      );
+      // Do not optimistically mutate local reaction counts here.
+      // Reactions are applied via websocket/sync events to avoid double
+      // increments (local apply + incoming reaction event).
+    } catch (err, stackTrace) {
+      talker.log(
+        'Failed to react to message $messageId',
+        exception: err,
+        stackTrace: stackTrace,
+      );
+      showErrorAlert(err);
+    }
+  }
+
+  Future<void> receiveReactionAdded(SnChatMessage remoteMessage) async {
+    if (remoteMessage.chatRoomId != roomId) return;
+
+    final targetId = remoteMessage.meta['message_id']?.toString();
+    final symbol =
+        remoteMessage.meta['symbol']?.toString() ??
+        (remoteMessage.meta['reaction'] is Map
+            ? (remoteMessage.meta['reaction'] as Map)['symbol']?.toString()
+            : null);
+    if (symbol == null || symbol.isEmpty) return;
+
+    if (targetId == null || targetId.isEmpty) return;
+    final reactionSenderId = remoteMessage.senderId;
+
+    await _applyReactionDelta(
+      messageId: targetId,
+      symbol: symbol,
+      delta: 1,
+      madeByCurrentUser: _hasIdentity
+          ? (reactionSenderId.isNotEmpty && reactionSenderId == _identity.id)
+          : null,
+    );
+  }
+
+  Future<void> receiveReactionRemoved(SnChatMessage remoteMessage) async {
+    if (remoteMessage.chatRoomId != roomId) return;
+
+    final targetId = remoteMessage.meta['message_id']?.toString();
+    final symbol = remoteMessage.meta['symbol']?.toString();
+    if (targetId == null || symbol == null || symbol.isEmpty) return;
+
+    await _applyReactionDelta(
+      messageId: targetId,
+      symbol: symbol,
+      delta: -1,
+      madeByCurrentUser: _hasIdentity
+          ? (remoteMessage.senderId == _identity.id ? false : null)
+          : null,
+    );
   }
 
   /// Get search results without updating shared state

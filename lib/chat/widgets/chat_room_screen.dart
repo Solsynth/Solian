@@ -230,6 +230,31 @@ class ChatRoomScreen extends HookConsumerWidget {
       messagesNotifier.jumpToMessage,
       messages,
     );
+    final isAtLatestMessages = useState(true);
+
+    useEffect(() {
+      void updateAtLatestState() {
+        final controller = scrollManager.scrollController;
+        if (!controller.hasClients) return;
+        // In reverse list, pixels near 0 means user is at latest messages.
+        isAtLatestMessages.value = controller.position.pixels <= 80;
+      }
+
+      scrollManager.scrollController.addListener(updateAtLatestState);
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateAtLatestState());
+      return () =>
+          scrollManager.scrollController.removeListener(updateAtLatestState);
+    }, [scrollManager.scrollController]);
+
+    useEffect(() {
+      final list = messages.value;
+      if (list != null && list.isNotEmpty && isAtLatestMessages.value) {
+        // If user is already at latest, keep anchor aligned to newest and
+        // avoid showing follow-back for actively read messages.
+        lastReadAnchorMessageId.value = list.first.id;
+      }
+      return null;
+    }, [messages.value, isAtLatestMessages.value]);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);
@@ -383,6 +408,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       final anchorId = lastReadAnchorMessageId.value;
       final list = messages.value;
       if (anchorId == null || list == null || list.isEmpty) return null;
+      if (isAtLatestMessages.value) return null;
       final anchorIndex = list.indexWhere((m) => m.id == anchorId);
       // Messages are sorted newest -> oldest.
       // Show marker only when there are newer messages before the anchor.

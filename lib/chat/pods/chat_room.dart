@@ -133,6 +133,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             ChatMessageDeleteEvent(messageId: targetId, roomId: roomId),
           );
         }
+      case 'messages.reaction.added':
+      case 'messages.reaction.removed':
+        {
+          final applied = await _applyReactionUpdate(db, message);
+          if (applied) {
+            eventBus.fire(ChatMessageUpdateEvent(message));
+          }
+        }
     }
   }
 
@@ -174,6 +182,98 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       existingMsg.status,
     );
     await db.saveMessageWithSender(deletedMessage);
+  }
+
+  Map<String, int> _extractReactionsCount(LocalChatMessage message) {
+    final raw = message.data['reactions_count'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
+  Map<String, bool> _extractReactionsMade(LocalChatMessage message) {
+    final raw = message.data['reactions_made'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  LocalChatMessage _copyWithReactionMaps(
+    LocalChatMessage message, {
+    required Map<String, int> reactionsCount,
+    required Map<String, bool> reactionsMade,
+  }) {
+    final updatedData = Map<String, dynamic>.from(message.data);
+    updatedData['reactions_count'] = reactionsCount;
+    updatedData['reactions_made'] = reactionsMade;
+
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: updatedData,
+      createdAt: message.createdAt,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  Future<bool> _applyReactionUpdate(AppDatabase db, SnChatMessage packet) async {
+    final targetId = packet.meta['message_id']?.toString();
+    if (targetId == null || targetId.isEmpty) return false;
+
+    final targetMessage = await _fetchMessageFromDb(
+      db,
+      targetId,
+      packet.chatRoomId,
+    );
+    if (targetMessage == null) return false;
+
+    final reactionsCount = _extractReactionsCount(targetMessage);
+    final reactionsMade = _extractReactionsMade(targetMessage);
+
+    if (packet.type == 'messages.reaction.added') {
+      final symbol =
+          packet.meta['symbol']?.toString() ??
+          (packet.meta['reaction'] is Map
+              ? (packet.meta['reaction'] as Map)['symbol']?.toString()
+              : null);
+      if (symbol == null || symbol.isEmpty) return false;
+      reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+    } else if (packet.type == 'messages.reaction.removed') {
+      final symbol = packet.meta['symbol']?.toString();
+      if (symbol == null || symbol.isEmpty) return false;
+      final nextCount = (reactionsCount[symbol] ?? 0) - 1;
+      if (nextCount > 0) {
+        reactionsCount[symbol] = nextCount;
+      } else {
+        reactionsCount.remove(symbol);
+      }
+    }
+
+    final updatedMessage = _copyWithReactionMaps(
+      targetMessage,
+      reactionsCount: reactionsCount,
+      reactionsMade: reactionsMade,
+    );
+
+    await db.updateMessage(db.messageToCompanion(updatedMessage));
+    return true;
   }
 
   /// Perform global sync to fetch messages from all chat rooms
@@ -222,6 +322,20 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         // Save all messages to database
         for (final msg in messages) {
           try {
+            if (msg.type == 'messages.reaction.added' ||
+                msg.type == 'messages.reaction.removed') {
+              final existed =
+                  await (db.select(db.chatMessages)
+                        ..where((m) => m.id.equals(msg.id)))
+                      .getSingleOrNull();
+              if (existed == null) {
+                await _applyReactionUpdate(db, msg);
+              }
+              await db.saveMessageWithSender(
+                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+              );
+              continue;
+            }
             final localMessage = LocalChatMessage.fromRemoteMessage(
               msg,
               MessageStatus.sent,
