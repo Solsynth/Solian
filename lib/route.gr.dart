@@ -2543,6 +2543,7 @@ class RealmDetailRoute extends _i66.PageRouteInfo<RealmDetailRouteArgs> {
   }) : super(
          RealmDetailRoute.name,
          args: RealmDetailRouteArgs(key: key, slug: slug),
+         rawPathParams: {'slug': slug},
          initialChildren: children,
        );
 
@@ -2551,7 +2552,10 @@ class RealmDetailRoute extends _i66.PageRouteInfo<RealmDetailRouteArgs> {
   static _i66.PageInfo page = _i66.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<RealmDetailRouteArgs>();
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<RealmDetailRouteArgs>(
+        orElse: () => RealmDetailRouteArgs(slug: pathParams.getString('slug')),
+      );
       return _i52.RealmDetailScreen(key: args.key, slug: args.slug);
     },
   );

@@ -7,7 +7,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -29,21 +28,6 @@ class CreatorStickerListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-
-    if (isWide) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            Flexible(flex: 2, child: _StickerPackListSidebar(pubName: pubName)),
-            const VerticalDivider(width: 1),
-            const Flexible(flex: 3, child: _StickerPackDetailPlaceholder()),
-          ],
-        ),
-      );
-    }
-
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
@@ -66,43 +50,6 @@ class CreatorStickerListScreen extends HookConsumerWidget {
           });
         },
         child: const Icon(Symbols.add),
-      ),
-      body: SliverStickerPacksList(pubName: pubName),
-    );
-  }
-}
-
-class _StickerPackListSidebar extends HookConsumerWidget {
-  final String pubName;
-  const _StickerPackListSidebar({required this.pubName});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AppScaffold(
-      isNoBackground: true,
-      appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        title: const Text('stickers').tr(),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.add),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => SheetScaffold(
-                  titleText: 'createStickerPack'.tr(),
-                  child: StickerPackForm(pubName: pubName),
-                ),
-              ).then((value) {
-                if (value != null) {
-                  ref.invalidate(stickerPacksProvider(pubName));
-                }
-              });
-            },
-          ),
-          const Gap(8),
-        ],
       ),
       body: SliverStickerPacksList(pubName: pubName),
     );
@@ -348,14 +295,5 @@ class StickerPackForm extends HookConsumerWidget {
         ),
       ],
     ).padding(horizontal: 24, vertical: 16);
-  }
-}
-
-class _StickerPackDetailPlaceholder extends StatelessWidget {
-  const _StickerPackDetailPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Select a sticker pack to view details'));
   }
 }

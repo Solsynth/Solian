@@ -180,7 +180,7 @@ final realmChatRoomsProvider = FutureProvider.autoDispose
 class RealmDetailScreen extends HookConsumerWidget {
   final String slug;
 
-  const RealmDetailScreen({super.key, required this.slug});
+  const RealmDetailScreen({super.key, @PathParam("slug") required this.slug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
