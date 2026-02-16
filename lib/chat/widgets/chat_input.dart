@@ -255,9 +255,13 @@ class ChatInput extends HookConsumerWidget {
     final isExpanded = useState(false);
 
     void send() {
-      inputFocusNode.requestFocus();
       if (isExpanded.value) isExpanded.value = false;
       onSend.call();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          inputFocusNode.requestFocus();
+        }
+      });
     }
 
     void insertNewLine() {
@@ -885,6 +889,11 @@ class ChatInput extends HookConsumerWidget {
                           textInputAction: settings.enterToSend
                               ? TextInputAction.send
                               : null,
+                          onEditingComplete: () {
+                            if (settings.enterToSend) {
+                              inputFocusNode.requestFocus();
+                            }
+                          },
                           onSubmitted: settings.enterToSend
                               ? (_) => send()
                               : null,
