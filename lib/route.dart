@@ -60,12 +60,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
     AutoRoute(page: RealmEditRoute.page, path: '/realms/:slug/edit'),
 
-    // Creator sticker pack detail (standalone)
-    AutoRoute(
-      page: CreatorStickerPackDetailRoute.page,
-      path: '/creators/:pubName/stickers/:packId',
-    ),
-
     // Main tabs shell route
     AutoRoute(
       page: TabsRoute.page,
@@ -156,6 +150,10 @@ class AppRouter extends RootStackRouter {
             AutoRoute(
               page: CreatorStickerListRoute.page,
               path: ':pubName/stickers',
+            ),
+            AutoRoute(
+              page: CreatorStickerPackDetailRoute.page,
+              path: ':pubName/stickers/:packId',
             ),
           ],
         ),
