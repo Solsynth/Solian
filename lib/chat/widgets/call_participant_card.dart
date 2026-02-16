@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -76,6 +77,7 @@ class CallParticipantCard extends HookConsumerWidget {
                     }),
                   ],
                 ),
+                _CallParticipantStatsPanel(participant: live.remoteParticipant),
               ],
             ).padding(horizontal: 20, top: 16),
             AccountNameplate(
@@ -83,6 +85,218 @@ class CallParticipantCard extends HookConsumerWidget {
               isOutlined: false,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CallParticipantStatsPanel extends StatefulWidget {
+  final Participant participant;
+  const _CallParticipantStatsPanel({required this.participant});
+
+  @override
+  State<_CallParticipantStatsPanel> createState() =>
+      _CallParticipantStatsPanelState();
+}
+
+class _CallParticipantStatsPanelState
+    extends State<_CallParticipantStatsPanel> {
+  final List<EventsListener<TrackEvent>> _listeners = [];
+  Map<String, String> _audioStats = {};
+  Map<String, String> _videoStats = {};
+
+  double _audioTxKbps = 0;
+  double _audioRxKbps = 0;
+  double _videoTxKbps = 0;
+  double _videoRxKbps = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.participant.addListener(_onParticipantChanged);
+    _onParticipantChanged();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CallParticipantStatsPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.participant == widget.participant) return;
+    oldWidget.participant.removeListener(_onParticipantChanged);
+    widget.participant.addListener(_onParticipantChanged);
+    _onParticipantChanged();
+  }
+
+  @override
+  void dispose() {
+    widget.participant.removeListener(_onParticipantChanged);
+    _disposeTrackListeners();
+    super.dispose();
+  }
+
+  void _disposeTrackListeners() {
+    for (final listener in _listeners) {
+      unawaited(listener.dispose());
+    }
+    _listeners.clear();
+  }
+
+  String _toKbps(num value) {
+    if (value.isNaN || value.isInfinite) return '0 kbps';
+    return '${value.toInt()} kbps';
+  }
+
+  void _onParticipantChanged() {
+    _disposeTrackListeners();
+    _audioStats = {};
+    _videoStats = {};
+
+    final tracks = [
+      ...widget.participant.videoTrackPublications,
+      ...widget.participant.audioTrackPublications,
+    ];
+    for (final publication in tracks) {
+      final track = publication.track;
+      if (track == null) continue;
+      _setUpTrackListener(track);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _setUpTrackListener(Track track) {
+    final listener = track.createListener();
+    _listeners.add(listener);
+
+    if (track is LocalVideoTrack) {
+      listener.on<VideoSenderStatsEvent>((event) {
+        if (!mounted) return;
+        _videoTxKbps = event.currentBitrate.toDouble();
+        final next = <String, String>{'tx': _toKbps(event.currentBitrate)};
+        final firstStats =
+            event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
+        if (firstStats != null) {
+          if (firstStats.mimeType != null) {
+            next['codec'] =
+                '${firstStats.mimeType!.split('/').last}/${firstStats.clockRate ?? '-'}';
+          }
+          next['size/fps'] =
+              '${firstStats.frameWidth ?? '-'}x${firstStats.frameHeight ?? '-'} @ ${firstStats.framesPerSecond?.toStringAsFixed(1) ?? '-'}fps';
+        }
+        setState(() {
+          _videoStats = next;
+        });
+      });
+      return;
+    }
+
+    if (track is RemoteVideoTrack) {
+      listener.on<VideoReceiverStatsEvent>((event) {
+        if (!mounted) return;
+        _videoRxKbps = event.currentBitrate.toDouble();
+        final next = <String, String>{'rx': _toKbps(event.currentBitrate)};
+        if (event.stats.mimeType != null) {
+          next['codec'] =
+              '${event.stats.mimeType!.split('/').last}/${event.stats.clockRate ?? '-'}';
+        }
+        next['size/fps'] =
+            '${event.stats.frameWidth ?? '-'}x${event.stats.frameHeight ?? '-'} @ ${event.stats.framesPerSecond?.toStringAsFixed(1) ?? '-'}fps';
+        next['jitter'] = '${event.stats.jitter?.toStringAsFixed(3) ?? '-'} s';
+        next['frames dropped'] = '${event.stats.framesDropped ?? 0}';
+        setState(() {
+          _videoStats = next;
+        });
+      });
+      return;
+    }
+
+    if (track is LocalAudioTrack) {
+      listener.on<AudioSenderStatsEvent>((event) {
+        if (!mounted) return;
+        _audioTxKbps = event.currentBitrate.toDouble();
+        final next = <String, String>{'tx': _toKbps(event.currentBitrate)};
+        if (event.stats.mimeType != null) {
+          next['codec'] =
+              '${event.stats.mimeType!.split('/').last}/${event.stats.clockRate ?? '-'}/${event.stats.channels ?? '-'}ch';
+        }
+        setState(() {
+          _audioStats = next;
+        });
+      });
+      return;
+    }
+
+    if (track is RemoteAudioTrack) {
+      listener.on<AudioReceiverStatsEvent>((event) {
+        if (!mounted) return;
+        _audioRxKbps = event.currentBitrate.toDouble();
+        final next = <String, String>{'rx': _toKbps(event.currentBitrate)};
+        if (event.stats.mimeType != null) {
+          next['codec'] =
+              '${event.stats.mimeType!.split('/').last}/${event.stats.clockRate ?? '-'}/${event.stats.channels ?? '-'}ch';
+        }
+        next['jitter'] = '${event.stats.jitter?.toStringAsFixed(3) ?? '-'} s';
+        next['packets lost'] = '${event.stats.packetsLost ?? 0}';
+        setState(() {
+          _audioStats = next;
+        });
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodySmall;
+    final totalTx = _audioTxKbps + _videoTxKbps;
+    final totalRx = _audioRxKbps + _videoRxKbps;
+
+    Widget section(String title, Map<String, String> data) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: textStyle?.copyWith(fontWeight: FontWeight.w700)),
+          if (data.isEmpty)
+            Text('-', style: textStyle)
+          else
+            ...data.entries.map(
+              (entry) => Text('${entry.key}: ${entry.value}', style: textStyle),
+            ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 180),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Symbols.upload, size: 14),
+                  const Gap(6),
+                  Text('Up ${_toKbps(totalTx)}', style: textStyle),
+                  const Gap(12),
+                  const Icon(Symbols.download, size: 14),
+                  const Gap(6),
+                  Text('Down ${_toKbps(totalRx)}', style: textStyle),
+                ],
+              ),
+              const Gap(8),
+              section('Audio', _audioStats),
+              const Gap(8),
+              section('Video', _videoStats),
+            ],
+          ),
         ),
       ),
     );

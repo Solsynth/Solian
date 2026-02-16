@@ -36,6 +36,7 @@ sealed class CallState with _$CallState {
     required bool isSpeakerphone,
     @Default(Duration(seconds: 0)) Duration duration,
     @Default(ViewMode.grid) ViewMode viewMode,
+    @Default(0) int participantSyncVersion,
     String? error,
   }) = _CallState;
 }
@@ -88,6 +89,13 @@ class CallNotifier extends _$CallNotifier {
       isScreenSharing: false,
       isSpeakerphone: true,
       viewMode: ViewMode.grid,
+      participantSyncVersion: 0,
+    );
+  }
+
+  void _bumpParticipantSync() {
+    state = state.copyWith(
+      participantSyncVersion: state.participantSyncVersion + 1,
     );
   }
 
@@ -102,7 +110,7 @@ class CallNotifier extends _$CallNotifier {
       })
       ..on<lk.RoomDisconnectedEvent>((e) {
         _participants = [];
-        state = state.copyWith();
+        _bumpParticipantSync();
       });
   }
 
@@ -140,7 +148,7 @@ class CallNotifier extends _$CallNotifier {
         );
       }),
     );
-    state = state.copyWith();
+    _bumpParticipantSync();
   }
 
   /// Builds the CallParticipant object for the local participant.
@@ -174,7 +182,7 @@ class CallNotifier extends _$CallNotifier {
     if (_room == null) {
       // Can't build live objects, just store empty
       _participants = [];
-      state = state.copyWith();
+      _bumpParticipantSync();
       return;
     }
     final remoteParticipants = _room!.remoteParticipants;
@@ -189,7 +197,6 @@ class CallNotifier extends _$CallNotifier {
           remoteParticipant: _localParticipant!,
         ),
       );
-      state = state.copyWith();
     }
     // Add remote participants
     _participants.addAll(
@@ -210,7 +217,7 @@ class CallNotifier extends _$CallNotifier {
             : null;
       }).whereType<CallParticipantLive>(),
     );
-    state = state.copyWith();
+    _bumpParticipantSync();
   }
 
   String? _roomId;
