@@ -43,6 +43,7 @@ const kAppAskedReview = 'app_asked_review';
 const kAppDashSearchEngine = 'app_dash_search_engine';
 const kAppDefaultScreen = 'app_default_screen';
 const kAppShowFediverseContent = 'app_show_fediverse_content';
+const kAppShowChatSystemMessages = 'app_show_chat_system_messages';
 const kAppDashboardConfig = 'app_dashboard_config';
 
 // Will be overrided by the ProviderScope
@@ -110,6 +111,7 @@ sealed class AppSettings with _$AppSettings {
     required String? dashSearchEngine,
     required String? defaultScreen,
     required bool showFediverseContent,
+    required bool showChatSystemMessages,
     required DashboardConfig? dashboardConfig,
   }) = _AppSettings;
 }
@@ -144,6 +146,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
       showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
+      showChatSystemMessages: prefs.getBool(kAppShowChatSystemMessages) ?? false,
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
     );
   }
@@ -360,6 +363,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppShowFediverseContent, value);
     state = state.copyWith(showFediverseContent: value);
+  }
+
+  void setShowChatSystemMessages(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppShowChatSystemMessages, value);
+    state = state.copyWith(showChatSystemMessages: value);
   }
 
   void setDashboardConfig(DashboardConfig? value) {

@@ -24,6 +24,8 @@ class RoomMessageList extends HookConsumerWidget {
   final double? previousInputHeight;
   final String? lastReadAnchorMessageId;
   final VoidCallback? onFollowBack;
+  final String? systemToggleMessageId;
+  final VoidCallback? onShowSystemMessages;
 
   const RoomMessageList({
     super.key,
@@ -43,6 +45,8 @@ class RoomMessageList extends HookConsumerWidget {
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
     this.onFollowBack,
+    this.systemToggleMessageId,
+    this.onShowSystemMessages,
     this.previousInputHeight,
   });
 
@@ -161,6 +165,8 @@ class RoomMessageList extends HookConsumerWidget {
               attachmentProgress: attachmentProgress,
               disableAnimation: settings.disableAnimation,
               roomOpenTime: roomOpenTime,
+              showSystemMessagesToggle: systemToggleMessageId == message.id,
+              onShowSystemMessages: onShowSystemMessages,
             ),
           ],
         );

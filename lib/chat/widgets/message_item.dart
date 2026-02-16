@@ -65,6 +65,8 @@ class MessageItem extends HookConsumerWidget {
   final bool isSelected;
   final Function(String messageId)? onToggleSelection;
   final Function()? onEnterSelectionMode;
+  final bool showSystemMessagesToggle;
+  final VoidCallback? onShowSystemMessages;
 
   const MessageItem({
     super.key,
@@ -78,6 +80,8 @@ class MessageItem extends HookConsumerWidget {
     this.isSelected = false,
     this.onToggleSelection,
     this.onEnterSelectionMode,
+    this.showSystemMessagesToggle = false,
+    this.onShowSystemMessages,
   });
 
   static const kFlashDuration = 300;
@@ -87,7 +91,9 @@ class MessageItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
     final settings = ref.watch(appSettingsProvider);
-    final messagesNotifier = ref.read(messagesProvider(message.roomId).notifier);
+    final messagesNotifier = ref.read(
+      messagesProvider(message.roomId).notifier,
+    );
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
@@ -165,6 +171,7 @@ class MessageItem extends HookConsumerWidget {
 
     final isHovered = useState(false);
     final reacting = useState(false);
+    final isSystemInfoExpanded = useState(false);
     final reactionsCount = getMessageReactionsCount(message);
     final reactionsMade = getMessageReactionsMade(message);
 
@@ -302,10 +309,39 @@ class MessageItem extends HookConsumerWidget {
                           translating: translating.value,
                         ),
                       },
+                      if (showSystemMessagesToggle &&
+                          onShowSystemMessages != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              right: 12,
+                              bottom: 4,
+                            ),
+                            child: OutlinedButton.icon(
+                              onPressed: onShowSystemMessages,
+                              icon: const Icon(Symbols.visibility, size: 16),
+                              label: const Text('Show system messages'),
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: const VisualDensity(
+                                  horizontal: VisualDensity.minimumDensity,
+                                  vertical: VisualDensity.minimumDensity,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       MessageReactionChips(
-                        message: message,
+                        displayStyle: settings.messageDisplayStyle,
+                        isCurrentUser: isCurrentUser,
                         reactionsCount: reactionsCount,
                         reactionsMade: reactionsMade,
+                        isExpanded: isSystemInfoExpanded.value,
+                        onToggleExpanded: () {
+                          isSystemInfoExpanded.value =
+                              !isSystemInfoExpanded.value;
+                        },
                         submitting: reacting.value,
                         onReact: reactMessage,
                       ),
@@ -767,17 +803,23 @@ class MessageHoverActionMenu extends StatelessWidget {
 }
 
 class MessageReactionChips extends HookConsumerWidget {
-  final LocalChatMessage message;
+  final String displayStyle;
+  final bool isCurrentUser;
   final Map<String, int> reactionsCount;
   final Map<String, bool> reactionsMade;
+  final bool isExpanded;
+  final VoidCallback onToggleExpanded;
   final bool submitting;
   final Future<void> Function(String symbol, int attitude) onReact;
 
   const MessageReactionChips({
     super.key,
-    required this.message,
+    required this.displayStyle,
+    required this.isCurrentUser,
     required this.reactionsCount,
     required this.reactionsMade,
+    required this.isExpanded,
+    required this.onToggleExpanded,
     required this.submitting,
     required this.onReact,
   });
@@ -790,52 +832,148 @@ class MessageReactionChips extends HookConsumerWidget {
 
     final baseUrl = ref.watch(serverUrlProvider);
     final orderedSymbols = reactionsCount.keys.toList()
-      ..sort((a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0));
+      ..sort(
+        (a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0),
+      );
+    final totalReactions = reactionsCount.values.fold<int>(0, (a, b) => a + b);
 
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 4),
-        children: [
-          for (final symbol in orderedSymbols)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                avatar: symbol.contains('+')
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: UniversalImage(
-                          uri: '$baseUrl/sphere/stickers/lookup/$symbol/open',
-                          width: 24,
-                          height: 24,
-                          fit: BoxFit.contain,
-                        ),
-                      )
-                    : buildReactionIcon(symbol, 24, iconSize: 18),
-                label: Row(
-                  spacing: 4,
+    final sectionColor = switch (displayStyle) {
+      'compact' => Colors.transparent,
+      'column' => Theme.of(context).colorScheme.surfaceContainerLow,
+      _ =>
+        isCurrentUser
+            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.25)
+            : Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.35),
+    };
+    final sectionPadding = switch (displayStyle) {
+      'compact' => const EdgeInsets.only(left: 12, right: 12, bottom: 2),
+      _ => const EdgeInsets.only(left: 12, right: 12, bottom: 6),
+    };
+    final sectionAlign = Alignment.centerLeft;
+    final summaryText =
+        '$totalReactions reaction${totalReactions == 1 ? '' : 's'}';
+
+    return Align(
+      alignment: sectionAlign,
+      child: Container(
+        margin: sectionPadding,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: sectionColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: onToggleExpanded,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(symbol).fontSize(12),
-                    Text('x${reactionsCount[symbol] ?? 0}').bold().fontSize(12),
+                    Icon(
+                      isExpanded
+                          ? Symbols.keyboard_arrow_up
+                          : Symbols.keyboard_arrow_down,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      summaryText,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    if (totalReactions > 0) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '$totalReactions',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ),
+                    ],
                   ],
-                ),
-                backgroundColor: reactionsMade[symbol] == true
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : null,
-                onPressed: submitting
-                    ? null
-                    : () {
-                        onReact(symbol, kReactionTemplates[symbol]?.attitude ?? 1);
-                      },
-                visualDensity: const VisualDensity(
-                  horizontal: VisualDensity.minimumDensity,
-                  vertical: VisualDensity.minimumDensity,
                 ),
               ),
             ),
-        ],
+            if (isExpanded) ...[
+              if (reactionsCount.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final symbol in orderedSymbols)
+                      InkWell(
+                        onTap: submitting
+                            ? null
+                            : () {
+                                onReact(
+                                  symbol,
+                                  kReactionTemplates[symbol]?.attitude ?? 1,
+                                );
+                              },
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: reactionsMade[symbol] == true
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: reactionsMade[symbol] == true
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.outlineVariant
+                                        .withOpacity(0.5),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (symbol.contains('+'))
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: UniversalImage(
+                                    uri:
+                                        '$baseUrl/sphere/stickers/lookup/$symbol/open',
+                                    width: 20,
+                                    height: 20,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              else
+                                buildReactionIcon(symbol, 20, iconSize: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                'x${reactionsCount[symbol] ?? 0}',
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ).padding(top: 4),
+            ],
+          ],
+        ),
       ),
     );
   }

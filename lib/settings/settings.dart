@@ -821,6 +821,25 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Show chat system messages settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: const Text('Show Chat System Messages'),
+        subtitle: const Text(
+          'Show update/delete/reaction event records in chat timeline',
+        ),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.info),
+        trailing: Switch(
+          value: settings.showChatSystemMessages,
+          onChanged: (value) {
+            ref
+                .read(appSettingsProvider.notifier)
+                .setShowChatSystemMessages(value);
+          },
+        ),
+      ),
+
       // Haptic feedback settings
       ListTile(
         minLeadingWidth: 48,

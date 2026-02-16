@@ -34,6 +34,8 @@ class MessageItemWrapper extends HookConsumerWidget {
   final Map<String, Map<int, double?>> attachmentProgress;
   final bool disableAnimation;
   final DateTime roomOpenTime;
+  final bool showSystemMessagesToggle;
+  final VoidCallback? onShowSystemMessages;
 
   const MessageItemWrapper({
     super.key,
@@ -50,6 +52,8 @@ class MessageItemWrapper extends HookConsumerWidget {
     required this.attachmentProgress,
     required this.disableAnimation,
     required this.roomOpenTime,
+    this.showSystemMessagesToggle = false,
+    this.onShowSystemMessages,
   });
 
   Widget _buildContent(BuildContext context, SnChatMember? identity) {
@@ -92,6 +96,8 @@ class MessageItemWrapper extends HookConsumerWidget {
               onEnterSelectionMode: () {
                 if (!isSelectionMode) toggleSelectionMode();
               },
+              showSystemMessagesToggle: showSystemMessagesToggle,
+              onShowSystemMessages: onShowSystemMessages,
             ),
             if (isSelected)
               Positioned(
@@ -125,6 +131,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       progress: null,
       showAvatar: false,
       onJump: (_) {},
+      showSystemMessagesToggle: false,
     );
   }
 

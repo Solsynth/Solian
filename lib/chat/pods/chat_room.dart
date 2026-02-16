@@ -66,6 +66,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     if (['messages.read'].contains(pkt.type)) return;
 
     final db = ref.read(databaseProvider);
+    final currentUserId = ref.read(userInfoProvider).value?.id;
 
     // Handle typing events
     if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
@@ -86,10 +87,17 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     switch (pkt.type) {
       case 'messages.new':
         {
-          final localMessage = LocalChatMessage.fromRemoteMessage(
+          var localMessage = LocalChatMessage.fromRemoteMessage(
             message,
             MessageStatus.sent,
           );
+          final existingMsg = await _fetchMessageFromDb(db, message.id, roomId);
+          if (existingMsg != null) {
+            localMessage = _mergeReactionFieldsFromExisting(
+              localMessage,
+              existingMsg,
+            );
+          }
           await db.saveMessageWithSender(localMessage);
           eventBus.fire(ChatMessageNewEvent(message));
         }
@@ -117,10 +125,17 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             await db.saveMessageWithSender(updatedMessage);
           } else {
             // Message doesn't exist, treat as new
-            final localMessage = LocalChatMessage.fromRemoteMessage(
+            var localMessage = LocalChatMessage.fromRemoteMessage(
               message,
               MessageStatus.sent,
             );
+            final existed = await _fetchMessageFromDb(db, message.id, roomId);
+            if (existed != null) {
+              localMessage = _mergeReactionFieldsFromExisting(
+                localMessage,
+                existed,
+              );
+            }
             await db.saveMessageWithSender(localMessage);
           }
           eventBus.fire(ChatMessageUpdateEvent(message));
@@ -136,7 +151,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       case 'messages.reaction.added':
       case 'messages.reaction.removed':
         {
-          final applied = await _applyReactionUpdate(db, message);
+          final applied = await _applyReactionUpdate(
+            db,
+            message,
+            currentUserId: currentUserId,
+          );
           if (applied) {
             eventBus.fire(ChatMessageUpdateEvent(message));
           }
@@ -233,7 +252,57 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     );
   }
 
-  Future<bool> _applyReactionUpdate(AppDatabase db, SnChatMessage packet) async {
+  LocalChatMessage _copyWithMergedData(
+    LocalChatMessage message,
+    Map<String, dynamic> mergedData,
+  ) {
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: mergedData,
+      createdAt: message.createdAt,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  LocalChatMessage _mergeReactionFieldsFromExisting(
+    LocalChatMessage incoming,
+    LocalChatMessage existing,
+  ) {
+    final mergedData = Map<String, dynamic>.from(incoming.data);
+    if (!mergedData.containsKey('reactions_count') &&
+        existing.data.containsKey('reactions_count')) {
+      mergedData['reactions_count'] = existing.data['reactions_count'];
+    }
+    if (!mergedData.containsKey('reactions_made') &&
+        existing.data.containsKey('reactions_made')) {
+      mergedData['reactions_made'] = existing.data['reactions_made'];
+    }
+    if (mergedData.length == incoming.data.length) return incoming;
+    return _copyWithMergedData(incoming, mergedData);
+  }
+
+  Future<bool> _applyReactionUpdate(
+    AppDatabase db,
+    SnChatMessage packet, {
+    String? currentUserId,
+  }) async {
     final targetId = packet.meta['message_id']?.toString();
     if (targetId == null || targetId.isEmpty) return false;
 
@@ -255,6 +324,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               : null);
       if (symbol == null || symbol.isEmpty) return false;
       reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+      if (currentUserId != null && packet.senderId == currentUserId) {
+        reactionsMade[symbol] = true;
+      }
     } else if (packet.type == 'messages.reaction.removed') {
       final symbol = packet.meta['symbol']?.toString();
       if (symbol == null || symbol.isEmpty) return false;
@@ -263,6 +335,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         reactionsCount[symbol] = nextCount;
       } else {
         reactionsCount.remove(symbol);
+      }
+      if (currentUserId != null && packet.senderId == currentUserId) {
+        reactionsMade.remove(symbol);
       }
     }
 
@@ -290,6 +365,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final client = ref.read(apiClientProvider);
       final db = ref.read(databaseProvider);
       final prefs = ref.read(sharedPreferencesProvider);
+      final currentUserId = ref.read(userInfoProvider).value?.id;
 
       // Use a dedicated persisted sync cursor instead of DB max(created_at).
       // This prevents websocket-received newer messages from skipping older
@@ -329,17 +405,32 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
                         ..where((m) => m.id.equals(msg.id)))
                       .getSingleOrNull();
               if (existed == null) {
-                await _applyReactionUpdate(db, msg);
+                await _applyReactionUpdate(
+                  db,
+                  msg,
+                  currentUserId: currentUserId,
+                );
               }
               await db.saveMessageWithSender(
                 LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
               );
               continue;
             }
-            final localMessage = LocalChatMessage.fromRemoteMessage(
+            var localMessage = LocalChatMessage.fromRemoteMessage(
               msg,
               MessageStatus.sent,
             );
+            final existingMsg = await _fetchMessageFromDb(
+              db,
+              msg.id,
+              msg.chatRoomId,
+            );
+            if (existingMsg != null) {
+              localMessage = _mergeReactionFieldsFromExisting(
+                localMessage,
+                existingMsg,
+              );
+            }
             await db.saveMessageWithSender(localMessage);
             final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
             if (createdAtMs > maxSeenTimestamp) {

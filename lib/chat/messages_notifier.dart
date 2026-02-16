@@ -267,7 +267,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     for (final json in data) {
       final remoteMessage = SnChatMessage.fromJson(json);
 
-      final localMessage = LocalChatMessage.fromRemoteMessage(
+      var localMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
       );
@@ -276,6 +276,25 @@ class MessagesNotifier extends _$MessagesNotifier {
           await (_database.select(_database.chatMessages)
                 ..where((tbl) => tbl.id.equals(localMessage.id)))
               .getSingleOrNull();
+
+      if (existing != null) {
+        final existingLocal = await _database.companionToMessage(
+          existing,
+          fetchAccount: _fetchAccount,
+        );
+        final mergedData = Map<String, dynamic>.from(localMessage.data);
+        if (!mergedData.containsKey('reactions_count') &&
+            existingLocal.data.containsKey('reactions_count')) {
+          mergedData['reactions_count'] = existingLocal.data['reactions_count'];
+        }
+        if (!mergedData.containsKey('reactions_made') &&
+            existingLocal.data.containsKey('reactions_made')) {
+          mergedData['reactions_made'] = existingLocal.data['reactions_made'];
+        }
+        if (mergedData.length != localMessage.data.length) {
+          localMessage = _copyWithMergedData(localMessage, mergedData);
+        }
+      }
 
       if ((remoteMessage.type == 'messages.reaction.added' ||
               remoteMessage.type == 'messages.reaction.removed') &&
@@ -965,6 +984,35 @@ class MessagesNotifier extends _$MessagesNotifier {
       senderId: message.senderId,
       sender: message.sender,
       data: updatedData,
+      createdAt: message.createdAt,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  LocalChatMessage _copyWithMergedData(
+    LocalChatMessage message,
+    Map<String, dynamic> mergedData,
+  ) {
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: mergedData,
       createdAt: message.createdAt,
       nonce: message.nonce,
       status: message.status,

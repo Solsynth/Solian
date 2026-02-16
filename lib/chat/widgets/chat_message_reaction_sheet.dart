@@ -163,6 +163,7 @@ class ChatMessageReactionSheet extends StatelessWidget {
                     offset: const Offset(0, 0),
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 4),
+                      color: Theme.of(context).colorScheme.surfaceContainerLowest,
                       child: InkWell(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(8),
@@ -188,7 +189,17 @@ class ChatMessageReactionSheet extends StatelessWidget {
                             const Gap(8),
                             Text(
                               symbol,
-                              style: const TextStyle(fontSize: 10),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 4,
+                                    offset: Offset(0.5, 0.5),
+                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -233,14 +244,22 @@ class ChatMessageReactionSheet extends StatelessWidget {
           children: [Icon(icon), Text(title).fontSize(17).bold()],
         ).padding(horizontal: 24, top: 16, bottom: 6),
         SizedBox(
-          height: 76,
-          child: ListView.builder(
+          height: 120,
+          child: GridView.builder(
             scrollDirection: Axis.horizontal,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 1,
+              mainAxisExtent: 120,
+              mainAxisSpacing: 8.0,
+              crossAxisSpacing: 8.0,
+              childAspectRatio: 1.0,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: allReactions.length,
             itemBuilder: (context, index) {
               final symbol = allReactions[index];
               final count = reactionsCount[symbol] ?? 0;
+              final hasImage = getReactionImageAvailable(symbol);
               return GestureDetector(
                 onTap: () {
                   onReact(symbol, attitude);
@@ -252,19 +271,88 @@ class ChatMessageReactionSheet extends StatelessWidget {
                   textColor: Theme.of(context).colorScheme.onPrimary,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    width: 56,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        buildReactionIcon(symbol, 28),
-                        if (reactionsMade[symbol] == true)
-                          Icon(
-                            Symbols.check_small,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.primary,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: Card(
+                      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                      child: InkWell(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
+                        ),
+                        onTap: () {
+                          onReact(symbol, attitude);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          decoration: hasImage
+                              ? BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                      'assets/images/stickers/$symbol.png',
+                                    ),
+                                    fit: BoxFit.cover,
+                                    colorFilter: (reactionsMade[symbol] ?? false)
+                                        ? ColorFilter.mode(
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withOpacity(0.7),
+                                            BlendMode.srcATop,
+                                          )
+                                        : null,
+                                  ),
+                                )
+                              : null,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (hasImage)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest
+                                            .withOpacity(0.7),
+                                        Colors.transparent,
+                                      ],
+                                      stops: const [0.0, 0.3],
+                                    ),
+                                  ),
+                                ),
+                              Column(
+                                mainAxisAlignment: hasImage
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.center,
+                                children: [
+                                  if (!hasImage) buildReactionIcon(symbol, 36),
+                                  Text(
+                                    ReactInfo.getTranslationKey(symbol),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: hasImage ? Colors.white : null,
+                                      shadows: hasImage
+                                          ? const [
+                                              Shadow(
+                                                blurRadius: 4,
+                                                offset: Offset(0.5, 0.5),
+                                                color: Colors.black,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                  ).tr(),
+                                  if (hasImage) const Gap(4),
+                                ],
+                              ),
+                            ],
                           ),
-                      ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
