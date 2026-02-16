@@ -22,6 +22,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/core/services/responsive.dart';
 
 part 'wallet.g.dart';
 
@@ -1228,7 +1229,14 @@ class WalletScreen extends HookConsumerWidget {
     final currentTabIndex = useState(0);
     final selectedCurrency = useState<String>('points');
     final isBalanceVisible = useState<bool>(true);
+    final isFullAmountVisible = useState<bool>(false);
     final transactionFilter = useState<int>(0); // 0: All, 1: Income, 2: Expense
+
+    // Animation controller for balance counting animation
+    final balanceAnimationController = useAnimationController(
+      duration: const Duration(milliseconds: 1500),
+    );
+    final animatedBalance = useState<double>(0.0);
 
     useEffect(() {
       void listener() {
@@ -1238,6 +1246,29 @@ class WalletScreen extends HookConsumerWidget {
       tabController.addListener(listener);
       return () => tabController.removeListener(listener);
     }, [tabController]);
+
+    // Trigger animation when wallet data loads or currency changes
+    useEffect(() {
+      wallet.whenData((data) {
+        if (data != null) {
+          final pocket = data.pockets.firstWhere(
+            (p) => p.currency == selectedCurrency.value,
+            orElse: () => SnWalletPocket(
+              id: '',
+              currency: selectedCurrency.value,
+              amount: 0.0,
+              walletId: '',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              deletedAt: null,
+            ),
+          );
+          animatedBalance.value = pocket.amount;
+          balanceAnimationController.forward(from: 0);
+        }
+      });
+      return null;
+    }, [wallet, selectedCurrency.value]);
 
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
@@ -1332,6 +1363,9 @@ class WalletScreen extends HookConsumerWidget {
                   allPockets,
                   selectedCurrency,
                   isBalanceVisible,
+                  isFullAmountVisible,
+                  balanceAnimationController,
+                  animatedBalance,
                 ).padding(horizontal: 16, top: 16, bottom: 12),
               ),
 
@@ -1381,148 +1415,307 @@ class WalletScreen extends HookConsumerWidget {
     List<SnWalletPocket> pockets,
     ValueNotifier<String> selectedCurrency,
     ValueNotifier<bool> isBalanceVisible,
+    ValueNotifier<bool> isFullAmountVisible,
+    AnimationController balanceAnimationController,
+    ValueNotifier<double> animatedBalance,
   ) {
-    final selectedPocket = pockets.firstWhere(
-      (p) => p.currency == selectedCurrency.value,
-      orElse: () => SnWalletPocket(
-        id: '',
-        currency: selectedCurrency.value,
-        amount: 0.0,
-        walletId: '',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        deletedAt: null,
-      ),
-    );
+    // Responsive adjustments for narrow screens
+    final isWide = isWideScreen(context);
+    final dropdownPadding = isWide ? 16.0 : 8.0;
+    final iconSize = isWide ? 16.0 : 14.0;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withBlue(200),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Label and Currency Dropdown
-            Text(
-              'balance'.tr(),
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
+    // Helper to format amount based on visibility toggle
+    String formatDisplayAmount(double amount) {
+      if (!isBalanceVisible.value) {
+        return '••••••';
+      }
+      if (isFullAmountVisible.value) {
+        return amount.toStringAsFixed(2);
+      }
+      return formatAmountWithSuffix(amount);
+    }
+
+    // Animated amount using TweenAnimationBuilder
+    final displayAmount = isBalanceVisible.value ? animatedBalance.value : 0.0;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: displayAmount),
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withBlue(200),
+              ],
             ),
-            // Balance Amount
-            Row(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(isWide ? 20.0 : 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Balance Label
                 Text(
-                  '${isBalanceVisible.value ? formatAmountWithSuffix(selectedPocket.amount) : '••••••'} ${'walletCurrencyShort${selectedPocket.currency[0].toUpperCase()}${selectedPocket.currency.substring(1).toLowerCase()}'.tr()}',
-                  style: GoogleFonts.ibmPlexMono(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                const Gap(8),
-                IconButton(
-                  icon: Icon(
-                    isBalanceVisible.value
-                        ? Symbols.visibility
-                        : Symbols.visibility_off,
+                  'balance'.tr(),
+                  style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
-                    size: 24,
+                    fontSize: isWide ? 18 : 16,
+                    fontWeight: FontWeight.w500,
                   ),
-                  onPressed: () {
-                    isBalanceVisible.value = !isBalanceVisible.value;
-                  },
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedCurrency.value,
-                      icon: Icon(
-                        Symbols.keyboard_arrow_down,
-                        color: Colors.white.withOpacity(0.9),
-                        size: 18,
+                // Balance Amount Row
+                if (!isWide) ...[
+                  // On narrow screens, stack the amount and currency dropdown
+                  const Gap(8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          formatDisplayAmount(animatedValue),
+                          style: GoogleFonts.ibmPlexMono(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.1,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      dropdownColor: Theme.of(context).colorScheme.surface,
-                      style: const TextStyle(color: Colors.white),
-                      items: pockets.map((pocket) {
-                        return DropdownMenuItem(
-                          value: pocket.currency,
-                          child: Row(
-                            children: [
-                              Icon(
-                                kCurrencyIconData[pocket.currency] ??
-                                    Symbols.universal_currency_alt,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.onSurface,
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black54,
-                                    blurRadius: 2,
-                                    offset: Offset(1, 1),
-                                  ),
-                                ],
-                              ),
-                              const Gap(8),
-                              Text(
-                                'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
-                                    .tr(),
-                                style: TextStyle(
+                      // Toggle visibility (hide/show amount)
+                      IconButton(
+                        icon: Icon(
+                          isBalanceVisible.value
+                              ? Symbols.visibility
+                              : Symbols.visibility_off,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          isBalanceVisible.value = !isBalanceVisible.value;
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      // Toggle full amount (k/m suffix vs full number)
+                      IconButton(
+                        icon: Icon(
+                          isFullAmountVisible.value
+                              ? Symbols.unfold_less
+                              : Symbols.unfold_more,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 20,
+                        ),
+                        onPressed: isBalanceVisible.value
+                            ? () {
+                                isFullAmountVisible.value =
+                                    !isFullAmountVisible.value;
+                              }
+                            : null,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const Gap(8),
+                  // Currency dropdown below the amount on narrow screens
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: dropdownPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedCurrency.value,
+                        isDense: true,
+                        icon: Icon(
+                          Symbols.keyboard_arrow_down,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 16,
+                        ),
+                        dropdownColor: Theme.of(context).colorScheme.surface,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                        menuMaxHeight: 200,
+                        items: pockets.map((pocket) {
+                          return DropdownMenuItem(
+                            value: pocket.currency,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  kCurrencyIconData[pocket.currency] ??
+                                      Symbols.universal_currency_alt,
+                                  size: iconSize,
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Colors.black54,
-                                      blurRadius: 2,
-                                      offset: Offset(1, 1),
-                                    ),
-                                  ],
                                 ),
-                              ).padding(right: 4),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          selectedCurrency.value = value;
-                        }
-                      },
+                                const Gap(4),
+                                Flexible(
+                                  child: Text(
+                                    'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                                        .tr(),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            selectedCurrency.value = value;
+                          }
+                        },
+                      ),
                     ),
                   ),
-                ),
+                ] else ...[
+                  // On wide screens, keep the original layout
+                  const Gap(8),
+                  Row(
+                    children: [
+                      Text(
+                        formatDisplayAmount(animatedValue),
+                        style: GoogleFonts.ibmPlexMono(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                      const Gap(8),
+                      // Toggle visibility (hide/show amount)
+                      IconButton(
+                        icon: Icon(
+                          isBalanceVisible.value
+                              ? Symbols.visibility
+                              : Symbols.visibility_off,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          isBalanceVisible.value = !isBalanceVisible.value;
+                        },
+                      ),
+                      // Toggle full amount (k/m suffix vs full number)
+                      IconButton(
+                        icon: Icon(
+                          isFullAmountVisible.value
+                              ? Symbols.unfold_less
+                              : Symbols.unfold_more,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 24,
+                        ),
+                        onPressed: isBalanceVisible.value
+                            ? () {
+                                isFullAmountVisible.value =
+                                    !isFullAmountVisible.value;
+                              }
+                            : null,
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: dropdownPadding,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedCurrency.value,
+                            icon: Icon(
+                              Symbols.keyboard_arrow_down,
+                              color: Colors.white.withOpacity(0.9),
+                              size: 18,
+                            ),
+                            dropdownColor: Theme.of(
+                              context,
+                            ).colorScheme.surface,
+                            style: const TextStyle(color: Colors.white),
+                            items: pockets.map((pocket) {
+                              return DropdownMenuItem(
+                                value: pocket.currency,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      kCurrencyIconData[pocket.currency] ??
+                                          Symbols.universal_currency_alt,
+                                      size: 16,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      shadows: [
+                                        BoxShadow(
+                                          color: Colors.black54,
+                                          blurRadius: 2,
+                                          offset: const Offset(1, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    const Gap(8),
+                                    Text(
+                                      'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                                          .tr(),
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                        fontWeight: FontWeight.w500,
+                                        shadows: [
+                                          BoxShadow(
+                                            color: Colors.black54,
+                                            blurRadius: 2,
+                                            offset: const Offset(1, 1),
+                                          ),
+                                        ],
+                                      ),
+                                    ).padding(right: 4),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                selectedCurrency.value = value;
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

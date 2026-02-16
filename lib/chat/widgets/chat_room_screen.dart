@@ -256,7 +256,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
 
       scrollManager.scrollController.addListener(updateAtLatestState);
-      WidgetsBinding.instance.addPostFrameCallback((_) => updateAtLatestState());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => updateAtLatestState(),
+      );
       return () =>
           scrollManager.scrollController.removeListener(updateAtLatestState);
     }, [scrollManager.scrollController]);
@@ -727,7 +729,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
         ),
         // Chat sync indicator for non-wide screen
-        if (!isWideScreen(context)) const ChatSyncIndicator(height: 64),
+        if (!isWideScreen(context)) const ChatSyncIndicator(height: 56),
       ],
     );
   }
