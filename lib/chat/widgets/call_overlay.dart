@@ -1,4 +1,3 @@
-import 'package:animations/animations.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -498,22 +497,19 @@ class CallOverlayBar extends HookConsumerWidget {
                 const Gap(4),
                 Text(formatDuration(duration)).bold(),
                 const Spacer(),
-                OpenContainer(
-                  closedElevation: 0,
-                  closedColor: Colors.transparent,
-                  openColor: Theme.of(context).scaffoldBackgroundColor,
-                  middleColor: Theme.of(context).scaffoldBackgroundColor,
-                  useRootNavigator: true,
-                  openBuilder: (context, action) => CallScreen(room: room),
-                  closedBuilder: (context, openContainer) => IconButton(
-                    visualDensity: const VisualDensity(
-                      horizontal: -4,
-                      vertical: -4,
-                    ),
-                    icon: const Icon(Icons.fullscreen),
-                    onPressed: openContainer,
-                    tooltip: 'Full Screen',
+                IconButton(
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
                   ),
+                  icon: const Icon(Icons.fullscreen),
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (context) => CallScreen(room: room),
+                        ),
+                      ),
+                  tooltip: 'Full Screen',
                 ),
                 IconButton(
                   visualDensity: const VisualDensity(

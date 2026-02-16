@@ -49,6 +49,26 @@ const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
 class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   StreamSubscription? _wsSubscription;
 
+  SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
+    if (data is! Map<String, dynamic>) return null;
+    try {
+      return SnChatMessage.fromJson(data);
+    } catch (e) {
+      talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
+      return null;
+    }
+  }
+
+  SnChatMember? _tryParseChatMember(dynamic data, {String? context}) {
+    if (data is! Map<String, dynamic>) return null;
+    try {
+      return SnChatMember.fromJson(data);
+    } catch (e) {
+      talker.log('Skipping invalid chat member${context != null ? ' ($context)' : ''}: $e');
+      return null;
+    }
+  }
+
   @override
   Future<void> build() async {
     // Set up global WebSocket listener for real-time message handling
@@ -73,7 +93,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final roomId = pkt.data?['room_id'];
       if (roomId == null) return;
 
-      final sender = SnChatMember.fromJson(pkt.data?['sender']);
+      final sender = _tryParseChatMember(
+        pkt.data?['sender'],
+        context: 'ws typing',
+      );
+      if (sender == null) return;
       eventBus.fire(
         ChatTypingEvent(roomId: roomId, sender: sender, isTyping: true),
       );
@@ -81,7 +105,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     }
 
     // Handle message events
-    final message = SnChatMessage.fromJson(pkt.data!);
+    final message = _tryParseChatMessage(pkt.data, context: 'ws ${pkt.type}');
+    if (message == null) return;
     final roomId = message.chatRoomId;
 
     switch (pkt.type) {
@@ -385,15 +410,30 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           '/messager/chat/sync',
           data: {'last_sync_timestamp': currentSyncTimestamp},
         );
-        final rsp = MessageSyncResponse.fromJson(resp.data);
-
-        // Parse the response
-        final messages = rsp.messages;
-        final currentTimestamp = rsp.currentTimestamp;
-        final totalMessages = rsp.totalCount;
+        final body = resp.data as Map<String, dynamic>;
+        final rawMessages = (body['messages'] as List?) ?? const [];
+        final messages = rawMessages
+            .map((e) => _tryParseChatMessage(e, context: 'sync batch'))
+            .whereType<SnChatMessage>()
+            .toList();
+        final currentTimestampRaw =
+            body['current_timestamp'] ?? body['currentTimestamp'];
+        final currentTimestamp = switch (currentTimestampRaw) {
+          DateTime value => value,
+          String value => DateTime.tryParse(value) ?? DateTime.now(),
+          int value => DateTime.fromMillisecondsSinceEpoch(value),
+          _ => DateTime.now(),
+        };
+        final totalMessagesRaw = body['total_count'] ?? body['totalCount'];
+        final totalMessages = switch (totalMessagesRaw) {
+          int value => value,
+          String value => int.tryParse(value) ?? rawMessages.length,
+          _ => rawMessages.length,
+        };
+        final skippedCount = rawMessages.length - messages.length;
 
         talker.log(
-          'Global sync received ${messages.length} messages, timestamp: $currentTimestamp (total: $totalMessages)',
+          'Global sync received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
         );
 
         // Save all messages to database
@@ -448,7 +488,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
         // Check if there are more messages to sync
         // If messages.length < totalMessages, we need to continue with pagination
-        if (messages.length < totalMessages) {
+        if (rawMessages.length < totalMessages) {
           // Keep using the server cursor for paging within this sync session.
           currentSyncTimestamp = currentTimestamp.millisecondsSinceEpoch;
           talker.log(
