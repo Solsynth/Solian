@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 class WebAuthClient {
   int _port;
@@ -62,7 +61,7 @@ class WebAuthClient {
         }),
       );
 
-      debugPrint(
+      print(
         'Exchange response: statusCode=${response.statusCode} data=${jsonEncode(response.data)}',
       );
 

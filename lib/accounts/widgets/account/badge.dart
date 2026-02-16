@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:island/accounts/badge.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class BadgeList extends StatelessWidget {
