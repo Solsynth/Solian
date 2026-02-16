@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
@@ -125,27 +126,36 @@ class AppWrapper extends HookConsumerWidget {
         if (ctx.mounted) _showWebAuthSheet(ctx, event);
       });
 
-      // Protocol handler listener
-      final protocolListener = _ProtocolListenerImpl(
-        onProtocolUrlReceived: (url) {
-          final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-          _handleDeepLink(Uri.parse(url), ref, ctx);
-        },
-      );
-      protocolHandler.addListener(protocolListener);
-
-      // Handle initial URL
-      protocolHandler.getInitialUrl().then((initialUrl) {
-        if (initialUrl != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Protocol handler listener - only for desktop platforms
+      // protocol_handler plugin is only available and implemented on desktop (Linux, macOS, Windows)
+      ProtocolListener? protocolListener;
+      if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+        protocolListener = _ProtocolListenerImpl(
+          onProtocolUrlReceived: (url) {
             final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-            _handleDeepLink(Uri.parse(initialUrl), ref, ctx);
-          });
-        }
-      });
+            _handleDeepLink(Uri.parse(url), ref, ctx);
+          },
+        );
+        protocolHandler.addListener(protocolListener);
+
+        // Handle initial URL
+        protocolHandler.getInitialUrl().then((initialUrl) {
+          if (initialUrl != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+              _handleDeepLink(Uri.parse(initialUrl), ref, ctx);
+            });
+          }
+        });
+      }
 
       return () {
-        protocolHandler.removeListener(protocolListener);
+        // Clean up protocol handler listener only on desktop
+        if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+          if (protocolListener != null) {
+            protocolHandler.removeListener(protocolListener);
+          }
+        }
         ref.read(rpcServerProvider).stop();
         trayService.dispose(
           _TrayListenerImpl(

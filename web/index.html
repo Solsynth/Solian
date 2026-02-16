@@ -1,4 +1,6 @@
-<!DOCTYPE html><html><head>
+<!doctype html>
+<html>
+  <head>
     <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -12,214 +14,141 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-    <base href="$FLUTTER_BASE_HREF">
+    <base href="$FLUTTER_BASE_HREF" />
 
-    <meta charset="UTF-8">
-    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-    <meta name="description" content="The Solar Network, an open-source social network.">
+    <meta charset="UTF-8" />
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta
+      name="description"
+      content="The Solar Network, an open-source social network."
+    />
 
     <!-- iOS meta tags & icons -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Solar Network">
-    <link rel="apple-touch-icon" href="icons/Icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Solar Network" />
+    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png" />
 
     <title>Solar Network</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json" />
 
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      name="viewport"
+    />
+    <style id="splash-screen-style">
+      html {
+        height: 100%;
+      }
 
-      html,
       body {
-        font-family: "Rubik", sans-serif;
+        margin: 0;
+        min-height: 100%;
+        background-color: #ffffff;
+        background-size: 100% 100%;
       }
 
-      .swal-overlay {
-        background-color: rgba(0, 0, 0, 0.4);
+      .center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
       }
 
-      .swal-modal {
-        background-color: #1a1a1a;
-        border-radius: 28px;
-        padding: 24px;
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+      .contain {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
 
-      .swal-title {
-        color: #ffffff;
-        font-size: 24px;
-        font-weight: 500;
-        margin: 0 0 8px 0;
+      .stretch {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
 
-      .swal-text {
-        color: rgba(255, 255, 255, 0.87);
-        font-size: 16px;
-        line-height: 1.5;
-        text-align: center;
-        margin: 12px 0;
+      .cover {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
 
-      .swal-button {
-        padding: 10px 24px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 500;
-        text-transform: uppercase;
-        transition: background-color 0.2s;
-        margin: 0 8px;
-        border: none;
-        outline: none;
+      .bottom {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        -ms-transform: translate(-50%, 0);
+        transform: translate(-50%, 0);
       }
 
-      .swal-button--confirm {
-        background-color: #6750a4;
-        color: #ffffff;
+      .bottomLeft {
+        position: absolute;
+        bottom: 0;
+        left: 0;
       }
 
-      .swal-button--confirm:hover {
-        background-color: #7c65b5;
+      .bottomRight {
+        position: absolute;
+        bottom: 0;
+        right: 0;
       }
 
-      .swal-button--cancel {
-        background-color: transparent;
-        color: #6750a4;
-      }
-
-      .swal-button--cancel:hover {
-        background-color: rgba(103, 80, 164, 0.08);
-      }
-
-      .swal-icon {
-        border-color: #6750a4;
-        margin: 12px auto;
-      }
-
-      .swal-icon--success__line {
-        background-color: #6750a4;
-      }
-
-      .swal-icon--success__ring {
-        border-color: #6750a4;
-      }
-
-      .swal-icon--warning {
-        border-color: #f2b824;
-      }
-
-      .swal-icon--warning__body,
-      .swal-icon--warning__dot {
-        background-color: #f2b824;
-      }
-
-      .swal-icon--error {
-        border-color: #dc362e;
-      }
-
-      .swal-icon--error__line {
-        background-color: #dc362e;
-      }
-
-      .swal-footer {
-        margin-top: 16px;
-        padding: 0;
-        border: none;
-        text-align: right;
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #121212;
+        }
       }
     </style>
-    
-    
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <style id="splash-screen-style">
-    html {
-      height: 100%
-    }
-
-    body {
-      margin: 0;
-      min-height: 100%;
-      background-color: #ffffff;
-          background-size: 100% 100%;
-    }
-
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-    }
-
-    .contain {
-      display:block;
-      width:100%; height:100%;
-      object-fit: contain;
-    }
-
-    .stretch {
-      display:block;
-      width:100%; height:100%;
-    }
-
-    .cover {
-      display:block;
-      width:100%; height:100%;
-      object-fit: cover;
-    }
-
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
-
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-          }
-    }
-  </style>
-  <script id="splash-screen-script">
-    function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "transparent";
-    }
-  </script>
-</head>
+    <script id="splash-screen-script">
+      function removeSplashFromWeb() {
+        document.getElementById("splash")?.remove();
+        document.getElementById("splash-branding")?.remove();
+        document.body.style.background = "transparent";
+      }
+    </script>
+  </head>
   <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
-    
+    <picture id="splash">
+      <source
+        srcset="
+          splash/img/light-1x.png 1x,
+          splash/img/light-2x.png 2x,
+          splash/img/light-3x.png 3x,
+          splash/img/light-4x.png 4x
+        "
+        media="(prefers-color-scheme: light)"
+      />
+      <source
+        srcset="
+          splash/img/dark-1x.png 1x,
+          splash/img/dark-2x.png 2x,
+          splash/img/dark-3x.png 3x,
+          splash/img/dark-4x.png 4x
+        "
+        media="(prefers-color-scheme: dark)"
+      />
+      <img
+        class="center"
+        aria-hidden="true"
+        src="splash/img/light-1x.png"
+        alt=""
+      />
+    </picture>
 
-    <!-- Alert -->
-    <script src="https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js" async=""></script>
     <!-- Drift WASM -->
     <script src="drift_worker.dart.js"></script>
     <!-- Sign in with Apple -->
-    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+    <script
+      type="text/javascript"
+      src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
+    ></script>
 
     <script>
       document.oncontextmenu = (evt) => evt.preventDefault();
@@ -229,25 +158,14 @@
       {{flutter_js}}
       {{flutter_build_config}}
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const renderer = searchParams.get("renderer");
-      let cdn = searchParams.get("cdn");
-
-      if (cdn) {
-        localStorage.setItem("sn-web-canvaskit-cdn", cdn);
-      } else {
-        const storagedCdn = localStorage.getItem("sn-web-canvaskit-cdn");
-        cdn = storagedCdn ?? "com";
-      }
+      const useCanvasKit = true;
 
       _flutter.loader.load({
         config: {
-          renderer: renderer ?? "canvaskit",
-          canvasKitVariant: "full",
-          canvasKitBaseUrl: `https://www.gstatic.${cdn}/flutter-canvaskit/f73bfc4522dd0bc87bbcdb4bb3088082755c5e87`,
+          renderer: useCanvasKit ? "canvaskit" : "skwasm",
         },
       });
     </script>
-  
+  </body>
+</html>
 
-</body></html>
