@@ -299,7 +299,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
 }
 
 @RoutePage()
-class ChatListScreen extends StatelessWidget {
+class ChatListScreen extends HookWidget {
   const ChatListScreen({super.key});
 
   @override
@@ -416,7 +416,7 @@ class ChatFabWidget extends HookConsumerWidget {
           ),
         );
       },
-    ).padding(bottom: MediaQuery.of(context).padding.bottom + 16, right: 16);
+    );
   }
 }
 
@@ -619,7 +619,11 @@ class ChatListWidget extends HookConsumerWidget {
               ),
               // Animated sync indicator for wide layout
               ChatSyncIndicator(),
-              Positioned(bottom: 0, right: 0, child: ChatFabWidget()),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: ChatFabWidget().padding(bottom: 16, right: 16),
+              ),
             ],
           ),
         ),
@@ -630,7 +634,9 @@ class ChatListWidget extends HookConsumerWidget {
 
     return AppScaffold(
       extendBody: false,
-      floatingActionButton: const ChatFabWidget(),
+      floatingActionButton: const ChatFabWidget().padding(
+        bottom: MediaQuery.paddingOf(context).bottom,
+      ),
       appBar: AppBar(
         leading: context.router.canPop()
             ? IconButton(
