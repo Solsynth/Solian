@@ -8,6 +8,7 @@ import "package:island/data/drift_db.dart";
 import "package:island/data/message.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
+import "package:island/core/services/event_bus.dart";
 import "package:island/drive/drive_service.dart";
 import "package:island/talker.dart";
 import "package:island/shared/widgets/alert.dart";
@@ -45,6 +46,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isUpdatingState = false;
   bool _isLoadingInitial = false;
   bool _allRemoteMessagesFetched = false;
+  StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
@@ -75,6 +77,22 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     talker.log('MessagesNotifier built for room $roomId');
+
+    _syncEventsSub?.cancel();
+    _syncEventsSub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
+      if (!event.roomIds.contains(roomId)) return;
+      if (_isJumping || _isLoadingInitial || !ref.mounted) return;
+
+      talker.log(
+        'Received global sync completion for room $roomId, reloading in-memory messages from cache',
+      );
+      loadInitial(forceRemoteRefresh: false);
+    });
+
+    ref.onDispose(() {
+      _syncEventsSub?.cancel();
+      _syncEventsSub = null;
+    });
 
     return _loadInitialMessages(forceRemoteRefresh: false);
   }

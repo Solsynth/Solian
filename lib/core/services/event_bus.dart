@@ -44,6 +44,13 @@ class ChatRoomsRefreshEvent {
   const ChatRoomsRefreshEvent();
 }
 
+/// Event fired when global chat message sync completes.
+class ChatMessagesSyncedEvent {
+  final Set<String> roomIds;
+
+  const ChatMessagesSyncedEvent({required this.roomIds});
+}
+
 /// Event fired when a new chat message is received
 class ChatMessageNewEvent {
   final SnChatMessage message;

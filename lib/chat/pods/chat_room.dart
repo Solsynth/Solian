@@ -377,6 +377,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       // Use a loop to handle pagination - continue syncing until all messages are fetched
       var totalSynced = 0;
       var maxSeenTimestamp = currentSyncTimestamp;
+      final updatedRoomIds = <String>{};
 
       while (true) {
         // Call the global sync endpoint
@@ -414,6 +415,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               await db.saveMessageWithSender(
                 LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
               );
+              updatedRoomIds.add(msg.chatRoomId);
               continue;
             }
             var localMessage = LocalChatMessage.fromRemoteMessage(
@@ -432,6 +434,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               );
             }
             await db.saveMessageWithSender(localMessage);
+            updatedRoomIds.add(msg.chatRoomId);
             final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
             if (createdAtMs > maxSeenTimestamp) {
               maxSeenTimestamp = createdAtMs;
@@ -468,6 +471,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       talker.log(
         'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
       );
+      if (updatedRoomIds.isNotEmpty) {
+        eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
+      }
     } catch (e, stackTrace) {
       talker.log(
         'Error during global chat sync',
