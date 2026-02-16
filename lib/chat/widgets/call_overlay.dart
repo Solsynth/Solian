@@ -329,12 +329,12 @@ class CallOverlayBar extends HookConsumerWidget {
     final isMicrophoneEnabled = ref.watch(
       callProvider.select((state) => state.isMicrophoneEnabled),
     );
+    ref.watch(callProvider.select((state) => state.participantSyncVersion));
     final callNotifier = ref.read(callProvider.notifier);
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
+    final participants = callNotifier.participants;
 
-    // Memoize expensive computations
-    final lastSpeaker = useMemoized(() {
-      final participants = callNotifier.participants;
+    final lastSpeaker = (() {
       if (participants.isEmpty) return null;
 
       final speakers = participants.where(
@@ -352,7 +352,7 @@ class CallOverlayBar extends HookConsumerWidget {
             ? current
             : previous;
       });
-    }, [callNotifier.participants]);
+    })();
 
     final userInfo = ref.watch(userInfoProvider).value!;
 
@@ -503,6 +503,7 @@ class CallOverlayBar extends HookConsumerWidget {
                   closedColor: Colors.transparent,
                   openColor: Theme.of(context).scaffoldBackgroundColor,
                   middleColor: Theme.of(context).scaffoldBackgroundColor,
+                  useRootNavigator: true,
                   openBuilder: (context, action) => CallScreen(room: room),
                   closedBuilder: (context, openContainer) => IconButton(
                     visualDensity: const VisualDensity(

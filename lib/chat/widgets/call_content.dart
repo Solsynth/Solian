@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/screens/profile.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:styled_widget/styled_widget.dart';
+
+bool _hasActiveVideo(CallParticipantLive participant) {
+  return participant.hasVideo &&
+      participant.remoteParticipant.trackPublications.values.any(
+        (publication) =>
+            publication.track != null &&
+            publication.kind == TrackType.VIDEO &&
+            !publication.muted &&
+            !publication.isDisposed,
+      );
+}
 
 class CallStageView extends HookConsumerWidget {
   final List<CallParticipantLive> participants;
@@ -17,63 +32,85 @@ class CallStageView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final focusedIndex = useState<int>(0);
+    final focusedSid = useState<String?>(null);
 
-    final focusedParticipant = participants[focusedIndex.value];
-    final otherParticipants = participants
-        .where((p) => p != focusedParticipant)
+    useEffect(() {
+      if (participants.isEmpty) return null;
+      if (focusedSid.value != null &&
+          participants.any(
+            (participant) =>
+                participant.remoteParticipant.sid == focusedSid.value,
+          )) {
+        return null;
+      }
+      final speaking = participants
+          .where((participant) => participant.remoteParticipant.isSpeaking)
+          .toList();
+      if (speaking.isNotEmpty) {
+        speaking.sort(
+          (a, b) => b.remoteParticipant.audioLevel.compareTo(
+            a.remoteParticipant.audioLevel,
+          ),
+        );
+        focusedSid.value = speaking.first.remoteParticipant.sid;
+      } else {
+        focusedSid.value = participants.first.remoteParticipant.sid;
+      }
+      return null;
+    }, [participants]);
+
+    final focusedParticipant =
+        participants
+            .where(
+              (participant) =>
+                  participant.remoteParticipant.sid == focusedSid.value,
+            )
+            .firstOrNull ??
+        participants.first;
+
+    final stripParticipants = participants
+        .where((participant) => participant != focusedParticipant)
         .toList();
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Focused participant (takes most space)
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate dynamic width based on available space
-            final maxWidth = constraints.maxWidth * 0.8;
-            final maxHeight = (outerMaxHeight ?? constraints.maxHeight) * 0.6;
-
-            return Container(
-              constraints: BoxConstraints(
-                maxWidth: maxWidth,
-                maxHeight: maxHeight,
-              ),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: CallParticipantTile(
-                  live: focusedParticipant,
-                  allTiles: true,
-                ),
-              ),
-            );
-          },
-        ),
-        // Horizontal list of other participants
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (final participant in otherParticipants)
-                Padding(
-                  padding: const EdgeInsets.all(8),
+        if (stripParticipants.isNotEmpty)
+          SizedBox(
+            height: 108,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+              itemCount: stripParticipants.length,
+              itemBuilder: (context, index) {
+                final participant = stripParticipants[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
                   child: SizedBox(
-                    width: 180,
+                    width: 160,
                     child: GestureDetector(
-                      onTapDown: (_) {
-                        final newIndex = participants.indexOf(participant);
-                        focusedIndex.value = newIndex;
+                      onTap: () {
+                        focusedSid.value = participant.remoteParticipant.sid;
                       },
                       child: CallParticipantTile(
                         live: participant,
-                        radius: 32,
                         allTiles: true,
+                        tightPadding: true,
                       ),
                     ),
                   ),
-                ),
-            ],
+                );
+              },
+            ),
+          ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: CallParticipantTile(
+              live: focusedParticipant,
+              allTiles: true,
+              forceLarge: true,
+              tileHeight: outerMaxHeight != null ? outerMaxHeight! - 120 : null,
+            ),
           ),
         ),
       ],
@@ -87,44 +124,62 @@ class CallContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final callState = ref.watch(callProvider);
-    final callNotifier = ref.watch(callProvider.notifier);
+    final isConnected = ref.watch(
+      callProvider.select((state) => state.isConnected),
+    );
+    final viewMode = ref.watch(callProvider.select((state) => state.viewMode));
+    ref.watch(callProvider.select((state) => state.participantSyncVersion));
+    final callNotifier = ref.read(callProvider.notifier);
 
-    if (!callState.isConnected) {
+    if (!isConnected) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (callNotifier.participants.isEmpty) {
+    final participants = callNotifier.participants;
+    if (participants.isEmpty) {
       return const Center(child: Text('No participants in call'));
     }
-
-    final participants = callNotifier.participants;
     final allAudioOnly = participants.every(
-      (p) =>
-          !(p.hasVideo &&
-              p.remoteParticipant.trackPublications.values.any(
-                (pub) =>
-                    pub.track != null &&
-                    pub.kind == TrackType.VIDEO &&
-                    !pub.muted &&
-                    !pub.isDisposed,
-              )),
+      (participant) => !_hasActiveVideo(participant),
     );
 
     if (allAudioOnly) {
-      // Audio-only: show avatars in a compact row with animated containers
       return Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
           child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
             alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 24,
+            runSpacing: 24,
             children: [
               for (final live in participants)
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: SpeakingRippleAvatar(live: live, size: 72),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SpeakingRippleAvatar(live: live, size: 84),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: 84,
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          final account = ref.watch(
+                            accountProvider(live.participant.name),
+                          );
+                          return account.value == null
+                              ? Text(
+                                  live.participant.name.isNotEmpty
+                                      ? live.participant.name
+                                      : live.participant.identity,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: Colors.white),
+                                )
+                              : AccountName(
+                                  account: account.value!,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ).center();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -132,39 +187,42 @@ class CallContent extends HookConsumerWidget {
       );
     }
 
-    if (callState.viewMode == ViewMode.stage) {
-      // Stage: allow user to select a participant to focus, show others below
+    if (viewMode == ViewMode.stage) {
       return CallStageView(
         participants: participants,
         outerMaxHeight: outerMaxHeight,
       );
-    } else {
-      // Grid: show all participants in a responsive grid
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          // Calculate width for responsive 2-column layout
-          final itemWidth = (constraints.maxWidth / 2) - 16;
-
-          return SingleChildScrollView(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              runAlignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final participant in participants)
-                  SizedBox(
-                    width: itemWidth,
-                    child: CallParticipantTile(
-                      live: participant,
-                      allTiles: true,
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      );
     }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final count = participants.length;
+        final crossAxisCount = switch (count) {
+          <= 1 => 1,
+          <= 4 => width > 900 ? 2 : 1,
+          <= 9 => width > 1200 ? 3 : 2,
+          _ => width > 1400 ? 4 : 3,
+        };
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(10),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 16 / 9,
+          ),
+          itemCount: participants.length,
+          itemBuilder: (context, index) {
+            return CallParticipantTile(
+              live: participants[index],
+              allTiles: true,
+              tightPadding: true,
+            );
+          },
+        );
+      },
+    );
   }
 }

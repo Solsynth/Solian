@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/call_button.dart';
+import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
@@ -614,6 +615,18 @@ class ChatRoomScreen extends HookConsumerWidget {
                           error: error,
                           onRetry: () => messagesNotifier.loadInitial(),
                         ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 12,
+                      left: 8,
+                      right: 8,
+                      child: chatRoom.when(
+                        data: (room) => room != null
+                            ? CallOverlayBar(room: room)
+                            : const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
+                        loading: () => const SizedBox.shrink(),
                       ),
                     ),
                     if (visibleLastReadAnchorMessageId != null)
