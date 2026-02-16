@@ -50,6 +50,16 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
+  SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
+    if (data is! Map<String, dynamic>) return null;
+    try {
+      return SnChatMessage.fromJson(data);
+    } catch (e) {
+      talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
+      return null;
+    }
+  }
+
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
@@ -283,7 +293,11 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final messages = <LocalChatMessage>[];
     for (final json in data) {
-      final remoteMessage = SnChatMessage.fromJson(json);
+      final remoteMessage = _tryParseChatMessage(
+        json,
+        context: 'room messages page',
+      );
+      if (remoteMessage == null) continue;
 
       var localMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
