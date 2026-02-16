@@ -20,11 +20,12 @@ class TicketService {
     int? status,
     int offset = 0,
     int take = 20,
+    bool isAdmin = false,
   }) async {
     final response = await ref
         .read(apiClientProvider)
         .get(
-          '/pass/tickets/me',
+          isAdmin ? '/pass/tickets' : '/pass/tickets/me',
           queryParameters: {'status': ?status, 'offset': offset, 'take': take},
         );
     return (response.data as List)
