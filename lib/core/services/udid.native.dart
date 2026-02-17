@@ -9,7 +9,15 @@ Future<String> getUdid() async {
   if (_cachedUdid != null) {
     return _cachedUdid!;
   }
-  _cachedUdid = await FlutterUdid.consistentUdid;
+
+  if (Platform.isWindows) {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    WindowsDeviceInfo windowsInfo = await deviceInfo.windowsInfo;
+    _cachedUdid = windowsInfo.deviceId;
+  } else {
+    _cachedUdid = await FlutterUdid.consistentUdid;
+  }
+
   return _cachedUdid!;
 }
 
