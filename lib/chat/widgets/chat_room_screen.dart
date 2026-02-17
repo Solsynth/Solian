@@ -220,7 +220,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         Future<void>(() async {
           try {
             await messagesNotifier.syncMessages();
-            await messagesNotifier.loadInitial(forceRemoteRefresh: true);
+            await messagesNotifier.loadInitial(forceRemoteRefresh: false);
           } finally {
             if (context.mounted) {
               isResyncingAfterResume.value = false;

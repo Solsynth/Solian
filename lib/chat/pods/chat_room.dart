@@ -69,6 +69,10 @@ Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
 @Riverpod(keepAlive: true)
 class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   StreamSubscription? _wsSubscription;
+  Future<void>? _ongoingSync;
+  DateTime? _lastSyncStartedAt;
+  static const Duration _minSyncInterval = Duration(seconds: 4);
+  static const int _maxSyncPagesPerRound = 25;
 
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
@@ -398,7 +402,33 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   }
 
   /// Perform global sync to fetch messages from all chat rooms
-  Future<void> syncAllMessages() async {
+  Future<void> syncAllMessages({bool force = false}) async {
+    if (_ongoingSync != null) {
+      talker.log('Global sync already in progress, joining existing task');
+      return _ongoingSync!;
+    }
+
+    final now = DateTime.now();
+    if (!force &&
+        _lastSyncStartedAt != null &&
+        now.difference(_lastSyncStartedAt!) < _minSyncInterval) {
+      talker.log(
+        'Skipping global sync due to cooldown (${now.difference(_lastSyncStartedAt!).inMilliseconds}ms < ${_minSyncInterval.inMilliseconds}ms)',
+      );
+      return;
+    }
+    _lastSyncStartedAt = now;
+
+    final task = _syncAllMessagesImpl();
+    _ongoingSync = task;
+    try {
+      await task;
+    } finally {
+      _ongoingSync = null;
+    }
+  }
+
+  Future<void> _syncAllMessagesImpl() async {
     talker.log('Starting global chat sync...');
 
     Future.microtask(() {
@@ -434,8 +464,17 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         var roundSynced = 0;
         var roundMaxSeenTimestamp = syncCursor;
         var pagingCursor = syncCursor;
+        var pagesProcessed = 0;
 
         while (true) {
+          pagesProcessed += 1;
+          if (pagesProcessed > _maxSyncPagesPerRound) {
+            talker.log(
+              'Stopping sync round ${eagerRound + 1}: reached page limit $_maxSyncPagesPerRound',
+            );
+            break;
+          }
+
           // Call the global sync endpoint
           final resp = await client.post(
             '/messager/chat/sync',
@@ -462,73 +501,99 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             _ => rawMessages.length,
           };
           final skippedCount = rawMessages.length - messages.length;
+          final nextPagingCursor = currentTimestamp.millisecondsSinceEpoch;
+          final hasCursorProgress = nextPagingCursor > pagingCursor;
 
           talker.log(
             'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
           );
 
-          // Save all messages to database
-          for (final msg in messages) {
-            try {
-              if (msg.type == 'messages.reaction.added' ||
-                  msg.type == 'messages.reaction.removed') {
-                final existed =
-                    await (db.select(db.chatMessages)
-                          ..where((m) => m.id.equals(msg.id)))
-                        .getSingleOrNull();
-                if (existed == null) {
-                  await _applyReactionUpdate(
-                    db,
-                    msg,
-                    currentUserId: currentUserId,
+          // Save all messages to database in a transaction per page.
+          await db.transaction(() async {
+            for (final msg in messages) {
+              try {
+                if (msg.type == 'messages.reaction.added' ||
+                    msg.type == 'messages.reaction.removed') {
+                  final existed =
+                      await (db.select(db.chatMessages)
+                            ..where((m) => m.id.equals(msg.id)))
+                          .getSingleOrNull();
+                  if (existed == null) {
+                    await _applyReactionUpdate(
+                      db,
+                      msg,
+                      currentUserId: currentUserId,
+                    );
+                  }
+                  await db.saveMessageWithSender(
+                    LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
                   );
+                  updatedRoomIds.add(msg.chatRoomId);
+                  roundSynced += 1;
+                  continue;
                 }
-                await db.saveMessageWithSender(
-                  LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+                var localMessage = LocalChatMessage.fromRemoteMessage(
+                  msg,
+                  MessageStatus.sent,
                 );
+
+                final hasReactionDataInIncoming =
+                    localMessage.data.containsKey('reactions_count') ||
+                    localMessage.data.containsKey('reactions_made');
+                if (!hasReactionDataInIncoming) {
+                  final existingMsg = await _fetchMessageFromDb(
+                    db,
+                    msg.id,
+                    msg.chatRoomId,
+                  );
+                  if (existingMsg != null) {
+                    localMessage = _mergeReactionFieldsFromExisting(
+                      localMessage,
+                      existingMsg,
+                    );
+                  }
+                }
+
+                await db.saveMessageWithSender(localMessage);
                 updatedRoomIds.add(msg.chatRoomId);
                 roundSynced += 1;
-                continue;
+                final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+                if (createdAtMs > roundMaxSeenTimestamp) {
+                  roundMaxSeenTimestamp = createdAtMs;
+                }
+              } catch (e) {
+                talker.log('Error saving message from global sync: $e');
               }
-              var localMessage = LocalChatMessage.fromRemoteMessage(
-                msg,
-                MessageStatus.sent,
-              );
-              final existingMsg = await _fetchMessageFromDb(
-                db,
-                msg.id,
-                msg.chatRoomId,
-              );
-              if (existingMsg != null) {
-                localMessage = _mergeReactionFieldsFromExisting(
-                  localMessage,
-                  existingMsg,
-                );
-              }
-              await db.saveMessageWithSender(localMessage);
-              updatedRoomIds.add(msg.chatRoomId);
-              roundSynced += 1;
-              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-              if (createdAtMs > roundMaxSeenTimestamp) {
-                roundMaxSeenTimestamp = createdAtMs;
-              }
-            } catch (e) {
-              talker.log('Error saving message from global sync: $e');
             }
-          }
+          });
 
           totalSynced += messages.length;
 
+          if (rawMessages.isEmpty) {
+            if (hasCursorProgress) {
+              pagingCursor = nextPagingCursor;
+            }
+            break;
+          }
+
           // Check if there are more messages to sync
-          if (rawMessages.length < totalMessages) {
+          if (rawMessages.length < totalMessages && hasCursorProgress) {
             // Keep using the server cursor for paging within this sync session.
-            pagingCursor = currentTimestamp.millisecondsSinceEpoch;
+            pagingCursor = nextPagingCursor;
             talker.log(
               'More messages to sync, continuing with cursor: $pagingCursor',
             );
+            await Future<void>.delayed(Duration.zero);
           } else {
             // No more messages to sync for this round
-            pagingCursor = currentTimestamp.millisecondsSinceEpoch;
+            if (!hasCursorProgress && rawMessages.isNotEmpty) {
+              talker.log(
+                'Stopping sync round ${eagerRound + 1}: cursor did not advance (cursor=$pagingCursor, next=$nextPagingCursor)',
+              );
+            }
+            if (hasCursorProgress) {
+              pagingCursor = nextPagingCursor;
+            }
             break;
           }
         }
