@@ -12,6 +12,7 @@ import 'package:island/chat/widgets/chat_invites_sheet.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
@@ -530,6 +531,9 @@ class ChatListWidget extends HookConsumerWidget {
     final selectedTab = useState(
       0,
     ); // 0 for All, 1 for Direct Messages, 2 for Group Chats
+    final lifecycleState = ref.watch(appLifecycleStateProvider);
+    final previousLifecycleState = useRef<AppLifecycleState?>(null);
+    final isResyncingAfterResume = useState(false);
 
     useEffect(() {
       tabController.addListener(() {
@@ -545,6 +549,43 @@ class ChatListWidget extends HookConsumerWidget {
         subscription.cancel();
       };
     }, [tabController]);
+
+    useEffect(() {
+      final nextState = lifecycleState.value;
+      if (nextState == null) return null;
+
+      final previousState = previousLifecycleState.value;
+      final resumedFromUnfocused =
+          nextState == AppLifecycleState.resumed &&
+          previousState != null &&
+          previousState != AppLifecycleState.resumed;
+
+      if (resumedFromUnfocused && !isResyncingAfterResume.value) {
+        isResyncingAfterResume.value = true;
+        Future<void>(() async {
+          try {
+            talker.log(
+              'Chat list resumed from $previousState, triggering eager global sync',
+            );
+            await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
+            ref.invalidate(chatRoomJoinedProvider);
+          } catch (e, stackTrace) {
+            talker.log(
+              'Chat list eager resume sync failed',
+              exception: e,
+              stackTrace: stackTrace,
+            );
+          } finally {
+            if (context.mounted) {
+              isResyncingAfterResume.value = false;
+            }
+          }
+        });
+      }
+
+      previousLifecycleState.value = nextState;
+      return null;
+    }, [lifecycleState.value]);
 
     final isAside = isWideScreen(context);
 

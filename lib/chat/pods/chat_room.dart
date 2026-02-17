@@ -44,6 +44,27 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
 
+Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
+  try {
+    final result = await db
+        .customSelect(
+          'SELECT MAX(created_at) as latest_timestamp FROM chat_messages',
+          readsFrom: {db.chatMessages},
+        )
+        .getSingleOrNull();
+
+    if (result != null) {
+      final latestTimestamp = result.read<DateTime?>('latest_timestamp');
+      if (latestTimestamp != null) {
+        return latestTimestamp.millisecondsSinceEpoch;
+      }
+    }
+  } catch (e) {
+    talker.log('Error getting latest message timestamp: $e');
+  }
+  return 0;
+}
+
 /// Global chat sync notifier that syncs messages from all chat rooms
 @Riverpod(keepAlive: true)
 class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
@@ -392,120 +413,139 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final prefs = ref.read(sharedPreferencesProvider);
       final currentUserId = ref.read(userInfoProvider).value?.id;
 
-      // Use a dedicated persisted sync cursor instead of DB max(created_at).
-      // This prevents websocket-received newer messages from skipping older
-      // offline windows during the next API sync.
-      var currentSyncTimestamp = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
+      final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
+      final dbLatestCursor = await _getLatestMessageTimestamp(db);
+      final currentSyncTimestamp = (savedCursor > 0 && dbLatestCursor > 0)
+          ? (savedCursor < dbLatestCursor ? savedCursor : dbLatestCursor)
+          : (savedCursor > 0 ? savedCursor : dbLatestCursor);
 
-      talker.log('Global sync with cursor: $currentSyncTimestamp');
+      talker.log(
+        'Global sync with cursor: $currentSyncTimestamp (saved=$savedCursor, dbLatest=$dbLatestCursor)',
+      );
 
-      // Use a loop to handle pagination - continue syncing until all messages are fetched
+      // Eager sync: after one full pass, run one additional pass from the
+      // advanced cursor to reduce race-window misses.
       var totalSynced = 0;
-      var maxSeenTimestamp = currentSyncTimestamp;
       final updatedRoomIds = <String>{};
+      var syncCursor = currentSyncTimestamp;
+      var eagerRound = 0;
 
-      while (true) {
-        // Call the global sync endpoint
-        final resp = await client.post(
-          '/messager/chat/sync',
-          data: {'last_sync_timestamp': currentSyncTimestamp},
-        );
-        final body = resp.data as Map<String, dynamic>;
-        final rawMessages = (body['messages'] as List?) ?? const [];
-        final messages = rawMessages
-            .map((e) => _tryParseChatMessage(e, context: 'sync batch'))
-            .whereType<SnChatMessage>()
-            .toList();
-        final currentTimestampRaw =
-            body['current_timestamp'] ?? body['currentTimestamp'];
-        final currentTimestamp = switch (currentTimestampRaw) {
-          DateTime value => value,
-          String value => DateTime.tryParse(value) ?? DateTime.now(),
-          int value => DateTime.fromMillisecondsSinceEpoch(value),
-          _ => DateTime.now(),
-        };
-        final totalMessagesRaw = body['total_count'] ?? body['totalCount'];
-        final totalMessages = switch (totalMessagesRaw) {
-          int value => value,
-          String value => int.tryParse(value) ?? rawMessages.length,
-          _ => rawMessages.length,
-        };
-        final skippedCount = rawMessages.length - messages.length;
+      while (eagerRound < 2) {
+        var roundSynced = 0;
+        var roundMaxSeenTimestamp = syncCursor;
+        var pagingCursor = syncCursor;
 
-        talker.log(
-          'Global sync received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
-        );
+        while (true) {
+          // Call the global sync endpoint
+          final resp = await client.post(
+            '/messager/chat/sync',
+            data: {'last_sync_timestamp': pagingCursor},
+          );
+          final body = resp.data as Map<String, dynamic>;
+          final rawMessages = (body['messages'] as List?) ?? const [];
+          final messages = rawMessages
+              .map((e) => _tryParseChatMessage(e, context: 'sync batch'))
+              .whereType<SnChatMessage>()
+              .toList();
+          final currentTimestampRaw =
+              body['current_timestamp'] ?? body['currentTimestamp'];
+          final currentTimestamp = switch (currentTimestampRaw) {
+            DateTime value => value,
+            String value => DateTime.tryParse(value) ?? DateTime.now(),
+            int value => DateTime.fromMillisecondsSinceEpoch(value),
+            _ => DateTime.now(),
+          };
+          final totalMessagesRaw = body['total_count'] ?? body['totalCount'];
+          final totalMessages = switch (totalMessagesRaw) {
+            int value => value,
+            String value => int.tryParse(value) ?? rawMessages.length,
+            _ => rawMessages.length,
+          };
+          final skippedCount = rawMessages.length - messages.length;
 
-        // Save all messages to database
-        for (final msg in messages) {
-          try {
-            if (msg.type == 'messages.reaction.added' ||
-                msg.type == 'messages.reaction.removed') {
-              final existed =
-                  await (db.select(db.chatMessages)
-                        ..where((m) => m.id.equals(msg.id)))
-                      .getSingleOrNull();
-              if (existed == null) {
-                await _applyReactionUpdate(
-                  db,
-                  msg,
-                  currentUserId: currentUserId,
+          talker.log(
+            'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
+          );
+
+          // Save all messages to database
+          for (final msg in messages) {
+            try {
+              if (msg.type == 'messages.reaction.added' ||
+                  msg.type == 'messages.reaction.removed') {
+                final existed =
+                    await (db.select(db.chatMessages)
+                          ..where((m) => m.id.equals(msg.id)))
+                        .getSingleOrNull();
+                if (existed == null) {
+                  await _applyReactionUpdate(
+                    db,
+                    msg,
+                    currentUserId: currentUserId,
+                  );
+                }
+                await db.saveMessageWithSender(
+                  LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+                );
+                updatedRoomIds.add(msg.chatRoomId);
+                roundSynced += 1;
+                continue;
+              }
+              var localMessage = LocalChatMessage.fromRemoteMessage(
+                msg,
+                MessageStatus.sent,
+              );
+              final existingMsg = await _fetchMessageFromDb(
+                db,
+                msg.id,
+                msg.chatRoomId,
+              );
+              if (existingMsg != null) {
+                localMessage = _mergeReactionFieldsFromExisting(
+                  localMessage,
+                  existingMsg,
                 );
               }
-              await db.saveMessageWithSender(
-                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
-              );
+              await db.saveMessageWithSender(localMessage);
               updatedRoomIds.add(msg.chatRoomId);
-              continue;
+              roundSynced += 1;
+              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+              if (createdAtMs > roundMaxSeenTimestamp) {
+                roundMaxSeenTimestamp = createdAtMs;
+              }
+            } catch (e) {
+              talker.log('Error saving message from global sync: $e');
             }
-            var localMessage = LocalChatMessage.fromRemoteMessage(
-              msg,
-              MessageStatus.sent,
+          }
+
+          totalSynced += messages.length;
+
+          // Check if there are more messages to sync
+          if (rawMessages.length < totalMessages) {
+            // Keep using the server cursor for paging within this sync session.
+            pagingCursor = currentTimestamp.millisecondsSinceEpoch;
+            talker.log(
+              'More messages to sync, continuing with cursor: $pagingCursor',
             );
-            final existingMsg = await _fetchMessageFromDb(
-              db,
-              msg.id,
-              msg.chatRoomId,
-            );
-            if (existingMsg != null) {
-              localMessage = _mergeReactionFieldsFromExisting(
-                localMessage,
-                existingMsg,
-              );
-            }
-            await db.saveMessageWithSender(localMessage);
-            updatedRoomIds.add(msg.chatRoomId);
-            final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-            if (createdAtMs > maxSeenTimestamp) {
-              maxSeenTimestamp = createdAtMs;
-            }
-          } catch (e) {
-            talker.log('Error saving message from global sync: $e');
+          } else {
+            // No more messages to sync for this round
+            pagingCursor = currentTimestamp.millisecondsSinceEpoch;
+            break;
           }
         }
 
-        totalSynced += messages.length;
+        syncCursor = [
+          roundMaxSeenTimestamp,
+          pagingCursor,
+        ].reduce((a, b) => a > b ? a : b);
 
-        // Check if there are more messages to sync
-        // If messages.length < totalMessages, we need to continue with pagination
-        if (rawMessages.length < totalMessages) {
-          // Keep using the server cursor for paging within this sync session.
-          currentSyncTimestamp = currentTimestamp.millisecondsSinceEpoch;
-          talker.log(
-            'More messages to sync, continuing with cursor: $currentSyncTimestamp',
-          );
-        } else {
-          // No more messages to sync
-          break;
-        }
+        // Stop eager pass if no new messages were synced in this round.
+        if (roundSynced == 0) break;
+        eagerRound += 1;
       }
 
       // Persist the farthest cursor we've reached for next sync run.
       // We use max(server cursor, latest created_at seen) for monotonic progress.
-      final nextCursor = [
-        maxSeenTimestamp,
-        currentSyncTimestamp,
-      ].reduce((a, b) => a > b ? a : b);
+      final nextCursor = syncCursor;
       await prefs.setInt(_chatSyncCursorStoreKey, nextCursor);
 
       talker.log(

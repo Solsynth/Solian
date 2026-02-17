@@ -205,12 +205,12 @@ class ChatRoomScreen extends HookConsumerWidget {
       final previousState = previousLifecycleState.value;
       final resumedFromBackground =
           nextState == AppLifecycleState.resumed &&
-          (previousState == AppLifecycleState.paused ||
-              previousState == AppLifecycleState.inactive ||
-              previousState == AppLifecycleState.detached);
+          previousState != null &&
+          previousState != AppLifecycleState.resumed;
 
       if (nextState == AppLifecycleState.paused ||
           nextState == AppLifecycleState.inactive ||
+          nextState == AppLifecycleState.hidden ||
           nextState == AppLifecycleState.detached) {
         Future.microtask(saveLastReadAnchor);
       }

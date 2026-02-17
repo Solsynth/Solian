@@ -43,6 +43,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
+  bool _hasPendingRealtimeRefresh = false;
   bool _isUpdatingState = false;
   bool _isLoadingInitial = false;
   bool _allRemoteMessagesFetched = false;
@@ -771,9 +772,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != roomId) return;
 
-    // Block message receiving during jumps to prevent list resets
     if (_isJumping) {
-      talker.log('Blocking message receive during jump operation');
+      _hasPendingRealtimeRefresh = true;
+      talker.log(
+        'Received message during jump; queueing post-jump refresh for room $roomId',
+      );
       return;
     }
 
@@ -833,9 +836,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != roomId) return;
 
-    // Block message updates during jumps to prevent list resets
     if (_isJumping) {
-      talker.log('Blocking message update during jump operation');
+      _hasPendingRealtimeRefresh = true;
+      talker.log(
+        'Received message update during jump; queueing post-jump refresh for room $roomId',
+      );
       return;
     }
 
@@ -904,9 +909,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
-    // Block message deletions during jumps to prevent list resets
     if (_isJumping) {
-      talker.log('Blocking message deletion during jump operation');
+      _hasPendingRealtimeRefresh = true;
+      talker.log(
+        'Received message deletion during jump; queueing post-jump refresh for room $roomId',
+      );
       return;
     }
 
@@ -1405,6 +1412,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       return finalIndex;
     } finally {
       _isJumping = false;
+      if (_hasPendingRealtimeRefresh && ref.mounted) {
+        _hasPendingRealtimeRefresh = false;
+        talker.log(
+          'Applying queued post-jump refresh for room $roomId after realtime events',
+        );
+        unawaited(loadInitial(forceRemoteRefresh: false));
+      }
     }
   }
 
