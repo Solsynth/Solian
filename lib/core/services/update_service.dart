@@ -114,6 +114,8 @@ class _ParsedVersion implements Comparable<_ParsedVersion> {
   String toString() => '$major.$minor.$patch+$build';
 }
 
+const bool kEnableBuiltInUpdate = true;
+
 class UpdateService {
   UpdateService({Dio? dio, this.useProxy = false})
     : _dio =
@@ -141,6 +143,12 @@ class UpdateService {
   /// Checks GitHub for the latest release and compares against the current app version.
   /// If update is available, shows a bottom sheet with changelog and an action to open release page.
   Future<void> checkForUpdates(BuildContext context) async {
+    if (!kEnableBuiltInUpdate) {
+      talker.info(
+        '[Update] Built-in update is disabled via kEnableBuiltInUpdate',
+      );
+      return;
+    }
     talker.info('[Update] Checking for updates...');
     try {
       final release = await fetchLatestRelease();
