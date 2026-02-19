@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:material_symbols_icons/symbols.dart';
@@ -106,6 +107,15 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     for (final track in audioTracks.values) {
       Helper.setVolume(volume, track.mediaStreamTrack);
     }
+  }
+
+  static SliderThemeData _compactSliderTheme(BuildContext context) {
+    final base = SliderTheme.of(context);
+    return base.copyWith(
+      trackHeight: 2,
+      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+    );
   }
 
   @override
@@ -288,11 +298,13 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
       fullScreenOpen.value = true;
       cancelIdleDisconnect();
       final title = detailAsync.asData?.value.title ?? 'Livestream';
+      final thumbnailId = detailAsync.asData?.value.thumbnail?.id;
       await showDialog(
         context: context,
         useSafeArea: false,
         builder: (context) => _LivestreamFullscreenViewer(
           title: title,
+          thumbnailId: thumbnailId,
           videoTrackListenable: videoTrackState,
           roomListenable: roomState,
           volume: volume,
@@ -368,22 +380,53 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                         Positioned.fill(
                           child: videoTrack != null
                               ? lk.VideoTrackRenderer(videoTrack)
-                              : Center(
-                                  child: detailAsync.when(
-                                    data: (stream) => Text(
-                                      room == null
-                                          ? '${_statusText(stream.status)} stream'
-                                          : 'Connected. Waiting for video...\n${_roomDiagnostics(room)}',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    loading: () => const Text(
+                              : detailAsync.when(
+                                  data: (stream) {
+                                    final thumbnailId = stream.thumbnail?.id;
+                                    return Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: thumbnailId != null
+                                              ? CloudImageWidget(
+                                                  fileId: thumbnailId,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : const ColoredBox(
+                                                  color: Colors.black,
+                                                ),
+                                        ),
+                                        const Positioned.fill(
+                                          child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              color: Color(0x66000000),
+                                            ),
+                                          ),
+                                        ),
+                                        Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Text(
+                                              room == null
+                                                  ? '${_statusText(stream.status)} stream'
+                                                  : 'Connected. Waiting for video...\n${_roomDiagnostics(room)}',
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                  loading: () => const Center(
+                                    child: Text(
                                       'Loading stream...',
                                       style: TextStyle(color: Colors.white70),
                                     ),
-                                    error: (_, _) => const Text(
+                                  ),
+                                  error: (_, _) => const Center(
+                                    child: Text(
                                       'Livestream unavailable',
                                       style: TextStyle(color: Colors.white70),
                                     ),
@@ -466,19 +509,23 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                   children: [
                     const Icon(Symbols.volume_up, size: 18),
                     Expanded(
-                      child: Slider(
-                        max: 2,
-                        value: volume.value,
-                        onChanged: (value) {
-                          volume.value = value;
-                        },
-                        onChangeEnd: (value) {
-                          _applyVolume(room, value);
-                          _applyVolumeToSubscribedAudioTracks(
-                            subscribedAudioTracks.value,
-                            value,
-                          );
-                        },
+                      child: SliderTheme(
+                        data: _compactSliderTheme(context),
+                        child: Slider(
+                          padding: EdgeInsets.zero,
+                          max: 2,
+                          value: volume.value,
+                          onChanged: (value) {
+                            volume.value = value;
+                          },
+                          onChangeEnd: (value) {
+                            _applyVolume(room, value);
+                            _applyVolumeToSubscribedAudioTracks(
+                              subscribedAudioTracks.value,
+                              value,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -498,6 +545,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
 
 class _LivestreamFullscreenViewer extends StatefulWidget {
   final String title;
+  final String? thumbnailId;
   final ValueListenable<lk.VideoTrack?> videoTrackListenable;
   final ValueListenable<lk.Room?> roomListenable;
   final ValueNotifier<double> volume;
@@ -506,6 +554,7 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
 
   const _LivestreamFullscreenViewer({
     required this.title,
+    required this.thumbnailId,
     required this.videoTrackListenable,
     required this.roomListenable,
     required this.volume,
@@ -572,13 +621,32 @@ class _LivestreamFullscreenViewerState
                     return ValueListenableBuilder<lk.Room?>(
                       valueListenable: widget.roomListenable,
                       builder: (context, room, _) {
-                        return Center(
-                          child: Text(
-                            room == null
-                                ? 'Disconnected'
-                                : 'Connected. Waiting for video...',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
+                        return Stack(
+                          children: [
+                            Positioned.fill(
+                              child: widget.thumbnailId != null
+                                  ? CloudImageWidget(
+                                      fileId: widget.thumbnailId!,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : const ColoredBox(color: Colors.black),
+                            ),
+                            const Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Color(0x66000000),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                room == null
+                                    ? 'Disconnected'
+                                    : 'Connected. Waiting for video...',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                          ],
                         );
                       },
                     );
@@ -653,17 +721,23 @@ class _LivestreamFullscreenViewerState
                           Expanded(
                             child: ValueListenableBuilder<double>(
                               valueListenable: widget.volume,
-                              builder: (context, vol, _) => Slider(
-                                max: 2,
-                                value: vol,
-                                onChanged: room == null
-                                    ? null
-                                    : (value) {
-                                        widget.volume.value = value;
-                                      },
-                                onChangeEnd: room == null
-                                    ? null
-                                    : widget.onApplyVolume,
+                              builder: (context, vol, _) => SliderTheme(
+                                data: LivestreamEmbedWidget._compactSliderTheme(
+                                  context,
+                                ),
+                                child: Slider(
+                                  padding: EdgeInsets.zero,
+                                  max: 2,
+                                  value: vol,
+                                  onChanged: room == null
+                                      ? null
+                                      : (value) {
+                                          widget.volume.value = value;
+                                        },
+                                  onChangeEnd: room == null
+                                      ? null
+                                      : widget.onApplyVolume,
+                                ),
                               ),
                             ),
                           ),
