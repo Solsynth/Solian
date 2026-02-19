@@ -7,6 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
+import 'package:island/core/network.dart';
+import 'package:island/core/widgets/embeds/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
@@ -17,6 +19,7 @@ import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/realms_widgets/realm/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -33,6 +36,26 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
+
+  static final publisherActiveLivestreamProvider = FutureProvider.family
+      .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
+        final client = ref.watch(apiClientProvider);
+        final response = await client.get(
+          '/sphere/livestreams/publisher/$publisherId',
+          queryParameters: {'limit': 20, 'offset': 0},
+        );
+        final raw = response.data;
+        final list = switch (raw) {
+          List value => value,
+          Map value when value['items'] is List => value['items'] as List,
+          _ => const <dynamic>[],
+        };
+        for (final item in list.whereType<Map>()) {
+          final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
+          if (stream.status == SnLiveStreamStatus.active) return stream;
+        }
+        return null;
+      });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -294,6 +317,38 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
+  Widget _buildLiveStreamsOnTop(
+    BuildContext context,
+    WidgetRef ref,
+    List<String> selectedPublishers,
+  ) {
+    final subsAsync = ref.watch(publishersSubscriptionsLiveProvider);
+    return subsAsync.when(
+      data: (subs) {
+        final selectedSubs = subs.where((item) {
+          final pub = item.subscription.publisher;
+          return selectedPublishers.contains(pub.name);
+        }).toList();
+        if (selectedSubs.isEmpty) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+        return SliverToBoxAdapter(
+          child: Column(
+            children: [
+              for (final item in selectedSubs)
+                _SelectedPublisherLiveStreamEmbed(
+                  publisher: item.subscription.publisher,
+                  isLive: item.isLive,
+                ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+      error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+    );
+  }
+
   Widget _buildWideBody(
     BuildContext context,
     WidgetRef ref,
@@ -313,15 +368,7 @@ class ExploreScreen extends HookConsumerWidget {
         selectedPublishers.value.isNotEmpty ||
         selectedCategories.value.isNotEmpty ||
         selectedTags.value.isNotEmpty;
-    final bodyView = usePostList
-        ? _buildPostList(
-            context,
-            ref,
-            selectedPublishers.value,
-            selectedCategories.value,
-            selectedTags.value,
-          )
-        : _buildActivityList(context, ref);
+    final bodyView = usePostList ? null : _buildActivityList(context, ref);
 
     final notifier = usePostList
         ? null // Post list handles its own refreshing
@@ -347,7 +394,21 @@ class ExploreScreen extends HookConsumerWidget {
                   ),
                 SliverToBoxAdapter(child: filterBar),
                 const SliverGap(8),
-                bodyView,
+                if (usePostList) ...[
+                  _buildLiveStreamsOnTop(
+                    context,
+                    ref,
+                    selectedPublishers.value,
+                  ),
+                  _buildPostList(
+                    context,
+                    ref,
+                    selectedPublishers.value,
+                    selectedCategories.value,
+                    selectedTags.value,
+                  ),
+                ] else
+                  bodyView!,
               ],
             ),
           ),
@@ -570,6 +631,62 @@ class ExploreScreen extends HookConsumerWidget {
           child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
         ),
       ).padding(horizontal: 8),
+    );
+  }
+}
+
+class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
+  final SnPublisher publisher;
+  final bool isLive;
+
+  const _SelectedPublisherLiveStreamEmbed({
+    required this.publisher,
+    required this.isLive,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileCard = Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        dense: true,
+        leading: ProfilePictureWidget(file: publisher.picture, radius: 16),
+        title: Text(publisher.nick),
+        subtitle: Text('@${publisher.name}'),
+        trailing: FilledButton.tonal(
+          onPressed: () {
+            context.router.push(PublisherProfileRoute(name: publisher.name));
+          },
+          child: Text('open').tr(),
+        ),
+      ),
+    );
+
+    if (!isLive) {
+      return profileCard;
+    }
+
+    final streamAsync = ref.watch(
+      ExploreScreen.publisherActiveLivestreamProvider(publisher.id),
+    );
+    return streamAsync.when(
+      data: (stream) {
+        if (stream == null) return profileCard;
+        return Column(
+          children: [
+            profileCard,
+            Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: LivestreamEmbedWidget(
+                livestreamId: stream.id,
+                margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => profileCard,
+      error: (_, _) => profileCard,
     );
   }
 }

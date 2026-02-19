@@ -1856,5 +1856,6 @@
   "chatCount": "Chat ({})",
   "openChat": "Open chat",
   "liveChatMessageHint": "Chat with chat",
-  "live": "LIVE"
+  "live": "LIVE",
+  "open": "Open"
 }

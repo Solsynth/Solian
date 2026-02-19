@@ -12,17 +12,54 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'post_subscription_filter.g.dart';
 
+class PublisherSubscriptionLiveItem {
+  final SnPublisherSubscription subscription;
+  final bool isLive;
+
+  const PublisherSubscriptionLiveItem({
+    required this.subscription,
+    required this.isLive,
+  });
+}
+
 @riverpod
 Future<List<SnPublisherSubscription>> publishersSubscriptions(Ref ref) async {
   final client = ref.read(apiClientProvider);
 
   final response = await client.get('/sphere/publishers/subscriptions');
 
-  return response.data
-      .map((json) => SnPublisherSubscription.fromJson(json))
+  return (response.data as List)
+      .whereType<Map>()
+      .map(
+        (json) => SnPublisherSubscription.fromJson(
+          Map<String, dynamic>.from(
+            (json['subscription'] is Map) ? json['subscription'] : json,
+          ),
+        ),
+      )
       .cast<SnPublisherSubscription>()
       .toList();
 }
+
+final publishersSubscriptionsLiveProvider =
+    FutureProvider.autoDispose<List<PublisherSubscriptionLiveItem>>((
+      ref,
+    ) async {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get('/sphere/publishers/subscriptions');
+
+      return (response.data as List).whereType<Map>().map((raw) {
+        final json = Map<String, dynamic>.from(raw);
+        final subRaw = json['subscription'];
+        final sub = SnPublisherSubscription.fromJson(
+          Map<String, dynamic>.from(subRaw is Map ? subRaw : json),
+        );
+        return PublisherSubscriptionLiveItem(
+          subscription: sub,
+          isLive: json['is_live'] == true,
+        );
+      }).toList();
+    });
 
 @riverpod
 Future<List<SnCategorySubscription>> categoriesSubscriptions(Ref ref) async {
@@ -66,7 +103,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
     );
     final selectedTags = useState<List<String>>(initialSelectedTags);
 
-    final publishersAsync = ref.watch(publishersSubscriptionsProvider);
+    final publishersAsync = ref.watch(publishersSubscriptionsLiveProvider);
     final categoriesAsync = ref.watch(categoriesSubscriptionsProvider);
 
     void updateSelection() {
@@ -94,8 +131,8 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
 
           // Publishers Section
           publishersAsync.when(
-            data: (subscriptions) {
-              if (subscriptions.isEmpty) {
+            data: (items) {
+              if (items.isEmpty) {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -113,7 +150,8 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ).padding(bottom: 8, horizontal: 16),
-                  ...subscriptions.map((subscription) {
+                  ...items.map((item) {
+                    final subscription = item.subscription;
                     final isSelected = selectedPublishers.value.contains(
                       subscription.publisher.name,
                     );
@@ -121,7 +159,41 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
 
                     return CheckboxListTile(
                       controlAffinity: ListTileControlAffinity.trailing,
-                      title: Text(publisher.nick),
+                      title: Row(
+                        children: [
+                          Expanded(child: Text(publisher.nick)),
+                          if (item.isLive)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(
+                                    Symbols.fiber_manual_record,
+                                    size: 9,
+                                    color: Colors.redAccent,
+                                  ),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'LIVE',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                       ),
