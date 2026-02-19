@@ -44,13 +44,11 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: AboutRoute.page, path: '/about'),
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
     AutoRoute(page: PostShuffleRoute.page, path: '/posts/shuffle'),
-    // AutoRoute(page: PostCategoriesRoute.page, path: '/posts/categories'),
+    AutoRoute(page: PostCategoriesListRoute.page, path: '/posts/categories'),
     AutoRoute(
       page: PostCategoryDetailRoute.page,
       path: '/posts/categories/:slug',
     ),
-    // Note: Tags use PostCategoryDetailRoute with isCategory: false
-    // Navigate programmatically: PostCategoryDetailRoute(slug: 'tag', isCategory: false)
     AutoRoute(page: PostDetailRoute.page, path: '/posts/:id'),
     AutoRoute(page: PublisherProfileRoute.page, path: '/publishers/:name'),
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
