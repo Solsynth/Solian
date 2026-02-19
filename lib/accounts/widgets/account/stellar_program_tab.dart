@@ -234,18 +234,6 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                           Radius.circular(12),
                         ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
                     ),
                     maxLines: 3,
                     onTapOutside: (_) =>
@@ -899,16 +887,6 @@ class StellarProgramTab extends HookConsumerWidget {
               hintText: 'enterGiftCode'.tr(),
               border: OutlineInputBorder(
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
               ),
               suffixIcon: IconButton(
                 icon: Icon(Icons.redeem),

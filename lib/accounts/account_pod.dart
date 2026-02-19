@@ -94,3 +94,14 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
 final userInfoProvider = AsyncNotifierProvider<UserInfoNotifier, SnAccount?>(
   UserInfoNotifier.new,
 );
+
+final accountInfoProvider = FutureProvider.family
+    .autoDispose<SnAccount?, String>((ref, accountRef) async {
+      final client = ref.watch(apiClientProvider);
+      try {
+        final response = await client.get('/pass/accounts/$accountRef');
+        return SnAccount.fromJson(Map<String, dynamic>.from(response.data));
+      } catch (_) {
+        return null;
+      }
+    });
