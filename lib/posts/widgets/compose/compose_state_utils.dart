@@ -148,6 +148,7 @@ class ComposeStateUtils {
         state.attachmentProgress,
         state.currentPublisher,
         state.submitting,
+        state.liveStreamId,
       ]),
       [state],
     );
@@ -184,6 +185,9 @@ class ComposeStateUtils {
 
     // Clear realm
     state.realm.value = null;
+
+    // Clear livestream
+    state.liveStreamId.value = null;
 
     // Generate new draft ID for fresh composition
     // Note: We don't recreate the entire state, just reset the fields
