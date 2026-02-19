@@ -384,209 +384,259 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     final statusColor = _statusColor(context, status);
     final title = stream.title ?? 'Untitled Livestream';
     final description = stream.description;
-    final viewerCount = stream.viewerCount.toString();
-    final createdAt = stream.createdAt;
-    final hasHls = stream.hlsPlaylistUrl != null && stream.hlsPlaylistUrl != '';
+
+    final thumbnailWidget = stream.thumbnail?.id != null
+        ? CloudImageWidget(fileId: stream.thumbnail!.id, fit: BoxFit.cover)
+        : ColoredBox(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: Center(
+              child: Icon(Symbols.live_tv, color: statusColor, size: 28),
+            ),
+          );
 
     return Card(
+      clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ListTile(
-        leading: stream.thumbnail?.id != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: CloudImageWidget(fileId: stream.thumbnail!.id),
-                ),
-              )
-            : Icon(Symbols.live_tv, color: statusColor),
-        title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            if (description != null && description.isNotEmpty)
-              Text(description, maxLines: 2, overflow: TextOverflow.ellipsis),
-            const Gap(4),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                Chip(
-                  visualDensity: VisualDensity.compact,
-                  label: Text(status),
-                  side: BorderSide.none,
-                  backgroundColor: statusColor.withValues(alpha: 0.15),
+            thumbnailWidget,
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                Chip(
-                  visualDensity: VisualDensity.compact,
-                  label: Text('Viewers: $viewerCount'),
-                  side: BorderSide.none,
-                ),
-                if (hasHls)
-                  Chip(
-                    visualDensity: VisualDensity.compact,
-                    label: const Text('HLS Enabled'),
-                    side: BorderSide.none,
-                  ),
-                if (createdAt != null)
-                  Chip(
-                    visualDensity: VisualDensity.compact,
-                    label: Text(
-                      DateFormat.yMd().add_jm().format(createdAt.toLocal()),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.fiber_manual_record,
+                      size: 12,
+                      color: statusColor,
                     ),
-                    side: BorderSide.none,
+                    const Gap(4),
+                    Text(
+                      status,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: PopupMenuButton<String>(
+                color: Theme.of(context).colorScheme.surface,
+                icon: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.45),
+                    shape: BoxShape.circle,
                   ),
-              ],
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(Symbols.more_vert, color: Colors.white),
+                ),
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.edit),
+                        const Gap(12),
+                        const Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'thumbnail',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.image),
+                        const Gap(12),
+                        const Text('Update Thumbnail'),
+                      ],
+                    ),
+                  ),
+                  if (stream.thumbnail != null)
+                    PopupMenuItem(
+                      value: 'thumbnail-clear',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.hide_image),
+                          const Gap(12),
+                          const Text('Remove Thumbnail'),
+                        ],
+                      ),
+                    ),
+                  if (status.toLowerCase() != 'active')
+                    PopupMenuItem(
+                      value: 'start',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.play_arrow),
+                          const Gap(12),
+                          const Text('Start Stream'),
+                        ],
+                      ),
+                    ),
+                  if (status.toLowerCase() == 'active')
+                    PopupMenuItem(
+                      value: 'end',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.stop, color: Colors.red),
+                          const Gap(12),
+                          const Text('End Stream').textColor(Colors.red),
+                        ],
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'egress-start',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.outbound),
+                        const Gap(12),
+                        const Text('Start RTMP Egress'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'egress-stop',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.outbound),
+                        const Gap(12),
+                        const Text('Stop RTMP Egress'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'hls-start',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.play_circle),
+                        const Gap(12),
+                        const Text('Enable HLS Egress'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'hls-stop',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.stop_circle),
+                        const Gap(12),
+                        const Text('Disable HLS Egress'),
+                      ],
+                    ),
+                  ),
+                  if (stream.hlsPlaylistUrl != null &&
+                      stream.hlsPlaylistUrl!.trim().isNotEmpty)
+                    PopupMenuItem(
+                      value: 'hls-copy',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.content_copy),
+                          const Gap(12),
+                          const Text('Copy HLS URL'),
+                        ],
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.delete, color: Colors.red),
+                        const Gap(12),
+                        const Text('Delete').textColor(Colors.red),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) async {
+                  if (value == 'start') {
+                    await _startStream(context, ref);
+                  } else if (value == 'end') {
+                    await _endStream(context, ref);
+                  } else if (value == 'edit') {
+                    await _editStream(context, ref);
+                  } else if (value == 'thumbnail') {
+                    await _updateThumbnail(context, ref);
+                  } else if (value == 'thumbnail-clear') {
+                    await _clearThumbnail(context, ref);
+                  } else if (value == 'egress-start') {
+                    await _startRtmpEgress(context, ref);
+                  } else if (value == 'egress-stop') {
+                    await _stopRtmpEgress(context, ref);
+                  } else if (value == 'hls-start') {
+                    await _startHlsEgress(context, ref);
+                  } else if (value == 'hls-stop') {
+                    await _stopHlsEgress(context, ref);
+                  } else if (value == 'hls-copy') {
+                    await Clipboard.setData(
+                      ClipboardData(text: stream.hlsPlaylistUrl ?? ''),
+                    );
+                    showSnackBar('HLS URL copied.');
+                  } else if (value == 'delete') {
+                    await _deleteStream(context, ref);
+                  }
+                },
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.75),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (description case final desc? when desc.isNotEmpty) ...[
+                      const Gap(2),
+                      Text(
+                        desc,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ],
-        ),
-        trailing: PopupMenuButton<String>(
-          itemBuilder: (_) => [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  const Icon(Symbols.edit),
-                  const Gap(12),
-                  const Text('Edit'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'thumbnail',
-              child: Row(
-                children: [
-                  const Icon(Symbols.image),
-                  const Gap(12),
-                  const Text('Update Thumbnail'),
-                ],
-              ),
-            ),
-            if (stream.thumbnail != null)
-              PopupMenuItem(
-                value: 'thumbnail-clear',
-                child: Row(
-                  children: [
-                    const Icon(Symbols.hide_image),
-                    const Gap(12),
-                    const Text('Remove Thumbnail'),
-                  ],
-                ),
-              ),
-            if (status.toLowerCase() != 'active')
-              PopupMenuItem(
-                value: 'start',
-                child: Row(
-                  children: [
-                    const Icon(Symbols.play_arrow),
-                    const Gap(12),
-                    const Text('Start Stream'),
-                  ],
-                ),
-              ),
-            if (status.toLowerCase() == 'active')
-              PopupMenuItem(
-                value: 'end',
-                child: Row(
-                  children: [
-                    const Icon(Symbols.stop, color: Colors.red),
-                    const Gap(12),
-                    const Text('End Stream').textColor(Colors.red),
-                  ],
-                ),
-              ),
-            PopupMenuItem(
-              value: 'egress-start',
-              child: Row(
-                children: [
-                  const Icon(Symbols.outbound),
-                  const Gap(12),
-                  const Text('Start RTMP Egress'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'egress-stop',
-              child: Row(
-                children: [
-                  const Icon(Symbols.outbound),
-                  const Gap(12),
-                  const Text('Stop RTMP Egress'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'hls-start',
-              child: Row(
-                children: [
-                  const Icon(Symbols.play_circle),
-                  const Gap(12),
-                  const Text('Enable HLS Egress'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'hls-stop',
-              child: Row(
-                children: [
-                  const Icon(Symbols.stop_circle),
-                  const Gap(12),
-                  const Text('Disable HLS Egress'),
-                ],
-              ),
-            ),
-            if (stream.hlsPlaylistUrl != null &&
-                stream.hlsPlaylistUrl!.trim().isNotEmpty)
-              PopupMenuItem(
-                value: 'hls-copy',
-                child: Row(
-                  children: [
-                    const Icon(Symbols.content_copy),
-                    const Gap(12),
-                    const Text('Copy HLS URL'),
-                  ],
-                ),
-              ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  const Icon(Symbols.delete, color: Colors.red),
-                  const Gap(12),
-                  const Text('Delete').textColor(Colors.red),
-                ],
-              ),
-            ),
-          ],
-          onSelected: (value) async {
-            if (value == 'start') {
-              await _startStream(context, ref);
-            } else if (value == 'end') {
-              await _endStream(context, ref);
-            } else if (value == 'edit') {
-              await _editStream(context, ref);
-            } else if (value == 'thumbnail') {
-              await _updateThumbnail(context, ref);
-            } else if (value == 'thumbnail-clear') {
-              await _clearThumbnail(context, ref);
-            } else if (value == 'egress-start') {
-              await _startRtmpEgress(context, ref);
-            } else if (value == 'egress-stop') {
-              await _stopRtmpEgress(context, ref);
-            } else if (value == 'hls-start') {
-              await _startHlsEgress(context, ref);
-            } else if (value == 'hls-stop') {
-              await _stopHlsEgress(context, ref);
-            } else if (value == 'hls-copy') {
-              await Clipboard.setData(
-                ClipboardData(text: stream.hlsPlaylistUrl ?? ''),
-              );
-              showSnackBar('HLS URL copied.');
-            } else if (value == 'delete') {
-              await _deleteStream(context, ref);
-            }
-          },
         ),
       ),
     );
