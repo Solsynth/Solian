@@ -591,7 +591,6 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text(isNew ? 'createCustomApp'.tr() : 'editCustomApp'.tr()),

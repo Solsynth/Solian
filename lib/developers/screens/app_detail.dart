@@ -33,7 +33,6 @@ class DeveloperAppDetailScreen extends HookConsumerWidget {
     final appData = ref.watch(customAppProvider(pubName, projectId, appId));
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text(appData.value?.name ?? 'appDetails'.tr()),

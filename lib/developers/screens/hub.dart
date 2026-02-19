@@ -883,7 +883,6 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: _ConsoleAppBar(
         currentDeveloper: currentDeveloper.value,
         currentProject: currentProject.value,
@@ -975,16 +974,11 @@ class DeveloperHubScreen extends HookConsumerWidget {
                 children: [
                   Flexible(
                     flex: 2,
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
-                        ),
-                        child: DeveloperHubContentWidget(
-                          initialPublisherName: initialPublisherName,
-                          initialProjectId: initialProjectId,
-                        ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      child: DeveloperHubContentWidget(
+                        initialPublisherName: initialPublisherName,
+                        initialProjectId: initialProjectId,
                       ),
                     ).padding(left: 16, vertical: 16),
                   ),

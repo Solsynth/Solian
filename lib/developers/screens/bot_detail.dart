@@ -32,7 +32,6 @@ class DeveloperBotDetailScreen extends HookConsumerWidget {
     final botData = ref.watch(botProvider(pubName, projectId, botId));
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text(botData.value?.account.nick ?? 'botDetails'.tr()),

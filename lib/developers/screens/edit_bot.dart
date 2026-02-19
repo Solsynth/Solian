@@ -462,7 +462,6 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(title: Text(isNew ? 'createBot'.tr() : 'editBot'.tr())),
       body: bodyContent,
     );
