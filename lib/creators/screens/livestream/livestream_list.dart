@@ -84,7 +84,6 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
     final publisherAsync = ref.watch(publisherNullableProvider(pubName));
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: const Text('livestreams').tr(),

@@ -115,13 +115,12 @@ class PostItemCreator extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Gap(renderingPadding.vertical),
-              PostHeader(item: item, renderingPadding: renderingPadding),
-              PostBody(item: item, renderingPadding: renderingPadding),
               ReferencedPostWidget(
                 item: item,
                 renderingPadding: renderingPadding,
               ),
+              PostHeader(item: item, renderingPadding: renderingPadding),
+              PostBody(item: item, renderingPadding: renderingPadding),
               const Gap(16),
               _buildAnalyticsSection(
                 context,

@@ -21,7 +21,6 @@ class CreatorFeedListScreen extends ConsumerWidget {
     final feedsAsync = ref.watch(webFeedListProvider(pubName));
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: const Text('Web Feeds'),
