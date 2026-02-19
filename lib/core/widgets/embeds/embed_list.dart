@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:island/core/widgets/embeds/livestream.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
@@ -108,6 +109,17 @@ class EmbedListWidget extends StatelessWidget {
                   ? const Text('Fund envelope was unavailable...')
                   : FundEnvelopeWidget(
                       fundId: embedData['id'],
+                      margin: EdgeInsets.symmetric(
+                        horizontal: renderingPadding.horizontal,
+                        vertical: 8,
+                      ),
+                    ),
+            'livestream' =>
+              embedData['id'] == null
+                  ? const Text('Livestream was unavailable...')
+                  : LivestreamEmbedWidget(
+                      livestreamId: embedData['id'],
+                      isInteractive: isInteractive,
                       margin: EdgeInsets.symmetric(
                         horizontal: renderingPadding.horizontal,
                         vertical: 8,

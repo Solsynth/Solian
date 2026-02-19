@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
+import 'package:island/posts/widgets/compose/compose_livestream.dart';
 import 'package:island/posts/widgets/compose/compose_poll.dart';
 import 'package:island/posts/widgets/compose/compose_recorder.dart';
 import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
@@ -45,6 +46,8 @@ class ComposeState {
   final ValueNotifier<String?> pollId;
   // Linked fund id for this compose session (nullable)
   final ValueNotifier<String?> fundId;
+  // Linked livestream id for this compose session (nullable)
+  final ValueNotifier<String?> liveStreamId;
   // Thumbnail id for article type post (nullable)
   final ValueNotifier<String?> thumbnailId;
   Timer? _autoSaveTimer;
@@ -67,9 +70,11 @@ class ComposeState {
     this.postType = 0,
     String? pollId,
     String? fundId,
+    String? liveStreamId,
     String? thumbnailId,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
+       liveStreamId = ValueNotifier<String?>(liveStreamId),
        thumbnailId = ValueNotifier<String?>(thumbnailId);
 
   void startAutoSave(WidgetRef ref) {
@@ -108,6 +113,7 @@ class ComposeLogic {
     // Extract poll and fund IDs from embeds
     String? pollId;
     String? fundId;
+    String? liveStreamId;
     if (originalPost?.meta?['embeds'] is List) {
       final embeds = (originalPost!.meta!['embeds'] as List)
           .cast<Map<String, dynamic>>();
@@ -118,6 +124,12 @@ class ComposeLogic {
       try {
         final fundEmbed = embeds.firstWhere((e) => e['type'] == 'fund');
         fundId = fundEmbed['id'];
+      } catch (_) {}
+      try {
+        final livestreamEmbed = embeds.firstWhere(
+          (e) => e['type'] == 'livestream',
+        );
+        liveStreamId = livestreamEmbed['id'];
       } catch (_) {}
     }
 
@@ -159,6 +171,7 @@ class ComposeLogic {
       postType: postType,
       pollId: pollId,
       fundId: fundId,
+      liveStreamId: liveStreamId,
       thumbnailId: thumbnailId,
     );
   }
@@ -188,6 +201,7 @@ class ComposeLogic {
       pollId: null,
       // initialize without fund by default
       fundId: null,
+      liveStreamId: null,
       thumbnailId: thumbnailId,
     );
   }
@@ -673,6 +687,30 @@ class ComposeLogic {
     state.fundId.value = fund.id;
   }
 
+  static Future<void> pickLivestream(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.liveStreamId.value != null) {
+      state.liveStreamId.value = null;
+      return;
+    }
+
+    final publisher = state.currentPublisher.value;
+    if (publisher == null) return;
+
+    final livestream = await showModalBottomSheet<SnLiveStream>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => ComposeLivestreamSheet(pub: publisher),
+    );
+
+    if (livestream == null) return;
+    state.liveStreamId.value = livestream.id;
+  }
+
   /// Unified submit method that returns the created/updated post.
   static Future<SnPost> performSubmit(
     WidgetRef ref,
@@ -718,6 +756,12 @@ class ComposeLogic {
       final isNewPost = originalPost == null;
       final endpoint =
           '/sphere${isNewPost ? '/posts' : '/posts/${originalPost.id}'}';
+      final hadOriginalLivestreamEmbed =
+          !isNewPost &&
+          (originalPost.meta?['embeds'] as List<dynamic>?)?.any(
+                (e) => e is Map<String, dynamic> && e['type'] == 'livestream',
+              ) ==
+              true;
 
       // Create request payload
       final payload = {
@@ -739,6 +783,8 @@ class ComposeLogic {
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
         if (state.fundId.value != null) 'fund_id': state.fundId.value,
+        if (state.liveStreamId.value != null || hadOriginalLivestreamEmbed)
+          'live_stream_id': state.liveStreamId.value,
         if (state.postType == 1 && state.thumbnailId.value != null)
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
@@ -892,6 +938,7 @@ class ComposeLogic {
     state.embedView.dispose();
     state.pollId.dispose();
     state.fundId.dispose();
+    state.liveStreamId.dispose();
     state.thumbnailId.dispose();
   }
 }
