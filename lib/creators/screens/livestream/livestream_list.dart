@@ -261,19 +261,6 @@ class _CreatorLivestreamItem extends ConsumerWidget {
             ],
           ),
           actions: [
-            if (!isRtmpMode)
-              FilledButton.tonal(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          CreatorLivestreamDetailScreen(livestreamId: _id),
-                    ),
-                  );
-                },
-                child: const Text('Open Studio'),
-              ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text('ok').tr(),
@@ -290,8 +277,8 @@ class _CreatorLivestreamItem extends ConsumerWidget {
 
   Future<void> _endStream(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmAlert(
-      'endLivestreamConfirm',
-      'endLivestream',
+      'endLivestreamConfirm'.tr(),
+      'endLivestream'.tr(),
       isDanger: true,
     );
     if (confirmed != true) return;
