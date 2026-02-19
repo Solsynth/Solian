@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -67,15 +68,15 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
 
   static String _statusText(SnLiveStreamStatus status) {
     return switch (status) {
-      SnLiveStreamStatus.pending => 'Pending',
-      SnLiveStreamStatus.active => 'Live',
-      SnLiveStreamStatus.ended => 'Ended',
-      SnLiveStreamStatus.error => 'Error',
+      SnLiveStreamStatus.pending => 'livestreamStatusPending'.tr(),
+      SnLiveStreamStatus.active => 'livestreamStatusActive'.tr(),
+      SnLiveStreamStatus.ended => 'livestreamStatusEnded'.tr(),
+      SnLiveStreamStatus.error => 'livestreamStatusError'.tr(),
     };
   }
 
   static String _roomDiagnostics(lk.Room? room) {
-    if (room == null) return 'Not connected';
+    if (room == null) return 'notConnected'.tr();
     final remoteParticipants = room.remoteParticipants.values.toList();
     final videoPublications = remoteParticipants.fold<int>(
       0,
@@ -189,11 +190,11 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           livestreamDetailProvider(livestreamId).future,
         );
         if (stream.status == SnLiveStreamStatus.ended) {
-          errorText.value = 'This livestream has ended.';
+          errorText.value = 'thisLivestreamHasEnded'.tr();
           return;
         }
         if (stream.status != SnLiveStreamStatus.active) {
-          errorText.value = 'This livestream is not live yet.';
+          errorText.value = 'thisLivestreamIsNotLiveYet'.tr();
           return;
         }
 
@@ -383,7 +384,8 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     Future<void> showFullscreenViewer() async {
       fullScreenOpen.value = true;
       cancelIdleDisconnect();
-      final title = detailAsync.asData?.value.title ?? 'Livestream';
+      final title =
+          detailAsync.asData?.value.title ?? 'untitledLivestream'.tr();
       final thumbnailId = detailAsync.asData?.value.thumbnail?.id;
       await showDialog(
         context: context,
@@ -441,7 +443,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          stream.title ?? 'Livestream',
+                          stream.title ?? 'untitledLivestream'.tr(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleMedium,
@@ -454,7 +456,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                       ],
                     ),
                     loading: () => const LinearProgressIndicator(minHeight: 2),
-                    error: (_, _) => const Text('Livestream unavailable'),
+                    error: (_, _) => const Text('livestreamUnavailable').tr(),
                   )
                   .padding(horizontal: 4),
               const SizedBox(height: 10),
@@ -511,16 +513,20 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                       ],
                                     );
                                   },
-                                  loading: () => const Center(
+                                  loading: () => Center(
                                     child: Text(
-                                      'Loading stream...',
-                                      style: TextStyle(color: Colors.white70),
+                                      'loadingStream'.tr(),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                   ),
-                                  error: (_, _) => const Center(
+                                  error: (_, _) => Center(
                                     child: Text(
-                                      'Livestream unavailable',
-                                      style: TextStyle(color: Colors.white70),
+                                      'livestreamUnavailable'.tr(),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -547,7 +553,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                             ),
                                           )
                                         : Icon(Symbols.play_arrow),
-                                    label: const Text('Watch'),
+                                    label: Text('watch'.tr()),
                                   );
                                 },
                                 loading: () => const SizedBox.shrink(),
@@ -563,7 +569,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton.filledTonal(
-                                  tooltip: 'Fullscreen',
+                                  tooltip: 'fullscreen'.tr(),
                                   onPressed: showFullscreenViewer,
                                   icon: const Icon(Symbols.fullscreen),
                                   iconSize: 18,
@@ -573,7 +579,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                 FilledButton.tonalIcon(
                                   onPressed: disconnect,
                                   icon: const Icon(Symbols.stop, size: 20),
-                                  label: const Text('Leave').padding(right: 4),
+                                  label: Text('leave'.tr()).padding(right: 4),
                                   style: FilledButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                     padding: const EdgeInsets.symmetric(
@@ -651,7 +657,9 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                               const Icon(Symbols.chat_bubble, size: 18),
                               const SizedBox(width: 8),
                               Text(
-                                'Live Chat (${chatMessages.value.length})',
+                                'liveChatCount'.tr(
+                                  args: ['${chatMessages.value.length}'],
+                                ),
                                 style: Theme.of(context).textTheme.titleSmall,
                               ),
                               const Spacer(),
@@ -659,8 +667,8 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                 constraints: const BoxConstraints(),
                                 visualDensity: VisualDensity.compact,
                                 tooltip: chatCollapsed.value
-                                    ? 'Expand'
-                                    : 'Collapse',
+                                    ? 'expand'.tr()
+                                    : 'collapse'.tr(),
                                 onPressed: () {
                                   chatCollapsed.value = !chatCollapsed.value;
                                 },
@@ -680,7 +688,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                           child: chatMessages.value.isEmpty
                               ? Center(
                                   child: Text(
-                                    'No chat messages yet',
+                                    'noChatMessagesYet'.tr(),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodySmall,
@@ -712,7 +720,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                       sendChatMessage(value),
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    hintText: 'Chat message',
+                                    hintText: 'chatMessageHint'.tr(),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -721,7 +729,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                               ),
                               const SizedBox(width: 8),
                               IconButton.filled(
-                                tooltip: 'Send',
+                                tooltip: 'send'.tr(),
                                 onPressed: isSendingChat.value
                                     ? null
                                     : sendChatMessage,
@@ -857,8 +865,8 @@ class _LivestreamFullscreenViewerState
                             Center(
                               child: Text(
                                 room == null
-                                    ? 'Disconnected'
-                                    : 'Connected. Waiting for video...',
+                                    ? 'disconnected'.tr()
+                                    : 'connectedWaitingForVideo'.tr(),
                                 style: const TextStyle(color: Colors.white70),
                               ),
                             ),
@@ -881,7 +889,7 @@ class _LivestreamFullscreenViewerState
                   child: _chatCollapsed
                       ? IconButton.filledTonal(
                           key: const ValueKey('chat-collapsed'),
-                          tooltip: 'Open chat',
+                          tooltip: 'openChat'.tr(),
                           onPressed: () {
                             setState(() => _chatCollapsed = false);
                           },
@@ -921,7 +929,9 @@ class _LivestreamFullscreenViewerState
                                                 widget.chatMessagesListenable,
                                             builder: (context, messages, _) {
                                               return Text(
-                                                'Chat (${messages.length})',
+                                                'chatCount'.tr(
+                                                  args: ['${messages.length}'],
+                                                ),
                                                 style: const TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.w600,
@@ -968,7 +978,7 @@ class _LivestreamFullscreenViewerState
                                         if (messages.isEmpty) {
                                           return const Center(
                                             child: Text(
-                                              'No chat messages yet',
+                                              'noChatMessagesYet',
                                               style: TextStyle(
                                                 color: Colors.white70,
                                               ),
@@ -1011,7 +1021,7 @@ class _LivestreamFullscreenViewerState
                                         },
                                         decoration: InputDecoration(
                                           isDense: true,
-                                          hintText: 'Chat message',
+                                          hintText: 'chatMessageHint'.tr(),
                                           hintStyle: const TextStyle(
                                             color: Colors.white54,
                                           ),
@@ -1029,7 +1039,7 @@ class _LivestreamFullscreenViewerState
                                           widget.isSendingChatListenable,
                                       builder: (context, isSending, _) {
                                         return IconButton.filled(
-                                          tooltip: 'Send',
+                                          tooltip: 'send'.tr(),
                                           onPressed: isSending
                                               ? null
                                               : () async {

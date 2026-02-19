@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:island/creators/screens/livestream/livestream_detail.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
@@ -86,7 +87,7 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
-        title: const Text('Livestreams'),
+        title: const Text('livestreams').tr(),
       ),
       floatingActionButton: publisherAsync.when(
         data: (publisher) => publisher == null
@@ -103,8 +104,8 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
           if (data == null) {
             return const EmptyState(
               icon: Symbols.error,
-              title: 'Publisher Not Found',
-              description: 'Unable to resolve publisher for livestreams.',
+              title: 'publisherNotFound',
+              description: 'publisherNotFoundDescription',
             );
           }
 
@@ -117,8 +118,8 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
               if (streams.isEmpty) {
                 return const EmptyState(
                   icon: Symbols.live_tv,
-                  title: 'No Livestreams',
-                  description: 'Create a livestream to start broadcasting.',
+                  title: 'noLivestreams',
+                  description: 'noLivestreamsDescription',
                 );
               }
 
@@ -142,11 +143,13 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text('Error: $error')),
+            error: (error, _) =>
+                Center(child: Text('errorGeneric').tr(args: ['$error'])),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) =>
+            Center(child: Text('errorGeneric').tr(args: ['$error'])),
       ),
     );
   }
@@ -165,10 +168,10 @@ class _CreatorLivestreamItem extends ConsumerWidget {
 
   String _statusText(SnLiveStreamStatus status) {
     return switch (status) {
-      SnLiveStreamStatus.pending => 'Pending',
-      SnLiveStreamStatus.active => 'Active',
-      SnLiveStreamStatus.ended => 'Ended',
-      SnLiveStreamStatus.error => 'Error',
+      SnLiveStreamStatus.pending => 'livestreamStatusPending'.tr(),
+      SnLiveStreamStatus.active => 'livestreamStatusActive'.tr(),
+      SnLiveStreamStatus.ended => 'livestreamStatusEnded'.tr(),
+      SnLiveStreamStatus.error => 'livestreamStatusError'.tr(),
     };
   }
 
@@ -190,7 +193,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
       final client = ref.read(apiClientProvider);
       final response = await client.post(
         '/sphere/livestreams/$_id/start',
-        data: <String, dynamic>{},
+        data: <String, dynamic>{'no_ingress': true},
       );
       final data = Map<String, dynamic>.from(response.data);
       final rtmpUrl =
@@ -208,17 +211,17 @@ class _CreatorLivestreamItem extends ConsumerWidget {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('RTMP Settings'),
+          title: const Text('rtmpSettings').tr(),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CopyField(label: 'RTMP URL', value: rtmpUrl.toString()),
+              _CopyField(label: 'rtmpUrl'.tr(), value: rtmpUrl.toString()),
               const Gap(12),
-              _CopyField(label: 'Stream Key', value: streamKey.toString()),
+              _CopyField(label: 'streamKey'.tr(), value: streamKey.toString()),
               if (roomName.toString().isNotEmpty) ...[
                 const Gap(12),
-                _CopyField(label: 'Room Name', value: roomName.toString()),
+                _CopyField(label: 'roomName'.tr(), value: roomName.toString()),
               ],
             ],
           ),
@@ -239,8 +242,8 @@ class _CreatorLivestreamItem extends ConsumerWidget {
 
   Future<void> _endStream(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmAlert(
-      'Are you sure you want to end this livestream?',
-      'End Livestream',
+      'endLivestreamConfirm',
+      'endLivestream',
       isDanger: true,
     );
     if (confirmed != true) return;
@@ -248,7 +251,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/sphere/livestreams/$_id/end');
-      showSnackBar('Livestream ended.');
+      showSnackBar('livestreamEnded'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -282,7 +285,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
         '/sphere/livestreams/$_id/thumbnail',
         data: {'thumbnail_id': fileId},
       );
-      showSnackBar('Thumbnail updated.');
+      showSnackBar('thumbnailUpdated'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -296,7 +299,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
         '/sphere/livestreams/$_id/thumbnail',
         data: {'thumbnail_id': null},
       );
-      showSnackBar('Thumbnail removed.');
+      showSnackBar('thumbnailRemoved'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -313,7 +316,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/sphere/livestreams/$_id/egress', data: submitted);
-      showSnackBar('RTMP egress started.');
+      showSnackBar('rtmpEgressStarted'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -324,7 +327,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/sphere/livestreams/$_id/egress/stop');
-      showSnackBar('RTMP egress stopped.');
+      showSnackBar('rtmpEgressStopped'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -342,7 +345,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/sphere/livestreams/$_id/hls', data: submitted);
-      showSnackBar('HLS egress started.');
+      showSnackBar('hlsEgressStarted'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -353,7 +356,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/sphere/livestreams/$_id/hls/stop');
-      showSnackBar('HLS egress stopped.');
+      showSnackBar('hlsEgressStopped'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -362,8 +365,8 @@ class _CreatorLivestreamItem extends ConsumerWidget {
 
   Future<void> _deleteStream(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmAlert(
-      'Delete this livestream permanently?',
-      'Delete Livestream',
+      'deleteLivestreamConfirm',
+      'deleteLivestream',
       isDanger: true,
     );
     if (confirmed != true) return;
@@ -371,7 +374,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     try {
       final client = ref.read(apiClientProvider);
       await client.delete('/sphere/livestreams/$_id');
-      showSnackBar('Livestream deleted.');
+      showSnackBar('livestreamDeleted'.tr());
       ref.invalidate(creatorLivestreamListProvider(publisherId));
     } catch (e) {
       showErrorAlert(e);
@@ -382,7 +385,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final status = _statusText(stream.status);
     final statusColor = _statusColor(context, status);
-    final title = stream.title ?? 'Untitled Livestream';
+    final title = stream.title ?? 'untitledLivestream'.tr();
     final description = stream.description;
 
     final thumbnailWidget = stream.thumbnail?.id != null
@@ -397,246 +400,258 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            thumbnailWidget,
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.fiber_manual_record,
-                      size: 12,
-                      color: statusColor,
-                    ),
-                    const Gap(4),
-                    Text(
-                      status,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CreatorLivestreamDetailScreen(livestreamId: _id),
             ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: PopupMenuButton<String>(
-                color: Theme.of(context).colorScheme.surface,
-                icon: Container(
+          );
+        },
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              thumbnailWidget,
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.45),
-                    shape: BoxShape.circle,
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  child: const Icon(Symbols.more_vert, color: Colors.white),
-                ),
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.edit),
-                        const Gap(12),
-                        const Text('Edit'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'thumbnail',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.image),
-                        const Gap(12),
-                        const Text('Update Thumbnail'),
-                      ],
-                    ),
-                  ),
-                  if (stream.thumbnail != null)
-                    PopupMenuItem(
-                      value: 'thumbnail-clear',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.hide_image),
-                          const Gap(12),
-                          const Text('Remove Thumbnail'),
-                        ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.fiber_manual_record,
+                        size: 12,
+                        color: statusColor,
                       ),
-                    ),
-                  if (status.toLowerCase() != 'active')
-                    PopupMenuItem(
-                      value: 'start',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.play_arrow),
-                          const Gap(12),
-                          const Text('Start Stream'),
-                        ],
-                      ),
-                    ),
-                  if (status.toLowerCase() == 'active')
-                    PopupMenuItem(
-                      value: 'end',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.stop, color: Colors.red),
-                          const Gap(12),
-                          const Text('End Stream').textColor(Colors.red),
-                        ],
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'egress-start',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.outbound),
-                        const Gap(12),
-                        const Text('Start RTMP Egress'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'egress-stop',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.outbound),
-                        const Gap(12),
-                        const Text('Stop RTMP Egress'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'hls-start',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.play_circle),
-                        const Gap(12),
-                        const Text('Enable HLS Egress'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'hls-stop',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.stop_circle),
-                        const Gap(12),
-                        const Text('Disable HLS Egress'),
-                      ],
-                    ),
-                  ),
-                  if (stream.hlsPlaylistUrl != null &&
-                      stream.hlsPlaylistUrl!.trim().isNotEmpty)
-                    PopupMenuItem(
-                      value: 'hls-copy',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.content_copy),
-                          const Gap(12),
-                          const Text('Copy HLS URL'),
-                        ],
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.delete, color: Colors.red),
-                        const Gap(12),
-                        const Text('Delete').textColor(Colors.red),
-                      ],
-                    ),
-                  ),
-                ],
-                onSelected: (value) async {
-                  if (value == 'start') {
-                    await _startStream(context, ref);
-                  } else if (value == 'end') {
-                    await _endStream(context, ref);
-                  } else if (value == 'edit') {
-                    await _editStream(context, ref);
-                  } else if (value == 'thumbnail') {
-                    await _updateThumbnail(context, ref);
-                  } else if (value == 'thumbnail-clear') {
-                    await _clearThumbnail(context, ref);
-                  } else if (value == 'egress-start') {
-                    await _startRtmpEgress(context, ref);
-                  } else if (value == 'egress-stop') {
-                    await _stopRtmpEgress(context, ref);
-                  } else if (value == 'hls-start') {
-                    await _startHlsEgress(context, ref);
-                  } else if (value == 'hls-stop') {
-                    await _stopHlsEgress(context, ref);
-                  } else if (value == 'hls-copy') {
-                    await Clipboard.setData(
-                      ClipboardData(text: stream.hlsPlaylistUrl ?? ''),
-                    );
-                    showSnackBar('HLS URL copied.');
-                  } else if (value == 'delete') {
-                    await _deleteStream(context, ref);
-                  }
-                },
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.75),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (description case final desc? when desc.isNotEmpty) ...[
-                      const Gap(2),
+                      const Gap(4),
                       Text(
-                        desc,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                        status,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                top: 4,
+                right: 4,
+                child: PopupMenuButton<String>(
+                  color: Theme.of(context).colorScheme.surface,
+                  icon: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.45),
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Symbols.more_vert, color: Colors.white),
+                  ),
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.edit),
+                          const Gap(12),
+                          const Text('edit').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'thumbnail',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.image),
+                          const Gap(12),
+                          const Text('updateThumbnail').tr(),
+                        ],
+                      ),
+                    ),
+                    if (stream.thumbnail != null)
+                      PopupMenuItem(
+                        value: 'thumbnail-clear',
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.hide_image),
+                            const Gap(12),
+                            const Text('removeThumbnail').tr(),
+                          ],
+                        ),
+                      ),
+                    if (status.toLowerCase() != 'active')
+                      PopupMenuItem(
+                        value: 'start',
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.play_arrow),
+                            const Gap(12),
+                            const Text('startStream').tr(),
+                          ],
+                        ),
+                      ),
+                    if (status.toLowerCase() == 'active')
+                      PopupMenuItem(
+                        value: 'end',
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.stop, color: Colors.red),
+                            const Gap(12),
+                            const Text('endStream').textColor(Colors.red),
+                          ],
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: 'egress-start',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.outbound),
+                          const Gap(12),
+                          const Text('startRtmpEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'egress-stop',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.outbound),
+                          const Gap(12),
+                          const Text('stopRtmpEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'hls-start',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.play_circle),
+                          const Gap(12),
+                          const Text('enableHlsEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'hls-stop',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.stop_circle),
+                          const Gap(12),
+                          const Text('disableHlsEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    if (stream.hlsPlaylistUrl != null &&
+                        stream.hlsPlaylistUrl!.trim().isNotEmpty)
+                      PopupMenuItem(
+                        value: 'hls-copy',
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.content_copy),
+                            const Gap(12),
+                            const Text('copyHlsUrl').tr(),
+                          ],
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.delete, color: Colors.red),
+                          const Gap(12),
+                          const Text('delete').textColor(Colors.red),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) async {
+                    if (value == 'start') {
+                      await _startStream(context, ref);
+                    } else if (value == 'end') {
+                      await _endStream(context, ref);
+                    } else if (value == 'edit') {
+                      await _editStream(context, ref);
+                    } else if (value == 'thumbnail') {
+                      await _updateThumbnail(context, ref);
+                    } else if (value == 'thumbnail-clear') {
+                      await _clearThumbnail(context, ref);
+                    } else if (value == 'egress-start') {
+                      await _startRtmpEgress(context, ref);
+                    } else if (value == 'egress-stop') {
+                      await _stopRtmpEgress(context, ref);
+                    } else if (value == 'hls-start') {
+                      await _startHlsEgress(context, ref);
+                    } else if (value == 'hls-stop') {
+                      await _stopHlsEgress(context, ref);
+                    } else if (value == 'hls-copy') {
+                      await Clipboard.setData(
+                        ClipboardData(text: stream.hlsPlaylistUrl ?? ''),
+                      );
+                      showSnackBar('hlsUrlCopied'.tr());
+                    } else if (value == 'delete') {
+                      await _deleteStream(context, ref);
+                    }
+                  },
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.75),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (description case final desc?
+                          when desc.isNotEmpty) ...[
+                        const Gap(2),
+                        Text(
+                          desc,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -665,7 +680,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
       if (formKey.currentState?.validate() != true) return;
       final metadata = _tryParseJsonObject(metadataController.text);
       if (metadataController.text.trim().isNotEmpty && metadata == null) {
-        showSnackBar('Metadata must be a valid JSON object.');
+        showSnackBar('metadataMustBeValidJson'.tr());
         return;
       }
 
@@ -689,7 +704,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
         await client.post('/sphere/livestreams', data: payload);
 
         if (!context.mounted) return;
-        showSnackBar('Livestream created.');
+        showSnackBar('livestreamCreated'.tr());
         Navigator.of(context).pop(true);
       } catch (e) {
         showErrorAlert(e);
@@ -707,7 +722,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
     }
 
     return SheetScaffold(
-      titleText: 'New Livestream',
+      titleText: 'newLivestream',
       child: Form(
         key: formKey,
         child: Column(
@@ -715,29 +730,29 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
           children: [
             TextFormField(
               controller: titleController,
-              decoration: inputDecoration('Title'),
+              decoration: inputDecoration('title'.tr()),
               textInputAction: TextInputAction.next,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a title';
+                  return 'pleaseEnterTitle'.tr();
                 }
                 return null;
               },
             ),
             TextFormField(
               controller: descriptionController,
-              decoration: inputDecoration('Description'),
+              decoration: inputDecoration('description'.tr()),
               minLines: 2,
               maxLines: 4,
               textInputAction: TextInputAction.newline,
             ),
             TextFormField(
               controller: slugController,
-              decoration: inputDecoration('Slug'),
+              decoration: inputDecoration('slug'.tr()),
               textInputAction: TextInputAction.done,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a slug';
+                  return 'pleaseEnterSlug'.tr();
                 }
                 return null;
               },
@@ -748,10 +763,16 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     initialValue: type.value,
-                    decoration: inputDecoration('Type'),
-                    items: const [
-                      DropdownMenuItem(value: 0, child: Text('Regular')),
-                      DropdownMenuItem(value: 1, child: Text('Interactive')),
+                    decoration: inputDecoration('type'.tr()),
+                    items: [
+                      DropdownMenuItem(
+                        value: 0,
+                        child: Text('typeRegular'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text('typeInteractive'.tr()),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value == null) return;
@@ -762,11 +783,20 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     initialValue: visibility.value,
-                    decoration: inputDecoration('Visibility'),
-                    items: const [
-                      DropdownMenuItem(value: 0, child: Text('Public')),
-                      DropdownMenuItem(value: 1, child: Text('Unlisted')),
-                      DropdownMenuItem(value: 2, child: Text('Private')),
+                    decoration: inputDecoration('visibility'.tr()),
+                    items: [
+                      DropdownMenuItem(
+                        value: 0,
+                        child: Text('visibilityPublic'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text('visibilityUnlisted'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 2,
+                        child: Text('visibilityPrivate'.tr()),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value == null) return;
@@ -793,11 +823,11 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
                     ),
               title: Text(
                 thumbnailId.value == null
-                    ? 'Pick Thumbnail'
-                    : 'Thumbnail Selected',
+                    ? 'pickThumbnail'.tr()
+                    : 'thumbnailSelected'.tr(),
               ),
               subtitle: thumbnailId.value == null
-                  ? const Text('Optional')
+                  ? Text('optional'.tr())
                   : Text(thumbnailId.value!),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -828,7 +858,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
             ),
             TextFormField(
               controller: metadataController,
-              decoration: inputDecoration('Metadata JSON'),
+              decoration: inputDecoration('metadataJson'.tr()),
               minLines: 2,
               maxLines: 5,
             ),
@@ -840,7 +870,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Symbols.check),
-              label: Text(isSubmitting.value ? 'creating'.tr() : 'create').tr(),
+              label: Text(isSubmitting.value ? 'creating'.tr() : 'create'.tr()),
             ),
           ],
         ),
@@ -876,7 +906,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
       if (formKey.currentState?.validate() != true) return;
       final metadata = _tryParseJsonObject(metadataController.text);
       if (metadataController.text.trim().isNotEmpty && metadata == null) {
-        showSnackBar('Metadata must be a valid JSON object.');
+        showSnackBar('metadataMustBeValidJson'.tr());
         return;
       }
 
@@ -895,7 +925,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
         }
         await client.patch('/sphere/livestreams/${stream.id}', data: payload);
         if (!context.mounted) return;
-        showSnackBar('Livestream updated.');
+        showSnackBar('livestreamUpdated'.tr());
         Navigator.of(context).pop(true);
       } catch (e) {
         showErrorAlert(e);
@@ -913,7 +943,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
     }
 
     return SheetScaffold(
-      titleText: 'Edit Livestream',
+      titleText: 'editLivestream',
       child: Form(
         key: formKey,
         child: Column(
@@ -921,22 +951,22 @@ class _EditLivestreamSheet extends HookConsumerWidget {
           children: [
             TextFormField(
               controller: titleController,
-              decoration: inputDecoration('Title'),
+              decoration: inputDecoration('title'.tr()),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Title is required'
+                  ? 'titleRequired'.tr()
                   : null,
             ),
             TextFormField(
               controller: descriptionController,
-              decoration: inputDecoration('Description'),
+              decoration: inputDecoration('description'.tr()),
               minLines: 2,
               maxLines: 4,
             ),
             TextFormField(
               controller: slugController,
-              decoration: inputDecoration('Slug'),
+              decoration: inputDecoration('slug'.tr()),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Slug is required'
+                  ? 'slugRequired'.tr()
                   : null,
             ),
             Row(
@@ -945,10 +975,16 @@ class _EditLivestreamSheet extends HookConsumerWidget {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     initialValue: type.value,
-                    decoration: inputDecoration('Type'),
-                    items: const [
-                      DropdownMenuItem(value: 0, child: Text('Regular')),
-                      DropdownMenuItem(value: 1, child: Text('Interactive')),
+                    decoration: inputDecoration('type'.tr()),
+                    items: [
+                      DropdownMenuItem(
+                        value: 0,
+                        child: Text('typeRegular'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text('typeInteractive'.tr()),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value != null) type.value = value;
@@ -958,11 +994,20 @@ class _EditLivestreamSheet extends HookConsumerWidget {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     initialValue: visibility.value,
-                    decoration: inputDecoration('Visibility'),
-                    items: const [
-                      DropdownMenuItem(value: 0, child: Text('Public')),
-                      DropdownMenuItem(value: 1, child: Text('Unlisted')),
-                      DropdownMenuItem(value: 2, child: Text('Private')),
+                    decoration: inputDecoration('visibility'.tr()),
+                    items: [
+                      DropdownMenuItem(
+                        value: 0,
+                        child: Text('visibilityPublic'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text('visibilityUnlisted'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 2,
+                        child: Text('visibilityPrivate'.tr()),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value != null) visibility.value = value;
@@ -973,7 +1018,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
             ),
             TextFormField(
               controller: metadataController,
-              decoration: inputDecoration('Metadata JSON'),
+              decoration: inputDecoration('metadataJson'.tr()),
               minLines: 2,
               maxLines: 5,
             ),
@@ -985,7 +1030,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Symbols.check),
-              label: const Text('Save'),
+              label: const Text('save').tr(),
             ),
           ],
         ),
@@ -1003,14 +1048,14 @@ class _RtmpEgressSheet extends HookWidget {
     final filePathController = useTextEditingController();
 
     return SheetScaffold(
-      titleText: 'Start RTMP Egress',
+      titleText: 'startRtmpEgressTitle',
       child: Column(
         spacing: 12,
         children: [
           TextField(
             controller: urlsController,
             decoration: const InputDecoration(
-              labelText: 'RTMP URLs (one per line)',
+              labelText: 'rtmpUrlsOnePerLine',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
@@ -1021,7 +1066,7 @@ class _RtmpEgressSheet extends HookWidget {
           TextField(
             controller: filePathController,
             decoration: const InputDecoration(
-              labelText: 'Recording file path (optional)',
+              labelText: 'recordingFilePathOptional',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
@@ -1041,7 +1086,7 @@ class _RtmpEgressSheet extends HookWidget {
               });
             },
             icon: const Icon(Symbols.play_arrow),
-            label: const Text('Start'),
+            label: const Text('start').tr(),
           ),
         ],
       ).padding(horizontal: 16, vertical: 20),
@@ -1061,14 +1106,14 @@ class _HlsEgressSheet extends HookWidget {
     final hlsBaseUrlController = useTextEditingController();
 
     return SheetScaffold(
-      titleText: 'Enable HLS Egress',
+      titleText: 'enableHlsEgressTitle',
       child: Column(
         spacing: 12,
         children: [
           TextField(
             controller: playlistController,
             decoration: const InputDecoration(
-              labelText: 'Playlist name',
+              labelText: 'playlistName',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
@@ -1082,7 +1127,7 @@ class _HlsEgressSheet extends HookWidget {
                   controller: segmentDurationController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Segment duration',
+                    labelText: 'segmentDuration',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
@@ -1094,7 +1139,7 @@ class _HlsEgressSheet extends HookWidget {
                   controller: segmentCountController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Segment count',
+                    labelText: 'segmentCount',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
@@ -1106,7 +1151,7 @@ class _HlsEgressSheet extends HookWidget {
           TextField(
             controller: layoutController,
             decoration: const InputDecoration(
-              labelText: 'Layout (optional)',
+              labelText: 'layoutOptional',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
@@ -1115,7 +1160,7 @@ class _HlsEgressSheet extends HookWidget {
           TextField(
             controller: hlsBaseUrlController,
             decoration: const InputDecoration(
-              labelText: 'HLS Base URL (optional)',
+              labelText: 'hlsBaseUrlOptional',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
@@ -1136,7 +1181,7 @@ class _HlsEgressSheet extends HookWidget {
               });
             },
             icon: const Icon(Symbols.play_arrow),
-            label: const Text('Enable'),
+            label: const Text('enable').tr(),
           ),
         ],
       ).padding(horizontal: 16, vertical: 20),
@@ -1182,7 +1227,7 @@ class _CopyField extends StatelessWidget {
                   ? null
                   : () async {
                       await Clipboard.setData(ClipboardData(text: value));
-                      showSnackBar('Copied');
+                      showSnackBar('copied'.tr());
                     },
             ),
           ],
