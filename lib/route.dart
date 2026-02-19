@@ -138,6 +138,10 @@ class AppRouter extends RootStackRouter {
             // Default child route -> Creator hub list
             AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
             AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
+            AutoRoute(
+              page: CreatorLivestreamListRoute.page,
+              path: ':pubName/livestreams',
+            ),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
             AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
             AutoRoute(
