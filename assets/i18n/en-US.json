@@ -1855,5 +1855,6 @@
   "connectedWaitingForVideo": "Connected. Waiting for video...",
   "chatCount": "Chat ({})",
   "openChat": "Open chat",
-  "liveChatMessageHint": "Chat with chat"
+  "liveChatMessageHint": "Chat with chat",
+  "live": "LIVE"
 }

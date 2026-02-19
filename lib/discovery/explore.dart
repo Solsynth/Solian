@@ -12,6 +12,7 @@ import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/accounts/event_calendar.dart';
+import 'package:island/discovery/screens/livestreams.dart';
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/login_modal.dart';
@@ -135,6 +136,22 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 onTap: () {
                   context.router.push(UniversalSearchRoute());
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.live_tv),
+                    const Gap(12),
+                    Text('livestreams').tr(),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ActiveLivestreamsScreen(),
+                    ),
+                  );
                 },
               ),
               PopupMenuItem(
@@ -483,6 +500,22 @@ class ExploreScreen extends HookConsumerWidget {
                     ),
                     onTap: () {
                       context.router.push(UniversalSearchRoute());
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.live_tv),
+                        const Gap(12),
+                        Text('livestreams').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ActiveLivestreamsScreen(),
+                        ),
+                      );
                     },
                   ),
                   PopupMenuItem(

@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/status.dart';
+import 'package:island/core/widgets/embeds/livestream.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
@@ -141,6 +142,7 @@ class _PinnedPostsPageView extends HookConsumerWidget {
 class _PublisherBasisWidget extends StatelessWidget {
   final SnPublisher data;
   final AsyncValue<SnPublisherSubscription?> subStatus;
+  final AsyncValue<SnLiveStream?> liveStatus;
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
   final VoidCallback unsubscribe;
@@ -148,6 +150,7 @@ class _PublisherBasisWidget extends StatelessWidget {
   const _PublisherBasisWidget({
     required this.data,
     required this.subStatus,
+    required this.liveStatus,
     required this.subscribing,
     required this.subscribe,
     required this.unsubscribe,
@@ -267,6 +270,58 @@ class _PublisherBasisWidget extends StatelessWidget {
                                   Text(data.nick).fontSize(20),
                                 if (data.verification != null)
                                   VerificationMark(mark: data.verification!),
+                                liveStatus.when(
+                                  data: (stream) => stream == null
+                                      ? const SizedBox.shrink()
+                                      : InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    _PublisherLivestreamWatchScreen(
+                                                      stream: stream,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.redAccent
+                                                  .withOpacity(0.16),
+                                              borderRadius:
+                                                  BorderRadius.circular(999),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Symbols.fiber_manual_record,
+                                                  size: 10,
+                                                  color: Colors.redAccent,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  'LIVE',
+                                                  style: TextStyle(
+                                                    color: Colors.redAccent,
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                ),
                                 if (isWideScreen(context))
                                   Expanded(
                                     child: Text(
@@ -426,6 +481,33 @@ class _PublisherBioWidget extends StatelessWidget {
   }
 }
 
+class _PublisherLivestreamWatchScreen extends StatelessWidget {
+  final SnLiveStream stream;
+
+  const _PublisherLivestreamWatchScreen({required this.stream});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(title: Text(stream.title ?? 'untitledLivestream'.tr())),
+      body: ListView(
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: LivestreamEmbedWidget(
+                livestreamId: stream.id,
+                margin: const EdgeInsets.all(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PublisherHeatmapWidget extends StatelessWidget {
   final AsyncValue<SnHeatmap?> heatmap;
   final bool forceDense;
@@ -516,6 +598,28 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   return SnHeatmap.fromJson(resp.data);
 }
 
+final publisherActiveLivestreamProvider = FutureProvider.family
+    .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final resp = await apiClient.get(
+        '/sphere/livestreams/publisher/$publisherId',
+        queryParameters: {'limit': 50, 'offset': 0},
+      );
+      final data = resp.data;
+      final list = switch (data) {
+        List value => value,
+        Map value when value['items'] is List => value['items'] as List,
+        _ => const <dynamic>[],
+      };
+      for (final item in list.whereType<Map>()) {
+        final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
+        if (stream.status == SnLiveStreamStatus.active) {
+          return stream;
+        }
+      }
+      return null;
+    });
+
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
@@ -588,153 +692,166 @@ class PublisherProfileScreen extends HookConsumerWidget {
     );
 
     return publisher.when(
-      data: (data) => AppScaffold(
-        isNoBackground: false,
-        appBar: isWideScreen(context)
-            ? AppBar(
-                foregroundColor: appbarColor.value,
-                leading: AutoLeadingButton(),
-                title: Text(
-                  data.nick,
-                  style: TextStyle(
-                    color:
-                        appbarColor.value ??
-                        Theme.of(context).appBarTheme.foregroundColor,
-                    shadows: [appbarShadow],
+      data: (data) {
+        final liveStatus = ref.watch(
+          publisherActiveLivestreamProvider(data.id),
+        );
+        return AppScaffold(
+          isNoBackground: false,
+          appBar: isWideScreen(context)
+              ? AppBar(
+                  foregroundColor: appbarColor.value,
+                  leading: AutoLeadingButton(),
+                  title: Text(
+                    data.nick,
+                    style: TextStyle(
+                      color:
+                          appbarColor.value ??
+                          Theme.of(context).appBarTheme.foregroundColor,
+                      shadows: [appbarShadow],
+                    ),
                   ),
-                ),
-              )
-            : null,
-        body: isWideScreen(context)
-            ? Row(
-                children: [
-                  Flexible(
-                    flex: 4,
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverGap(16),
-                        SliverToBoxAdapter(
-                          child: _PinnedPostsPageView(pubName: name),
-                        ),
-                        SliverToBoxAdapter(
-                          child: PostFilterWidget(
-                            categoryTabController: categoryTabController,
-                            initialQuery: queryState.value,
-                            onQueryChanged: (newQuery) =>
-                                queryState.value = newQuery,
+                )
+              : null,
+          body: isWideScreen(context)
+              ? Row(
+                  children: [
+                    Flexible(
+                      flex: 4,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverGap(16),
+                          SliverToBoxAdapter(
+                            child: _PinnedPostsPageView(pubName: name),
                           ),
-                        ),
-                        SliverPostList(
-                          query: queryState.value,
-                          queryKey: 'publisher-$name',
-                        ),
-                        SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                      ],
-                    ).padding(left: 8),
-                  ),
-                  Flexible(
-                    flex: 3,
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _PublisherBasisWidget(
-                              data: data,
-                              subStatus: subStatus,
-                              subscribing: subscribing,
-                              subscribe: subscribe,
-                              unsubscribe: unsubscribe,
-                            ).padding(horizontal: 4, top: 20),
-                            _PublisherBadgesWidget(data: data, badges: badges),
-                            _PublisherVerificationWidget(data: data),
-                            _PublisherBioWidget(data: data),
-                            _PublisherHeatmapWidget(
-                              heatmap: heatmap,
-                              forceDense: true,
-                            ).padding(vertical: 4),
-                          ],
+                          SliverToBoxAdapter(
+                            child: PostFilterWidget(
+                              categoryTabController: categoryTabController,
+                              initialQuery: queryState.value,
+                              onQueryChanged: (newQuery) =>
+                                  queryState.value = newQuery,
+                            ),
+                          ),
+                          SliverPostList(
+                            query: queryState.value,
+                            queryKey: 'publisher-$name',
+                          ),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                        ],
+                      ).padding(left: 8),
+                    ),
+                    Flexible(
+                      flex: 3,
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _PublisherBasisWidget(
+                                data: data,
+                                subStatus: subStatus,
+                                liveStatus: liveStatus,
+                                subscribing: subscribing,
+                                subscribe: subscribe,
+                                unsubscribe: unsubscribe,
+                              ).padding(horizontal: 4, top: 20),
+                              _PublisherBadgesWidget(
+                                data: data,
+                                badges: badges,
+                              ),
+                              _PublisherVerificationWidget(data: data),
+                              _PublisherBioWidget(data: data),
+                              _PublisherHeatmapWidget(
+                                heatmap: heatmap,
+                                forceDense: true,
+                              ).padding(vertical: 4),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              )
-            : CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    foregroundColor: appbarColor.value,
-                    expandedHeight: 180,
-                    pinned: true,
-                    leading: AutoLeadingButton(),
-                    flexibleSpace: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: data.background != null
-                              ? CloudImageWidget(file: data.background)
-                              : Container(
-                                  color: Theme.of(
-                                    context,
-                                  ).appBarTheme.backgroundColor,
-                                ),
-                        ),
-                        FlexibleSpaceBar(
-                          title: Text(
-                            data.nick,
-                            style: TextStyle(
-                              color:
-                                  appbarColor.value ??
-                                  Theme.of(context).appBarTheme.foregroundColor,
-                              shadows: [appbarShadow],
-                            ),
+                  ],
+                )
+              : CustomScrollView(
+                  slivers: [
+                    SliverAppBar(
+                      foregroundColor: appbarColor.value,
+                      expandedHeight: 180,
+                      pinned: true,
+                      leading: AutoLeadingButton(),
+                      flexibleSpace: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: data.background != null
+                                ? CloudImageWidget(file: data.background)
+                                : Container(
+                                    color: Theme.of(
+                                      context,
+                                    ).appBarTheme.backgroundColor,
+                                  ),
                           ),
-                          background:
-                              Container(), // Empty container since background is handled by Stack
-                        ),
-                      ],
+                          FlexibleSpaceBar(
+                            title: Text(
+                              data.nick,
+                              style: TextStyle(
+                                color:
+                                    appbarColor.value ??
+                                    Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                shadows: [appbarShadow],
+                              ),
+                            ),
+                            background:
+                                Container(), // Empty container since background is handled by Stack
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _PublisherBasisWidget(
-                      data: data,
-                      subStatus: subStatus,
-                      subscribing: subscribing,
-                      subscribe: subscribe,
-                      unsubscribe: unsubscribe,
-                    ).padding(horizontal: 4, top: 8),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _PublisherBadgesWidget(data: data, badges: badges),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _PublisherVerificationWidget(data: data),
-                  ),
-                  SliverToBoxAdapter(child: _PublisherBioWidget(data: data)),
-                  SliverToBoxAdapter(
-                    child: _PublisherHeatmapWidget(
-                      heatmap: heatmap,
-                    ).padding(vertical: 4),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _PinnedPostsPageView(pubName: name),
-                  ),
-                  SliverToBoxAdapter(
-                    child: PostFilterWidget(
-                      categoryTabController: categoryTabController,
-                      initialQuery: queryState.value,
-                      onQueryChanged: (newQuery) => queryState.value = newQuery,
+                    SliverToBoxAdapter(
+                      child: _PublisherBasisWidget(
+                        data: data,
+                        subStatus: subStatus,
+                        liveStatus: liveStatus,
+                        subscribing: subscribing,
+                        subscribe: subscribe,
+                        unsubscribe: unsubscribe,
+                      ).padding(horizontal: 4, top: 8),
                     ),
-                  ),
-                  SliverPostList(
-                    key: ValueKey(queryState.value),
-                    query: queryState.value,
-                    queryKey: 'publisher-$name',
-                  ),
-                  SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                ],
-              ),
-      ),
+                    SliverToBoxAdapter(
+                      child: _PublisherBadgesWidget(data: data, badges: badges),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _PublisherVerificationWidget(data: data),
+                    ),
+                    SliverToBoxAdapter(child: _PublisherBioWidget(data: data)),
+                    SliverToBoxAdapter(
+                      child: _PublisherHeatmapWidget(
+                        heatmap: heatmap,
+                      ).padding(vertical: 4),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _PinnedPostsPageView(pubName: name),
+                    ),
+                    SliverToBoxAdapter(
+                      child: PostFilterWidget(
+                        categoryTabController: categoryTabController,
+                        initialQuery: queryState.value,
+                        onQueryChanged: (newQuery) =>
+                            queryState.value = newQuery,
+                      ),
+                    ),
+                    SliverPostList(
+                      key: ValueKey(queryState.value),
+                      query: queryState.value,
+                      queryKey: 'publisher-$name',
+                    ),
+                    SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                  ],
+                ),
+        );
+      },
       error: (error, stackTrace) => AppScaffold(
         isNoBackground: false,
         appBar: AppBar(leading: const AutoLeadingButton()),
