@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -6,12 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 final livestreamDetailProvider = FutureProvider.family
@@ -109,13 +114,15 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     }
   }
 
-  static SliderThemeData _compactSliderTheme(BuildContext context) {
-    final base = SliderTheme.of(context);
-    return base.copyWith(
-      trackHeight: 2,
-      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-    );
+  static String? _parseViewerIdentityToAccountId(String? identity) {
+    if (identity == null || !identity.startsWith('viewer_')) return null;
+    final raw = identity.substring('viewer_'.length).toLowerCase();
+    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
+    return '${raw.substring(0, 8)}-'
+        '${raw.substring(8, 12)}-'
+        '${raw.substring(12, 16)}-'
+        '${raw.substring(16, 20)}-'
+        '${raw.substring(20, 32)}';
   }
 
   @override
@@ -132,6 +139,23 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     final subscribedAudioTracks = useState<Map<String, lk.RemoteAudioTrack>>(
       {},
     );
+    final chatMessages = useState<List<_LivestreamChatMessage>>([]);
+    final chatInputController = useTextEditingController();
+    final chatScrollController = useScrollController();
+    final isSendingChat = useState(false);
+    final chatCollapsed = useState(true);
+
+    void appendChatMessage(_LivestreamChatMessage message) {
+      chatMessages.value = [...chatMessages.value, message];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!chatScrollController.hasClients) return;
+        chatScrollController.animateTo(
+          chatScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+        );
+      });
+    }
 
     void cancelIdleDisconnect() {
       idleDisconnectTimer.value?.cancel();
@@ -147,6 +171,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
         roomState.value = null;
         videoTrackState.value = null;
         subscribedAudioTracks.value = {};
+        chatMessages.value = [];
         if (room != null && !room.isDisposed) {
           await room.disconnect();
           await room.dispose();
@@ -213,6 +238,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           }
         }
         if (lastError != null) throw lastError;
+        chatMessages.value = [];
 
         void syncVideoTrack() {
           videoTrackState.value = _findVideoTrack(room);
@@ -256,6 +282,26 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           ..on<lk.RoomDisconnectedEvent>((_) {
             videoTrackState.value = null;
             subscribedAudioTracks.value = {};
+            chatMessages.value = [];
+          })
+          ..on<lk.DataReceivedEvent>((e) {
+            if (e.topic != null && e.topic != 'chat') return;
+            final text = utf8.decode(e.data, allowMalformed: true).trim();
+            if (text.isEmpty) return;
+            final senderIdentity = e.participant?.identity;
+            if (senderIdentity != null &&
+                senderIdentity == room.localParticipant?.identity) {
+              return;
+            }
+            appendChatMessage(
+              _LivestreamChatMessage(
+                sender: senderIdentity ?? 'Server',
+                senderIdentity: senderIdentity,
+                message: text,
+                isMine: false,
+                createdAt: DateTime.now(),
+              ),
+            );
           });
 
         room.addListener(syncVideoTrack);
@@ -278,9 +324,49 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
       roomState.value = null;
       videoTrackState.value = null;
       subscribedAudioTracks.value = {};
+      chatMessages.value = [];
+      chatInputController.clear();
       if (room != null && !room.isDisposed) {
         await room.disconnect();
         await room.dispose();
+      }
+    }
+
+    Future<void> sendChatMessage([String? rawMessage]) async {
+      final room = roomState.value;
+      final localParticipant = room?.localParticipant;
+      final message = (rawMessage ?? chatInputController.text).trim();
+      if (room == null ||
+          localParticipant == null ||
+          message.isEmpty ||
+          isSendingChat.value) {
+        return;
+      }
+
+      isSendingChat.value = true;
+      try {
+        await localParticipant.publishData(
+          utf8.encode(message),
+          reliable: true,
+          topic: 'chat',
+        );
+        appendChatMessage(
+          _LivestreamChatMessage(
+            sender: 'Me',
+            senderIdentity: localParticipant.identity,
+            message: message,
+            isMine: true,
+            createdAt: DateTime.now(),
+          ),
+        );
+        if (rawMessage == null) {
+          chatInputController.clear();
+        }
+      } catch (e) {
+        errorText.value = 'Failed to send message: $e';
+        showErrorAlert(e);
+      } finally {
+        isSendingChat.value = false;
       }
     }
 
@@ -308,6 +394,9 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           videoTrackListenable: videoTrackState,
           roomListenable: roomState,
           volume: volume,
+          chatMessagesListenable: chatMessages,
+          isSendingChatListenable: isSendingChat,
+          onSendChat: (message) => sendChatMessage(message),
           onApplyVolume: (value) {
             final room = roomState.value;
             if (room != null) {
@@ -318,7 +407,6 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
               value,
             );
           },
-          onLeave: disconnect,
         ),
       );
       fullScreenOpen.value = false;
@@ -347,24 +435,28 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              detailAsync.when(
-                data: (stream) => Row(
-                  children: [
-                    const Icon(Symbols.live_tv),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        stream.title ?? 'Livestream',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+              detailAsync
+                  .when(
+                    data: (stream) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stream.title ?? 'Livestream',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        if (stream.description?.isNotEmpty ?? false)
+                          Text(
+                            stream.description!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ).opacity(0.85),
+                      ],
                     ),
-                  ],
-                ),
-                loading: () => const LinearProgressIndicator(minHeight: 2),
-                error: (_, _) => const Text('Livestream unavailable'),
-              ),
+                    loading: () => const LinearProgressIndicator(minHeight: 2),
+                    error: (_, _) => const Text('Livestream unavailable'),
+                  )
+                  .padding(horizontal: 4),
               const SizedBox(height: 10),
               AspectRatio(
                 aspectRatio: 16 / 9,
@@ -474,17 +566,19 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                   tooltip: 'Fullscreen',
                                   onPressed: showFullscreenViewer,
                                   icon: const Icon(Symbols.fullscreen),
+                                  iconSize: 18,
+                                  visualDensity: VisualDensity.compact,
                                 ),
                                 const SizedBox(width: 8),
                                 FilledButton.tonalIcon(
                                   onPressed: disconnect,
-                                  icon: const Icon(Symbols.stop, size: 18),
-                                  label: const Text('Leave'),
+                                  icon: const Icon(Symbols.stop, size: 20),
+                                  label: const Text('Leave').padding(right: 4),
                                   style: FilledButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
-                                      vertical: 8,
+                                      vertical: 15,
                                     ),
                                   ),
                                 ),
@@ -509,30 +603,143 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                   children: [
                     const Icon(Symbols.volume_up, size: 18),
                     Expanded(
-                      child: SliderTheme(
-                        data: _compactSliderTheme(context),
-                        child: Slider(
-                          padding: EdgeInsets.zero,
-                          max: 2,
-                          value: volume.value,
-                          onChanged: (value) {
-                            volume.value = value;
-                          },
-                          onChangeEnd: (value) {
-                            _applyVolume(room, value);
-                            _applyVolumeToSubscribedAudioTracks(
-                              subscribedAudioTracks.value,
-                              value,
-                            );
-                          },
-                        ),
+                      child: Slider(
+                        max: 2,
+                        value: volume.value,
+                        onChanged: (value) {
+                          volume.value = value;
+                        },
+                        onChangeEnd: (value) {
+                          _applyVolume(room, value);
+                          _applyVolumeToSubscribedAudioTracks(
+                            subscribedAudioTracks.value,
+                            value,
+                          );
+                        },
+                        year2023: true,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                       ),
                     ),
                     SizedBox(
-                      width: 44,
-                      child: Text('${(volume.value * 100).round()}%'),
+                      width: 40,
+                      child: Text(
+                        '${(volume.value * 100).toStringAsFixed(0)}%',
+                      ),
                     ),
                   ],
+                ).padding(vertical: 4, horizontal: 6),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          chatCollapsed.value = !chatCollapsed.value;
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.chat_bubble, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Live Chat (${chatMessages.value.length})',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: chatCollapsed.value
+                                    ? 'Expand'
+                                    : 'Collapse',
+                                onPressed: () {
+                                  chatCollapsed.value = !chatCollapsed.value;
+                                },
+                                icon: Icon(
+                                  chatCollapsed.value
+                                      ? Symbols.expand_more
+                                      : Symbols.expand_less,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (!chatCollapsed.value) ...[
+                        SizedBox(
+                          height: 220,
+                          child: chatMessages.value.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No chat messages yet',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  controller: chatScrollController,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  itemCount: chatMessages.value.length,
+                                  itemBuilder: (context, index) {
+                                    return _LivestreamChatBubble(
+                                      message: chatMessages.value[index],
+                                    );
+                                  },
+                                ),
+                        ),
+                        const Divider(height: 1),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: chatInputController,
+                                  onSubmitted: (value) =>
+                                      sendChatMessage(value),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: 'Chat message',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filled(
+                                tooltip: 'Send',
+                                onPressed: isSendingChat.value
+                                    ? null
+                                    : sendChatMessage,
+                                icon: isSendingChat.value
+                                    ? const SizedBox.square(
+                                        dimension: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Symbols.send),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -549,7 +756,9 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
   final ValueListenable<lk.VideoTrack?> videoTrackListenable;
   final ValueListenable<lk.Room?> roomListenable;
   final ValueNotifier<double> volume;
-  final Future<void> Function() onLeave;
+  final ValueListenable<List<_LivestreamChatMessage>> chatMessagesListenable;
+  final ValueListenable<bool> isSendingChatListenable;
+  final Future<void> Function(String message) onSendChat;
   final void Function(double value) onApplyVolume;
 
   const _LivestreamFullscreenViewer({
@@ -558,7 +767,9 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
     required this.videoTrackListenable,
     required this.roomListenable,
     required this.volume,
-    required this.onLeave,
+    required this.chatMessagesListenable,
+    required this.isSendingChatListenable,
+    required this.onSendChat,
     required this.onApplyVolume,
   });
 
@@ -570,7 +781,10 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
 class _LivestreamFullscreenViewerState
     extends State<_LivestreamFullscreenViewer> {
   bool _controlsVisible = true;
+  bool _chatCollapsed = true;
   Timer? _autoHideTimer;
+  final TextEditingController _chatInputController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
 
   void _scheduleAutoHide() {
     _autoHideTimer?.cancel();
@@ -598,6 +812,8 @@ class _LivestreamFullscreenViewerState
   @override
   void dispose() {
     _autoHideTimer?.cancel();
+    _chatInputController.dispose();
+    _chatScrollController.dispose();
     super.dispose();
   }
 
@@ -656,6 +872,197 @@ class _LivestreamFullscreenViewerState
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
+                right: 20,
+                bottom: _controlsVisible ? 72 : 20,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeOutCubic,
+                  child: _chatCollapsed
+                      ? IconButton.filledTonal(
+                          key: const ValueKey('chat-collapsed'),
+                          tooltip: 'Open chat',
+                          onPressed: () {
+                            setState(() => _chatCollapsed = false);
+                          },
+                          icon: const Icon(Symbols.chat_bubble),
+                        )
+                      : Container(
+                          key: const ValueKey('chat-expanded'),
+                          width: 340,
+                          height: 320,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.45),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  10,
+                                  10,
+                                  10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Symbols.chat_bubble,
+                                      size: 18,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child:
+                                          ValueListenableBuilder<
+                                            List<_LivestreamChatMessage>
+                                          >(
+                                            valueListenable:
+                                                widget.chatMessagesListenable,
+                                            builder: (context, messages, _) {
+                                              return Text(
+                                                'Chat (${messages.length})',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Collapse',
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () {
+                                        setState(() => _chatCollapsed = true);
+                                      },
+                                      icon: const Icon(
+                                        Symbols.chevron_right,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Divider(height: 1, color: Colors.white24),
+                              Expanded(
+                                child:
+                                    ValueListenableBuilder<
+                                      List<_LivestreamChatMessage>
+                                    >(
+                                      valueListenable:
+                                          widget.chatMessagesListenable,
+                                      builder: (context, messages, _) {
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              if (!_chatScrollController
+                                                  .hasClients) {
+                                                return;
+                                              }
+                                              _chatScrollController.jumpTo(
+                                                _chatScrollController
+                                                    .position
+                                                    .maxScrollExtent,
+                                              );
+                                            });
+                                        if (messages.isEmpty) {
+                                          return const Center(
+                                            child: Text(
+                                              'No chat messages yet',
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return ListView.builder(
+                                          controller: _chatScrollController,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 8,
+                                          ),
+                                          itemCount: messages.length,
+                                          itemBuilder: (context, index) {
+                                            return _LivestreamChatBubble(
+                                              message: messages[index],
+                                              dark: true,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                              ),
+                              const Divider(height: 1, color: Colors.white24),
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _chatInputController,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        onSubmitted: (value) async {
+                                          final text = value.trim();
+                                          if (text.isEmpty) return;
+                                          await widget.onSendChat(text);
+                                          _chatInputController.clear();
+                                        },
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          hintText: 'Chat message',
+                                          hintStyle: const TextStyle(
+                                            color: Colors.white54,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable:
+                                          widget.isSendingChatListenable,
+                                      builder: (context, isSending, _) {
+                                        return IconButton.filled(
+                                          tooltip: 'Send',
+                                          onPressed: isSending
+                                              ? null
+                                              : () async {
+                                                  final text =
+                                                      _chatInputController.text
+                                                          .trim();
+                                                  if (text.isEmpty) return;
+                                                  await widget.onSendChat(text);
+                                                  _chatInputController.clear();
+                                                },
+                                          icon: isSending
+                                              ? const SizedBox.square(
+                                                  dimension: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Icon(Symbols.send),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
                 top: _controlsVisible ? 12 : -100,
                 left: 12,
                 right: 12,
@@ -664,6 +1071,8 @@ class _LivestreamFullscreenViewerState
                     IconButton.filledTonal(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Symbols.close),
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -676,22 +1085,6 @@ class _LivestreamFullscreenViewerState
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    ValueListenableBuilder<lk.Room?>(
-                      valueListenable: widget.roomListenable,
-                      builder: (context, room, _) {
-                        if (room == null) return const SizedBox.shrink();
-                        return FilledButton.tonalIcon(
-                          onPressed: () async {
-                            await widget.onLeave();
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          icon: const Icon(Symbols.stop, size: 18),
-                          label: const Text('Leave'),
-                        );
-                      },
                     ),
                   ],
                 ),
@@ -706,10 +1099,13 @@ class _LivestreamFullscreenViewerState
                   valueListenable: widget.roomListenable,
                   builder: (context, room, _) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.45),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(40),
                       ),
                       child: Row(
                         children: [
@@ -721,22 +1117,21 @@ class _LivestreamFullscreenViewerState
                           Expanded(
                             child: ValueListenableBuilder<double>(
                               valueListenable: widget.volume,
-                              builder: (context, vol, _) => SliderTheme(
-                                data: LivestreamEmbedWidget._compactSliderTheme(
-                                  context,
-                                ),
-                                child: Slider(
-                                  padding: EdgeInsets.zero,
-                                  max: 2,
-                                  value: vol,
-                                  onChanged: room == null
-                                      ? null
-                                      : (value) {
-                                          widget.volume.value = value;
-                                        },
-                                  onChangeEnd: room == null
-                                      ? null
-                                      : widget.onApplyVolume,
+                              builder: (context, vol, _) => Slider(
+                                max: 2,
+                                value: vol,
+                                onChanged: room == null
+                                    ? null
+                                    : (value) {
+                                        widget.volume.value = value;
+                                      },
+                                onChangeEnd: room == null
+                                    ? null
+                                    : widget.onApplyVolume,
+                                year2023: true,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
                               ),
                             ),
@@ -757,6 +1152,124 @@ class _LivestreamFullscreenViewerState
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LivestreamChatMessage {
+  final String sender;
+  final String? senderIdentity;
+  final String message;
+  final bool isMine;
+  final DateTime createdAt;
+
+  const _LivestreamChatMessage({
+    required this.sender,
+    required this.senderIdentity,
+    required this.message,
+    required this.isMine,
+    required this.createdAt,
+  });
+}
+
+class _LivestreamChatBubble extends HookConsumerWidget {
+  final _LivestreamChatMessage message;
+  final bool dark;
+
+  const _LivestreamChatBubble({required this.message, this.dark = false});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accountId = LivestreamEmbedWidget._parseViewerIdentityToAccountId(
+      message.senderIdentity,
+    );
+    final meAccountAsync = ref.watch(userInfoProvider);
+    final accountAsync = accountId == null
+        ? const AsyncData<SnAccount?>(null)
+        : ref.watch(accountInfoProvider(accountId));
+
+    var displayName = message.sender;
+    SnAccount? account;
+    accountAsync.whenData((value) => account = value);
+    if (account == null && message.isMine) {
+      meAccountAsync.whenData((value) => account = value);
+    }
+    if (account != null) {
+      displayName = account!.nick;
+    }
+    final timestamp =
+        '${message.createdAt.hour.toString().padLeft(2, '0')}:'
+        '${message.createdAt.minute.toString().padLeft(2, '0')}';
+    final nameColor = dark
+        ? Colors.white
+        : Theme.of(context).colorScheme.onSurface;
+    final textColor = dark
+        ? Colors.white70
+        : Theme.of(context).colorScheme.onSurface;
+    final timeColor = dark
+        ? Colors.white54
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (account?.profile.picture != null)
+            ProfilePictureWidget(file: account!.profile.picture, radius: 10)
+          else
+            CircleAvatar(
+              radius: 10,
+              child: Text(
+                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 10),
+              ),
+            ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Flexible(
+                  flex: 0,
+                  child: account != null
+                      ? AccountName(
+                          account: account!,
+                          style:
+                              (Theme.of(context).textTheme.labelSmall ??
+                                      const TextStyle())
+                                  .copyWith(color: nameColor),
+                          hideOverlay: true,
+                        )
+                      : Text(
+                          displayName,
+                          style:
+                              (Theme.of(context).textTheme.labelSmall ??
+                                      const TextStyle())
+                                  .copyWith(
+                                    color: nameColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: MarkdownTextContent(
+                    content: message.message,
+                    textStyle: TextStyle(color: textColor),
+                    linesMargin: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  timestamp,
+                  style: TextStyle(color: timeColor, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

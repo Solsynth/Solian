@@ -653,16 +653,6 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
         border: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-        ),
       );
     }
 
