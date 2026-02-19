@@ -277,7 +277,7 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
     final hasPublishers = publishers.value?.isNotEmpty ?? false;
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           if (!hasPublishers) ...[
@@ -630,7 +630,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      isNoBackground: false,
+      isNoBackground: true,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('creatorHub').tr(),
@@ -692,14 +692,9 @@ class CreatorHubScreen extends HookConsumerWidget {
                 children: [
                   Flexible(
                     flex: 2,
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
-                        ),
-                        child: const CreatorHubContentWidget(),
-                      ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      child: const CreatorHubContentWidget(),
                     ).padding(left: 16, vertical: 16),
                   ),
                   const Gap(8),

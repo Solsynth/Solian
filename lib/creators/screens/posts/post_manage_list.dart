@@ -17,7 +17,6 @@ class CreatorPostListScreen extends HookConsumerWidget {
     final refreshKey = useState(0);
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text('posts').tr(),
