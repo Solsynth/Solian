@@ -108,6 +108,8 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     final isCameraEnabled = useState(false);
     final isMicrophoneEnabled = useState(false);
     final isScreenSharing = useState(false);
+    final videoPlaybackEnabled = useState(true);
+    final audioPlaybackEnabled = useState(true);
     final roomViewerCount = useState(0);
     final volume = useState(1.0);
 
@@ -143,10 +145,45 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       isCameraEnabled.value = false;
       isMicrophoneEnabled.value = false;
       isScreenSharing.value = false;
+      videoPlaybackEnabled.value = true;
+      audioPlaybackEnabled.value = true;
       roomViewerCount.value = 0;
       if (room != null && !room.isDisposed) {
         await room.disconnect();
         await room.dispose();
+      }
+    }
+
+    Future<void> applyPlaybackSubscriptions() async {
+      final room = roomState.value;
+      if (room == null) return;
+      for (final participant in room.remoteParticipants.values) {
+        for (final pub in participant.videoTrackPublications) {
+          if (videoPlaybackEnabled.value) {
+            await pub.subscribe();
+          } else {
+            await pub.unsubscribe();
+          }
+        }
+        for (final pub in participant.audioTrackPublications) {
+          if (audioPlaybackEnabled.value) {
+            await pub.subscribe();
+          } else {
+            await pub.unsubscribe();
+          }
+        }
+      }
+      if (!videoPlaybackEnabled.value) {
+        videoTrackState.value = null;
+      } else {
+        videoTrackState.value = _findVideoTrack(room);
+        if (videoTrackState.value == null) {
+          Future<void>.delayed(const Duration(milliseconds: 200), () {
+            if (roomState.value == room && videoPlaybackEnabled.value) {
+              videoTrackState.value = _findVideoTrack(room);
+            }
+          });
+        }
       }
     }
 
@@ -207,7 +244,9 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
         if (lastError != null) throw lastError;
 
         void syncRoomState() {
-          videoTrackState.value = _findVideoTrack(room);
+          videoTrackState.value = videoPlaybackEnabled.value
+              ? _findVideoTrack(room)
+              : null;
           _applyVolume(room, volume.value);
           final local = room.localParticipant;
           localIdentity.value = local?.identity;
@@ -218,6 +257,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
           isMicrophoneEnabled.value = local?.isMicrophoneEnabled() ?? false;
           isScreenSharing.value = local?.isScreenShareEnabled() ?? false;
           roomViewerCount.value = room.remoteParticipants.length;
+          unawaited(applyPlaybackSubscriptions());
         }
 
         syncRoomState();
@@ -361,6 +401,28 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> toggleVideoPlayback() async {
+      videoPlaybackEnabled.value = !videoPlaybackEnabled.value;
+      if (!videoPlaybackEnabled.value) {
+        videoTrackState.value = null;
+      }
+      await applyPlaybackSubscriptions();
+      if (videoPlaybackEnabled.value) {
+        final room = roomState.value;
+        if (room != null) {
+          videoTrackState.value = _findVideoTrack(room);
+        }
+      }
+    }
+
+    Future<void> toggleAudioPlayback() async {
+      audioPlaybackEnabled.value = !audioPlaybackEnabled.value;
+      if (!audioPlaybackEnabled.value) {
+        subscribedAudioTracks.value = {};
+      }
+      await applyPlaybackSubscriptions();
+    }
+
     useEffect(() {
       unawaited(connect());
       return () {
@@ -406,7 +468,9 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                           color: Colors.black.withOpacity(0.42),
                           alignment: Alignment.center,
                           child: Text(
-                            room == null
+                            !videoPlaybackEnabled.value
+                                ? 'Video playback disabled'
+                                : room == null
                                 ? 'Connecting...'
                                 : 'Waiting for video...',
                             style: const TextStyle(color: Colors.white70),
@@ -494,6 +558,22 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              _CircleControlButton(
+                                icon: videoPlaybackEnabled.value
+                                    ? Symbols.visibility
+                                    : Symbols.visibility_off,
+                                active: videoPlaybackEnabled.value,
+                                onTap: toggleVideoPlayback,
+                              ),
+                              const Gap(10),
+                              _CircleControlButton(
+                                icon: audioPlaybackEnabled.value
+                                    ? Symbols.volume_up
+                                    : Symbols.volume_off,
+                                active: audioPlaybackEnabled.value,
+                                onTap: toggleAudioPlayback,
+                              ),
+                              const Gap(10),
                               if (isStreamerIdentity.value) ...[
                                 _CircleControlButton(
                                   icon: isMicrophoneEnabled.value
