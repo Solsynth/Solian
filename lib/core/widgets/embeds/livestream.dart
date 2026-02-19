@@ -66,15 +66,6 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     return null;
   }
 
-  static String _statusText(SnLiveStreamStatus status) {
-    return switch (status) {
-      SnLiveStreamStatus.pending => 'livestreamStatusPending'.tr(),
-      SnLiveStreamStatus.active => 'livestreamStatusActive'.tr(),
-      SnLiveStreamStatus.ended => 'livestreamStatusEnded'.tr(),
-      SnLiveStreamStatus.error => 'livestreamStatusError'.tr(),
-    };
-  }
-
   static String _roomDiagnostics(lk.Room? room) {
     if (room == null) return 'notConnected'.tr();
     final remoteParticipants = room.remoteParticipants.values.toList();
@@ -136,6 +127,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     final errorText = useState<String?>(null);
     final fullScreenOpen = useState(false);
     final idleDisconnectTimer = useRef<Timer?>(null);
+    final roomViewerCount = useState<int>(0);
     final volume = useState<double>(1.0);
     final subscribedAudioTracks = useState<Map<String, lk.RemoteAudioTrack>>(
       {},
@@ -172,6 +164,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
         roomState.value = null;
         videoTrackState.value = null;
         subscribedAudioTracks.value = {};
+        roomViewerCount.value = 0;
         chatMessages.value = [];
         if (room != null && !room.isDisposed) {
           await room.disconnect();
@@ -244,6 +237,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
         void syncVideoTrack() {
           videoTrackState.value = _findVideoTrack(room);
           _applyVolume(room, volume.value);
+          roomViewerCount.value = room.remoteParticipants.length;
         }
 
         syncVideoTrack();
@@ -283,6 +277,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           ..on<lk.RoomDisconnectedEvent>((_) {
             videoTrackState.value = null;
             subscribedAudioTracks.value = {};
+            roomViewerCount.value = 0;
             chatMessages.value = [];
           })
           ..on<lk.DataReceivedEvent>((e) {
@@ -325,6 +320,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
       roomState.value = null;
       videoTrackState.value = null;
       subscribedAudioTracks.value = {};
+      roomViewerCount.value = 0;
       chatMessages.value = [];
       chatInputController.clear();
       if (room != null && !room.isDisposed) {
@@ -395,6 +391,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
           thumbnailId: thumbnailId,
           videoTrackListenable: videoTrackState,
           roomListenable: roomState,
+          viewerCountListenable: roomViewerCount,
           volume: volume,
           chatMessagesListenable: chatMessages,
           isSendingChatListenable: isSendingChat,
@@ -448,6 +445,13 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
+                        if (room != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${roomViewerCount.value} in room',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ).opacity(0.8),
+                        ],
                         if (stream.description?.isNotEmpty ?? false)
                           Text(
                             stream.description!,
@@ -496,20 +500,19 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                             ),
                                           ),
                                         ),
-                                        Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Text(
-                                              room == null
-                                                  ? '${_statusText(stream.status)} stream'
-                                                  : 'Connected. Waiting for video...\n${_roomDiagnostics(room)}',
-                                              style: const TextStyle(
-                                                color: Colors.white70,
+                                        if (room != null)
+                                          Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Text(
+                                                'Connected. Waiting for video...\n${_roomDiagnostics(room)}',
+                                                style: const TextStyle(
+                                                  color: Colors.white70,
+                                                ),
+                                                textAlign: TextAlign.center,
                                               ),
-                                              textAlign: TextAlign.center,
                                             ),
                                           ),
-                                        ),
                                       ],
                                     );
                                   },
@@ -720,7 +723,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                       sendChatMessage(value),
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    hintText: 'chatMessageHint'.tr(),
+                                    hintText: 'liveChatMessageHint'.tr(),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -763,6 +766,7 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
   final String? thumbnailId;
   final ValueListenable<lk.VideoTrack?> videoTrackListenable;
   final ValueListenable<lk.Room?> roomListenable;
+  final ValueListenable<int> viewerCountListenable;
   final ValueNotifier<double> volume;
   final ValueListenable<List<_LivestreamChatMessage>> chatMessagesListenable;
   final ValueListenable<bool> isSendingChatListenable;
@@ -774,6 +778,7 @@ class _LivestreamFullscreenViewer extends StatefulWidget {
     required this.thumbnailId,
     required this.videoTrackListenable,
     required this.roomListenable,
+    required this.viewerCountListenable,
     required this.volume,
     required this.chatMessagesListenable,
     required this.isSendingChatListenable,
@@ -1021,7 +1026,7 @@ class _LivestreamFullscreenViewerState
                                         },
                                         decoration: InputDecoration(
                                           isDense: true,
-                                          hintText: 'chatMessageHint'.tr(),
+                                          hintText: 'liveChatMessageHint'.tr(),
                                           hintStyle: const TextStyle(
                                             color: Colors.white54,
                                           ),
@@ -1094,6 +1099,24 @@ class _LivestreamFullscreenViewerState
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                    ),
+                    ValueListenableBuilder<int>(
+                      valueListenable: widget.viewerCountListenable,
+                      builder: (context, count, _) => Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Symbols.group,
+                            size: 16,
+                            color: Colors.white70,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$count',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ],
                       ),
                     ),
                   ],

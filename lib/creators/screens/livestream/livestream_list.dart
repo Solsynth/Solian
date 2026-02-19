@@ -189,43 +189,92 @@ class _CreatorLivestreamItem extends ConsumerWidget {
   }
 
   Future<void> _startStream(BuildContext context, WidgetRef ref) async {
+    final useInAppStreaming = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Start Stream'),
+        content: const Text('Choose how you want to stream.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('cancel').tr(),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('External (RTMP)'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('In-app Studio'),
+          ),
+        ],
+      ),
+    );
+    if (useInAppStreaming == null) return;
+
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.post(
         '/sphere/livestreams/$_id/start',
-        data: <String, dynamic>{'no_ingress': true},
+        data: <String, dynamic>{'no_ingress': useInAppStreaming},
       );
       final data = Map<String, dynamic>.from(response.data);
       final rtmpUrl =
-          data['rtmp_url'] ??
-          data['rtmpUrl'] ??
-          data['RtmpUrl'] ??
-          data['url'] ??
-          '';
+          (data['rtmp_url'] ?? data['rtmpUrl'] ?? data['RtmpUrl'] ?? '')
+              .toString();
       final streamKey =
-          data['stream_key'] ?? data['streamKey'] ?? data['StreamKey'] ?? '';
+          (data['stream_key'] ?? data['streamKey'] ?? data['StreamKey'] ?? '')
+              .toString();
       final roomName =
-          data['room_name'] ?? data['roomName'] ?? data['RoomName'] ?? '';
+          (data['room_name'] ?? data['roomName'] ?? data['RoomName'] ?? '')
+              .toString();
+      final wsUrl = (data['url'] ?? '').toString();
+      final isRtmpMode = rtmpUrl.isNotEmpty || streamKey.isNotEmpty;
       if (!context.mounted) return;
 
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('rtmpSettings').tr(),
+          title: Text(
+            isRtmpMode ? 'rtmpSettings'.tr() : 'In-app Streaming Ready',
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CopyField(label: 'rtmpUrl'.tr(), value: rtmpUrl.toString()),
-              const Gap(12),
-              _CopyField(label: 'streamKey'.tr(), value: streamKey.toString()),
-              if (roomName.toString().isNotEmpty) ...[
+              if (isRtmpMode) ...[
+                _CopyField(label: 'rtmpUrl'.tr(), value: rtmpUrl),
                 const Gap(12),
-                _CopyField(label: 'roomName'.tr(), value: roomName.toString()),
+                _CopyField(label: 'streamKey'.tr(), value: streamKey),
+              ] else ...[
+                const Text(
+                  'Ingress is disabled for this start request. Use in-app studio to stream.',
+                ),
+              ],
+              if (roomName.isNotEmpty) ...[
+                const Gap(12),
+                _CopyField(label: 'roomName'.tr(), value: roomName),
+              ],
+              if (!isRtmpMode && wsUrl.isNotEmpty) ...[
+                const Gap(12),
+                _CopyField(label: 'WS URL', value: wsUrl),
               ],
             ],
           ),
           actions: [
+            if (!isRtmpMode)
+              FilledButton.tonal(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          CreatorLivestreamDetailScreen(livestreamId: _id),
+                    ),
+                  );
+                },
+                child: const Text('Open Studio'),
+              ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text('ok').tr(),
@@ -510,7 +559,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                           children: [
                             const Icon(Symbols.stop, color: Colors.red),
                             const Gap(12),
-                            const Text('endStream').textColor(Colors.red),
+                            const Text('endStream').tr().textColor(Colors.red),
                           ],
                         ),
                       ),
@@ -572,7 +621,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                         children: [
                           const Icon(Symbols.delete, color: Colors.red),
                           const Gap(12),
-                          const Text('delete').textColor(Colors.red),
+                          const Text('delete').tr().textColor(Colors.red),
                         ],
                       ),
                     ),

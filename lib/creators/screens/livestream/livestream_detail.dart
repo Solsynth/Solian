@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
@@ -106,6 +107,8 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     final isStreamerIdentity = useState(false);
     final isCameraEnabled = useState(false);
     final isMicrophoneEnabled = useState(false);
+    final isScreenSharing = useState(false);
+    final roomViewerCount = useState(0);
     final volume = useState(1.0);
 
     final isConnecting = useState(false);
@@ -139,6 +142,8 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       isStreamerIdentity.value = false;
       isCameraEnabled.value = false;
       isMicrophoneEnabled.value = false;
+      isScreenSharing.value = false;
+      roomViewerCount.value = 0;
       if (room != null && !room.isDisposed) {
         await room.disconnect();
         await room.dispose();
@@ -162,6 +167,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         final response = await client.get(
           '/sphere/livestreams/$livestreamId/token',
+          queryParameters: {'streamer': true},
         );
         final data = Map<String, dynamic>.from(response.data);
 
@@ -210,6 +216,8 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
           );
           isCameraEnabled.value = local?.isCameraEnabled() ?? false;
           isMicrophoneEnabled.value = local?.isMicrophoneEnabled() ?? false;
+          isScreenSharing.value = local?.isScreenShareEnabled() ?? false;
+          roomViewerCount.value = room.remoteParticipants.length;
         }
 
         syncRoomState();
@@ -322,6 +330,37 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       isMicrophoneEnabled.value = target;
     }
 
+    Future<void> toggleScreenShare() async {
+      if (!isStreamerIdentity.value) return;
+      final local = roomState.value?.localParticipant;
+      if (local == null) return;
+      final target = !local.isScreenShareEnabled();
+
+      try {
+        if (target && lk.lkPlatformIsDesktop()) {
+          final source = await showDialog(
+            context: context,
+            builder: (context) => lk.ScreenSelectDialog(),
+          );
+          if (source == null) return;
+          final track = await lk.LocalVideoTrack.createScreenShareTrack(
+            lk.ScreenShareCaptureOptions(
+              sourceId: source.id,
+              maxFrameRate: 30.0,
+              captureScreenAudio: true,
+              useiOSBroadcastExtension: true,
+            ),
+          );
+          await local.publishVideoTrack(track);
+        } else {
+          await local.setScreenShareEnabled(target);
+        }
+        isScreenSharing.value = local.isScreenShareEnabled();
+      } catch (e) {
+        showErrorAlert(e);
+      }
+    }
+
     useEffect(() {
       unawaited(connect());
       return () {
@@ -332,11 +371,13 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     final room = roomState.value;
     final videoTrack = videoTrackState.value;
     final stream = detailAsync.asData?.value;
+    final viewerCountText = '${roomViewerCount.value} in room';
     final modeText = localIdentity.value?.startsWith('streamer_') == true
         ? 'Studio mode'
         : localIdentity.value?.startsWith('viewer_') == true
         ? 'Viewer mode (Ingress connected)'
         : 'Unknown mode';
+    final subtitleText = '$modeText • $viewerCountText';
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -413,7 +454,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    modeText,
+                                    subtitleText,
                                     style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 12,
@@ -468,6 +509,14 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                       : Symbols.videocam_off,
                                   active: isCameraEnabled.value,
                                   onTap: toggleCamera,
+                                ),
+                                const Gap(10),
+                                _CircleControlButton(
+                                  icon: isScreenSharing.value
+                                      ? Symbols.stop_screen_share
+                                      : Symbols.screen_share,
+                                  active: isScreenSharing.value,
+                                  onTap: toggleScreenShare,
                                 ),
                                 const Gap(10),
                               ],
@@ -532,7 +581,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                 );
                               },
                               year2023: true,
-                              padding: EdgeInsets.zero,
+                              padding: EdgeInsets.symmetric(horizontal: 4),
                             ),
                           ),
                           Icon(
@@ -571,19 +620,11 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                           Expanded(
                             child: TextField(
                               controller: chatInputController,
-                              minLines: 1,
-                              maxLines: 3,
                               onSubmitted: (value) => sendChat(value),
                               decoration: InputDecoration(
                                 isDense: true,
-                                hintText: 'Chat message',
+                                hintText: 'liveChatMessageHint'.tr(),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
