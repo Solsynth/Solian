@@ -1,8 +1,10 @@
-import 'package:auto_route/auto_route.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -69,6 +71,7 @@ class LivestreamFloatingOverlay extends HookConsumerWidget {
     final detailAsync = ref.watch(
       overlayLivestreamDetailProvider(livestreamId),
     );
+    final router = ref.read(routerProvider);
 
     useEffect(() {
       if (roomState.room == null && !roomState.isConnecting) {
@@ -84,105 +87,186 @@ class LivestreamFloatingOverlay extends HookConsumerWidget {
       thumbnailId = detailAsync.value?.thumbnail?.id;
     }
 
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 14, bottom: 14),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                context.router.push(
-                  LivestreamWatchRoute(livestreamId: livestreamId),
+    const overlayWidth = 220.0;
+    const overlayHeight = 154.0;
+    const edgePadding = 14.0;
+    final position = useState<Offset?>(null);
+    final controlsVisible = useState(true);
+    final autoHideTimer = useRef<Timer?>(null);
+
+    void scheduleAutoHide() {
+      autoHideTimer.value?.cancel();
+      autoHideTimer.value = Timer(const Duration(seconds: 3), () {
+        controlsVisible.value = false;
+      });
+    }
+
+    useEffect(() {
+      scheduleAutoHide();
+      return () {
+        autoHideTimer.value?.cancel();
+      };
+    }, [livestreamId]);
+
+    Offset clampOffset(Offset value, Size viewport, EdgeInsets safePadding) {
+      final minX = edgePadding;
+      final minY = safePadding.top + edgePadding;
+      final maxX = (viewport.width - overlayWidth - edgePadding).clamp(
+        minX,
+        double.infinity,
+      );
+      final maxY = (viewport.height - overlayHeight - edgePadding).clamp(
+        minY,
+        double.infinity,
+      );
+      return Offset(value.dx.clamp(minX, maxX), value.dy.clamp(minY, maxY));
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewport = Size(constraints.maxWidth, constraints.maxHeight);
+        final safePadding = MediaQuery.of(context).padding;
+        if (position.value == null) {
+          final initial = Offset(
+            viewport.width - overlayWidth - edgePadding,
+            viewport.height - overlayHeight - edgePadding,
+          );
+          position.value = clampOffset(initial, viewport, safePadding);
+        } else {
+          position.value = clampOffset(position.value!, viewport, safePadding);
+        }
+
+        final current = position.value!;
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Transform.translate(
+            offset: current,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                position.value = clampOffset(
+                  position.value! + details.delta,
+                  viewport,
+                  safePadding,
                 );
+                if (!controlsVisible.value) {
+                  controlsVisible.value = true;
+                }
+                scheduleAutoHide();
               },
-              child: Container(
-                width: 220,
-                height: 154,
-                decoration: BoxDecoration(
-                  color: Colors.black,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x66000000),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: roomState.videoTrack != null
-                          ? lk.VideoTrackRenderer(roomState.videoTrack!)
-                          : (thumbnailId != null
-                                ? CloudImageWidget(
-                                    fileId: thumbnailId,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const ColoredBox(color: Colors.black)),
-                    ),
-                    const Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(color: Color(0x22000000)),
-                      ),
-                    ),
-                    Positioned(
-                      left: 8,
-                      right: 8,
-                      bottom: 8,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                  onTap: () {
+                    controlsVisible.value = !controlsVisible.value;
+                    if (controlsVisible.value) {
+                      scheduleAutoHide();
+                    } else {
+                      autoHideTimer.value?.cancel();
+                    }
+                  },
+                  child: Container(
+                    width: overlayWidth,
+                    height: overlayHeight,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x66000000),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
                         ),
-                      ),
+                      ],
                     ),
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton.filledTonal(
-                            tooltip: 'Open',
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () {
-                              context.router.push(
-                                LivestreamWatchRoute(
-                                  livestreamId: livestreamId,
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: roomState.videoTrack != null
+                              ? lk.VideoTrackRenderer(roomState.videoTrack!)
+                              : (thumbnailId != null
+                                    ? CloudImageWidget(
+                                        fileId: thumbnailId,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : const ColoredBox(color: Colors.black)),
+                        ),
+                        const Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: Color(0x22000000)),
+                          ),
+                        ),
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          left: 8,
+                          right: 8,
+                          bottom: controlsVisible.value ? 8 : -24,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 180),
+                            opacity: controlsVisible.value ? 1 : 0,
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          top: controlsVisible.value ? 6 : -40,
+                          right: 6,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 180),
+                            opacity: controlsVisible.value ? 1 : 0,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton.filledTonal(
+                                  tooltip: 'Open',
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () {
+                                    router.push(
+                                      LivestreamWatchRoute(
+                                        livestreamId: livestreamId,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Symbols.open_in_new,
+                                    size: 16,
+                                  ),
                                 ),
-                              );
-                            },
-                            icon: const Icon(Symbols.open_in_new, size: 16),
+                                const SizedBox(width: 4),
+                                IconButton.filledTonal(
+                                  tooltip: 'Close',
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => ref
+                                      .read(livestreamOverlayProvider.notifier)
+                                      .hide(),
+                                  icon: const Icon(Symbols.close, size: 16),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 4),
-                          IconButton.filledTonal(
-                            tooltip: 'Close',
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => ref
-                                .read(livestreamOverlayProvider.notifier)
-                                .hide(),
-                            icon: const Icon(Symbols.close, size: 16),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

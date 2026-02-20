@@ -414,24 +414,63 @@ class _ChatPlaceholder extends ConsumerWidget {
   }
 }
 
-class _ChatMessagesList extends ConsumerWidget {
+class _ChatMessagesList extends ConsumerStatefulWidget {
   final List<ChatMessage> messages;
   final String livestreamId;
 
   const _ChatMessagesList({required this.messages, required this.livestreamId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final roomState = ref.watch(livestreamRoomProvider(livestreamId));
+  ConsumerState<_ChatMessagesList> createState() => _ChatMessagesListState();
+}
+
+class _ChatMessagesListState extends ConsumerState<_ChatMessagesList> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _ChatMessagesList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.messages.length > oldWidget.messages.length) {
+      _scrollToBottom();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final roomState = ref.watch(livestreamRoomProvider(widget.livestreamId));
     final isSending = roomState.isSendingChat;
     final inputController = ref
-        .read(livestreamRoomProvider(livestreamId).notifier)
+        .read(livestreamRoomProvider(widget.livestreamId).notifier)
         .chatInputController;
 
     return Column(
       children: [
         Expanded(
-          child: messages.isEmpty
+          child: widget.messages.isEmpty
               ? Center(
                   child: Text(
                     'noChatMessagesYet'.tr(),
@@ -439,13 +478,14 @@ class _ChatMessagesList extends ConsumerWidget {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  itemCount: messages.length,
+                  itemCount: widget.messages.length,
                   itemBuilder: (context, index) {
-                    final msg = messages[index];
+                    final msg = widget.messages[index];
                     return LivestreamChatMessage(msg: msg);
                   },
                 ),
@@ -466,8 +506,8 @@ class _ChatMessagesList extends ConsumerWidget {
                     ),
                   ),
                   onSubmitted: (value) => ref
-                      .read(livestreamRoomProvider(livestreamId).notifier)
-                      .sendMessage(value),
+                      .read(livestreamRoomProvider(widget.livestreamId).notifier)
+                      .sendMessage(),
                 ),
               ),
               const Gap(8),
@@ -475,7 +515,7 @@ class _ChatMessagesList extends ConsumerWidget {
                 onPressed: isSending
                     ? null
                     : () => ref
-                          .read(livestreamRoomProvider(livestreamId).notifier)
+                          .read(livestreamRoomProvider(widget.livestreamId).notifier)
                           .sendMessage(),
                 icon: isSending
                     ? const SizedBox.square(
