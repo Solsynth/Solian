@@ -239,96 +239,23 @@ class _RtmpEgressSheet extends HookWidget {
   }
 }
 
-class _HlsEgressSheet extends HookWidget {
+class _HlsEgressSheet extends StatelessWidget {
   const _HlsEgressSheet();
 
   @override
   Widget build(BuildContext context) {
-    final playlistController = useTextEditingController(text: 'playlist.m3u8');
-    final segmentDurationController = useTextEditingController(text: '6');
-    final segmentCountController = useTextEditingController(text: '0');
-    final layoutController = useTextEditingController();
-    final hlsBaseUrlController = useTextEditingController();
-
     return SheetScaffold(
       titleText: '录制回放设置',
-      child: Column(
-        spacing: 12,
-        children: [
-          TextField(
-            controller: playlistController,
-            decoration: const InputDecoration(
-              labelText: 'playlistName',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          Row(
-            spacing: 12,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: segmentDurationController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'segmentDuration',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: segmentCountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'segmentCount',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          TextField(
-            controller: layoutController,
-            decoration: const InputDecoration(
-              labelText: 'layoutOptional',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          TextField(
-            controller: hlsBaseUrlController,
-            decoration: const InputDecoration(
-              labelText: 'hlsBaseUrlOptional',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop({
-                'playlist_name': playlistController.text.trim(),
-                'segment_duration':
-                    int.tryParse(segmentDurationController.text.trim()) ?? 6,
-                'segment_count':
-                    int.tryParse(segmentCountController.text.trim()) ?? 0,
-                if (layoutController.text.trim().isNotEmpty)
-                  'layout': layoutController.text.trim(),
-                if (hlsBaseUrlController.text.trim().isNotEmpty)
-                  'hls_base_url': hlsBaseUrlController.text.trim(),
-              });
-            },
-            icon: const Icon(Symbols.play_arrow),
-            label: const Text('启用'),
-          ),
-        ],
+      child: FilledButton.icon(
+        onPressed: () {
+          Navigator.of(context).pop({
+            'playlist_name': 'playlist.m3u8',
+            'segment_duration': 6,
+            'segment_count': 0,
+          });
+        },
+        icon: const Icon(Symbols.play_arrow),
+        label: const Text('启用'),
       ).padding(horizontal: 16, vertical: 20),
     );
   }
