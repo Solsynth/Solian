@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:island/creators/screens/livestream/livestream_detail.dart';
+import 'package:island/creators/screens/livestream/livestream_actions.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
@@ -353,63 +354,6 @@ class _CreatorLivestreamItem extends ConsumerWidget {
     }
   }
 
-  Future<void> _startRtmpEgress(BuildContext context, WidgetRef ref) async {
-    final submitted = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const _RtmpEgressSheet(),
-    );
-    if (submitted == null) return;
-    try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/sphere/livestreams/$_id/egress', data: submitted);
-      showSnackBar('rtmpEgressStarted'.tr());
-      ref.invalidate(creatorLivestreamListProvider(publisherId));
-    } catch (e) {
-      showErrorAlert(e);
-    }
-  }
-
-  Future<void> _stopRtmpEgress(BuildContext context, WidgetRef ref) async {
-    try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/sphere/livestreams/$_id/egress/stop');
-      showSnackBar('rtmpEgressStopped'.tr());
-      ref.invalidate(creatorLivestreamListProvider(publisherId));
-    } catch (e) {
-      showErrorAlert(e);
-    }
-  }
-
-  Future<void> _startHlsEgress(BuildContext context, WidgetRef ref) async {
-    final submitted = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const _HlsEgressSheet(),
-    );
-    if (submitted == null) return;
-
-    try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/sphere/livestreams/$_id/hls', data: submitted);
-      showSnackBar('hlsEgressStarted'.tr());
-      ref.invalidate(creatorLivestreamListProvider(publisherId));
-    } catch (e) {
-      showErrorAlert(e);
-    }
-  }
-
-  Future<void> _stopHlsEgress(BuildContext context, WidgetRef ref) async {
-    try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/sphere/livestreams/$_id/hls/stop');
-      showSnackBar('hlsEgressStopped'.tr());
-      ref.invalidate(creatorLivestreamListProvider(publisherId));
-    } catch (e) {
-      showErrorAlert(e);
-    }
-  }
-
   Future<void> _deleteStream(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmAlert(
       'deleteLivestreamConfirm'.tr(),
@@ -561,58 +505,10 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                           ],
                         ),
                       ),
-                    // PopupMenuItem(
-                    //   value: 'egress-start',
-                    //   child: Row(
-                    //     children: [
-                    //       const Icon(Symbols.outbound),
-                    //       const Gap(12),
-                    //       const Text('startRtmpEgress').tr(),
-                    //     ],
-                    //   ),
-                    // ),
-                    // PopupMenuItem(
-                    //   value: 'egress-stop',
-                    //   child: Row(
-                    //     children: [
-                    //       const Icon(Symbols.outbound),
-                    //       const Gap(12),
-                    //       const Text('stopRtmpEgress').tr(),
-                    //     ],
-                    //   ),
-                    // ),
-                    PopupMenuItem(
-                      value: 'hls-start',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.play_circle),
-                          const Gap(12),
-                          const Text('enableHlsEgress').tr(),
-                        ],
-                      ),
+                    ...buildLivestreamEgressMenuEntries(
+                      hasHlsUrl:
+                          stream.hlsPlaylistUrl?.trim().isNotEmpty ?? false,
                     ),
-                    PopupMenuItem(
-                      value: 'hls-stop',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.stop_circle),
-                          const Gap(12),
-                          const Text('disableHlsEgress').tr(),
-                        ],
-                      ),
-                    ),
-                    if (stream.hlsPlaylistUrl != null &&
-                        stream.hlsPlaylistUrl!.trim().isNotEmpty)
-                      PopupMenuItem(
-                        value: 'hls-copy',
-                        child: Row(
-                          children: [
-                            const Icon(Symbols.content_copy),
-                            const Gap(12),
-                            const Text('copyHlsUrl').tr(),
-                          ],
-                        ),
-                      ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(
@@ -635,21 +531,23 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                       await _updateThumbnail(context, ref);
                     } else if (value == 'thumbnail-clear') {
                       await _clearThumbnail(context, ref);
-                    } else if (value == 'egress-start') {
-                      await _startRtmpEgress(context, ref);
-                    } else if (value == 'egress-stop') {
-                      await _stopRtmpEgress(context, ref);
-                    } else if (value == 'hls-start') {
-                      await _startHlsEgress(context, ref);
-                    } else if (value == 'hls-stop') {
-                      await _stopHlsEgress(context, ref);
-                    } else if (value == 'hls-copy') {
-                      await Clipboard.setData(
-                        ClipboardData(text: stream.hlsPlaylistUrl ?? ''),
+                    } else {
+                      final handled = await handleLivestreamEgressMenuAction(
+                        context,
+                        ref,
+                        action: value,
+                        livestreamId: _id,
+                        hlsUrl: stream.hlsPlaylistUrl,
+                        onSuccess: () => ref.invalidate(
+                          creatorLivestreamListProvider(publisherId),
+                        ),
                       );
-                      showSnackBar('hlsUrlCopied'.tr());
-                    } else if (value == 'delete') {
-                      await _deleteStream(context, ref);
+                      if (!context.mounted) return;
+                      if (handled) {
+                        // handled by shared livestream actions
+                      } else if (value == 'delete') {
+                        await _deleteStream(context, ref);
+                      }
                     }
                   },
                 ),
@@ -1183,156 +1081,6 @@ class _EditLivestreamSheet extends HookConsumerWidget {
           ],
         ),
       ).padding(vertical: 20, horizontal: 16),
-    );
-  }
-}
-
-class _RtmpEgressSheet extends HookWidget {
-  const _RtmpEgressSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final urlsController = useTextEditingController();
-    final filePathController = useTextEditingController();
-
-    return SheetScaffold(
-      titleText: 'startRtmpEgressTitle',
-      child: Column(
-        spacing: 12,
-        children: [
-          TextField(
-            controller: urlsController,
-            decoration: const InputDecoration(
-              labelText: 'rtmpUrlsOnePerLine',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-            minLines: 3,
-            maxLines: 6,
-          ),
-          TextField(
-            controller: filePathController,
-            decoration: const InputDecoration(
-              labelText: 'recordingFilePathOptional',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              final urls = urlsController.text
-                  .split('\n')
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList();
-              Navigator.of(context).pop({
-                'rtmp_urls': urls,
-                if (filePathController.text.trim().isNotEmpty)
-                  'file_path': filePathController.text.trim(),
-              });
-            },
-            icon: const Icon(Symbols.play_arrow),
-            label: const Text('start').tr(),
-          ),
-        ],
-      ).padding(horizontal: 16, vertical: 20),
-    );
-  }
-}
-
-class _HlsEgressSheet extends HookWidget {
-  const _HlsEgressSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final playlistController = useTextEditingController(text: 'playlist.m3u8');
-    final segmentDurationController = useTextEditingController(text: '6');
-    final segmentCountController = useTextEditingController(text: '0');
-    final layoutController = useTextEditingController();
-    final hlsBaseUrlController = useTextEditingController();
-
-    return SheetScaffold(
-      titleText: 'enableHlsEgressTitle',
-      child: Column(
-        spacing: 12,
-        children: [
-          TextField(
-            controller: playlistController,
-            decoration: const InputDecoration(
-              labelText: 'playlistName',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          Row(
-            spacing: 12,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: segmentDurationController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'segmentDuration',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: segmentCountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'segmentCount',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          TextField(
-            controller: layoutController,
-            decoration: const InputDecoration(
-              labelText: 'layoutOptional',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          TextField(
-            controller: hlsBaseUrlController,
-            decoration: const InputDecoration(
-              labelText: 'hlsBaseUrlOptional',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop({
-                'playlist_name': playlistController.text.trim(),
-                'segment_duration':
-                    int.tryParse(segmentDurationController.text.trim()) ?? 6,
-                'segment_count':
-                    int.tryParse(segmentCountController.text.trim()) ?? 0,
-                if (layoutController.text.trim().isNotEmpty)
-                  'layout': layoutController.text.trim(),
-                if (hlsBaseUrlController.text.trim().isNotEmpty)
-                  'hls_base_url': hlsBaseUrlController.text.trim(),
-              });
-            },
-            icon: const Icon(Symbols.play_arrow),
-            label: const Text('enable').tr(),
-          ),
-        ],
-      ).padding(horizontal: 16, vertical: 20),
     );
   }
 }

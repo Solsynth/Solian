@@ -9,8 +9,10 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/creators/screens/livestream/livestream_actions.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_overlay.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -335,6 +337,51 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                             if (room != null) ...[
+                              if (stream != null) ...[
+                                PopupMenuButton<String>(
+                                  tooltip: 'Stream actions',
+                                  color: Theme.of(context).colorScheme.surface,
+                                  icon: const Icon(
+                                    Symbols.more_vert,
+                                    color: Colors.white,
+                                  ),
+                                  itemBuilder: (_) =>
+                                      buildLivestreamEgressMenuEntries(
+                                        hasHlsUrl:
+                                            stream.hlsPlaylistUrl
+                                                ?.trim()
+                                                .isNotEmpty ??
+                                            false,
+                                      ),
+                                  onSelected: (value) async {
+                                    await handleLivestreamEgressMenuAction(
+                                      context,
+                                      ref,
+                                      action: value,
+                                      livestreamId: livestreamId,
+                                      hlsUrl: stream.hlsPlaylistUrl,
+                                      onSuccess: () {
+                                        ref.invalidate(
+                                          creatorLivestreamDetailProvider(
+                                            livestreamId,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                                const Gap(6),
+                              ],
+                              IconButton.filledTonal(
+                                tooltip: 'Pop out',
+                                onPressed: () {
+                                  ref
+                                      .read(livestreamOverlayProvider.notifier)
+                                      .show(livestreamId);
+                                },
+                                icon: const Icon(Symbols.open_in_new),
+                              ),
+                              const Gap(6),
                               IconButton.filledTonal(
                                 tooltip: 'View viewers',
                                 onPressed: () {
