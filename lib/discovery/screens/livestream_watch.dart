@@ -87,13 +87,7 @@ class LivestreamWatchScreen extends HookConsumerWidget {
           loading: () => const Text('live').tr(),
           error: (e, s) => const Text('live').tr(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.share),
-            tooltip: 'share'.tr(),
-            onPressed: () {},
-          ),
-        ],
+        actions: [],
       ),
       body: streamAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -187,10 +181,10 @@ class _LivestreamMobileLayout extends StatelessWidget {
             child: playbackMode == _LivestreamPlaybackMode.webrtc
                 ? LivestreamEmbedWidget(
                     livestreamId: livestreamId,
-                    margin: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                   )
                 : Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                     child: _HlsPlaybackCard(hlsUrl: hlsUrl, stream: stream),
                   ),
           ),
@@ -211,8 +205,9 @@ class _LivestreamMobileLayout extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Card(
+                  margin: EdgeInsets.zero,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: publisher?.name != null
@@ -312,11 +307,11 @@ class _LivestreamWideLayout extends StatelessWidget {
                     child: playbackMode == _LivestreamPlaybackMode.webrtc
                         ? LivestreamEmbedWidget(
                             livestreamId: livestreamId,
-                            margin: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                             showChat: false,
                           )
                         : Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                             child: _HlsPlaybackCard(
                               hlsUrl: hlsUrl,
                               stream: stream,
