@@ -581,38 +581,38 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                     //     ],
                     //   ),
                     // ),
-                    // PopupMenuItem(
-                    //   value: 'hls-start',
-                    //   child: Row(
-                    //     children: [
-                    //       const Icon(Symbols.play_circle),
-                    //       const Gap(12),
-                    //       const Text('enableHlsEgress').tr(),
-                    //     ],
-                    //   ),
-                    // ),
-                    // PopupMenuItem(
-                    //   value: 'hls-stop',
-                    //   child: Row(
-                    //     children: [
-                    //       const Icon(Symbols.stop_circle),
-                    //       const Gap(12),
-                    //       const Text('disableHlsEgress').tr(),
-                    //     ],
-                    //   ),
-                    // ),
-                    // if (stream.hlsPlaylistUrl != null &&
-                    //     stream.hlsPlaylistUrl!.trim().isNotEmpty)
-                    //   PopupMenuItem(
-                    //     value: 'hls-copy',
-                    //     child: Row(
-                    //       children: [
-                    //         const Icon(Symbols.content_copy),
-                    //         const Gap(12),
-                    //         const Text('copyHlsUrl').tr(),
-                    //       ],
-                    //     ),
-                    //   ),
+                    PopupMenuItem(
+                      value: 'hls-start',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.play_circle),
+                          const Gap(12),
+                          const Text('enableHlsEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'hls-stop',
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.stop_circle),
+                          const Gap(12),
+                          const Text('disableHlsEgress').tr(),
+                        ],
+                      ),
+                    ),
+                    if (stream.hlsPlaylistUrl != null &&
+                        stream.hlsPlaylistUrl!.trim().isNotEmpty)
+                      PopupMenuItem(
+                        value: 'hls-copy',
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.content_copy),
+                            const Gap(12),
+                            const Text('copyHlsUrl').tr(),
+                          ],
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(

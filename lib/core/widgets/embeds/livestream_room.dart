@@ -36,6 +36,13 @@ class LivestreamRoomState {
   final List<ChatMessage> messages;
   final bool isSendingChat;
   final bool isChatCollapsed;
+  final bool? requestedStreamerMode;
+  final String? localIdentity;
+  final bool isStreamerIdentity;
+  final bool isCameraEnabled;
+  final bool isMicrophoneEnabled;
+  final bool isScreenSharing;
+  final List<String> remoteParticipantIdentities;
 
   const LivestreamRoomState({
     this.room,
@@ -47,6 +54,13 @@ class LivestreamRoomState {
     this.messages = const [],
     this.isSendingChat = false,
     this.isChatCollapsed = false,
+    this.requestedStreamerMode,
+    this.localIdentity,
+    this.isStreamerIdentity = false,
+    this.isCameraEnabled = false,
+    this.isMicrophoneEnabled = false,
+    this.isScreenSharing = false,
+    this.remoteParticipantIdentities = const [],
   });
 
   LivestreamRoomState copyWith({
@@ -59,9 +73,18 @@ class LivestreamRoomState {
     List<ChatMessage>? messages,
     bool? isSendingChat,
     bool? isChatCollapsed,
+    bool? requestedStreamerMode,
+    String? localIdentity,
+    bool? isStreamerIdentity,
+    bool? isCameraEnabled,
+    bool? isMicrophoneEnabled,
+    bool? isScreenSharing,
+    List<String>? remoteParticipantIdentities,
     bool clearRoom = false,
     bool clearError = false,
     bool clearVideoTrack = false,
+    bool clearRequestedStreamerMode = false,
+    bool clearLocalIdentity = false,
   }) {
     return LivestreamRoomState(
       room: clearRoom ? null : (room ?? this.room),
@@ -73,6 +96,18 @@ class LivestreamRoomState {
       messages: messages ?? this.messages,
       isSendingChat: isSendingChat ?? this.isSendingChat,
       isChatCollapsed: isChatCollapsed ?? this.isChatCollapsed,
+      requestedStreamerMode: clearRequestedStreamerMode
+          ? null
+          : (requestedStreamerMode ?? this.requestedStreamerMode),
+      localIdentity: clearLocalIdentity
+          ? null
+          : (localIdentity ?? this.localIdentity),
+      isStreamerIdentity: isStreamerIdentity ?? this.isStreamerIdentity,
+      isCameraEnabled: isCameraEnabled ?? this.isCameraEnabled,
+      isMicrophoneEnabled: isMicrophoneEnabled ?? this.isMicrophoneEnabled,
+      isScreenSharing: isScreenSharing ?? this.isScreenSharing,
+      remoteParticipantIdentities:
+          remoteParticipantIdentities ?? this.remoteParticipantIdentities,
     );
   }
 }
@@ -134,8 +169,9 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
             pub.track is lk.VideoTrack &&
             !pub.isDisposed,
       );
-      if (publication?.track is lk.VideoTrack)
+      if (publication?.track is lk.VideoTrack) {
         return publication!.track as lk.VideoTrack;
+      }
     }
     final localPublication = room.localParticipant?.trackPublications.values
         .firstWhereOrNull(
@@ -144,14 +180,30 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
               pub.track is lk.VideoTrack &&
               !pub.isDisposed,
         );
-    if (localPublication?.track is lk.VideoTrack)
+    if (localPublication?.track is lk.VideoTrack) {
       return localPublication!.track as lk.VideoTrack;
+    }
     return null;
   }
 
-  Future<void> connect() async {
+  void _syncLocalParticipantState() {
+    final local = _room?.localParticipant;
+    state = state.copyWith(
+      localIdentity: local?.identity,
+      isStreamerIdentity: (local?.identity ?? '').startsWith('streamer_'),
+      isCameraEnabled: local?.isCameraEnabled() ?? false,
+      isMicrophoneEnabled: local?.isMicrophoneEnabled() ?? false,
+      isScreenSharing: local?.isScreenShareEnabled() ?? false,
+    );
+  }
+
+  Future<void> connect({bool streamer = false}) async {
     if (state.isConnecting || _room != null) return;
-    state = state.copyWith(isConnecting: true, clearError: true);
+    state = state.copyWith(
+      isConnecting: true,
+      clearError: true,
+      requestedStreamerMode: streamer,
+    );
 
     try {
       final client = ref.read(apiClientProvider);
@@ -179,13 +231,15 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
       final tokenResponse = await client.get(
         '/sphere/livestreams/$livestreamId/token',
+        queryParameters: {'streamer': streamer},
       );
       final tokenData = Map<String, dynamic>.from(tokenResponse.data);
       final token = tokenData['token'] as String;
       final url = tokenData['url'] as String;
 
-      if (token.isEmpty || url.isEmpty)
+      if (token.isEmpty || url.isEmpty) {
         throw Exception('Invalid livestream token response.');
+      }
 
       final room = lk.Room();
       final candidateUrls = {
@@ -221,11 +275,16 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
       void syncVideoTrack() {
         final videoTrack = _findVideoTrack(room);
+        final remoteIdentities = room.remoteParticipants.values
+            .map((p) => p.identity)
+            .toList(growable: false);
         state = state.copyWith(
           videoTrack: videoTrack,
           viewerCount: room.remoteParticipants.length,
+          remoteParticipantIdentities: remoteIdentities,
         );
         _applyVolume(room, state.volume);
+        _syncLocalParticipantState();
       }
 
       syncVideoTrack();
@@ -234,6 +293,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       _roomListener = room.createListener();
       _roomListener!
         ..on<lk.ParticipantConnectedEvent>((_) => syncVideoTrack())
+        ..on<lk.ParticipantDisconnectedEvent>((_) => syncVideoTrack())
         ..on<lk.TrackPublishedEvent>((_) => syncVideoTrack())
         ..on<lk.TrackSubscribedEvent>((e) {
           if (e.track is lk.RemoteAudioTrack) {
@@ -248,8 +308,9 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
           }
         })
         ..on<lk.TrackUnsubscribedEvent>((e) {
-          if (e.track is lk.RemoteAudioTrack)
+          if (e.track is lk.RemoteAudioTrack) {
             _subscribedAudioTracks.remove(e.publication.sid);
+          }
           syncVideoTrack();
         })
         ..on<lk.RoomDisconnectedEvent>((_) {
@@ -258,6 +319,12 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
             clearVideoTrack: true,
             viewerCount: 0,
             messages: [],
+            remoteParticipantIdentities: const [],
+            clearLocalIdentity: true,
+            isStreamerIdentity: false,
+            isCameraEnabled: false,
+            isMicrophoneEnabled: false,
+            isScreenSharing: false,
           );
           _subscribedAudioTracks.clear();
         })
@@ -272,7 +339,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
           }
           appendMessage(
             ChatMessage(
-              sender: _parseViewerIdentityToAccountId(senderIdentity)!,
+              sender: senderIdentity ?? 'Server',
               senderIdentity: senderIdentity,
               message: text,
               isMine: false,
@@ -294,36 +361,40 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
     _room = null;
     _subscribedAudioTracks.clear();
     _chatInputController.clear();
-    state = const LivestreamRoomState();
+    state = const LivestreamRoomState().copyWith(
+      clearRequestedStreamerMode: true,
+      clearLocalIdentity: true,
+    );
     if (room != null && !room.isDisposed) {
       await room.disconnect();
       await room.dispose();
     }
   }
 
-  static String? _parseViewerIdentityToAccountId(String? identity) {
-    if (identity == null || !identity.startsWith('viewer_')) return null;
-    final raw = identity.substring('viewer_'.length).toLowerCase();
-    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
-    return '${raw.substring(0, 8)}-'
-        '${raw.substring(8, 12)}-'
-        '${raw.substring(12, 16)}-'
-        '${raw.substring(16, 20)}-'
-        '${raw.substring(20, 32)}';
-  }
-
   Future<void> sendMessage([String? rawMessage]) async {
     final room = _room;
     final localParticipant = room?.localParticipant;
     final message = (rawMessage ?? _chatInputController.text).trim();
-    if (room == null ||
-        localParticipant == null ||
-        message.isEmpty ||
-        state.isSendingChat) {
+    if (state.isSendingChat) {
+      return;
+    }
+    if (room == null) {
+      state = state.copyWith(
+        errorText: 'Chat unavailable: room not connected.',
+      );
+      return;
+    }
+    if (localParticipant == null) {
+      state = state.copyWith(
+        errorText: 'Chat unavailable: no local participant in room.',
+      );
+      return;
+    }
+    if (message.isEmpty) {
       return;
     }
 
-    state = state.copyWith(isSendingChat: true);
+    state = state.copyWith(isSendingChat: true, clearError: true);
     try {
       await localParticipant.publishData(
         utf8.encode(message),
@@ -332,7 +403,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       );
       appendMessage(
         ChatMessage(
-          sender: _parseViewerIdentityToAccountId(localParticipant.identity)!,
+          sender: localParticipant.identity,
           senderIdentity: localParticipant.identity,
           message: message,
           isMine: true,
@@ -341,7 +412,10 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       );
       if (rawMessage == null) _chatInputController.clear();
     } catch (e) {
-      state = state.copyWith(errorText: 'Failed to send message: $e');
+      state = state.copyWith(
+        errorText:
+            'Failed to send message: $e. If you are connected as viewer, your token may not allow chat publishing.',
+      );
     } finally {
       state = state.copyWith(isSendingChat: false);
     }
@@ -357,6 +431,14 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
   void toggleChatCollapsed() {
     state = state.copyWith(isChatCollapsed: !state.isChatCollapsed);
+  }
+
+  void clearRequestedMode() {
+    state = state.copyWith(clearRequestedStreamerMode: true);
+  }
+
+  void syncLocalParticipantState() {
+    _syncLocalParticipantState();
   }
 }
 

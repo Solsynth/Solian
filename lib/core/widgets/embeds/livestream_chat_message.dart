@@ -11,25 +11,121 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class LivestreamChatMessage extends ConsumerWidget {
-  final ChatMessage msg;
+  final ChatMessage? msg;
   final bool dark;
+  final bool compact;
+  
+  // Individual parameters as alternative to msg
+  final String? sender;
+  final String? senderIdentity;
+  final String? message;
+  final bool? isMine;
+  final DateTime? createdAt;
 
   const LivestreamChatMessage({
     super.key,
-    required this.msg,
+    this.msg,
     this.dark = false,
-  });
+    this.compact = false,
+    this.sender,
+    this.senderIdentity,
+    this.message,
+    this.isMine,
+    this.createdAt,
+  }) : assert(msg != null || (sender != null && message != null),
+            'Either msg or both sender and message must be provided');
+
+  String get _message => message ?? msg!.message;
+  String get _sender => sender ?? msg!.sender;
+  String? get _senderIdentity => senderIdentity ?? msg?.senderIdentity;
+  bool get _isMine => isMine ?? msg?.isMine ?? false;
+  DateTime get _createdAt => createdAt ?? msg!.createdAt;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Parse the senderIdentity to get the account ID
-    final accountId = _parseViewerIdentityToAccountId(msg.senderIdentity);
+    final accountId = _parseViewerIdentityToAccountId(_senderIdentity);
     final accountAsync = accountId == null
         ? const AsyncData<SnAccount?>(null)
         : ref.watch(accountInfoProvider(accountId));
 
-    final displayName = accountAsync.value?.name ?? msg.sender;
+    final displayName = accountAsync.value?.name ?? _sender;
     final account = accountAsync.value;
+
+    if (compact) {
+      final timestamp =
+          '${_createdAt.hour.toString().padLeft(2, '0')}:'
+          '${_createdAt.minute.toString().padLeft(2, '0')}';
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (account?.profile.picture != null)
+              ProfilePictureWidget(
+                file: account!.profile.picture,
+                radius: 10,
+              )
+            else
+              CircleAvatar(
+                radius: 10,
+                child: Text(
+                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ),
+            const Gap(6),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    flex: 0,
+                    child: account != null
+                        ? AccountName(
+                            account: account,
+                            style:
+                                (Theme.of(context).textTheme.labelSmall ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                            hideOverlay: true,
+                          )
+                        : Text(
+                            displayName,
+                            style: Theme.of(context).textTheme.labelSmall ??
+                                const TextStyle(),
+                          ),
+                  ),
+                  const Gap(8),
+                  Expanded(
+                    child: MarkdownTextContent(
+                      content: _message,
+                      textStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      linesMargin: EdgeInsets.zero,
+                    ),
+                  ),
+                  const Gap(8),
+                  Text(
+                    timestamp,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (dark) {
       return Padding(
@@ -48,7 +144,7 @@ class LivestreamChatMessage extends ConsumerWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: msg.isMine
+                  color: _isMine
                       ? Theme.of(context).colorScheme.primaryContainer
                       : Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
@@ -79,21 +175,21 @@ class LivestreamChatMessage extends ConsumerWidget {
                         ),
                         const Gap(4),
                         Text(
-                          _formatTime(msg.createdAt),
+                          _formatTime(_createdAt),
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(color: Colors.white54),
                         ),
                       ],
                     ),
                     MarkdownTextContent(
-                      content: msg.message,
+                      content: _message,
                       linesMargin: EdgeInsets.zero,
                     ),
                   ],
                 ),
               ),
             ),
-            if (!msg.isMine) const Spacer(),
+            if (!_isMine) const Spacer(),
           ],
         ),
       );
@@ -116,7 +212,7 @@ class LivestreamChatMessage extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: msg.isMine
+                color: _isMine
                     ? Theme.of(context).colorScheme.primaryContainer
                     : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
@@ -130,7 +226,7 @@ class LivestreamChatMessage extends ConsumerWidget {
                       style: const TextStyle(fontSize: 11),
                     ),
                   MarkdownTextContent(
-                    content: msg.message,
+                    content: _message,
                     linesMargin: EdgeInsets.zero,
                   ),
                 ],
@@ -143,8 +239,17 @@ class LivestreamChatMessage extends ConsumerWidget {
   }
 
   static String? _parseViewerIdentityToAccountId(String? identity) {
-    if (identity == null || !identity.startsWith('viewer_')) return null;
-    final raw = identity.substring('viewer_'.length).toLowerCase();
+    if (identity == null) return null;
+    // Handle both 'viewer_' and 'streamer_' prefixes
+    String? prefix;
+    if (identity.startsWith('viewer_')) {
+      prefix = 'viewer_';
+    } else if (identity.startsWith('streamer_')) {
+      prefix = 'streamer_';
+    }
+    
+    if (prefix == null) return null;
+    final raw = identity.substring(prefix.length).toLowerCase();
     if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
     return '${raw.substring(0, 8)}-'
         '${raw.substring(8, 12)}-'

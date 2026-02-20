@@ -1,20 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:material_symbols_icons/symbols.dart';
@@ -33,130 +32,51 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
 
   const CreatorLivestreamDetailScreen({super.key, required this.livestreamId});
 
-  static lk.VideoTrack? _findVideoTrack(lk.Room room) {
-    for (final participant in room.remoteParticipants.values) {
-      final publication = participant.trackPublications.values.firstWhereOrNull(
-        (pub) =>
-            pub.kind == lk.TrackType.VIDEO &&
-            pub.track is lk.VideoTrack &&
-            !pub.isDisposed,
-      );
-      if (publication?.track is lk.VideoTrack) {
-        return publication!.track as lk.VideoTrack;
-      }
-    }
-
-    final localPublication = room.localParticipant?.trackPublications.values
-        .firstWhereOrNull(
-          (pub) =>
-              pub.kind == lk.TrackType.VIDEO &&
-              pub.track is lk.VideoTrack &&
-              !pub.isDisposed,
-        );
-    if (localPublication?.track is lk.VideoTrack) {
-      return localPublication!.track as lk.VideoTrack;
-    }
-    return null;
-  }
-
-  static String? _parseViewerIdentityToAccountId(String? identity) {
-    if (identity == null) return null;
-    final idx = identity.indexOf('_');
-    if (idx <= 0 || idx + 1 >= identity.length) return null;
-    final raw = identity.substring(idx + 1).toLowerCase();
-    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
-    return '${raw.substring(0, 8)}-'
-        '${raw.substring(8, 12)}-'
-        '${raw.substring(12, 16)}-'
-        '${raw.substring(16, 20)}-'
-        '${raw.substring(20, 32)}';
-  }
-
-  static void _applyVolume(lk.Room room, double volume) {
-    for (final participant in room.remoteParticipants.values) {
-      for (final publication in participant.audioTrackPublications) {
-        final track = publication.track;
-        if (track != null) {
-          Helper.setVolume(volume, track.mediaStreamTrack);
-        }
-      }
-    }
-  }
-
-  static void _applyVolumeToSubscribedAudioTracks(
-    Map<String, lk.RemoteAudioTrack> audioTracks,
-    double volume,
-  ) {
-    for (final track in audioTracks.values) {
-      Helper.setVolume(volume, track.mediaStreamTrack);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(
       creatorLivestreamDetailProvider(livestreamId),
     );
-    final roomState = useState<lk.Room?>(null);
-    final roomListenerState = useState<lk.EventsListener<lk.RoomEvent>?>(null);
-    final videoTrackState = useState<lk.VideoTrack?>(null);
-    final subscribedAudioTracks = useState<Map<String, lk.RemoteAudioTrack>>(
-      {},
-    );
+    final roomState = ref.watch(livestreamRoomProvider(livestreamId));
+    final notifier = ref.read(livestreamRoomProvider(livestreamId).notifier);
 
-    final localIdentity = useState<String?>(null);
-    final isStreamerIdentity = useState(false);
-    final isCameraEnabled = useState(false);
-    final isMicrophoneEnabled = useState(false);
-    final isScreenSharing = useState(false);
     final videoPlaybackEnabled = useState(true);
     final audioPlaybackEnabled = useState(true);
-    final roomViewerCount = useState(0);
-    final volume = useState(1.0);
-
-    final isConnecting = useState(false);
-    final errorText = useState<String?>(null);
     final controlsVisible = useState(true);
 
-    final chatMessages = useState<List<_LivestreamChatMessage>>([]);
-    final chatInputController = useTextEditingController();
-    final chatScrollController = useScrollController();
-    final chatCollapsed = useState(false);
-    final isSendingChat = useState(false);
-
-    void appendChat(_LivestreamChatMessage item) {
-      chatMessages.value = [...chatMessages.value, item];
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!chatScrollController.hasClients) return;
-        chatScrollController.jumpTo(
-          chatScrollController.position.maxScrollExtent,
+    Future<void> connect() async {
+      var streamerMode = roomState.requestedStreamerMode;
+      if (streamerMode == null) {
+        streamerMode = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Connection Mode'),
+            content: const Text(
+              'Choose your role for this room. Use Viewer mode when streaming via ingress (RTMP/WHIP).',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('cancel').tr(),
+              ),
+              FilledButton.tonal(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Viewer'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Streamer'),
+              ),
+            ],
+          ),
         );
-      });
-    }
-
-    Future<void> disconnect() async {
-      roomListenerState.value?.dispose();
-      roomListenerState.value = null;
-      final room = roomState.value;
-      roomState.value = null;
-      videoTrackState.value = null;
-      subscribedAudioTracks.value = {};
-      localIdentity.value = null;
-      isStreamerIdentity.value = false;
-      isCameraEnabled.value = false;
-      isMicrophoneEnabled.value = false;
-      isScreenSharing.value = false;
-      videoPlaybackEnabled.value = true;
-      audioPlaybackEnabled.value = true;
-      roomViewerCount.value = 0;
-      if (room != null && !room.isDisposed) {
-        await room.disconnect();
-        await room.dispose();
+        if (streamerMode == null) return;
       }
+      await notifier.connect(streamer: streamerMode);
     }
 
     Future<void> applyPlaybackSubscriptions() async {
-      final room = roomState.value;
+      final room = roomState.room;
       if (room == null) return;
       for (final participant in room.remoteParticipants.values) {
         for (final pub in participant.videoTrackPublications) {
@@ -174,206 +94,27 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
           }
         }
       }
-      if (!videoPlaybackEnabled.value) {
-        videoTrackState.value = null;
-      } else {
-        videoTrackState.value = _findVideoTrack(room);
-        if (videoTrackState.value == null) {
-          Future<void>.delayed(const Duration(milliseconds: 200), () {
-            if (roomState.value == room && videoPlaybackEnabled.value) {
-              videoTrackState.value = _findVideoTrack(room);
-            }
-          });
-        }
-      }
-    }
-
-    Future<void> connect() async {
-      if (roomState.value != null || isConnecting.value) return;
-      isConnecting.value = true;
-      errorText.value = null;
-
-      try {
-        final stream = await ref.read(
-          creatorLivestreamDetailProvider(livestreamId).future,
-        );
-        if (stream.status == SnLiveStreamStatus.ended) {
-          errorText.value = 'This livestream has ended.';
-          return;
-        }
-
-        final client = ref.read(apiClientProvider);
-        final response = await client.get(
-          '/sphere/livestreams/$livestreamId/token',
-          queryParameters: {'streamer': true},
-        );
-        final data = Map<String, dynamic>.from(response.data);
-
-        final token = data['token'] as String? ?? '';
-        final url = data['url'] as String? ?? '';
-        if (token.isEmpty || url.isEmpty) {
-          throw Exception('Invalid livestream token response.');
-        }
-
-        final room = lk.Room();
-        final candidateUrls = {
-          if (url.startsWith('wss://'))
-            url
-          else
-            url.replaceFirst('ws://', 'wss://'),
-          if (url.startsWith('wss://'))
-            url.replaceFirst('wss://', 'ws://')
-          else
-            url,
-        }.toList();
-
-        Object? lastError;
-        for (final endpoint in candidateUrls) {
-          try {
-            await room.connect(
-              endpoint,
-              token,
-              connectOptions: lk.ConnectOptions(autoSubscribe: true),
-              roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
-            );
-            lastError = null;
-            break;
-          } catch (err) {
-            lastError = err;
-          }
-        }
-        if (lastError != null) throw lastError;
-
-        void syncRoomState() {
-          videoTrackState.value = videoPlaybackEnabled.value
-              ? _findVideoTrack(room)
-              : null;
-          _applyVolume(room, volume.value);
-          final local = room.localParticipant;
-          localIdentity.value = local?.identity;
-          isStreamerIdentity.value = (local?.identity ?? '').startsWith(
-            'streamer_',
-          );
-          isCameraEnabled.value = local?.isCameraEnabled() ?? false;
-          isMicrophoneEnabled.value = local?.isMicrophoneEnabled() ?? false;
-          isScreenSharing.value = local?.isScreenShareEnabled() ?? false;
-          roomViewerCount.value = room.remoteParticipants.length;
-          unawaited(applyPlaybackSubscriptions());
-        }
-
-        syncRoomState();
-        roomListenerState.value?.dispose();
-        final listener = room.createListener();
-        listener
-          ..on<lk.ParticipantConnectedEvent>((_) => syncRoomState())
-          ..on<lk.ParticipantDisconnectedEvent>((_) => syncRoomState())
-          ..on<lk.TrackPublishedEvent>((_) => syncRoomState())
-          ..on<lk.TrackSubscribedEvent>((e) {
-            if (e.track is lk.RemoteAudioTrack) {
-              final audioTrack = e.track as lk.RemoteAudioTrack;
-              subscribedAudioTracks.value = {
-                ...subscribedAudioTracks.value,
-                e.publication.sid: audioTrack,
-              };
-              Helper.setVolume(volume.value, audioTrack.mediaStreamTrack);
-            }
-            syncRoomState();
-          })
-          ..on<lk.TrackUnsubscribedEvent>((e) {
-            if (e.track is lk.RemoteAudioTrack) {
-              final clone = {...subscribedAudioTracks.value};
-              clone.remove(e.publication.sid);
-              subscribedAudioTracks.value = clone;
-            }
-            syncRoomState();
-          })
-          ..on<lk.RoomDisconnectedEvent>((_) {
-            videoTrackState.value = null;
-          })
-          ..on<lk.DataReceivedEvent>((e) {
-            if (e.topic != null && e.topic != 'chat') return;
-            final text = utf8.decode(e.data, allowMalformed: true).trim();
-            if (text.isEmpty) return;
-            appendChat(
-              _LivestreamChatMessage(
-                sender: e.participant?.identity ?? 'Server',
-                senderIdentity: e.participant?.identity,
-                message: text,
-                isMine:
-                    e.participant?.identity == room.localParticipant?.identity,
-                createdAt: DateTime.now(),
-              ),
-            );
-          });
-
-        room.addListener(syncRoomState);
-        roomListenerState.value = listener;
-        roomState.value = room;
-      } catch (e) {
-        errorText.value = e.toString();
-        showErrorAlert(e);
-      } finally {
-        isConnecting.value = false;
-      }
-    }
-
-    Future<void> sendChat([String? raw]) async {
-      final room = roomState.value;
-      final local = room?.localParticipant;
-      final text = (raw ?? chatInputController.text).trim();
-      if (room == null ||
-          local == null ||
-          text.isEmpty ||
-          isSendingChat.value) {
-        return;
-      }
-      isSendingChat.value = true;
-      try {
-        await local.publishData(
-          utf8.encode(text),
-          reliable: true,
-          topic: 'chat',
-        );
-        appendChat(
-          _LivestreamChatMessage(
-            sender: local.identity,
-            senderIdentity: local.identity,
-            message: text,
-            isMine: true,
-            createdAt: DateTime.now(),
-          ),
-        );
-        if (raw == null) {
-          chatInputController.clear();
-        }
-      } catch (e) {
-        errorText.value = 'Failed to send message: $e';
-      } finally {
-        isSendingChat.value = false;
-      }
     }
 
     Future<void> toggleCamera() async {
-      if (!isStreamerIdentity.value) return;
-      final local = roomState.value?.localParticipant;
+      if (!roomState.isStreamerIdentity) return;
+      final local = roomState.room?.localParticipant;
       if (local == null) return;
-      final target = !local.isCameraEnabled();
-      await local.setCameraEnabled(target);
-      isCameraEnabled.value = target;
+      await local.setCameraEnabled(!local.isCameraEnabled());
+      notifier.syncLocalParticipantState();
     }
 
     Future<void> toggleMic() async {
-      if (!isStreamerIdentity.value) return;
-      final local = roomState.value?.localParticipant;
+      if (!roomState.isStreamerIdentity) return;
+      final local = roomState.room?.localParticipant;
       if (local == null) return;
-      final target = !local.isMicrophoneEnabled();
-      await local.setMicrophoneEnabled(target);
-      isMicrophoneEnabled.value = target;
+      await local.setMicrophoneEnabled(!local.isMicrophoneEnabled());
+      notifier.syncLocalParticipantState();
     }
 
     Future<void> toggleScreenShare() async {
-      if (!isStreamerIdentity.value) return;
-      final local = roomState.value?.localParticipant;
+      if (!roomState.isStreamerIdentity) return;
+      final local = roomState.room?.localParticipant;
       if (local == null) return;
       final target = !local.isScreenShareEnabled();
 
@@ -396,7 +137,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
         } else {
           await local.setScreenShareEnabled(target);
         }
-        isScreenSharing.value = local.isScreenShareEnabled();
+        notifier.syncLocalParticipantState();
       } catch (e) {
         showErrorAlert(e);
       }
@@ -404,29 +145,17 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
 
     Future<void> toggleVideoPlayback() async {
       videoPlaybackEnabled.value = !videoPlaybackEnabled.value;
-      if (!videoPlaybackEnabled.value) {
-        videoTrackState.value = null;
-      }
       await applyPlaybackSubscriptions();
-      if (videoPlaybackEnabled.value) {
-        final room = roomState.value;
-        if (room != null) {
-          videoTrackState.value = _findVideoTrack(room);
-        }
-      }
     }
 
     Future<void> toggleAudioPlayback() async {
       audioPlaybackEnabled.value = !audioPlaybackEnabled.value;
-      if (!audioPlaybackEnabled.value) {
-        subscribedAudioTracks.value = {};
-      }
       await applyPlaybackSubscriptions();
     }
 
     Future<void> switchDevice(lk.MediaDevice device, String deviceType) async {
       try {
-        final localParticipant = roomState.value?.localParticipant;
+        final localParticipant = roomState.room?.localParticipant;
         if (localParticipant == null) return;
 
         if (deviceType == 'videoinput') {
@@ -450,6 +179,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
             args: [device.label.isNotEmpty ? device.label : 'device'.tr()],
           ),
         );
+        notifier.syncLocalParticipantState();
       } catch (e) {
         showErrorAlert(e);
       }
@@ -493,21 +223,29 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     }
 
     useEffect(() {
-      unawaited(connect());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          unawaited(connect());
+        }
+      });
       return () {
-        unawaited(disconnect());
+        unawaited(notifier.disconnect());
       };
     }, const []);
 
-    final room = roomState.value;
-    final videoTrack = videoTrackState.value;
+    final room = roomState.room;
+    final videoTrack = videoPlaybackEnabled.value ? roomState.videoTrack : null;
     final stream = detailAsync.asData?.value;
-    final viewerCountText = '${roomViewerCount.value} in room';
-    final modeText = localIdentity.value?.startsWith('streamer_') == true
+    final viewerCountText = '${roomState.viewerCount} in room';
+    final modeText = roomState.localIdentity?.startsWith('streamer_') == true
         ? 'Studio mode'
-        : localIdentity.value?.startsWith('viewer_') == true
+        : roomState.localIdentity?.startsWith('viewer_') == true
         ? 'Viewer mode (Ingress connected)'
-        : 'Unknown mode';
+        : roomState.requestedStreamerMode == true
+        ? 'Studio mode (selected)'
+        : roomState.requestedStreamerMode == false
+        ? 'Viewer mode (selected)'
+        : 'Mode not selected';
     final subtitleText = '$modeText • $viewerCountText';
 
     return Scaffold(
@@ -596,10 +334,41 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                 ],
                               ),
                             ),
-                            if (room == null && !isConnecting.value)
+                            if (room != null) ...[
                               IconButton.filledTonal(
-                                onPressed: connect,
-                                icon: const Icon(Symbols.refresh),
+                                tooltip: 'View viewers',
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) => _ViewerListSheet(
+                                      identities:
+                                          roomState.remoteParticipantIdentities,
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Symbols.group),
+                              ),
+                              const Gap(6),
+                            ],
+                            if (room == null && !roomState.isConnecting)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton.filledTonal(
+                                    tooltip: 'Switch role',
+                                    onPressed: () async {
+                                      notifier.clearRequestedMode();
+                                      await connect();
+                                    },
+                                    icon: const Icon(Symbols.person),
+                                  ),
+                                  const Gap(6),
+                                  IconButton.filledTonal(
+                                    onPressed: connect,
+                                    icon: const Icon(Symbols.refresh),
+                                  ),
+                                ],
                               ),
                           ],
                         ),
@@ -643,32 +412,32 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                 onTap: toggleAudioPlayback,
                               ),
                               const Gap(10),
-                              if (isStreamerIdentity.value) ...[
+                              if (roomState.isStreamerIdentity) ...[
                                 _CircleControlButtonWithDropdown(
-                                  icon: isMicrophoneEnabled.value
+                                  icon: roomState.isMicrophoneEnabled
                                       ? Symbols.mic
                                       : Symbols.mic_off,
-                                  active: isMicrophoneEnabled.value,
+                                  active: roomState.isMicrophoneEnabled,
                                   onTap: toggleMic,
                                   onDropdownTap: () =>
                                       showDeviceSelectionDialog('audioinput'),
                                 ),
                                 const Gap(10),
                                 _CircleControlButtonWithDropdown(
-                                  icon: isCameraEnabled.value
+                                  icon: roomState.isCameraEnabled
                                       ? Symbols.videocam
                                       : Symbols.videocam_off,
-                                  active: isCameraEnabled.value,
+                                  active: roomState.isCameraEnabled,
                                   onTap: toggleCamera,
                                   onDropdownTap: () =>
                                       showDeviceSelectionDialog('videoinput'),
                                 ),
                                 const Gap(10),
                                 _CircleControlButton(
-                                  icon: isScreenSharing.value
+                                  icon: roomState.isScreenSharing
                                       ? Symbols.stop_screen_share
                                       : Symbols.screen_share,
-                                  active: isScreenSharing.value,
+                                  active: roomState.isScreenSharing,
                                   onTap: toggleScreenShare,
                                 ),
                                 const Gap(10),
@@ -678,7 +447,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                 active: false,
                                 isDanger: true,
                                 onTap: () async {
-                                  await disconnect();
+                                  await notifier.disconnect();
                                   if (context.mounted) {
                                     context.router.maybePop();
                                   }
@@ -705,40 +474,28 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
               child: Column(
                 children: [
                   InkWell(
-                    onTap: () => chatCollapsed.value = !chatCollapsed.value,
+                    onTap: notifier.toggleChatCollapsed,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
                       child: Row(
                         children: [
                           const Icon(Symbols.chat_bubble, size: 18),
                           const Gap(8),
-                          Text('Live Chat (${chatMessages.value.length})'),
+                          Text('Live Chat (${roomState.messages.length})'),
                           const Spacer(),
                           const Icon(Symbols.volume_up, size: 16),
                           SizedBox(
                             width: 120,
                             child: Slider(
                               max: 2,
-                              value: volume.value,
-                              onChanged: (value) {
-                                volume.value = value;
-                              },
-                              onChangeEnd: (value) {
-                                final room = roomState.value;
-                                if (room != null) {
-                                  _applyVolume(room, value);
-                                }
-                                _applyVolumeToSubscribedAudioTracks(
-                                  subscribedAudioTracks.value,
-                                  value,
-                                );
-                              },
+                              value: roomState.volume,
+                              onChanged: notifier.setVolume,
                               year2023: true,
                               padding: EdgeInsets.symmetric(horizontal: 4),
                             ),
                           ),
                           Icon(
-                            chatCollapsed.value
+                            roomState.isChatCollapsed
                                 ? Symbols.expand_more
                                 : Symbols.expand_less,
                           ),
@@ -746,21 +503,22 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  if (!chatCollapsed.value) ...[
+                  if (!roomState.isChatCollapsed) ...[
                     SizedBox(
                       height: 220,
-                      child: chatMessages.value.isEmpty
+                      child: roomState.messages.isEmpty
                           ? const Center(child: Text('No chat messages yet'))
                           : ListView.builder(
-                              controller: chatScrollController,
+                              controller: notifier.chatScrollController,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 8,
                               ),
-                              itemCount: chatMessages.value.length,
+                              itemCount: roomState.messages.length,
                               itemBuilder: (context, index) {
-                                return _LivestreamChatRow(
-                                  message: chatMessages.value[index],
+                                return LivestreamChatMessage(
+                                  msg: roomState.messages[index],
+                                  compact: true,
                                 );
                               },
                             ),
@@ -772,8 +530,9 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: chatInputController,
-                              onSubmitted: (value) => sendChat(value),
+                              controller: notifier.chatInputController,
+                              onSubmitted: (value) =>
+                                  notifier.sendMessage(value),
                               decoration: InputDecoration(
                                 isDense: true,
                                 hintText: 'liveChatMessageHint'.tr(),
@@ -785,8 +544,10 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                           ),
                           const Gap(8),
                           IconButton.filled(
-                            onPressed: isSendingChat.value ? null : sendChat,
-                            icon: isSendingChat.value
+                            onPressed: roomState.isSendingChat
+                                ? null
+                                : notifier.sendMessage,
+                            icon: roomState.isSendingChat
                                 ? const SizedBox.square(
                                     dimension: 16,
                                     child: CircularProgressIndicator(
@@ -799,11 +560,11 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                       ),
                     ),
                   ],
-                  if (errorText.value != null)
+                  if (roomState.errorText != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                       child: Text(
-                        errorText.value!,
+                        roomState.errorText!,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                         ),
@@ -895,118 +656,65 @@ class _CircleControlButtonWithDropdown extends StatelessWidget {
   }
 }
 
-class _LivestreamChatMessage {
-  final String sender;
-  final String? senderIdentity;
-  final String message;
-  final bool isMine;
-  final DateTime createdAt;
+class _ViewerListSheet extends ConsumerWidget {
+  final List<String> identities;
 
-  const _LivestreamChatMessage({
-    required this.sender,
-    required this.senderIdentity,
-    required this.message,
-    required this.isMine,
-    required this.createdAt,
-  });
-}
+  const _ViewerListSheet({required this.identities});
 
-class _LivestreamChatRow extends HookConsumerWidget {
-  final _LivestreamChatMessage message;
-
-  const _LivestreamChatRow({required this.message});
+  static String? _parseIdentityToAccountId(String identity) {
+    String? prefix;
+    if (identity.startsWith('viewer_')) {
+      prefix = 'viewer_';
+    } else if (identity.startsWith('streamer_')) {
+      prefix = 'streamer_';
+    }
+    if (prefix == null) return null;
+    final raw = identity.substring(prefix.length).toLowerCase();
+    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
+    return '${raw.substring(0, 8)}-'
+        '${raw.substring(8, 12)}-'
+        '${raw.substring(12, 16)}-'
+        '${raw.substring(16, 20)}-'
+        '${raw.substring(20, 32)}';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accountId =
-        CreatorLivestreamDetailScreen._parseViewerIdentityToAccountId(
-          message.senderIdentity,
-        );
-    final meAccountAsync = ref.watch(userInfoProvider);
-    final accountAsync = accountId == null
-        ? const AsyncData<SnAccount?>(null)
-        : ref.watch(accountInfoProvider(accountId));
-
-    var displayName = message.sender;
-    SnAccount? account;
-    accountAsync.whenData((value) => account = value);
-    if (account == null && message.isMine) {
-      meAccountAsync.whenData((value) => account = value);
-    }
-    if (account != null) {
-      displayName = account!.nick;
-    }
-
-    final timestamp =
-        '${message.createdAt.hour.toString().padLeft(2, '0')}:'
-        '${message.createdAt.minute.toString().padLeft(2, '0')}';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (account?.profile.picture != null)
-            ProfilePictureWidget(file: account!.profile.picture, radius: 10)
-          else
-            CircleAvatar(
-              radius: 10,
-              child: Text(
-                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                style: const TextStyle(fontSize: 10),
-              ),
-            ),
-          const Gap(6),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  flex: 0,
-                  child: account != null
-                      ? AccountName(
-                          account: account!,
-                          style:
-                              (Theme.of(context).textTheme.labelSmall ??
-                                      const TextStyle())
-                                  .copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
-                          hideOverlay: true,
+    return SheetScaffold(
+      titleText: 'Viewers (${identities.length})',
+      child: identities.isEmpty
+          ? const Center(child: Text('No viewers in room'))
+          : ListView.separated(
+              itemCount: identities.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final identity = identities[index];
+                final accountId = _parseIdentityToAccountId(identity);
+                final accountAsync = accountId == null
+                    ? const AsyncData<SnAccount?>(null)
+                    : ref.watch(accountInfoProvider(accountId));
+                final account = accountAsync.value;
+                final role = identity.startsWith('streamer_')
+                    ? 'Streamer'
+                    : 'Viewer';
+                return ListTile(
+                  leading: account?.profile.picture != null
+                      ? ProfilePictureWidget(
+                          file: account!.profile.picture,
+                          radius: 16,
                         )
-                      : Text(
-                          displayName,
-                          style:
-                              (Theme.of(context).textTheme.labelSmall ??
-                                      const TextStyle())
-                                  .copyWith(fontWeight: FontWeight.w600),
-                        ),
-                ),
-                const Gap(8),
-                Expanded(
-                  child: MarkdownTextContent(
-                    content: message.message,
-                    textStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    linesMargin: EdgeInsets.zero,
-                  ),
-                ),
-                const Gap(8),
-                Text(
-                  timestamp,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+                      : const Icon(Symbols.person),
+                  title: account != null
+                      ? AccountName(
+                          account: account,
+                          hideOverlay: true,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      : Text(identity),
+                  subtitle: Text(role),
+                );
+              },
             ),
-          ),
-        ],
-      ),
     );
   }
 }
