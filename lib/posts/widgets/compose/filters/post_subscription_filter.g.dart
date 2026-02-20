@@ -49,7 +49,7 @@ final class PublishersSubscriptionsProvider
 }
 
 String _$publishersSubscriptionsHash() =>
-    r'208463c1f879a3ddab4092112e312a0cd27ebc2f';
+    r'756a24e3be7f7d1471ce783df06cea6fd8b75ade';
 
 @ProviderFor(categoriesSubscriptions)
 final categoriesSubscriptionsProvider = CategoriesSubscriptionsProvider._();

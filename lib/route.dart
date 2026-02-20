@@ -54,6 +54,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 
+    // Livestream routes
+    AutoRoute(page: ActiveLivestreamsRoute.page, path: '/livestreams'),
+    AutoRoute(page: LivestreamWatchRoute.page, path: '/livestreams/:id'),
+
     AutoRoute(page: RealmNewRoute.page, path: '/realms/new'),
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
     AutoRoute(page: RealmEditRoute.page, path: '/realms/:slug/edit'),

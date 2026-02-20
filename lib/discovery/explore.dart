@@ -675,11 +675,11 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
         return Column(
           children: [
             profileCard,
-            Card(
-              margin: const EdgeInsets.only(bottom: 8),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
               child: LivestreamEmbedWidget(
                 livestreamId: stream.id,
-                margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                margin: EdgeInsets.zero,
               ),
             ),
           ],

@@ -412,8 +412,8 @@ class _CreatorLivestreamItem extends ConsumerWidget {
 
   Future<void> _deleteStream(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmAlert(
-      'deleteLivestreamConfirm',
-      'deleteLivestream',
+      'deleteLivestreamConfirm'.tr(),
+      'deleteLivestream'.tr(),
       isDanger: true,
     );
     if (confirmed != true) return;
@@ -735,6 +735,7 @@ class _StartStreamOptionsSheet extends HookWidget {
             groupValue: mode.value,
             title: const Text('In-app Studio'),
             subtitle: const Text('No ingress, stream directly in app'),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             onChanged: (value) {
               if (value != null) mode.value = value;
             },
@@ -744,6 +745,7 @@ class _StartStreamOptionsSheet extends HookWidget {
             groupValue: mode.value,
             title: const Text('External (RTMP)'),
             subtitle: const Text('Create RTMP ingress'),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             onChanged: (value) {
               if (value != null) mode.value = value;
             },
@@ -753,6 +755,7 @@ class _StartStreamOptionsSheet extends HookWidget {
             groupValue: mode.value,
             title: const Text('External (WHIP)'),
             subtitle: const Text('Create WHIP ingress'),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             onChanged: (value) {
               if (value != null) mode.value = value;
             },
@@ -762,6 +765,7 @@ class _StartStreamOptionsSheet extends HookWidget {
             onChanged: mode.value == _StartStreamMode.inApp
                 ? null
                 : (value) => enableTranscoding.value = value,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             title: const Text('Enable transcoding'),
             subtitle: const Text('Applies to external ingress modes'),
           ),
@@ -786,7 +790,7 @@ class _StartStreamOptionsSheet extends HookWidget {
                 child: const Text('startStream').tr(),
               ),
             ],
-          ),
+          ).padding(horizontal: 24),
           Gap(MediaQuery.of(context).padding.bottom + 8),
         ],
       ),
