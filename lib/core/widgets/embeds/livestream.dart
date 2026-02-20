@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_overlay.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
@@ -228,6 +229,20 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                     fullScreenOpen.value = false;
                                   },
                                   icon: const Icon(Symbols.fullscreen),
+                                  iconSize: 18,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton.filledTonal(
+                                  tooltip: 'Pop out',
+                                  onPressed: () {
+                                    ref
+                                        .read(
+                                          livestreamOverlayProvider.notifier,
+                                        )
+                                        .show(livestreamId);
+                                  },
+                                  icon: const Icon(Symbols.open_in_new),
                                   iconSize: 18,
                                   visualDensity: VisualDensity.compact,
                                 ),
@@ -666,6 +681,18 @@ class _LivestreamFullscreenViewer extends HookConsumerWidget {
                     IconButton.filledTonal(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Symbols.close),
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Pop out',
+                      onPressed: () {
+                        ref
+                            .read(livestreamOverlayProvider.notifier)
+                            .show(livestreamId);
+                      },
+                      icon: const Icon(Symbols.open_in_new),
                       iconSize: 18,
                       visualDensity: VisualDensity.compact,
                     ),
