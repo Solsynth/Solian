@@ -73,27 +73,32 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
             children: [
               detailAsync
                   .when(
-                    data: (stream) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    data: (stream) => Row(
                       children: [
-                        Text(
-                          stream.title ?? 'untitledLivestream'.tr(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                stream.title ?? 'untitledLivestream'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              if (stream.description?.isNotEmpty ?? false)
+                                Text(
+                                  stream.description!,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ).opacity(0.85),
+                            ],
+                          ),
                         ),
                         if (room != null) ...[
-                          const SizedBox(height: 2),
                           Text(
                             '$viewerCount in room',
                             style: Theme.of(context).textTheme.bodySmall,
                           ).opacity(0.8),
                         ],
-                        if (stream.description?.isNotEmpty ?? false)
-                          Text(
-                            stream.description!,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ).opacity(0.85),
                       ],
                     ),
                     loading: () => const LinearProgressIndicator(minHeight: 2),
@@ -282,7 +287,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                     isSendingChat: isSendingChat,
                     onToggleCollapse: () => notifier.toggleChatCollapsed(),
                     onSendMessage: (msg) => notifier.sendMessage(msg),
-                  ),
+                  ).padding(top: 8),
               ],
             ],
           ),
@@ -292,7 +297,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
   }
 }
 
-class _LivestreamChatWidget extends StatelessWidget {
+class _LivestreamChatWidget extends HookConsumerWidget {
   final String livestreamId;
   final bool isCollapsed;
   final List<ChatMessage> messages;
@@ -310,7 +315,7 @@ class _LivestreamChatWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final controller = useTextEditingController();
     final scrollController = useScrollController();
 
@@ -689,6 +694,7 @@ class _LivestreamFullscreenViewer extends HookConsumerWidget {
                           '${roomState.viewerCount}',
                           style: const TextStyle(color: Colors.white70),
                         ),
+                        const SizedBox(width: 4),
                       ],
                     ),
                   ],

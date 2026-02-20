@@ -353,16 +353,9 @@ class _ActiveLivestreamCard extends StatelessWidget {
   }
 
   Widget _buildPublisherAvatar(SnPublisher? publisher, bool isGridMode) {
-    if (publisher?.picture?.id != null) {
-      return ProfilePictureWidget(
-        radius: isGridMode ? 8 : 9,
-        file: publisher!.picture,
-      );
-    }
-    return CircleAvatar(
+    return ProfilePictureWidget(
       radius: isGridMode ? 8 : 9,
-      backgroundColor: Colors.grey[300],
-      child: Icon(Symbols.campaign, size: isGridMode ? 10 : 12),
+      file: publisher?.picture,
     );
   }
 

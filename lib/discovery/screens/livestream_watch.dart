@@ -119,6 +119,7 @@ class _LivestreamMobileLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: EdgeInsets.zero,
       children: [
         Center(
           child: ConstrainedBox(
@@ -186,18 +187,7 @@ class _LivestreamMobileLayout extends StatelessWidget {
   }
 
   Widget _buildPublisherAvatar(SnPublisher? publisher) {
-    if (publisher?.picture?.id != null) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundImage: NetworkImage(publisher!.picture!.url ?? ''),
-        backgroundColor: Colors.transparent,
-      );
-    }
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: Colors.grey[300],
-      child: const Icon(Symbols.campaign),
-    );
+    return ProfilePictureWidget(radius: 24, file: publisher?.picture);
   }
 }
 
