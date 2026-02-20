@@ -67,11 +67,15 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String publisherId,
+    String publisherName,
   ) async {
     final created = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _CreateLivestreamSheet(publisherId: publisherId),
+      builder: (context) => _CreateLivestreamSheet(
+        publisherId: publisherId,
+        publisherName: publisherName,
+      ),
     );
 
     if (created == true) {
@@ -92,7 +96,12 @@ class CreatorLivestreamListScreen extends ConsumerWidget {
         data: (publisher) => publisher == null
             ? null
             : FloatingActionButton(
-                onPressed: () => _createLivestream(context, ref, publisher.id),
+                onPressed: () => _createLivestream(
+                  context,
+                  ref,
+                  publisher.id,
+                  publisher.name,
+                ),
                 child: const Icon(Symbols.add),
               ),
         loading: () => null,
@@ -188,63 +197,70 @@ class _CreatorLivestreamItem extends ConsumerWidget {
   }
 
   Future<void> _startStream(BuildContext context, WidgetRef ref) async {
-    final useInAppStreaming = await showDialog<bool>(
+    final options = await showModalBottomSheet<_StartStreamOptions>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Start Stream'),
-        content: const Text('Choose how you want to stream.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('cancel').tr(),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('External (RTMP)'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('In-app Studio'),
-          ),
-        ],
-      ),
+      isScrollControlled: true,
+      builder: (context) => const _StartStreamOptionsSheet(),
     );
-    if (useInAppStreaming == null) return;
+    if (options == null) return;
 
     try {
       final client = ref.read(apiClientProvider);
+      final payload = <String, dynamic>{
+        'no_ingress': options.mode == _StartStreamMode.inApp,
+      };
+      if (options.mode == _StartStreamMode.whip) {
+        payload['use_whip'] = true;
+      }
+      if (options.mode != _StartStreamMode.inApp) {
+        payload['enable_transcoding'] = options.enableTranscoding;
+      }
       final response = await client.post(
         '/sphere/livestreams/$_id/start',
-        data: <String, dynamic>{'no_ingress': useInAppStreaming},
+        data: payload,
       );
       final data = Map<String, dynamic>.from(response.data);
-      final rtmpUrl =
-          (data['rtmp_url'] ?? data['rtmpUrl'] ?? data['RtmpUrl'] ?? '')
-              .toString();
-      final streamKey =
-          (data['stream_key'] ?? data['streamKey'] ?? data['StreamKey'] ?? '')
-              .toString();
-      final roomName =
-          (data['room_name'] ?? data['roomName'] ?? data['RoomName'] ?? '')
-              .toString();
-      final wsUrl = (data['url'] ?? '').toString();
-      final isRtmpMode = rtmpUrl.isNotEmpty || streamKey.isNotEmpty;
+      final streamKey = data['stream_key'];
+      final roomName = data['room_name'];
+      final url = data['url'];
+      final isRtmpMode = options.mode == _StartStreamMode.rtmp;
+      final isWhipMode = options.mode == _StartStreamMode.whip;
       if (!context.mounted) return;
 
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(
-            isRtmpMode ? 'rtmpSettings'.tr() : 'In-app Streaming Ready',
+            isRtmpMode
+                ? 'rtmpSettings'.tr()
+                : isWhipMode
+                ? 'WHIP Settings'
+                : 'In-app Streaming Ready',
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (isRtmpMode) ...[
-                _CopyField(label: 'rtmpUrl'.tr(), value: rtmpUrl),
-                const Gap(12),
-                _CopyField(label: 'streamKey'.tr(), value: streamKey),
+                if (url.isNotEmpty) ...[
+                  _CopyField(label: 'rtmpUrl'.tr(), value: url),
+                ] else ...[
+                  const Text('RTMP URL is missing in the response.'),
+                ],
+                if (streamKey.isNotEmpty) ...[
+                  const Gap(12),
+                  _CopyField(label: 'streamKey'.tr(), value: streamKey),
+                ],
+              ] else if (isWhipMode) ...[
+                if (url.isNotEmpty) ...[
+                  _CopyField(label: 'WHIP URL', value: url),
+                ] else ...[
+                  const Text('WHIP URL is missing in the response.'),
+                ],
+                if (streamKey.isNotEmpty) ...[
+                  const Gap(12),
+                  _CopyField(label: 'Bearer Token', value: streamKey),
+                ],
               ] else ...[
                 const Text(
                   'Ingress is disabled for this start request. Use in-app studio to stream.',
@@ -253,10 +269,6 @@ class _CreatorLivestreamItem extends ConsumerWidget {
               if (roomName.isNotEmpty) ...[
                 const Gap(12),
                 _CopyField(label: 'roomName'.tr(), value: roomName),
-              ],
-              if (!isRtmpMode && wsUrl.isNotEmpty) ...[
-                const Gap(12),
-                _CopyField(label: 'WS URL', value: wsUrl),
               ],
             ],
           ),
@@ -693,10 +705,103 @@ class _CreatorLivestreamItem extends ConsumerWidget {
   }
 }
 
+enum _StartStreamMode { inApp, rtmp, whip }
+
+class _StartStreamOptions {
+  final _StartStreamMode mode;
+  final bool enableTranscoding;
+
+  const _StartStreamOptions({
+    required this.mode,
+    required this.enableTranscoding,
+  });
+}
+
+class _StartStreamOptionsSheet extends HookWidget {
+  const _StartStreamOptionsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = useState(_StartStreamMode.inApp);
+    final enableTranscoding = useState(true);
+
+    return SheetScaffold(
+      titleText: 'Start Stream',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<_StartStreamMode>(
+            value: _StartStreamMode.inApp,
+            groupValue: mode.value,
+            title: const Text('In-app Studio'),
+            subtitle: const Text('No ingress, stream directly in app'),
+            onChanged: (value) {
+              if (value != null) mode.value = value;
+            },
+          ),
+          RadioListTile<_StartStreamMode>(
+            value: _StartStreamMode.rtmp,
+            groupValue: mode.value,
+            title: const Text('External (RTMP)'),
+            subtitle: const Text('Create RTMP ingress'),
+            onChanged: (value) {
+              if (value != null) mode.value = value;
+            },
+          ),
+          RadioListTile<_StartStreamMode>(
+            value: _StartStreamMode.whip,
+            groupValue: mode.value,
+            title: const Text('External (WHIP)'),
+            subtitle: const Text('Create WHIP ingress'),
+            onChanged: (value) {
+              if (value != null) mode.value = value;
+            },
+          ),
+          SwitchListTile(
+            value: enableTranscoding.value,
+            onChanged: mode.value == _StartStreamMode.inApp
+                ? null
+                : (value) => enableTranscoding.value = value,
+            title: const Text('Enable transcoding'),
+            subtitle: const Text('Applies to external ingress modes'),
+          ),
+          const Gap(8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('cancel').tr(),
+              ),
+              const Gap(8),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(
+                    _StartStreamOptions(
+                      mode: mode.value,
+                      enableTranscoding: enableTranscoding.value,
+                    ),
+                  );
+                },
+                child: const Text('startStream').tr(),
+              ),
+            ],
+          ),
+          Gap(MediaQuery.of(context).padding.bottom + 8),
+        ],
+      ),
+    );
+  }
+}
+
 class _CreateLivestreamSheet extends HookConsumerWidget {
   final String publisherId;
+  final String publisherName;
 
-  const _CreateLivestreamSheet({required this.publisherId});
+  const _CreateLivestreamSheet({
+    required this.publisherId,
+    required this.publisherName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -736,7 +841,11 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
         if (metadata != null) {
           payload['metadata'] = metadata;
         }
-        await client.post('/sphere/livestreams', data: payload);
+        await client.post(
+          '/sphere/livestreams',
+          queryParameters: {'pub': publisherName},
+          data: payload,
+        );
 
         if (!context.mounted) return;
         showSnackBar('livestreamCreated'.tr());

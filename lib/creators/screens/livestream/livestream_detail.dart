@@ -15,6 +15,7 @@ import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -423,6 +424,74 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       await applyPlaybackSubscriptions();
     }
 
+    Future<void> switchDevice(lk.MediaDevice device, String deviceType) async {
+      try {
+        final localParticipant = roomState.value?.localParticipant;
+        if (localParticipant == null) return;
+
+        if (deviceType == 'videoinput') {
+          final videoTrack =
+              localParticipant.videoTrackPublications.firstOrNull?.track;
+          if (videoTrack is lk.LocalVideoTrack) {
+            await videoTrack.switchCamera(device.deviceId);
+          }
+        } else if (deviceType == 'audioinput') {
+          final audioTrack =
+              localParticipant.audioTrackPublications.firstOrNull?.track;
+          if (audioTrack is lk.LocalAudioTrack) {
+            await audioTrack.restartTrack(
+              lk.AudioCaptureOptions(deviceId: device.deviceId),
+            );
+          }
+        }
+
+        showSnackBar(
+          'switchedTo'.tr(
+            args: [device.label.isNotEmpty ? device.label : 'device'.tr()],
+          ),
+        );
+      } catch (e) {
+        showErrorAlert(e);
+      }
+    }
+
+    Future<void> showDeviceSelectionDialog(String deviceType) async {
+      try {
+        final devices = await lk.Hardware.instance.enumerateDevices(
+          type: deviceType,
+        );
+        if (!context.mounted) return;
+
+        showModalBottomSheet(
+          context: context,
+          builder: (dialogContext) => SheetScaffold(
+            titleText: deviceType == 'videoinput'
+                ? 'selectCamera'.tr()
+                : 'selectMicrophone'.tr(),
+            child: ListView.builder(
+              itemCount: devices.length,
+              itemBuilder: (context, index) {
+                final device = devices[index];
+                return ListTile(
+                  title: Text(
+                    device.label.isNotEmpty
+                        ? device.label
+                        : '${'device'.tr()} ${index + 1}',
+                  ),
+                  onTap: () async {
+                    Navigator.of(dialogContext).pop();
+                    await switchDevice(device, deviceType);
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      } catch (e) {
+        showErrorAlert(e);
+      }
+    }
+
     useEffect(() {
       unawaited(connect());
       return () {
@@ -575,20 +644,24 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                               ),
                               const Gap(10),
                               if (isStreamerIdentity.value) ...[
-                                _CircleControlButton(
+                                _CircleControlButtonWithDropdown(
                                   icon: isMicrophoneEnabled.value
                                       ? Symbols.mic
                                       : Symbols.mic_off,
                                   active: isMicrophoneEnabled.value,
                                   onTap: toggleMic,
+                                  onDropdownTap: () =>
+                                      showDeviceSelectionDialog('audioinput'),
                                 ),
                                 const Gap(10),
-                                _CircleControlButton(
+                                _CircleControlButtonWithDropdown(
                                   icon: isCameraEnabled.value
                                       ? Symbols.videocam
                                       : Symbols.videocam_off,
                                   active: isCameraEnabled.value,
                                   onTap: toggleCamera,
+                                  onDropdownTap: () =>
+                                      showDeviceSelectionDialog('videoinput'),
                                 ),
                                 const Gap(10),
                                 _CircleControlButton(
@@ -772,6 +845,52 @@ class _CircleControlButton extends StatelessWidget {
       ),
       icon: Icon(icon),
       color: Colors.white,
+    );
+  }
+}
+
+class _CircleControlButtonWithDropdown extends StatelessWidget {
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+  final VoidCallback onDropdownTap;
+
+  const _CircleControlButtonWithDropdown({
+    required this.icon,
+    required this.active,
+    required this.onTap,
+    required this.onDropdownTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        _CircleControlButton(icon: icon, active: active, onTap: onTap),
+        Positioned(
+          right: -4,
+          bottom: -2,
+          child: InkWell(
+            onTap: onDropdownTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white30, width: 0.8),
+              ),
+              child: const Icon(
+                Icons.arrow_drop_down,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
