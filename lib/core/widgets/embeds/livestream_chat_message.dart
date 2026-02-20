@@ -14,7 +14,7 @@ class LivestreamChatMessage extends ConsumerWidget {
   final ChatMessage? msg;
   final bool dark;
   final bool compact;
-  
+
   // Individual parameters as alternative to msg
   final String? sender;
   final String? senderIdentity;
@@ -32,8 +32,10 @@ class LivestreamChatMessage extends ConsumerWidget {
     this.message,
     this.isMine,
     this.createdAt,
-  }) : assert(msg != null || (sender != null && message != null),
-            'Either msg or both sender and message must be provided');
+  }) : assert(
+         msg != null || (sender != null && message != null),
+         'Either msg or both sender and message must be provided',
+       );
 
   String get _message => message ?? msg!.message;
   String get _sender => sender ?? msg!.sender;
@@ -60,13 +62,10 @@ class LivestreamChatMessage extends ConsumerWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (account?.profile.picture != null)
-              ProfilePictureWidget(
-                file: account!.profile.picture,
-                radius: 10,
-              )
+              ProfilePictureWidget(file: account!.profile.picture, radius: 10)
             else
               CircleAvatar(
                 radius: 10,
@@ -76,50 +75,43 @@ class LivestreamChatMessage extends ConsumerWidget {
                 ),
               ),
             const Gap(6),
+            Flexible(
+              flex: 0,
+              child: account != null
+                  ? AccountName(
+                      account: account,
+                      style:
+                          (Theme.of(context).textTheme.labelSmall ??
+                                  const TextStyle())
+                              .copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                      hideOverlay: true,
+                    )
+                  : Text(
+                      displayName,
+                      style:
+                          Theme.of(context).textTheme.labelSmall ??
+                          const TextStyle(),
+                    ),
+            ),
+            const Gap(8),
             Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    flex: 0,
-                    child: account != null
-                        ? AccountName(
-                            account: account,
-                            style:
-                                (Theme.of(context).textTheme.labelSmall ??
-                                        const TextStyle())
-                                    .copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                    ),
-                            hideOverlay: true,
-                          )
-                        : Text(
-                            displayName,
-                            style: Theme.of(context).textTheme.labelSmall ??
-                                const TextStyle(),
-                          ),
-                  ),
-                  const Gap(8),
-                  Expanded(
-                    child: MarkdownTextContent(
-                      content: _message,
-                      textStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      linesMargin: EdgeInsets.zero,
-                    ),
-                  ),
-                  const Gap(8),
-                  Text(
-                    timestamp,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
+              child: MarkdownTextContent(
+                content: _message,
+                textStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 12,
+                ),
+                linesMargin: EdgeInsets.zero,
+              ),
+            ),
+            const Gap(8),
+            Text(
+              timestamp,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 11,
               ),
             ),
           ],
@@ -247,7 +239,7 @@ class LivestreamChatMessage extends ConsumerWidget {
     } else if (identity.startsWith('streamer_')) {
       prefix = 'streamer_';
     }
-    
+
     if (prefix == null) return null;
     final raw = identity.substring(prefix.length).toLowerCase();
     if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;

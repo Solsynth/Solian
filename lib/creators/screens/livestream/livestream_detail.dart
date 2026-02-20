@@ -570,16 +570,14 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                               },
                             ),
                     ),
-                    const Divider(height: 1),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
                       child: Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: notifier.chatInputController,
-                              onSubmitted: (value) =>
-                                  notifier.sendMessage(value),
+                              onSubmitted: (value) => notifier.sendMessage(),
                               decoration: InputDecoration(
                                 isDense: true,
                                 hintText: 'liveChatMessageHint'.tr(),
