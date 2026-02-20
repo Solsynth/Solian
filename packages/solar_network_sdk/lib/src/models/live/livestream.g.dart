@@ -29,7 +29,7 @@ _SnLiveStream _$SnLiveStreamFromJson(Map<String, dynamic> json) =>
       ingressStreamKey: json['ingress_stream_key'] as String?,
       egressId: json['egress_id'] as String?,
       hlsEgressId: json['hls_egress_id'] as String?,
-      hlsPlaylistUrl: json['hls_playlist_url'] as String?,
+      hlsPlaylistPath: json['hls_playlist_path'] as String?,
       hlsStartedAt: json['hls_started_at'] == null
           ? null
           : DateTime.parse(json['hls_started_at'] as String),
@@ -75,7 +75,7 @@ Map<String, dynamic> _$SnLiveStreamToJson(_SnLiveStream instance) =>
       'ingress_stream_key': instance.ingressStreamKey,
       'egress_id': instance.egressId,
       'hls_egress_id': instance.hlsEgressId,
-      'hls_playlist_url': instance.hlsPlaylistUrl,
+      'hls_playlist_path': instance.hlsPlaylistPath,
       'hls_started_at': instance.hlsStartedAt?.toIso8601String(),
       'started_at': instance.startedAt?.toIso8601String(),
       'ended_at': instance.endedAt?.toIso8601String(),

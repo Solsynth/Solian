@@ -46,7 +46,7 @@ sealed class SnLiveStream with _$SnLiveStream {
     String? ingressStreamKey,
     String? egressId,
     String? hlsEgressId,
-    String? hlsPlaylistUrl,
+    String? hlsPlaylistPath,
     DateTime? hlsStartedAt,
     DateTime? startedAt,
     DateTime? endedAt,

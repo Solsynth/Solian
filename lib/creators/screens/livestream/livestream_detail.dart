@@ -348,7 +348,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                   itemBuilder: (_) =>
                                       buildLivestreamEgressMenuEntries(
                                         hasHlsUrl:
-                                            stream.hlsPlaylistUrl
+                                            stream.hlsPlaylistPath
                                                 ?.trim()
                                                 .isNotEmpty ??
                                             false,
@@ -359,7 +359,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                       ref,
                                       action: value,
                                       livestreamId: livestreamId,
-                                      hlsUrl: stream.hlsPlaylistUrl,
+                                      hlsUrl: stream.hlsPlaylistPath,
                                       onSuccess: () {
                                         ref.invalidate(
                                           creatorLivestreamDetailProvider(

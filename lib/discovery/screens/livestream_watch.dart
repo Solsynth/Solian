@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/widgets/embeds/livestream.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_playback.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -28,8 +32,10 @@ final livestreamDetailProvider = FutureProvider.autoDispose
       return null;
     });
 
+enum _LivestreamPlaybackMode { webrtc, hls }
+
 @RoutePage()
-class LivestreamWatchScreen extends ConsumerWidget {
+class LivestreamWatchScreen extends HookConsumerWidget {
   final String livestreamId;
 
   const LivestreamWatchScreen({
@@ -40,6 +46,38 @@ class LivestreamWatchScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final streamAsync = ref.watch(livestreamDetailProvider(livestreamId));
+    final playbackMode = useState<_LivestreamPlaybackMode>(
+      _LivestreamPlaybackMode.webrtc,
+    );
+
+    useEffect(
+      () {
+        final stream = streamAsync.value;
+        if (stream == null) return null;
+        final hasHls = (stream.hlsPlaylistPath ?? '').trim().isNotEmpty;
+        if (stream.status == SnLiveStreamStatus.ended && hasHls) {
+          playbackMode.value = _LivestreamPlaybackMode.hls;
+        } else if (!hasHls &&
+            playbackMode.value == _LivestreamPlaybackMode.hls) {
+          playbackMode.value = _LivestreamPlaybackMode.webrtc;
+        }
+        return null;
+      },
+      [
+        streamAsync.value?.id,
+        streamAsync.value?.status,
+        streamAsync.value?.hlsPlaylistPath,
+      ],
+    );
+
+    useEffect(() {
+      if (playbackMode.value == _LivestreamPlaybackMode.hls) {
+        unawaited(
+          ref.read(livestreamRoomProvider(livestreamId).notifier).disconnect(),
+        );
+      }
+      return null;
+    }, [playbackMode.value]);
 
     return AppScaffold(
       isNoBackground: false,
@@ -88,6 +126,9 @@ class LivestreamWatchScreen extends ConsumerWidget {
               stream: stream,
               publisher: publisher,
               publisherDisplayName: publisherDisplayName,
+              playbackMode: playbackMode.value,
+              onPlaybackModeChanged: (value) => playbackMode.value = value,
+              hlsUrl: resolveLivestreamHlsUrl(stream),
             );
           }
 
@@ -96,6 +137,9 @@ class LivestreamWatchScreen extends ConsumerWidget {
             stream: stream,
             publisher: publisher,
             publisherDisplayName: publisherDisplayName,
+            playbackMode: playbackMode.value,
+            onPlaybackModeChanged: (value) => playbackMode.value = value,
+            hlsUrl: resolveLivestreamHlsUrl(stream),
           );
         },
       ),
@@ -108,28 +152,60 @@ class _LivestreamMobileLayout extends StatelessWidget {
   final SnLiveStream stream;
   final SnPublisher? publisher;
   final String? publisherDisplayName;
+  final _LivestreamPlaybackMode playbackMode;
+  final ValueChanged<_LivestreamPlaybackMode> onPlaybackModeChanged;
+  final String? hlsUrl;
 
   const _LivestreamMobileLayout({
     required this.livestreamId,
     required this.stream,
     this.publisher,
     this.publisherDisplayName,
+    required this.playbackMode,
+    required this.onPlaybackModeChanged,
+    required this.hlsUrl,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasHls = hlsUrl != null && hlsUrl!.isNotEmpty;
     return ListView(
       padding: EdgeInsets.zero,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
+          child: _PlaybackModeSelector(
+            stream: stream,
+            playbackMode: playbackMode,
+            hasHls: hasHls,
+            onChanged: onPlaybackModeChanged,
+          ),
+        ),
         Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
-            child: LivestreamEmbedWidget(
-              livestreamId: livestreamId,
-              margin: const EdgeInsets.all(12),
-            ),
+            child: playbackMode == _LivestreamPlaybackMode.webrtc
+                ? LivestreamEmbedWidget(
+                    livestreamId: livestreamId,
+                    margin: const EdgeInsets.all(12),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _HlsPlaybackCard(hlsUrl: hlsUrl, stream: stream),
+                  ),
           ),
         ),
+        if (playbackMode == _LivestreamPlaybackMode.hls)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: ListTile(
+              leading: Icon(Symbols.info),
+              title: Text('HLS mode'),
+              subtitle: Text(
+                'Chat is unavailable when watching via HLS replay.',
+              ),
+            ),
+          ),
         if (publisherDisplayName != null)
           Center(
             child: ConstrainedBox(
@@ -196,16 +272,23 @@ class _LivestreamWideLayout extends StatelessWidget {
   final SnLiveStream stream;
   final SnPublisher? publisher;
   final String? publisherDisplayName;
+  final _LivestreamPlaybackMode playbackMode;
+  final ValueChanged<_LivestreamPlaybackMode> onPlaybackModeChanged;
+  final String? hlsUrl;
 
   const _LivestreamWideLayout({
     required this.livestreamId,
     required this.stream,
     this.publisher,
     this.publisherDisplayName,
+    required this.playbackMode,
+    required this.onPlaybackModeChanged,
+    required this.hlsUrl,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasHls = hlsUrl != null && hlsUrl!.isNotEmpty;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -214,14 +297,31 @@ class _LivestreamWideLayout extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
+                  child: _PlaybackModeSelector(
+                    stream: stream,
+                    playbackMode: playbackMode,
+                    hasHls: hasHls,
+                    onChanged: onPlaybackModeChanged,
+                  ),
+                ),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1000),
-                    child: LivestreamEmbedWidget(
-                      livestreamId: livestreamId,
-                      margin: const EdgeInsets.all(12),
-                      showChat: false,
-                    ),
+                    child: playbackMode == _LivestreamPlaybackMode.webrtc
+                        ? LivestreamEmbedWidget(
+                            livestreamId: livestreamId,
+                            margin: const EdgeInsets.all(12),
+                            showChat: false,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: _HlsPlaybackCard(
+                              hlsUrl: hlsUrl,
+                              stream: stream,
+                            ),
+                          ),
                   ),
                 ),
                 if (publisherDisplayName != null)
@@ -292,7 +392,9 @@ class _LivestreamWideLayout extends StatelessWidget {
         ),
         Expanded(
           flex: 2,
-          child: _LivestreamChatPanel(livestreamId: livestreamId),
+          child: playbackMode == _LivestreamPlaybackMode.webrtc
+              ? _LivestreamChatPanel(livestreamId: livestreamId)
+              : const _HlsChatPanel(),
         ),
       ],
     );
@@ -300,6 +402,144 @@ class _LivestreamWideLayout extends StatelessWidget {
 
   Widget _buildPublisherAvatar(SnPublisher? publisher) {
     return ProfilePictureWidget(file: publisher?.picture, radius: 24);
+  }
+}
+
+class _PlaybackModeSelector extends StatelessWidget {
+  final SnLiveStream stream;
+  final _LivestreamPlaybackMode playbackMode;
+  final bool hasHls;
+  final ValueChanged<_LivestreamPlaybackMode> onChanged;
+
+  const _PlaybackModeSelector({
+    required this.stream,
+    required this.playbackMode,
+    required this.hasHls,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasHls) return const SizedBox.shrink();
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Symbols.video_settings),
+            const Gap(8),
+            const Text('Watch by'),
+            const Gap(12),
+            Expanded(
+              child: SegmentedButton<_LivestreamPlaybackMode>(
+                selected: {playbackMode},
+                segments: const [
+                  ButtonSegment<_LivestreamPlaybackMode>(
+                    value: _LivestreamPlaybackMode.webrtc,
+                    label: Text('Live (WebRTC)'),
+                    icon: Icon(Symbols.live_tv),
+                  ),
+                  ButtonSegment<_LivestreamPlaybackMode>(
+                    value: _LivestreamPlaybackMode.hls,
+                    label: Text('Replay (HLS)'),
+                    icon: Icon(Symbols.play_circle),
+                  ),
+                ],
+                onSelectionChanged: (selection) {
+                  if (selection.isNotEmpty) {
+                    onChanged(selection.first);
+                  }
+                },
+              ),
+            ),
+            if (stream.status == SnLiveStreamStatus.ended) ...[
+              const Gap(8),
+              Text(
+                'Ended',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HlsPlaybackCard extends StatelessWidget {
+  final SnLiveStream stream;
+  final String? hlsUrl;
+
+  const _HlsPlaybackCard({required this.stream, required this.hlsUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (hlsUrl == null || hlsUrl!.isEmpty) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Center(
+            child: Text(
+              'HLS replay is not available for this stream.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: LivestreamHlsVideo(
+          stream: stream,
+          hlsUrl: hlsUrl,
+          showVodBadge: true,
+        ),
+      ),
+    );
+  }
+}
+
+class _HlsChatPanel extends StatelessWidget {
+  const _HlsChatPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Symbols.forum, size: 48),
+                Gap(12),
+                Text(
+                  'Chat is unavailable in HLS replay mode. Switch to Live (WebRTC) to join chat.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -316,52 +556,15 @@ class _LivestreamChatPanel extends ConsumerWidget {
     final isConnected = room != null;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'liveChat'.tr(),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const Spacer(),
-              if (!isConnected)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'watchToJoin'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const Gap(12),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: isConnected
-                  ? _ChatMessagesList(
-                      messages: messages,
-                      livestreamId: livestreamId,
-                    )
-                  : _ChatPlaceholder(livestreamId: livestreamId),
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(0, 12, 16, 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: isConnected
+            ? _ChatMessagesList(messages: messages, livestreamId: livestreamId)
+            : _ChatPlaceholder(livestreamId: livestreamId),
       ),
     );
   }
@@ -506,7 +709,9 @@ class _ChatMessagesListState extends ConsumerState<_ChatMessagesList> {
                     ),
                   ),
                   onSubmitted: (value) => ref
-                      .read(livestreamRoomProvider(widget.livestreamId).notifier)
+                      .read(
+                        livestreamRoomProvider(widget.livestreamId).notifier,
+                      )
                       .sendMessage(),
                 ),
               ),
@@ -515,7 +720,11 @@ class _ChatMessagesListState extends ConsumerState<_ChatMessagesList> {
                 onPressed: isSending
                     ? null
                     : () => ref
-                          .read(livestreamRoomProvider(widget.livestreamId).notifier)
+                          .read(
+                            livestreamRoomProvider(
+                              widget.livestreamId,
+                            ).notifier,
+                          )
                           .sendMessage(),
                 icon: isSending
                     ? const SizedBox.square(

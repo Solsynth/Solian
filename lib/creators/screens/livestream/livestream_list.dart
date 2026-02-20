@@ -507,7 +507,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                       ),
                     ...buildLivestreamEgressMenuEntries(
                       hasHlsUrl:
-                          stream.hlsPlaylistUrl?.trim().isNotEmpty ?? false,
+                          stream.hlsPlaylistPath?.trim().isNotEmpty ?? false,
                     ),
                     PopupMenuItem(
                       value: 'delete',
@@ -537,7 +537,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                         ref,
                         action: value,
                         livestreamId: _id,
-                        hlsUrl: stream.hlsPlaylistUrl,
+                        hlsUrl: stream.hlsPlaylistPath,
                         onSuccess: () => ref.invalidate(
                           creatorLivestreamListProvider(publisherId),
                         ),
