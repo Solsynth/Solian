@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
 import 'package:island/core/widgets/embeds/livestream_overlay.dart';
+import 'package:island/core/widgets/embeds/livestream_playback.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
@@ -57,6 +58,12 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
     final isChatCollapsed = roomState.isChatCollapsed;
 
     final notifier = ref.read(livestreamRoomProvider(livestreamId).notifier);
+    final stream = detailAsync.value;
+    final hlsUrl = stream == null ? null : resolveLivestreamHlsUrl(stream);
+    final isVodPlayback =
+        room == null &&
+        stream?.status == SnLiveStreamStatus.ended &&
+        (hlsUrl?.isNotEmpty ?? false);
 
     final fullScreenOpen = useState(false);
 
@@ -121,6 +128,12 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                         Positioned.fill(
                           child: videoTrack != null
                               ? lk.VideoTrackRenderer(videoTrack)
+                              : isVodPlayback && stream != null
+                              ? LivestreamHlsVideo(
+                                  stream: stream,
+                                  hlsUrl: hlsUrl,
+                                  showVodBadge: true,
+                                )
                               : detailAsync.when(
                                   data: (stream) {
                                     final thumbnailId = stream.thumbnail?.id;
@@ -177,7 +190,7 @@ class LivestreamEmbedWidget extends HookConsumerWidget {
                                   ),
                                 ),
                         ),
-                        if (isInteractive && room == null)
+                        if (isInteractive && room == null && !isVodPlayback)
                           Positioned.fill(
                             child: Center(
                               child: detailAsync.when(
