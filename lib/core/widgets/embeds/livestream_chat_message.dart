@@ -64,8 +64,8 @@ _SuperchatPalette _paletteForAmount(double amount) {
       base: Colors.orange.shade700,
       accent: Colors.orange.shade400,
       progress: Colors.deepOrange.shade900,
-      nameColor: Colors.black,
-      amountColor: Colors.black,
+      nameColor: Colors.white,
+      amountColor: Colors.white,
       messageBg: Colors.orange.shade300,
       messageText: Colors.black,
     );
@@ -75,8 +75,8 @@ _SuperchatPalette _paletteForAmount(double amount) {
       base: Colors.amber.shade700,
       accent: Colors.amber.shade400,
       progress: Colors.amber.shade900,
-      nameColor: Colors.black,
-      amountColor: Colors.black,
+      nameColor: Colors.white,
+      amountColor: Colors.white,
       messageBg: Colors.amber.shade300,
       messageText: Colors.black,
     );
@@ -107,8 +107,8 @@ _SuperchatPalette _paletteForAmount(double amount) {
     base: Colors.teal.shade600,
     accent: Colors.teal.shade300,
     progress: Colors.teal.shade900,
-    nameColor: Colors.black,
-    amountColor: Colors.black,
+    nameColor: Colors.white,
+    amountColor: Colors.white,
     messageBg: Colors.teal.shade300,
     messageText: Colors.black,
   );
@@ -136,12 +136,26 @@ int _awardHighlightSeconds(ChatMessage msg) {
   return 0;
 }
 
+DateTime? _awardActiveUntil(ChatMessage msg) {
+  final raw = msg.metadata?['active_until'];
+  if (raw is String) return DateTime.tryParse(raw);
+  return null;
+}
+
 double _awardRemainingProgress(ChatMessage msg, DateTime now) {
   final highlightSeconds = _awardHighlightSeconds(msg);
   final createdAt = msg.createdAt;
+  final endAt = _awardActiveUntil(msg);
+  if (endAt != null && createdAt != null) {
+    final remainingMs = endAt.difference(now).inMilliseconds;
+    if (remainingMs <= 0) return 0;
+    final totalMs = endAt.difference(createdAt).inMilliseconds;
+    if (totalMs <= 0) return 1;
+    return (remainingMs / totalMs).clamp(0, 1);
+  }
   if (highlightSeconds <= 0 || createdAt == null) return 0;
-  final endAt = createdAt.add(Duration(seconds: highlightSeconds));
-  final remainingMs = endAt.difference(now).inMilliseconds;
+  final derivedEndAt = createdAt.add(Duration(seconds: highlightSeconds));
+  final remainingMs = derivedEndAt.difference(now).inMilliseconds;
   if (remainingMs <= 0) return 0;
   return (remainingMs / (highlightSeconds * 1000)).clamp(0, 1);
 }
@@ -252,7 +266,7 @@ class LivestreamSuperchatStickyChip extends HookConsumerWidget {
     return Padding(
       padding: margin,
       child: Align(
-        alignment: Alignment.topLeft,
+        alignment: Alignment.topRight,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -319,7 +333,7 @@ class LivestreamSuperchatStickyChip extends HookConsumerWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         ),
                       ),

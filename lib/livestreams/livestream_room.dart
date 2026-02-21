@@ -29,13 +29,22 @@ int _superchatHighlightSeconds(ChatMessage message) {
   return 0;
 }
 
+DateTime? _superchatActiveUntil(ChatMessage message) {
+  final raw = message.metadata?['active_until'];
+  return _parseDateTime(raw);
+}
+
 bool isSuperchatActive(ChatMessage message, {DateTime? now}) {
   if (!isSuperchatMessage(message)) return false;
+  final current = now ?? DateTime.now();
+  final activeUntil = _superchatActiveUntil(message);
+  if (activeUntil != null) {
+    return activeUntil.isAfter(current);
+  }
   final highlightSeconds = _superchatHighlightSeconds(message);
   if (highlightSeconds <= 0) return false;
   final createdAt = message.createdAt;
   if (createdAt == null) return false;
-  final current = now ?? DateTime.now();
   return createdAt.add(Duration(seconds: highlightSeconds)).isAfter(current);
 }
 
@@ -87,7 +96,12 @@ List<Map<String, dynamic>> _extractObjectList(dynamic data) {
   }
   if (data is Map) {
     final map = Map<String, dynamic>.from(data);
-    final nested = map['data'] ?? map['items'] ?? map['results'];
+    final nested =
+        map['data'] ??
+        map['items'] ??
+        map['results'] ??
+        map['awards'] ??
+        map['active'];
     if (nested is List) {
       return nested
           .whereType<Map>()
@@ -99,28 +113,36 @@ List<Map<String, dynamic>> _extractObjectList(dynamic data) {
 }
 
 ChatMessage? _chatMessageFromActiveAward(Map<String, dynamic> award) {
+  final rawSender = award['sender'] ?? award['account'];
   final senderId = (award['sender_id'] ?? award['account_id'] ?? '')
       .toString()
       .trim();
-  final senderName = (award['sender_name'] ?? award['sender'] ?? 'Unknown')
-      .toString();
+  final senderName =
+      (award['sender_name'] ??
+              (rawSender is Map ? rawSender['name'] : null) ??
+              award['sender'] ??
+              'Unknown')
+          .toString();
   final amount = _parseDouble(award['amount']);
   if (amount <= 0) return null;
 
   final message = (award['message'] as String?) ?? '';
   final createdAt = _parseDateTime(award['created_at']) ?? DateTime.now();
   int highlightSeconds = _parseInt(award['highlight_seconds']);
+  final expiresAt = _parseDateTime(award['expires_at']);
 
   if (highlightSeconds <= 0) {
-    final expiresAt = _parseDateTime(award['expires_at']);
     if (expiresAt != null) {
       final computed = expiresAt.difference(createdAt).inSeconds;
       highlightSeconds = computed > 0 ? computed : 0;
     }
   }
+  if (highlightSeconds <= 0 && expiresAt == null) {
+    // Keep unknown active-award payloads visible for a short period.
+    highlightSeconds = 120;
+  }
 
   SnAccount? senderAccount;
-  final rawSender = award['sender'];
   if (rawSender is Map<String, dynamic>) {
     try {
       senderAccount = SnAccount.fromJson(rawSender);
@@ -131,7 +153,7 @@ ChatMessage? _chatMessageFromActiveAward(Map<String, dynamic> award) {
     } catch (_) {}
   }
 
-  return ChatMessage.systemAward(
+  final mapped = ChatMessage.systemAward(
     sender: senderName,
     senderId: senderId,
     amount: amount,
@@ -140,6 +162,15 @@ ChatMessage? _chatMessageFromActiveAward(Map<String, dynamic> award) {
     createdAt: createdAt,
     senderAccount: senderAccount,
   );
+  if (expiresAt != null) {
+    return mapped.copyWith(
+      metadata: {
+        ...?mapped.metadata,
+        'active_until': expiresAt.toIso8601String(),
+      },
+    );
+  }
+  return mapped;
 }
 
 @freezed
@@ -246,7 +277,14 @@ abstract class ChatMessage with _$ChatMessage {
       createdAt: createdAt ?? DateTime.now(),
       messageType: ChatMessageType.systemAward,
       senderAccount: senderAccount,
-      metadata: {'amount': amount, 'highlight_seconds': highlightSeconds},
+      metadata: {
+        'amount': amount,
+        'highlight_seconds': highlightSeconds,
+        if (highlightSeconds != null && createdAt != null)
+          'active_until': createdAt
+              .add(Duration(seconds: highlightSeconds))
+              .toIso8601String(),
+      },
     );
   }
 
