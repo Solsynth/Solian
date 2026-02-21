@@ -17,6 +17,36 @@ part 'livestream_room.g.dart';
 
 enum ChatMessageType { chat, systemAward, systemJoin, systemLeave }
 
+bool isSuperchatMessage(ChatMessage message) {
+  return message.messageType == ChatMessageType.systemAward;
+}
+
+int _superchatHighlightSeconds(ChatMessage message) {
+  final raw = message.metadata?['highlight_seconds'];
+  if (raw is int) return raw;
+  if (raw is num) return raw.toInt();
+  if (raw is String) return int.tryParse(raw) ?? 0;
+  return 0;
+}
+
+bool isSuperchatActive(ChatMessage message, {DateTime? now}) {
+  if (!isSuperchatMessage(message)) return false;
+  final highlightSeconds = _superchatHighlightSeconds(message);
+  if (highlightSeconds <= 0) return false;
+  final createdAt = message.createdAt;
+  if (createdAt == null) return false;
+  final current = now ?? DateTime.now();
+  return createdAt.add(Duration(seconds: highlightSeconds)).isAfter(current);
+}
+
+ChatMessage? latestActiveSuperchat(List<ChatMessage> messages) {
+  for (var i = messages.length - 1; i >= 0; i--) {
+    final msg = messages[i];
+    if (isSuperchatActive(msg)) return msg;
+  }
+  return null;
+}
+
 double _parseDouble(dynamic value) {
   if (value == null) return 0;
   if (value is num) return value.toDouble();
@@ -30,6 +60,86 @@ int _parseInt(dynamic value) {
   if (value is num) return value.toInt();
   if (value is String) return int.tryParse(value) ?? 0;
   return 0;
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  if (value is int) {
+    final ms = value > 1000000000000 ? value : value * 1000;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+  if (value is num) {
+    final intValue = value.toInt();
+    final ms = intValue > 1000000000000 ? intValue : intValue * 1000;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+  return null;
+}
+
+List<Map<String, dynamic>> _extractObjectList(dynamic data) {
+  if (data is List) {
+    return data
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList(growable: false);
+  }
+  if (data is Map) {
+    final map = Map<String, dynamic>.from(data);
+    final nested = map['data'] ?? map['items'] ?? map['results'];
+    if (nested is List) {
+      return nested
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(growable: false);
+    }
+  }
+  return const [];
+}
+
+ChatMessage? _chatMessageFromActiveAward(Map<String, dynamic> award) {
+  final senderId = (award['sender_id'] ?? award['account_id'] ?? '')
+      .toString()
+      .trim();
+  final senderName = (award['sender_name'] ?? award['sender'] ?? 'Unknown')
+      .toString();
+  final amount = _parseDouble(award['amount']);
+  if (amount <= 0) return null;
+
+  final message = (award['message'] as String?) ?? '';
+  final createdAt = _parseDateTime(award['created_at']) ?? DateTime.now();
+  int highlightSeconds = _parseInt(award['highlight_seconds']);
+
+  if (highlightSeconds <= 0) {
+    final expiresAt = _parseDateTime(award['expires_at']);
+    if (expiresAt != null) {
+      final computed = expiresAt.difference(createdAt).inSeconds;
+      highlightSeconds = computed > 0 ? computed : 0;
+    }
+  }
+
+  SnAccount? senderAccount;
+  final rawSender = award['sender'];
+  if (rawSender is Map<String, dynamic>) {
+    try {
+      senderAccount = SnAccount.fromJson(rawSender);
+    } catch (_) {}
+  } else if (rawSender is Map) {
+    try {
+      senderAccount = SnAccount.fromJson(Map<String, dynamic>.from(rawSender));
+    } catch (_) {}
+  }
+
+  return ChatMessage.systemAward(
+    sender: senderName,
+    senderId: senderId,
+    amount: amount,
+    message: message,
+    highlightSeconds: highlightSeconds,
+    createdAt: createdAt,
+    senderAccount: senderAccount,
+  );
 }
 
 @freezed
@@ -122,7 +232,9 @@ abstract class ChatMessage with _$ChatMessage {
     required String senderId,
     required double amount,
     String? message,
+    int? highlightSeconds,
     DateTime? createdAt,
+    SnAccount? senderAccount,
   }) {
     return ChatMessage(
       id: '',
@@ -133,7 +245,8 @@ abstract class ChatMessage with _$ChatMessage {
       isMine: false,
       createdAt: createdAt ?? DateTime.now(),
       messageType: ChatMessageType.systemAward,
-      metadata: {'amount': amount},
+      senderAccount: senderAccount,
+      metadata: {'amount': amount, 'highlight_seconds': highlightSeconds},
     );
   }
 
@@ -407,6 +520,48 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
         });
       } catch (_) {}
 
+      try {
+        final activeAwardsResponse = await client.get(
+          '/sphere/livestreams/$livestreamId/awards/active',
+        );
+        final activeAwards = _extractObjectList(activeAwardsResponse.data);
+        for (final award in activeAwards) {
+          final msg = _chatMessageFromActiveAward(award);
+          if (msg != null) chatHistory.add(msg);
+        }
+      } catch (_) {}
+
+      // Ensure deterministic ordering and avoid duplicates when the same
+      // award appears in both chat history and active-awards endpoint.
+      chatHistory.sort((a, b) {
+        final aTime = a.createdAt ?? DateTime.now();
+        final bTime = b.createdAt ?? DateTime.now();
+        return aTime.compareTo(bTime);
+      });
+      final deduped = <ChatMessage>[];
+      final seen = <String>{};
+      for (final msg in chatHistory) {
+        final key = msg.messageType == ChatMessageType.systemAward
+            ? [
+                'award',
+                msg.senderId,
+                msg.sender,
+                msg.message,
+                msg.metadata?['amount'],
+                msg.metadata?['highlight_seconds'],
+                msg.createdAt?.millisecondsSinceEpoch,
+              ].join('|')
+            : [
+                'chat',
+                msg.id,
+                msg.senderId,
+                msg.message,
+                msg.createdAt?.millisecondsSinceEpoch,
+              ].join('|');
+        if (seen.add(key)) deduped.add(msg);
+      }
+      chatHistory = deduped;
+
       final room = lk.Room();
       final candidateUrls = {
         if (url.startsWith('wss://'))
@@ -565,6 +720,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
                         senderId: senderId,
                         amount: amount,
                         message: message,
+                        highlightSeconds: highlightSeconds,
                       );
                       appendMessage(superchat);
                     }

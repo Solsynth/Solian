@@ -670,12 +670,18 @@ class _ChatMessagesListState extends ConsumerState<_ChatMessagesList> {
   Widget build(BuildContext context) {
     final roomState = ref.watch(livestreamRoomProvider(widget.livestreamId));
     final isSending = roomState.isSendingChat;
+    final activeSuperchat = latestActiveSuperchat(widget.messages);
     final inputController = ref
         .read(livestreamRoomProvider(widget.livestreamId).notifier)
         .chatInputController;
 
     return Column(
       children: [
+        if (activeSuperchat != null)
+          LivestreamSuperchatStickyChip(
+            message: activeSuperchat,
+            margin: const EdgeInsets.fromLTRB(10, 8, 10, 2),
+          ),
         Expanded(
           child: widget.messages.isEmpty
               ? Center(

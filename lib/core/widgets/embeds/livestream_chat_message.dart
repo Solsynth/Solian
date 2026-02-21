@@ -1,5 +1,7 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -16,6 +18,321 @@ SnAccount? _getSenderAccount(ChatMessage? msg) {
     return msg!.senderAccount;
   }
   return null;
+}
+
+double _awardAmount(ChatMessage msg) {
+  final raw = msg.metadata?['amount'];
+  if (raw is num) return raw.toDouble();
+  if (raw is String) return double.tryParse(raw) ?? 0;
+  return 0;
+}
+
+class _SuperchatPalette {
+  final Color base;
+  final Color accent;
+  final Color progress;
+  final Color nameColor;
+  final Color amountColor;
+  final Color messageBg;
+  final Color messageText;
+
+  const _SuperchatPalette({
+    required this.base,
+    required this.accent,
+    required this.progress,
+    required this.nameColor,
+    required this.amountColor,
+    required this.messageBg,
+    required this.messageText,
+  });
+}
+
+_SuperchatPalette _paletteForAmount(double amount) {
+  if (amount >= 500) {
+    return _SuperchatPalette(
+      base: Colors.red.shade700,
+      accent: Colors.red.shade400,
+      progress: Colors.red.shade900,
+      nameColor: Colors.white,
+      amountColor: Colors.white,
+      messageBg: Colors.red.shade500,
+      messageText: Colors.white,
+    );
+  }
+  if (amount >= 200) {
+    return _SuperchatPalette(
+      base: Colors.orange.shade700,
+      accent: Colors.orange.shade400,
+      progress: Colors.deepOrange.shade900,
+      nameColor: Colors.black,
+      amountColor: Colors.black,
+      messageBg: Colors.orange.shade300,
+      messageText: Colors.black,
+    );
+  }
+  if (amount >= 100) {
+    return _SuperchatPalette(
+      base: Colors.amber.shade700,
+      accent: Colors.amber.shade400,
+      progress: Colors.amber.shade900,
+      nameColor: Colors.black,
+      amountColor: Colors.black,
+      messageBg: Colors.amber.shade300,
+      messageText: Colors.black,
+    );
+  }
+  if (amount >= 50) {
+    return _SuperchatPalette(
+      base: Colors.green.shade700,
+      accent: Colors.green.shade400,
+      progress: Colors.green.shade900,
+      nameColor: Colors.white,
+      amountColor: Colors.white,
+      messageBg: Colors.green.shade500,
+      messageText: Colors.white,
+    );
+  }
+  if (amount >= 20) {
+    return _SuperchatPalette(
+      base: Colors.blue.shade700,
+      accent: Colors.blue.shade400,
+      progress: Colors.blue.shade900,
+      nameColor: Colors.white,
+      amountColor: Colors.white,
+      messageBg: Colors.blue.shade500,
+      messageText: Colors.white,
+    );
+  }
+  return _SuperchatPalette(
+    base: Colors.teal.shade600,
+    accent: Colors.teal.shade300,
+    progress: Colors.teal.shade900,
+    nameColor: Colors.black,
+    amountColor: Colors.black,
+    messageBg: Colors.teal.shade300,
+    messageText: Colors.black,
+  );
+}
+
+String _awardAmountText(ChatMessage msg) {
+  final amount = _awardAmount(msg);
+  if (amount == amount.roundToDouble()) {
+    return amount.toStringAsFixed(0);
+  }
+  return amount.toStringAsFixed(1);
+}
+
+String _awardInitial(ChatMessage msg) {
+  final sender = msg.sender.trim();
+  if (sender.isEmpty) return '?';
+  return sender[0].toUpperCase();
+}
+
+int _awardHighlightSeconds(ChatMessage msg) {
+  final raw = msg.metadata?['highlight_seconds'];
+  if (raw is int) return raw;
+  if (raw is num) return raw.toInt();
+  if (raw is String) return int.tryParse(raw) ?? 0;
+  return 0;
+}
+
+double _awardRemainingProgress(ChatMessage msg, DateTime now) {
+  final highlightSeconds = _awardHighlightSeconds(msg);
+  final createdAt = msg.createdAt;
+  if (highlightSeconds <= 0 || createdAt == null) return 0;
+  final endAt = createdAt.add(Duration(seconds: highlightSeconds));
+  final remainingMs = endAt.difference(now).inMilliseconds;
+  if (remainingMs <= 0) return 0;
+  return (remainingMs / (highlightSeconds * 1000)).clamp(0, 1);
+}
+
+Future<void> showSuperchatDetailSheet(
+  BuildContext context,
+  ChatMessage msg, {
+  SnAccount? account,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) {
+      final messageText = msg.message.trim();
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: const Color(0xFFFF1F9A).withOpacity(0.25),
+                  child: ProfilePictureWidget(
+                    file: account?.profile.picture,
+                    radius: 20,
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (account != null)
+                        AccountName(
+                          account: account,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        )
+                      else
+                        Text(
+                          msg.sender,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      Text(
+                        '${_awardAmountText(msg)} pts',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF08957C),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (messageText.isNotEmpty) ...[
+              const Gap(16),
+              Text(messageText, style: Theme.of(context).textTheme.bodyLarge),
+            ],
+          ],
+        ),
+      );
+    },
+  );
+}
+
+class LivestreamSuperchatStickyChip extends HookConsumerWidget {
+  final ChatMessage message;
+  final EdgeInsetsGeometry margin;
+
+  const LivestreamSuperchatStickyChip({
+    super.key,
+    required this.message,
+    this.margin = const EdgeInsets.fromLTRB(8, 8, 8, 6),
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final senderRef = message.senderId.isNotEmpty
+        ? message.senderId
+        : (message.senderIdentity ?? '');
+    final accountAsync = senderRef.isEmpty
+        ? const AsyncData<SnAccount?>(null)
+        : ref.watch(accountInfoProvider(senderRef));
+    final account = message.senderAccount ?? accountAsync.value;
+
+    final now = useState(DateTime.now());
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        now.value = DateTime.now();
+      });
+      return timer.cancel;
+    }, []);
+
+    if (!isSuperchatActive(message, now: now.value)) {
+      return const SizedBox.shrink();
+    }
+
+    final amountText = _awardAmountText(message);
+    final palette = _paletteForAmount(_awardAmount(message));
+    final progress = _awardRemainingProgress(message, now.value);
+    return Padding(
+      padding: margin,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(9999),
+            onTap: () =>
+                showSuperchatDetailSheet(context, message, account: account),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: palette.base,
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(9999),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(color: palette.progress),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: palette.accent,
+                        ),
+                        child: account?.profile.picture != null
+                            ? ClipOval(
+                                child: ProfilePictureWidget(
+                                  file: account?.profile.picture,
+                                  radius: 15,
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  _awardInitial(message),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 2,
+                          right: 12,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        child: Text(
+                          '$amountText pts',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class LivestreamChatMessage extends ConsumerWidget {
@@ -55,7 +372,7 @@ class LivestreamChatMessage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (_messageType == ChatMessageType.systemAward) {
-      return _buildSystemAwardMessage(context);
+      return _buildSystemAwardMessage(context, ref);
     }
 
     if (_messageType == ChatMessageType.systemJoin ||
@@ -266,60 +583,113 @@ class LivestreamChatMessage extends ConsumerWidget {
     return '${diff.inDays}d';
   }
 
-  Widget _buildSystemAwardMessage(BuildContext context) {
-    final metadata = msg?.metadata;
-    final amount = metadata?['amount'] as double? ?? 0;
-    final senderName = _sender;
-    final messageText = _message;
-
-    const color = Colors.amber;
-    const icon = Icons.star;
+  Widget _buildSystemAwardMessage(BuildContext context, WidgetRef ref) {
+    final awardMessage = msg;
+    if (awardMessage == null) return const SizedBox.shrink();
+    final messageText = awardMessage.message.trim();
+    final amountText = _awardAmountText(awardMessage);
+    final palette = _paletteForAmount(_awardAmount(awardMessage));
+    final senderRef = awardMessage.senderId.isNotEmpty
+        ? awardMessage.senderId
+        : (awardMessage.senderIdentity ?? '');
+    final accountAsync = senderRef.isEmpty
+        ? const AsyncData<SnAccount?>(null)
+        : ref.watch(accountInfoProvider(senderRef));
+    final account = awardMessage.senderAccount ?? accountAsync.value;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(icon, color: color, size: 20),
-            const Gap(8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'awardStreamAwarded'.tr(
-                      args: [senderName, amount.toStringAsFixed(0)],
-                    ),
-                    style: const TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  if (messageText.isNotEmpty) ...[
-                    const Gap(4),
-                    Text(
-                      messageText,
-                      style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.8),
-                        fontSize: 12,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
+          onTap: () =>
+              showSuperchatDetailSheet(context, awardMessage, account: account),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: palette.base,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: const Color(
+                          0xFFFF1F9A,
+                        ).withOpacity(0.25),
+                        child: ProfilePictureWidget(
+                          file: account?.profile.picture,
+                          radius: 18,
+                        ),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (account != null)
+                              AccountName(
+                                account: account,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: palette.nameColor,
+                                    ),
+                              )
+                            else
+                              Text(
+                                awardMessage.sender,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      color: palette.nameColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            Text(
+                              '$amountText pts',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: palette.amountColor,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (messageText.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    decoration: BoxDecoration(
+                      color: palette.messageBg,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      messageText,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: palette.messageText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 6),
+              ],
+            ),
+          ),
         ),
       ),
     );

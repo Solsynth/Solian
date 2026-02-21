@@ -41,6 +41,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
       creatorLivestreamDetailProvider(livestreamId),
     );
     final roomState = ref.watch(livestreamRoomProvider(livestreamId));
+    final activeSuperchat = latestActiveSuperchat(roomState.messages);
     final notifier = ref.read(livestreamRoomProvider(livestreamId).notifier);
 
     final videoPlaybackEnabled = useState(true);
@@ -567,6 +568,11 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                     ),
                   ),
                   if (!roomState.isChatCollapsed) ...[
+                    if (activeSuperchat != null)
+                      LivestreamSuperchatStickyChip(
+                        message: activeSuperchat,
+                        margin: const EdgeInsets.fromLTRB(10, 8, 10, 2),
+                      ),
                     SizedBox(
                       height: 220,
                       child: roomState.messages.isEmpty
