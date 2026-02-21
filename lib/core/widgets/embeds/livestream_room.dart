@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/network.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -15,6 +16,84 @@ part 'livestream_room.freezed.dart';
 part 'livestream_room.g.dart';
 
 enum ChatMessageType { chat, systemAward, systemJoin, systemLeave }
+
+double _parseDouble(dynamic value) {
+  if (value == null) return 0;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0;
+  return 0;
+}
+
+int _parseInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
+
+@freezed
+abstract class LivestreamEvent with _$LivestreamEvent {
+  const factory LivestreamEvent.chatMessage({
+    required String id,
+    @JsonKey(name: 'live_stream_id') required String livestreamId,
+    @JsonKey(name: 'sender_id') required String senderId,
+    required String senderName,
+    required String content,
+    DateTime? createdAt,
+    SnAccount? sender,
+  }) = LivestreamEventChatMessage;
+
+  const factory LivestreamEvent.timeout({required int durationMinutes}) =
+      LivestreamTimeout;
+
+  const factory LivestreamEvent.streamAwarded({
+    @JsonKey(name: 'sender_id') required String senderId,
+    required String senderName,
+    required double amount,
+    String? message,
+    @JsonKey(name: 'highlight_seconds') int? highlightSeconds,
+  }) = LivestreamStreamAwarded;
+
+  const factory LivestreamEvent.unknown(Map<String, dynamic> raw) =
+      LivestreamUnknown;
+
+  factory LivestreamEvent.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] as String?;
+
+    SnAccount? sender;
+    if (json['sender'] != null) {
+      try {
+        sender = SnAccount.fromJson(json['sender'] as Map<String, dynamic>);
+      } catch (_) {}
+    }
+
+    return switch (type) {
+      'timeout' => LivestreamEvent.timeout(
+        durationMinutes: json['duration_minutes'] as int? ?? 0,
+      ),
+      'stream_awarded' => LivestreamEvent.streamAwarded(
+        senderId: json['sender_id'] as String? ?? '',
+        senderName: json['sender_name'] as String? ?? 'Someone',
+        amount: _parseDouble(json['amount']),
+        message: json['message'] as String?,
+        highlightSeconds: _parseInt(json['highlight_seconds']),
+      ),
+      _ when json['content'] != null => LivestreamEvent.chatMessage(
+        id: json['id'] as String? ?? '',
+        livestreamId: json['live_stream_id'] as String? ?? '',
+        senderId: json['sender_id'] as String? ?? '',
+        senderName: json['sender_name'] as String? ?? 'Unknown',
+        content: json['content'] as String? ?? '',
+        createdAt: json['created_at'] != null
+            ? DateTime.tryParse(json['created_at'] as String)
+            : null,
+        sender: sender,
+      ),
+      _ => LivestreamEvent.unknown(json),
+    };
+  }
+}
 
 @freezed
 abstract class ChatMessage with _$ChatMessage {
@@ -306,12 +385,13 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
       List<ChatMessage> chatHistory = [];
       try {
+        final userInfo = ref.read(userInfoProvider).value;
         final chatResponse = await client.get(
           '/sphere/livestreams/$livestreamId/chat',
           queryParameters: {'limit': 50, 'offset': 0},
         );
         final chatData = chatResponse.data as List;
-        final localUserId = identity;
+        final localUserId = userInfo?.id;
         for (final msg in chatData) {
           final msgMap = Map<String, dynamic>.from(msg);
           final isMine = msgMap['sender_id'] == localUserId;
@@ -437,43 +517,64 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
           _subscribedAudioTracks.clear();
         })
         ..on<lk.DataReceivedEvent>((e) {
-          if (e.topic != null && e.topic != 'chat') return;
           final data = utf8.decode(e.data, allowMalformed: true).trim();
           if (data.isEmpty) return;
 
           try {
             final payload = jsonDecode(data) as Map<String, dynamic>;
-            final type = payload['type'] as String?;
+            final event = LivestreamEvent.fromJson(payload);
 
-            if (type == 'chat_message') {
-              final senderIdentity = e.participant?.identity;
-              if (senderIdentity != null &&
-                  senderIdentity == room.localParticipant?.identity) {
-                return;
-              }
-              appendMessage(
-                ChatMessage.fromJson(payload).copyWith(isMine: false),
-              );
-            } else if (type == 'timeout') {
-              final duration = payload['duration_minutes'] as int? ?? 0;
-              state = state.copyWith(
-                errorText: 'You have been muted for $duration minutes',
-              );
-            } else if (type == 'stream_awarded') {
-              final senderName = payload['sender_name'] as String? ?? 'Someone';
-              final senderId = payload['sender_id'] as String? ?? '';
-              final amount = (payload['amount'] as num?)?.toDouble() ?? 0;
-              final message = payload['message'] as String?;
-              appendMessage(
-                ChatMessage.systemAward(
-                  sender: senderName,
-                  senderId: senderId,
-                  amount: amount,
-                  message: message,
-                ),
-              );
-            }
-          } catch (_) {
+            event.when(
+              chatMessage:
+                  (
+                    id,
+                    livestreamId,
+                    senderId,
+                    senderName,
+                    content,
+                    createdAt,
+                    sender,
+                  ) {
+                    final localUserId = ref.read(userInfoProvider).value?.id;
+                    if (senderId == localUserId) {
+                      return;
+                    }
+                    appendMessage(
+                      ChatMessage(
+                        id: id,
+                        senderId: senderId,
+                        sender: senderName,
+                        message: content,
+                        isMine: false,
+                        createdAt: createdAt ?? DateTime.now(),
+                        senderAccount: sender,
+                      ),
+                    );
+                  },
+              timeout: (durationMinutes) {
+                state = state.copyWith(
+                  errorText: 'You have been muted for $durationMinutes minutes',
+                );
+              },
+              streamAwarded:
+                  (senderId, senderName, amount, message, highlightSeconds) {
+                    // Add superchat to messages for display
+                    if (highlightSeconds != null && highlightSeconds > 0) {
+                      final superchat = ChatMessage.systemAward(
+                        sender: senderName,
+                        senderId: senderId,
+                        amount: amount,
+                        message: message,
+                      );
+                      appendMessage(superchat);
+                    }
+                  },
+              unknown: (raw) {
+                debugPrint('[Livestream WS] Unknown event: $raw');
+              },
+            );
+          } catch (err) {
+            debugPrint('[Livestream WS] Error parsing event: $err');
             final text = data;
             if (text.isEmpty) return;
             final senderIdentity = e.participant?.identity;
