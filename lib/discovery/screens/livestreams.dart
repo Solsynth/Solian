@@ -47,18 +47,7 @@ class ActiveLivestreamsScreen extends ConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        title: const Text('livestreams').tr(),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.explore),
-            tooltip: 'discover'.tr(),
-            onPressed: () {
-              context.router.push(const ExploreRoute());
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('livestreams').tr()),
       body: streamsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(

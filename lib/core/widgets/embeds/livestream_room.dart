@@ -5,25 +5,86 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/core/network.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class ChatMessage {
-  final String sender;
-  final String? senderIdentity;
-  final String message;
-  final bool isMine;
-  final DateTime createdAt;
+part 'livestream_room.freezed.dart';
+part 'livestream_room.g.dart';
 
-  const ChatMessage({
-    required this.sender,
-    required this.senderIdentity,
-    required this.message,
-    required this.isMine,
-    required this.createdAt,
-  });
+enum ChatMessageType { chat, systemAward, systemJoin, systemLeave }
+
+@freezed
+abstract class ChatMessage with _$ChatMessage {
+  const factory ChatMessage({
+    @Default('') String id,
+    @JsonKey(name: 'sender_id') @Default('') String senderId,
+    @JsonKey(name: 'sender_name') @Default('Unknown') String sender,
+    @JsonKey(name: 'sender_identity') String? senderIdentity,
+    @JsonKey(name: 'content') @Default('') String message,
+    @JsonKey(name: 'is_mine') @Default(false) bool isMine,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'message_type')
+    @Default(ChatMessageType.chat)
+    ChatMessageType messageType,
+    Map<String, dynamic>? metadata,
+    @JsonKey(name: 'sender') SnAccount? senderAccount,
+  }) = _ChatMessage;
+
+  const ChatMessage._();
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) =>
+      _$ChatMessageFromJson(json);
+
+  factory ChatMessage.systemAward({
+    required String sender,
+    required String senderId,
+    required double amount,
+    String? message,
+    DateTime? createdAt,
+  }) {
+    return ChatMessage(
+      id: '',
+      senderId: senderId,
+      sender: sender,
+      senderIdentity: null,
+      message: message ?? '',
+      isMine: false,
+      createdAt: createdAt ?? DateTime.now(),
+      messageType: ChatMessageType.systemAward,
+      metadata: {'amount': amount},
+    );
+  }
+
+  factory ChatMessage.systemJoin({required String participantName}) {
+    return ChatMessage(
+      id: '',
+      senderId: '',
+      sender: 'System',
+      senderIdentity: null,
+      message: '$participantName joined the stream',
+      isMine: false,
+      createdAt: DateTime.now(),
+      messageType: ChatMessageType.systemJoin,
+      metadata: {'participant_name': participantName},
+    );
+  }
+
+  factory ChatMessage.systemLeave({required String participantName}) {
+    return ChatMessage(
+      id: '',
+      senderId: '',
+      sender: 'System',
+      senderIdentity: null,
+      message: '$participantName left the stream',
+      isMine: false,
+      createdAt: DateTime.now(),
+      messageType: ChatMessageType.systemLeave,
+      metadata: {'participant_name': participantName},
+    );
+  }
 }
 
 class LivestreamRoomState {
@@ -236,10 +297,35 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       final tokenData = Map<String, dynamic>.from(tokenResponse.data);
       final token = tokenData['token'] as String;
       final url = tokenData['url'] as String;
+      final isStreamer = tokenData['is_streamer'] as bool? ?? false;
+      final identity = tokenData['identity'] as String?;
 
       if (token.isEmpty || url.isEmpty) {
         throw Exception('Invalid livestream token response.');
       }
+
+      List<ChatMessage> chatHistory = [];
+      try {
+        final chatResponse = await client.get(
+          '/sphere/livestreams/$livestreamId/chat',
+          queryParameters: {'limit': 50, 'offset': 0},
+        );
+        final chatData = chatResponse.data as List;
+        final localUserId = identity;
+        for (final msg in chatData) {
+          final msgMap = Map<String, dynamic>.from(msg);
+          final isMine = msgMap['sender_id'] == localUserId;
+          chatHistory.add(
+            ChatMessage.fromJson(msgMap).copyWith(isMine: isMine),
+          );
+        }
+        // Sort by created_at to ensure chronological order (oldest first)
+        chatHistory.sort((a, b) {
+          final aTime = a.createdAt ?? DateTime.now();
+          final bTime = b.createdAt ?? DateTime.now();
+          return aTime.compareTo(bTime);
+        });
+      } catch (_) {}
 
       final room = lk.Room();
       final candidateUrls = {
@@ -271,7 +357,13 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       if (lastError != null) throw lastError;
 
       _room = room;
-      state = state.copyWith(messages: [], room: room, isConnecting: false);
+      state = state.copyWith(
+        messages: chatHistory,
+        room: room,
+        isConnecting: false,
+        isStreamerIdentity: isStreamer,
+        localIdentity: identity,
+      );
 
       void syncVideoTrack() {
         final videoTrack = _findVideoTrack(room);
@@ -292,8 +384,24 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       _roomListener?.dispose();
       _roomListener = room.createListener();
       _roomListener!
-        ..on<lk.ParticipantConnectedEvent>((_) => syncVideoTrack())
-        ..on<lk.ParticipantDisconnectedEvent>((_) => syncVideoTrack())
+        ..on<lk.ParticipantConnectedEvent>((e) {
+          syncVideoTrack();
+          // Don't show join message for the local participant
+          if (e.participant.identity != room.localParticipant?.identity) {
+            appendMessage(
+              ChatMessage.systemJoin(participantName: e.participant.identity),
+            );
+          }
+        })
+        ..on<lk.ParticipantDisconnectedEvent>((e) {
+          syncVideoTrack();
+          // Don't show leave message for the local participant
+          if (e.participant.identity != room.localParticipant?.identity) {
+            appendMessage(
+              ChatMessage.systemLeave(participantName: e.participant.identity),
+            );
+          }
+        })
         ..on<lk.TrackPublishedEvent>((_) => syncVideoTrack())
         ..on<lk.TrackSubscribedEvent>((e) {
           if (e.track is lk.RemoteAudioTrack) {
@@ -330,22 +438,61 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
         })
         ..on<lk.DataReceivedEvent>((e) {
           if (e.topic != null && e.topic != 'chat') return;
-          final text = utf8.decode(e.data, allowMalformed: true).trim();
-          if (text.isEmpty) return;
-          final senderIdentity = e.participant?.identity;
-          if (senderIdentity != null &&
-              senderIdentity == room.localParticipant?.identity) {
-            return;
+          final data = utf8.decode(e.data, allowMalformed: true).trim();
+          if (data.isEmpty) return;
+
+          try {
+            final payload = jsonDecode(data) as Map<String, dynamic>;
+            final type = payload['type'] as String?;
+
+            if (type == 'chat_message') {
+              final senderIdentity = e.participant?.identity;
+              if (senderIdentity != null &&
+                  senderIdentity == room.localParticipant?.identity) {
+                return;
+              }
+              appendMessage(
+                ChatMessage.fromJson(payload).copyWith(isMine: false),
+              );
+            } else if (type == 'timeout') {
+              final duration = payload['duration_minutes'] as int? ?? 0;
+              state = state.copyWith(
+                errorText: 'You have been muted for $duration minutes',
+              );
+            } else if (type == 'stream_awarded') {
+              final senderName = payload['sender_name'] as String? ?? 'Someone';
+              final senderId = payload['sender_id'] as String? ?? '';
+              final amount = (payload['amount'] as num?)?.toDouble() ?? 0;
+              final message = payload['message'] as String?;
+              appendMessage(
+                ChatMessage.systemAward(
+                  sender: senderName,
+                  senderId: senderId,
+                  amount: amount,
+                  message: message,
+                ),
+              );
+            }
+          } catch (_) {
+            final text = data;
+            if (text.isEmpty) return;
+            final senderIdentity = e.participant?.identity;
+            if (senderIdentity != null &&
+                senderIdentity == room.localParticipant?.identity) {
+              return;
+            }
+            appendMessage(
+              ChatMessage(
+                id: '',
+                senderId: '',
+                sender: senderIdentity ?? 'Server',
+                senderIdentity: senderIdentity,
+                message: text,
+                isMine: false,
+                createdAt: DateTime.now(),
+              ),
+            );
           }
-          appendMessage(
-            ChatMessage(
-              sender: senderIdentity ?? 'Server',
-              senderIdentity: senderIdentity,
-              message: text,
-              isMine: false,
-              createdAt: DateTime.now(),
-            ),
-          );
         });
 
       room.addListener(syncVideoTrack);
@@ -372,22 +519,9 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
   }
 
   Future<void> sendMessage([String? rawMessage]) async {
-    final room = _room;
-    final localParticipant = room?.localParticipant;
+    final client = ref.read(apiClientProvider);
     final message = (rawMessage ?? _chatInputController.text).trim();
     if (state.isSendingChat) {
-      return;
-    }
-    if (room == null) {
-      state = state.copyWith(
-        errorText: 'Chat unavailable: room not connected.',
-      );
-      return;
-    }
-    if (localParticipant == null) {
-      state = state.copyWith(
-        errorText: 'Chat unavailable: no local participant in room.',
-      );
       return;
     }
     if (message.isEmpty) {
@@ -396,26 +530,15 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
     state = state.copyWith(isSendingChat: true, clearError: true);
     try {
-      await localParticipant.publishData(
-        utf8.encode(message),
-        reliable: true,
-        topic: 'chat',
+      final response = await client.post(
+        '/sphere/livestreams/$livestreamId/chat',
+        data: {'content': message},
       );
-      appendMessage(
-        ChatMessage(
-          sender: localParticipant.identity,
-          senderIdentity: localParticipant.identity,
-          message: message,
-          isMine: true,
-          createdAt: DateTime.now(),
-        ),
-      );
+      final responseData = Map<String, dynamic>.from(response.data);
+      appendMessage(ChatMessage.fromJson(responseData).copyWith(isMine: true));
       if (rawMessage == null) _chatInputController.clear();
     } catch (e) {
-      state = state.copyWith(
-        errorText:
-            'Failed to send message: $e. If you are connected as viewer, your token may not allow chat publishing.',
-      );
+      state = state.copyWith(errorText: 'Failed to send message: $e');
     } finally {
       state = state.copyWith(isSendingChat: false);
     }

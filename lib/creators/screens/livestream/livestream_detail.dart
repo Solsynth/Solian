@@ -12,6 +12,7 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/creators/screens/livestream/livestream_actions.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_leaderboard_sheet.dart';
 import 'package:island/core/widgets/embeds/livestream_overlay.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -530,9 +531,24 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                           const Gap(8),
                           Text('Live Chat (${roomState.messages.length})'),
                           const Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) =>
+                                    LivestreamLeaderboardSheet(
+                                      livestreamId: livestreamId,
+                                    ),
+                              );
+                            },
+                            icon: const Icon(Symbols.leaderboard, size: 18),
+                            tooltip: 'livestreamLeaderboard'.tr(),
+                            visualDensity: VisualDensity.compact,
+                          ),
                           const Icon(Symbols.volume_up, size: 16),
                           SizedBox(
-                            width: 120,
+                            width: 100,
                             child: Slider(
                               max: 2,
                               value: roomState.volume,
@@ -706,23 +722,6 @@ class _ViewerListSheet extends ConsumerWidget {
 
   const _ViewerListSheet({required this.identities});
 
-  static String? _parseIdentityToAccountId(String identity) {
-    String? prefix;
-    if (identity.startsWith('viewer_')) {
-      prefix = 'viewer_';
-    } else if (identity.startsWith('streamer_')) {
-      prefix = 'streamer_';
-    }
-    if (prefix == null) return null;
-    final raw = identity.substring(prefix.length).toLowerCase();
-    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
-    return '${raw.substring(0, 8)}-'
-        '${raw.substring(8, 12)}-'
-        '${raw.substring(12, 16)}-'
-        '${raw.substring(16, 20)}-'
-        '${raw.substring(20, 32)}';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SheetScaffold(
@@ -734,10 +733,8 @@ class _ViewerListSheet extends ConsumerWidget {
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final identity = identities[index];
-                final accountId = _parseIdentityToAccountId(identity);
-                final accountAsync = accountId == null
-                    ? const AsyncData<SnAccount?>(null)
-                    : ref.watch(accountInfoProvider(accountId));
+                // Identity is now the username itself
+                final accountAsync = ref.watch(accountInfoProvider(identity));
                 final account = accountAsync.value;
                 final role = identity.startsWith('streamer_')
                     ? 'Streamer'

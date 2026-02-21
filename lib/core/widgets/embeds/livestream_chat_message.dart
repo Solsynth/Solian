@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +10,13 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+SnAccount? _getSenderAccount(ChatMessage? msg) {
+  if (msg?.senderAccount != null) {
+    return msg!.senderAccount;
+  }
+  return null;
+}
 
 class LivestreamChatMessage extends ConsumerWidget {
   final ChatMessage? msg;
@@ -41,18 +49,32 @@ class LivestreamChatMessage extends ConsumerWidget {
   String get _sender => sender ?? msg!.sender;
   String? get _senderIdentity => senderIdentity ?? msg?.senderIdentity;
   bool get _isMine => isMine ?? msg?.isMine ?? false;
-  DateTime get _createdAt => createdAt ?? msg!.createdAt;
+  DateTime get _createdAt => createdAt ?? msg?.createdAt ?? DateTime.now();
+  ChatMessageType get _messageType => msg?.messageType ?? ChatMessageType.chat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Parse the senderIdentity to get the account ID
+    if (_messageType == ChatMessageType.systemAward) {
+      return _buildSystemAwardMessage(context);
+    }
+
+    if (_messageType == ChatMessageType.systemJoin ||
+        _messageType == ChatMessageType.systemLeave) {
+      return _buildSystemParticipantMessage(context);
+    }
+
+    // Check if preloaded sender account is available
+    final preloadedAccount = _getSenderAccount(msg);
+
+    // Parse the senderIdentity to get the account ID (fallback)
     final accountId = _parseViewerIdentityToAccountId(_senderIdentity);
     final accountAsync = accountId == null
         ? const AsyncData<SnAccount?>(null)
         : ref.watch(accountInfoProvider(accountId));
 
-    final displayName = accountAsync.value?.name ?? _sender;
-    final account = accountAsync.value;
+    // Use preloaded account if available, otherwise fetch from provider
+    final account = preloadedAccount ?? accountAsync.value;
+    final displayName = account?.name ?? _sender;
 
     if (compact) {
       final timestamp =
@@ -231,23 +253,8 @@ class LivestreamChatMessage extends ConsumerWidget {
   }
 
   static String? _parseViewerIdentityToAccountId(String? identity) {
-    if (identity == null) return null;
-    // Handle both 'viewer_' and 'streamer_' prefixes
-    String? prefix;
-    if (identity.startsWith('viewer_')) {
-      prefix = 'viewer_';
-    } else if (identity.startsWith('streamer_')) {
-      prefix = 'streamer_';
-    }
-
-    if (prefix == null) return null;
-    final raw = identity.substring(prefix.length).toLowerCase();
-    if (!RegExp(r'^[0-9a-f]{32}$').hasMatch(raw)) return null;
-    return '${raw.substring(0, 8)}-'
-        '${raw.substring(8, 12)}-'
-        '${raw.substring(12, 16)}-'
-        '${raw.substring(16, 20)}-'
-        '${raw.substring(20, 32)}';
+    // Identity is now the username itself, return as-is
+    return identity;
   }
 
   static String _formatTime(DateTime time) {
@@ -257,5 +264,91 @@ class LivestreamChatMessage extends ConsumerWidget {
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}h';
     return '${diff.inDays}d';
+  }
+
+  Widget _buildSystemAwardMessage(BuildContext context) {
+    final metadata = msg?.metadata;
+    final amount = metadata?['amount'] as double? ?? 0;
+    final senderName = _sender;
+    final messageText = _message;
+
+    const color = Colors.amber;
+    const icon = Icons.star;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(icon, color: color, size: 20),
+            const Gap(8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'awardStreamAwarded'.tr(
+                      args: [senderName, amount.toStringAsFixed(0)],
+                    ),
+                    style: const TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (messageText.isNotEmpty) ...[
+                    const Gap(4),
+                    Text(
+                      messageText,
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSystemParticipantMessage(BuildContext context) {
+    final isJoin = _messageType == ChatMessageType.systemJoin;
+    final color = isJoin
+        ? Colors.green
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    final icon = isJoin ? Icons.person_add : Icons.person_remove;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const Gap(6),
+          Text(
+            _message,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

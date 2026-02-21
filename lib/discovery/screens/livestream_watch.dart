@@ -9,7 +9,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/widgets/embeds/livestream.dart';
+import 'package:island/core/widgets/embeds/livestream_award_sheet.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
+import 'package:island/core/widgets/embeds/livestream_leaderboard_sheet.dart';
 import 'package:island/core/widgets/embeds/livestream_playback.dart';
 import 'package:island/core/widgets/embeds/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -175,6 +177,7 @@ class _LivestreamMobileLayout extends StatelessWidget {
             onChanged: onPlaybackModeChanged,
           ),
         ),
+        if (hasHls) const Gap(12),
         Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
@@ -301,6 +304,7 @@ class _LivestreamWideLayout extends StatelessWidget {
                     onChanged: onPlaybackModeChanged,
                   ),
                 ),
+                if (hasHls) const Gap(12),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1000),
@@ -320,61 +324,53 @@ class _LivestreamWideLayout extends StatelessWidget {
                   ),
                 ),
                 if (publisherDisplayName != null)
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 800),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: publisher?.name != null
-                                ? () => context.router.push(
-                                    PublisherProfileRoute(
-                                      name: publisher!.name,
-                                    ),
-                                  )
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  _buildPublisherAvatar(publisher),
-                                  const Gap(12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          publisherDisplayName!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                        if (publisher?.name != null)
-                                          Text(
-                                            '@${publisher!.name}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: publisher?.name != null
+                            ? () => context.router.push(
+                                PublisherProfileRoute(name: publisher!.name),
+                              )
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              _buildPublisherAvatar(publisher),
+                              const Gap(12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      publisherDisplayName!,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                      ],
                                     ),
-                                  ),
-                                  const Icon(Symbols.chevron_right),
-                                ],
+                                    if (publisher?.name != null)
+                                      Text(
+                                        '@${publisher!.name}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
+                              const Icon(Symbols.chevron_right),
+                            ],
                           ),
                         ),
                       ),
@@ -388,7 +384,7 @@ class _LivestreamWideLayout extends StatelessWidget {
         Expanded(
           flex: 2,
           child: playbackMode == _LivestreamPlaybackMode.webrtc
-              ? _LivestreamChatPanel(livestreamId: livestreamId)
+              ? _LivestreamChatPanel(livestreamId: livestreamId, stream: stream)
               : const _HlsChatPanel(),
         ),
       ],
@@ -419,7 +415,7 @@ class _PlaybackModeSelector extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
             const Icon(Symbols.video_settings),
@@ -540,8 +536,12 @@ class _HlsChatPanel extends StatelessWidget {
 
 class _LivestreamChatPanel extends ConsumerWidget {
   final String livestreamId;
+  final SnLiveStream stream;
 
-  const _LivestreamChatPanel({required this.livestreamId});
+  const _LivestreamChatPanel({
+    required this.livestreamId,
+    required this.stream,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -558,7 +558,11 @@ class _LivestreamChatPanel extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: isConnected
-            ? _ChatMessagesList(messages: messages, livestreamId: livestreamId)
+            ? _ChatMessagesList(
+                messages: messages,
+                livestreamId: livestreamId,
+                stream: stream,
+              )
             : _ChatPlaceholder(livestreamId: livestreamId),
       ),
     );
@@ -615,8 +619,13 @@ class _ChatPlaceholder extends ConsumerWidget {
 class _ChatMessagesList extends ConsumerStatefulWidget {
   final List<ChatMessage> messages;
   final String livestreamId;
+  final SnLiveStream stream;
 
-  const _ChatMessagesList({required this.messages, required this.livestreamId});
+  const _ChatMessagesList({
+    required this.messages,
+    required this.livestreamId,
+    required this.stream,
+  });
 
   @override
   ConsumerState<_ChatMessagesList> createState() => _ChatMessagesListState();
@@ -693,6 +702,27 @@ class _ChatMessagesListState extends ConsumerState<_ChatMessagesList> {
           padding: const EdgeInsets.all(8),
           child: Row(
             children: [
+              IconButton(
+                onPressed: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => LivestreamLeaderboardSheet(
+                    livestreamId: widget.livestreamId,
+                  ),
+                ),
+                icon: const Icon(Symbols.leaderboard),
+                tooltip: 'livestreamLeaderboard'.tr(),
+              ),
+              IconButton(
+                onPressed: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) =>
+                      LivestreamAwardSheet(livestream: widget.stream),
+                ),
+                icon: const Icon(Symbols.star),
+                tooltip: 'awardLivestream'.tr(),
+              ),
               Expanded(
                 child: TextField(
                   controller: inputController,
