@@ -14,7 +14,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/widgets/embeds/livestream_chat_message.dart';
 import 'package:island/core/widgets/embeds/livestream_leaderboard_sheet.dart';
 import 'package:island/core/widgets/embeds/livestream_overlay.dart';
-import 'package:island/core/widgets/embeds/livestream_room.dart';
+import 'package:island/livestreams/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';

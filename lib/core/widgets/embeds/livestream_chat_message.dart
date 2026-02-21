@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
-import 'package:island/core/widgets/embeds/livestream_room.dart';
+import 'package:island/livestreams/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';

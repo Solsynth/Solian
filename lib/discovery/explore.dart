@@ -8,7 +8,7 @@ import 'package:island/notifications/notification.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/widgets/embeds/livestream.dart';
+import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
