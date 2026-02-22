@@ -15,10 +15,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   livekit_client
   media_kit_libs_linux
   media_kit_video
+  objectbox_flutter_libs
   pasteboard
   record_linux
   screen_retriever_linux
-  sqlite3_flutter_libs
   super_native_extensions
   syncfusion_pdfviewer_linux
   tray_manager

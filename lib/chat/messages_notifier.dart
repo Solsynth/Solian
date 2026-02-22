@@ -1,10 +1,10 @@
 import "dart:async";
 import "package:dio/dio.dart";
-import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
+import "package:flutter/foundation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_room.dart";
-import "package:island/data/drift_db.dart";
+import "package:island/data/database.dart";
 import "package:island/data/message.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
@@ -51,10 +51,34 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
+  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
+    final data = Map<String, dynamic>.from(input);
+    data['meta'] = data['meta'] is Map<String, dynamic>
+        ? data['meta']
+        : <String, dynamic>{};
+    data['members_mentioned'] =
+        (data['members_mentioned'] is List ? data['members_mentioned'] as List : const [])
+            .whereType<Object?>()
+            .where((e) => e != null)
+            .map((e) => e.toString())
+            .toList();
+    data['attachments'] =
+        (data['attachments'] is List ? data['attachments'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    data['reactions'] =
+        (data['reactions'] is List ? data['reactions'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    return data;
+  }
+
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
     try {
-      return SnChatMessage.fromJson(data);
+      return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
       talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
       return null;
@@ -305,10 +329,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         MessageStatus.sent,
       );
 
-      final existing =
-          await (_database.select(_database.chatMessages)
-                ..where((tbl) => tbl.id.equals(localMessage.id)))
-              .getSingleOrNull();
+      final existing = await _database.getMessageById(localMessage.id);
 
       if (existing != null) {
         final existingLocal = await _database.companionToMessage(
@@ -418,6 +439,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
         // If we got remote messages, re-fetch from cache to get merged result
         if (remoteMessages.isNotEmpty) {
+          if (kIsWeb) {
+            return remoteMessages;
+          }
           return await _getCachedMessages(
             offset: offset,
             take: take,
@@ -478,7 +502,14 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Reset total count so resumed sessions and long-lived notifiers do not
       // keep stale pagination metadata.
       _totalCount = null;
-      await _fetchAndCacheMessages(offset: 0, take: _pageSize);
+      final remoteMessages = await _fetchAndCacheMessages(
+        offset: 0,
+        take: _pageSize,
+      );
+      if (kIsWeb) {
+        _hasMore = remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
+        return remoteMessages;
+      }
       final refreshedMessages = await _getCachedMessages(
         offset: 0,
         take: _pageSize,
@@ -1267,9 +1298,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     talker.log('Fetching message by id $messageId');
     try {
-      final localMessage = await (_database.select(
-        _database.chatMessages,
-      )..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
+      final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
         return _database.companionToMessage(
           localMessage,
@@ -1280,7 +1309,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       final response = await _apiClient.get(
         '/messager/chat/$roomId/messages/$messageId',
       );
-      final remoteMessage = SnChatMessage.fromJson(response.data);
+      final remoteMessage = _tryParseChatMessage(
+        response.data,
+        context: 'fetch message by id',
+      );
+      if (remoteMessage == null) return null;
       final message = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
@@ -1334,16 +1367,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       // Count messages newer than the target message to calculate optimal offset
       // Use full message list (not filtered by search) for accurate position calculation
-      final query = _database.customSelect(
-        'SELECT COUNT(*) as count FROM chat_messages WHERE room_id = ? AND created_at > ?',
-        variables: [
-          Variable.withString(roomId),
-          Variable.withDateTime(message.createdAt),
-        ],
-        readsFrom: {_database.chatMessages},
+      final newerCount = await _database.countMessagesNewerThan(
+        roomId,
+        message.createdAt,
       );
-      final result = await query.getSingle();
-      final newerCount = result.read<int>('count');
 
       // Calculate offset to position target message in the middle of the loaded chunk
       const chunkSize = 100; // Load 100 messages around the target

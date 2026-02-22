@@ -50,9 +50,7 @@ class ChatDetailScreen extends HookConsumerWidget {
     // Initialize pinned state from database
     useEffect(() {
       final db = ref.read(databaseProvider);
-      (db.select(
-        db.chatRooms,
-      )..where((r) => r.id.equals(id))).getSingleOrNull().then((room) {
+      db.getChatRoomById(id).then((room) {
         isPinned.value = room?.isPinned ?? false;
       });
       return null;
@@ -366,9 +364,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                             final db = ref.read(databaseProvider);
                             await db.toggleChatRoomPinned(id);
                             // Re-verify the state from database in case of error
-                            final room = await (db.select(
-                              db.chatRooms,
-                            )..where((r) => r.id.equals(id))).getSingleOrNull();
+                            final room = await db.getChatRoomById(id);
                             final actualPinned = room?.isPinned ?? false;
                             if (actualPinned != value) {
                               // Revert if database operation failed

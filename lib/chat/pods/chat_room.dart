@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/data/drift_db.dart';
+import 'package:island/data/database.dart';
 import 'package:island/data/message.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
@@ -46,19 +46,7 @@ const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
 
 Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
   try {
-    final result = await db
-        .customSelect(
-          'SELECT MAX(created_at) as latest_timestamp FROM chat_messages',
-          readsFrom: {db.chatMessages},
-        )
-        .getSingleOrNull();
-
-    if (result != null) {
-      final latestTimestamp = result.read<DateTime?>('latest_timestamp');
-      if (latestTimestamp != null) {
-        return latestTimestamp.millisecondsSinceEpoch;
-      }
-    }
+    return await db.getLatestMessageTimestamp();
   } catch (e) {
     talker.log('Error getting latest message timestamp: $e');
   }
@@ -74,10 +62,34 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   static const Duration _minSyncInterval = Duration(seconds: 4);
   static const int _maxSyncPagesPerRound = 25;
 
+  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
+    final data = Map<String, dynamic>.from(input);
+    data['meta'] = data['meta'] is Map<String, dynamic>
+        ? data['meta']
+        : <String, dynamic>{};
+    data['members_mentioned'] =
+        (data['members_mentioned'] is List ? data['members_mentioned'] as List : const [])
+            .whereType<Object?>()
+            .where((e) => e != null)
+            .map((e) => e.toString())
+            .toList();
+    data['attachments'] =
+        (data['attachments'] is List ? data['attachments'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    data['reactions'] =
+        (data['reactions'] is List ? data['reactions'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    return data;
+  }
+
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
     try {
-      return SnChatMessage.fromJson(data);
+      return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
       talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
       return null;
@@ -219,12 +231,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     String roomId,
   ) async {
     try {
-      final msg =
-          await (db.select(db.chatMessages)
-                ..where((m) => m.id.equals(messageId))
-                ..where((m) => m.roomId.equals(roomId)))
-              .getSingleOrNull();
-      if (msg != null) {
+      final msg = await db.getMessageById(messageId);
+      if (msg != null && msg.roomId == roomId) {
         return db.companionToMessage(msg);
       }
     } catch (_) {}
@@ -514,10 +522,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               try {
                 if (msg.type == 'messages.reaction.added' ||
                     msg.type == 'messages.reaction.removed') {
-                  final existed =
-                      await (db.select(db.chatMessages)
-                            ..where((m) => m.id.equals(msg.id)))
-                          .getSingleOrNull();
+                  final existed = await db.getMessageById(msg.id);
                   if (existed == null) {
                     await _applyReactionUpdate(
                       db,
@@ -642,14 +647,12 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     final db = ref.watch(databaseProvider);
 
     try {
-      final localRoomsData = await db.select(db.chatRooms).get();
-      final localRealmsData = await db.select(db.realms).get();
+      final localRoomsData = await db.getAllChatRooms();
+      final localRealmsData = await db.getAllRealms();
       if (localRoomsData.isNotEmpty) {
         final localRooms = await Future.wait(
           localRoomsData.map((row) async {
-            final membersRows = await (db.select(
-              db.chatMembers,
-            )..where((m) => m.chatRoomId.equals(row.id))).get();
+            final membersRows = await db.getMembersByRoomId(row.id);
             final members = membersRows.map((mRow) {
               final account = SnAccount.fromJson(mRow.account);
               return SnChatMember(
@@ -754,12 +757,10 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
   }
 
   Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
-    final localRoomsData = await db.select(db.chatRooms).get();
+    final localRoomsData = await db.getAllChatRooms();
     return Future.wait(
       localRoomsData.map((row) async {
-        final membersRows = await (db.select(
-          db.chatMembers,
-        )..where((m) => m.chatRoomId.equals(row.id))).get();
+        final membersRows = await db.getMembersByRoomId(row.id);
         final members = membersRows.map((mRow) {
           final account = SnAccount.fromJson(mRow.account);
           return SnChatMember(
@@ -784,19 +785,17 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
         SnRealm? realm;
         if (row.realmId != null) {
           try {
-            final realmRow = await (db.select(
-              db.realms,
-            )..where((r) => r.id.equals(row.realmId!))).getSingleOrNull();
+            final realmRow = await db.getRealmById(row.realmId!);
             if (realmRow != null) {
               realm = SnRealm(
                 id: realmRow.id,
-                slug: '', // Not stored in DB
+                slug: realmRow.slug,
                 name: realmRow.name ?? '',
                 description: realmRow.description ?? '',
-                verifiedAs: null, // Not stored in DB
-                verifiedAt: null, // Not stored in DB
-                isCommunity: false, // Not stored in DB
-                isPublic: true, // Not stored in DB
+                verifiedAs: realmRow.verifiedAs,
+                verifiedAt: realmRow.verifiedAt,
+                isCommunity: realmRow.isCommunity,
+                isPublic: realmRow.isPublic,
                 picture: realmRow.picture != null
                     ? SnCloudFile.fromJson(realmRow.picture!)
                     : null,
@@ -850,15 +849,11 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
     try {
       // Try to get from local database first
-      final localRoomData = await (db.select(
-        db.chatRooms,
-      )..where((r) => r.id.equals(identifier))).getSingleOrNull();
+      final localRoomData = await db.getChatRoomById(identifier);
 
       if (localRoomData != null) {
         // Fetch members for this room
-        final membersRows = await (db.select(
-          db.chatMembers,
-        )..where((m) => m.chatRoomId.equals(localRoomData.id))).get();
+        final membersRows = await db.getMembersByRoomId(localRoomData.id);
         final members = membersRows.map((mRow) {
           final account = SnAccount.fromJson(mRow.account);
           return SnChatMember(
@@ -944,11 +939,10 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
     try {
       // Try to get from local database first
       if (userInfo.value != null) {
-        final localMemberData =
-            await (db.select(db.chatMembers)
-                  ..where((m) => m.chatRoomId.equals(identifier))
-                  ..where((m) => m.accountId.equals(userInfo.value!.id)))
-                .getSingleOrNull();
+        final localMemberData = await db.getMemberByRoomAndAccount(
+          identifier,
+          userInfo.value!.id,
+        );
 
         if (localMemberData != null) {
           final account = SnAccount.fromJson(localMemberData.account);
@@ -1012,11 +1006,10 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
     String identifier,
     String accountId,
   ) async {
-    final localMemberData =
-        await (db.select(db.chatMembers)
-              ..where((m) => m.chatRoomId.equals(identifier))
-              ..where((m) => m.accountId.equals(accountId)))
-            .getSingleOrNull();
+    final localMemberData = await db.getMemberByRoomAndAccount(
+      identifier,
+      accountId,
+    );
 
     if (localMemberData == null) return null;
 
