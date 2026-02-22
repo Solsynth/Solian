@@ -37,7 +37,11 @@ RoomScrollManager useRoomScrollManager(
   final listController = useMemoized(() => ListController(), []);
   final bottomGradientOpacity = useState(ValueNotifier<double>(0.0));
 
-  var isLoading = false;
+  final isLoadingRef = useRef(false);
+  final autoFillPassesRef = useRef(0);
+  final autoFillInProgressRef = useRef(false);
+  final lastAutoFillMessageCountRef = useRef<int?>(null);
+  const int kMaxAutoFillPasses = 12;
   var isScrollingToMessage = false;
   final messagesNotifier = ref.read(messagesProvider(roomId).notifier);
   final flashingMessagesNotifier = ref.read(flashingMessagesProvider.notifier);
@@ -104,12 +108,14 @@ RoomScrollManager useRoomScrollManager(
               'Room scroll reached pagination threshold '
               '(roomId=$roomId, pixels=${scrollController.position.pixels}, '
               'max=${scrollController.position.maxScrollExtent}, '
-              'isLoading=$isLoading, localCount=${messageList.length})',
+              'isLoading=${isLoadingRef.value}, localCount=${messageList.length})',
             );
-            if (!isLoading) {
-              isLoading = true;
+            if (!isLoadingRef.value) {
+              isLoadingRef.value = true;
               talker.log('Room scroll triggering loadMore (roomId=$roomId)');
-              messagesNotifier.loadMore().then((_) => isLoading = false);
+              messagesNotifier.loadMore().whenComplete(() {
+                isLoadingRef.value = false;
+              });
             }
           }
 
@@ -124,6 +130,46 @@ RoomScrollManager useRoomScrollManager(
     scrollController.addListener(onScroll);
     return () => scrollController.removeListener(onScroll);
   }, [scrollController, messagesAsync]);
+
+  useEffect(() {
+    final items = messagesAsync.asData?.value;
+    if (items == null) return null;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!scrollController.hasClients) return;
+      if (isLoadingRef.value || autoFillInProgressRef.value) return;
+
+      final position = scrollController.position;
+      final isScrollable = position.maxScrollExtent > 0;
+      if (isScrollable) {
+        autoFillPassesRef.value = 0;
+        lastAutoFillMessageCountRef.value = null;
+        return;
+      }
+
+      if (autoFillPassesRef.value >= kMaxAutoFillPasses) return;
+
+      final itemCount = items.length;
+      if (lastAutoFillMessageCountRef.value == itemCount) {
+        // Previous autofill pass did not add messages, stop retrying.
+        return;
+      }
+
+      autoFillInProgressRef.value = true;
+      autoFillPassesRef.value += 1;
+      lastAutoFillMessageCountRef.value = itemCount;
+
+      talker.log(
+        'Room auto-fill triggering loadMore '
+        '(roomId=$roomId, pass=${autoFillPassesRef.value}, count=$itemCount)',
+      );
+
+      await messagesNotifier.loadMore();
+      autoFillInProgressRef.value = false;
+    });
+
+    return null;
+  }, [messagesAsync.asData?.value.length, scrollController]);
 
   return RoomScrollManager(
     scrollController: scrollController,
