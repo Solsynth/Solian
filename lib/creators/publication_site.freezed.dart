@@ -273,277 +273,9 @@ as String,
 
 
 /// @nodoc
-mixin _$SnPublicationSiteConfig {
-
- String? get styleOverride; List<SnPublicationSiteNavItems>? get navItems;
-/// Create a copy of SnPublicationSiteConfig
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$SnPublicationSiteConfigCopyWith<SnPublicationSiteConfig> get copyWith => _$SnPublicationSiteConfigCopyWithImpl<SnPublicationSiteConfig>(this as SnPublicationSiteConfig, _$identity);
-
-  /// Serializes this SnPublicationSiteConfig to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublicationSiteConfig&&(identical(other.styleOverride, styleOverride) || other.styleOverride == styleOverride)&&const DeepCollectionEquality().equals(other.navItems, navItems));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,styleOverride,const DeepCollectionEquality().hash(navItems));
-
-@override
-String toString() {
-  return 'SnPublicationSiteConfig(styleOverride: $styleOverride, navItems: $navItems)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $SnPublicationSiteConfigCopyWith<$Res>  {
-  factory $SnPublicationSiteConfigCopyWith(SnPublicationSiteConfig value, $Res Function(SnPublicationSiteConfig) _then) = _$SnPublicationSiteConfigCopyWithImpl;
-@useResult
-$Res call({
- String? styleOverride, List<SnPublicationSiteNavItems>? navItems
-});
-
-
-
-
-}
-/// @nodoc
-class _$SnPublicationSiteConfigCopyWithImpl<$Res>
-    implements $SnPublicationSiteConfigCopyWith<$Res> {
-  _$SnPublicationSiteConfigCopyWithImpl(this._self, this._then);
-
-  final SnPublicationSiteConfig _self;
-  final $Res Function(SnPublicationSiteConfig) _then;
-
-/// Create a copy of SnPublicationSiteConfig
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? styleOverride = freezed,Object? navItems = freezed,}) {
-  return _then(_self.copyWith(
-styleOverride: freezed == styleOverride ? _self.styleOverride : styleOverride // ignore: cast_nullable_to_non_nullable
-as String?,navItems: freezed == navItems ? _self.navItems : navItems // ignore: cast_nullable_to_non_nullable
-as List<SnPublicationSiteNavItems>?,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [SnPublicationSiteConfig].
-extension SnPublicationSiteConfigPatterns on SnPublicationSiteConfig {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublicationSiteConfig value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublicationSiteConfig value)  $default,){
-final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig():
-return $default(_that);}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublicationSiteConfig value)?  $default,){
-final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? styleOverride,  List<SnPublicationSiteNavItems>? navItems)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig() when $default != null:
-return $default(_that.styleOverride,_that.navItems);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? styleOverride,  List<SnPublicationSiteNavItems>? navItems)  $default,) {final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig():
-return $default(_that.styleOverride,_that.navItems);}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? styleOverride,  List<SnPublicationSiteNavItems>? navItems)?  $default,) {final _that = this;
-switch (_that) {
-case _SnPublicationSiteConfig() when $default != null:
-return $default(_that.styleOverride,_that.navItems);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _SnPublicationSiteConfig implements SnPublicationSiteConfig {
-  const _SnPublicationSiteConfig({this.styleOverride, final  List<SnPublicationSiteNavItems>? navItems}): _navItems = navItems;
-  factory _SnPublicationSiteConfig.fromJson(Map<String, dynamic> json) => _$SnPublicationSiteConfigFromJson(json);
-
-@override final  String? styleOverride;
- final  List<SnPublicationSiteNavItems>? _navItems;
-@override List<SnPublicationSiteNavItems>? get navItems {
-  final value = _navItems;
-  if (value == null) return null;
-  if (_navItems is EqualUnmodifiableListView) return _navItems;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
-}
-
-
-/// Create a copy of SnPublicationSiteConfig
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$SnPublicationSiteConfigCopyWith<_SnPublicationSiteConfig> get copyWith => __$SnPublicationSiteConfigCopyWithImpl<_SnPublicationSiteConfig>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$SnPublicationSiteConfigToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublicationSiteConfig&&(identical(other.styleOverride, styleOverride) || other.styleOverride == styleOverride)&&const DeepCollectionEquality().equals(other._navItems, _navItems));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,styleOverride,const DeepCollectionEquality().hash(_navItems));
-
-@override
-String toString() {
-  return 'SnPublicationSiteConfig(styleOverride: $styleOverride, navItems: $navItems)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$SnPublicationSiteConfigCopyWith<$Res> implements $SnPublicationSiteConfigCopyWith<$Res> {
-  factory _$SnPublicationSiteConfigCopyWith(_SnPublicationSiteConfig value, $Res Function(_SnPublicationSiteConfig) _then) = __$SnPublicationSiteConfigCopyWithImpl;
-@override @useResult
-$Res call({
- String? styleOverride, List<SnPublicationSiteNavItems>? navItems
-});
-
-
-
-
-}
-/// @nodoc
-class __$SnPublicationSiteConfigCopyWithImpl<$Res>
-    implements _$SnPublicationSiteConfigCopyWith<$Res> {
-  __$SnPublicationSiteConfigCopyWithImpl(this._self, this._then);
-
-  final _SnPublicationSiteConfig _self;
-  final $Res Function(_SnPublicationSiteConfig) _then;
-
-/// Create a copy of SnPublicationSiteConfig
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? styleOverride = freezed,Object? navItems = freezed,}) {
-  return _then(_SnPublicationSiteConfig(
-styleOverride: freezed == styleOverride ? _self.styleOverride : styleOverride // ignore: cast_nullable_to_non_nullable
-as String?,navItems: freezed == navItems ? _self._navItems : navItems // ignore: cast_nullable_to_non_nullable
-as List<SnPublicationSiteNavItems>?,
-  ));
-}
-
-
-}
-
-
-/// @nodoc
 mixin _$SnPublicationSite {
 
- String get id; String get slug; String get name; String? get description; int? get mode; String get publisherId; String get accountId; DateTime get createdAt; DateTime get updatedAt; List<SnPublicationPage> get pages; SnPublicationSiteConfig get config;
+ String get id; String get slug; String get name; String? get description; int? get mode; String get publisherId; String get accountId; DateTime get createdAt; DateTime get updatedAt; List<SnPublicationPage> get pages; Map<String, dynamic> get config;
 /// Create a copy of SnPublicationSite
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -556,12 +288,12 @@ $SnPublicationSiteCopyWith<SnPublicationSite> get copyWith => _$SnPublicationSit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.config, config) || other.config == config));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&const DeepCollectionEquality().equals(other.config, config));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(pages),config);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(pages),const DeepCollectionEquality().hash(config));
 
 @override
 String toString() {
@@ -576,11 +308,11 @@ abstract mixin class $SnPublicationSiteCopyWith<$Res>  {
   factory $SnPublicationSiteCopyWith(SnPublicationSite value, $Res Function(SnPublicationSite) _then) = _$SnPublicationSiteCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages, SnPublicationSiteConfig config
+ String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages, Map<String, dynamic> config
 });
 
 
-$SnPublicationSiteConfigCopyWith<$Res> get config;
+
 
 }
 /// @nodoc
@@ -606,19 +338,10 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
 as List<SnPublicationPage>,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as SnPublicationSiteConfig,
+as Map<String, dynamic>,
   ));
 }
-/// Create a copy of SnPublicationSite
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnPublicationSiteConfigCopyWith<$Res> get config {
-  
-  return $SnPublicationSiteConfigCopyWith<$Res>(_self.config, (value) {
-    return _then(_self.copyWith(config: value));
-  });
-}
+
 }
 
 
@@ -697,7 +420,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  SnPublicationSiteConfig config)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  Map<String, dynamic> config)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublicationSite() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages,_that.config);case _:
@@ -718,7 +441,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  SnPublicationSiteConfig config)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  Map<String, dynamic> config)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublicationSite():
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages,_that.config);}
@@ -735,7 +458,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  SnPublicationSiteConfig config)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int? mode,  String publisherId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  List<SnPublicationPage> pages,  Map<String, dynamic> config)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublicationSite() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_that.publisherId,_that.accountId,_that.createdAt,_that.updatedAt,_that.pages,_that.config);case _:
@@ -750,7 +473,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.mode,_tha
 @JsonSerializable()
 
 class _SnPublicationSite implements SnPublicationSite {
-  const _SnPublicationSite({required this.id, required this.slug, required this.name, this.description, this.mode, required this.publisherId, required this.accountId, required this.createdAt, required this.updatedAt, required final  List<SnPublicationPage> pages, required this.config}): _pages = pages;
+  const _SnPublicationSite({required this.id, required this.slug, required this.name, this.description, this.mode, required this.publisherId, required this.accountId, required this.createdAt, required this.updatedAt, required final  List<SnPublicationPage> pages, required final  Map<String, dynamic> config}): _pages = pages,_config = config;
   factory _SnPublicationSite.fromJson(Map<String, dynamic> json) => _$SnPublicationSiteFromJson(json);
 
 @override final  String id;
@@ -769,7 +492,13 @@ class _SnPublicationSite implements SnPublicationSite {
   return EqualUnmodifiableListView(_pages);
 }
 
-@override final  SnPublicationSiteConfig config;
+ final  Map<String, dynamic> _config;
+@override Map<String, dynamic> get config {
+  if (_config is EqualUnmodifiableMapView) return _config;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_config);
+}
+
 
 /// Create a copy of SnPublicationSite
 /// with the given fields replaced by the non-null parameter values.
@@ -784,12 +513,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.config, config) || other.config == config));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublicationSite&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&const DeepCollectionEquality().equals(other._config, _config));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(_pages),config);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,mode,publisherId,accountId,createdAt,updatedAt,const DeepCollectionEquality().hash(_pages),const DeepCollectionEquality().hash(_config));
 
 @override
 String toString() {
@@ -804,11 +533,11 @@ abstract mixin class _$SnPublicationSiteCopyWith<$Res> implements $SnPublication
   factory _$SnPublicationSiteCopyWith(_SnPublicationSite value, $Res Function(_SnPublicationSite) _then) = __$SnPublicationSiteCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages, SnPublicationSiteConfig config
+ String id, String slug, String name, String? description, int? mode, String publisherId, String accountId, DateTime createdAt, DateTime updatedAt, List<SnPublicationPage> pages, Map<String, dynamic> config
 });
 
 
-@override $SnPublicationSiteConfigCopyWith<$Res> get config;
+
 
 }
 /// @nodoc
@@ -833,21 +562,12 @@ as String,accountId: null == accountId ? _self.accountId : accountId // ignore: 
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,pages: null == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
-as List<SnPublicationPage>,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as SnPublicationSiteConfig,
+as List<SnPublicationPage>,config: null == config ? _self._config : config // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
   ));
 }
 
-/// Create a copy of SnPublicationSite
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnPublicationSiteConfigCopyWith<$Res> get config {
-  
-  return $SnPublicationSiteConfigCopyWith<$Res>(_self.config, (value) {
-    return _then(_self.copyWith(config: value));
-  });
-}
+
 }
 
 

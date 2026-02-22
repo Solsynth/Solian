@@ -15,17 +15,6 @@ sealed class SnPublicationSiteNavItems with _$SnPublicationSiteNavItems {
 }
 
 @freezed
-sealed class SnPublicationSiteConfig with _$SnPublicationSiteConfig {
-  const factory SnPublicationSiteConfig({
-    String? styleOverride,
-    List<SnPublicationSiteNavItems>? navItems,
-  }) = _SnPublicationSiteConfig;
-
-  factory SnPublicationSiteConfig.fromJson(Map<String, dynamic> json) =>
-      _$SnPublicationSiteConfigFromJson(json);
-}
-
-@freezed
 sealed class SnPublicationSite with _$SnPublicationSite {
   const factory SnPublicationSite({
     required String id,
@@ -38,7 +27,7 @@ sealed class SnPublicationSite with _$SnPublicationSite {
     required DateTime createdAt,
     required DateTime updatedAt,
     required List<SnPublicationPage> pages,
-    required SnPublicationSiteConfig config,
+    required Map<String, dynamic> config,
   }) = _SnPublicationSite;
 
   factory SnPublicationSite.fromJson(Map<String, dynamic> json) =>

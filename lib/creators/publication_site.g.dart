@@ -17,24 +17,6 @@ Map<String, dynamic> _$SnPublicationSiteNavItemsToJson(
   _SnPublicationSiteNavItems instance,
 ) => <String, dynamic>{'label': instance.label, 'href': instance.href};
 
-_SnPublicationSiteConfig _$SnPublicationSiteConfigFromJson(
-  Map<String, dynamic> json,
-) => _SnPublicationSiteConfig(
-  styleOverride: json['style_override'] as String?,
-  navItems: (json['nav_items'] as List<dynamic>?)
-      ?.map(
-        (e) => SnPublicationSiteNavItems.fromJson(e as Map<String, dynamic>),
-      )
-      .toList(),
-);
-
-Map<String, dynamic> _$SnPublicationSiteConfigToJson(
-  _SnPublicationSiteConfig instance,
-) => <String, dynamic>{
-  'style_override': instance.styleOverride,
-  'nav_items': instance.navItems?.map((e) => e.toJson()).toList(),
-};
-
 _SnPublicationSite _$SnPublicationSiteFromJson(Map<String, dynamic> json) =>
     _SnPublicationSite(
       id: json['id'] as String,
@@ -49,9 +31,7 @@ _SnPublicationSite _$SnPublicationSiteFromJson(Map<String, dynamic> json) =>
       pages: (json['pages'] as List<dynamic>)
           .map((e) => SnPublicationPage.fromJson(e as Map<String, dynamic>))
           .toList(),
-      config: SnPublicationSiteConfig.fromJson(
-        json['config'] as Map<String, dynamic>,
-      ),
+      config: json['config'] as Map<String, dynamic>,
     );
 
 Map<String, dynamic> _$SnPublicationSiteToJson(_SnPublicationSite instance) =>
@@ -66,7 +46,7 @@ Map<String, dynamic> _$SnPublicationSiteToJson(_SnPublicationSite instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'pages': instance.pages.map((e) => e.toJson()).toList(),
-      'config': instance.config.toJson(),
+      'config': instance.config,
     };
 
 _SnPublicationPage _$SnPublicationPageFromJson(Map<String, dynamic> json) =>

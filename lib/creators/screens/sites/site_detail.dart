@@ -20,15 +20,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/sites/site_pages.dart';
 import 'package:island/sites/sites_widgets/file_management_action_section.dart';
 import 'package:island/sites/sites_widgets/file_management_section.dart';
-import 'package:island/sites/sites_widgets/page_form.dart';
-import 'package:island/sites/sites_widgets/pages_section.dart';
 import 'package:island/sites/sites_widgets/site_action_menu.dart';
 import 'package:island/sites/sites_widgets/site_detail_content.dart';
 import 'package:island/sites/sites_widgets/site_info_card.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -97,7 +93,6 @@ class CreatorSiteDetailScreen extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          PagesSection(site: site, pubName: pubName),
                           FileManagementSection(site: site, pubName: pubName),
                         ],
                       ),
@@ -148,23 +143,6 @@ class CreatorSiteDetailScreen extends HookConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-      ),
-      floatingActionButton: siteAsync.maybeWhen(
-        data: (site) => FloatingActionButton(
-          onPressed: () {
-            // Create new page
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => PageForm(site: site, pubName: pubName),
-            ).then((_) {
-              // Refresh pages after creation
-              ref.invalidate(sitePagesProvider(pubName, site.slug));
-            });
-          },
-          child: const Icon(Symbols.add),
-        ),
-        orElse: () => null,
       ),
     );
   }
