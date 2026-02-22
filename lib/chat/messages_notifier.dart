@@ -544,7 +544,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         canFetchRemote && (forceRemoteRefresh || cachedMessages.isEmpty);
 
     if (!shouldRefreshRemote) {
-      _hasMore = cachedMessages.length == _pageSize;
+      // If remote fetching is allowed, don't assume "no more" from cache size.
+      // Small local cache should still probe remote pages eagerly.
+      _hasMore = canFetchRemote ? true : cachedMessages.length == _pageSize;
       return _eagerPrefetchIfShort(
         cachedMessages,
         enabled: canFetchRemote,
