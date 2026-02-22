@@ -1,13 +1,11 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:island/creators/publication_site.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class SiteConfigForm extends HookWidget {
-  final SnPublicationSiteConfig? initialConfig;
-  final ValueChanged<SnPublicationSiteConfig> onChanged;
+  final Map<String, dynamic>? initialConfig;
+  final ValueChanged<Map<String, dynamic>> onChanged;
 
   const SiteConfigForm({
     super.key,
@@ -17,26 +15,10 @@ class SiteConfigForm extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final styleOverrideController = useTextEditingController(
-      text: initialConfig?.styleOverride,
+    final jsonText = useState(
+      const JsonEncoder.withIndent('  ').convert(initialConfig ?? {}),
     );
-    final navItems = useState<List<SnPublicationSiteNavItems>>(
-      initialConfig?.navItems ?? [],
-    );
-
-    useEffect(() {
-      void listener() {
-        onChanged(
-          SnPublicationSiteConfig(
-            styleOverride: styleOverrideController.text,
-            navItems: navItems.value,
-          ),
-        );
-      }
-
-      styleOverrideController.addListener(listener);
-      return () => styleOverrideController.removeListener(listener);
-    }, [styleOverrideController, navItems.value]);
+    final jsonError = useState<String?>(null);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -44,125 +26,60 @@ class SiteConfigForm extends HookWidget {
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
-        title: Text('siteConfig'.tr()),
+        title: const Text('Site Config (JSON)'),
         children: [
           Column(
-            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (jsonError.value != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    jsonError.value!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               TextFormField(
-                controller: styleOverrideController,
-                decoration: InputDecoration(
-                  labelText: 'siteConfigStyleOverride'.tr(),
-                  hintText: "You can paste your CSS here...",
+                initialValue: jsonText.value,
+                decoration: const InputDecoration(
+                  labelText: 'Config (JSON)',
+                  hintText: '{"key": "value"}',
                   alignLabelWithHint: true,
-                  border: const OutlineInputBorder(
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
                 ),
-                minLines: 3,
+                minLines: 8,
                 maxLines: null,
-              ).padding(bottom: 8),
-              Row(
-                children: [
-                  Text('siteConfigNavItems'.tr()).bold(),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () {
-                      navItems.value = [
-                        ...navItems.value,
-                        const SnPublicationSiteNavItems(label: '', href: ''),
-                      ];
-                      // Trigger update manually as list mutation doesn't trigger controller listener
-                      onChanged(
-                        SnPublicationSiteConfig(
-                          styleOverride: styleOverrideController.text,
-                          navItems: navItems.value,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Symbols.add),
-                    label: Text('siteConfigAddNavItem'.tr()),
-                  ),
-                ],
-              ).padding(bottom: 4),
-              if (navItems.value.isEmpty)
-                Text('dataEmpty'.tr()).center().padding(vertical: 20),
-              ...navItems.value.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outline,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    spacing: 12,
-                    children: [
-                      TextFormField(
-                        initialValue: item.label,
-                        decoration: InputDecoration(
-                          labelText: 'siteConfigNavItemLabel'.tr(),
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          final newItems = [...navItems.value];
-                          newItems[index] = item.copyWith(label: value);
-                          navItems.value = newItems;
-                          onChanged(
-                            SnPublicationSiteConfig(
-                              styleOverride: styleOverrideController.text,
-                              navItems: newItems,
-                            ),
-                          );
-                        },
-                      ),
-                      TextFormField(
-                        initialValue: item.href,
-                        decoration: InputDecoration(
-                          labelText: 'siteConfigNavItemHref'.tr(),
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          final newItems = [...navItems.value];
-                          newItems[index] = item.copyWith(href: value);
-                          navItems.value = newItems;
-                          onChanged(
-                            SnPublicationSiteConfig(
-                              styleOverride: styleOverrideController.text,
-                              navItems: newItems,
-                            ),
-                          );
-                        },
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          final newItems = [...navItems.value];
-                          newItems.removeAt(index);
-                          navItems.value = newItems;
-                          onChanged(
-                            SnPublicationSiteConfig(
-                              styleOverride: styleOverrideController.text,
-                              navItems: newItems,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Symbols.delete),
-                        label: Text('delete'.tr()),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                      ).alignment(Alignment.centerRight),
-                    ],
-                  ).padding(horizontal: 16, vertical: 20),
-                );
-              }),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                onChanged: (value) {
+                  jsonText.value = value;
+                  try {
+                    final parsed = json.decode(value) as Map<String, dynamic>;
+                    jsonError.value = null;
+                    onChanged(parsed);
+                  } catch (e) {
+                    jsonError.value = 'Invalid JSON: $e';
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Edit site configuration as JSON. Keys: styleOverride, navItems, etc.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ).padding(all: 16),
         ],

@@ -10,7 +10,6 @@ import 'package:island/creators/publication_site.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/sites/sites_widgets/file_management_action_section.dart';
 import 'package:island/sites/sites_widgets/file_management_section.dart';
-import 'package:island/sites/sites_widgets/pages_section.dart';
 import 'package:island/sites/sites_widgets/site_info_card.dart';
 
 class SiteDetailContent extends HookConsumerWidget {
@@ -37,8 +36,6 @@ class SiteDetailContent extends HookConsumerWidget {
             SiteInfoCard(site: site),
             const Gap(8),
             FileManagementActionSection(site: site, pubName: pubName),
-            // Pages Section
-            PagesSection(site: site, pubName: pubName),
             FileManagementSection(site: site, pubName: pubName),
           ],
         ),
