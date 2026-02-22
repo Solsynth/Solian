@@ -55,7 +55,7 @@ class FileManagementSection extends HookConsumerWidget {
                     PopupMenuButton<String>(
                       icon: const Icon(Symbols.upload),
                       onSelected: (String choice) async {
-                        if (!kIsWeb) {
+                        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
                           await Permission.storage.request();
                         }
                         List<File> files = [];

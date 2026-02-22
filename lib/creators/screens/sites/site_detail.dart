@@ -1,3 +1,17 @@
+/// Dyson's FullyManaged sites now use file-based template rendering.
+///
+/// FullyManaged (mode=0):
+/// - Reads `.liquid` template files from site storage
+/// - Renders dynamically at runtime
+/// - Non-`.liquid` files served as static assets
+/// - Uses file APIs: `/api/sites/{siteId}/files/*`
+///
+/// SelfManaged (mode=1):
+/// - Static hosting behavior unchanged
+///
+/// File management is now available for both FullyManaged and SelfManaged sites.
+///
+/// See: DysonNetwork.Zone FullyManaged Template Generator: Client Migration Guide
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -84,8 +98,7 @@ class CreatorSiteDetailScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           PagesSection(site: site, pubName: pubName),
-                          if (site.mode == 1) // Self-Managed only
-                            FileManagementSection(site: site, pubName: pubName),
+                          FileManagementSection(site: site, pubName: pubName),
                         ],
                       ),
                     ),
@@ -99,11 +112,10 @@ class CreatorSiteDetailScreen extends HookConsumerWidget {
                         children: [
                           SiteInfoCard(site: site),
                           const Gap(8),
-                          if (site.mode == 1) // Self-Managed only
-                            FileManagementActionSection(
-                              site: site,
-                              pubName: pubName,
-                            ),
+                          FileManagementActionSection(
+                            site: site,
+                            pubName: pubName,
+                          ),
                         ],
                       ),
                     ),

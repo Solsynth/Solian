@@ -1,3 +1,15 @@
+/// Dyson's FullyManaged sites now use file-based template rendering.
+///
+/// FullyManaged (mode=0):
+/// - Reads `.liquid` template files from site storage
+/// - Renders dynamically at runtime
+/// - Non-`.liquid` files served as static assets
+/// - Uses file APIs: `/api/sites/{siteId}/files/*`
+///
+/// SelfManaged (mode=1):
+/// - Static hosting behavior unchanged
+///
+/// See: DysonNetwork.Zone FullyManaged Template Generator: Client Migration Guide
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +136,39 @@ class _CreatorSiteItem extends HookConsumerWidget {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const Gap(6),
-                        Text(site.name).bold(),
+                        Flexible(child: Text(site.name).bold()),
+                        const Gap(8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: site.mode == 0
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                      .withOpacity(0.7)
+                                : Theme.of(context)
+                                      .colorScheme
+                                      .tertiaryContainer
+                                      .withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            site.mode == 0
+                                ? 'siteModeFullyManaged'.tr()
+                                : 'siteModeSelfManaged'.tr(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: site.mode == 0
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     if (site.description != null &&

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/discovery/models/site_file.dart';
@@ -81,6 +82,9 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
   Future<void> uploadFile(File file, String filePath) async {
     state = const AsyncValue.loading();
     try {
+      debugPrint('[SiteFiles] Uploading file: $filePath from: ${file.path}');
+      debugPrint('[SiteFiles] Site ID: ${arg.siteId}');
+
       final apiClient = ref.read(apiClientProvider);
 
       // Create multipart form data
@@ -93,14 +97,28 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
         ),
       });
 
-      await apiClient.post(
+      debugPrint(
+        '[SiteFiles] Sending upload request to: /zone/sites/${arg.siteId}/files/upload',
+      );
+      debugPrint(
+        '[SiteFiles] FormData: filePath=$filePath, filename=${file.path.split('/').last}',
+      );
+
+      final response = await apiClient.post(
         '/zone/sites/${arg.siteId}/files/upload',
         data: formData,
       );
 
-      // Refresh the files list
-      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      debugPrint('[SiteFiles] Upload response status: ${response.statusCode}');
+      debugPrint('[SiteFiles] Upload response data: ${response.data}');
+
+      // Refresh the files list - check if ref is still mounted
+      if (ref.mounted) {
+        ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      }
     } catch (error, stackTrace) {
+      debugPrint('[SiteFiles] Upload error: $error');
+      debugPrint('[SiteFiles] Upload error stack: $stackTrace');
       state = AsyncValue.error(error, stackTrace);
       rethrow;
     }
@@ -115,8 +133,10 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
         data: {'new_content': newContent},
       );
 
-      // Refresh the files list
-      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      // Refresh the files list - check if ref is still mounted
+      if (ref.mounted) {
+        ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      }
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -131,8 +151,10 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
         '/zone/sites/${arg.siteId}/files/delete/$relativePath',
       );
 
-      // Refresh the files list
-      ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      // Refresh the files list - check if ref is still mounted
+      if (ref.mounted) {
+        ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      }
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -140,10 +162,22 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
   }
 
   Future<void> createDirectory(String directoryPath) async {
-    // For directories, we upload a dummy file first then delete it or create through upload
-    // Actually, according to API docs, directories are created when uploading files to them
-    // So we'll just invalidate to refresh the list
-    ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+    state = const AsyncValue.loading();
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      await apiClient.post(
+        '/zone/sites/${arg.siteId}/files/folder',
+        data: {'path': directoryPath},
+      );
+
+      // Refresh the files list - check if ref is still mounted
+      if (ref.mounted) {
+        ref.invalidate(siteFilesProvider(siteId: arg.siteId, path: arg.path));
+      }
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
   }
 }
 
