@@ -728,8 +728,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       final remoteMessage = SnChatMessage.fromJson(response.data);
+      final normalizedRemoteMessage =
+          editingTo != null
+          ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
+          : remoteMessage;
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        normalizedRemoteMessage,
         MessageStatus.sent,
       );
 
@@ -944,16 +948,16 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
 
+    final existingMessage = await fetchMessageById(targetId);
+    if (existingMessage == null) {
+      talker.log('Cannot update non-existent message $targetId');
+      return;
+    }
+
     LocalChatMessage updatedMessage;
 
     if (remoteMessage.type == 'messages.update.links') {
       // For link updates, merge meta with existing message instead of creating new one
-      final existingMessage = await fetchMessageById(targetId);
-      if (existingMessage == null) {
-        talker.log('Cannot update links for non-existent message $targetId');
-        return;
-      }
-
       final existingRemote = existingMessage.toRemoteMessage();
       final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
       mergedMeta.addAll(remoteMessage.meta);
@@ -969,15 +973,16 @@ class MessagesNotifier extends _$MessagesNotifier {
         existingMessage.status,
       );
     } else {
-      // For regular updates, create new message as before
+      // Preserve original createdAt so edited messages keep their order.
       updatedMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage.copyWith(
           id: targetId,
+          createdAt: existingMessage.createdAt,
           meta: Map.of(remoteMessage.meta)..remove('message_id'),
           type: 'text',
           editedAt: remoteMessage.createdAt,
         ),
-        MessageStatus.sent,
+        existingMessage.status,
       );
     }
 
