@@ -223,7 +223,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     ref.onCancel(() {
       talker.info('[MessageSubscriber] Unsubscribing room $roomId');
-      subscribedNotifier.set(null);
+      if (ref.mounted) subscribedNotifier.set(null);
       try {
         _sendMessage!(
           jsonEncode(

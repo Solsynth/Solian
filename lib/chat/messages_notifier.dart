@@ -137,6 +137,56 @@ class MessagesNotifier extends _$MessagesNotifier {
     return messages;
   }
 
+  List<LocalChatMessage> _mergeDedupMessages(List<LocalChatMessage> messages) {
+    final sorted = _sortMessages(messages);
+    final unique = <LocalChatMessage>[];
+    final seenIds = <String>{};
+    for (final msg in sorted) {
+      if (seenIds.add(msg.id)) unique.add(msg);
+    }
+    return unique;
+  }
+
+  Future<List<LocalChatMessage>> _eagerPrefetchIfShort(
+    List<LocalChatMessage> initial, {
+    required bool enabled,
+    int minimumCount = 100,
+  }) async {
+    if (!enabled) return initial;
+    if (initial.length >= minimumCount) return initial;
+
+    var combined = _mergeDedupMessages(initial);
+    var passes = 0;
+    const maxPasses = 8;
+    const eagerMaxTake = 100;
+
+    while (_hasMore && combined.length < minimumCount && passes < maxPasses) {
+      final offset = combined.length;
+      final remaining = minimumCount - combined.length;
+      final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
+      final older = await listMessages(offset: offset, take: eagerTake);
+      if (older.isEmpty) {
+        _hasMore = false;
+        break;
+      }
+
+      final nextCombined = _mergeDedupMessages([...combined, ...older]);
+      if (nextCombined.length == combined.length) {
+        // No growth means we hit the end or server returned duplicates only.
+        _hasMore = false;
+        break;
+      }
+      combined = nextCombined;
+
+      if (older.length < eagerTake) {
+        _hasMore = false;
+      }
+      passes += 1;
+    }
+
+    return combined;
+  }
+
   Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
     if (_isUpdatingState) {
       talker.log('State update already in progress, skipping');
@@ -495,7 +545,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (!shouldRefreshRemote) {
       _hasMore = cachedMessages.length == _pageSize;
-      return cachedMessages;
+      return _eagerPrefetchIfShort(
+        cachedMessages,
+        enabled: canFetchRemote,
+      );
     }
 
     try {
@@ -508,7 +561,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       if (kIsWeb) {
         _hasMore = remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
-        return remoteMessages;
+        return _eagerPrefetchIfShort(remoteMessages, enabled: canFetchRemote);
       }
       final refreshedMessages = await _getCachedMessages(
         offset: 0,
@@ -518,7 +571,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         withAttachments: _withAttachments,
       );
       _hasMore = refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
-      return refreshedMessages;
+      return _eagerPrefetchIfShort(
+        refreshedMessages,
+        enabled: canFetchRemote,
+      );
     } catch (err, stackTrace) {
       talker.log(
         'Error refreshing initial messages from remote, falling back to cache',
