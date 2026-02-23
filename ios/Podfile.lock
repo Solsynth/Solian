@@ -257,6 +257,10 @@ PODS:
   - nanopb/encode (3.30910.0)
   - native_exif (0.0.1):
     - Flutter
+  - ObjectBox (5.2.0)
+  - objectbox_flutter_libs (0.0.1):
+    - Flutter
+    - ObjectBox (= 5.2.0)
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
@@ -292,31 +296,6 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
-  - sqlite3 (3.51.1):
-    - sqlite3/common (= 3.51.1)
-  - sqlite3/common (3.51.1)
-  - sqlite3/dbstatvtab (3.51.1):
-    - sqlite3/common
-  - sqlite3/fts5 (3.51.1):
-    - sqlite3/common
-  - sqlite3/math (3.51.1):
-    - sqlite3/common
-  - sqlite3/perf-threadsafe (3.51.1):
-    - sqlite3/common
-  - sqlite3/rtree (3.51.1):
-    - sqlite3/common
-  - sqlite3/session (3.51.1):
-    - sqlite3/common
-  - sqlite3_flutter_libs (0.0.1):
-    - Flutter
-    - FlutterMacOS
-    - sqlite3 (~> 3.51.1)
-    - sqlite3/dbstatvtab
-    - sqlite3/fts5
-    - sqlite3/math
-    - sqlite3/perf-threadsafe
-    - sqlite3/rtree
-    - sqlite3/session
   - super_native_extensions (0.0.1):
     - Flutter
   - SwiftyGif (5.4.5)
@@ -365,6 +344,7 @@ DEPENDENCIES:
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - native_exif (from `.symlinks/plugins/native_exif/ios`)
+  - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - pasteboard (from `.symlinks/plugins/pasteboard/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -378,7 +358,6 @@ DEPENDENCIES:
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
-  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
   - syncfusion_flutter_pdfviewer (from `.symlinks/plugins/syncfusion_flutter_pdfviewer/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -409,11 +388,11 @@ SPEC REPOS:
     - KingfisherWebP
     - libwebp
     - nanopb
+    - ObjectBox
     - OrderedSet
     - PromisesObjC
     - PromisesSwift
     - SDWebImage
-    - sqlite3
     - SwiftyGif
     - WebRTC-SDK
 
@@ -478,6 +457,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   native_exif:
     :path: ".symlinks/plugins/native_exif/ios"
+  objectbox_flutter_libs:
+    :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   pasteboard:
@@ -504,8 +485,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
-  sqlite3_flutter_libs:
-    :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
   syncfusion_flutter_pdfviewer:
@@ -545,7 +524,7 @@ SPEC CHECKSUMS:
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
-  flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
+  flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
@@ -570,6 +549,8 @@ SPEC CHECKSUMS:
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   native_exif: 0eb73d3d5b3ca892719228df8d2d1b13d1ae396c
+  ObjectBox: 946c1e8586aaa61e21b6661bab4948d06fdd51c4
+  objectbox_flutter_libs: 4d609454f39d002fc850b3019e180fc4760cdf36
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   pasteboard: 49088aeb6119d51f976a421db60d8e1ab079b63c
@@ -587,8 +568,6 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
-  sqlite3: 8d708bc63e9f4ce48f0ad9d6269e478c5ced1d9b
-  sqlite3_flutter_libs: d13b8b3003f18f596e542bcb9482d105577eff41
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   syncfusion_flutter_pdfviewer: 90dc48305d2e33d4aa20681d1e98ddeda891bc14
