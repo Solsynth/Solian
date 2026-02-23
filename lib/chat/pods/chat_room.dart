@@ -19,11 +19,23 @@ final chatSyncingProvider = NotifierProvider<ChatSyncingNotifier, bool>(
   ChatSyncingNotifier.new,
 );
 
+final chatSyncHintProvider = NotifierProvider<ChatSyncHintNotifier, String?>(
+  ChatSyncHintNotifier.new,
+);
+
 class ChatSyncingNotifier extends Notifier<bool> {
   @override
   bool build() => false;
 
   void set(bool value) => state = value;
+}
+
+class ChatSyncHintNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? value) => state = value;
+  void clear() => state = null;
 }
 
 final flashingMessagesProvider =
@@ -438,6 +450,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   Future<void> _syncAllMessagesImpl() async {
     talker.log('Starting global chat sync...');
+    ref.read(chatSyncHintProvider.notifier).set('Syncing chat history...');
 
     Future.microtask(() {
       if (ref.mounted) {
@@ -515,6 +528,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           talker.log(
             'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
           );
+          ref
+              .read(chatSyncHintProvider.notifier)
+              .set(
+                'Syncing history: ${roundSynced + messages.length} in round ${eagerRound + 1}',
+              );
 
           // Save all messages to database in a transaction per page.
           await db.transaction(() async {
@@ -581,26 +599,21 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             break;
           }
 
-          // Check if there are more messages to sync
-          if (rawMessages.length < totalMessages && hasCursorProgress) {
-            // Keep using the server cursor for paging within this sync session.
+          // Continue paging as long as server cursor advances and the page
+          // contains data. Do not rely solely on total_count semantics.
+          if (hasCursorProgress) {
             pagingCursor = nextPagingCursor;
             talker.log(
-              'More messages to sync, continuing with cursor: $pagingCursor',
+              'Continuing sync round ${eagerRound + 1} with cursor: $pagingCursor (pageRaw=${rawMessages.length}, pageValid=${messages.length}, totalHint=$totalMessages)',
             );
             await Future<void>.delayed(Duration.zero);
-          } else {
-            // No more messages to sync for this round
-            if (!hasCursorProgress && rawMessages.isNotEmpty) {
-              talker.log(
-                'Stopping sync round ${eagerRound + 1}: cursor did not advance (cursor=$pagingCursor, next=$nextPagingCursor)',
-              );
-            }
-            if (hasCursorProgress) {
-              pagingCursor = nextPagingCursor;
-            }
-            break;
+            continue;
           }
+
+          talker.log(
+            'Stopping sync round ${eagerRound + 1}: cursor did not advance (cursor=$pagingCursor, next=$nextPagingCursor, pageRaw=${rawMessages.length})',
+          );
+          break;
         }
 
         syncCursor = [
@@ -621,6 +634,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       talker.log(
         'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
       );
+      ref
+          .read(chatSyncHintProvider.notifier)
+          .set('Sync complete: $totalSynced messages');
       if (updatedRoomIds.isNotEmpty) {
         eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
       }
@@ -634,6 +650,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       Future.microtask(() {
         if (ref.mounted) {
           ref.read(chatSyncingProvider.notifier).set(false);
+          ref.read(chatSyncHintProvider.notifier).clear();
         }
       });
     }

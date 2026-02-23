@@ -159,29 +159,38 @@ class MessagesNotifier extends _$MessagesNotifier {
     var passes = 0;
     const maxPasses = 8;
     const eagerMaxTake = 100;
+    final hint = ref.read(chatSyncHintProvider.notifier);
+    hint.set('Loading history: ${combined.length}/$minimumCount');
 
-    while (_hasMore && combined.length < minimumCount && passes < maxPasses) {
-      final offset = combined.length;
-      final remaining = minimumCount - combined.length;
-      final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
-      final older = await listMessages(offset: offset, take: eagerTake);
-      if (older.isEmpty) {
-        _hasMore = false;
-        break;
-      }
+    try {
+      while (_hasMore && combined.length < minimumCount && passes < maxPasses) {
+        final offset = combined.length;
+        final remaining = minimumCount - combined.length;
+        final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
+        final older = await listMessages(offset: offset, take: eagerTake);
+        if (older.isEmpty) {
+          _hasMore = false;
+          break;
+        }
 
-      final nextCombined = _mergeDedupMessages([...combined, ...older]);
-      if (nextCombined.length == combined.length) {
-        // No growth means we hit the end or server returned duplicates only.
-        _hasMore = false;
-        break;
-      }
-      combined = nextCombined;
+        final nextCombined = _mergeDedupMessages([...combined, ...older]);
+        if (nextCombined.length == combined.length) {
+          // No growth means we hit the end or server returned duplicates only.
+          _hasMore = false;
+          break;
+        }
+        combined = nextCombined;
 
-      if (older.length < eagerTake) {
-        _hasMore = false;
+        if (older.length < eagerTake) {
+          _hasMore = false;
+        }
+        passes += 1;
+        hint.set(
+          'Loading history: ${combined.length}/$minimumCount (batch $passes)',
+        );
       }
-      passes += 1;
+    } finally {
+      hint.clear();
     }
 
     return combined;

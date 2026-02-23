@@ -18,6 +18,7 @@ class ChatSyncIndicator extends HookConsumerWidget {
     // Check if any of the providers are loading
     final summaryState = ref.watch(chatSummaryProvider).isLoading;
     final syncingState = ref.watch(chatSyncingProvider);
+    final syncHint = ref.watch(chatSyncHintProvider);
     final isLoading = summaryState || syncingState;
 
     return AnimatedSwitcher(
@@ -35,8 +36,7 @@ class ChatSyncIndicator extends HookConsumerWidget {
                     height: 28,
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   ),
-                  Text('retrievingData')
-                      .tr()
+                  Text(syncHint ?? 'retrievingData'.tr())
                       .fontSize(16)
                       .textColor(
                         Theme.of(context).colorScheme.onPrimaryContainer,
