@@ -479,9 +479,16 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
   void _syncLocalParticipantState() {
     final local = _room?.localParticipant;
+    final identitySuggestsStreamer = (local?.identity ?? '').startsWith(
+      'streamer_',
+    );
+    final shouldKeepStreamerRole =
+        state.isStreamerIdentity ||
+        state.requestedStreamerMode == true ||
+        identitySuggestsStreamer;
     state = state.copyWith(
       localIdentity: local?.identity,
-      isStreamerIdentity: (local?.identity ?? '').startsWith('streamer_'),
+      isStreamerIdentity: shouldKeepStreamerRole,
       isCameraEnabled: local?.isCameraEnabled() ?? false,
       isMicrophoneEnabled: local?.isMicrophoneEnabled() ?? false,
       isScreenSharing: local?.isScreenShareEnabled() ?? false,

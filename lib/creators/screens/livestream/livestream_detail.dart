@@ -47,6 +47,8 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     final videoPlaybackEnabled = useState(true);
     final audioPlaybackEnabled = useState(true);
     final controlsVisible = useState(true);
+    final canUseStudioPublishControls =
+        roomState.isStreamerIdentity || roomState.requestedStreamerMode == true;
 
     Future<void> connect() async {
       var streamerMode = roomState.requestedStreamerMode;
@@ -101,23 +103,31 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
     }
 
     Future<void> toggleCamera() async {
-      if (!roomState.isStreamerIdentity) return;
+      if (!canUseStudioPublishControls) return;
       final local = roomState.room?.localParticipant;
       if (local == null) return;
-      await local.setCameraEnabled(!local.isCameraEnabled());
-      notifier.syncLocalParticipantState();
+      try {
+        await local.setCameraEnabled(!local.isCameraEnabled());
+        notifier.syncLocalParticipantState();
+      } catch (e) {
+        showErrorAlert(e);
+      }
     }
 
     Future<void> toggleMic() async {
-      if (!roomState.isStreamerIdentity) return;
+      if (!canUseStudioPublishControls) return;
       final local = roomState.room?.localParticipant;
       if (local == null) return;
-      await local.setMicrophoneEnabled(!local.isMicrophoneEnabled());
-      notifier.syncLocalParticipantState();
+      try {
+        await local.setMicrophoneEnabled(!local.isMicrophoneEnabled());
+        notifier.syncLocalParticipantState();
+      } catch (e) {
+        showErrorAlert(e);
+      }
     }
 
     Future<void> toggleScreenShare() async {
-      if (!roomState.isStreamerIdentity) return;
+      if (!canUseStudioPublishControls) return;
       final local = roomState.room?.localParticipant;
       if (local == null) return;
       final target = !local.isScreenShareEnabled();
@@ -461,7 +471,7 @@ class CreatorLivestreamDetailScreen extends HookConsumerWidget {
                                 onTap: toggleAudioPlayback,
                               ),
                               const Gap(10),
-                              if (roomState.isStreamerIdentity) ...[
+                              if (canUseStudioPublishControls) ...[
                                 _CircleControlButtonWithDropdown(
                                   icon: roomState.isMicrophoneEnabled
                                       ? Symbols.mic
