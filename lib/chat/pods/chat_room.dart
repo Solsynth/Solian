@@ -251,6 +251,24 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     return null;
   }
 
+  Future<LocalChatMessage?> _fetchMessageFromApiAndCache(
+    AppDatabase db,
+    String roomId,
+    String messageId,
+  ) async {
+    try {
+      final client = ref.read(apiClientProvider);
+      final resp = await client.get('/messager/chat/$roomId/messages/$messageId');
+      final parsed = _tryParseChatMessage(resp.data, context: 'reaction target');
+      if (parsed == null) return null;
+      final local = LocalChatMessage.fromRemoteMessage(parsed, MessageStatus.sent);
+      await db.saveMessageWithSender(local);
+      return local;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _markMessageAsDeleted(
     AppDatabase db,
     String messageId,
@@ -376,10 +394,15 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final targetId = packet.meta['message_id']?.toString();
     if (targetId == null || targetId.isEmpty) return false;
 
-    final targetMessage = await _fetchMessageFromDb(
+    var targetMessage = await _fetchMessageFromDb(
       db,
       targetId,
       packet.chatRoomId,
+    );
+    targetMessage ??= await _fetchMessageFromApiAndCache(
+      db,
+      packet.chatRoomId,
+      targetId,
     );
     if (targetMessage == null) return false;
 
@@ -540,7 +563,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               try {
                 if (msg.type == 'messages.reaction.added' ||
                     msg.type == 'messages.reaction.removed') {
-                  final existed = await db.getMessageById(msg.id);
+                  final targetId = msg.meta['message_id']?.toString();
+                  final existed = targetId == null || targetId.isEmpty
+                      ? null
+                      : await db.getMessageById(targetId);
                   if (existed == null) {
                     await _applyReactionUpdate(
                       db,

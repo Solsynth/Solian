@@ -376,6 +376,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
     final messages = <LocalChatMessage>[];
+    final pendingReactionEvents = <SnChatMessage>[];
     for (final json in data) {
       final remoteMessage = _tryParseChatMessage(
         json,
@@ -410,13 +411,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       if ((remoteMessage.type == 'messages.reaction.added' ||
-              remoteMessage.type == 'messages.reaction.removed') &&
-          existing == null) {
-        // Apply reaction update exactly once for each sync-message id.
-        if (remoteMessage.type == 'messages.reaction.added') {
-          await receiveReactionAdded(remoteMessage);
-        } else {
-          await receiveReactionRemoved(remoteMessage);
+              remoteMessage.type == 'messages.reaction.removed')) {
+        // Defer reaction application until after this page is fully cached, so
+        // target messages from the same page are available.
+        if (existing == null) {
+          pendingReactionEvents.add(remoteMessage);
         }
       }
 
@@ -427,6 +426,14 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       }
       messages.add(localMessage);
+    }
+
+    for (final event in pendingReactionEvents) {
+      if (event.type == 'messages.reaction.added') {
+        await receiveReactionAdded(event);
+      } else {
+        await receiveReactionRemoved(event);
+      }
     }
 
     // Check if we've fetched all remote messages
