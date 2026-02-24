@@ -193,15 +193,15 @@ class _RtmpEgressSheet extends HookWidget {
     final filePathController = useTextEditingController();
 
     return SheetScaffold(
-      titleText: 'startRtmpEgressTitle',
+      titleText: 'startRtmpEgressTitle'.tr(),
       child: Column(
         spacing: 12,
         children: [
           TextField(
             controller: urlsController,
             decoration: const InputDecoration(
-              labelText: 'rtmpUrlsOnePerLine',
-              border: OutlineInputBorder(
+              labelText: 'rtmpUrlsOnePerLine'.tr(),
+e             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
             ),
@@ -211,7 +211,7 @@ class _RtmpEgressSheet extends HookWidget {
           TextField(
             controller: filePathController,
             decoration: const InputDecoration(
-              labelText: 'recordingFilePathOptional',
+              labelText: 'recordingFilePathOptional'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
