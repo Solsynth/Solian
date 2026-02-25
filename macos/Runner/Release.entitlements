@@ -8,6 +8,11 @@
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.solsynth.solian</string>
+		<string>W7HPZ53V6B.solian</string>
+	</array>
 	<key>com.apple.security.device.audio-input</key>
 	<true/>
 	<key>com.apple.security.device.camera</key>

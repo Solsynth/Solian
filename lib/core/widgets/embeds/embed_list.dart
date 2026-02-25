@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:island/core/widgets/embeds/livestream.dart';
+import 'package:island/livestreams/livestream.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';

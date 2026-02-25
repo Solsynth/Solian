@@ -4,66 +4,29 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class PostAwardSheet extends HookConsumerWidget {
-  final SnPost post;
-  const PostAwardSheet({super.key, required this.post});
+class LivestreamAwardSheet extends HookConsumerWidget {
+  final SnLiveStream livestream;
+  const LivestreamAwardSheet({super.key, required this.livestream});
 
   Widget _buildProfilePicture(BuildContext context, {double radius = 16}) {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return ProfilePictureWidget(
-        file:
-            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
-        radius: radius,
-      );
+    final publisher = livestream.publisher;
+    if (publisher != null) {
+      return ProfilePictureWidget(file: publisher.picture, radius: radius);
     }
-    // Handle actor case
-    if (post.actor != null) {
-      final avatarUrl = post.actor!.avatarUrl;
-      if (avatarUrl != null) {
-        return Container(
-          width: radius * 2,
-          height: radius * 2,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(radius),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(radius),
-            child: Image.network(
-              avatarUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(
-                  Symbols.account_circle,
-                  size: radius,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                );
-              },
-            ),
-          ),
-        );
-      }
-    }
-    // Fallback
     return ProfilePictureWidget(file: null, radius: radius);
   }
 
   String _getPublisherName() {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return post.publisher!.name;
-    }
-    // Handle actor case
-    if (post.actor != null) {
-      return post.actor!.username ?? 'Unknown';
+    final publisher = livestream.publisher;
+    if (publisher != null) {
+      return publisher.name;
     }
     return 'Unknown';
   }
@@ -72,23 +35,18 @@ class PostAwardSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messageController = useTextEditingController();
     final amountController = useTextEditingController();
-    final selectedAttitude = useState<int>(0); // 0 for positive, 2 for negative
 
     return SheetScaffold(
-      titleText: 'awardPost'.tr(),
+      titleText: 'awardLivestream'.tr(),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Post Preview Section
-            _buildPostPreview(context),
+            _buildLivestreamPreview(context),
             const Gap(20),
-
-            // Award Result Explanation
             _buildAwardResultExplanation(context),
             const Gap(20),
-
             Text(
               'awardMessage'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
@@ -103,30 +61,6 @@ class PostAwardSheet extends HookConsumerWidget {
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
-            ),
-            const Gap(16),
-            Text(
-              'awardAttitude'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Gap(8),
-            SegmentedButton<int>(
-              segments: [
-                ButtonSegment<int>(
-                  value: 0,
-                  label: Text('awardAttitudePositive'.tr()),
-                  icon: const Icon(Symbols.thumb_up),
-                ),
-                ButtonSegment<int>(
-                  value: 2,
-                  label: Text('awardAttitudeNegative'.tr()),
-                  icon: const Icon(Symbols.thumb_down),
-                ),
-              ],
-              selected: {selectedAttitude.value},
-              onSelectionChanged: (Set<int> selection) {
-                selectedAttitude.value = selection.first;
-              },
             ),
             const Gap(16),
             Text(
@@ -154,7 +88,6 @@ class PostAwardSheet extends HookConsumerWidget {
                   ref,
                   messageController,
                   amountController,
-                  selectedAttitude.value,
                 ),
                 icon: const Icon(Symbols.star),
                 label: Text('awardSubmit'.tr()),
@@ -166,7 +99,7 @@ class PostAwardSheet extends HookConsumerWidget {
     );
   }
 
-  Widget _buildPostPreview(BuildContext context) {
+  Widget _buildLivestreamPreview(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -182,13 +115,13 @@ class PostAwardSheet extends HookConsumerWidget {
           Row(
             children: [
               Icon(
-                Symbols.article,
+                Symbols.live_tv,
                 size: 20,
                 color: Theme.of(context).colorScheme.primary,
               ),
               const Gap(8),
               Text(
-                'awardPostPreview'.tr(),
+                'awardLivestreamPreview'.tr(),
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -197,26 +130,24 @@ class PostAwardSheet extends HookConsumerWidget {
           ),
           const Gap(8),
           Text(
-            post.content ?? 'awardNoContent'.tr(),
+            livestream.title ?? 'awardNoTitle'.tr(),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          ...[
-            const Gap(4),
-            Row(
-              spacing: 6,
-              children: [
-                Text(
-                  'awardByPublisher'.tr(args: ['@${_getPublisherName()}']),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+          const Gap(4),
+          Row(
+            spacing: 6,
+            children: [
+              Text(
+                'awardByPublisher'.tr(args: ['@${_getPublisherName()}']),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                _buildProfilePicture(context, radius: 8),
-              ],
-            ),
-          ],
+              ),
+              _buildProfilePicture(context, radius: 8),
+            ],
+          ),
         ],
       ),
     );
@@ -269,13 +200,10 @@ class PostAwardSheet extends HookConsumerWidget {
     WidgetRef ref,
     TextEditingController messageController,
     TextEditingController amountController,
-    int selectedAttitude,
   ) async {
-    // Get values from controllers
     final message = messageController.text.trim();
     final amountText = amountController.text.trim();
 
-    // Validate inputs
     if (amountText.isEmpty) {
       showSnackBar('awardAmountRequired'.tr());
       return;
@@ -297,22 +225,19 @@ class PostAwardSheet extends HookConsumerWidget {
 
       final client = ref.read(apiClientProvider);
 
-      // Send award request
       final awardResponse = await client.post(
-        '/sphere/posts/${post.id}/awards',
+        '/sphere/livestreams/${livestream.id}/awards',
         data: {'amount': amount, if (message.isNotEmpty) 'message': message},
       );
 
       final orderId = awardResponse.data['order_id'] as String;
 
-      // Fetch order details
       final orderResponse = await client.get('/wallet/orders/$orderId');
       final order = SnWalletOrder.fromJson(orderResponse.data);
 
       if (context.mounted) {
         hideLoadingModal(context);
 
-        // Show payment overlay
         final paidOrder = await PaymentOverlay.show(
           context: context,
           order: order,

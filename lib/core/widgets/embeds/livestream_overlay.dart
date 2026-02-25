@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/route.dart';
-import 'package:island/core/widgets/embeds/livestream_room.dart';
+import 'package:island/livestreams/livestream_room.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;

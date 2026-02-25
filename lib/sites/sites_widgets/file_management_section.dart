@@ -55,7 +55,7 @@ class FileManagementSection extends HookConsumerWidget {
                     PopupMenuButton<String>(
                       icon: const Icon(Symbols.upload),
                       onSelected: (String choice) async {
-                        if (!kIsWeb) {
+                        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
                           await Permission.storage.request();
                         }
                         List<File> files = [];
@@ -288,6 +288,19 @@ class FileManagementSection extends HookConsumerWidget {
     final List<Map<String, dynamic>> results = [];
     try {
       await for (final entity in Directory(dirPath).list(recursive: true)) {
+        // Skip .git folder and its contents
+        if (entity.path.contains('/.git/') ||
+            entity.path.endsWith('/.git') ||
+            entity.path.contains(r'\.git\') ||
+            entity.path.endsWith(r'\.git')) {
+          continue;
+        }
+        // Skip .DS_Store files
+        if (entity.path.endsWith('/.DS_Store') ||
+            entity.path.endsWith(r'\.DS_Store')) {
+          continue;
+        }
+
         if (entity is File) {
           String relativePath = p.relative(entity.path, from: dirPath);
           // Normalize to forward slashes for consistency (e.g. for API uploads)

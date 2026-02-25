@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:drift/drift.dart';
-import 'package:island/data/drift_db.dart';
 import 'package:island/core/database.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -35,16 +32,9 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
 
     try {
       final database = ref.read(databaseProvider);
-      await database.addPostDraft(
-        PostDraftsCompanion(
-          id: Value(updatedDraft.id),
-          title: Value(updatedDraft.title),
-          description: Value(updatedDraft.description),
-          content: Value(updatedDraft.content),
-          visibility: Value(updatedDraft.visibility),
-          type: Value(updatedDraft.type),
-          lastModified: Value(updatedDraft.updatedAt ?? DateTime.now()),
-          postData: Value(jsonEncode(updatedDraft.toJson())),
+      await database.addPostDraftFromPost(
+        updatedDraft.copyWith(
+          updatedAt: updatedDraft.updatedAt ?? DateTime.now(),
         ),
       );
       // Update state after successful database operation, delayed to avoid widget building issues

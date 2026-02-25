@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:island/data/drift_db.dart';
+import 'package:island/data/database.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 AppDatabase constructDb() {
-  final db = LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'solar_network_data.sqlite'));
-    return NativeDatabase(file);
+  final directoryPathFuture = getApplicationSupportDirectory().then((baseDir) async {
+    final dir = Directory(p.join(baseDir.path, 'objectbox'));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir.path;
   });
-  return AppDatabase(db);
+  return AppDatabase.native(directoryPathFuture);
 }

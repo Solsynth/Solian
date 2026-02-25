@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/sites/site_detail.dart';
 import 'package:island/creators/screens/sites/site_list.dart';
 import 'package:island/creators/screens/sites/widgets/site_config_form.dart';
-import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -25,7 +24,7 @@ class SiteForm extends HookConsumerWidget {
     TextEditingController nameController,
     TextEditingController descriptionController,
     ValueNotifier<int> modeController,
-    ValueNotifier<SnPublicationSiteConfig> configController,
+    ValueNotifier<Map<String, dynamic>> configController,
     Function() saveSite,
     Function() deleteSite,
     String siteSlug,
@@ -151,9 +150,7 @@ class SiteForm extends HookConsumerWidget {
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final modeController = useState<int>(0); // Default to fully managed (0)
-    final configController = useState<SnPublicationSiteConfig>(
-      const SnPublicationSiteConfig(),
-    );
+    final configController = useState<Map<String, dynamic>>({});
     final isLoading = useState(false);
 
     final saveSite = useCallback(() async {
@@ -170,7 +167,7 @@ class SiteForm extends HookConsumerWidget {
           'mode': modeController.value,
           if (descriptionController.text.isNotEmpty)
             'description': descriptionController.text,
-          'config': configController.value.toJson(),
+          'config': configController.value,
         };
 
         if (siteSlug != null) {

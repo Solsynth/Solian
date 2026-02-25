@@ -146,12 +146,10 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
             AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
+            AutoRoute(page: CreatorSiteListRoute.page, path: ':pubName/sites'),
             AutoRoute(
-              page: CreatorSiteListRoute.page,
-              path: ':pubName/sites',
-              children: [
-                AutoRoute(page: CreatorSiteDetailRoute.page, path: ':siteSlug'),
-              ],
+              page: CreatorSiteDetailRoute.page,
+              path: ':pubName/sites/:siteSlug',
             ),
             AutoRoute(
               page: CreatorStickerListRoute.page,

@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/status.dart';
-import 'package:island/core/widgets/embeds/livestream.dart';
+import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';

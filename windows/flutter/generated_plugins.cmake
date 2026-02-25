@@ -21,13 +21,13 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_auth_windows
   media_kit_libs_windows_video
   media_kit_video
+  objectbox_flutter_libs
   pasteboard
   permission_handler_windows
   protocol_handler_windows
   record_windows
   screen_retriever_windows
   share_plus
-  sqlite3_flutter_libs
   super_native_extensions
   syncfusion_pdfviewer_windows
   tray_manager

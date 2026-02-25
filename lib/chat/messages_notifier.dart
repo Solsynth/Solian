@@ -1,10 +1,10 @@
 import "dart:async";
 import "package:dio/dio.dart";
-import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
+import "package:flutter/foundation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_room.dart";
-import "package:island/data/drift_db.dart";
+import "package:island/data/database.dart";
 import "package:island/data/message.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
@@ -51,10 +51,34 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
+  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
+    final data = Map<String, dynamic>.from(input);
+    data['meta'] = data['meta'] is Map<String, dynamic>
+        ? data['meta']
+        : <String, dynamic>{};
+    data['members_mentioned'] =
+        (data['members_mentioned'] is List ? data['members_mentioned'] as List : const [])
+            .whereType<Object?>()
+            .where((e) => e != null)
+            .map((e) => e.toString())
+            .toList();
+    data['attachments'] =
+        (data['attachments'] is List ? data['attachments'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    data['reactions'] =
+        (data['reactions'] is List ? data['reactions'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+    return data;
+  }
+
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
     try {
-      return SnChatMessage.fromJson(data);
+      return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
       talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
       return null;
@@ -111,6 +135,65 @@ class MessagesNotifier extends _$MessagesNotifier {
   List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
     messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return messages;
+  }
+
+  List<LocalChatMessage> _mergeDedupMessages(List<LocalChatMessage> messages) {
+    final sorted = _sortMessages(messages);
+    final unique = <LocalChatMessage>[];
+    final seenIds = <String>{};
+    for (final msg in sorted) {
+      if (seenIds.add(msg.id)) unique.add(msg);
+    }
+    return unique;
+  }
+
+  Future<List<LocalChatMessage>> _eagerPrefetchIfShort(
+    List<LocalChatMessage> initial, {
+    required bool enabled,
+    int minimumCount = 100,
+  }) async {
+    if (!enabled) return initial;
+    if (initial.length >= minimumCount) return initial;
+
+    var combined = _mergeDedupMessages(initial);
+    var passes = 0;
+    const maxPasses = 8;
+    const eagerMaxTake = 100;
+    final hint = ref.read(chatSyncHintProvider.notifier);
+    hint.set('Loading history: ${combined.length}/$minimumCount');
+
+    try {
+      while (_hasMore && combined.length < minimumCount && passes < maxPasses) {
+        final offset = combined.length;
+        final remaining = minimumCount - combined.length;
+        final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
+        final older = await listMessages(offset: offset, take: eagerTake);
+        if (older.isEmpty) {
+          _hasMore = false;
+          break;
+        }
+
+        final nextCombined = _mergeDedupMessages([...combined, ...older]);
+        if (nextCombined.length == combined.length) {
+          // No growth means we hit the end or server returned duplicates only.
+          _hasMore = false;
+          break;
+        }
+        combined = nextCombined;
+
+        if (older.length < eagerTake) {
+          _hasMore = false;
+        }
+        passes += 1;
+        hint.set(
+          'Loading history: ${combined.length}/$minimumCount (batch $passes)',
+        );
+      }
+    } finally {
+      hint.clear();
+    }
+
+    return combined;
   }
 
   Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
@@ -293,6 +376,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
     final messages = <LocalChatMessage>[];
+    final pendingReactionEvents = <SnChatMessage>[];
     for (final json in data) {
       final remoteMessage = _tryParseChatMessage(
         json,
@@ -305,10 +389,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         MessageStatus.sent,
       );
 
-      final existing =
-          await (_database.select(_database.chatMessages)
-                ..where((tbl) => tbl.id.equals(localMessage.id)))
-              .getSingleOrNull();
+      final existing = await _database.getMessageById(localMessage.id);
 
       if (existing != null) {
         final existingLocal = await _database.companionToMessage(
@@ -330,13 +411,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       if ((remoteMessage.type == 'messages.reaction.added' ||
-              remoteMessage.type == 'messages.reaction.removed') &&
-          existing == null) {
-        // Apply reaction update exactly once for each sync-message id.
-        if (remoteMessage.type == 'messages.reaction.added') {
-          await receiveReactionAdded(remoteMessage);
-        } else {
-          await receiveReactionRemoved(remoteMessage);
+              remoteMessage.type == 'messages.reaction.removed')) {
+        // Defer reaction application until after this page is fully cached, so
+        // target messages from the same page are available.
+        if (existing == null) {
+          pendingReactionEvents.add(remoteMessage);
         }
       }
 
@@ -347,6 +426,14 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       }
       messages.add(localMessage);
+    }
+
+    for (final event in pendingReactionEvents) {
+      if (event.type == 'messages.reaction.added') {
+        await receiveReactionAdded(event);
+      } else {
+        await receiveReactionRemoved(event);
+      }
     }
 
     // Check if we've fetched all remote messages
@@ -418,6 +505,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
         // If we got remote messages, re-fetch from cache to get merged result
         if (remoteMessages.isNotEmpty) {
+          if (kIsWeb) {
+            return remoteMessages;
+          }
           return await _getCachedMessages(
             offset: offset,
             take: take,
@@ -470,15 +560,27 @@ class MessagesNotifier extends _$MessagesNotifier {
         canFetchRemote && (forceRemoteRefresh || cachedMessages.isEmpty);
 
     if (!shouldRefreshRemote) {
-      _hasMore = cachedMessages.length == _pageSize;
-      return cachedMessages;
+      // If remote fetching is allowed, don't assume "no more" from cache size.
+      // Small local cache should still probe remote pages eagerly.
+      _hasMore = canFetchRemote ? true : cachedMessages.length == _pageSize;
+      return _eagerPrefetchIfShort(
+        cachedMessages,
+        enabled: canFetchRemote,
+      );
     }
 
     try {
       // Reset total count so resumed sessions and long-lived notifiers do not
       // keep stale pagination metadata.
       _totalCount = null;
-      await _fetchAndCacheMessages(offset: 0, take: _pageSize);
+      final remoteMessages = await _fetchAndCacheMessages(
+        offset: 0,
+        take: _pageSize,
+      );
+      if (kIsWeb) {
+        _hasMore = remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
+        return _eagerPrefetchIfShort(remoteMessages, enabled: canFetchRemote);
+      }
       final refreshedMessages = await _getCachedMessages(
         offset: 0,
         take: _pageSize,
@@ -487,7 +589,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         withAttachments: _withAttachments,
       );
       _hasMore = refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
-      return refreshedMessages;
+      return _eagerPrefetchIfShort(
+        refreshedMessages,
+        enabled: canFetchRemote,
+      );
     } catch (err, stackTrace) {
       talker.log(
         'Error refreshing initial messages from remote, falling back to cache',
@@ -641,8 +746,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       final remoteMessage = SnChatMessage.fromJson(response.data);
+      final normalizedRemoteMessage =
+          editingTo != null
+          ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
+          : remoteMessage;
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        normalizedRemoteMessage,
         MessageStatus.sent,
       );
 
@@ -857,16 +966,16 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
 
+    final existingMessage = await fetchMessageById(targetId);
+    if (existingMessage == null) {
+      talker.log('Cannot update non-existent message $targetId');
+      return;
+    }
+
     LocalChatMessage updatedMessage;
 
     if (remoteMessage.type == 'messages.update.links') {
       // For link updates, merge meta with existing message instead of creating new one
-      final existingMessage = await fetchMessageById(targetId);
-      if (existingMessage == null) {
-        talker.log('Cannot update links for non-existent message $targetId');
-        return;
-      }
-
       final existingRemote = existingMessage.toRemoteMessage();
       final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
       mergedMeta.addAll(remoteMessage.meta);
@@ -882,15 +991,16 @@ class MessagesNotifier extends _$MessagesNotifier {
         existingMessage.status,
       );
     } else {
-      // For regular updates, create new message as before
+      // Preserve original createdAt so edited messages keep their order.
       updatedMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage.copyWith(
           id: targetId,
+          createdAt: existingMessage.createdAt,
           meta: Map.of(remoteMessage.meta)..remove('message_id'),
           type: 'text',
           editedAt: remoteMessage.createdAt,
         ),
-        MessageStatus.sent,
+        existingMessage.status,
       );
     }
 
@@ -1267,9 +1377,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     talker.log('Fetching message by id $messageId');
     try {
-      final localMessage = await (_database.select(
-        _database.chatMessages,
-      )..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
+      final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
         return _database.companionToMessage(
           localMessage,
@@ -1280,7 +1388,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       final response = await _apiClient.get(
         '/messager/chat/$roomId/messages/$messageId',
       );
-      final remoteMessage = SnChatMessage.fromJson(response.data);
+      final remoteMessage = _tryParseChatMessage(
+        response.data,
+        context: 'fetch message by id',
+      );
+      if (remoteMessage == null) return null;
       final message = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
@@ -1334,16 +1446,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       // Count messages newer than the target message to calculate optimal offset
       // Use full message list (not filtered by search) for accurate position calculation
-      final query = _database.customSelect(
-        'SELECT COUNT(*) as count FROM chat_messages WHERE room_id = ? AND created_at > ?',
-        variables: [
-          Variable.withString(roomId),
-          Variable.withDateTime(message.createdAt),
-        ],
-        readsFrom: {_database.chatMessages},
+      final newerCount = await _database.countMessagesNewerThan(
+        roomId,
+        message.createdAt,
       );
-      final result = await query.getSingle();
-      final newerCount = result.read<int>('count');
 
       // Calculate offset to position target message in the middle of the loaded chunk
       const chunkSize = 100; // Load 100 messages around the target

@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -22,6 +24,7 @@ import 'package:island/chat/messages_notifier.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/websocket.dart';
 import 'package:island/data/message.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
@@ -195,8 +198,17 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [messages.value]);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
+    final websocketState = ref.watch(websocketStateProvider);
     final previousLifecycleState = useRef<AppLifecycleState?>(null);
     final isResyncingAfterResume = useState(false);
+    final wsDisconnectedSinceBackground = useRef(false);
+
+    bool isWsConnected() => websocketState.maybeWhen(
+      connected: () => true,
+      orElse: () => false,
+    );
+    final isDesktop =
+        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
     useEffect(() {
       final nextState = lifecycleState.value;
@@ -212,14 +224,18 @@ class ChatRoomScreen extends HookConsumerWidget {
           nextState == AppLifecycleState.inactive ||
           nextState == AppLifecycleState.hidden ||
           nextState == AppLifecycleState.detached) {
+        wsDisconnectedSinceBackground.value = !isWsConnected();
         Future.microtask(saveLastReadAnchor);
       }
 
       if (resumedFromBackground && !isResyncingAfterResume.value) {
+        final shouldSync = !isDesktop || wsDisconnectedSinceBackground.value;
         isResyncingAfterResume.value = true;
         Future<void>(() async {
           try {
-            await messagesNotifier.syncMessages();
+            if (shouldSync) {
+              await messagesNotifier.syncMessages();
+            }
             await messagesNotifier.loadInitial(forceRemoteRefresh: false);
           } finally {
             if (context.mounted) {
@@ -227,11 +243,12 @@ class ChatRoomScreen extends HookConsumerWidget {
             }
           }
         });
+        wsDisconnectedSinceBackground.value = false;
       }
 
       previousLifecycleState.value = nextState;
       return null;
-    }, [lifecycleState.value, messagesNotifier]);
+    }, [lifecycleState.value, websocketState, messagesNotifier]);
 
     useEffect(() {
       return () {
