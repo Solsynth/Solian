@@ -54,7 +54,6 @@ class ArticleResponsiveSidebar extends HookConsumerWidget {
           settingsContent: settingsContent,
           onClose: () {
             showSidebar.value = false;
-            Navigator.of(context).pop();
           },
           isWide: false,
           width: sidebarWidth,

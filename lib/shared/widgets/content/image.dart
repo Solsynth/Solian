@@ -186,10 +186,6 @@ class CachedImageErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (debug && error != null) {
-      debugPrint('Image load error for $uri: $error');
-    }
-
     if (!useFallbackImage) {
       return SizedBox.shrink();
     }

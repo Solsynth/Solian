@@ -37,6 +37,18 @@ class ResponsiveSidebar extends HookConsumerWidget {
   /// Curve for the sidebar slide animation
   final Curve animationCurve;
 
+  /// Whether wide-screen sidebar width can be resized by dragging its edge.
+  final bool enableWideResize;
+
+  /// Minimum width for wide-screen sidebar when resizing.
+  final double minWideSidebarWidth;
+
+  /// Maximum width for wide-screen sidebar when resizing.
+  final double maxWideSidebarWidth;
+
+  /// Minimum width reserved for main content on wide screens.
+  final double minMainContentWidth;
+
   const ResponsiveSidebar({
     super.key,
     required this.sidebarContent,
@@ -48,11 +60,16 @@ class ResponsiveSidebar extends HookConsumerWidget {
     this.sidebarElevation = 8,
     this.animationDuration = const Duration(milliseconds: 300),
     this.animationCurve = Curves.easeInOut,
+    this.enableWideResize = true,
+    this.minWideSidebarWidth = 320,
+    this.maxWideSidebarWidth = 720,
+    this.minMainContentWidth = 320,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
+    final wideSidebarWidth = useState(sidebarWidth);
     final animationController = useAnimationController(
       duration: animationDuration,
     );
@@ -80,7 +97,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
         } else {
           if (showSidebar.value) {
             scaffoldKey.currentState?.openEndDrawer();
-          } else {
+          } else if (scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
             Navigator.of(context).pop();
           }
         }
@@ -105,13 +122,24 @@ class ResponsiveSidebar extends HookConsumerWidget {
       return () => animationController.removeListener(listener);
     }, [animationController]);
 
-    void closeSidebar() {
-      showSidebar.value = false;
-    }
-
     if (isWide) {
       return LayoutBuilder(
         builder: (context, constraints) {
+          final constrainedMaxSidebarWidth = (constraints.maxWidth -
+                  minMainContentWidth)
+              .clamp(minWideSidebarWidth, maxWideSidebarWidth)
+              .toDouble();
+          final constrainedSidebarWidth = wideSidebarWidth.value
+              .clamp(minWideSidebarWidth, constrainedMaxSidebarWidth)
+              .toDouble();
+          if (constrainedSidebarWidth != wideSidebarWidth.value) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (wideSidebarWidth.value != constrainedSidebarWidth) {
+                wideSidebarWidth.value = constrainedSidebarWidth;
+              }
+            });
+          }
+
           return AnimatedBuilder(
             animation: animation,
             builder: (context, child) {
@@ -122,18 +150,29 @@ class ResponsiveSidebar extends HookConsumerWidget {
                     constraints,
                     animation,
                     mainContent,
+                    constrainedSidebarWidth,
                   ),
                   if (showDrawer.value)
                     Positioned(
                       right: 0,
                       top: 0,
                       bottom: 0,
-                      width: sidebarWidth,
+                      width: constrainedSidebarWidth,
                       child: _buildWideScreenSidebar(
                         context,
                         animation,
                         sidebarContent,
-                        closeSidebar,
+                        constrainedSidebarWidth,
+                        enableWideResize: enableWideResize,
+                        onResize: (deltaX) {
+                          final nextWidth = (wideSidebarWidth.value - deltaX)
+                              .clamp(
+                                minWideSidebarWidth,
+                                constrainedMaxSidebarWidth,
+                              )
+                              .toDouble();
+                          wideSidebarWidth.value = nextWidth;
+                        },
                       ),
                     ),
                 ],
@@ -167,12 +206,13 @@ class ResponsiveSidebar extends HookConsumerWidget {
     BoxConstraints constraints,
     Animation<double> animation,
     Widget mainContent,
+    double currentSidebarWidth,
   ) {
     return Positioned(
       left: 0,
       top: 0,
       bottom: 0,
-      width: constraints.maxWidth - animation.value * sidebarWidth,
+      width: constraints.maxWidth - animation.value * currentSidebarWidth,
       child: mainContent,
     );
   }
@@ -181,19 +221,41 @@ class ResponsiveSidebar extends HookConsumerWidget {
     BuildContext context,
     Animation<double> animation,
     Widget sidebarContent,
-    VoidCallback onClose,
-  ) {
+    double currentSidebarWidth, {
+    required bool enableWideResize,
+    required ValueChanged<double> onResize,
+  }) {
     final bgColor = sidebarBackgroundColor ??
         Theme.of(context).colorScheme.surfaceContainer;
 
     return Transform.translate(
-      offset: Offset((1 - animation.value) * sidebarWidth, 0),
+      offset: Offset((1 - animation.value) * currentSidebarWidth, 0),
       child: SizedBox(
-        width: sidebarWidth,
-        child: Material(
-          elevation: sidebarElevation,
-          color: bgColor,
-          child: sidebarContent,
+        width: currentSidebarWidth,
+        child: Stack(
+          children: [
+            Material(
+              elevation: sidebarElevation,
+              color: bgColor,
+              child: sidebarContent,
+            ),
+            if (enableWideResize)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeColumn,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragUpdate: (details) {
+                      onResize(details.delta.dx);
+                    },
+                    child: const SizedBox(width: 12),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

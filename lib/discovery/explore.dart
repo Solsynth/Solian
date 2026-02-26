@@ -227,11 +227,13 @@ class ExploreScreen extends HookConsumerWidget {
           ? FloatingActionButton(
               child: const Icon(Symbols.create),
               onPressed: () {
+                final parentContext = context;
+                final router = context.router;
                 showModalBottomSheet(
-                  context: context,
+                  context: parentContext,
                   isScrollControlled: true,
                   useRootNavigator: true,
-                  builder: (context) => Column(
+                  builder: (sheetContext) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Gap(40),
@@ -242,8 +244,8 @@ class ExploreScreen extends HookConsumerWidget {
                         leading: const Icon(Symbols.post_add_rounded),
                         title: Text('postCompose').tr(),
                         onTap: () async {
-                          Navigator.of(context).pop();
-                          await PostComposeSheet.show(context);
+                          Navigator.of(sheetContext).pop();
+                          await PostComposeSheet.show(parentContext);
                         },
                       ),
                       ListTile(
@@ -253,8 +255,8 @@ class ExploreScreen extends HookConsumerWidget {
                         leading: const Icon(Symbols.article),
                         title: Text('articleCompose').tr(),
                         onTap: () async {
-                          Navigator.of(context).pop();
-                          context.router.push(ArticleComposeRoute());
+                          Navigator.of(sheetContext).pop();
+                          await router.push(ArticleComposeRoute());
                         },
                       ),
                       const Gap(16),

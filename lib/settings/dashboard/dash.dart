@@ -650,57 +650,60 @@ class ChatListCard extends HookConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Symbols.chat,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'recentChats'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Symbols.chat,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'recentChats'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              Badge.count(
-                count: chatUnreadCount.value ?? 0,
-                isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
-              ),
-            ],
-          ).padding(horizontal: 16, vertical: 16),
-          chatRooms.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('Error: $error')),
-            data: (rooms) {
-              if (rooms.isEmpty) {
-                return const Center(child: Text('No chat rooms available'));
-              }
-              // Take only the first 5 rooms
-              final recentRooms = rooms.take(5).toList();
-              return Column(
-                children: recentRooms.map((room) {
-                  return ChatRoomListTile(
-                    room: room,
-                    isDirect: room.type == 1,
-                    onTap: () {
-                      context.router.pushAll([
-                        const ChatListRoute(),
-                        ChatRoomRoute(id: room.id),
-                      ]);
-                    },
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ],
+                Badge.count(
+                  count: chatUnreadCount.value ?? 0,
+                  isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
+                ),
+              ],
+            ).padding(horizontal: 16, vertical: 16),
+            chatRooms.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+              data: (rooms) {
+                if (rooms.isEmpty) {
+                  return const Center(child: Text('No chat rooms available'));
+                }
+                // Take only the first 5 rooms
+                final recentRooms = rooms.take(5).toList();
+                return Column(
+                  children: recentRooms.map((room) {
+                    return ChatRoomListTile(
+                      room: room,
+                      isDirect: room.type == 1,
+                      onTap: () {
+                        context.router.pushAll([
+                          const ChatListRoute(),
+                          ChatRoomRoute(id: room.id),
+                        ]);
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
