@@ -70,8 +70,26 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
 
   List<SnPost> getAllDrafts() {
     final drafts = state.values.toList();
-    drafts.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+    drafts.sort(
+      (a, b) =>
+          (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)),
+    );
     return drafts;
+  }
+
+  List<SnPost> getDraftsByType(int type) {
+    final drafts = state.values.where((e) => e.type == type).toList();
+    drafts.sort(
+      (a, b) =>
+          (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)),
+    );
+    return drafts;
+  }
+
+  SnPost? getLatestDraftByType(int type) {
+    final drafts = getDraftsByType(type);
+    if (drafts.isEmpty) return null;
+    return drafts.first;
   }
 
   Future<void> clearAllDrafts() async {

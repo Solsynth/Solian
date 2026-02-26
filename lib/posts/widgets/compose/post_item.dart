@@ -11,6 +11,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/posts/compose.dart';
@@ -24,7 +25,6 @@ import 'package:island/reports/widgets/ticket_fire.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -134,7 +134,7 @@ class PostActionableItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () async {
-                  final result = await PostComposeSheet.show(
+                  final result = await PostComposeDialog.show(
                     context,
                     originalPost: item,
                   );
@@ -182,7 +182,7 @@ class PostActionableItem extends HookConsumerWidget {
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
               callback: () async {
-                final result = await PostComposeSheet.show(
+                final result = await PostComposeDialog.show(
                   context,
                   initialState: PostComposeInitialState(replyingTo: item),
                 );
@@ -195,7 +195,7 @@ class PostActionableItem extends HookConsumerWidget {
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
               callback: () async {
-                final result = await PostComposeSheet.show(
+                final result = await PostComposeDialog.show(
                   context,
                   initialState: PostComposeInitialState(forwardingTo: item),
                 );

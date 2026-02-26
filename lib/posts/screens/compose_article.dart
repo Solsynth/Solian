@@ -54,6 +54,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
 
   const ArticleComposeScreen({super.key, this.originalPost, this.initialState});
 
+  static const int _articlePostType = 1;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -116,32 +118,77 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return null;
     }, [initialState]);
 
-    // Load draft if available (only for new articles)
-    useEffect(() {
-      if (originalPost == null && initialState == null) {
-        // Try to load the most recent article draft
-        final drafts = ref.read(composeStorageProvider);
-        if (drafts.isNotEmpty) {
-          final mostRecentDraft = drafts.values.reduce(
-            (a, b) =>
-                (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0))
-                ? a
-                : b,
-          );
+    final restorePrompted = useState(false);
 
-          // Only load if the draft has meaningful content
-          if (mostRecentDraft.content?.isNotEmpty == true ||
-              mostRecentDraft.title?.isNotEmpty == true) {
-            state.titleController.text = mostRecentDraft.title ?? '';
-            state.descriptionController.text =
-                mostRecentDraft.description ?? '';
-            state.contentController.text = mostRecentDraft.content ?? '';
-            state.visibility.value = mostRecentDraft.visibility;
-          }
-        }
+    // Prompt restore if available (only for new articles)
+    useEffect(() {
+      if (restorePrompted.value ||
+          originalPost != null ||
+          initialState != null) {
+        return null;
       }
+      final latestDraft = ref
+          .read(composeStorageProvider.notifier)
+          .getLatestDraftByType(_articlePostType);
+      if (latestDraft == null) return null;
+      final hasMeaningfulContent =
+          latestDraft.content?.trim().isNotEmpty == true ||
+          latestDraft.title?.trim().isNotEmpty == true ||
+          latestDraft.description?.trim().isNotEmpty == true ||
+          latestDraft.attachments.isNotEmpty;
+      if (!hasMeaningfulContent) return null;
+
+      restorePrompted.value = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final shouldRestore = await showDialog<bool>(
+          context: context,
+          useRootNavigator: true,
+          builder: (context) => AlertDialog(
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'restoreDraftTitle'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Gap(12),
+                  Text('restoreDraftMessage'.tr()),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('no'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('yes'.tr()),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldRestore == true) {
+          state.titleController.text = latestDraft.title ?? '';
+          state.descriptionController.text = latestDraft.description ?? '';
+          state.contentController.text = latestDraft.content ?? '';
+          state.visibility.value = latestDraft.visibility;
+          if (latestDraft.attachments.isNotEmpty) {
+            state.attachments.value = latestDraft.attachments
+                .map((e) => UniversalFile.fromAttachment(e))
+                .toList();
+          }
+          await ref
+              .read(composeStorageProvider.notifier)
+              .deleteDraft(latestDraft.id);
+        }
+      });
       return null;
-    }, []);
+    }, [originalPost, initialState, restorePrompted.value]);
 
     // Helper methods
     Widget buildPreviewPane() {
