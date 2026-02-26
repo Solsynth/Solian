@@ -6,11 +6,11 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -56,7 +56,7 @@ class PostItemCreator extends HookConsumerWidget {
                     }
                   });
                 } else {
-                  PostComposeSheet.show(context, originalPost: item).then((
+                  PostComposeDialog.show(context, originalPost: item).then((
                     value,
                   ) {
                     if (value == true) {

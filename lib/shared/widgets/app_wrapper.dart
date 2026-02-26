@@ -11,6 +11,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
@@ -26,7 +27,6 @@ import 'package:island/core/services/sharing_intent.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/core/tour/tour.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:snow_fall_animation/snow_fall_animation.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -103,7 +103,7 @@ class AppWrapper extends HookConsumerWidget {
         event,
       ) {
         final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-        if (ctx.mounted) _showComposeSheet(ctx);
+        if (ctx.mounted) _showPostCompose(ctx);
       });
 
       final notificationSheetSubs = eventBus
@@ -129,7 +129,8 @@ class AppWrapper extends HookConsumerWidget {
       // Protocol handler listener - only for desktop platforms
       // protocol_handler plugin is only available and implemented on desktop (Linux, macOS, Windows)
       ProtocolListener? protocolListener;
-      if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+      if (!kIsWeb &&
+          (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
         protocolListener = _ProtocolListenerImpl(
           onProtocolUrlReceived: (url) {
             final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
@@ -151,7 +152,8 @@ class AppWrapper extends HookConsumerWidget {
 
       return () {
         // Clean up protocol handler listener only on desktop
-        if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+        if (!kIsWeb &&
+            (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
           if (protocolListener != null) {
             protocolHandler.removeListener(protocolListener);
           }
@@ -249,8 +251,8 @@ class AppWrapper extends HookConsumerWidget {
     );
   }
 
-  void _showComposeSheet(BuildContext context) {
-    PostComposeSheet.show(context);
+  void _showPostCompose(BuildContext context) {
+    PostComposeDialog.show(context);
   }
 
   void _showNotificationSheet(BuildContext context) {

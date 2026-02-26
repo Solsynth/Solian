@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
 import 'package:island/livestreams/livestream.dart';
@@ -25,7 +26,6 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/web_article_card.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -245,7 +245,7 @@ class ExploreScreen extends HookConsumerWidget {
                         title: Text('postCompose').tr(),
                         onTap: () async {
                           Navigator.of(sheetContext).pop();
-                          await PostComposeSheet.show(parentContext);
+                          await PostComposeDialog.show(parentContext);
                         },
                       ),
                       ListTile(

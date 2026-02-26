@@ -97,7 +97,9 @@ class PostComposeCard extends HookConsumerWidget {
 
     // Use shared state management utilities
     ComposeStateUtils.usePublisherInitialization(ref, composeState);
-    ComposeStateUtils.useInitialStateLoader(composeState, initialState);
+    if (providedState == null) {
+      ComposeStateUtils.useInitialStateLoader(composeState, initialState);
+    }
 
     // Dispose state when widget is disposed
     useEffect(() {

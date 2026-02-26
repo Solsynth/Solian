@@ -6,10 +6,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/compose.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -122,7 +122,7 @@ class PostQuickReply extends HookConsumerWidget {
               IconButton(
                 onPressed: () async {
                   onLaunch?.call();
-                  final value = await PostComposeSheet.show(
+                  final value = await PostComposeDialog.show(
                     context,
                     initialState: PostComposeInitialState(
                       content: contentController.text,

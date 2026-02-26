@@ -14,7 +14,7 @@ import 'package:island/core/utils/text.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
 import 'package:island/posts/compose.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/thoughts/thought.dart';
 import 'package:island/thoughts/widgets/function_calls_section.dart';
@@ -187,7 +187,7 @@ void _handleProposalAction(BuildContext context, Map<String, String> proposal) {
   switch (proposal['type']) {
     case 'post_create':
       // Show post creation dialog with the proposal content
-      PostComposeSheet.show(
+      PostComposeDialog.show(
         context,
         initialState: PostComposeInitialState(
           content: (proposal['content'] ?? '').trim(),

@@ -59,24 +59,18 @@ class ComposeStateUtils {
           repliedPost == null &&
           initialState == null) {
         // Try to load the most recent draft
-        final drafts = ref.read(composeStorageProvider);
-        if (drafts.isNotEmpty) {
-          final mostRecentDraft = drafts.values.reduce(
-            (a, b) =>
-                (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0))
-                ? a
-                : b,
-          );
+        final mostRecentDraft = ref
+            .read(composeStorageProvider.notifier)
+            .getLatestDraftByType(state.postType);
+        if (mostRecentDraft == null) return null;
 
-          // Only load if the draft has meaningful content
-          if (mostRecentDraft.content?.isNotEmpty == true ||
-              mostRecentDraft.title?.isNotEmpty == true) {
-            state.titleController.text = mostRecentDraft.title ?? '';
-            state.descriptionController.text =
-                mostRecentDraft.description ?? '';
-            state.contentController.text = mostRecentDraft.content ?? '';
-            state.visibility.value = mostRecentDraft.visibility;
-          }
+        // Only load if the draft has meaningful content
+        if (mostRecentDraft.content?.isNotEmpty == true ||
+            mostRecentDraft.title?.isNotEmpty == true) {
+          state.titleController.text = mostRecentDraft.title ?? '';
+          state.descriptionController.text = mostRecentDraft.description ?? '';
+          state.contentController.text = mostRecentDraft.content ?? '';
+          state.visibility.value = mostRecentDraft.visibility;
         }
       }
       return null;

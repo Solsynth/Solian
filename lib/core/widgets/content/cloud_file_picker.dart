@@ -185,6 +185,7 @@ class CloudFilePicker extends HookConsumerWidget {
       );
 
       if (result != null) {
+        if (!context.mounted) return;
         if (allowMultiple) {
           Navigator.pop(context, [result]);
         } else {

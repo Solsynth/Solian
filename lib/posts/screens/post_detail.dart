@@ -9,6 +9,7 @@ import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -22,7 +23,6 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
-import 'package:island/posts/widgets/compose_sheet.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/sharing/share_sheet.dart';
@@ -124,7 +124,7 @@ class PostActionButtons extends HookConsumerWidget {
                 }
               });
             } else {
-              PostComposeSheet.show(context, originalPost: post).then((value) {
+              PostComposeDialog.show(context, originalPost: post).then((value) {
                 if (value == true) {
                   onRefresh?.call();
                 }
@@ -247,7 +247,7 @@ class PostActionButtons extends HookConsumerWidget {
     final replyButtons = <Widget>[
       FilledButton.tonal(
         onPressed: () {
-          PostComposeSheet.show(
+          PostComposeDialog.show(
             context,
             initialState: PostComposeInitialState(replyingTo: post),
           );
@@ -273,7 +273,7 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'forward'.tr(),
         child: FilledButton.tonal(
           onPressed: () {
-            PostComposeSheet.show(
+            PostComposeDialog.show(
               context,
               initialState: PostComposeInitialState(forwardingTo: post),
             );
