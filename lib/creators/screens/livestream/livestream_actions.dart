@@ -199,9 +199,9 @@ class _RtmpEgressSheet extends HookWidget {
         children: [
           TextField(
             controller: urlsController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'rtmpUrlsOnePerLine'.tr(),
-e             border: OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
             ),
@@ -210,7 +210,7 @@ e             border: OutlineInputBorder(
           ),
           TextField(
             controller: filePathController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'recordingFilePathOptional'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
