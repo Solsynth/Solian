@@ -450,7 +450,7 @@ SPEC CHECKSUMS:
   objectbox_flutter_libs: 52ffb4ad42870c47886c2c6a7528e76b770af6d9
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  pasteboard: 278d8100149f940fb795d6b3a74f0720c890ecb7
+  pasteboard: b594eaf838d930b276d7a35a44a32b4f489170cb
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936

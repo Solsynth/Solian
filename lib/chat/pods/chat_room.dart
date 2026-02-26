@@ -749,24 +749,6 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           }),
         );
 
-        // Background sync using global endpoint
-        Future(() async {
-          try {
-            await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
-
-            // Also refresh room list
-            final client = ref.read(apiClientProvider);
-            final resp = await client.get('/messager/chat');
-            final remoteRooms = resp.data
-                .map((e) => SnChatRoom.fromJson(e))
-                .cast<SnChatRoom>()
-                .toList();
-            await db.saveChatRooms(remoteRooms, override: true);
-            // Update state with fresh data
-            state = AsyncData(await _buildRoomsFromDb(db));
-          } catch (_) {}
-        }).ignore();
-
         return localRooms;
       }
     } catch (_) {}
@@ -802,89 +784,6 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       createdAt: localRealm.createdAt,
       updatedAt: localRealm.updatedAt,
       deletedAt: localRealm.deletedAt,
-    );
-  }
-
-  Future<List<SnChatRoom>> _buildRoomsFromDb(AppDatabase db) async {
-    final localRoomsData = await db.getAllChatRooms();
-    return Future.wait(
-      localRoomsData.map((row) async {
-        final membersRows = await db.getMembersByRoomId(row.id);
-        final members = membersRows.map((mRow) {
-          final account = SnAccount.fromJson(mRow.account);
-          return SnChatMember(
-            id: mRow.id,
-            chatRoomId: mRow.chatRoomId,
-            accountId: mRow.accountId,
-            account: account,
-            nick: mRow.nick,
-            notify: mRow.notify,
-            joinedAt: mRow.joinedAt,
-            breakUntil: mRow.breakUntil,
-            timeoutUntil: mRow.timeoutUntil,
-            status: null,
-            createdAt: mRow.createdAt,
-            updatedAt: mRow.updatedAt,
-            deletedAt: mRow.deletedAt,
-            chatRoom: null,
-          );
-        }).toList();
-
-        // Load realm if it exists
-        SnRealm? realm;
-        if (row.realmId != null) {
-          try {
-            final realmRow = await db.getRealmById(row.realmId!);
-            if (realmRow != null) {
-              realm = SnRealm(
-                id: realmRow.id,
-                slug: realmRow.slug,
-                name: realmRow.name ?? '',
-                description: realmRow.description ?? '',
-                verifiedAs: realmRow.verifiedAs,
-                verifiedAt: realmRow.verifiedAt,
-                isCommunity: realmRow.isCommunity,
-                isPublic: realmRow.isPublic,
-                picture: realmRow.picture != null
-                    ? SnCloudFile.fromJson(realmRow.picture!)
-                    : null,
-                background: realmRow.background != null
-                    ? SnCloudFile.fromJson(realmRow.background!)
-                    : null,
-                accountId: realmRow.accountId ?? '',
-                createdAt: realmRow.createdAt,
-                updatedAt: realmRow.updatedAt,
-                deletedAt: realmRow.deletedAt,
-              );
-            }
-          } catch (_) {
-            // Realm not found, keep as null
-          }
-        }
-
-        return SnChatRoom(
-          id: row.id,
-          name: row.name,
-          description: row.description,
-          type: row.type,
-          isPublic: row.isPublic!,
-          isCommunity: row.isCommunity!,
-          picture: row.picture != null
-              ? SnCloudFile.fromJson(row.picture!)
-              : null,
-          background: row.background != null
-              ? SnCloudFile.fromJson(row.background!)
-              : null,
-          realmId: row.realmId,
-          accountId: row.accountId,
-          realm: realm,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          deletedAt: row.deletedAt,
-          members: members,
-          isPinned: row.isPinned ?? false,
-        );
-      }),
     );
   }
 }

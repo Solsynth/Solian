@@ -185,6 +185,14 @@ class ChatRoomScreen extends HookConsumerWidget {
     }
 
     useEffect(() {
+      Future.microtask(() async {
+        if (!context.mounted) return;
+        await messagesNotifier.syncMessages();
+      });
+      return null;
+    }, [id]);
+
+    useEffect(() {
       Future.microtask(loadLastReadAnchor);
       return null;
     }, [id]);
@@ -203,10 +211,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final isResyncingAfterResume = useState(false);
     final wsDisconnectedSinceBackground = useRef(false);
 
-    bool isWsConnected() => websocketState.maybeWhen(
-      connected: () => true,
-      orElse: () => false,
-    );
+    bool isWsConnected() =>
+        websocketState.maybeWhen(connected: () => true, orElse: () => false);
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
