@@ -399,27 +399,26 @@ class AppDatabase {
   }
 
   ChatMessage messageToCompanion(LocalChatMessage message) {
-    final remote = message.toRemoteMessage();
     return ChatMessage(
       id: message.id,
       roomId: message.roomId,
       senderId: message.senderId,
-      content: remote.content,
+      content: message.content,
       nonce: message.nonce,
       data: jsonEncode(message.data),
       createdAt: message.createdAt,
       status: message.status,
       isDeleted: message.isDeleted ?? false,
-      updatedAt: remote.updatedAt,
-      deletedAt: remote.deletedAt,
-      type: remote.type,
-      meta: remote.meta,
-      membersMentioned: remote.membersMentioned,
-      editedAt: remote.editedAt,
-      attachments: remote.attachments.map((e) => e.toJson()).toList(),
-      reactions: remote.reactions.map((e) => e.toJson()).toList(),
-      repliedMessageId: remote.repliedMessageId,
-      forwardedMessageId: remote.forwardedMessageId,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
     );
   }
 
@@ -729,6 +728,42 @@ class AppDatabase {
       await saveMember(message.sender!);
     }
     return saveMessage(messageToCompanion(message));
+  }
+
+  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async {
+    if (_isWeb || messages.isEmpty) return 0;
+    final store = await _getStore();
+    if (store == null) return 0;
+
+    var written = 0;
+    store.runInTransaction(TxMode.write, () {
+      final memberBox = store.box<ChatMemberEntity>();
+      final messageBox = store.box<ChatMessageEntity>();
+
+      for (final message in messages) {
+        final sender = message.sender;
+        if (sender != null) {
+          final memberQuery = memberBox
+              .query(ChatMemberEntity_.uid.equals(sender.id))
+              .build();
+          final existingMember = memberQuery.findFirst();
+          memberQuery.close();
+          memberBox.put(_memberToEntity(sender, existing: existingMember));
+        }
+
+        final row = messageToCompanion(message);
+        final messageQuery = messageBox
+            .query(ChatMessageEntity_.uid.equals(row.id))
+            .build();
+        final existingMessage = messageQuery.findFirst();
+        messageQuery.close();
+
+        final entity = _rowToMessageEntity(row, existing: existingMessage);
+        messageBox.put(entity);
+        written += 1;
+      }
+    });
+    return written;
   }
 
   Future<void> toggleChatRoomPinned(String roomId) async {

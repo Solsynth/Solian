@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
 
 import 'package:island/data/database.native.dart'
-    if (dart.library.html) 'package:island/data/database.web.dart';
+    if (dart.library.js_interop) 'package:island/data/database.web.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = constructDb();

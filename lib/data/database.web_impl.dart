@@ -183,7 +183,8 @@ class AppDatabase {
 
   Future<int> getLatestMessageTimestamp() async => 0;
 
-  Future<int> countMessagesNewerThan(String roomId, DateTime createdAt) async => 0;
+  Future<int> countMessagesNewerThan(String roomId, DateTime createdAt) async =>
+      0;
 
   Future<List<ChatMessage>> getMessagesForRoom(
     String roomId, {
@@ -211,29 +212,31 @@ class AppDatabase {
   }) async => const [];
 
   ChatMessage messageToCompanion(LocalChatMessage message) {
-    final remote = message.toRemoteMessage();
     return ChatMessage(
       id: message.id,
       roomId: message.roomId,
       senderId: message.senderId,
-      content: remote.content,
+      content: message.content,
       nonce: message.nonce,
       data: jsonEncode(message.data),
       createdAt: message.createdAt,
       status: message.status,
       isDeleted: message.isDeleted ?? false,
-      updatedAt: remote.updatedAt,
-      deletedAt: remote.deletedAt,
-      type: remote.type,
-      meta: remote.meta,
-      membersMentioned: remote.membersMentioned,
-      editedAt: remote.editedAt,
-      attachments: remote.attachments.map((e) => e.toJson()).toList(),
-      reactions: remote.reactions.map((e) => e.toJson()).toList(),
-      repliedMessageId: remote.repliedMessageId,
-      forwardedMessageId: remote.forwardedMessageId,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
     );
   }
+
+  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async =>
+      messages.length;
 
   Future<LocalChatMessage> companionToMessage(
     ChatMessage dbMessage, {

@@ -80,7 +80,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         ? data['meta']
         : <String, dynamic>{};
     data['members_mentioned'] =
-        (data['members_mentioned'] is List ? data['members_mentioned'] as List : const [])
+        (data['members_mentioned'] is List
+                ? data['members_mentioned'] as List
+                : const [])
             .whereType<Object?>()
             .where((e) => e != null)
             .map((e) => e.toString())
@@ -103,7 +105,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
-      talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
+      talker.log(
+        'Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e',
+      );
       return null;
     }
   }
@@ -113,7 +117,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       return SnChatMember.fromJson(data);
     } catch (e) {
-      talker.log('Skipping invalid chat member${context != null ? ' ($context)' : ''}: $e');
+      talker.log(
+        'Skipping invalid chat member${context != null ? ' ($context)' : ''}: $e',
+      );
       return null;
     }
   }
@@ -258,10 +264,18 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   ) async {
     try {
       final client = ref.read(apiClientProvider);
-      final resp = await client.get('/messager/chat/$roomId/messages/$messageId');
-      final parsed = _tryParseChatMessage(resp.data, context: 'reaction target');
+      final resp = await client.get(
+        '/messager/chat/$roomId/messages/$messageId',
+      );
+      final parsed = _tryParseChatMessage(
+        resp.data,
+        context: 'reaction target',
+      );
       if (parsed == null) return null;
-      final local = LocalChatMessage.fromRemoteMessage(parsed, MessageStatus.sent);
+      final local = LocalChatMessage.fromRemoteMessage(
+        parsed,
+        MessageStatus.sent,
+      );
       await db.saveMessageWithSender(local);
       return local;
     } catch (_) {
@@ -557,64 +571,56 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
                 'Syncing history: ${roundSynced + messages.length} in round ${eagerRound + 1}',
               );
 
-          // Save all messages to database in a transaction per page.
-          await db.transaction(() async {
-            for (final msg in messages) {
-              try {
-                if (msg.type == 'messages.reaction.added' ||
-                    msg.type == 'messages.reaction.removed') {
-                  final targetId = msg.meta['message_id']?.toString();
-                  final existed = targetId == null || targetId.isEmpty
-                      ? null
-                      : await db.getMessageById(targetId);
-                  if (existed == null) {
-                    await _applyReactionUpdate(
-                      db,
-                      msg,
-                      currentUserId: currentUserId,
-                    );
-                  }
-                  await db.saveMessageWithSender(
-                    LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
-                  );
-                  updatedRoomIds.add(msg.chatRoomId);
-                  roundSynced += 1;
-                  continue;
-                }
-                var localMessage = LocalChatMessage.fromRemoteMessage(
-                  msg,
-                  MessageStatus.sent,
-                );
-
-                final hasReactionDataInIncoming =
-                    localMessage.data.containsKey('reactions_count') ||
-                    localMessage.data.containsKey('reactions_made');
-                if (!hasReactionDataInIncoming) {
-                  final existingMsg = await _fetchMessageFromDb(
-                    db,
-                    msg.id,
-                    msg.chatRoomId,
-                  );
-                  if (existingMsg != null) {
-                    localMessage = _mergeReactionFieldsFromExisting(
-                      localMessage,
-                      existingMsg,
-                    );
-                  }
-                }
-
-                await db.saveMessageWithSender(localMessage);
-                updatedRoomIds.add(msg.chatRoomId);
-                roundSynced += 1;
-                final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-                if (createdAtMs > roundMaxSeenTimestamp) {
-                  roundMaxSeenTimestamp = createdAtMs;
-                }
-              } catch (e) {
-                talker.log('Error saving message from global sync: $e');
-              }
+          // Save normal messages in one write transaction to avoid UI jank.
+          final normalMessages = <LocalChatMessage>[];
+          final reactionMessages = <SnChatMessage>[];
+          for (final msg in messages) {
+            if (msg.type == 'messages.reaction.added' ||
+                msg.type == 'messages.reaction.removed') {
+              reactionMessages.add(msg);
+              continue;
             }
-          });
+            normalMessages.add(
+              LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+            );
+            updatedRoomIds.add(msg.chatRoomId);
+            roundSynced += 1;
+            final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+            if (createdAtMs > roundMaxSeenTimestamp) {
+              roundMaxSeenTimestamp = createdAtMs;
+            }
+          }
+
+          if (normalMessages.isNotEmpty) {
+            try {
+              await db.saveMessagesWithSenders(normalMessages);
+            } catch (e) {
+              talker.log('Error bulk-saving sync messages: $e');
+            }
+          }
+
+          for (final msg in reactionMessages) {
+            try {
+              final targetId = msg.meta['message_id']?.toString();
+              final existed = targetId == null || targetId.isEmpty
+                  ? null
+                  : await db.getMessageById(targetId);
+              if (existed == null) {
+                await _applyReactionUpdate(
+                  db,
+                  msg,
+                  currentUserId: currentUserId,
+                );
+              }
+              await db.saveMessageWithSender(
+                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+              );
+              updatedRoomIds.add(msg.chatRoomId);
+              roundSynced += 1;
+            } catch (e) {
+              talker.log('Error saving reaction from global sync: $e');
+            }
+          }
 
           totalSynced += messages.length;
 
