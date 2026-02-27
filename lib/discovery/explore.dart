@@ -11,7 +11,6 @@ import 'package:island/posts/widgets/compose/filters/post_subscription_filter.da
 import 'package:island/core/network.dart';
 import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
-import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/accounts/event_calendar.dart';
@@ -24,6 +23,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/realms_widgets/realm/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -294,7 +294,7 @@ class ExploreScreen extends HookConsumerWidget {
       // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
-      footerSkeletonChild: const PostItemSkeleton(maxWidth: double.infinity),
+      footerSkeletonChild: const SizedBox.shrink(),
       contentBuilder: (data, footer) =>
           _ActivityListView(data: data, isWide: isWide, footer: footer),
     );
@@ -377,6 +377,9 @@ class ExploreScreen extends HookConsumerWidget {
         : ref.watch(activityListProvider.notifier);
 
     final activityState = ref.watch(activityListProvider);
+    final isListInitialLoading =
+        (activityState.isLoading || activityState.value?.isLoading == true) &&
+        (activityState.value?.items.isEmpty ?? true);
 
     return Row(
       spacing: 12,
@@ -390,10 +393,6 @@ class ExploreScreen extends HookConsumerWidget {
             child: CustomScrollView(
               slivers: [
                 const SliverGap(12),
-                if (activityState.value?.isLoading ?? false)
-                  SliverToBoxAdapter(
-                    child: LinearProgressIndicator().padding(bottom: 8),
-                  ),
                 SliverToBoxAdapter(child: filterBar),
                 const SliverGap(8),
                 if (usePostList) ...[
@@ -410,7 +409,21 @@ class ExploreScreen extends HookConsumerWidget {
                     selectedTags.value,
                   ),
                 ] else
-                  bodyView!,
+                  if (isListInitialLoading)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: ConfuseSpinner(
+                          speed: 7,
+                          size: 72,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                        ),
+                      ),
+                    )
+                  else
+                    bodyView!,
               ],
             ),
           ),
@@ -621,7 +634,25 @@ class ExploreScreen extends HookConsumerWidget {
     WidgetRef ref,
     String? currentFilter,
   ) {
-    final bodyView = _buildActivityList(context, ref);
+    final activityState = ref.watch(activityListProvider);
+    final isListInitialLoading =
+        (activityState.isLoading || activityState.value?.isLoading == true) &&
+        (activityState.value?.items.isEmpty ?? true);
+
+    final bodyView = isListInitialLoading
+        ? SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: ConfuseSpinner(
+                speed: 7,
+                size: 72,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+              ),
+            ),
+          )
+        : _buildActivityList(context, ref);
 
     final notifier = ref.watch(activityListProvider.notifier);
 
