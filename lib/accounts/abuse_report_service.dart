@@ -1,6 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/reports/ticket_models.dart';
+import 'package:island/tickets/ticket_models.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final ticketServiceProvider = Provider<TicketService>((ref) {
