@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
@@ -258,6 +259,12 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     useEffect(() {
       return () {
+        Future.microtask(() {
+          final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
+          if (currentSubscribed == id) {
+            ref.read(currentSubscribedChatIdProvider.notifier).set(null);
+          }
+        });
         Future.microtask(saveLastReadAnchor);
       };
     }, []);
