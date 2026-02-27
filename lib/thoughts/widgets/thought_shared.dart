@@ -57,6 +57,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inputKey = useMemoized(() => GlobalKey());
+    final isAtLatestThoughts = useState(true);
 
     // Create args for the provider
     final args = ThoughtChatArgs(
@@ -108,6 +109,22 @@ class ThoughtChatInterface extends HookConsumerWidget {
       return null;
     }, [chatState.sequenceId]);
 
+    useEffect(() {
+      void updateAtLatestState() {
+        final controller = notifier.scrollController;
+        if (!controller.hasClients) return;
+        // In reverse list, pixels near 0 means latest messages.
+        isAtLatestThoughts.value = controller.position.pixels <= 80;
+      }
+
+      notifier.scrollController.addListener(updateAtLatestState);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => updateAtLatestState(),
+      );
+
+      return () => notifier.scrollController.removeListener(updateAtLatestState);
+    }, [notifier.scrollController]);
+
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 640),
@@ -152,6 +169,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
                   key: inputKey,
                   messageController: notifier.messageController,
                   isStreaming: chatState.isStreaming,
+                  isListScrolledAwayFromLatest: !isAtLatestThoughts.value,
                   onSend: notifier.sendMessage,
                   attachedMessages: attachedMessages,
                   attachedPosts: attachedPosts,
@@ -330,6 +348,7 @@ class ServiceSelector extends ConsumerWidget {
 class ThoughtInput extends HookWidget {
   final TextEditingController messageController;
   final bool isStreaming;
+  final bool isListScrolledAwayFromLatest;
   final VoidCallback onSend;
   final List<Map<String, dynamic>>? attachedMessages;
   final List<String>? attachedPosts;
@@ -345,6 +364,7 @@ class ThoughtInput extends HookWidget {
     super.key,
     required this.messageController,
     required this.isStreaming,
+    required this.isListScrolledAwayFromLatest,
     required this.onSend,
     this.attachedMessages,
     this.attachedPosts,
@@ -427,7 +447,9 @@ class ThoughtInput extends HookWidget {
       child: Material(
         elevation: 2,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(
+          isListScrolledAwayFromLatest ? 8 : 32,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Column(
