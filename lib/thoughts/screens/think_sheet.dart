@@ -111,6 +111,7 @@ class ThoughtSheet extends HookConsumerWidget {
           leading: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Gap(8),
               IconButton(
                 icon: const Icon(Symbols.close),
                 onPressed: () => Navigator.of(context).pop(),
