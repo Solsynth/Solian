@@ -224,7 +224,7 @@ class MessageItem extends HookConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         SwipeTo(
-          swipeSensitivity: 15,
+          swipeSensitivity: 5,
           rightSwipeWidget: Transform.flip(
             flipX: true,
             child: Icon(Symbols.menu_open),
@@ -261,6 +261,8 @@ class MessageItem extends HookConsumerWidget {
                 if ([
                       'messages.update',
                       'messages.delete',
+                      'messages.reaction.added',
+                      'messages.reaction.removed',
                     ].contains(message.type) &&
                     message.meta['message_id'] is String &&
                     message.meta['message_id'] != null) {
@@ -338,10 +340,6 @@ class MessageItem extends HookConsumerWidget {
                         reactionsCount: reactionsCount,
                         reactionsMade: reactionsMade,
                         isExpanded: isSystemInfoExpanded.value,
-                        onToggleExpanded: () {
-                          isSystemInfoExpanded.value =
-                              !isSystemInfoExpanded.value;
-                        },
                         submitting: reacting.value,
                         onReact: reactMessage,
                       ),
@@ -808,7 +806,6 @@ class MessageReactionChips extends HookConsumerWidget {
   final Map<String, int> reactionsCount;
   final Map<String, bool> reactionsMade;
   final bool isExpanded;
-  final VoidCallback onToggleExpanded;
   final bool submitting;
   final Future<void> Function(String symbol, int attitude) onReact;
 
@@ -819,7 +816,6 @@ class MessageReactionChips extends HookConsumerWidget {
     required this.reactionsCount,
     required this.reactionsMade,
     required this.isExpanded,
-    required this.onToggleExpanded,
     required this.submitting,
     required this.onReact,
   });
@@ -835,145 +831,80 @@ class MessageReactionChips extends HookConsumerWidget {
       ..sort(
         (a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0),
       );
-    final totalReactions = reactionsCount.values.fold<int>(0, (a, b) => a + b);
 
-    final sectionColor = switch (displayStyle) {
-      'compact' => Colors.transparent,
-      'column' => Theme.of(context).colorScheme.surfaceContainerLow,
-      _ =>
-        isCurrentUser
-            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.25)
-            : Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.35),
-    };
     final sectionPadding = switch (displayStyle) {
       'compact' => const EdgeInsets.only(left: 12, right: 12, bottom: 2),
       _ => const EdgeInsets.only(left: 12, right: 12, bottom: 6),
     };
     final sectionAlign = Alignment.centerLeft;
-    final summaryText =
-        '$totalReactions reaction${totalReactions == 1 ? '' : 's'}';
 
     return Align(
       alignment: sectionAlign,
-      child: Container(
-        margin: sectionPadding,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: sectionColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
-              onTap: onToggleExpanded,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isExpanded
-                          ? Symbols.keyboard_arrow_up
-                          : Symbols.keyboard_arrow_down,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      summaryText,
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    if (totalReactions > 0) ...[
-                      const SizedBox(width: 6),
-                      Container(
+      child: Padding(
+        padding: sectionPadding,
+        child: reactionsCount.isNotEmpty
+            ? Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final symbol in orderedSymbols)
+                    InkWell(
+                      onTap: submitting
+                          ? null
+                          : () {
+                              onReact(
+                                symbol,
+                                kReactionTemplates[symbol]?.attitude ?? 1,
+                              );
+                            },
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 1,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.15),
+                          color: reactionsMade[symbol] == true
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '$totalReactions',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            if (isExpanded) ...[
-              if (reactionsCount.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final symbol in orderedSymbols)
-                      InkWell(
-                        onTap: submitting
-                            ? null
-                            : () {
-                                onReact(
-                                  symbol,
-                                  kReactionTemplates[symbol]?.attitude ?? 1,
-                                );
-                              },
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
+                          border: Border.all(
                             color: reactionsMade[symbol] == true
-                                ? Theme.of(context).colorScheme.primaryContainer
-                                : Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: reactionsMade[symbol] == true
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outlineVariant
-                                        .withOpacity(0.5),
-                            ),
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant.withOpacity(0.5),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (symbol.contains('+'))
-                                SizedBox(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (symbol.contains('+'))
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: UniversalImage(
+                                  uri:
+                                      '$baseUrl/sphere/stickers/lookup/$symbol/open',
                                   width: 20,
                                   height: 20,
-                                  child: UniversalImage(
-                                    uri:
-                                        '$baseUrl/sphere/stickers/lookup/$symbol/open',
-                                    width: 20,
-                                    height: 20,
-                                    fit: BoxFit.contain,
-                                  ),
-                                )
-                              else
-                                buildReactionIcon(symbol, 20, iconSize: 14),
-                              const SizedBox(width: 6),
-                              Text(
-                                'x${reactionsCount[symbol] ?? 0}',
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
-                            ],
-                          ),
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            else
+                              buildReactionIcon(symbol, 20, iconSize: 14),
+                            const SizedBox(width: 6),
+                            Text(
+                              'x${reactionsCount[symbol] ?? 0}',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                ).padding(top: 4),
-            ],
-          ],
-        ),
+                    ),
+                ],
+              ).padding(top: 4)
+            : const SizedBox.shrink(),
       ),
     );
   }

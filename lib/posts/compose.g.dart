@@ -9,6 +9,7 @@ part of 'compose.dart';
 _PostComposeInitialState _$PostComposeInitialStateFromJson(
   Map<String, dynamic> json,
 ) => _PostComposeInitialState(
+  cloudDraftId: json['cloud_draft_id'] as String?,
   title: json['title'] as String?,
   description: json['description'] as String?,
   content: json['content'] as String?,
@@ -29,6 +30,7 @@ _PostComposeInitialState _$PostComposeInitialStateFromJson(
 Map<String, dynamic> _$PostComposeInitialStateToJson(
   _PostComposeInitialState instance,
 ) => <String, dynamic>{
+  'cloud_draft_id': instance.cloudDraftId,
   'title': instance.title,
   'description': instance.description,
   'content': instance.content,

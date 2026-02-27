@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostComposeInitialState {
 
- String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility; SnPost? get replyingTo; SnPost? get forwardingTo;
+ String? get cloudDraftId; String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility; SnPost? get replyingTo; SnPost? get forwardingTo;
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PostComposeInitialStateCopyWith<PostComposeInitialState> get copyWith => _$Post
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(attachments),visibility,replyingTo,forwardingTo);
+int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(attachments),visibility,replyingTo,forwardingTo);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
+  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PostComposeInitialStateCopyWith<$Res>  {
   factory $PostComposeInitialStateCopyWith(PostComposeInitialState value, $Res Function(PostComposeInitialState) _then) = _$PostComposeInitialStateCopyWithImpl;
 @useResult
 $Res call({
- String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
+ String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
 });
 
 
@@ -65,9 +65,10 @@ class _$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
   return _then(_self.copyWith(
-title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+cloudDraftId: freezed == cloudDraftId ? _self.cloudDraftId : cloudDraftId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
@@ -180,10 +181,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState() when $default != null:
-return $default(_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);case _:
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);case _:
   return orElse();
 
 }
@@ -201,10 +202,10 @@ return $default(_that.title,_that.description,_that.content,_that.attachments,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)  $default,) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState():
-return $default(_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);}
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -218,10 +219,10 @@ return $default(_that.title,_that.description,_that.content,_that.attachments,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo)?  $default,) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState() when $default != null:
-return $default(_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);case _:
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo);case _:
   return null;
 
 }
@@ -233,9 +234,10 @@ return $default(_that.title,_that.description,_that.content,_that.attachments,_t
 @JsonSerializable()
 
 class _PostComposeInitialState implements PostComposeInitialState {
-  const _PostComposeInitialState({this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility, this.replyingTo, this.forwardingTo}): _attachments = attachments;
+  const _PostComposeInitialState({this.cloudDraftId, this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility, this.replyingTo, this.forwardingTo}): _attachments = attachments;
   factory _PostComposeInitialState.fromJson(Map<String, dynamic> json) => _$PostComposeInitialStateFromJson(json);
 
+@override final  String? cloudDraftId;
 @override final  String? title;
 @override final  String? description;
 @override final  String? content;
@@ -263,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility,replyingTo,forwardingTo);
+int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility,replyingTo,forwardingTo);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
+  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
 }
 
 
@@ -283,7 +285,7 @@ abstract mixin class _$PostComposeInitialStateCopyWith<$Res> implements $PostCom
   factory _$PostComposeInitialStateCopyWith(_PostComposeInitialState value, $Res Function(_PostComposeInitialState) _then) = __$PostComposeInitialStateCopyWithImpl;
 @override @useResult
 $Res call({
- String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
+ String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
 });
 
 
@@ -300,9 +302,10 @@ class __$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
   return _then(_PostComposeInitialState(
-title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+cloudDraftId: freezed == cloudDraftId ? _self.cloudDraftId : cloudDraftId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable

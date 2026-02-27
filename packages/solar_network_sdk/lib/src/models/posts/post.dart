@@ -12,6 +12,7 @@ sealed class SnPost with _$SnPost {
     String? description,
     String? language,
     DateTime? editedAt,
+    @Default(null) DateTime? draftedAt,
     @Default(null) DateTime? publishedAt,
     @Default(0) int visibility,
     String? content,

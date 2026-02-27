@@ -14,6 +14,9 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   editedAt: json['edited_at'] == null
       ? null
       : DateTime.parse(json['edited_at'] as String),
+  draftedAt: json['drafted_at'] == null
+      ? null
+      : DateTime.parse(json['drafted_at'] as String),
   publishedAt: json['published_at'] == null
       ? null
       : DateTime.parse(json['published_at'] as String),
@@ -111,6 +114,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'description': instance.description,
   'language': instance.language,
   'edited_at': instance.editedAt?.toIso8601String(),
+  'drafted_at': instance.draftedAt?.toIso8601String(),
   'published_at': instance.publishedAt?.toIso8601String(),
   'visibility': instance.visibility,
   'content': instance.content,

@@ -57,9 +57,6 @@ class PostComposeCard extends HookConsumerWidget {
 
     final theme = Theme.of(context);
 
-    // Capture the notifier to avoid using ref after dispose
-    final notifier = ref.read(composeStorageProvider.notifier);
-
     // Create compose state
     final ComposeState composeState =
         providedState ??
@@ -68,9 +65,15 @@ class PostComposeCard extends HookConsumerWidget {
             originalPost: originalPost,
             forwardedPost: forwardedPost,
             repliedPost: repliedPost,
+            cloudDraftId: initialState?.cloudDraftId,
             postType: 0,
           ),
-          [originalPost, forwardedPost, repliedPost],
+          [
+            originalPost,
+            forwardedPost,
+            repliedPost,
+            initialState?.cloudDraftId,
+          ],
         );
 
     // Add a listener to the entire state to trigger rebuilds
@@ -108,30 +111,7 @@ class PostComposeCard extends HookConsumerWidget {
           if (!submitted.value &&
               originalPost == null &&
               composeState.currentPublisher.value != null) {
-            final hasContent =
-                composeState.titleController.text.trim().isNotEmpty ||
-                composeState.descriptionController.text.trim().isNotEmpty ||
-                composeState.contentController.text.trim().isNotEmpty;
-            final hasAttachments = composeState.attachments.value.isNotEmpty;
-            if (hasContent || hasAttachments) {
-              final draft = SnPost(
-                id: composeState.draftId,
-                title: composeState.titleController.text,
-                description: composeState.descriptionController.text,
-                content: composeState.contentController.text,
-                visibility: composeState.visibility.value,
-                type: composeState.postType,
-                attachments: composeState.attachments.value
-                    .where((e) => e.isOnCloud)
-                    .map((e) => e.data as SnCloudFile)
-                    .toList(),
-                publisher: composeState.currentPublisher.value!,
-                updatedAt: DateTime.now(),
-              );
-              notifier
-                  .saveDraft(draft)
-                  .catchError((e) => debugPrint('Failed to save draft: $e'));
-            }
+            ComposeLogic.saveDraftWithoutUpload(ref, composeState);
           }
           ComposeLogic.dispose(composeState);
         }

@@ -65,9 +65,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
     final state = useMemoized(
       () => ComposeLogic.createState(
         originalPost: originalPost,
+        cloudDraftId: initialState?.cloudDraftId,
         postType: 1, // Article type
       ),
-      [originalPost],
+      [originalPost, initialState?.cloudDraftId],
     );
 
     // Start auto-save when component mounts
@@ -173,6 +174,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
         );
 
         if (shouldRestore == true) {
+          if (latestDraft.draftedAt != null) {
+            state.cloudDraftId.value = latestDraft.id;
+          }
           state.titleController.text = latestDraft.title ?? '';
           state.descriptionController.text = latestDraft.description ?? '';
           state.contentController.text = latestDraft.content ?? '';
@@ -184,7 +188,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
           }
           await ref
               .read(composeStorageProvider.notifier)
-              .deleteDraft(latestDraft.id);
+              .deleteLocalDraft(latestDraft.id);
         }
       });
       return null;
