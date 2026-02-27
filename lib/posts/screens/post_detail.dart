@@ -17,7 +17,7 @@ import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
-import 'package:island/reports/widgets/ticket_fire.dart';
+import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;

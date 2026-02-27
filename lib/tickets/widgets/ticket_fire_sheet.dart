@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
-import 'package:island/reports/ticket_models.dart';
+import 'package:island/tickets/ticket_models.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';

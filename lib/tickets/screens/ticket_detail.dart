@@ -14,7 +14,7 @@ import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
-import 'package:island/reports/ticket_models.dart';
+import 'package:island/tickets/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -43,87 +43,97 @@ class TicketDetailScreen extends HookConsumerWidget {
     final attachments = useState<List<SelectedFile>>([]);
     final ticketService = ref.watch(ticketServiceProvider);
 
-    final uploadAttachment = useCallback(
-      (SelectedFile selectedFile) async {
-        final universalFile = UniversalFile(
-          data: selectedFile.file,
-          type: selectedFile.isImage
-              ? UniversalFileType.image
-              : UniversalFileType.file,
-        );
+    final uploadAttachment = useCallback((SelectedFile selectedFile) async {
+      final universalFile = UniversalFile(
+        data: selectedFile.file,
+        type: selectedFile.isImage
+            ? UniversalFileType.image
+            : UniversalFileType.file,
+      );
 
-        final pools = await ref.read(poolsProvider.future);
-        final settings = ref.read(appSettingsProvider);
-        final poolId = resolveDefaultPoolId(settings, pools);
+      final pools = await ref.read(poolsProvider.future);
+      final settings = ref.read(appSettingsProvider);
+      final poolId = resolveDefaultPoolId(settings, pools);
 
-        final cloudFile = await ref
-            .read(driveFileUploaderProvider)
-            .createCloudFile(
-              fileData: universalFile,
-              poolId: poolId,
-              mode: selectedFile.isImage
-                  ? FileUploadMode.mediaSafe
-                  : FileUploadMode.generic,
-            )
-            .future;
+      final cloudFile = await ref
+          .read(driveFileUploaderProvider)
+          .createCloudFile(
+            fileData: universalFile,
+            poolId: poolId,
+            mode: selectedFile.isImage
+                ? FileUploadMode.mediaSafe
+                : FileUploadMode.generic,
+          )
+          .future;
 
-        return cloudFile;
-      },
-      [ref],
-    );
+      return cloudFile;
+    }, [ref]);
 
-    final sendMessage = useCallback(() async {
-      if (messageController.text.trim().isEmpty && attachments.value.isEmpty ||
-          isSubmitting.value)
-        return;
+    final sendMessage = useCallback(
+      () async {
+        if (messageController.text.trim().isEmpty &&
+                attachments.value.isEmpty ||
+            isSubmitting.value)
+          return;
 
-      isSubmitting.value = true;
+        isSubmitting.value = true;
 
-      try {
-        // Upload any pending attachments first
-        List<String>? attachmentIds;
-        final currentAttachments = List<SelectedFile>.from(attachments.value);
-        if (currentAttachments.isNotEmpty) {
-          for (int i = 0; i < currentAttachments.length; i++) {
-            final cloudFile = await uploadAttachment(currentAttachments[i]);
-            if (cloudFile != null) {
-              attachmentIds ??= [];
-              attachmentIds.add(cloudFile.id);
+        try {
+          // Upload any pending attachments first
+          List<String>? attachmentIds;
+          final currentAttachments = List<SelectedFile>.from(attachments.value);
+          if (currentAttachments.isNotEmpty) {
+            for (int i = 0; i < currentAttachments.length; i++) {
+              final cloudFile = await uploadAttachment(currentAttachments[i]);
+              if (cloudFile != null) {
+                attachmentIds ??= [];
+                attachmentIds.add(cloudFile.id);
+              }
             }
           }
-        }
 
-        // Send message with fileIds if attachments were uploaded
-        await ref.read(ticketServiceProvider).addMessage(
-          ticketId,
-          messageController.text.trim(),
-          fileIds: attachmentIds,
-        );
-        messageController.clear();
-        attachments.value = [];
+          // Send message with fileIds if attachments were uploaded
+          await ref
+              .read(ticketServiceProvider)
+              .addMessage(
+                ticketId,
+                messageController.text.trim(),
+                fileIds: attachmentIds,
+              );
+          messageController.clear();
+          attachments.value = [];
 
-        // Refresh the ticket to get updated messages
-        ref.invalidate(ticketServiceProvider);
+          // Refresh the ticket to get updated messages
+          ref.invalidate(ticketServiceProvider);
 
-        // Scroll to bottom after sending
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
+          // Scroll to bottom after sending
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (scrollController.hasClients) {
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to send message: $e')),
+            );
+          }
+        } finally {
+          isSubmitting.value = false;
         }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
-        }
-      } finally {
-        isSubmitting.value = false;
-      }
-    }, [messageController, isSubmitting, ref, ticketId, attachments, uploadAttachment]);
+      },
+      [
+        messageController,
+        isSubmitting,
+        ref,
+        ticketId,
+        attachments,
+        uploadAttachment,
+      ],
+    );
 
     final pickFile = useCallback((bool isPhoto) async {
       final picker = ImagePicker();
