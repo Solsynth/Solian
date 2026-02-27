@@ -211,10 +211,11 @@ class NotificationSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Refresh unread count when sheet opens to sync across devices
+    // Refresh unread count and notification list when sheet opens.
     useEffect(() {
-      Future(() {
-        ref.read(notificationUnreadCountProvider.notifier).refresh();
+      Future.microtask(() async {
+        await ref.read(notificationUnreadCountProvider.notifier).refresh();
+        await ref.read(notificationListProvider.notifier).refresh();
       });
       return null;
     }, []);
