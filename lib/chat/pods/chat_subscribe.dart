@@ -1,5 +1,6 @@
 import "dart:async";
 import "dart:convert";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:island/chat/widgets/call_button.dart";
@@ -45,6 +46,12 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   StreamSubscription<ChatMessageUpdateEvent>? _updateMessageSub;
   StreamSubscription<ChatMessageDeleteEvent>? _deleteMessageSub;
   StreamSubscription<ChatTypingEvent>? _typingSub;
+
+  bool get _isDesktop =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux);
 
   void _cleanupResources() {
     if (_typingCleanupTimer != null) {
@@ -188,6 +195,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     });
 
     ref.listen(appLifecycleStateProvider, (previous, next) {
+      if (_isDesktop) return;
       final lifecycleState = next.value;
       if (lifecycleState == AppLifecycleState.paused ||
           lifecycleState == AppLifecycleState.inactive) {
@@ -223,7 +231,13 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     ref.onCancel(() {
       talker.info('[MessageSubscriber] Unsubscribing room $roomId');
-      if (ref.mounted) subscribedNotifier.set(null);
+      Future.microtask(() {
+        if (!ref.mounted) return;
+        final current = ref.read(currentSubscribedChatIdProvider);
+        if (current == roomId) {
+          subscribedNotifier.set(null);
+        }
+      });
       try {
         _sendMessage!(
           jsonEncode(
