@@ -8,6 +8,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class ChatRoomListTile extends HookConsumerWidget {
   final SnChatRoom room;
   final bool isDirect;
+  final bool selected;
   final Widget? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -16,6 +17,7 @@ class ChatRoomListTile extends HookConsumerWidget {
     super.key,
     required this.room,
     this.isDirect = false,
+    this.selected = false,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -49,6 +51,10 @@ class ChatRoomListTile extends HookConsumerWidget {
     }
 
     return ListTile(
+      selected: selected,
+      selectedTileColor: Theme.of(
+        context,
+      ).colorScheme.secondaryContainer.withOpacity(0.6),
       leading: ChatRoomAvatar(
         room: room,
         isDirect: isDirect,

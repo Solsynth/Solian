@@ -11,6 +11,8 @@ class ChatRoomAvatar extends StatelessWidget {
   final bool isDirect;
   final AsyncValue<SnChatSummary?> summary;
   final List<SnChatMember> validMembers;
+  final bool hideRealm;
+  final double? radius;
 
   const ChatRoomAvatar({
     super.key,
@@ -18,6 +20,8 @@ class ChatRoomAvatar extends StatelessWidget {
     required this.isDirect,
     required this.summary,
     required this.validMembers,
+    this.hideRealm = false,
+    this.radius,
   });
 
   @override
@@ -25,10 +29,14 @@ class ChatRoomAvatar extends StatelessWidget {
     final avatarChild = (isDirect && room.picture == null)
         ? SplitAvatarWidget(
             files: validMembers.map((e) => e.account.profile.picture).toList(),
+            radius: radius ?? 20,
           )
         : room.picture == null
-        ? CircleAvatar(child: Text((room.name ?? 'DM')[0].toUpperCase()))
-        : ProfilePictureWidget(file: room.picture);
+        ? CircleAvatar(
+            radius: radius,
+            child: Text((room.name ?? 'DM')[0].toUpperCase()),
+          )
+        : ProfilePictureWidget(file: room.picture, radius: radius ?? 20);
 
     final badgeChild = Badge(
       isLabelVisible: summary.when(
@@ -40,7 +48,7 @@ class ChatRoomAvatar extends StatelessWidget {
     );
 
     // Show realm avatar as small overlay if chat belongs to a realm
-    if (room.realm != null) {
+    if (room.realm != null && !hideRealm) {
       return Stack(
         children: [
           badgeChild,
