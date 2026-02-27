@@ -162,6 +162,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final lastReadAnchorMessageId = useState<String?>(null);
     final isAtLatestMessages = useState(false);
     final wasAtLatestMessagesRef = useRef(false);
+    final previousNewestMessageIdRef = useRef<String?>(null);
+    final pendingAnchorUpdateFromSendRef = useRef(false);
 
     Future<void> saveLastReadAnchor() async {
       final latestId = lastReadAnchorMessageId.value;
@@ -296,6 +298,27 @@ class ChatRoomScreen extends HookConsumerWidget {
       return () =>
           scrollManager.scrollController.removeListener(updateAtLatestState);
     }, [scrollManager.scrollController, messages.value]);
+
+    useEffect(() {
+      final list = messages.value;
+      if (list == null || list.isEmpty) return null;
+
+      final newestId = list.first.id;
+      final previousNewestId = previousNewestMessageIdRef.value;
+      final hasNewTopMessage =
+          previousNewestId != null && previousNewestId != newestId;
+      final shouldAdvanceForVisibleNewMessage =
+          hasNewTopMessage && isAtLatestMessages.value;
+      final shouldAdvanceForSentMessage = pendingAnchorUpdateFromSendRef.value;
+
+      if (shouldAdvanceForVisibleNewMessage || shouldAdvanceForSentMessage) {
+        lastReadAnchorMessageId.value = newestId;
+        pendingAnchorUpdateFromSendRef.value = false;
+      }
+
+      previousNewestMessageIdRef.value = newestId;
+      return null;
+    }, [messages.value, isAtLatestMessages.value]);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);
@@ -677,7 +700,19 @@ class ChatRoomScreen extends HookConsumerWidget {
                             key: inputKey,
                             messageController: inputManager.messageController,
                             chatRoom: room,
-                            onSend: () => inputManager.sendMessage(ref),
+                            onSend: () {
+                              final hasPayload =
+                                  inputManager.messageController.text
+                                      .trim()
+                                      .isNotEmpty ||
+                                  inputManager.attachments.isNotEmpty ||
+                                  inputManager.selectedPoll != null ||
+                                  inputManager.selectedFund != null;
+                              if (hasPayload) {
+                                pendingAnchorUpdateFromSendRef.value = true;
+                              }
+                              inputManager.sendMessage(ref);
+                            },
                             onClear: () {
                               if (inputManager.messageEditingTo != null) {
                                 inputManager.clearAttachmentsOnly();
