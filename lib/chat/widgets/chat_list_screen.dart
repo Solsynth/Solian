@@ -341,7 +341,7 @@ class ChatScreen extends HookConsumerWidget {
                         topLeft: Radius.circular(8),
                       ),
                       child: const AutoRouter(),
-                    ).padding(top: 16, right: 16, bottom: 16),
+                    ).padding(top: 16, right: 16),
                   ),
                 ],
               ),
@@ -721,10 +721,11 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             ungrouped.map((room) {
               final unread = summariesData[room.id]?.unreadCount ?? 0;
               final validMembers = getValidMembers(room);
+              final title = getRoomTitle(room, validMembers);
               return Container(
                 decoration: selectedDecoration(activeChatId == room.id),
                 child: IconButton(
-                  tooltip: room.name ?? 'Chat',
+                  tooltip: title,
                   onPressed: () => openRoom(room.id),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints.tightFor(
@@ -755,10 +756,11 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             filteredItems.map((room) {
               final unread = summariesData[room.id]?.unreadCount ?? 0;
               final validMembers = getValidMembers(room);
+              final title = getRoomTitle(room, validMembers);
               return Container(
                 decoration: selectedDecoration(activeChatId == room.id),
                 child: IconButton(
-                  tooltip: room.name ?? 'Chat',
+                  tooltip: title,
                   onPressed: () => openRoom(room.id),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints.tightFor(
