@@ -222,6 +222,7 @@ class ChatInput extends HookConsumerWidget {
   final Function(SnPoll?) onPollSelected;
   final SnWalletFund? selectedFund;
   final Function(SnWalletFund?) onFundSelected;
+  final bool isMessageListScrolling;
 
   const ChatInput({
     super.key,
@@ -246,6 +247,7 @@ class ChatInput extends HookConsumerWidget {
     required this.onPollSelected,
     this.selectedFund,
     required this.onFundSelected,
+    required this.isMessageListScrolling,
   });
 
   @override
@@ -342,8 +344,11 @@ class ChatInput extends HookConsumerWidget {
     };
 
     final double leftMargin = isWideScreen(context) ? 8 : 16;
-    final double rightMargin = isWideScreen(context) ? leftMargin + 8 : 16;
+    final double rightMargin = isWideScreen(context) ? leftMargin : 16;
     const double bottomMargin = 16;
+    final inputBorderRadius = BorderRadius.circular(
+      isMessageListScrolling ? 8 : 32,
+    );
 
     final userInfo = ref.watch(userInfoProvider);
 
@@ -362,7 +367,7 @@ class ChatInput extends HookConsumerWidget {
       child: Material(
         elevation: 2,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: inputBorderRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Column(

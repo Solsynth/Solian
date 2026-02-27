@@ -733,6 +733,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                             selectedFund: inputManager.selectedFund,
                             onFundSelected: (fund) =>
                                 inputManager.setFund(fund),
+                            isMessageListScrolling:
+                                !isAtLatestMessages.value,
                             onPickFile: (isPhoto) {
                               if (isPhoto) {
                                 filePicker.pickPhotos();
