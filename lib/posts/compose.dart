@@ -7,6 +7,7 @@ part 'compose.g.dart';
 @freezed
 sealed class PostComposeInitialState with _$PostComposeInitialState {
   const factory PostComposeInitialState({
+    String? cloudDraftId,
     String? title,
     String? description,
     String? content,

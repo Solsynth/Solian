@@ -19,12 +19,6 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';
 
-const Set<String> kSilentMessageTypes = {
-  'messages.update.links',
-  'messages.reaction.added',
-  'messages.reaction.removed',
-};
-
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
@@ -57,7 +51,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         ? data['meta']
         : <String, dynamic>{};
     data['members_mentioned'] =
-        (data['members_mentioned'] is List ? data['members_mentioned'] as List : const [])
+        (data['members_mentioned'] is List
+                ? data['members_mentioned'] as List
+                : const [])
             .whereType<Object?>()
             .where((e) => e != null)
             .map((e) => e.toString())
@@ -80,7 +76,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
-      talker.log('Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e');
+      talker.log(
+        'Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e',
+      );
       return null;
     }
   }
@@ -411,7 +409,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       if ((remoteMessage.type == 'messages.reaction.added' ||
-              remoteMessage.type == 'messages.reaction.removed')) {
+          remoteMessage.type == 'messages.reaction.removed')) {
         // Defer reaction application until after this page is fully cached, so
         // target messages from the same page are available.
         if (existing == null) {
@@ -563,10 +561,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       // If remote fetching is allowed, don't assume "no more" from cache size.
       // Small local cache should still probe remote pages eagerly.
       _hasMore = canFetchRemote ? true : cachedMessages.length == _pageSize;
-      return _eagerPrefetchIfShort(
-        cachedMessages,
-        enabled: canFetchRemote,
-      );
+      return _eagerPrefetchIfShort(cachedMessages, enabled: canFetchRemote);
     }
 
     try {
@@ -578,7 +573,8 @@ class MessagesNotifier extends _$MessagesNotifier {
         take: _pageSize,
       );
       if (kIsWeb) {
-        _hasMore = remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
+        _hasMore =
+            remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
         return _eagerPrefetchIfShort(remoteMessages, enabled: canFetchRemote);
       }
       final refreshedMessages = await _getCachedMessages(
@@ -588,11 +584,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         withLinks: _withLinks,
         withAttachments: _withAttachments,
       );
-      _hasMore = refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
-      return _eagerPrefetchIfShort(
-        refreshedMessages,
-        enabled: canFetchRemote,
-      );
+      _hasMore =
+          refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
+      return _eagerPrefetchIfShort(refreshedMessages, enabled: canFetchRemote);
     } catch (err, stackTrace) {
       talker.log(
         'Error refreshing initial messages from remote, falling back to cache',
@@ -746,8 +740,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       final remoteMessage = SnChatMessage.fromJson(response.data);
-      final normalizedRemoteMessage =
-          editingTo != null
+      final normalizedRemoteMessage = editingTo != null
           ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
           : remoteMessage;
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
@@ -891,8 +884,6 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('Received new message ${remoteMessage.id}');
 
-    final isSilentMessage = kSilentMessageTypes.contains(remoteMessage.type);
-
     final localMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage,
       MessageStatus.sent,
@@ -904,26 +895,24 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
     }
 
-    if (!isSilentMessage) {
-      await _database.saveMessageWithSender(localMessage);
+    await _database.saveMessageWithSender(localMessage);
 
-      final currentMessages = (ref.mounted ? state.value : null) ?? [];
-      final existingIndex = currentMessages.indexWhere(
-        (m) =>
-            m.id == localMessage.id ||
-            (localMessage.nonce != null && m.nonce == localMessage.nonce),
-      );
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final existingIndex = currentMessages.indexWhere(
+      (m) =>
+          m.id == localMessage.id ||
+          (localMessage.nonce != null && m.nonce == localMessage.nonce),
+    );
 
-      if (ref.mounted) {
-        if (existingIndex >= 0) {
-          final newList = [...currentMessages];
-          newList[existingIndex] = localMessage;
-          state = AsyncValue.data(_sortMessages(newList));
-        } else {
-          state = AsyncValue.data(
-            _sortMessages([localMessage, ...currentMessages]),
-          );
-        }
+    if (ref.mounted) {
+      if (existingIndex >= 0) {
+        final newList = [...currentMessages];
+        newList[existingIndex] = localMessage;
+        state = AsyncValue.data(_sortMessages(newList));
+      } else {
+        state = AsyncValue.data(
+          _sortMessages([localMessage, ...currentMessages]),
+        );
       }
     }
 

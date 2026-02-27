@@ -19,14 +19,18 @@ class DraftManagerSheet extends HookConsumerWidget {
     final colorScheme = theme.colorScheme;
     final searchController = useTextEditingController();
     final searchQuery = useState('');
+    final uploadingDraftId = useState<String?>(null);
 
     final drafts = ref.watch(composeStorageProvider);
 
     // Search functionality
     final filteredDrafts = useMemoized(() {
       if (searchQuery.value.isEmpty) {
-        return drafts.values.toList()
-          ..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+        return drafts.values.toList()..sort(
+          (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
+            a.updatedAt ?? DateTime(0),
+          ),
+        );
       }
 
       final query = searchQuery.value.toLowerCase();
@@ -34,7 +38,10 @@ class DraftManagerSheet extends HookConsumerWidget {
         return (draft.title?.toLowerCase().contains(query) ?? false) ||
             (draft.description?.toLowerCase().contains(query) ?? false) ||
             (draft.content?.toLowerCase().contains(query) ?? false);
-      }).toList()..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+      }).toList()..sort(
+        (a, b) =>
+            (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)),
+      );
     }, [drafts, searchQuery.value]);
 
     return SheetScaffold(
@@ -98,6 +105,22 @@ class DraftManagerSheet extends HookConsumerWidget {
                       Navigator.of(context).pop();
                       onDraftSelected?.call(draft.id);
                     },
+                    uploading: uploadingDraftId.value == draft.id,
+                    onUpload: draft.draftedAt == null
+                        ? () async {
+                            uploadingDraftId.value = draft.id;
+                            try {
+                              await ref
+                                  .read(composeStorageProvider.notifier)
+                                  .uploadDraftToCloud(draft.id);
+                              showSnackBar('Uploaded to cloud');
+                            } catch (e) {
+                              showErrorAlert(e);
+                            } finally {
+                              uploadingDraftId.value = null;
+                            }
+                          }
+                        : null,
                     onDelete: () async {
                       await ref
                           .read(composeStorageProvider.notifier)
@@ -147,9 +170,17 @@ class DraftManagerSheet extends HookConsumerWidget {
 class _DraftItem extends StatelessWidget {
   final dynamic draft;
   final VoidCallback? onTap;
+  final VoidCallback? onUpload;
+  final bool uploading;
   final VoidCallback? onDelete;
 
-  const _DraftItem({required this.draft, this.onTap, this.onDelete});
+  const _DraftItem({
+    required this.draft,
+    this.onTap,
+    this.onUpload,
+    this.uploading = false,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -161,8 +192,23 @@ class _DraftItem extends StatelessWidget {
     final preview = content.length > 100
         ? '${content.substring(0, 100)}...'
         : content;
-    final timeAgo = _formatTimeAgo(draft.updatedAt!);
+    final timeAgo = _formatTimeAgo(draft.updatedAt ?? DateTime.now());
     final visibility = _parseVisibility(draft.visibility).tr();
+    final isCloudDraft = draft.draftedAt != null;
+    final attachmentCount = (draft.attachments as List?)?.length ?? 0;
+    final slug = (draft.slug as String?)?.trim() ?? '';
+    final realmName =
+        draft.realm?.name?.toString() ?? draft.realm?.slug?.toString() ?? '';
+    final tagSlugs = (draft.tags as List? ?? [])
+        .map((e) => e.slug?.toString() ?? '')
+        .where((e) => e.isNotEmpty)
+        .cast<String>()
+        .toList();
+    final categorySlugs = (draft.categories as List? ?? [])
+        .map((e) => e.slug?.toString() ?? '')
+        .where((e) => e.isNotEmpty)
+        .cast<String>()
+        .toList();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -193,6 +239,19 @@ class _DraftItem extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    onPressed: onUpload,
+                    icon: uploading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Symbols.cloud_upload),
+                    tooltip: onUpload != null ? 'Upload to cloud' : null,
+                    iconSize: 20,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
                     onPressed: onDelete,
                     icon: const Icon(Symbols.delete),
                     iconSize: 20,
@@ -211,6 +270,52 @@ class _DraftItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              if (slug.isNotEmpty ||
+                  realmName.isNotEmpty ||
+                  tagSlugs.isNotEmpty ||
+                  categorySlugs.isNotEmpty ||
+                  attachmentCount > 0) ...[
+                const Gap(8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (attachmentCount > 0)
+                      _metaChip(
+                        context,
+                        icon: Symbols.attach_file,
+                        label:
+                            '$attachmentCount attachment${attachmentCount > 1 ? 's' : ''}',
+                      ),
+                    if (slug.isNotEmpty)
+                      _metaChip(context, icon: Symbols.link, label: '/$slug'),
+                    if (realmName.isNotEmpty)
+                      _metaChip(
+                        context,
+                        icon: Symbols.language,
+                        label: realmName,
+                      ),
+                    ...tagSlugs
+                        .take(2)
+                        .map(
+                          (tag) => _metaChip(
+                            context,
+                            icon: Symbols.sell,
+                            label: '#$tag',
+                          ),
+                        ),
+                    ...categorySlugs
+                        .take(2)
+                        .map(
+                          (cat) => _metaChip(
+                            context,
+                            icon: Symbols.category,
+                            label: cat,
+                          ),
+                        ),
+                  ],
+                ),
+              ],
               const Gap(8),
               Row(
                 children: [
@@ -227,6 +332,25 @@ class _DraftItem extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  if (isCloudDraft)
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Cloud Draft',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -249,6 +373,35 @@ class _DraftItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _metaChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: colorScheme.onSurfaceVariant),
+          const Gap(4),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

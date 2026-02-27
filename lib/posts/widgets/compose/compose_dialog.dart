@@ -48,7 +48,7 @@ class PostComposeDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drafts = ref.watch(composeStorageProvider);
+    ref.watch(composeStorageProvider);
     final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
 
@@ -75,9 +75,10 @@ class PostComposeDialog extends HookConsumerWidget {
         originalPost: effectiveOriginalPost,
         forwardedPost: forwardedPost,
         repliedPost: repliedPost,
+        cloudDraftId: initialState?.cloudDraftId,
         postType: 0,
       ),
-      [effectiveOriginalPost, forwardedPost, repliedPost],
+      [effectiveOriginalPost, forwardedPost, repliedPost, initialState?.cloudDraftId],
     );
 
     // Add a listener to the entire state to trigger rebuilds
@@ -104,21 +105,38 @@ class PostComposeDialog extends HookConsumerWidget {
       if (!prompted.value &&
           originalPost == null &&
           initialState?.replyingTo == null &&
-          initialState?.forwardingTo == null &&
-          drafts.isNotEmpty) {
+          initialState?.forwardingTo == null) {
+        final latestDraft = ref
+            .read(composeStorageProvider.notifier)
+            .getLatestDraftByType(0);
+        if (latestDraft == null) return null;
         prompted.value = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showRestoreDialog(ref, restoredInitialState);
+          _showRestoreDialog(ref, restoredInitialState, latestDraft);
         });
       }
       return null;
-    }, [drafts, prompted.value]);
+    }, [prompted.value, originalPost, initialState?.replyingTo, initialState?.forwardingTo]);
 
-    // Dispose state when widget is disposed
+    // Auto-save drafts for new posts and save one final time on close.
     useEffect(
-      () =>
-          () => ComposeLogic.dispose(state),
-      [],
+      () {
+        final isNewPost =
+            effectiveOriginalPost == null &&
+            repliedPost == null &&
+            forwardedPost == null;
+        if (isNewPost) {
+          state.startAutoSave(ref);
+        }
+        return () {
+          state.stopAutoSave();
+          if (isNewPost) {
+            ComposeLogic.saveDraftWithoutUpload(ref, state);
+          }
+          ComposeLogic.dispose(state);
+        };
+      },
+      [state, effectiveOriginalPost, repliedPost, forwardedPost],
     );
 
     // Helper methods for actions
@@ -247,53 +265,49 @@ class PostComposeDialog extends HookConsumerWidget {
   Future<void> _showRestoreDialog(
     WidgetRef ref,
     ValueNotifier<PostComposeInitialState?> restoredInitialState,
+    SnPost latestDraft,
   ) async {
-    final drafts = ref.read(composeStorageProvider);
-    if (drafts.isNotEmpty) {
-      final latestDraft = drafts.values.last;
-
-      final restore = await showDialog<bool>(
-        context: ref.context,
-        useRootNavigator: true,
-        builder: (context) => AlertDialog(
-          constraints: const BoxConstraints(maxWidth: 480),
-          title: Text('restoreDraftTitle'.tr()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('restoreDraftMessage'.tr()),
-              const SizedBox(height: 16),
-              _buildCompactDraftPreview(context, latestDraft),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('no'.tr()),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('yes'.tr()),
-            ),
+    final restore = await showDialog<bool>(
+      context: ref.context,
+      useRootNavigator: true,
+      builder: (context) => AlertDialog(
+        constraints: const BoxConstraints(maxWidth: 520),
+        title: Text('restoreDraftTitle'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('restoreDraftMessage'.tr()),
+            const SizedBox(height: 16),
+            _buildCompactDraftPreview(context, latestDraft),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('no'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('yes'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (restore == true) {
+      await ref
+          .read(composeStorageProvider.notifier)
+          .deleteLocalDraft(latestDraft.id);
+      restoredInitialState.value = PostComposeInitialState(
+        cloudDraftId: latestDraft.draftedAt != null ? latestDraft.id : null,
+        title: latestDraft.title,
+        description: latestDraft.description,
+        content: latestDraft.content,
+        visibility: latestDraft.visibility,
+        attachments: latestDraft.attachments
+            .map((e) => UniversalFile.fromAttachment(e))
+            .toList(),
       );
-      if (restore == true) {
-        // Delete the old draft
-        await ref
-            .read(composeStorageProvider.notifier)
-            .deleteDraft(latestDraft.id);
-        restoredInitialState.value = PostComposeInitialState(
-          title: latestDraft.title,
-          description: latestDraft.description,
-          content: latestDraft.content,
-          visibility: latestDraft.visibility,
-          attachments: latestDraft.attachments
-              .map((e) => UniversalFile.fromAttachment(e))
-              .toList(),
-        );
-      }
     }
   }
 

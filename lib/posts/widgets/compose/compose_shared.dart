@@ -41,6 +41,7 @@ class ComposeState {
   final ValueNotifier<SnRealm?> realm;
   final ValueNotifier<SnPostEmbedView?> embedView;
   final String draftId;
+  final ValueNotifier<String?> cloudDraftId;
   int postType;
   // Linked poll id for this compose session (nullable)
   final ValueNotifier<String?> pollId;
@@ -67,6 +68,7 @@ class ComposeState {
     required this.realm,
     required this.embedView,
     required this.draftId,
+    String? cloudDraftId,
     this.postType = 0,
     String? pollId,
     String? fundId,
@@ -75,7 +77,8 @@ class ComposeState {
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
        liveStreamId = ValueNotifier<String?>(liveStreamId),
-       thumbnailId = ValueNotifier<String?>(thumbnailId);
+       thumbnailId = ValueNotifier<String?>(thumbnailId),
+       cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
   void startAutoSave(WidgetRef ref) {
     _autoSaveTimer?.cancel();
@@ -99,6 +102,7 @@ class ComposeLogic {
     SnPost? forwardedPost,
     SnPost? repliedPost,
     String? draftId,
+    String? cloudDraftId,
     int postType = 0,
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
@@ -168,6 +172,9 @@ class ComposeLogic {
       realm: ValueNotifier(originalPost?.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(originalPost?.embedView),
       draftId: id,
+      cloudDraftId:
+          cloudDraftId ??
+          (originalPost?.draftedAt != null ? originalPost?.id : null),
       postType: postType,
       pollId: pollId,
       fundId: fundId,
@@ -197,6 +204,7 @@ class ComposeLogic {
       realm: ValueNotifier(draft.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(draft.embedView),
       draftId: draft.id,
+      cloudDraftId: draft.draftedAt != null ? draft.id : null,
       postType: postType,
       pollId: null,
       // initialize without fund by default
@@ -240,60 +248,10 @@ class ComposeLogic {
         }
       }
 
-      final draft = SnPost(
-        id: state.draftId,
-        title: state.titleController.text,
-        description: state.descriptionController.text,
-        language: null,
-        editedAt: null,
-        publishedAt: DateTime.now(),
-        visibility: state.visibility.value,
-        content: state.contentController.text,
-        type: state.postType,
-        meta: state.postType == 1 && state.thumbnailId.value != null
-            ? {'thumbnail': state.thumbnailId.value}
-            : null,
-        viewsUnique: 0,
-        viewsTotal: 0,
-        upvotes: 0,
-        downvotes: 0,
-        repliesCount: 0,
-        threadedPostId: null,
-        threadedPost: null,
-        repliedPostId: null,
-        repliedPost: null,
-        forwardedPostId: null,
-        forwardedPost: null,
-        attachments: state.attachments.value
-            .map((e) => e.data)
-            .whereType<SnCloudFile>()
-            .toList(),
-        publisher: SnPublisher(
-          id: '',
-          type: 0,
-          name: '',
-          nick: '',
-          picture: null,
-          background: null,
-          account: null,
-          accountId: null,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          deletedAt: null,
-          realmId: null,
-          verification: null,
-        ),
-        reactions: [],
-        tags: [],
-        categories: [],
-        collections: [],
-        embedView: state.embedView.value,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        deletedAt: null,
-      );
-
-      await ref.read(composeStorageProvider.notifier).saveDraft(draft);
+      await _saveLocalDraft(ref, state);
+      if (state.cloudDraftId.value != null) {
+        await _saveCloudDraft(ref, state);
+      }
     } catch (e) {
       talker.error('[ComposeLogic] Failed to save draft, error: $e');
     }
@@ -314,64 +272,139 @@ class ComposeLogic {
     }
 
     try {
-      final draft = SnPost(
-        id: state.draftId,
-        title: state.titleController.text,
-        description: state.descriptionController.text,
-        language: null,
-        editedAt: null,
-        publishedAt: DateTime.now(),
-        visibility: state.visibility.value,
-        content: state.contentController.text,
-        type: state.postType,
-        meta: state.postType == 1 && state.thumbnailId.value != null
-            ? {'thumbnail': state.thumbnailId.value}
-            : null,
-        viewsUnique: 0,
-        viewsTotal: 0,
-        upvotes: 0,
-        downvotes: 0,
-        repliesCount: 0,
-        threadedPostId: null,
-        threadedPost: null,
-        repliedPostId: null,
-        repliedPost: null,
-        forwardedPostId: null,
-        forwardedPost: null,
-        attachments: state.attachments.value
-            .map((e) => e.data)
-            .whereType<SnCloudFile>()
-            .toList(),
-        publisher: SnPublisher(
-          id: '',
-          type: 0,
-          name: '',
-          nick: '',
-          picture: null,
-          background: null,
-          account: null,
-          accountId: null,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          deletedAt: null,
-          realmId: null,
-          verification: null,
-        ),
-        reactions: [],
-        tags: [],
-        categories: [],
-        collections: [],
-        embedView: state.embedView.value,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        deletedAt: null,
-      );
-
-      await ref.read(composeStorageProvider.notifier).saveDraft(draft);
+      await _saveLocalDraft(ref, state);
     } catch (e) {
       talker.error(
         '[ComposeLogic] Failed to save draft without upload, error: $e',
       );
+    }
+  }
+
+  static Future<void> _saveLocalDraft(WidgetRef ref, ComposeState state) async {
+    final localId = state.cloudDraftId.value ?? state.draftId;
+    final embeds = <Map<String, dynamic>>[
+      if (state.pollId.value != null)
+        {'type': 'poll', 'id': state.pollId.value},
+      if (state.fundId.value != null)
+        {'type': 'fund', 'id': state.fundId.value},
+      if (state.liveStreamId.value != null)
+        {'type': 'livestream', 'id': state.liveStreamId.value},
+    ];
+    final meta = <String, dynamic>{
+      if (state.postType == 1 && state.thumbnailId.value != null)
+        'thumbnail': state.thumbnailId.value,
+      if (embeds.isNotEmpty) 'embeds': embeds,
+    };
+    final draft = SnPost(
+      id: localId,
+      title: state.titleController.text,
+      description: state.descriptionController.text,
+      language: null,
+      editedAt: null,
+      draftedAt: state.cloudDraftId.value != null ? DateTime.now() : null,
+      publishedAt: null,
+      visibility: state.visibility.value,
+      content: state.contentController.text,
+      slug: state.slugController.text,
+      type: state.postType,
+      meta: meta.isEmpty ? null : meta,
+      viewsUnique: 0,
+      viewsTotal: 0,
+      upvotes: 0,
+      downvotes: 0,
+      repliesCount: 0,
+      threadedPostId: null,
+      threadedPost: null,
+      repliedPostId: null,
+      repliedPost: null,
+      forwardedPostId: null,
+      forwardedPost: null,
+      realmId: state.realm.value?.id,
+      realm: state.realm.value,
+      attachments: state.attachments.value
+          .map((e) => e.data)
+          .whereType<SnCloudFile>()
+          .toList(),
+      publisher: SnPublisher(
+        id: state.currentPublisher.value?.id ?? '',
+        type: state.currentPublisher.value?.type ?? 0,
+        name: state.currentPublisher.value?.name ?? '',
+        nick: state.currentPublisher.value?.nick ?? '',
+        picture: state.currentPublisher.value?.picture,
+        background: state.currentPublisher.value?.background,
+        account: state.currentPublisher.value?.account,
+        accountId: state.currentPublisher.value?.accountId,
+        createdAt: state.currentPublisher.value?.createdAt ?? DateTime.now(),
+        updatedAt: state.currentPublisher.value?.updatedAt ?? DateTime.now(),
+        deletedAt: state.currentPublisher.value?.deletedAt,
+        realmId: state.currentPublisher.value?.realmId,
+        verification: state.currentPublisher.value?.verification,
+      ),
+      reactions: [],
+      tags: state.tags.value
+          .map((tag) => SnPostTag(id: tag, slug: tag, name: tag))
+          .toList(),
+      categories: state.categories.value,
+      collections: [],
+      embedView: state.embedView.value,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      deletedAt: null,
+    );
+    await ref.read(composeStorageProvider.notifier).saveDraft(draft);
+  }
+
+  static Future<void> _saveCloudDraft(WidgetRef ref, ComposeState state) async {
+    final publisherName = state.currentPublisher.value?.name;
+    if (publisherName == null || publisherName.isEmpty) return;
+
+    final client = ref.read(apiClientProvider);
+    final endpoint = state.cloudDraftId.value == null
+        ? '/sphere/posts'
+        : '/sphere/posts/${state.cloudDraftId.value}';
+    final now = DateTime.now().toUtc().toIso8601String();
+    final payload = {
+      'title': state.titleController.text,
+      'description': state.descriptionController.text,
+      'content': state.contentController.text,
+      if (state.slugController.text.isNotEmpty)
+        'slug': state.slugController.text,
+      'visibility': state.visibility.value,
+      'attachments': state.attachments.value
+          .where((e) => e.isOnCloud)
+          .map((e) => e.data.id)
+          .toList(),
+      'type': state.postType,
+      'tags': state.tags.value,
+      'categories': state.categories.value.map((e) => e.slug).toList(),
+      if (state.realm.value != null) 'realm_id': state.realm.value?.id,
+      if (state.pollId.value != null) 'poll_id': state.pollId.value,
+      if (state.fundId.value != null) 'fund_id': state.fundId.value,
+      if (state.liveStreamId.value != null)
+        'live_stream_id': state.liveStreamId.value,
+      if (state.postType == 1 && state.thumbnailId.value != null)
+        'thumbnail_id': state.thumbnailId.value,
+      if (state.embedView.value != null)
+        'embed_view': state.embedView.value!.toJson(),
+      'drafted_at': now,
+      'published_at': null,
+    };
+
+    final response = await client.request(
+      endpoint,
+      queryParameters: {'pub': publisherName},
+      data: payload,
+      options: Options(
+        method: state.cloudDraftId.value == null ? 'POST' : 'PATCH',
+      ),
+    );
+    final post = SnPost.fromJson(response.data);
+    state.cloudDraftId.value = post.id;
+    await ref.read(composeStorageProvider.notifier).saveDraft(post);
+    if (state.draftId != post.id) {
+      await ref
+          .read(composeStorageProvider.notifier)
+          .deleteLocalDraft(state.draftId);
     }
   }
 
@@ -751,7 +784,6 @@ class ComposeLogic {
             ),
       );
 
-      // Prepare API request
       final client = ref.read(apiClientProvider);
       final isNewPost = originalPost == null;
       final endpoint =
@@ -791,16 +823,39 @@ class ComposeLogic {
           'embed_view': state.embedView.value!.toJson(),
       };
 
-      // Send request
-      final response = await client.request(
-        endpoint,
-        queryParameters: {'pub': state.currentPublisher.value?.name},
-        data: payload,
-        options: Options(method: isNewPost ? 'POST' : 'PATCH'),
-      );
+      final publisherName = state.currentPublisher.value?.name;
+      if (publisherName == null || publisherName.isEmpty) {
+        throw Exception('Publisher is required');
+      }
 
-      // Parse the response into a SnPost
-      final post = SnPost.fromJson(response.data);
+      late final SnPost post;
+
+      // Publish server-side draft directly when available.
+      if (isNewPost && state.cloudDraftId.value != null) {
+        await client.request(
+          '/sphere/posts/${state.cloudDraftId.value}',
+          queryParameters: {'pub': publisherName},
+          data: {
+            ...payload,
+            'drafted_at': DateTime.now().toUtc().toIso8601String(),
+            'published_at': null,
+          },
+          options: Options(method: 'PATCH'),
+        );
+        final publishResp = await client.post(
+          '/sphere/posts/${state.cloudDraftId.value}/publish',
+          queryParameters: {'pub': publisherName},
+        );
+        post = SnPost.fromJson(publishResp.data);
+      } else {
+        final response = await client.request(
+          endpoint,
+          queryParameters: {'pub': publisherName},
+          data: payload,
+          options: Options(method: isNewPost ? 'POST' : 'PATCH'),
+        );
+        post = SnPost.fromJson(response.data);
+      }
 
       // Call the success callback
       onSuccess();
@@ -842,16 +897,13 @@ class ComposeLogic {
       forwardedPost: forwardedPost,
       onSuccess: () async {
         // Delete draft after successful submission
-        if (state.postType == 1) {
-          // Delete article draft
-          await ref
-              .read(composeStorageProvider.notifier)
-              .deleteDraft(state.draftId);
-        } else {
-          // Delete regular post draft
-          await ref
-              .read(composeStorageProvider.notifier)
-              .deleteDraft(state.draftId);
+        final storage = ref.read(composeStorageProvider.notifier);
+        final toDelete = <String>{
+          state.draftId,
+          if (state.cloudDraftId.value != null) state.cloudDraftId.value!,
+        };
+        for (final id in toDelete) {
+          await storage.deleteLocalDraft(id);
         }
 
         if (context.mounted) {
@@ -940,5 +992,6 @@ class ComposeLogic {
     state.fundId.dispose();
     state.liveStreamId.dispose();
     state.thumbnailId.dispose();
+    state.cloudDraftId.dispose();
   }
 }

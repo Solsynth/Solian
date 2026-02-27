@@ -757,7 +757,7 @@ class ChatListRoute extends _i70.PageRouteInfo<void> {
 /// [_i17.ChatRoomScreen]
 class ChatRoomRoute extends _i70.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
-    _i72.Key? key,
+    _i71.Key? key,
     required String id,
     List<_i70.PageRouteInfo>? children,
   }) : super(
@@ -780,7 +780,7 @@ class ChatRoomRoute extends _i70.PageRouteInfo<ChatRoomRouteArgs> {
 class ChatRoomRouteArgs {
   const ChatRoomRouteArgs({this.key, required this.id});
 
-  final _i72.Key? key;
+  final _i71.Key? key;
 
   final String id;
 

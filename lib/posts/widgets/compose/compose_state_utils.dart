@@ -36,6 +36,9 @@ class ComposeStateUtils {
         if (initialState.visibility != null) {
           state.visibility.value = initialState.visibility!;
         }
+        if (initialState.cloudDraftId?.isNotEmpty == true) {
+          state.cloudDraftId.value = initialState.cloudDraftId;
+        }
         if (initialState.attachments.isNotEmpty) {
           state.attachments.value = List.from(initialState.attachments);
         }
@@ -99,31 +102,7 @@ class ComposeStateUtils {
         if (!submitted &&
             originalPost == null &&
             state.currentPublisher.value != null) {
-          final hasContent =
-              state.titleController.text.trim().isNotEmpty ||
-              state.descriptionController.text.trim().isNotEmpty ||
-              state.contentController.text.trim().isNotEmpty;
-          final hasAttachments = state.attachments.value.isNotEmpty;
-          if (hasContent || hasAttachments) {
-            final draft = SnPost(
-              id: state.draftId,
-              title: state.titleController.text,
-              description: state.descriptionController.text,
-              content: state.contentController.text,
-              visibility: state.visibility.value,
-              type: state.postType,
-              attachments: state.attachments.value
-                  .where((e) => e.isOnCloud)
-                  .map((e) => e.data as SnCloudFile)
-                  .toList(),
-              publisher: state.currentPublisher.value!,
-              updatedAt: DateTime.now(),
-            );
-            ref
-                .read(composeStorageProvider.notifier)
-                .saveDraft(draft)
-                .catchError((e) => debugPrint('Failed to save draft: $e'));
-          }
+          ComposeLogic.saveDraftWithoutUpload(ref, state);
         }
         ComposeLogic.dispose(state);
       };
