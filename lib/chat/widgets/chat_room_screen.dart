@@ -160,10 +160,11 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
     final prefs = ref.read(sharedPreferencesProvider);
     final lastReadAnchorMessageId = useState<String?>(null);
-    final latestSeenMessageIdRef = useRef<String?>(null);
+    final isAtLatestMessages = useState(false);
+    final wasAtLatestMessagesRef = useRef(false);
 
     Future<void> saveLastReadAnchor() async {
-      final latestId = latestSeenMessageIdRef.value;
+      final latestId = lastReadAnchorMessageId.value;
       if (latestId == null || latestId.isEmpty) return;
 
       final raw = prefs.getString(kChatLastReadAnchorsStoreKey);
@@ -197,14 +198,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       Future.microtask(loadLastReadAnchor);
       return null;
     }, [id]);
-
-    useEffect(() {
-      final list = messages.value;
-      if (list != null && list.isNotEmpty) {
-        latestSeenMessageIdRef.value = list.first.id;
-      }
-      return null;
-    }, [messages.value]);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
     final websocketState = ref.watch(websocketStateProvider);
@@ -275,14 +268,25 @@ class ChatRoomScreen extends HookConsumerWidget {
       messagesNotifier.jumpToMessage,
       messages,
     );
-    final isAtLatestMessages = useState(true);
 
     useEffect(() {
       void updateAtLatestState() {
         final controller = scrollManager.scrollController;
         if (!controller.hasClients) return;
         // In reverse list, pixels near 0 means user is at latest messages.
-        isAtLatestMessages.value = controller.position.pixels <= 80;
+        final atLatest = controller.position.pixels <= 80;
+        isAtLatestMessages.value = atLatest;
+
+        // Only advance the read anchor when user reaches latest messages,
+        // not when new data arrives from sync.
+        if (atLatest && !wasAtLatestMessagesRef.value) {
+          final list = messages.value;
+          if (list != null && list.isNotEmpty) {
+            lastReadAnchorMessageId.value = list.first.id;
+          }
+        }
+
+        wasAtLatestMessagesRef.value = atLatest;
       }
 
       scrollManager.scrollController.addListener(updateAtLatestState);
@@ -291,17 +295,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
       return () =>
           scrollManager.scrollController.removeListener(updateAtLatestState);
-    }, [scrollManager.scrollController]);
-
-    useEffect(() {
-      final list = messages.value;
-      if (list != null && list.isNotEmpty && isAtLatestMessages.value) {
-        // If user is already at latest, keep anchor aligned to newest and
-        // avoid showing follow-back for actively read messages.
-        lastReadAnchorMessageId.value = list.first.id;
-      }
-      return null;
-    }, [messages.value, isAtLatestMessages.value]);
+    }, [scrollManager.scrollController, messages.value]);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);

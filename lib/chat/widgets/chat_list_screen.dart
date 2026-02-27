@@ -588,12 +588,34 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       );
     }
 
-    BoxDecoration? selectedDecoration(bool isSelected) {
-      if (!isSelected) return null;
-      return BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.secondaryContainer.withOpacity(0.8),
+    Widget withSelectedDot({
+      required Widget child,
+      required bool isSelected,
+    }) {
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: Stack(
+          children: [
+            if (isSelected)
+              Positioned(
+                left: 2,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            Center(child: child),
+          ],
+        ),
       );
     }
 
@@ -630,10 +652,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
               (sum, room) => sum + (summariesData[room.id]?.unreadCount ?? 0),
             );
             avatarTiles.add(
-              Container(
-                decoration: selectedDecoration(
-                  rooms.any((room) => room.id == activeChatId),
-                ),
+              withSelectedDot(
+                isSelected: rooms.any((room) => room.id == activeChatId),
                 child: PopupMenuButton<SnChatRoom>(
                   tooltip: realm?.name ?? 'Group',
                   position: PopupMenuPosition.under,
@@ -722,8 +742,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
               final unread = summariesData[room.id]?.unreadCount ?? 0;
               final validMembers = getValidMembers(room);
               final title = getRoomTitle(room, validMembers);
-              return Container(
-                decoration: selectedDecoration(activeChatId == room.id),
+              return withSelectedDot(
+                isSelected: activeChatId == room.id,
                 child: IconButton(
                   tooltip: title,
                   onPressed: () => openRoom(room.id),
@@ -757,8 +777,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
               final unread = summariesData[room.id]?.unreadCount ?? 0;
               final validMembers = getValidMembers(room);
               final title = getRoomTitle(room, validMembers);
-              return Container(
-                decoration: selectedDecoration(activeChatId == room.id),
+              return withSelectedDot(
+                isSelected: activeChatId == room.id,
                 child: IconButton(
                   tooltip: title,
                   onPressed: () => openRoom(room.id),
@@ -792,8 +812,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
           padding: const EdgeInsets.only(top: 8, bottom: 80),
           itemCount: avatarTiles.length,
           separatorBuilder: (_, _) => const Gap(8),
-          itemBuilder: (_, index) =>
-              SizedBox(width: 48, height: 48, child: avatarTiles[index]),
+          itemBuilder: (_, index) => avatarTiles[index],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
