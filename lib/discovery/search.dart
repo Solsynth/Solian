@@ -7,15 +7,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
-import 'package:island/accounts/widgets/activitypub/actor_list_item.dart';
+import 'package:island/core/network.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/filters/post_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
-import 'package:island/core/services/activitypub_service.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/realms_widgets/realm/realm_list.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -41,17 +41,67 @@ class UniversalSearchScreen extends HookConsumerWidget {
       initialIndex: initialTab.index,
     );
     final searchQuery = useState<String>('');
+    final debouncedSearchQuery = useState<String>('');
+    final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
+    final debounceTimer = useRef<Timer?>(null);
+    const debounce = Duration(milliseconds: 450);
+
+    useEffect(() {
+      if (searchQuery.value.isEmpty) {
+        debounceTimer.value?.cancel();
+        debouncedSearchQuery.value = '';
+        return null;
+      }
+
+      debounceTimer.value?.cancel();
+      debounceTimer.value = Timer(debounce, () {
+        debouncedSearchQuery.value = searchQuery.value;
+      });
+
+      return () {
+        debounceTimer.value?.cancel();
+      };
+    }, [searchQuery.value]);
 
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
         title: SearchBar(
+          controller: searchController,
+          focusNode: searchFocusNode,
           constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
           hintText: 'search'.tr(),
           hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
           textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          onTapOutside: (_) => searchFocusNode.unfocus(),
+          trailing: [
+            if (searchController.text.isNotEmpty)
+              IconButton(
+                onPressed: () {
+                  debounceTimer.value?.cancel();
+                  searchController.clear();
+                  searchQuery.value = '';
+                  debouncedSearchQuery.value = '';
+                  searchFocusNode.unfocus();
+                },
+                icon: Icon(
+                  Symbols.close,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
           onChanged: (value) {
             searchQuery.value = value;
+          },
+          onSubmitted: (value) {
+            debounceTimer.value?.cancel();
+            searchQuery.value = value;
+            debouncedSearchQuery.value = value;
+            searchFocusNode.unfocus();
           },
           leading: Icon(
             Symbols.search,
@@ -75,9 +125,9 @@ class UniversalSearchScreen extends HookConsumerWidget {
             child: TabBarView(
               controller: tabController,
               children: [
-                _PostsSearchTab(searchQuery: searchQuery),
-                _AccountSearchTab(searchQuery: searchQuery),
-                _RealmsSearchTab(searchQuery: searchQuery),
+                _PostsSearchTab(searchQuery: debouncedSearchQuery),
+                _AccountSearchTab(searchQuery: debouncedSearchQuery),
+                _RealmsSearchTab(searchQuery: debouncedSearchQuery),
               ],
             ),
           ),
@@ -118,8 +168,6 @@ class _PostsSearchTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debounce = useMemoized(() => Duration(milliseconds: 500));
-    final debounceTimer = useRef<Timer?>(null);
     final showFilters = useState(false);
     final pubNameController = useTextEditingController();
     final realmController = useTextEditingController();
@@ -135,22 +183,12 @@ class _PostsSearchTab extends HookConsumerWidget {
       return () {
         pubNameController.dispose();
         realmController.dispose();
-        debounceTimer.value?.cancel();
       };
     }, []);
 
-    void onSearchChanged(String query, {bool skipDebounce = false}) {
+    void onSearchChanged(String query) {
       queryState.value = queryState.value.copyWith(queryTerm: query);
-
-      if (skipDebounce) {
-        noti.applyFilter(queryState.value);
-        return;
-      }
-
-      if (debounceTimer.value?.isActive ?? false) debounceTimer.value!.cancel();
-      debounceTimer.value = Timer(debounce, () {
-        noti.applyFilter(queryState.value);
-      });
+      noti.applyFilter(queryState.value);
     }
 
     void toggleFilterDisplay() {
@@ -169,15 +207,9 @@ class _PostsSearchTab extends HookConsumerWidget {
       );
     }
 
-    // Listen to search query changes and update the search
+    // Listen to debounced search query changes and update the list.
     useEffect(() {
-      final query = searchQuery.value;
-      if (query.isNotEmpty) {
-        // Use Future.delayed to defer the provider modification
-        Future.delayed(Duration.zero, () {
-          onSearchChanged(query, skipDebounce: true);
-        });
-      }
+      onSearchChanged(searchQuery.value);
       return null;
     }, [searchQuery.value]);
 
@@ -376,123 +408,66 @@ class _AccountSearchTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debounce = useMemoized(() => const Duration(milliseconds: 500));
-    final debounceTimer = useRef<Timer?>(null);
-    final fediverseResults = useState<List<SnActivityPubActor>>([]);
-    final internalResults = useState<List<SnAccount>>([]);
+    final accountResults = useState<List<SnAccount>>([]);
+    final publisherResults = useState<List<SnPublisher>>([]);
     final isSearching = useState(false);
-
-    useEffect(() {
-      return () {
-        debounceTimer.value?.cancel();
-      };
-    }, []);
+    final requestToken = useRef(0);
 
     Future<void> performSearch(String query) async {
-      if (query.trim().isEmpty) {
-        fediverseResults.value = [];
-        internalResults.value = [];
+      final normalizedQuery = query.trim();
+      final token = ++requestToken.value;
+
+      if (normalizedQuery.isEmpty) {
+        accountResults.value = [];
+        publisherResults.value = [];
+        isSearching.value = false;
         return;
       }
 
       isSearching.value = true;
       try {
-        // Search for fediverse users
-        final activityPubService = ref.read(activityPubServiceProvider);
-        final fediverseFuture = activityPubService.searchUsers(query);
-
-        // Search for internal users
-        final internalFuture = ref.read(
-          searchAccountsProvider(query: query).future,
+        final apiClient = ref.read(apiClientProvider);
+        final accountFuture = ref.read(
+          searchAccountsProvider(query: normalizedQuery).future,
+        );
+        final publisherFuture = apiClient.get(
+          '/sphere/publishers/search',
+          queryParameters: {'query': normalizedQuery},
         );
 
-        // Wait for both searches to complete
-        final [fediverseData, internalData] = await Future.wait([
-          fediverseFuture,
-          internalFuture,
-        ]);
+        final accountData = await accountFuture;
+        final publisherResponse = await publisherFuture;
 
-        fediverseResults.value = fediverseData as List<SnActivityPubActor>;
-        internalResults.value = internalData as List<SnAccount>;
+        if (token == requestToken.value) {
+          accountResults.value = accountData;
+          publisherResults.value = (publisherResponse.data as List)
+              .map((json) => SnPublisher.fromJson(json))
+              .toList();
+        }
       } catch (err) {
-        showErrorAlert(err);
+        if (token == requestToken.value) {
+          showErrorAlert(err);
+        }
       } finally {
-        isSearching.value = false;
+        if (token == requestToken.value) {
+          isSearching.value = false;
+        }
       }
     }
 
-    void onSearchChanged(String query) {
-      if (debounceTimer.value?.isActive ?? false) {
-        debounceTimer.value!.cancel();
-      }
-      debounceTimer.value = Timer(debounce, () {
-        performSearch(query);
-      });
-    }
-
-    void updateActorIsFollowing(String actorId, bool isFollowing) {
-      fediverseResults.value = fediverseResults.value
-          .map(
-            (a) => a.id == actorId ? a.copyWith(isFollowing: isFollowing) : a,
-          )
-          .toList();
-    }
-
-    Future<void> handleFollow(SnActivityPubActor actor) async {
-      try {
-        updateActorIsFollowing(actor.id, true);
-        final service = ref.read(activityPubServiceProvider);
-        await service.followRemoteUser(actor.uri);
-        showSnackBar(
-          'followedUser'.tr(
-            args: [
-              '${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
-            ],
-          ),
-        );
-      } catch (err) {
-        showErrorAlert(err);
-        updateActorIsFollowing(actor.id, false);
-      }
-    }
-
-    Future<void> handleUnfollow(SnActivityPubActor actor) async {
-      try {
-        updateActorIsFollowing(actor.id, false);
-        final service = ref.read(activityPubServiceProvider);
-        await service.unfollowRemoteUser(actor.uri);
-        showSnackBar(
-          'unfollowedUser'.tr(
-            args: [
-              '${actor.username?.isNotEmpty ?? false ? actor.username : actor.displayName}',
-            ],
-          ),
-        );
-      } catch (err) {
-        showErrorAlert(err);
-        updateActorIsFollowing(actor.id, true);
-      }
-    }
-
-    // Listen to search query changes and update the search
+    // Listen to debounced search query changes and update the list.
     useEffect(() {
-      final query = searchQuery.value;
-      if (query.isNotEmpty) {
-        // Use Future.delayed to defer the provider modification
-        Future.delayed(Duration.zero, () {
-          onSearchChanged(query);
-        });
-      }
+      performSearch(searchQuery.value);
       return null;
     }, [searchQuery.value]);
 
-    // Combine and display results - local users first
+    // Combine and display results - accounts first, then publishers.
     final allResults = [
-      ...internalResults.value.map(
-        (account) => {'type': 'internal', 'data': account},
+      ...accountResults.value.map(
+        (account) => {'type': 'account', 'data': account},
       ),
-      ...fediverseResults.value.map(
-        (actor) => {'type': 'fediverse', 'data': actor},
+      ...publisherResults.value.map(
+        (publisher) => {'type': 'publisher', 'data': publisher},
       ),
     ];
 
@@ -533,17 +508,89 @@ class _AccountSearchTab extends HookConsumerWidget {
                     separatorBuilder: (context, index) => const Gap(8),
                     itemBuilder: (context, index) {
                       final result = allResults[index];
-                      if (result['type'] == 'fediverse') {
-                        final actor = result['data'] as SnActivityPubActor;
+                      if (result['type'] == 'publisher') {
+                        final publisher = result['data'] as SnPublisher;
                         return Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 560),
-                            child: ApActorListItem(
-                              actor: actor,
-                              isFollowing: actor.isFollowing ?? false,
-                              isLoading: false,
-                              onFollow: () => handleFollow(actor),
-                              onUnfollow: () => handleUnfollow(actor),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                right: 12,
+                              ),
+                              onTap: () {
+                                context.router.push(
+                                  PublisherProfileRoute(name: publisher.name),
+                                );
+                              },
+                              leading: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ProfilePictureWidget(
+                                    file: publisher.picture,
+                                    borderRadius: publisher.type == 0
+                                        ? null
+                                        : 6,
+                                  ),
+                                  Positioned(
+                                    right: -2,
+                                    bottom: -2,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.surface,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: publisher.account != null
+                                          ? ProfilePictureWidget(
+                                              file: publisher
+                                                  .account
+                                                  ?.profile
+                                                  .picture,
+                                            )
+                                          : Icon(
+                                              publisher.type == 0
+                                                  ? Symbols.person
+                                                  : Symbols.corporate_fare,
+                                              size: 10,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimaryContainer,
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              title: Text(
+                                publisher.nick.isNotEmpty
+                                    ? publisher.nick
+                                    : publisher.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              subtitle: Row(
+                                children: [
+                                  if (publisher.bio.isNotEmpty)
+                                    Text(
+                                      publisher.bio,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  else
+                                    Text('@${publisher.name}'),
+                                ],
+                              ),
+                              trailing: const Icon(
+                                Symbols.chevron_right,
+                              ).padding(right: 12),
                             ),
                           ),
                         );
@@ -557,6 +604,11 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 left: 16,
                                 right: 12,
                               ),
+                              onTap: () {
+                                context.router.push(
+                                  AccountProfileRoute(name: account.name),
+                                );
+                              },
                               leading: Stack(
                                 children: [
                                   ProfilePictureWidget(
@@ -584,9 +636,9 @@ class _AccountSearchTab extends HookConsumerWidget {
                                     ),
                                 ],
                               ),
-                              trailing: const SizedBox(
-                                width: 88,
-                              ), // To align with ApActorListItem
+                              trailing: const Icon(
+                                Symbols.chevron_right,
+                              ).padding(right: 12),
                             ),
                           ),
                         );

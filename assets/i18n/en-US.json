@@ -1867,5 +1867,6 @@
   "live": "LIVE",
   "open": "Open",
   "liveChat": "Live Chat",
-  "watchToJoin":"Watch to Join"
+  "watchToJoin":"Watch to Join",
+  "searchUsersEmpty": "Search for users.."
 }
