@@ -1,4 +1,5 @@
 import "dart:async";
+import "package:desktop_drop/desktop_drop.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -17,6 +18,7 @@ import "package:island/accounts/account_pod.dart";
 import "package:island/discovery/discovery_service.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/core/widgets/content/attachment_preview.dart";
+import "package:island/drive/drive_service.dart";
 import "package:island/drive/widgets/cloud_files.dart";
 import "package:island/drive/widgets/upload_menu.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -255,6 +257,7 @@ class ChatInput extends HookConsumerWidget {
     final inputFocusNode = useFocusNode();
     final chatSubscribe = ref.watch(chatSubscribeProvider(chatRoom.id));
     final isExpanded = useState(false);
+    final isDraggingOver = useState(false);
 
     void send() {
       if (isExpanded.value) isExpanded.value = false;
@@ -312,6 +315,27 @@ class ChatInput extends HookConsumerWidget {
       }
     }
 
+    Future<void> handleDroppedFiles(DropDoneDetails details) async {
+      final droppedFiles = <UniversalFile>[];
+
+      for (final xfile in details.files) {
+        final file = UniversalFile(data: xfile, type: UniversalFileType.file);
+        final mimeType = FileUploader.getMimeType(file);
+        final topLevelType = mimeType.split('/').first;
+        final fileType = switch (topLevelType) {
+          'image' => UniversalFileType.image,
+          'video' => UniversalFileType.video,
+          'audio' => UniversalFileType.audio,
+          _ => UniversalFileType.file,
+        };
+        droppedFiles.add(UniversalFile(data: xfile, type: fileType));
+      }
+
+      if (droppedFiles.isNotEmpty) {
+        onAttachmentsChanged([...attachments, ...droppedFiles]);
+      }
+    }
+
     final settings = ref.watch(appSettingsProvider);
 
     inputFocusNode.onKeyEvent = (node, event) {
@@ -358,7 +382,14 @@ class ChatInput extends HookConsumerWidget {
           .toList();
     }
 
-    return Container(
+    return DropTarget(
+      onDragEntered: (_) => isDraggingOver.value = true,
+      onDragExited: (_) => isDraggingOver.value = false,
+      onDragDone: (details) async {
+        isDraggingOver.value = false;
+        await handleDroppedFiles(details);
+      },
+      child: Container(
       margin: EdgeInsets.only(
         left: leftMargin,
         right: rightMargin,
@@ -366,8 +397,20 @@ class ChatInput extends HookConsumerWidget {
       ),
       child: Material(
         elevation: 2,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: inputBorderRadius,
+        color: isDraggingOver.value
+            ? Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.8)
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: inputBorderRadius,
+          side: isDraggingOver.value
+              ? BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 1.5,
+                )
+              : BorderSide.none,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Column(
@@ -1052,6 +1095,7 @@ class ChatInput extends HookConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }
