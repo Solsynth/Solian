@@ -6,6 +6,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/data/database.dart";
 import "package:island/data/message.dart";
+import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
@@ -44,6 +45,51 @@ class MessagesNotifier extends _$MessagesNotifier {
   StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
 
   late Future<SnAccount?> Function(String) _fetchAccount;
+
+  bool _isSystemEventType(String type) {
+    if (type.startsWith('system.')) return true;
+    switch (type) {
+      case 'messages.update':
+      case 'messages.update.links':
+      case 'messages.delete':
+      case 'messages.reaction.added':
+      case 'messages.reaction.removed':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool _isImportantEventType(String type) {
+    if (type == 'call.start' || type == 'call.ended') return true;
+    if (type == 'messages.update' ||
+        type == 'messages.update.links' ||
+        type == 'messages.delete') {
+      return true;
+    }
+    return type == 'system.call.member.joined' ||
+        type == 'system.call.member.left';
+  }
+
+  bool _shouldIncludeInActiveList(LocalChatMessage message) {
+    final mode = ref.read(appSettingsProvider).chatEventMessageMode;
+    if (mode == kChatEventMessageModeVerbose) return true;
+    if (mode == kChatEventMessageModeNone) {
+      return !_isSystemEventType(message.type);
+    }
+    if (_isSystemEventType(message.type)) {
+      return _isImportantEventType(message.type);
+    }
+    return true;
+  }
+
+  List<LocalChatMessage> _filterActiveMessages(
+    List<LocalChatMessage> messages,
+  ) {
+    final mode = ref.read(appSettingsProvider).chatEventMessageMode;
+    if (mode == kChatEventMessageModeVerbose) return messages;
+    return messages.where(_shouldIncludeInActiveList).toList();
+  }
 
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
     final data = Map<String, dynamic>.from(input);
@@ -121,6 +167,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       loadInitial(forceRemoteRefresh: false);
     });
+
+    ref.listen<String>(
+      appSettingsProvider.select((settings) => settings.chatEventMessageMode),
+      (previous, next) {
+        if (previous == next) return;
+        if (_isJumping || _isLoadingInitial || !ref.mounted) return;
+        unawaited(loadInitial(forceRemoteRefresh: false));
+      },
+    );
 
     ref.onDispose(() {
       _syncEventsSub?.cancel();
@@ -210,7 +265,9 @@ class MessagesNotifier extends _$MessagesNotifier {
           uniqueMessages.add(message);
         }
       }
-      if (ref.mounted) state = AsyncValue.data(uniqueMessages);
+      if (ref.mounted) {
+        state = AsyncValue.data(_filterActiveMessages(uniqueMessages));
+      }
     } finally {
       _isUpdatingState = false;
     }
@@ -291,10 +348,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           finalUniqueMessages.add(message);
         }
       }
-      return finalUniqueMessages;
+      return _filterActiveMessages(finalUniqueMessages);
     }
 
-    return uniqueMessages;
+    return _filterActiveMessages(uniqueMessages);
   }
 
   /// Get all messages without search filters for jump operations
@@ -341,10 +398,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           finalUniqueMessages.add(message);
         }
       }
-      return finalUniqueMessages;
+      return _filterActiveMessages(finalUniqueMessages);
     }
 
-    return uniqueMessages;
+    return _filterActiveMessages(uniqueMessages);
   }
 
   Future<List<LocalChatMessage>> _fetchAndCacheMessages({
@@ -625,7 +682,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final offset = currentMessages.length;
+    final offset = await _database.countMessagesNewerThan(
+      roomId,
+      DateTime.fromMillisecondsSinceEpoch(0),
+    );
     talker.log('Loading more messages (offset=$offset, take=$_pageSize)');
 
     if (ref.mounted) {
@@ -641,7 +701,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       if (ref.mounted) {
         state = AsyncValue.data(
-          _sortMessages([...currentMessages, ...newMessages]),
+          _filterActiveMessages(
+            _sortMessages([...currentMessages, ...newMessages]),
+          ),
         );
       }
       talker.log(
@@ -907,9 +969,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (ref.mounted) {
       if (existingIndex >= 0) {
         final newList = [...currentMessages];
-        newList[existingIndex] = localMessage;
+        if (_shouldIncludeInActiveList(localMessage)) {
+          newList[existingIndex] = localMessage;
+        } else {
+          newList.removeAt(existingIndex);
+        }
         state = AsyncValue.data(_sortMessages(newList));
-      } else {
+      } else if (_shouldIncludeInActiveList(localMessage)) {
         state = AsyncValue.data(
           _sortMessages([localMessage, ...currentMessages]),
         );

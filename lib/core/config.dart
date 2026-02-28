@@ -44,6 +44,11 @@ const kAppDashSearchEngine = 'app_dash_search_engine';
 const kAppDefaultScreen = 'app_default_screen';
 const kAppShowFediverseContent = 'app_show_fediverse_content';
 const kAppShowChatSystemMessages = 'app_show_chat_system_messages';
+const kAppShowChatEventMessages = kAppShowChatSystemMessages;
+const kAppChatEventMessageMode = 'app_chat_event_message_mode';
+const kChatEventMessageModeVerbose = 'verbose';
+const kChatEventMessageModeImportant = 'important';
+const kChatEventMessageModeNone = 'none';
 const kAppDashboardConfig = 'app_dashboard_config';
 
 // Will be overrided by the ProviderScope
@@ -111,6 +116,7 @@ sealed class AppSettings with _$AppSettings {
     required String? dashSearchEngine,
     required String? defaultScreen,
     required bool showFediverseContent,
+    required String chatEventMessageMode,
     required bool showChatSystemMessages,
     required DashboardConfig? dashboardConfig,
   }) = _AppSettings;
@@ -121,6 +127,14 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   @override
   AppSettings build() {
     final prefs = ref.watch(sharedPreferencesProvider);
+    final legacyShowSystemMessages =
+        prefs.getBool(kAppShowChatSystemMessages) ?? false;
+    final chatEventMessageMode =
+        prefs.getString(kAppChatEventMessageMode) ??
+        (legacyShowSystemMessages
+            ? kChatEventMessageModeVerbose
+            : kChatEventMessageModeNone);
+
     return AppSettings(
       dataSavingMode: prefs.getBool(kAppDataSavingMode) ?? false,
       soundEffects: prefs.getBool(kAppSoundEffects) ?? true,
@@ -146,7 +160,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
       showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
-      showChatSystemMessages: prefs.getBool(kAppShowChatSystemMessages) ?? false,
+      chatEventMessageMode: chatEventMessageMode,
+      showChatSystemMessages: chatEventMessageMode != kChatEventMessageModeNone,
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
     );
   }
@@ -366,9 +381,27 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   }
 
   void setShowChatSystemMessages(bool value) {
+    final mode = value
+        ? kChatEventMessageModeVerbose
+        : kChatEventMessageModeNone;
+    setChatEventMessageMode(mode);
+  }
+
+  void setChatEventMessageMode(String value) {
     final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppShowChatSystemMessages, value);
-    state = state.copyWith(showChatSystemMessages: value);
+    prefs.setString(kAppChatEventMessageMode, value);
+    prefs.setBool(
+      kAppShowChatSystemMessages,
+      value != kChatEventMessageModeNone,
+    );
+    state = state.copyWith(
+      chatEventMessageMode: value,
+      showChatSystemMessages: value != kChatEventMessageModeNone,
+    );
+  }
+
+  void setShowChatEventMessages(bool value) {
+    setShowChatSystemMessages(value);
   }
 
   void setDashboardConfig(DashboardConfig? value) {

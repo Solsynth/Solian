@@ -75,8 +75,6 @@ import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i54;
 import 'package:island/realms/screens/realm_detail.dart' as _i56;
 import 'package:island/realms/screens/realm_form.dart' as _i57;
 import 'package:island/realms/screens/realms.dart' as _i58;
-import 'package:island/tickets/screens/ticket_detail.dart' as _i66;
-import 'package:island/tickets/screens/ticket_list.dart' as _i67;
 import 'package:island/settings/about.dart' as _i1;
 import 'package:island/settings/dashboard/dash.dart' as _i29;
 import 'package:island/settings/settings.dart' as _i61;
@@ -84,6 +82,8 @@ import 'package:island/settings/tabs_screen.dart' as _i64;
 import 'package:island/stickers/screens/pack_detail.dart' as _i62;
 import 'package:island/stickers/screens/sticker_marketplace.dart' as _i63;
 import 'package:island/thoughts/screens/think.dart' as _i65;
+import 'package:island/tickets/screens/ticket_detail.dart' as _i66;
+import 'package:island/tickets/screens/ticket_list.dart' as _i67;
 import 'package:island/wallets/wallet.dart' as _i69;
 import 'package:solar_network_sdk/solar_network_sdk.dart' as _i73;
 

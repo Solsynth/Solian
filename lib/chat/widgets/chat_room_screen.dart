@@ -27,7 +27,6 @@ import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/data/message.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
@@ -42,25 +41,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kChatLastReadAnchorsStoreKey = 'chat_last_read_anchor_by_room';
-const Set<String> kSystemMessageTypes = {
-  'system.member.joined',
-  'system.member.left',
-  'system.chat.updated',
-  'system.call.member.joined',
-  'system.call.member.left',
-  'messages.update',
-  'messages.update.links',
-  'messages.delete',
-  'messages.reaction.added',
-  'messages.reaction.removed',
-};
-
-bool _isSystemInfoMessage(LocalChatMessage msg) {
-  if (msg.type.startsWith('system.')) return true;
-  if (kSystemMessageTypes.contains(msg.type)) return true;
-  if (msg.deletedAt != null && msg.type != 'text') return true;
-  return false;
-}
 
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
@@ -484,38 +464,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     }, [messages, scrollManager]);
 
-    final filteredMessages = messages.whenData((list) {
-      if (settings.showChatSystemMessages) return list;
-
-      LocalChatMessage? latestSystemInfo;
-      for (final msg in list) {
-        if (_isSystemInfoMessage(msg)) {
-          latestSystemInfo = msg;
-          break;
-        }
-      }
-
-      if (latestSystemInfo == null) {
-        return list.where((msg) => !_isSystemInfoMessage(msg)).toList();
-      }
-
-      return list
-          .where(
-            (msg) =>
-                !_isSystemInfoMessage(msg) || msg.id == latestSystemInfo!.id,
-          )
-          .toList();
-    });
-
-    final latestVisibleSystemInfoMessageId = (() {
-      if (settings.showChatSystemMessages) return null;
-      final list = messages.value;
-      if (list == null || list.isEmpty) return null;
-      for (final msg in list) {
-        if (_isSystemInfoMessage(msg)) return msg.id;
-      }
-      return null;
-    })();
+    final filteredMessages = messages;
 
     final visibleLastReadAnchorMessageId = (() {
       final anchorId = lastReadAnchorMessageId.value;
@@ -635,9 +584,10 @@ class ChatRoomScreen extends HookConsumerWidget {
                             ? Center(
                                 key: const ValueKey('empty-messages'),
                                 child: Text(
-                                  settings.showChatSystemMessages
-                                      ? 'No messages yet'.tr()
-                                      : 'No user messages (system info hidden)',
+                                  settings.chatEventMessageMode ==
+                                          kChatEventMessageModeNone
+                                      ? 'No visible messages (event/system hidden)'
+                                      : 'No messages yet'.tr(),
                                 ),
                               )
                             : RoomMessageList(
@@ -662,12 +612,13 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 lastReadAnchorMessageId:
                                     visibleLastReadAnchorMessageId,
                                 onFollowBack: jumpToLastReadAnchor,
-                                systemToggleMessageId:
-                                    latestVisibleSystemInfoMessageId,
+                                systemToggleMessageId: null,
                                 onShowSystemMessages: () {
                                   ref
                                       .read(appSettingsProvider.notifier)
-                                      .setShowChatSystemMessages(true);
+                                      .setChatEventMessageMode(
+                                        kChatEventMessageModeVerbose,
+                                      );
                                 },
                                 disableAnimation: settings.disableAnimation,
                               ),

@@ -821,22 +821,46 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
-      // Show chat system messages settings
+      // Show chat event/system messages settings
       ListTile(
         minLeadingWidth: 48,
-        title: const Text('Show Chat System Messages'),
+        title: const Text('Show Chat Event Messages'),
         subtitle: const Text(
-          'Show update/delete/reaction event records in chat timeline',
+          'Choose visibility level for event/system messages',
         ),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.info),
-        trailing: Switch(
-          value: settings.showChatSystemMessages,
-          onChanged: (value) {
-            ref
-                .read(appSettingsProvider.notifier)
-                .setShowChatSystemMessages(value);
-          },
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: const [
+              DropdownMenuItem<String>(
+                value: kChatEventMessageModeVerbose,
+                child: Text('Verbose'),
+              ),
+              DropdownMenuItem<String>(
+                value: kChatEventMessageModeImportant,
+                child: Text('Important'),
+              ),
+              DropdownMenuItem<String>(
+                value: kChatEventMessageModeNone,
+                child: Text('None'),
+              ),
+            ],
+            value: settings.chatEventMessageMode,
+            onChanged: (value) {
+              if (value == null) return;
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setChatEventMessageMode(value);
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
+          ),
         ),
       ),
 

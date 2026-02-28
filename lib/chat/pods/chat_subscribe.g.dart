@@ -59,7 +59,7 @@ final class ChatSubscribeNotifierProvider
 }
 
 String _$chatSubscribeNotifierHash() =>
-    r'8443fa6c82bed9855e8f1d54e219511442153118';
+    r'edc07cef250ea8137a43dd2acb59c8027f9a22ba';
 
 final class ChatSubscribeNotifierFamily extends $Family
     with
