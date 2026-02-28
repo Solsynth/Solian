@@ -65,8 +65,6 @@ class MessageItem extends HookConsumerWidget {
   final bool isSelected;
   final Function(String messageId)? onToggleSelection;
   final Function()? onEnterSelectionMode;
-  final bool showSystemMessagesToggle;
-  final VoidCallback? onShowSystemMessages;
 
   const MessageItem({
     super.key,
@@ -80,8 +78,6 @@ class MessageItem extends HookConsumerWidget {
     this.isSelected = false,
     this.onToggleSelection,
     this.onEnterSelectionMode,
-    this.showSystemMessagesToggle = false,
-    this.onShowSystemMessages,
   });
 
   static const kFlashDuration = 300;
@@ -311,29 +307,6 @@ class MessageItem extends HookConsumerWidget {
                           translating: translating.value,
                         ),
                       },
-                      if (showSystemMessagesToggle &&
-                          onShowSystemMessages != null)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              left: 12,
-                              right: 12,
-                              bottom: 4,
-                            ),
-                            child: OutlinedButton.icon(
-                              onPressed: onShowSystemMessages,
-                              icon: const Icon(Symbols.visibility, size: 16),
-                              label: const Text('Show system messages'),
-                              style: OutlinedButton.styleFrom(
-                                visualDensity: const VisualDensity(
-                                  horizontal: VisualDensity.minimumDensity,
-                                  vertical: VisualDensity.minimumDensity,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                       MessageReactionChips(
                         displayStyle: settings.messageDisplayStyle,
                         isCurrentUser: isCurrentUser,

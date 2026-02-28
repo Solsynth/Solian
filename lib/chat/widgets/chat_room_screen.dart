@@ -612,14 +612,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 lastReadAnchorMessageId:
                                     visibleLastReadAnchorMessageId,
                                 onFollowBack: jumpToLastReadAnchor,
-                                systemToggleMessageId: null,
-                                onShowSystemMessages: () {
-                                  ref
-                                      .read(appSettingsProvider.notifier)
-                                      .setChatEventMessageMode(
-                                        kChatEventMessageModeVerbose,
-                                      );
-                                },
                                 disableAnimation: settings.disableAnimation,
                               ),
                         loading: () => const Center(

@@ -24,8 +24,6 @@ class RoomMessageList extends HookConsumerWidget {
   final double? previousInputHeight;
   final String? lastReadAnchorMessageId;
   final VoidCallback? onFollowBack;
-  final String? systemToggleMessageId;
-  final VoidCallback? onShowSystemMessages;
 
   const RoomMessageList({
     super.key,
@@ -45,8 +43,6 @@ class RoomMessageList extends HookConsumerWidget {
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
     this.onFollowBack,
-    this.systemToggleMessageId,
-    this.onShowSystemMessages,
     this.previousInputHeight,
   });
 
@@ -70,19 +66,19 @@ class RoomMessageList extends HookConsumerWidget {
       findChildIndexCallback: (key) {
         // If messages is empty, return null early to avoid issues
         if (messages.isEmpty) return null;
-        
+
         if (key is! ValueKey<String>) return null;
-        
+
         final keyString = key.value;
         if (!keyString.startsWith(messageKeyPrefix)) return null;
-        
+
         final messageId = keyString.substring(messageKeyPrefix.length);
-        
+
         // Find the index, but validate it before returning
         final index = messages.indexWhere(
           (m) => (m.nonce ?? m.id) == messageId,
         );
-        
+
         // Only return valid indices that are greater than the last returned index
         // This ensures we comply with Flutter's requirement that indices must
         // be returned in strictly increasing order during a build
@@ -90,7 +86,7 @@ class RoomMessageList extends HookConsumerWidget {
           lastReturnedIndex = index;
           return index;
         }
-        
+
         // If the index is invalid or not in increasing order, return null
         // This will cause Flutter to create a new widget instead of reusing
         return null;
@@ -122,7 +118,10 @@ class RoomMessageList extends HookConsumerWidget {
             if (showLastReadMarker)
               Container(
                 margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
@@ -139,7 +138,9 @@ class RoomMessageList extends HookConsumerWidget {
                       child: Text(
                         'Last read position',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ),
@@ -165,8 +166,6 @@ class RoomMessageList extends HookConsumerWidget {
               attachmentProgress: attachmentProgress,
               disableAnimation: settings.disableAnimation,
               roomOpenTime: roomOpenTime,
-              showSystemMessagesToggle: systemToggleMessageId == message.id,
-              onShowSystemMessages: onShowSystemMessages,
             ),
           ],
         );

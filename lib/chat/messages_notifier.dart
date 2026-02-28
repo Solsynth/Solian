@@ -2,7 +2,9 @@ import "dart:async";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/foundation.dart";
+import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:http_parser/http_parser.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/data/database.dart";
 import "package:island/data/message.dart";
@@ -11,8 +13,10 @@ import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/drive/drive_service.dart";
+import "package:mime/mime.dart";
 import "package:island/talker.dart";
 import "package:island/shared/widgets/alert.dart";
+import "package:path/path.dart" as p;
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/accounts/screens/profile.dart";
@@ -43,6 +47,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isLoadingInitial = false;
   bool _allRemoteMessagesFetched = false;
   StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
+  final Set<String> _prefetchedVoiceUrls = <String>{};
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
@@ -89,6 +94,50 @@ class MessagesNotifier extends _$MessagesNotifier {
     final mode = ref.read(appSettingsProvider).chatEventMessageMode;
     if (mode == kChatEventMessageModeVerbose) return messages;
     return messages.where(_shouldIncludeInActiveList).toList();
+  }
+
+  String? _resolveVoiceMediaUrlFromMeta(Map<String, dynamic> meta) {
+    final rawUrl = meta['voice_url']?.toString();
+    if (rawUrl == null || rawUrl.isEmpty) return null;
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl;
+    }
+    final serverUrl = ref.read(serverUrlProvider);
+    return '$serverUrl$rawUrl';
+  }
+
+  Future<void> _prefetchVoiceUrl(String? mediaUrl) async {
+    if (mediaUrl == null || mediaUrl.isEmpty) return;
+    if (!_prefetchedVoiceUrls.add(mediaUrl)) return;
+
+    final token = ref.read(tokenProvider);
+    final headers = token == null
+        ? null
+        : <String, String>{'Authorization': 'AtField ${token.token}'};
+
+    final cache = DefaultCacheManager();
+    try {
+      final cached = await cache.getFileFromCache(mediaUrl);
+      if (cached != null) return;
+      unawaited(cache.downloadFile(mediaUrl, authHeaders: headers));
+    } catch (err, stackTrace) {
+      _prefetchedVoiceUrls.remove(mediaUrl);
+      talker.log(
+        'Failed to prefetch voice media $mediaUrl',
+        exception: err,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _prefetchVoiceForRemoteMessage(SnChatMessage message) async {
+    if (message.type != 'voice') return;
+    await _prefetchVoiceUrl(_resolveVoiceMediaUrlFromMeta(message.meta));
+  }
+
+  Future<void> _prefetchVoiceForLocalMessage(LocalChatMessage message) async {
+    if (message.type != 'voice') return;
+    await _prefetchVoiceUrl(_resolveVoiceMediaUrlFromMeta(message.meta));
   }
 
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
@@ -322,6 +371,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           .toList();
     }
 
+    for (final message in filteredMessages) {
+      unawaited(_prefetchVoiceForLocalMessage(message));
+    }
+
     final dbLocalMessages = filteredMessages;
 
     // Always ensure unique messages to prevent duplicate keys
@@ -373,6 +426,9 @@ class MessagesNotifier extends _$MessagesNotifier {
           )
           .toList(),
     );
+    for (final message in dbMessages) {
+      unawaited(_prefetchVoiceForLocalMessage(message));
+    }
 
     // Always ensure unique messages to prevent duplicate keys
     final uniqueMessages = <LocalChatMessage>[];
@@ -475,6 +531,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       await _database.saveMessageWithSender(localMessage);
+      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
       if (localMessage.nonce != null) {
         _pendingMessages.removeWhere(
           (_, pendingMsg) => pendingMsg.nonce == localMessage.nonce,
@@ -862,6 +919,105 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  Future<void> sendVoiceMessage(
+    String filePath, {
+    int? durationMs,
+    SnChatMessage? forwardingTo,
+    SnChatMessage? replyingTo,
+  }) async {
+    final nonce = const Uuid().v4();
+    talker.log('Sending voice message with nonce $nonce');
+
+    final mockMessage = SnChatMessage(
+      id: 'pending_$nonce',
+      chatRoomId: roomId,
+      senderId: _identity.id,
+      type: 'voice',
+      content: null,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      nonce: nonce,
+      sender: _identity,
+      meta: {
+        'file_name': p.basename(filePath),
+        ...?durationMs == null ? null : {'duration_ms': durationMs},
+      },
+    );
+
+    final localMessage = LocalChatMessage.fromRemoteMessage(
+      mockMessage,
+      MessageStatus.pending,
+    );
+    _pendingMessages[localMessage.id] = localMessage;
+    await _database.saveMessageWithSender(localMessage);
+
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    if (ref.mounted && _shouldIncludeInActiveList(localMessage)) {
+      state = AsyncValue.data(
+        _sortMessages([localMessage, ...currentMessages]),
+      );
+    }
+
+    try {
+      final mimeType = lookupMimeType(filePath) ?? 'audio/m4a';
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: p.basename(filePath),
+          contentType: MediaType.parse(mimeType),
+        ),
+        'nonce': nonce,
+        if (replyingTo != null) 'repliedMessageId': replyingTo.id,
+        if (forwardingTo != null) 'forwardedMessageId': forwardingTo.id,
+        ...?durationMs == null ? null : {'durationMs': durationMs},
+      });
+
+      final response = await _apiClient.post(
+        '/messager/chat/$roomId/messages/voice',
+        data: formData,
+      );
+      final remoteMessage = SnChatMessage.fromJson(response.data);
+      final updatedMessage = LocalChatMessage.fromRemoteMessage(
+        remoteMessage,
+        MessageStatus.sent,
+      );
+      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
+
+      _pendingMessages.remove(localMessage.id);
+      await _database.deleteMessage(localMessage.id);
+      await _database.saveMessageWithSender(updatedMessage);
+
+      if (ref.mounted) {
+        final list = (state.value ?? []).map((m) {
+          if (m.id == localMessage.id) return updatedMessage;
+          return m;
+        }).toList();
+        state = AsyncValue.data(_sortMessages(list));
+      }
+    } catch (e, stackTrace) {
+      talker.log(
+        'Failed to send voice message with nonce $nonce',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      localMessage.status = MessageStatus.failed;
+      _pendingMessages[localMessage.id] = localMessage;
+      await _database.updateMessageStatus(
+        localMessage.id,
+        MessageStatus.failed,
+      );
+      if (ref.mounted) {
+        final list = (state.value ?? []).map((m) {
+          if (m.id == localMessage.id) return m..status = MessageStatus.failed;
+          return m;
+        }).toList();
+        state = AsyncValue.data(_sortMessages(list));
+      }
+      showErrorAlert(e);
+      rethrow;
+    }
+  }
+
   Future<void> retryMessage(String pendingMessageId) async {
     talker.log('Retrying message $pendingMessageId');
     final message = await fetchMessageById(pendingMessageId);
@@ -950,6 +1106,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       remoteMessage,
       MessageStatus.sent,
     );
+    unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
 
     if (remoteMessage.nonce != null) {
       _pendingMessages.removeWhere(
@@ -1454,6 +1611,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       await _database.saveMessageWithSender(message);
+      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
       return message;
     } catch (e) {
       if (e is DioException) return null;
