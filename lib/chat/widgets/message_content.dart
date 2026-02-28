@@ -1,11 +1,19 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -179,6 +187,8 @@ class MessageContent extends StatelessWidget {
             ),
           ],
         );
+      case 'voice':
+        return _VoiceMessageContent(item: item);
       case 'text':
       default:
         return Column(
@@ -262,6 +272,203 @@ class MessageContent extends StatelessWidget {
       default:
         return (Symbols.info_rounded, item.content ?? 'System message');
     }
+  }
+}
+
+class _VoiceMessageContent extends HookConsumerWidget {
+  final SnChatMessage item;
+  const _VoiceMessageContent({required this.item});
+
+  String _formatSeconds(Duration duration) {
+    final seconds = (duration.inMilliseconds / 1000).floor();
+    return '${seconds.clamp(0, 99999)}s';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverUrl = ref.watch(serverUrlProvider);
+    final token = ref.watch(tokenProvider);
+    final player = useMemoized(() => AudioPlayer(), []);
+    final isLoading = useState(false);
+    final loaded = useState(false);
+    final isScrubbing = useState(false);
+    final scrubPosition = useState(Duration.zero);
+
+    useEffect(() {
+      return () => player.dispose();
+    }, [player]);
+
+    final durationMs = (() {
+      final raw = item.meta['duration_ms'];
+      if (raw is int) return raw;
+      return int.tryParse(raw?.toString() ?? '');
+    })();
+    final voiceUrl = item.meta['voice_url']?.toString();
+    final mediaUrl = voiceUrl == null
+        ? null
+        : (voiceUrl.startsWith('http') ? voiceUrl : '$serverUrl$voiceUrl');
+    final position =
+        useStream(player.positionStream, initialData: Duration.zero).data ??
+        Duration.zero;
+    final total =
+        useStream(
+          player.durationStream,
+          initialData: Duration(milliseconds: durationMs ?? 0),
+        ).data ??
+        Duration(milliseconds: durationMs ?? 0);
+    final playerState = useStream(player.playerStateStream).data;
+    final isPlaying = playerState?.playing ?? false;
+    final buffered =
+        useStream(
+          player.bufferedPositionStream,
+          initialData: Duration.zero,
+        ).data ??
+        Duration.zero;
+    final shownPosition = isScrubbing.value ? scrubPosition.value : position;
+    final totalMs = total.inMilliseconds <= 0
+        ? 1.0
+        : total.inMilliseconds.toDouble();
+
+    Future<void> ensureLoaded() async {
+      if (loaded.value || mediaUrl == null) return;
+      isLoading.value = true;
+      try {
+        final headers = token == null
+            ? null
+            : {'Authorization': 'AtField ${token.token}'};
+        final cachedFile = await DefaultCacheManager().getFileFromCache(
+          mediaUrl,
+        );
+        if (cachedFile != null) {
+          await player.setFilePath(cachedFile.file.path);
+        } else {
+          unawaited(
+            DefaultCacheManager().downloadFile(mediaUrl, authHeaders: headers),
+          );
+          await player.setUrl(mediaUrl, headers: headers);
+        }
+        loaded.value = true;
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
+              isPlaying ? Symbols.pause_circle : Symbols.play_circle,
+              size: 24,
+            ),
+            onPressed: mediaUrl == null || isLoading.value
+                ? null
+                : () async {
+                    await ensureLoaded();
+                    if (isPlaying) {
+                      await player.pause();
+                    } else {
+                      await player.play();
+                    }
+                  },
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 2,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+              ),
+              child: Slider(
+                value: shownPosition.inMilliseconds
+                    .clamp(0, totalMs.toInt())
+                    .toDouble(),
+                secondaryTrackValue: buffered.inMilliseconds
+                    .clamp(0, totalMs.toInt())
+                    .toDouble(),
+                max: totalMs,
+                onChangeStart: mediaUrl == null
+                    ? null
+                    : (value) {
+                        isScrubbing.value = true;
+                        scrubPosition.value = Duration(
+                          milliseconds: value.toInt(),
+                        );
+                      },
+                onChanged: mediaUrl == null
+                    ? null
+                    : (value) {
+                        isScrubbing.value = true;
+                        scrubPosition.value = Duration(
+                          milliseconds: value.toInt(),
+                        );
+                      },
+                onChangeEnd: mediaUrl == null
+                    ? null
+                    : (value) async {
+                        await ensureLoaded();
+                        final target = Duration(milliseconds: value.toInt());
+                        await player.seek(target);
+                        isScrubbing.value = false;
+                      },
+                year2023: true,
+                padding: EdgeInsets.only(right: 8, left: 4),
+              ),
+            ),
+          ),
+          const Gap(6),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(scale: animation, child: child),
+              );
+            },
+            child: isPlaying
+                ? Text(
+                    _formatSeconds(shownPosition),
+                    key: const ValueKey('playing-time'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : Text(
+                    _formatSeconds(total),
+                    key: const ValueKey('paused-time'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+          ).padding(right: 4),
+          if (isLoading.value) ...[
+            const Gap(6),
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
