@@ -27,7 +27,6 @@ import 'package:island/core/widgets/embeds/embed_list.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:swipe_to/swipe_to.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -168,6 +167,7 @@ class MessageItem extends HookConsumerWidget {
     final isHovered = useState(false);
     final reacting = useState(false);
     final isSystemInfoExpanded = useState(false);
+    final swipeProgress = useState(0.0);
     final reactionsCount = getMessageReactionsCount(message);
     final reactionsMade = getMessageReactionsMade(message);
 
@@ -216,28 +216,88 @@ class MessageItem extends HookConsumerWidget {
       );
     }
 
+    Widget buildSwipeHintBackground({
+      required bool isStartToEnd,
+      required IconData icon,
+    }) {
+      final iconColor = Theme.of(context).colorScheme.onSurfaceVariant;
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          const iconSize = 20.0;
+          const edgePadding = 10.0;
+          final progress = isStartToEnd
+              ? swipeProgress.value.clamp(0.0, 1.0)
+              : (-swipeProgress.value).clamp(0.0, 1.0);
+          final revealedWidth = progress * constraints.maxWidth;
+          final distance = (revealedWidth - iconSize - edgePadding).clamp(
+            0.0,
+            constraints.maxWidth - iconSize - edgePadding,
+          );
+
+          return Stack(
+            children: [
+              Positioned(
+                top: 0,
+                bottom: 0,
+                left: isStartToEnd ? distance : null,
+                right: isStartToEnd ? null : distance,
+                child: Icon(icon, color: iconColor, size: iconSize),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        SwipeTo(
-          swipeSensitivity: 5,
-          rightSwipeWidget: Transform.flip(
-            flipX: true,
-            child: Icon(Symbols.menu_open),
-          ).padding(left: 16),
-          leftSwipeWidget: Icon(
-            isCurrentUser ? Symbols.forward : Symbols.reply,
-          ).padding(right: 16),
-          onLeftSwipe: (details) {
-            if (onAction != null) {
-              if (isCurrentUser) {
-                onAction!(MessageItemAction.forward);
-              } else {
-                onAction!(MessageItemAction.reply);
-              }
-            }
+        Dismissible(
+          key: ValueKey('message-swipe-${message.nonce ?? message.id}'),
+          direction: onAction == null || isSelectionMode
+              ? DismissDirection.none
+              : DismissDirection.horizontal,
+          dismissThresholds: const {
+            DismissDirection.startToEnd: 0.22,
+            DismissDirection.endToStart: 0.22,
           },
-          onRightSwipe: (details) => showActionMenu(),
+          resizeDuration: null,
+          movementDuration: const Duration(milliseconds: 120),
+          background: buildSwipeHintBackground(
+            isStartToEnd: true,
+            icon: Symbols.menu_open,
+          ),
+          secondaryBackground: buildSwipeHintBackground(
+            isStartToEnd: false,
+            icon: isCurrentUser ? Symbols.forward : Symbols.reply,
+          ),
+          onUpdate: onAction == null || isSelectionMode
+              ? null
+              : (details) {
+                  final direction = details.direction;
+                  if (direction == DismissDirection.startToEnd) {
+                    swipeProgress.value = details.progress.clamp(0.0, 1.0);
+                  } else if (direction == DismissDirection.endToStart) {
+                    swipeProgress.value = -details.progress.clamp(0.0, 1.0);
+                  } else {
+                    swipeProgress.value = 0.0;
+                  }
+                },
+          confirmDismiss: onAction == null || isSelectionMode
+              ? null
+              : (direction) async {
+                  swipeProgress.value = 0.0;
+                  if (direction == DismissDirection.startToEnd) {
+                    showActionMenu();
+                  } else if (direction == DismissDirection.endToStart) {
+                    if (isCurrentUser) {
+                      onAction!(MessageItemAction.forward);
+                    } else {
+                      onAction!(MessageItemAction.reply);
+                    }
+                  }
+                  return false;
+                },
           child: InkWell(
             mouseCursor: MouseCursor.defer,
             focusColor: Colors.transparent,
