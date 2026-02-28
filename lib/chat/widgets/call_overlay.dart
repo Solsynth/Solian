@@ -5,11 +5,12 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/screens/profile.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
-import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/core/network.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -311,6 +312,9 @@ class CallOverlayBar extends HookConsumerWidget {
     final activeParticipantCount = ref.watch(
       activeCallParticipantCountProvider(room.id),
     );
+    final activeParticipants = ref.watch(
+      activeCallParticipantsProvider(room.id),
+    );
     final hasActiveCall = activeParticipantCount.maybeWhen(
       data: (count) => count > 0,
       orElse: () => false,
@@ -362,12 +366,17 @@ class CallOverlayBar extends HookConsumerWidget {
         duration,
         isMicrophoneEnabled,
         callNotifier,
+        participants,
         lastSpeaker,
         chatRoomName,
         isExpanded,
       );
     } else if (hasActiveCall) {
-      child = _buildJoinPrompt(context, ref);
+      final participantsPreview = activeParticipants.maybeWhen(
+        data: (value) => value,
+        orElse: () => const <CallParticipant>[],
+      );
+      child = _buildJoinPrompt(context, ref, participantsPreview);
     } else {
       child = const SizedBox.shrink(key: ValueKey('empty'));
     }
@@ -389,62 +398,82 @@ class CallOverlayBar extends HookConsumerWidget {
     );
   }
 
-  Widget _buildJoinPrompt(BuildContext context, WidgetRef ref) {
+  Widget _buildJoinPrompt(
+    BuildContext context,
+    WidgetRef ref,
+    List<CallParticipant> participantsPreview,
+  ) {
     final isLoading = useState(false);
 
     return Card(
       key: const ValueKey('join_prompt'),
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.videocam,
-              color: Theme.of(context).colorScheme.onPrimary,
-              size: 20,
-            ),
-          ),
-          const Gap(12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          Row(
             children: [
-              Text('Call in progress').bold(),
-              Text('Tap to join', style: Theme.of(context).textTheme.bodySmall),
+              if (participantsPreview.isNotEmpty)
+                _CallPreviewParticipantsStrip(
+                  participants: participantsPreview,
+                  maxVisible: 3,
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.videocam,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 20,
+                  ),
+                ),
+              const Gap(12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Call in progress').bold(),
+                  Text(
+                    participantsPreview.isEmpty
+                        ? 'Tap to join'
+                        : '${participantsPreview.length} participants online',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              const Spacer(),
+              if (isLoading.value)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ).padding(right: 8)
+              else
+                FilledButton.icon(
+                  onPressed: () async {
+                    isLoading.value = true;
+                    try {
+                      // Just join the room, don't navigate
+                      await ref.read(callProvider.notifier).joinRoom(room);
+                    } catch (e) {
+                      showErrorAlert(e);
+                    } finally {
+                      isLoading.value = false;
+                    }
+                  },
+                  icon: const Icon(Icons.call, size: 18),
+                  label: const Text('Join'),
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
             ],
           ),
-          const Spacer(),
-          if (isLoading.value)
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ).padding(right: 8)
-          else
-            FilledButton.icon(
-              onPressed: () async {
-                isLoading.value = true;
-                try {
-                  // Just join the room, don't navigate
-                  await ref.read(callProvider.notifier).joinRoom(room);
-                } catch (e) {
-                  showErrorAlert(e);
-                } finally {
-                  isLoading.value = false;
-                }
-              },
-              icon: const Icon(Icons.call, size: 18),
-              label: const Text('Join'),
-              style: FilledButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
         ],
       ).padding(all: 12),
     );
@@ -456,6 +485,7 @@ class CallOverlayBar extends HookConsumerWidget {
     Duration duration,
     bool isMicrophoneEnabled,
     CallNotifier callNotifier,
+    List<CallParticipantLive> participants,
     CallParticipantLive? lastSpeaker,
     String chatRoomName,
     ValueNotifier<bool> isExpanded,
@@ -480,6 +510,17 @@ class CallOverlayBar extends HookConsumerWidget {
                 Text(chatRoomName),
                 const Gap(4),
                 Text(formatDuration(duration)).bold(),
+                const Gap(8),
+                Icon(
+                  Symbols.group,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const Gap(4),
+                Text(
+                  '${participants.length}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const Spacer(),
                 IconButton(
                   visualDensity: const VisualDensity(
@@ -533,19 +574,28 @@ class CallOverlayBar extends HookConsumerWidget {
             Expanded(
               child: Row(
                 children: [
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: SpeakingRippleAvatar(
-                      live: lastSpeaker,
-                      size: 36,
-                    ).center(),
-                  ),
                   const Gap(8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('@${lastSpeaker.participant.identity}').bold(),
+                      Row(
+                        children: [
+                          Text('@${lastSpeaker.participant.identity}').bold(),
+                          const Gap(8),
+                          Icon(
+                            Symbols.group,
+                            size: 14,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const Gap(2),
+                          Text(
+                            '${participants.length}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                       Row(
                         spacing: 4,
                         children: [
@@ -580,6 +630,88 @@ class CallOverlayBar extends HookConsumerWidget {
             ),
           ],
         ).padding(all: 12),
+      ),
+    );
+  }
+}
+
+class _CallPreviewParticipantsStrip extends StatelessWidget {
+  final List<CallParticipant> participants;
+  final int maxVisible;
+
+  const _CallPreviewParticipantsStrip({
+    required this.participants,
+    required this.maxVisible,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasOverflow = participants.length > maxVisible;
+    final avatarSlots = hasOverflow ? (maxVisible - 1) : maxVisible;
+    final visible = participants.take(avatarSlots).toList();
+    final overflow = participants.length - visible.length;
+
+    return SizedBox(
+      height: 34,
+      child: Row(
+        children:
+            [
+                ...visible.map(
+                  (participant) =>
+                      _CallPreviewParticipantAvatar(participant: participant),
+                ),
+                if (overflow > 0)
+                  Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                    ),
+                    child: Text(
+                      '+$overflow',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+              ].expand((widget) => [widget, const Gap(6)]).toList()
+              ..removeLast(), // Remove the last Gap to avoid trailing separator
+      ),
+    );
+  }
+}
+
+class _CallPreviewParticipantAvatar extends HookConsumerWidget {
+  final CallParticipant participant;
+
+  const _CallPreviewParticipantAvatar({required this.participant});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final account = ref.watch(accountProvider(participant.identity));
+    return account.when(
+      data: (value) =>
+          ProfilePictureWidget(file: value.profile.picture, radius: 17),
+      loading: () => CircleAvatar(
+        radius: 14,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: SizedBox(
+          width: 12,
+          height: 12,
+          child: CircularProgressIndicator(strokeWidth: 1.8),
+        ),
+      ),
+      error: (_, _) => CircleAvatar(
+        radius: 14,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: Text(
+          participant.name.isNotEmpty
+              ? participant.name.substring(0, 1).toUpperCase()
+              : '?',
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
       ),
     );
   }

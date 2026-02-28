@@ -191,8 +191,11 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       // Realtime call presence now depends on provider participants.
       // Poll and invalidate in room scope for call button/overlay state.
+      ref.invalidate(activeCallParticipantCountProvider(id));
+      ref.invalidate(activeCallParticipantsProvider(id));
       final timer = Timer.periodic(const Duration(seconds: 8), (_) {
         ref.invalidate(activeCallParticipantCountProvider(id));
+        ref.invalidate(activeCallParticipantsProvider(id));
       });
       return timer.cancel;
     }, [id]);

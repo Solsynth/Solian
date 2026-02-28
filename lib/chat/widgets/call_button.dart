@@ -34,6 +34,31 @@ final activeCallParticipantCountProvider = FutureProvider.family<int, String>((
   }
 });
 
+final activeCallParticipantsProvider =
+    FutureProvider.family<List<CallParticipant>, String>((ref, roomId) async {
+      if (roomId.isEmpty) return const [];
+      try {
+        final apiClient = ref.watch(apiClientProvider);
+        final resp = await apiClient.get(
+          '/messager/chat/realtime/$roomId/participants',
+        );
+        final data = resp.data;
+        if (data is! List) return const [];
+        return data
+            .whereType<Map>()
+            .map((e) => CallParticipant.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      } catch (e) {
+        if (e is DioException) {
+          final statusCode = e.response?.statusCode;
+          if (statusCode == 403 || statusCode == 404) {
+            return const [];
+          }
+        }
+        return const [];
+      }
+    });
+
 @riverpod
 Future<SnRealtimeCall?> ongoingCall(Ref ref, String roomId) async {
   if (roomId.isEmpty) return null;
