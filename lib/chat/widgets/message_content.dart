@@ -293,6 +293,8 @@ class _VoiceMessageContent extends HookConsumerWidget {
     final loaded = useState(false);
     final isScrubbing = useState(false);
     final scrubPosition = useState(Duration.zero);
+    final waveformBars = useState<List<double>?>(null);
+    final waveformSource = useState<String?>(null);
 
     useEffect(() {
       return () => player.dispose();
@@ -318,16 +320,49 @@ class _VoiceMessageContent extends HookConsumerWidget {
         Duration(milliseconds: durationMs ?? 0);
     final playerState = useStream(player.playerStateStream).data;
     final isPlaying = playerState?.playing ?? false;
-    final buffered =
-        useStream(
-          player.bufferedPositionStream,
-          initialData: Duration.zero,
-        ).data ??
-        Duration.zero;
+    final isCompleted =
+        playerState?.processingState == ProcessingState.completed;
     final shownPosition = isScrubbing.value ? scrubPosition.value : position;
     final totalMs = total.inMilliseconds <= 0
         ? 1.0
         : total.inMilliseconds.toDouble();
+
+    Future<void> generateWaveform(dynamic file) async {
+      final path = file.path?.toString();
+      if (path == null || path.isEmpty || waveformSource.value == path) return;
+      waveformSource.value = path;
+
+      try {
+        final bytes = await file.readAsBytes();
+        if (bytes.isEmpty) return;
+
+        const barCount = 56;
+        final bars = <double>[];
+        final window = (bytes.length / barCount).ceil();
+        const startOffset = 1024;
+
+        for (var i = 0; i < barCount; i++) {
+          final start = math.min(startOffset + (i * window), bytes.length);
+          final end = math.min(start + window, bytes.length);
+          if (start >= end) {
+            bars.add(0.12);
+            continue;
+          }
+
+          var sum = 0.0;
+          var samples = 0;
+          for (var j = start; j < end; j += 8) {
+            sum += (bytes[j] - 128).abs().toDouble();
+            samples++;
+          }
+
+          final normalized = samples == 0 ? 0.12 : (sum / samples) / 128.0;
+          bars.add(normalized.clamp(0.12, 1.0));
+        }
+
+        waveformBars.value = bars;
+      } catch (_) {}
+    }
 
     Future<void> ensureLoaded() async {
       if (loaded.value || mediaUrl == null) return;
@@ -340,10 +375,17 @@ class _VoiceMessageContent extends HookConsumerWidget {
           mediaUrl,
         );
         if (cachedFile != null) {
+          unawaited(generateWaveform(cachedFile.file));
           await player.setFilePath(cachedFile.file.path);
         } else {
+          final download = DefaultCacheManager().downloadFile(
+            mediaUrl,
+            authHeaders: headers,
+          );
           unawaited(
-            DefaultCacheManager().downloadFile(mediaUrl, authHeaders: headers),
+            download.then((downloaded) {
+              unawaited(generateWaveform(downloaded.file));
+            }),
           );
           await player.setUrl(mediaUrl, headers: headers);
         }
@@ -352,6 +394,30 @@ class _VoiceMessageContent extends HookConsumerWidget {
         isLoading.value = false;
       }
     }
+
+    useEffect(() {
+      if (mediaUrl == null) return null;
+      unawaited(() async {
+        final cachedFile = await DefaultCacheManager().getFileFromCache(
+          mediaUrl,
+        );
+        if (cachedFile != null) {
+          await generateWaveform(cachedFile.file);
+          return;
+        }
+        final headers = token == null
+            ? null
+            : {'Authorization': 'AtField ${token.token}'};
+        try {
+          final downloaded = await DefaultCacheManager().downloadFile(
+            mediaUrl,
+            authHeaders: headers,
+          );
+          await generateWaveform(downloaded.file);
+        } catch (_) {}
+      }());
+      return null;
+    }, [mediaUrl, token?.token]);
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 320),
@@ -376,51 +442,52 @@ class _VoiceMessageContent extends HookConsumerWidget {
                     if (isPlaying) {
                       await player.pause();
                     } else {
+                      final replayFromStart =
+                          isCompleted ||
+                          (total.inMilliseconds > 0 &&
+                              position >=
+                                  total - const Duration(milliseconds: 250));
+                      if (replayFromStart) {
+                        await player.seek(Duration.zero);
+                      }
                       await player.play();
                     }
                   },
           ),
           Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 2,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-              ),
-              child: Slider(
-                value: shownPosition.inMilliseconds
-                    .clamp(0, totalMs.toInt())
-                    .toDouble(),
-                secondaryTrackValue: buffered.inMilliseconds
-                    .clamp(0, totalMs.toInt())
-                    .toDouble(),
-                max: totalMs,
-                onChangeStart: mediaUrl == null
+            child: SizedBox(
+              height: 24,
+              child: _VoiceWaveformProgress(
+                bars: waveformBars.value,
+                progress: (shownPosition.inMilliseconds / totalMs).clamp(
+                  0.0,
+                  1.0,
+                ),
+                onSeekStart: mediaUrl == null
                     ? null
-                    : (value) {
+                    : (ratio) {
                         isScrubbing.value = true;
                         scrubPosition.value = Duration(
-                          milliseconds: value.toInt(),
+                          milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                              .toInt(),
                         );
                       },
-                onChanged: mediaUrl == null
+                onSeekUpdate: mediaUrl == null
                     ? null
-                    : (value) {
+                    : (ratio) {
                         isScrubbing.value = true;
                         scrubPosition.value = Duration(
-                          milliseconds: value.toInt(),
+                          milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                              .toInt(),
                         );
                       },
-                onChangeEnd: mediaUrl == null
+                onSeekEnd: mediaUrl == null
                     ? null
-                    : (value) async {
+                    : () async {
                         await ensureLoaded();
-                        final target = Duration(milliseconds: value.toInt());
-                        await player.seek(target);
+                        await player.seek(scrubPosition.value);
                         isScrubbing.value = false;
                       },
-                year2023: true,
-                padding: EdgeInsets.only(right: 8, left: 4),
               ),
             ),
           ),
@@ -454,7 +521,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-          ).padding(right: 4),
+          ).padding(left: 4, right: 6),
           if (isLoading.value) ...[
             const Gap(6),
             SizedBox(
@@ -468,6 +535,93 @@ class _VoiceMessageContent extends HookConsumerWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _VoiceWaveformProgress extends StatelessWidget {
+  final List<double>? bars;
+  final double progress;
+  final ValueChanged<double>? onSeekStart;
+  final ValueChanged<double>? onSeekUpdate;
+  final Future<void> Function()? onSeekEnd;
+
+  const _VoiceWaveformProgress({
+    required this.bars,
+    required this.progress,
+    this.onSeekStart,
+    this.onSeekUpdate,
+    this.onSeekEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final waveform = bars;
+
+    if (waveform == null || waveform.isEmpty) {
+      return LinearProgressIndicator(
+        value: progress.clamp(0.0, 1.0),
+        minHeight: 3,
+        borderRadius: BorderRadius.circular(999),
+        color: colorScheme.primary,
+        backgroundColor: colorScheme.surfaceContainerHighest,
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barCount = waveform.length;
+        const spacing = 1.5;
+        final barWidth =
+            ((constraints.maxWidth - (barCount - 1) * spacing) / barCount)
+                .clamp(1.0, 4.0);
+        final activeBars = (progress.clamp(0.0, 1.0) * barCount).floor();
+
+        double ratioFromDx(double dx) {
+          if (constraints.maxWidth <= 0) return 0;
+          return (dx / constraints.maxWidth).clamp(0.0, 1.0);
+        }
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: onSeekUpdate == null
+              ? null
+              : (details) {
+                  onSeekUpdate!(ratioFromDx(details.localPosition.dx));
+                  if (onSeekEnd != null) unawaited(onSeekEnd!());
+                },
+          onHorizontalDragStart: onSeekStart == null
+              ? null
+              : (details) =>
+                    onSeekStart!(ratioFromDx(details.localPosition.dx)),
+          onHorizontalDragUpdate: onSeekUpdate == null
+              ? null
+              : (details) =>
+                    onSeekUpdate!(ratioFromDx(details.localPosition.dx)),
+          onHorizontalDragEnd: onSeekEnd == null
+              ? null
+              : (_) => unawaited(onSeekEnd!()),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(barCount, (index) {
+              final normalized = waveform[index].clamp(0.12, 1.0);
+              final height = 4 + (normalized * 16);
+              return Container(
+                width: barWidth,
+                height: height,
+                margin: EdgeInsets.only(right: index == barCount - 1 ? 0 : 1.5),
+                decoration: BoxDecoration(
+                  color: index < activeBars
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 }
