@@ -70,6 +70,18 @@ bool _isMediaPost(SnPost? post) {
   return post != null && post.type == 0 && post.attachments.isNotEmpty;
 }
 
+const _postDetailMaxWidth = 640.0;
+
+SnCloudFile? _getPostThumbnail(SnPost post) {
+  final thumbnailId = post.meta?['thumbnail'] as String?;
+  if (thumbnailId == null) return null;
+  try {
+    return post.attachments.firstWhere((a) => a.id == thumbnailId);
+  } catch (_) {
+    return null;
+  }
+}
+
 class PostActionButtons extends HookConsumerWidget {
   final SnPost post;
   final EdgeInsets renderingPadding;
@@ -517,7 +529,10 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    PostRepliesList(postId: postId, maxWidth: 680),
+                    PostRepliesList(
+                      postId: postId,
+                      maxWidth: _postDetailMaxWidth,
+                    ),
                     SliverGap(MediaQuery.of(context).padding.bottom + 80),
                   ],
                 ),
@@ -528,7 +543,7 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 680),
+                    constraints: BoxConstraints(maxWidth: _postDetailMaxWidth),
                     child: PostQuickReply(
                       parent: post,
                       onPosted: () {
@@ -565,7 +580,10 @@ class PostDetailScreen extends HookConsumerWidget {
       ),
       body: postState.when(
         data: (post) {
-          final isMediaPostLayout = isWideScreen(context) && _isMediaPost(post);
+          final postItem = post!;
+          final thumbnail = _getPostThumbnail(postItem);
+          final isMediaPostLayout =
+              isWideScreen(context) && _isMediaPost(postItem);
 
           return Stack(
             fit: StackFit.expand,
@@ -577,7 +595,7 @@ class PostDetailScreen extends HookConsumerWidget {
                 },
                 child: isMediaPostLayout
                     ? _PostDetailLargeScreenLayout(
-                        post: post!,
+                        post: postItem,
                         ref: ref,
                         postId: id,
                         onUpdate: (newItem) {
@@ -593,15 +611,37 @@ class PostDetailScreen extends HookConsumerWidget {
                     : CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
+                          if (postItem.type == 1 && thumbnail != null)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
+                                    child: CloudFileList(
+                                      files: [thumbnail],
+                                      padding: EdgeInsets.zero,
+                                      disableConstraint: true,
+                                    ),
+                                  ).padding(left: 8, right: 8, top: 16),
+                                ),
+                              ),
+                            ),
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: 680),
+                                constraints: const BoxConstraints(
+                                  maxWidth: _postDetailMaxWidth,
+                                ),
                                 child: PostItem(
-                                  item: post!,
+                                  item: postItem,
                                   isFullPost: true,
                                   isEmbedReply: false,
-                                  textScale: post.type == 1 ? 1.2 : 1.1,
+                                  textScale: postItem.type == 1 ? 1.2 : 1.1,
                                   onUpdate: (newItem) {
                                     ref
                                         .read(postStateProvider(id).notifier)
@@ -614,9 +654,11 @@ class PostDetailScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: 680),
+                                constraints: const BoxConstraints(
+                                  maxWidth: _postDetailMaxWidth,
+                                ),
                                 child: PostActionButtons(
-                                  post: post,
+                                  post: postItem,
                                   renderingPadding: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                   ),
@@ -635,7 +677,10 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          PostRepliesList(postId: id, maxWidth: 680),
+                          PostRepliesList(
+                            postId: id,
+                            maxWidth: _postDetailMaxWidth,
+                          ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
                         ],
                       ),
@@ -646,7 +691,9 @@ class PostDetailScreen extends HookConsumerWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 680),
+                    constraints: const BoxConstraints(
+                      maxWidth: _postDetailMaxWidth,
+                    ),
                     child: postState.when(
                       data: (post) => PostQuickReply(
                         parent: post!,

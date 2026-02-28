@@ -110,11 +110,13 @@ class ComposeAttachments extends ConsumerWidget {
 class ArticleComposeAttachments extends HookConsumerWidget {
   final ComposeState state;
   final EdgeInsets? padding;
+  final VoidCallback? onAttachmentAdded;
 
   const ArticleComposeAttachments({
     super.key,
     required this.state,
     this.padding,
+    this.onAttachmentAdded,
   });
 
   Future<void> _handleDroppedFiles(
@@ -142,6 +144,7 @@ class ArticleComposeAttachments extends HookConsumerWidget {
 
     if (newFiles.isNotEmpty) {
       state.attachments.value = [...state.attachments.value, ...newFiles];
+      onAttachmentAdded?.call();
     }
   }
 

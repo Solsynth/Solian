@@ -14,11 +14,12 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
     return {};
   }
 
-  void _loadDrafts() async {
+  Future<void> _loadDrafts() async {
     final drafts = <String, SnPost>{};
     try {
       final database = ref.read(databaseProvider);
       final dbDrafts = await database.getAllPostDrafts();
+      if (!ref.mounted) return;
       for (final draft in dbDrafts) {
         drafts[draft.id] = draft;
       }
@@ -27,8 +28,10 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
     }
 
     try {
+      if (!ref.mounted) return;
       final client = ref.read(apiClientProvider);
       final response = await client.get('/sphere/posts/drafts');
+      if (!ref.mounted) return;
       final cloudDrafts = (response.data as List)
           .map((e) => SnPost.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -40,6 +43,7 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
     }
 
     // If there's an error loading drafts, start with empty state
+    if (!ref.mounted) return;
     state = drafts;
   }
 
@@ -53,7 +57,7 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       final database = ref.read(databaseProvider);
       await database.deletePostDraft(id);
     } catch (e) {
-      if (oldDraft != null) {
+      if (oldDraft != null && ref.mounted) {
         state = {...state, id: oldDraft};
       }
       rethrow;
@@ -70,10 +74,8 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
           updatedAt: updatedDraft.updatedAt ?? DateTime.now(),
         ),
       );
-      // Update state after successful database operation, delayed to avoid widget building issues
-      Future(() {
-        state = {...state, updatedDraft.id: updatedDraft};
-      });
+      if (!ref.mounted) return;
+      state = {...state, updatedDraft.id: updatedDraft};
     } catch (e) {
       rethrow;
     }
@@ -175,7 +177,9 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       await database.clearAllPostDrafts();
     } catch (e) {
       // If clearing fails, we might want to reload from database
-      _loadDrafts();
+      if (ref.mounted) {
+        _loadDrafts();
+      }
       rethrow;
     }
   }

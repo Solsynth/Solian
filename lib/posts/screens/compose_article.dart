@@ -449,7 +449,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
             Expanded(
               child: ArticleResponsiveSidebar(
                 sidebarWidth: 480,
-                attachmentsContent: ArticleComposeAttachments(state: state),
+                attachmentsContent: ArticleComposeAttachments(
+                  state: state,
+                  onAttachmentAdded: () => showSidebar.value = true,
+                ),
                 settingsContent: ComposeSettingsSheet(state: state),
                 showSidebar: showSidebar,
                 mainContent: Padding(
@@ -511,7 +514,11 @@ class ArticleComposeScreen extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            ComposeToolbar(state: state, originalPost: originalPost),
+            ComposeToolbar(
+              state: state,
+              originalPost: originalPost,
+              onAttachmentAdded: () => showSidebar.value = true,
+            ),
           ],
         ),
       ),

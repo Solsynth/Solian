@@ -14,34 +14,56 @@ class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
   final SnPost? originalPost;
   final bool useSafeArea;
+  final VoidCallback? onAttachmentAdded;
 
   const ComposeToolbar({
     super.key,
     required this.state,
     this.originalPost,
     this.useSafeArea = false,
+    this.onAttachmentAdded,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void pickPhotoMedia() {
-      ComposeLogic.pickPhotoMedia(ref, state);
+    void pickPhotoMedia() async {
+      final oldCount = state.attachments.value.length;
+      await ComposeLogic.pickPhotoMedia(ref, state);
+      if (state.attachments.value.length > oldCount) {
+        onAttachmentAdded?.call();
+      }
     }
 
-    void pickVideoMedia() {
-      ComposeLogic.pickVideoMedia(ref, state);
+    void pickVideoMedia() async {
+      final oldCount = state.attachments.value.length;
+      await ComposeLogic.pickVideoMedia(ref, state);
+      if (state.attachments.value.length > oldCount) {
+        onAttachmentAdded?.call();
+      }
     }
 
-    void pickGeneralFile() {
-      ComposeLogic.pickGeneralFile(ref, state);
+    void pickGeneralFile() async {
+      final oldCount = state.attachments.value.length;
+      await ComposeLogic.pickGeneralFile(ref, state);
+      if (state.attachments.value.length > oldCount) {
+        onAttachmentAdded?.call();
+      }
     }
 
-    void addAudio() {
-      ComposeLogic.recordAudioMedia(ref, state, context);
+    void addAudio() async {
+      final oldCount = state.attachments.value.length;
+      await ComposeLogic.recordAudioMedia(ref, state, context);
+      if (state.attachments.value.length > oldCount) {
+        onAttachmentAdded?.call();
+      }
     }
 
-    void linkAttachment() {
-      ComposeLogic.linkAttachment(ref, state, context);
+    void linkAttachment() async {
+      final oldCount = state.attachments.value.length;
+      await ComposeLogic.linkAttachment(ref, state, context);
+      if (state.attachments.value.length > oldCount) {
+        onAttachmentAdded?.call();
+      }
     }
 
     void saveDraft() {
@@ -78,8 +100,9 @@ class ComposeToolbar extends HookConsumerWidget {
           onDraftSelected: (draftId) {
             final draft = ref.read(composeStorageProvider)[draftId];
             if (draft != null) {
-              state.cloudDraftId.value =
-                  draft.draftedAt != null ? draft.id : null;
+              state.cloudDraftId.value = draft.draftedAt != null
+                  ? draft.id
+                  : null;
               state.titleController.text = draft.title ?? '';
               state.descriptionController.text = draft.description ?? '';
               state.contentController.text = draft.content ?? '';
