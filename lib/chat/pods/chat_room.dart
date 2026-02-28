@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
@@ -55,6 +57,67 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
 }
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
+const String _chatE2eeBundleStoreKey = 'chat_e2ee_bundle_v1';
+const String _chatE2eeBundleCheckedAtStoreKey =
+    'chat_e2ee_bundle_checked_at_ms';
+const String _chatE2eeRotationPrefix = 'chat_e2ee_rotate_required_';
+const String _chatRoomEncryptionModePrefix = 'chat_room_encryption_mode_';
+const Duration _chatE2eeBundleRecheckInterval = Duration(hours: 6);
+
+String _chatRoomEncryptionModeStoreKey(String roomId) =>
+    '$_chatRoomEncryptionModePrefix$roomId';
+String _chatE2eeRotationStoreKey(String roomId) =>
+    '$_chatE2eeRotationPrefix$roomId';
+
+int _safeToInt(dynamic value, {int fallback = 0}) {
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value) ?? fallback;
+  if (value is num) return value.toInt();
+  return fallback;
+}
+
+Map<String, dynamic> _createE2eeKeyBundle({int oneTimePreKeys = 16}) {
+  final random = Random.secure();
+  String randomBase64(int length) =>
+      base64Encode(List<int>.generate(length, (_) => random.nextInt(256)));
+
+  final signedPreKeyId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final signedPreKeyExpiresAt = DateTime.now().toUtc().add(
+    const Duration(days: 7),
+  );
+  final preKeys = List<Map<String, dynamic>>.generate(oneTimePreKeys, (idx) {
+    final keyId = signedPreKeyId + idx + 1;
+    return {
+      'key_id': keyId,
+      'public_key': randomBase64(32),
+      'private_key': randomBase64(32),
+    };
+  });
+
+  return {
+    'algorithm': 'x25519',
+    'created_at': DateTime.now().toUtc().toIso8601String(),
+    'identity_key': randomBase64(32),
+    'identity_private_key': randomBase64(32),
+    'signed_pre_key_id': signedPreKeyId,
+    'signed_pre_key': randomBase64(32),
+    'signed_pre_key_private_key': randomBase64(32),
+    'signed_pre_key_signature': randomBase64(64),
+    'signed_pre_key_expires_at': signedPreKeyExpiresAt.toIso8601String(),
+    'one_time_pre_keys': preKeys,
+    'meta': {'client': 'island', 'bundle_version': 1},
+  };
+}
+
+Future<void> _persistRoomEncryptionModeFromJson(
+  AppDatabase db,
+  Map<String, dynamic> roomJson,
+) async {
+  final roomId = roomJson['id']?.toString();
+  if (roomId == null || roomId.isEmpty) return;
+  final mode = _safeToInt(roomJson['encryption_mode']);
+  await db.setSecret(_chatRoomEncryptionModeStoreKey(roomId), mode.toString());
+}
 
 Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
   try {
@@ -76,9 +139,47 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
     final data = Map<String, dynamic>.from(input);
-    data['meta'] = data['meta'] is Map<String, dynamic>
-        ? data['meta']
+    final meta = data['meta'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['meta'] as Map<String, dynamic>)
         : <String, dynamic>{};
+    if (data['is_encrypted'] == true) {
+      meta['e2ee_is_encrypted'] = true;
+      meta['e2ee_ciphertext'] = data['ciphertext'];
+      meta['e2ee_header'] = data['encryption_header'];
+      meta['e2ee_signature'] = data['encryption_signature'];
+      meta['e2ee_scheme'] = data['encryption_scheme'];
+      meta['e2ee_epoch'] = data['encryption_epoch'];
+      meta['e2ee_message_type'] = data['encryption_message_type'];
+      meta['e2ee_client_message_id'] = data['client_message_id'];
+
+      // Temporary compatibility path: our current v1 payload is JSON packed
+      // into ciphertext as base64-encoded plaintext. Decode it for rendering.
+      if ((data['content'] == null ||
+              (data['content'] as String?)?.isEmpty == true) &&
+          data['ciphertext'] is String) {
+        try {
+          final decoded = jsonDecode(
+            utf8.decode(base64Decode(data['ciphertext'] as String)),
+          );
+          if (decoded is Map) {
+            if (decoded['content'] is String) {
+              data['content'] = decoded['content'];
+            }
+            final encodedAttachmentIds = decoded['attachments_id'];
+            if ((data['attachments'] is! List ||
+                    (data['attachments'] as List).isEmpty) &&
+                encodedAttachmentIds is List) {
+              meta['e2ee_attachment_ids'] = encodedAttachmentIds
+                  .whereType<Object?>()
+                  .where((e) => e != null)
+                  .map((e) => e.toString())
+                  .toList();
+            }
+          }
+        } catch (_) {}
+      }
+    }
+    data['meta'] = meta;
     data['members_mentioned'] =
         (data['members_mentioned'] is List
                 ? data['members_mentioned'] as List
@@ -167,6 +268,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     switch (pkt.type) {
       case 'messages.new':
         {
+          if (message.type == 'system.e2ee.rotate_required') {
+            await _markRoomE2eeRotationRequired(db, message);
+          }
           var localMessage = LocalChatMessage.fromRemoteMessage(
             message,
             MessageStatus.sent,
@@ -458,6 +562,105 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     return true;
   }
 
+  Future<void> _markRoomE2eeRotationRequired(
+    AppDatabase db,
+    SnChatMessage message,
+  ) async {
+    final roomId = message.meta['room_id']?.toString() ?? message.chatRoomId;
+    final payload = jsonEncode({
+      'requiredAt': DateTime.now().toUtc().toIso8601String(),
+      'rotationHintEpoch': _safeToInt(message.meta['rotation_hint_epoch']),
+      'changedMemberId': message.meta['changed_member_id']?.toString(),
+      'reason': message.meta['reason']?.toString(),
+    });
+    await db.setSecret(_chatE2eeRotationStoreKey(roomId), payload);
+  }
+
+  Future<void> _ensureE2eeBundle(Dio client, AppDatabase db) async {
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final localBundleRaw = await db.getSecret(_chatE2eeBundleStoreKey);
+    final lastCheckRaw = await db.getSecret(_chatE2eeBundleCheckedAtStoreKey);
+    final lastCheckMs = int.tryParse(lastCheckRaw ?? '') ?? 0;
+    final hasLocalBundle = localBundleRaw != null && localBundleRaw.isNotEmpty;
+    final shouldRecheck =
+        !hasLocalBundle ||
+        nowMs - lastCheckMs > _chatE2eeBundleRecheckInterval.inMilliseconds;
+
+    if (!shouldRecheck) return;
+
+    var hasRemoteBundle = false;
+    try {
+      await client.get('/pass/e2ee/keys/me');
+      hasRemoteBundle = true;
+    } catch (err) {
+      if (err is DioException && err.response?.statusCode == 404) {
+        hasRemoteBundle = false;
+      } else {
+        rethrow;
+      }
+    }
+
+    if (hasLocalBundle && hasRemoteBundle) {
+      await db.setSecret(_chatE2eeBundleCheckedAtStoreKey, nowMs.toString());
+      return;
+    }
+
+    final bundle = hasLocalBundle
+        ? (jsonDecode(localBundleRaw) as Map).cast<String, dynamic>()
+        : _createE2eeKeyBundle();
+    await _uploadE2eeBundle(client, bundle);
+    await db.setSecret(_chatE2eeBundleStoreKey, jsonEncode(bundle));
+    await db.setSecret(_chatE2eeBundleCheckedAtStoreKey, nowMs.toString());
+  }
+
+  Future<void> _uploadE2eeBundle(
+    Dio client,
+    Map<String, dynamic> localBundle,
+  ) async {
+    T? read<T>(List<String> keys) {
+      for (final key in keys) {
+        final value = localBundle[key];
+        if (value is T) return value;
+      }
+      return null;
+    }
+
+    final publicOneTimePreKeys =
+        ((localBundle['one_time_pre_keys'] as List?) ??
+                (localBundle['oneTimePreKeys'] as List?) ??
+                const [])
+            .whereType<Map>()
+            .map(
+              (entry) => {
+                'key_id': _safeToInt(entry['key_id'] ?? entry['keyId']),
+                'public_key': entry['public_key'] ?? entry['publicKey'],
+              },
+            )
+            .toList();
+
+    await client.post(
+      '/pass/e2ee/keys/upload',
+      data: {
+        'algorithm': localBundle['algorithm'] ?? 'x25519',
+        'identity_key': read<String>(['identity_key', 'identityKey']),
+        'signed_pre_key_id': _safeToInt(
+          read<dynamic>(['signed_pre_key_id', 'signedPreKeyId']),
+        ),
+        'signed_pre_key': read<String>(['signed_pre_key', 'signedPreKey']),
+        'signed_pre_key_signature': read<String>([
+          'signed_pre_key_signature',
+          'signedPreKeySignature',
+        ]),
+        'signed_pre_key_expires_at': read<String>([
+          'signed_pre_key_expires_at',
+          'signedPreKeyExpiresAt',
+        ]),
+        'one_time_pre_keys': publicOneTimePreKeys,
+        'meta': {'client': 'island', 'bundle_version': 1},
+      },
+    );
+  }
+
   /// Perform global sync to fetch messages from all chat rooms
   Future<void> syncAllMessages({bool force = false}) async {
     if (_ongoingSync != null) {
@@ -500,6 +703,15 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final db = ref.read(databaseProvider);
       final prefs = ref.read(sharedPreferencesProvider);
       final currentUserId = ref.read(userInfoProvider).value?.id;
+      try {
+        await _ensureE2eeBundle(client, db);
+      } catch (err, stackTrace) {
+        talker.log(
+          'E2EE bootstrap failed, continue with plaintext-compatible sync',
+          exception: err,
+          stackTrace: stackTrace,
+        );
+      }
 
       final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
       final dbLatestCursor = await _getLatestMessageTimestamp(db);
@@ -701,6 +913,10 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       if (localRoomsData.isNotEmpty) {
         final localRooms = await Future.wait(
           localRoomsData.map((row) async {
+            final encryptionModeRaw = await db.getSecret(
+              _chatRoomEncryptionModeStoreKey(row.id),
+            );
+            final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
             final membersRows = await db.getMembersByRoomId(row.id);
             final members = membersRows.map((mRow) {
               final account = SnAccount.fromJson(mRow.account);
@@ -726,6 +942,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
               name: row.name,
               description: row.description,
               type: row.type,
+              encryptionMode: encryptionMode,
               isPublic: row.isPublic!,
               isCommunity: row.isCommunity!,
               picture: row.picture != null
@@ -749,15 +966,42 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           }),
         );
 
-        return localRooms;
+        // Always fetch remote chat rooms to check for new ones
+        try {
+          final client = ref.watch(apiClientProvider);
+          final resp = await client.get('/messager/chat');
+          final rawRooms = (resp.data as List).whereType<Map>().toList();
+          for (final roomJson in rawRooms) {
+            await _persistRoomEncryptionModeFromJson(
+              db,
+              Map<String, dynamic>.from(roomJson),
+            );
+          }
+          final rooms = rawRooms
+              .map((e) => SnChatRoom.fromJson(Map<String, dynamic>.from(e)))
+              .cast<SnChatRoom>()
+              .toList();
+          await db.saveChatRooms(rooms, override: true);
+          return rooms;
+        } catch (_) {
+          // If remote fetch fails, return local rooms
+          return localRooms;
+        }
       }
     } catch (_) {}
 
     // Fallback to API
     final client = ref.watch(apiClientProvider);
     final resp = await client.get('/messager/chat');
-    final rooms = resp.data
-        .map((e) => SnChatRoom.fromJson(e))
+    final rawRooms = (resp.data as List).whereType<Map>().toList();
+    for (final roomJson in rawRooms) {
+      await _persistRoomEncryptionModeFromJson(
+        db,
+        Map<String, dynamic>.from(roomJson),
+      );
+    }
+    final rooms = rawRooms
+        .map((e) => SnChatRoom.fromJson(Map<String, dynamic>.from(e)))
         .cast<SnChatRoom>()
         .toList();
     await db.saveChatRooms(rooms, override: true);
@@ -800,6 +1044,10 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       final localRoomData = await db.getChatRoomById(identifier);
 
       if (localRoomData != null) {
+        final encryptionModeRaw = await db.getSecret(
+          _chatRoomEncryptionModeStoreKey(localRoomData.id),
+        );
+        final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
         // Fetch members for this room
         final membersRows = await db.getMembersByRoomId(localRoomData.id);
         final members = membersRows.map((mRow) {
@@ -827,6 +1075,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           name: localRoomData.name,
           description: localRoomData.description,
           type: localRoomData.type,
+          encryptionMode: encryptionMode,
           isPublic: localRoomData.isPublic!,
           isCommunity: localRoomData.isCommunity!,
           picture: localRoomData.picture != null
@@ -849,6 +1098,10 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           try {
             final client = ref.read(apiClientProvider);
             final resp = await client.get('/messager/chat/$identifier');
+            await _persistRoomEncryptionModeFromJson(
+              db,
+              Map<String, dynamic>.from(resp.data as Map),
+            );
             final remoteRoom = SnChatRoom.fromJson(resp.data);
             // Update state with fresh data directly without saving to DB
             // DB will be updated by ChatRoomJoinedNotifier's full sync
@@ -864,6 +1117,10 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     try {
       final client = ref.watch(apiClientProvider);
       final resp = await client.get('/messager/chat/$identifier');
+      await _persistRoomEncryptionModeFromJson(
+        db,
+        Map<String, dynamic>.from(resp.data as Map),
+      );
       final room = SnChatRoom.fromJson(resp.data);
       await db.saveChatRooms([room]);
       return room;

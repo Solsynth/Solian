@@ -402,11 +402,36 @@ class ChatFabWidget extends HookConsumerWidget {
                     builder: (context) => const AccountPickerSheet(),
                   );
                   if (result == null) return;
+                  if (!context.mounted) return;
+
+                  final useE2eeDm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Direct message mode'),
+                      content: const Text(
+                        'Create this direct chat as E2EE DM?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('No'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    ),
+                  );
+
                   final client = ref.read(apiClientProvider);
                   try {
                     await client.post(
                       '/messager/chat/direct',
-                      data: {'related_user_id': result.id},
+                      data: {
+                        'related_user_id': result.id,
+                        'encryption_mode': useE2eeDm == true ? 1 : 0,
+                      },
                     );
                     eventBus.fire(const ChatRoomsRefreshEvent());
                   } catch (err) {
@@ -588,10 +613,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       );
     }
 
-    Widget withSelectedDot({
-      required Widget child,
-      required bool isSelected,
-    }) {
+    Widget withSelectedDot({required Widget child, required bool isSelected}) {
       return SizedBox(
         width: 48,
         height: 48,

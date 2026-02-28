@@ -13,6 +13,7 @@ sealed class SnChatRoom with _$SnChatRoom {
     required String? name,
     required String? description,
     required int type,
+    @JsonKey(name: 'encryption_mode') @Default(0) int encryptionMode,
     @Default(false) bool isPublic,
     @Default(false) bool isCommunity,
     required SnCloudFile? picture,

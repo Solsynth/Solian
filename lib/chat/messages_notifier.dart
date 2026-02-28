@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:convert";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/foundation.dart";
@@ -30,6 +31,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late AppDatabase _database;
   late SnChatMember _identity;
   bool _hasIdentity = false;
+  int _roomEncryptionMode = 0;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -50,6 +52,35 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Set<String> _prefetchedVoiceUrls = <String>{};
 
   late Future<SnAccount?> Function(String) _fetchAccount;
+
+  bool get _isE2eeRoom => _roomEncryptionMode != 0;
+
+  String get _e2eeScheme => _roomEncryptionMode == 1
+      ? 'pass.e2ee.chat.dm.v1'
+      : 'pass.e2ee.chat.sender_key.v1';
+
+  Map<String, dynamic> _buildE2eeMessagePayload({
+    required String nonce,
+    required String messageType,
+    required String content,
+    required List<String> attachmentIds,
+  }) {
+    final envelope = {
+      'content': content,
+      'attachments_id': attachmentIds,
+      'nonce': nonce,
+    };
+    return {
+      'is_encrypted': true,
+      'ciphertext': base64Encode(utf8.encode(jsonEncode(envelope))),
+      'encryption_header': base64Encode(utf8.encode('{"v":1}')),
+      'encryption_scheme': _e2eeScheme,
+      'encryption_epoch': 1,
+      'encryption_message_type': messageType,
+      'client_message_id': nonce,
+      'nonce': nonce,
+    };
+  }
 
   bool _isSystemEventType(String type) {
     if (type.startsWith('system.')) return true;
@@ -142,9 +173,45 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
     final data = Map<String, dynamic>.from(input);
-    data['meta'] = data['meta'] is Map<String, dynamic>
-        ? data['meta']
+    final meta = data['meta'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['meta'] as Map<String, dynamic>)
         : <String, dynamic>{};
+    if (data['is_encrypted'] == true) {
+      meta['e2ee_is_encrypted'] = true;
+      meta['e2ee_ciphertext'] = data['ciphertext'];
+      meta['e2ee_header'] = data['encryption_header'];
+      meta['e2ee_signature'] = data['encryption_signature'];
+      meta['e2ee_scheme'] = data['encryption_scheme'];
+      meta['e2ee_epoch'] = data['encryption_epoch'];
+      meta['e2ee_message_type'] = data['encryption_message_type'];
+      meta['e2ee_client_message_id'] = data['client_message_id'];
+
+      if ((data['content'] == null ||
+              (data['content'] as String?)?.isEmpty == true) &&
+          data['ciphertext'] is String) {
+        try {
+          final decoded = jsonDecode(
+            utf8.decode(base64Decode(data['ciphertext'] as String)),
+          );
+          if (decoded is Map) {
+            if (decoded['content'] is String) {
+              data['content'] = decoded['content'];
+            }
+            final encodedAttachmentIds = decoded['attachments_id'];
+            if ((data['attachments'] is! List ||
+                    (data['attachments'] as List).isEmpty) &&
+                encodedAttachmentIds is List) {
+              meta['e2ee_attachment_ids'] = encodedAttachmentIds
+                  .whereType<Object?>()
+                  .where((e) => e != null)
+                  .map((e) => e.toString())
+                  .toList();
+            }
+          }
+        } catch (_) {}
+      }
+    }
+    data['meta'] = meta;
     data['members_mentioned'] =
         (data['members_mentioned'] is List
                 ? data['members_mentioned'] as List
@@ -197,6 +264,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (room == null) {
       throw Exception('Room not found');
     }
+    _roomEncryptionMode = room.encryptionMode;
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
@@ -820,7 +888,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     state = AsyncValue.data([localMessage, ...currentMessages]);
 
     try {
-      var cloudAttachments = List.empty(growable: true);
+      final cloudAttachments = <SnCloudFile>[];
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile = await ref
             .read(driveFileUploaderProvider)
@@ -845,16 +913,23 @@ class MessagesNotifier extends _$MessagesNotifier {
         editingTo == null
             ? '/messager/chat/$roomId/messages'
             : '/messager/chat/$roomId/messages/${editingTo.id}',
-        data: {
-          'content': content,
-          'attachments_id': cloudAttachments.map((e) => e.id).toList(),
-          'replied_message_id': replyingTo?.id,
-          'forwarded_message_id': forwardingTo?.id,
-          'poll_id': poll?.id,
-          'fund_id': fund?.id,
-          'meta': {},
-          'nonce': nonce,
-        },
+        data: _isE2eeRoom
+            ? _buildE2eeMessagePayload(
+                nonce: nonce,
+                messageType: editingTo == null ? 'content.new' : 'content.edit',
+                content: content,
+                attachmentIds: cloudAttachments.map((e) => e.id).toList(),
+              )
+            : {
+                'content': content,
+                'attachments_id': cloudAttachments.map((e) => e.id).toList(),
+                'replied_message_id': replyingTo?.id,
+                'forwarded_message_id': forwardingTo?.id,
+                'poll_id': poll?.id,
+                'fund_id': fund?.id,
+                'meta': {},
+                'nonce': nonce,
+              },
         options: Options(method: editingTo == null ? 'POST' : 'PATCH'),
       );
 
@@ -925,6 +1000,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
   }) async {
+    if (_isE2eeRoom) {
+      final err = UnsupportedError(
+        'Voice endpoint is not supported for E2EE rooms in v1.',
+      );
+      showErrorAlert(err);
+      throw err;
+    }
+
     final nonce = const Uuid().v4();
     talker.log('Sending voice message with nonce $nonce');
 
@@ -1034,14 +1117,22 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     try {
       var remoteMessage = message.toRemoteMessage();
+      final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
       final response = await _apiClient.post(
         '/messager/chat/${message.roomId}/messages',
-        data: {
-          'content': remoteMessage.content,
-          'attachments_id': remoteMessage.attachments,
-          'meta': remoteMessage.meta,
-          'nonce': message.nonce,
-        },
+        data: _isE2eeRoom
+            ? _buildE2eeMessagePayload(
+                nonce: message.nonce ?? const Uuid().v4(),
+                messageType: 'content.new',
+                content: remoteMessage.content ?? '',
+                attachmentIds: attachmentIds,
+              )
+            : {
+                'content': remoteMessage.content,
+                'attachments_id': attachmentIds,
+                'meta': remoteMessage.meta,
+                'nonce': message.nonce,
+              },
       );
 
       remoteMessage = SnChatMessage.fromJson(response.data);

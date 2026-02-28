@@ -172,11 +172,13 @@ class AppDatabase {
   AppDatabase.native(Future<String?> _);
   AppDatabase.web();
   final Map<String, SnPost> _webDraftStore = {};
+  final Map<String, String> _webKvStore = {};
 
   Future<void> close() async {}
 
   Future<void> reset() async {
     _webDraftStore.clear();
+    _webKvStore.clear();
   }
 
   Future<T> transaction<T>(Future<T> Function() action) async => action();
@@ -377,6 +379,16 @@ class AppDatabase {
       lastModified: draft.updatedAt ?? DateTime.now(),
       postData: jsonEncode(draft.toJson()),
     );
+  }
+
+  Future<String?> getSecret(String key) async => _webKvStore[key];
+
+  Future<void> setSecret(String key, String value) async {
+    _webKvStore[key] = value;
+  }
+
+  Future<void> removeSecret(String key) async {
+    _webKvStore.remove(key);
   }
 
   Future<void> saveMember(SnChatMember member) async {}

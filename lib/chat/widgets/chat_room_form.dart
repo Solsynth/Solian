@@ -46,6 +46,7 @@ class EditChatScreen extends HookConsumerWidget {
     final background = useState<SnCloudFile?>(null);
     final isPublic = useState(true);
     final isCommunity = useState(false);
+    final encryptionMode = useState<int>(0);
 
     final chat = ref.watch(chatRoomProvider(id));
 
@@ -60,6 +61,7 @@ class EditChatScreen extends HookConsumerWidget {
         background.value = chat.value!.background;
         isPublic.value = chat.value!.isPublic;
         isCommunity.value = chat.value!.isCommunity;
+        encryptionMode.value = chat.value!.encryptionMode;
         currentRealm.value = joinedRealms.value?.firstWhereOrNull(
           (realm) => realm.id == chat.value!.realmId,
         );
@@ -139,6 +141,7 @@ class EditChatScreen extends HookConsumerWidget {
             'realm_id': currentRealm.value?.id,
             'is_public': isPublic.value,
             'is_community': isCommunity.value,
+            'encryption_mode': encryptionMode.value,
           },
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
@@ -255,6 +258,30 @@ class EditChatScreen extends HookConsumerWidget {
                         : (SnRealm? value) {
                             currentRealm.value = value;
                           },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    value: encryptionMode.value,
+                    decoration: InputDecoration(
+                      labelText: 'Encryption mode',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 0,
+                        child: Text('None (plaintext)'),
+                      ),
+                      DropdownMenuItem(value: 1, child: Text('E2EE DM')),
+                      DropdownMenuItem(
+                        value: 2,
+                        child: Text('E2EE Group (sender key)'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      encryptionMode.value = value ?? 0;
+                    },
                   ),
                   const SizedBox(height: 16),
                   Card(

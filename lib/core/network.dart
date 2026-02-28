@@ -94,6 +94,8 @@ final userAgentProvider = FutureProvider<String>((ref) async {
   return 'Solian/${packageInfo.version}+${packageInfo.buildNumber} ($platformInfo)';
 });
 
+const String _chatE2eeCapability = 'chat-e2ee-v1';
+
 final apiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final dio = Dio(
@@ -104,6 +106,7 @@ final apiClientProvider = Provider<Dio>((ref) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-Client-Ability': [_chatE2eeCapability].join(','),
       },
     ),
   );
@@ -125,6 +128,7 @@ final apiClientProvider = Provider<Dio>((ref) {
             if (userAgent.value != null) {
               options.headers['User-Agent'] = userAgent.value;
             }
+
             return handler.next(options);
           },
       onResponse: (response, handler) {

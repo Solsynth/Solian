@@ -179,6 +179,8 @@ class AppDatabase {
   final bool _isWeb;
   final Future<String?>? _directoryPathFuture;
   final Map<String, SnPost> _webDraftStore = {};
+  final Map<String, String> _nativeKvStore = {};
+  bool _nativeKvLoaded = false;
   Future<Store?>? _storeFuture;
 
   Future<Store?> _getStore() async {
@@ -235,6 +237,12 @@ class AppDatabase {
     store.box<ChatMemberEntity>().removeAll();
     store.box<RealmEntity>().removeAll();
     store.box<PostDraftEntity>().removeAll();
+    _nativeKvStore.clear();
+    _nativeKvLoaded = false;
+    final kvFile = await _nativeKvFile();
+    if (kvFile != null && await kvFile.exists()) {
+      await kvFile.delete();
+    }
   }
 
   Future<T> transaction<T>(Future<T> Function() action) async {
@@ -866,6 +874,63 @@ class AppDatabase {
     query.close();
     if (row == null) return null;
     return _realmEntityToRow(row);
+  }
+
+  Future<String?> getSecret(String key) async {
+    if (_isWeb) return null;
+    await _loadNativeKvStore();
+    return _nativeKvStore[key];
+  }
+
+  Future<void> setSecret(String key, String value) async {
+    if (_isWeb) return;
+    await _loadNativeKvStore();
+    _nativeKvStore[key] = value;
+    await _flushNativeKvStore();
+  }
+
+  Future<void> removeSecret(String key) async {
+    if (_isWeb) return;
+    await _loadNativeKvStore();
+    if (_nativeKvStore.remove(key) == null) return;
+    await _flushNativeKvStore();
+  }
+
+  Future<void> _loadNativeKvStore() async {
+    if (_nativeKvLoaded) return;
+    _nativeKvLoaded = true;
+    final file = await _nativeKvFile();
+    if (file == null || !await file.exists()) return;
+    try {
+      final raw = await file.readAsString();
+      if (raw.trim().isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return;
+      _nativeKvStore
+        ..clear()
+        ..addAll(
+          decoded.map(
+            (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
+          ),
+        );
+    } catch (_) {}
+  }
+
+  Future<void> _flushNativeKvStore() async {
+    final file = await _nativeKvFile();
+    if (file == null) return;
+    await file.writeAsString(jsonEncode(_nativeKvStore), flush: true);
+  }
+
+  Future<File?> _nativeKvFile() async {
+    if (_directoryPathFuture == null) return null;
+    final directoryPath = await _directoryPathFuture;
+    if (directoryPath == null) return null;
+    final directory = Directory(directoryPath);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return File('${directory.path}/app_kv_store.json');
   }
 
   ChatMessage _messageEntityToRow(ChatMessageEntity entity) {
