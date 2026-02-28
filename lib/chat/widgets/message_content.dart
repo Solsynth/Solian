@@ -25,6 +25,35 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (item.type.startsWith('system.')) {
+      final (icon, text) = _buildSystemMessageSummary(item);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+          ),
+          const Gap(6),
+          Flexible(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     if (item.type == 'messages.delete' || item.deletedAt != null) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -137,9 +166,7 @@ class MessageContent extends StatelessWidget {
             if (symbol != null && symbol.isNotEmpty) const Gap(6),
             Text(
               symbol == null || symbol.isEmpty
-                  ? (isAdded
-                        ? 'Added a reaction'
-                        : 'Removed a reaction')
+                  ? (isAdded ? 'Added a reaction' : 'Removed a reaction')
                   : (isAdded
                         ? 'Reacted with $symbol'
                         : 'Removed reaction $symbol'),
@@ -202,6 +229,39 @@ class MessageContent extends StatelessWidget {
 
   static bool hasContent(SnChatMessage item) {
     return item.type != 'text' || (item.content?.isNotEmpty ?? false);
+  }
+
+  (IconData, String) _buildSystemMessageSummary(SnChatMessage item) {
+    final reason = item.meta['reason']?.toString();
+    final isRemoved = reason == 'removed';
+
+    switch (item.type) {
+      case 'system.member.joined':
+        return (Symbols.group_add, item.content ?? 'A member joined the chat');
+      case 'system.member.left':
+        return (
+          isRemoved ? Symbols.person_remove : Symbols.logout,
+          item.content ??
+              (isRemoved ? 'A member was removed' : 'A member left'),
+        );
+      case 'system.chat.updated':
+        return (Symbols.edit_note, item.content ?? 'Chat info updated');
+      case 'system.call.member.joined':
+        return (
+          Symbols.phone_in_talk,
+          item.content ?? 'A member joined the call',
+        );
+      case 'system.call.member.left':
+        return (
+          isRemoved ? Symbols.call_end : Symbols.logout,
+          item.content ??
+              (isRemoved
+                  ? 'A member was removed from the call'
+                  : 'A member left the call'),
+        );
+      default:
+        return (Symbols.info_rounded, item.content ?? 'System message');
+    }
   }
 }
 

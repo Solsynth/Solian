@@ -85,57 +85,35 @@ class CallControlsBar extends HookConsumerWidget {
           ),
           _buildCircularButton(
             icon: Icons.call_end,
-            onPressed: () => showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (innerContext) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Gap(24),
-                  ListTile(
-                    leading: const Icon(Symbols.logout, fill: 1),
-                    title: Text('callLeave').tr(),
-                    onTap: () {
-                      callNotifier.disconnect();
-                      if (popOnLeaves) {
-                        if (Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
-                        }
-                        Navigator.of(innerContext).pop();
-                      }
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Symbols.call_end, fill: 1),
-                    iconColor: Colors.red,
-                    title: Text('callEnd').tr(),
-                    onTap: () async {
-                      callNotifier.disconnect();
-                      final apiClient = ref.watch(apiClientProvider);
-                      try {
-                        showLoadingModal(context);
-                        await apiClient.delete(
-                          '/messager/chat/realtime/${callNotifier.roomId}',
-                        );
-                        callNotifier.dispose();
-                        if (context.mounted && popOnLeaves) {
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                          }
-                          Navigator.of(innerContext).pop();
-                        }
-                      } catch (err) {
-                        showErrorAlert(err);
-                      } finally {
-                        if (context.mounted) hideLoadingModal(context);
-                      }
-                    },
-                  ),
-                  Gap(MediaQuery.of(context).padding.bottom),
-                ],
-              ),
-            ),
+            onPressed: () async {
+              final confirmed = await showConfirmAlert(
+                'Are you sure you want to leave this call?',
+                'callLeave'.tr(),
+                icon: Symbols.logout,
+                isDanger: true,
+              );
+              if (!confirmed) return;
+              if (!context.mounted) return;
+
+              final apiClient = ref.watch(apiClientProvider);
+              try {
+                showLoadingModal(context);
+                await apiClient.delete(
+                  '/messager/chat/realtime/${callNotifier.roomId}',
+                );
+                await callNotifier.disconnect();
+                callNotifier.dispose();
+                if (context.mounted && popOnLeaves) {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                }
+              } catch (err) {
+                showErrorAlert(err);
+              } finally {
+                if (context.mounted) hideLoadingModal(context);
+              }
+            },
             backgroundColor: const Color(0xFFE53E3E),
             iconColor: Colors.white,
           ),
@@ -330,7 +308,13 @@ class CallOverlayBar extends HookConsumerWidget {
     );
     ref.watch(callProvider.select((state) => state.participantSyncVersion));
     final callNotifier = ref.read(callProvider.notifier);
-    final ongoingCall = ref.watch(ongoingCallProvider(room.id));
+    final activeParticipantCount = ref.watch(
+      activeCallParticipantCountProvider(room.id),
+    );
+    final hasActiveCall = activeParticipantCount.maybeWhen(
+      data: (count) => count > 0,
+      orElse: () => false,
+    );
     final participants = callNotifier.participants;
 
     final lastSpeaker = (() {
@@ -382,7 +366,7 @@ class CallOverlayBar extends HookConsumerWidget {
         chatRoomName,
         isExpanded,
       );
-    } else if (ongoingCall.value != null) {
+    } else if (hasActiveCall) {
       child = _buildJoinPrompt(context, ref);
     } else {
       child = const SizedBox.shrink(key: ValueKey('empty'));

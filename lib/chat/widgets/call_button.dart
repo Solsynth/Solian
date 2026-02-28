@@ -10,6 +10,30 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'call_button.g.dart';
 
+final activeCallParticipantCountProvider = FutureProvider.family<int, String>((
+  ref,
+  roomId,
+) async {
+  if (roomId.isEmpty) return 0;
+  try {
+    final apiClient = ref.watch(apiClientProvider);
+    final resp = await apiClient.get(
+      '/messager/chat/realtime/$roomId/participants',
+    );
+    final data = resp.data;
+    if (data is List) return data.length;
+    return 0;
+  } catch (e) {
+    if (e is DioException) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 403 || statusCode == 404) {
+        return 0;
+      }
+    }
+    return 0;
+  }
+});
+
 @riverpod
 Future<SnRealtimeCall?> ongoingCall(Ref ref, String roomId) async {
   if (roomId.isEmpty) return null;
@@ -32,7 +56,13 @@ class AudioCallButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ongoingCall = ref.watch(ongoingCallProvider(room.id));
+    final activeParticipantCount = ref.watch(
+      activeCallParticipantCountProvider(room.id),
+    );
+    final hasActiveCall = activeParticipantCount.maybeWhen(
+      data: (count) => count > 0,
+      orElse: () => false,
+    );
     final callState = ref.watch(callProvider);
     final callNotifier = ref.read(callProvider.notifier);
     final isLoading = useState(false);
@@ -41,10 +71,9 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        await apiClient.post('/messager/chat/realtime/${room.id}');
-        ref.invalidate(ongoingCallProvider(room.id));
         // Just join the room, the overlay will handle the UI
         await callNotifier.joinRoom(room);
+        ref.invalidate(activeCallParticipantCountProvider(room.id));
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -56,7 +85,9 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
+        await callNotifier.disconnect();
         callNotifier.dispose(); // Clean up call resources
+        ref.invalidate(activeCallParticipantCountProvider(room.id));
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -83,12 +114,12 @@ class AudioCallButton extends HookConsumerWidget {
       // Show end call button if in call
       return IconButton(
         icon: const Icon(Icons.call_end),
-        tooltip: 'End Call',
+        tooltip: 'Leave Call',
         onPressed: handleEnd,
       );
     }
 
-    if (ongoingCall.value != null) {
+    if (hasActiveCall) {
       // There is an ongoing call, offer to join it directly
       return IconButton(
         icon: const Icon(Icons.call),
@@ -109,7 +140,7 @@ class AudioCallButton extends HookConsumerWidget {
     // Show join/start call button
     return IconButton(
       icon: const Icon(Icons.call),
-      tooltip: 'Start Call',
+      tooltip: 'Join Call',
       onPressed: handleJoin,
     );
   }
