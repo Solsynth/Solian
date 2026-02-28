@@ -31,6 +31,7 @@ class CurrentSubscribedChatIdNotifier extends Notifier<String?> {
 
 @riverpod
 class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
+  static const Duration _subscribeRefreshInterval = Duration(minutes: 4);
   late SnChatRoom _chatRoom;
   late SnChatMember _chatIdentity;
   late MessagesNotifier _messagesNotifier;
@@ -52,6 +53,54 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       (defaultTargetPlatform == TargetPlatform.macOS ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux);
+
+  bool _isWebSocketConnected() =>
+      ref.read(websocketStateProvider).maybeWhen(
+        connected: () => true,
+        orElse: () => false,
+      );
+
+  bool _shouldKeepSubscriptionAlive() {
+    if (_isDesktop) return true;
+    final lifecycleState = ref.read(appLifecycleStateProvider).value;
+    return lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
+  }
+
+  void _sendPacket(WebSocketPacket packet, {required String context}) {
+    if (_sendMessage == null || !_isWebSocketConnected()) return;
+    try {
+      _sendMessage!(jsonEncode(packet));
+    } catch (e, stackTrace) {
+      talker.error(
+        '[MessageSubscriber] Failed to send $context for room $roomId: $e\n$stackTrace',
+      );
+    }
+  }
+
+  void _sendSubscribe({required String reason}) {
+    if (!_shouldKeepSubscriptionAlive()) return;
+    talker.info('[MessageSubscriber] Subscribing room $roomId ($reason)');
+    _sendPacket(
+      WebSocketPacket(
+        type: 'messages.subscribe',
+        data: {'chat_room_id': roomId},
+        endpoint: 'messager',
+      ),
+      context: 'subscribe ($reason)',
+    );
+  }
+
+  void _sendUnsubscribe({required String reason}) {
+    talker.info('[MessageSubscriber] Unsubscribing room $roomId ($reason)');
+    _sendPacket(
+      WebSocketPacket(
+        type: 'messages.unsubscribe',
+        data: {'chat_room_id': roomId},
+        endpoint: 'messager',
+      ),
+      context: 'unsubscribe ($reason)',
+    );
+  }
 
   void _cleanupResources() {
     if (_typingCleanupTimer != null) {
@@ -90,16 +139,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Subscribe to messages
     final wsState = ref.read(websocketStateProvider.notifier);
     _sendMessage = wsState.sendMessage;
-    talker.info('[MessageSubscriber] Subscribing room $roomId');
-    _sendMessage!(
-      jsonEncode(
-        WebSocketPacket(
-          type: 'messages.subscribe',
-          data: {'chat_room_id': roomId},
-          endpoint: 'messager',
-        ),
-      ),
-    );
+    _sendSubscribe(reason: 'initial');
 
     Future.microtask(
       () => ref.read(currentSubscribedChatIdProvider.notifier).set(roomId),
@@ -181,17 +221,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       }
     });
 
-    // Set up periodic subscribe timer (every 5 minutes)
-    _periodicSubscribeTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      _sendMessage!(
-        jsonEncode(
-          WebSocketPacket(
-            type: 'messages.subscribe',
-            data: {'chat_room_id': roomId},
-            endpoint: 'messager',
-          ),
-        ),
-      );
+    // Keep subscription alive before the backend expiry window.
+    _periodicSubscribeTimer = Timer.periodic(_subscribeRefreshInterval, (_) {
+      _sendSubscribe(reason: 'periodic-refresh');
     });
 
     ref.listen(appLifecycleStateProvider, (previous, next) {
@@ -200,28 +232,25 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       if (lifecycleState == AppLifecycleState.paused ||
           lifecycleState == AppLifecycleState.inactive) {
         // Unsubscribe when app goes to background
-        talker.info('[MessageSubscriber] Unsubscribing room $roomId');
-        _sendMessage!(
-          jsonEncode(
-            WebSocketPacket(
-              type: 'messages.unsubscribe',
-              data: {'chat_room_id': roomId},
-              endpoint: 'messager',
-            ),
-          ),
-        );
+        _sendUnsubscribe(reason: 'app-background');
       } else if (lifecycleState == AppLifecycleState.resumed) {
         // Resubscribe when app comes back to foreground
-        talker.info('[MessageSubscriber] Subscribing room $roomId');
-        _sendMessage!(
-          jsonEncode(
-            WebSocketPacket(
-              type: 'messages.subscribe',
-              data: {'chat_room_id': roomId},
-              endpoint: 'messager',
-            ),
-          ),
-        );
+        _sendSubscribe(reason: 'app-resumed');
+      }
+    });
+
+    ref.listen(websocketStateProvider, (previous, next) {
+      final wasConnected = previous?.maybeWhen(
+            connected: () => true,
+            orElse: () => false,
+          ) ??
+          false;
+      final isConnected = next.maybeWhen(
+        connected: () => true,
+        orElse: () => false,
+      );
+      if (!wasConnected && isConnected) {
+        _sendSubscribe(reason: 'ws-reconnected');
       }
     });
 
@@ -230,7 +259,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     );
 
     ref.onCancel(() {
-      talker.info('[MessageSubscriber] Unsubscribing room $roomId');
       Future.microtask(() {
         if (!ref.mounted) return;
         final current = ref.read(currentSubscribedChatIdProvider);
@@ -238,21 +266,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           subscribedNotifier.set(null);
         }
       });
-      try {
-        _sendMessage!(
-          jsonEncode(
-            WebSocketPacket(
-              type: 'messages.unsubscribe',
-              data: {'chat_room_id': roomId},
-              endpoint: 'messager',
-            ),
-          ),
-        );
-      } catch (e, stackTrace) {
-        talker.error(
-          '[MessageSubscriber] Error sending unsubscribe message for room $roomId: $e\n$stackTrace',
-        );
-      }
+      _sendUnsubscribe(reason: 'provider-cancel');
       try {
         _cleanupResources();
       } catch (e, stackTrace) {
@@ -283,16 +297,13 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   }
 
   void sendReadReceipt() {
-    // Send websocket packet
-    if (_sendMessage == null) return;
-    _sendMessage!(
-      jsonEncode(
-        WebSocketPacket(
-          type: 'messages.read',
-          data: {'chat_room_id': roomId},
-          endpoint: 'messager',
-        ),
+    _sendPacket(
+      WebSocketPacket(
+        type: 'messages.read',
+        data: {'chat_room_id': roomId},
+        endpoint: 'messager',
       ),
+      context: 'read-receipt',
     );
   }
 
@@ -300,16 +311,13 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Don't send if we're already in a cooldown period
     if (_typingCooldownTimer != null) return;
 
-    // Send typing status immediately
-    if (_sendMessage == null) return;
-    _sendMessage!(
-      jsonEncode(
-        WebSocketPacket(
-          type: 'messages.typing',
-          data: {'chat_room_id': roomId},
-          endpoint: 'messager',
-        ),
+    _sendPacket(
+      WebSocketPacket(
+        type: 'messages.typing',
+        data: {'chat_room_id': roomId},
+        endpoint: 'messager',
       ),
+      context: 'typing-status',
     );
 
     _typingCooldownTimer = Timer(const Duration(milliseconds: 850), () {

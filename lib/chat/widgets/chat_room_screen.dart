@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
@@ -42,6 +43,11 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const kChatLastReadAnchorsStoreKey = 'chat_last_read_anchor_by_room';
 const Set<String> kSystemMessageTypes = {
+  'system.member.joined',
+  'system.member.left',
+  'system.chat.updated',
+  'system.call.member.joined',
+  'system.call.member.left',
   'messages.update',
   'messages.update.links',
   'messages.delete',
@@ -50,6 +56,7 @@ const Set<String> kSystemMessageTypes = {
 };
 
 bool _isSystemInfoMessage(LocalChatMessage msg) {
+  if (msg.type.startsWith('system.')) return true;
   if (kSystemMessageTypes.contains(msg.type)) return true;
   if (msg.deletedAt != null && msg.type != 'text') return true;
   return false;
@@ -199,6 +206,15 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(loadLastReadAnchor);
       return null;
+    }, [id]);
+
+    useEffect(() {
+      // Realtime call presence now depends on provider participants.
+      // Poll and invalidate in room scope for call button/overlay state.
+      final timer = Timer.periodic(const Duration(seconds: 8), (_) {
+        ref.invalidate(activeCallParticipantCountProvider(id));
+      });
+      return timer.cancel;
     }, [id]);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
@@ -733,8 +749,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                             selectedFund: inputManager.selectedFund,
                             onFundSelected: (fund) =>
                                 inputManager.setFund(fund),
-                            isMessageListScrolling:
-                                !isAtLatestMessages.value,
+                            isMessageListScrolling: !isAtLatestMessages.value,
                             onPickFile: (isPhoto) {
                               if (isPhoto) {
                                 filePicker.pickPhotos();

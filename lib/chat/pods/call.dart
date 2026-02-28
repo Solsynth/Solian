@@ -68,6 +68,7 @@ class CallNotifier extends _$CallNotifier {
   List<CallParticipantLive> _participants = [];
   final Map<String, CallParticipant> _participantInfoByIdentity = {};
   lk.EventsListener? _roomListener;
+  bool _isAdmin = false;
 
   List<CallParticipantLive> get participants =>
       List.unmodifiable(_participants);
@@ -78,6 +79,7 @@ class CallNotifier extends _$CallNotifier {
   Timer? _durationTimer;
 
   lk.Room? get room => _room;
+  bool get isAdmin => _isAdmin;
 
   @override
   CallState build() {
@@ -261,6 +263,7 @@ class CallNotifier extends _$CallNotifier {
         final participants = joinResponse.participants;
         final String endpoint = joinResponse.endpoint;
         final String token = joinResponse.token;
+        _isAdmin = joinResponse.isAdmin;
 
         // Setup duration timer
         _durationTimer?.cancel();
@@ -409,6 +412,48 @@ class CallNotifier extends _$CallNotifier {
     }
   }
 
+  Future<void> muteParticipantByAccountId(String targetAccountId) async {
+    if (_roomId == null || _roomId!.isEmpty) {
+      throw StateError('No active room');
+    }
+    if (!_isAdmin) {
+      throw StateError('Only room admins can mute participants');
+    }
+
+    final apiClient = ref.read(apiClientProvider);
+    await apiClient.post(
+      '/messager/chat/realtime/$_roomId/mute/$targetAccountId',
+    );
+  }
+
+  Future<void> unmuteParticipantByAccountId(String targetAccountId) async {
+    if (_roomId == null || _roomId!.isEmpty) {
+      throw StateError('No active room');
+    }
+    if (!_isAdmin) {
+      throw StateError('Only room admins can unmute participants');
+    }
+
+    final apiClient = ref.read(apiClientProvider);
+    await apiClient.post(
+      '/messager/chat/realtime/$_roomId/unmute/$targetAccountId',
+    );
+  }
+
+  Future<void> kickParticipantByAccountId(String targetAccountId) async {
+    if (_roomId == null || _roomId!.isEmpty) {
+      throw StateError('No active room');
+    }
+    if (!_isAdmin) {
+      throw StateError('Only room admins can kick participants');
+    }
+
+    final apiClient = ref.read(apiClientProvider);
+    await apiClient.post(
+      '/messager/chat/realtime/$_roomId/kick/$targetAccountId',
+    );
+  }
+
   void setParticipantVolume(CallParticipantLive live, double volume) {
     if (participantsVolumes[live.remoteParticipant.sid] == null) {
       participantsVolumes[live.remoteParticipant.sid] = 1;
@@ -450,6 +495,7 @@ class CallNotifier extends _$CallNotifier {
     _room?.dispose();
     _durationTimer?.cancel();
     _roomId = null;
+    _isAdmin = false;
     participantsVolumes = {};
     // Disable wakelock when disposing
     WakelockPlus.disable();

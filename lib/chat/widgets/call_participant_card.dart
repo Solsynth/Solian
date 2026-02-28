@@ -6,8 +6,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -21,7 +23,18 @@ class CallParticipantCard extends HookConsumerWidget {
     final width = math
         .min(MediaQuery.of(context).size.width - 80, 360)
         .toDouble();
+    ref.watch(callProvider);
     final callNotifier = ref.watch(callProvider.notifier);
+    final participantAccount = ref.watch(accountProvider(live.participant.identity));
+    final isAdmin = callNotifier.isAdmin;
+    final isLocalParticipant = live.remoteParticipant is LocalParticipant;
+    final targetAccountId = participantAccount.value?.id;
+    final canModerate =
+        isAdmin &&
+        !isLocalParticipant &&
+        targetAccountId != null &&
+        targetAccountId.isNotEmpty;
+    final moderationLoading = useState(false);
 
     final volumeSliderValue = useState(callNotifier.getParticipantVolume(live));
 
@@ -78,6 +91,77 @@ class CallParticipantCard extends HookConsumerWidget {
                   ],
                 ),
                 _CallParticipantStatsPanel(participant: live.remoteParticipant),
+                if (canModerate)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: moderationLoading.value
+                            ? null
+                            : () async {
+                                moderationLoading.value = true;
+                                try {
+                                  if (live.remoteParticipant.isMuted) {
+                                    await callNotifier
+                                        .unmuteParticipantByAccountId(
+                                          targetAccountId,
+                                        );
+                                    showSnackBar('Participant unmuted');
+                                  } else {
+                                    await callNotifier
+                                        .muteParticipantByAccountId(
+                                          targetAccountId,
+                                        );
+                                    showSnackBar('Participant muted');
+                                  }
+                                } catch (err) {
+                                  showErrorAlert(err);
+                                } finally {
+                                  moderationLoading.value = false;
+                                }
+                              },
+                        icon: Icon(
+                          live.remoteParticipant.isMuted
+                              ? Symbols.mic
+                              : Symbols.mic_off,
+                          size: 16,
+                        ),
+                        label: Text(
+                          live.remoteParticipant.isMuted ? 'Unmute' : 'Mute',
+                        ),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: moderationLoading.value
+                            ? null
+                            : () async {
+                                final confirmed = await showConfirmAlert(
+                                  'Remove this participant from the call?',
+                                  'Kick participant',
+                                  icon: Symbols.person_remove,
+                                  isDanger: true,
+                                );
+                                if (!confirmed) return;
+                                moderationLoading.value = true;
+                                try {
+                                  await callNotifier.kickParticipantByAccountId(
+                                    targetAccountId,
+                                  );
+                                  showSnackBar('Participant removed');
+                                } catch (err) {
+                                  showErrorAlert(err);
+                                } finally {
+                                  moderationLoading.value = false;
+                                }
+                              },
+                        icon: const Icon(Symbols.person_remove, size: 16),
+                        label: const Text('Kick'),
+                        style: FilledButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ).padding(top: 8),
               ],
             ).padding(horizontal: 20, top: 16),
             AccountNameplate(
