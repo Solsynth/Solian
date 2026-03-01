@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/settings/tabs_screen.dart';
 
 // Tab routes that should show the bottom navigation
 const kTabRoutes = [
@@ -18,20 +17,42 @@ const kTabRoutes = [
 
 const kWideScreenRouteStart = 5;
 
-class ConditionalBottomNav extends ConsumerWidget {
+String? _normalizeRoutePath(String? route) {
+  if (route == null) return null;
+  if (route.isEmpty) return '/';
+
+  Uri uri;
+  try {
+    uri = Uri.parse(route);
+  } catch (_) {
+    return route;
+  }
+
+  var path = uri.path;
+  if (path.isEmpty) path = '/';
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.substring(0, path.length - 1);
+  }
+  return path;
+}
+
+class ConditionalBottomNav extends StatelessWidget {
   final Widget child;
   const ConditionalBottomNav({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final routes = kTabRoutes.sublist(
       0,
       isWideScreen(context) ? null : kWideScreenRouteStart,
     );
 
-    // Use currentRouteProvider to rebuild when route changes
-    final currentLocation = ref.watch(currentRouteProvider);
-    final shouldShowBottomNav = routes.contains(currentLocation);
+    final currentLocation = _normalizeRoutePath(
+      context.router.root.currentPath,
+    );
+    final shouldShowBottomNav =
+        currentLocation != null &&
+        routes.any((route) => _normalizeRoutePath(route) == currentLocation);
 
     return shouldShowBottomNav ? child : const SizedBox.shrink();
   }

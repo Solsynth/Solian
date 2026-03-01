@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -15,21 +14,6 @@ import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:styled_widget/styled_widget.dart';
-
-final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String?>(
-  CurrentRouteNotifier.new,
-);
-
-class CurrentRouteNotifier extends Notifier<String?> {
-  @override
-  String? build() {
-    return null;
-  }
-
-  void updateRoute(String? route) {
-    state = route;
-  }
-}
 
 const kWideScreenRouteStart = 5;
 
@@ -67,16 +51,6 @@ class _TabsScreenContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabsRouter = AutoTabsRouter.of(context);
-
-    // Update the current route provider whenever the route changes
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(currentRouteProvider.notifier)
-            .updateRoute(tabsRouter.currentPath);
-      });
-      return null;
-    }, [tabsRouter.currentPath]);
 
     final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
     final chatUnreadCount = ref.watch(chatUnreadCountProvider);
