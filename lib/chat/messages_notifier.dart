@@ -974,7 +974,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         options: Options(method: editingTo == null ? 'POST' : 'PATCH'),
       );
 
-      final remoteMessage = SnChatMessage.fromJson(response.data);
+      final remoteMessage =
+          _tryParseChatMessage(response.data, context: 'send response') ??
+          (throw Exception('Invalid chat message response.'));
       final normalizedRemoteMessage = editingTo != null
           ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
           : remoteMessage;
@@ -1179,7 +1181,9 @@ class MessagesNotifier extends _$MessagesNotifier {
               },
       );
 
-      remoteMessage = SnChatMessage.fromJson(response.data);
+      remoteMessage =
+          _tryParseChatMessage(response.data, context: 'retry response') ??
+          (throw Exception('Invalid chat message response.'));
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
