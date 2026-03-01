@@ -34,6 +34,7 @@ import "package:material_symbols_icons/symbols.dart";
 import "package:island/chat/pods/chat_subscribe.dart";
 import "package:uuid/uuid.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import "package:waveform_flutter/waveform_flutter.dart";
 
 void _insertPlaceholder(TextEditingController controller, String placeholder) {
   final text = controller.text;
@@ -299,6 +300,11 @@ class ChatInput extends HookConsumerWidget {
     final recordingOrigin = useState<Offset?>(null);
     final recordingPath = useState<String?>(null);
     final recorder = useMemoized(() => rec.AudioRecorder(), []);
+    final amplitudeStream = useMemoized(
+      () => StreamController<Amplitude>.broadcast(),
+      [],
+    );
+    final amplitudeSub = useRef<StreamSubscription<rec.Amplitude>?>(null);
     final recordingTicker = useRef<Timer?>(null);
     final recordingStartedAt = useRef<DateTime?>(null);
     final messagesNotifier = ref.read(messagesProvider(chatRoom.id).notifier);
@@ -307,9 +313,11 @@ class ChatInput extends HookConsumerWidget {
     useEffect(() {
       return () {
         recordingTicker.value?.cancel();
+        amplitudeSub.value?.cancel();
+        amplitudeStream.close();
         recorder.dispose();
       };
-    }, [recorder]);
+    }, [recorder, amplitudeStream]);
 
     void send() {
       if (isExpanded.value) isExpanded.value = false;
@@ -352,6 +360,14 @@ class ChatInput extends HookConsumerWidget {
       recordingDuration.value = Duration.zero;
       isVoiceCancelArmed.value = false;
       isRecordingVoice.value = true;
+      amplitudeSub.value?.cancel();
+      amplitudeSub.value = recorder
+          .onAmplitudeChanged(const Duration(milliseconds: 90))
+          .listen((value) {
+            amplitudeStream.add(
+              Amplitude(current: value.current, max: value.max),
+            );
+          });
 
       recordingTicker.value?.cancel();
       recordingTicker.value = Timer.periodic(
@@ -375,6 +391,7 @@ class ChatInput extends HookConsumerWidget {
       if (!isRecordingVoice.value) return;
       isRecordingVoice.value = false;
       recordingTicker.value?.cancel();
+      amplitudeSub.value?.cancel();
 
       String? resultPath;
       try {
@@ -1151,24 +1168,67 @@ class ChatInput extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    isRecordingVoice.value
-                                        ? (isVoiceCancelArmed.value
-                                              ? 'Release to cancel • ${recordingDuration.value.inSeconds}s'
-                                              : 'Recording ${recordingDuration.value.inSeconds}s • swipe up to cancel')
-                                        : 'Hold to record voice • max 300s',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: isRecordingVoice.value
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.onPrimary
-                                              : null,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        isRecordingVoice.value
+                                            ? (isVoiceCancelArmed.value
+                                                  ? 'Release to cancel • ${recordingDuration.value.inSeconds}s'
+                                                  : 'Recording ${recordingDuration.value.inSeconds}s • swipe up to cancel')
+                                            : 'Hold to record voice • max 300s',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: isRecordingVoice.value
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.onPrimary
+                                                  : null,
+                                            ),
+                                      ),
+                                      if (isRecordingVoice.value) ...[
+                                        const Gap(4),
+                                        SizedBox(
+                                          height: 16,
+                                          child: AnimatedWaveList(
+                                            stream: amplitudeStream.stream,
+                                            barBuilder: (animation, amplitude) {
+                                              final baseColor = Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary;
+                                              return SizeTransition(
+                                                sizeFactor: animation,
+                                                child: Container(
+                                                  width: 3,
+                                                  height:
+                                                      (160 /
+                                                          amplitude.current
+                                                              .abs()
+                                                              .clamp(1, 160)) *
+                                                      1.6,
+                                                  margin:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 1,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: baseColor
+                                                        .withOpacity(0.9),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                               ),
