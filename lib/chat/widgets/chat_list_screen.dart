@@ -339,6 +339,7 @@ class ChatScreen extends HookConsumerWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
                       ),
                       child: const AutoRouter(),
                     ).padding(top: 16, right: 16),
@@ -1083,12 +1084,7 @@ class ChatListWidget extends HookConsumerWidget {
         bottom: MediaQuery.paddingOf(context).bottom,
       ),
       appBar: AppBar(
-        leading: context.router.canPop()
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.router.maybePop(),
-              )
-            : null,
+        leading: null,
         flexibleSpace: Stack(
           children: [
             _ChatListAppBar(tabController: tabController),
