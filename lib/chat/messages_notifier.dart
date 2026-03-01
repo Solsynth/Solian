@@ -14,6 +14,7 @@ import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
+import "package:island/core/websocket.dart";
 import "package:island/drive/drive_service.dart";
 import "package:mime/mime.dart";
 import "package:island/talker.dart";
@@ -138,6 +139,94 @@ class MessagesNotifier extends _$MessagesNotifier {
       'client_message_id': nonce,
       'nonce': nonce,
     };
+  }
+
+  bool _isWebSocketConnected() => ref
+      .read(websocketStateProvider)
+      .maybeWhen(connected: () => true, orElse: () => false);
+
+  Future<SnChatMessage> _sendMessageViaWebSocket({
+    required String targetRoomId,
+    required String nonce,
+    required Map<String, dynamic> payload,
+    Duration ackTimeout = const Duration(seconds: 12),
+  }) async {
+    if (!_isWebSocketConnected()) {
+      throw StateError('WebSocket is not connected.');
+    }
+
+    final ws = ref.read(websocketProvider);
+    final wsState = ref.read(websocketStateProvider.notifier);
+    final packet = WebSocketPacket(
+      type: 'messages.send',
+      endpoint: 'DysonNetwork.Messager',
+      data: {
+        'chat_room_id': targetRoomId,
+        ...payload,
+        if (!payload.containsKey('client_message_id'))
+          'client_message_id': nonce,
+      },
+    );
+
+    final ackFuture = ws.dataStream
+        .where((pkt) => pkt.type == 'messages.delivered')
+        .map((pkt) => pkt.data)
+        .where((data) => data is Map<String, dynamic>)
+        .cast<Map<String, dynamic>>()
+        .where((data) {
+          final pktRoomId = data['chat_room_id']?.toString();
+          if (pktRoomId != targetRoomId) return false;
+          final packetNonce =
+              data['nonce']?.toString() ??
+              data['client_message_id']?.toString();
+          return packetNonce == nonce;
+        })
+        .map(
+          (data) =>
+              _tryParseChatMessage(data, context: 'ws messages.delivered'),
+        )
+        .where((message) => message != null)
+        .cast<SnChatMessage>()
+        .first
+        .timeout(
+          ackTimeout,
+          onTimeout: () => throw TimeoutException(
+            'Timed out waiting for websocket delivery ack.',
+          ),
+        );
+
+    wsState.sendMessage(jsonEncode(packet));
+    return ackFuture;
+  }
+
+  Future<SnChatMessage> _sendNewMessageWithFallback({
+    required String targetRoomId,
+    required String nonce,
+    required Map<String, dynamic> payload,
+    required String context,
+  }) async {
+    if (_isWebSocketConnected()) {
+      try {
+        return await _sendMessageViaWebSocket(
+          targetRoomId: targetRoomId,
+          nonce: nonce,
+          payload: payload,
+        );
+      } catch (err, stackTrace) {
+        talker.log(
+          'WebSocket send failed, falling back to HTTP ($context)',
+          exception: err,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    final response = await _apiClient.post(
+      '/messager/chat/$targetRoomId/messages',
+      data: payload,
+    );
+    return _tryParseChatMessage(response.data, context: context) ??
+        (throw Exception('Invalid chat message response.'));
   }
 
   bool _isSystemEventType(String type) {
@@ -950,33 +1039,42 @@ class MessagesNotifier extends _$MessagesNotifier {
         cloudAttachments.add(cloudFile);
       }
 
-      final response = await _apiClient.request(
-        editingTo == null
-            ? '/messager/chat/$roomId/messages'
-            : '/messager/chat/$roomId/messages/${editingTo.id}',
-        data: _isE2eeRoom
-            ? _buildE2eeMessagePayload(
-                nonce: nonce,
-                messageType: editingTo == null ? 'content.new' : 'content.edit',
-                content: content,
-                attachmentIds: cloudAttachments.map((e) => e.id).toList(),
-              )
-            : {
-                'content': content,
-                'attachments_id': cloudAttachments.map((e) => e.id).toList(),
-                'replied_message_id': replyingTo?.id,
-                'forwarded_message_id': forwardingTo?.id,
-                'poll_id': poll?.id,
-                'fund_id': fund?.id,
-                'meta': {},
-                'nonce': nonce,
-              },
-        options: Options(method: editingTo == null ? 'POST' : 'PATCH'),
-      );
+      final payload = _isE2eeRoom
+          ? _buildE2eeMessagePayload(
+              nonce: nonce,
+              messageType: editingTo == null ? 'content.new' : 'content.edit',
+              content: content,
+              attachmentIds: cloudAttachments.map((e) => e.id).toList(),
+            )
+          : {
+              'content': content,
+              'attachments_id': cloudAttachments.map((e) => e.id).toList(),
+              'replied_message_id': replyingTo?.id,
+              'forwarded_message_id': forwardingTo?.id,
+              'poll_id': poll?.id,
+              'fund_id': fund?.id,
+              'meta': {},
+              'nonce': nonce,
+            };
 
-      final remoteMessage =
-          _tryParseChatMessage(response.data, context: 'send response') ??
-          (throw Exception('Invalid chat message response.'));
+      final remoteMessage = editingTo == null
+          ? await _sendNewMessageWithFallback(
+              targetRoomId: roomId,
+              nonce: nonce,
+              payload: payload,
+              context: 'send response',
+            )
+          : await (() async {
+              final response = await _apiClient.patch(
+                '/messager/chat/$roomId/messages/${editingTo.id}',
+                data: payload,
+              );
+              return _tryParseChatMessage(
+                    response.data,
+                    context: 'send response',
+                  ) ??
+                  (throw Exception('Invalid chat message response.'));
+            })();
       final normalizedRemoteMessage = editingTo != null
           ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
           : remoteMessage;
@@ -1163,27 +1261,28 @@ class MessagesNotifier extends _$MessagesNotifier {
         await _ensureDmPeerHasE2eeDevices();
       }
       var remoteMessage = message.toRemoteMessage();
+      final nonce = message.nonce ?? const Uuid().v4();
       final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
-      final response = await _apiClient.post(
-        '/messager/chat/${message.roomId}/messages',
-        data: _isE2eeRoom
-            ? _buildE2eeMessagePayload(
-                nonce: message.nonce ?? const Uuid().v4(),
-                messageType: 'content.new',
-                content: remoteMessage.content ?? '',
-                attachmentIds: attachmentIds,
-              )
-            : {
-                'content': remoteMessage.content,
-                'attachments_id': attachmentIds,
-                'meta': remoteMessage.meta,
-                'nonce': message.nonce,
-              },
-      );
+      final payload = _isE2eeRoom
+          ? _buildE2eeMessagePayload(
+              nonce: nonce,
+              messageType: 'content.new',
+              content: remoteMessage.content ?? '',
+              attachmentIds: attachmentIds,
+            )
+          : {
+              'content': remoteMessage.content,
+              'attachments_id': attachmentIds,
+              'meta': remoteMessage.meta,
+              'nonce': nonce,
+            };
 
-      remoteMessage =
-          _tryParseChatMessage(response.data, context: 'retry response') ??
-          (throw Exception('Invalid chat message response.'));
+      remoteMessage = await _sendNewMessageWithFallback(
+        targetRoomId: message.roomId,
+        nonce: nonce,
+        payload: payload,
+        context: 'retry response',
+      );
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
