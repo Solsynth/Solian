@@ -896,6 +896,12 @@ class AppDatabase {
     await _flushNativeKvStore();
   }
 
+  Future<Map<String, String>> getAllSecrets() async {
+    if (_isWeb) return const {};
+    await _loadNativeKvStore();
+    return Map<String, String>.from(_nativeKvStore);
+  }
+
   Future<void> _loadNativeKvStore() async {
     if (_nativeKvLoaded) return;
     _nativeKvLoaded = true;

@@ -562,53 +562,158 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                       textAlign: TextAlign.start,
                     ),
                     const Gap(8),
-                    Text(
-                      'encrypted: ${_isEncryptedMessage ? "yes" : "no"}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    if (_isEncryptedMessage) ...[
-                      if (widget.message.meta['e2ee_scheme'] != null)
+                    Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          Symbols.send,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         Text(
-                          'scheme: ${widget.message.meta['e2ee_scheme']}',
+                          'messageSentAt'.tr(
+                            args: [widget.message.createdAt.formatSystem()],
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(
                               context,
                             ).colorScheme.onSurfaceVariant,
                           ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          _isEncryptedMessage
+                              ? Symbols.lock
+                              : Symbols.lock_open,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        Text(
+                          'encrypted'.tr(
+                            args: [
+                              _isEncryptedMessage ? 'yes'.tr() : 'no'.tr(),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_isExpanded) ...[
+                      if (widget.message.meta['e2ee_scheme'] != null)
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.security,
+                              size: 16,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Text(
+                              'scheme'.tr(
+                                args: [
+                                  widget.message.meta['e2ee_scheme'].toString(),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       if (widget.message.meta['e2ee_epoch'] != null)
-                        Text(
-                          'epoch: ${widget.message.meta['e2ee_epoch']}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.history,
+                              size: 16,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Text(
+                              'epoch'.tr(
+                                args: [
+                                  widget.message.meta['e2ee_epoch'].toString(),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       if (widget.message.meta['e2ee_message_type'] != null)
-                        Text(
-                          'message_type: ${widget.message.meta['e2ee_message_type']}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.message,
+                              size: 16,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Text(
+                              'messageType'.tr(
+                                args: [
+                                  widget.message.meta['e2ee_message_type']
+                                      .toString(),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       if (widget.message.meta['e2ee_client_message_id'] != null)
-                        Text(
-                          'client_message_id: ${widget.message.meta['e2ee_client_message_id']}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.tag,
+                              size: 16,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Text(
+                              'clientMessageId'.tr(
+                                args: [
+                                  widget.message.meta['e2ee_client_message_id']
+                                      .toString(),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                     ],
                   ],
@@ -616,20 +721,6 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
               ),
               const Gap(4),
             ],
-
-            Row(
-              spacing: 6,
-              children: [
-                Icon(Symbols.send, size: 16),
-                Text(
-                  'messageSentAt'.tr(
-                    args: [widget.message.createdAt.formatSystem()],
-                  ),
-                ).fontSize(13),
-              ],
-            ).opacity(0.75).padding(horizontal: 20, top: 8, bottom: 6),
-
-            const Divider(),
 
             // Action buttons
             if (widget.isCurrentUser)

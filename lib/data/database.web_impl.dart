@@ -391,6 +391,10 @@ class AppDatabase {
     _webKvStore.remove(key);
   }
 
+  Future<Map<String, String>> getAllSecrets() async {
+    return Map<String, String>.from(_webKvStore);
+  }
+
   Future<void> saveMember(SnChatMember member) async {}
 
   Future<int> saveMessageWithSender(LocalChatMessage message) async => 1;

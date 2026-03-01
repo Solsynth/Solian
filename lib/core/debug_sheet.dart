@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
@@ -173,6 +174,21 @@ class DebugSheet extends HookConsumerWidget {
               title: Text('Set access token'),
               onTap: () async {
                 await _showSetTokenDialog(context, ref);
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.key),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('E2EE keypairs'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const E2eeKeypairScreen(),
+                  ),
+                );
               },
             ),
             const Divider(height: 8),
