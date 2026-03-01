@@ -34,7 +34,8 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedContent = _resolveDisplayContent(item);
+    final resolved = _resolveDisplayContent(item);
+    final resolvedContent = resolved.content;
     if (item.type.startsWith('system.')) {
       final (icon, text) = _buildSystemMessageSummary(item);
       return Row(
@@ -193,6 +194,52 @@ class MessageContent extends StatelessWidget {
         return _VoiceMessageContent(item: item);
       case 'text':
       default:
+        if (resolved.isEncrypted && resolved.decryptFailed) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Symbols.lock_open_right,
+                size: 16,
+                color: Theme.of(context).colorScheme.error.withOpacity(0.9),
+              ),
+              const Gap(6),
+              Text(
+                'Unable to decrypt this message.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error.withOpacity(0.9),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          );
+        }
+        if (resolved.isEncrypted && resolved.emptyAfterDecrypt) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Symbols.lock_open_right,
+                size: 16,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.8),
+              ),
+              const Gap(6),
+              Text(
+                'Encrypted message has no text content.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.8),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          );
+        }
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,21 +287,65 @@ class MessageContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
+    final resolved = _resolveDisplayContent(item);
     return item.type != 'text' ||
-        (_resolveDisplayContent(item)?.isNotEmpty ?? false);
+        (resolved.content?.isNotEmpty ?? false) ||
+        resolved.decryptFailed ||
+        resolved.emptyAfterDecrypt;
   }
 
-  static String? _resolveDisplayContent(SnChatMessage item) {
-    if (item.content?.isNotEmpty ?? false) return item.content;
+  static ({
+    String? content,
+    bool isEncrypted,
+    bool decryptFailed,
+    bool emptyAfterDecrypt,
+  })
+  _resolveDisplayContent(SnChatMessage item) {
+    if (item.content?.isNotEmpty ?? false) {
+      return (
+        content: item.content,
+        isEncrypted: item.meta['e2ee_is_encrypted'] == true,
+        decryptFailed: false,
+        emptyAfterDecrypt: false,
+      );
+    }
     final ciphertext = item.meta['e2ee_ciphertext'];
-    if (ciphertext is! String || ciphertext.isEmpty) return null;
+    final isEncrypted = item.meta['e2ee_is_encrypted'] == true;
+    if (ciphertext is! String || ciphertext.isEmpty) {
+      return (
+        content: null,
+        isEncrypted: isEncrypted,
+        decryptFailed: false,
+        emptyAfterDecrypt: false,
+      );
+    }
     final decoded = decodeE2eeCiphertext(
       roomId: item.chatRoomId,
       ciphertext: ciphertext,
     );
-    final content = decoded?['content']?.toString();
-    if (content == null || content.isEmpty) return null;
-    return content;
+    if (decoded == null) {
+      return (
+        content: null,
+        isEncrypted: true,
+        decryptFailed: true,
+        emptyAfterDecrypt: false,
+      );
+    }
+    final content = decoded['content']?.toString();
+    if (content == null || content.isEmpty) {
+      return (
+        content: null,
+        isEncrypted: true,
+        decryptFailed: false,
+        emptyAfterDecrypt: true,
+      );
+    }
+    return (
+      content: content,
+      isEncrypted: true,
+      decryptFailed: false,
+      emptyAfterDecrypt: false,
+    );
   }
 
   (IconData, String) _buildSystemMessageSummary(SnChatMessage item) {
@@ -272,6 +363,13 @@ class MessageContent extends StatelessWidget {
         );
       case 'system.chat.updated':
         return (Symbols.edit_note, item.content ?? 'Chat info updated');
+      case 'system.e2ee.enabled':
+        return (Symbols.lock, item.content ?? 'This chat now uses E2EE');
+      case 'system.e2ee.rotate_required':
+        return (
+          Symbols.key_vertical,
+          item.content ?? 'E2EE sender key rotation required',
+        );
       case 'system.call.member.joined':
         return (
           Symbols.phone_in_talk,

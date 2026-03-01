@@ -473,6 +473,8 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
     final isManagable =
         chatIdentity.value?.accountId == chatRoom.value?.accountId ||
         chatRoom.value?.type == 1;
+    final canEnableE2ee =
+        isManagable && (chatRoom.value?.encryptionMode ?? 0) == 0;
 
     return PopupMenuButton(
       icon: Icon(Icons.more_vert, shadows: [iconShadow]),
@@ -500,6 +502,60 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                 ),
                 const Gap(12),
                 const Text('editChatRoom').tr(),
+              ],
+            ),
+          ),
+        if (canEnableE2ee)
+          PopupMenuItem(
+            onTap: () async {
+              final room = chatRoom.value;
+              if (room == null) return;
+
+              int targetMode;
+              if (room.type == 1) {
+                final selected = await showDialog<int>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Enable E2EE'),
+                    content: const Text('Choose E2EE mode for this DM room.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(1),
+                        child: const Text('E2EE DM'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(2),
+                        child: const Text('Sender Key'),
+                      ),
+                    ],
+                  ),
+                );
+                if (selected == null) return;
+                targetMode = selected;
+              } else {
+                targetMode = 2;
+              }
+
+              try {
+                final client = ref.watch(apiClientProvider);
+                await client.post(
+                  '/messager/chat/$id/e2ee/enable',
+                  data: {'encryption_mode': targetMode},
+                );
+                ref.invalidate(chatRoomProvider(id));
+                ref.invalidate(chatRoomJoinedProvider);
+                if (context.mounted) {
+                  showSnackBar('E2EE enabled successfully.');
+                }
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
+            child: Row(
+              children: [
+                Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
+                const Gap(12),
+                const Text('Enable E2EE'),
               ],
             ),
           ),

@@ -461,19 +461,28 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
   bool get _isEncryptedMessage =>
       widget.message.meta['e2ee_is_encrypted'] == true;
 
+  bool get _decryptFailed =>
+      _isEncryptedMessage &&
+      widget.message.content == null &&
+      _decodeE2eeContent() == null &&
+      widget.message.meta['e2ee_ciphertext'] != null;
+
   String get _displayContent {
-    return widget.translatedText ??
+    final base =
+        widget.translatedText ??
         widget.remoteMessage.content ??
         widget.message.content ??
-        _decodeE2eeContent() ??
-        '';
+        _decodeE2eeContent();
+    if (base != null && base.isNotEmpty) return base;
+    if (_decryptFailed) return '[Unable to decrypt this message]';
+    if (_isEncryptedMessage) return '[Encrypted message has no text content]';
+    return '';
   }
 
   bool get _shouldShowExpandButton {
     // Simple check: show expand button if content is not empty
     // The actual line limiting is handled by maxLines in SelectableText
-    return (widget.translatedText ?? widget.remoteMessage.content ?? '')
-        .isNotEmpty;
+    return _displayContent.isNotEmpty;
   }
 
   @override
