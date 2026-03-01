@@ -104,6 +104,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         type == 'messages.delete') {
       return true;
     }
+    if (type == 'system.e2ee.enabled' ||
+        type == 'system.e2ee.rotate_required') {
+      return true;
+    }
     return type == 'system.call.member.joined' ||
         type == 'system.call.member.left';
   }

@@ -76,6 +76,20 @@ int _safeToInt(dynamic value, {int fallback = 0}) {
   return fallback;
 }
 
+int _parseEncryptionMode(dynamic value) {
+  if (value is String) {
+    switch (value) {
+      case 'E2eeDm':
+        return 1;
+      case 'E2eeSenderKeyGroup':
+        return 2;
+      case 'None':
+        return 0;
+    }
+  }
+  return _safeToInt(value);
+}
+
 Map<String, dynamic> _createE2eeKeyBundle({int oneTimePreKeys = 16}) {
   final random = Random.secure();
   String randomBase64(int length) =>
@@ -243,6 +257,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         {
           if (message.type == 'system.e2ee.rotate_required') {
             await _markRoomE2eeRotationRequired(db, message);
+          }
+          if (message.type == 'system.e2ee.enabled') {
+            await _markRoomE2eeEnabled(db, message);
           }
           var localMessage = LocalChatMessage.fromRemoteMessage(
             message,
@@ -547,6 +564,18 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       'reason': message.meta['reason']?.toString(),
     });
     await db.setSecret(_chatE2eeRotationStoreKey(roomId), payload);
+  }
+
+  Future<void> _markRoomE2eeEnabled(
+    AppDatabase db,
+    SnChatMessage message,
+  ) async {
+    final roomId = message.meta['room_id']?.toString() ?? message.chatRoomId;
+    final mode = _parseEncryptionMode(message.meta['mode']);
+    await db.setSecret(
+      _chatRoomEncryptionModeStoreKey(roomId),
+      mode.toString(),
+    );
   }
 
   Future<void> _ensureE2eeBundle(Dio client, AppDatabase db) async {

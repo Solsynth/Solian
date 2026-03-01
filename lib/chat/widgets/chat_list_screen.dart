@@ -404,34 +404,11 @@ class ChatFabWidget extends HookConsumerWidget {
                   if (result == null) return;
                   if (!context.mounted) return;
 
-                  final useE2eeDm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Direct message mode'),
-                      content: const Text(
-                        'Create this direct chat as E2EE DM?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('No'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('Yes'),
-                        ),
-                      ],
-                    ),
-                  );
-
                   final client = ref.read(apiClientProvider);
                   try {
                     await client.post(
                       '/messager/chat/direct',
-                      data: {
-                        'related_user_id': result.id,
-                        'encryption_mode': useE2eeDm == true ? 1 : 0,
-                      },
+                      data: {'related_user_id': result.id},
                     );
                     eventBus.fire(const ChatRoomsRefreshEvent());
                   } catch (err) {
@@ -580,13 +557,14 @@ class _CollapsedChatListBody extends HookConsumerWidget {
     }
 
     String getRoomTitle(SnChatRoom room, List<SnChatMember> validMembers) {
+      final lockPrefix = room.encryptionMode != 0 ? '🔒 ' : '';
       if (room.type == 1 && room.name == null) {
         if (validMembers.isNotEmpty) {
-          return validMembers.map((e) => e.account.nick).join(', ');
+          return '$lockPrefix${validMembers.map((e) => e.account.nick).join(', ')}';
         }
-        return 'Direct Message';
+        return '${lockPrefix}Direct Message';
       }
-      return room.name ?? 'Unnamed Chat';
+      return '$lockPrefix${room.name ?? 'Unnamed Chat'}';
     }
 
     Widget buildRoundAvatar(Widget child) {

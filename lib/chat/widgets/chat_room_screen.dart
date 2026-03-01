@@ -530,6 +530,20 @@ class ChatRoomScreen extends HookConsumerWidget {
             ),
             actions: [
               chatRoom.when(
+                data: (data) => data?.encryptionMode != 0
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(
+                          Icons.lock,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+              ),
+              chatRoom.when(
                 data: (data) => AudioCallButton(room: data!),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),

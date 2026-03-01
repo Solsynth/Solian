@@ -61,7 +61,17 @@ class ChatRoomListTile extends HookConsumerWidget {
         summary: summary,
         validMembers: validMembers,
       ),
-      title: Text(titleText),
+      title: Row(
+        children: [
+          Expanded(child: Text(titleText)),
+          if (room.encryptionMode != 0)
+            Icon(
+              Icons.lock,
+              size: 14,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+        ],
+      ),
       subtitle: ChatRoomSubtitle(
         room: room,
         isDirect: isDirect,
