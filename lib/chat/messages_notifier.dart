@@ -7,6 +7,7 @@ import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:http_parser/http_parser.dart";
 import "package:island/chat/pods/chat_room.dart";
+import "package:island/chat/e2ee_codec.dart";
 import "package:island/data/database.dart";
 import "package:island/data/message.dart";
 import "package:island/core/config.dart";
@@ -72,7 +73,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     };
     return {
       'is_encrypted': true,
-      'ciphertext': base64Encode(utf8.encode(jsonEncode(envelope))),
+      'ciphertext': encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
       'encryption_header': base64Encode(utf8.encode('{"v":1}')),
       'encryption_scheme': _e2eeScheme,
       'encryption_epoch': 1,
@@ -185,31 +186,6 @@ class MessagesNotifier extends _$MessagesNotifier {
       meta['e2ee_epoch'] = data['encryption_epoch'];
       meta['e2ee_message_type'] = data['encryption_message_type'];
       meta['e2ee_client_message_id'] = data['client_message_id'];
-
-      if ((data['content'] == null ||
-              (data['content'] as String?)?.isEmpty == true) &&
-          data['ciphertext'] is String) {
-        try {
-          final decoded = jsonDecode(
-            utf8.decode(base64Decode(data['ciphertext'] as String)),
-          );
-          if (decoded is Map) {
-            if (decoded['content'] is String) {
-              data['content'] = decoded['content'];
-            }
-            final encodedAttachmentIds = decoded['attachments_id'];
-            if ((data['attachments'] is! List ||
-                    (data['attachments'] as List).isEmpty) &&
-                encodedAttachmentIds is List) {
-              meta['e2ee_attachment_ids'] = encodedAttachmentIds
-                  .whereType<Object?>()
-                  .where((e) => e != null)
-                  .map((e) => e.toString())
-                  .toList();
-            }
-          }
-        } catch (_) {}
-      }
     }
     data['meta'] = meta;
     data['members_mentioned'] =

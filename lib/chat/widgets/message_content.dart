@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
+import 'package:island/chat/e2ee_codec.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/core/config.dart';
@@ -33,6 +34,7 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedContent = _resolveDisplayContent(item);
     if (item.type.startsWith('system.')) {
       final (icon, text) = _buildSystemMessageSummary(item);
       return Row(
@@ -199,7 +201,7 @@ class MessageContent extends StatelessWidget {
               child: MouseRegion(
                 cursor: SystemMouseCursors.text,
                 child: MarkdownTextContent(
-                  content: item.content ?? '*${item.type} has no content*',
+                  content: resolvedContent ?? '*${item.type} has no content*',
                   isSelectable: isSelectable,
                   linesMargin: EdgeInsets.zero,
                 ),
@@ -238,7 +240,21 @@ class MessageContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
-    return item.type != 'text' || (item.content?.isNotEmpty ?? false);
+    return item.type != 'text' ||
+        (_resolveDisplayContent(item)?.isNotEmpty ?? false);
+  }
+
+  static String? _resolveDisplayContent(SnChatMessage item) {
+    if (item.content?.isNotEmpty ?? false) return item.content;
+    final ciphertext = item.meta['e2ee_ciphertext'];
+    if (ciphertext is! String || ciphertext.isEmpty) return null;
+    final decoded = decodeE2eeCiphertext(
+      roomId: item.chatRoomId,
+      ciphertext: ciphertext,
+    );
+    final content = decoded?['content']?.toString();
+    if (content == null || content.isEmpty) return null;
+    return content;
   }
 
   (IconData, String) _buildSystemMessageSummary(SnChatMessage item) {

@@ -151,33 +151,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       meta['e2ee_epoch'] = data['encryption_epoch'];
       meta['e2ee_message_type'] = data['encryption_message_type'];
       meta['e2ee_client_message_id'] = data['client_message_id'];
-
-      // Temporary compatibility path: our current v1 payload is JSON packed
-      // into ciphertext as base64-encoded plaintext. Decode it for rendering.
-      if ((data['content'] == null ||
-              (data['content'] as String?)?.isEmpty == true) &&
-          data['ciphertext'] is String) {
-        try {
-          final decoded = jsonDecode(
-            utf8.decode(base64Decode(data['ciphertext'] as String)),
-          );
-          if (decoded is Map) {
-            if (decoded['content'] is String) {
-              data['content'] = decoded['content'];
-            }
-            final encodedAttachmentIds = decoded['attachments_id'];
-            if ((data['attachments'] is! List ||
-                    (data['attachments'] as List).isEmpty) &&
-                encodedAttachmentIds is List) {
-              meta['e2ee_attachment_ids'] = encodedAttachmentIds
-                  .whereType<Object?>()
-                  .where((e) => e != null)
-                  .map((e) => e.toString())
-                  .toList();
-            }
-          }
-        } catch (_) {}
-      }
     }
     data['meta'] = meta;
     data['members_mentioned'] =

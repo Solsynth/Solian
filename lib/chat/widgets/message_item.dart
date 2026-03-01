@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/chat/e2ee_codec.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
@@ -445,8 +446,27 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
   bool _isExpanded = false;
   static const int _maxPreviewLines = 3;
 
+  String? _decodeE2eeContent() {
+    final ciphertext = widget.message.meta['e2ee_ciphertext'];
+    if (ciphertext is! String || ciphertext.isEmpty) return null;
+    final decoded = decodeE2eeCiphertext(
+      roomId: widget.message.roomId,
+      ciphertext: ciphertext,
+    );
+    final content = decoded?['content']?.toString();
+    if (content == null || content.isEmpty) return null;
+    return content;
+  }
+
+  bool get _isEncryptedMessage =>
+      widget.message.meta['e2ee_is_encrypted'] == true;
+
   String get _displayContent {
-    return widget.translatedText ?? widget.remoteMessage.content ?? '';
+    return widget.translatedText ??
+        widget.remoteMessage.content ??
+        widget.message.content ??
+        _decodeE2eeContent() ??
+        '';
   }
 
   bool get _shouldShowExpandButton {
@@ -466,7 +486,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Message content preview section
-            if (widget.remoteMessage.content?.isNotEmpty ?? false) ...[
+            if (_displayContent.isNotEmpty || _isEncryptedMessage) ...[
               Container(
                 margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 padding: const EdgeInsets.symmetric(
@@ -545,6 +565,56 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                       maxLines: _isExpanded ? null : _maxPreviewLines,
                       textAlign: TextAlign.start,
                     ),
+                    const Gap(8),
+                    Text(
+                      'encrypted: ${_isEncryptedMessage ? "yes" : "no"}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (_isEncryptedMessage) ...[
+                      if (widget.message.meta['e2ee_scheme'] != null)
+                        Text(
+                          'scheme: ${widget.message.meta['e2ee_scheme']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      if (widget.message.meta['e2ee_epoch'] != null)
+                        Text(
+                          'epoch: ${widget.message.meta['e2ee_epoch']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      if (widget.message.meta['e2ee_message_type'] != null)
+                        Text(
+                          'message_type: ${widget.message.meta['e2ee_message_type']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      if (widget.message.meta['e2ee_client_message_id'] != null)
+                        Text(
+                          'client_message_id: ${widget.message.meta['e2ee_client_message_id']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               ),
