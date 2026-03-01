@@ -9,6 +9,7 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/udid.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -57,7 +58,8 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
 }
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
-const String _chatE2eeBundleStoreKey = 'chat_e2ee_bundle_v1';
+const String _chatE2eeBundleStoreKey = 'chat_e2ee_bundle_v2';
+const String _chatE2eeBundleLegacyStoreKey = 'chat_e2ee_bundle_v1';
 const String _chatE2eeBundleCheckedAtStoreKey =
     'chat_e2ee_bundle_checked_at_ms';
 const String _chatE2eeRotationPrefix = 'chat_e2ee_rotate_required_';
@@ -580,7 +582,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   Future<void> _ensureE2eeBundle(Dio client, AppDatabase db) async {
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final localBundleRaw = await db.getSecret(_chatE2eeBundleStoreKey);
+    final localBundleRaw =
+        await db.getSecret(_chatE2eeBundleStoreKey) ??
+        await db.getSecret(_chatE2eeBundleLegacyStoreKey);
     final lastCheckRaw = await db.getSecret(_chatE2eeBundleCheckedAtStoreKey);
     final lastCheckMs = int.tryParse(lastCheckRaw ?? '') ?? 0;
     final hasLocalBundle = localBundleRaw != null && localBundleRaw.isNotEmpty;
@@ -589,23 +593,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         nowMs - lastCheckMs > _chatE2eeBundleRecheckInterval.inMilliseconds;
 
     if (!shouldRecheck) return;
-
-    var hasRemoteBundle = false;
-    try {
-      await client.get('/pass/e2ee/keys/me');
-      hasRemoteBundle = true;
-    } catch (err) {
-      if (err is DioException && err.response?.statusCode == 404) {
-        hasRemoteBundle = false;
-      } else {
-        rethrow;
-      }
-    }
-
-    if (hasLocalBundle && hasRemoteBundle) {
-      await db.setSecret(_chatE2eeBundleCheckedAtStoreKey, nowMs.toString());
-      return;
-    }
 
     final bundle = hasLocalBundle
         ? (jsonDecode(localBundleRaw) as Map).cast<String, dynamic>()
@@ -640,27 +627,52 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             )
             .toList();
 
-    await client.post(
-      '/pass/e2ee/keys/upload',
-      data: {
-        'algorithm': localBundle['algorithm'] ?? 'x25519',
-        'identity_key': read<String>(['identity_key', 'identityKey']),
-        'signed_pre_key_id': _safeToInt(
-          read<dynamic>(['signed_pre_key_id', 'signedPreKeyId']),
-        ),
-        'signed_pre_key': read<String>(['signed_pre_key', 'signedPreKey']),
-        'signed_pre_key_signature': read<String>([
-          'signed_pre_key_signature',
-          'signedPreKeySignature',
-        ]),
-        'signed_pre_key_expires_at': read<String>([
-          'signed_pre_key_expires_at',
-          'signedPreKeyExpiresAt',
-        ]),
-        'one_time_pre_keys': publicOneTimePreKeys,
-        'meta': {'client': 'island', 'bundle_version': 1},
+    String? deviceId;
+    String? deviceName;
+    try {
+      deviceId = await getUdid();
+      deviceName = await getDeviceName();
+    } catch (_) {}
+
+    final payload = <String, dynamic>{
+      'algorithm': localBundle['algorithm'] ?? 'x25519',
+      'identity_key': read<String>(['identity_key', 'identityKey']),
+      'signed_pre_key_id': _safeToInt(
+        read<dynamic>(['signed_pre_key_id', 'signedPreKeyId']),
+      ),
+      'signed_pre_key': read<String>(['signed_pre_key', 'signedPreKey']),
+      'signed_pre_key_signature': read<String>([
+        'signed_pre_key_signature',
+        'signedPreKeySignature',
+      ]),
+      'signed_pre_key_expires_at': read<String>([
+        'signed_pre_key_expires_at',
+        'signedPreKeyExpiresAt',
+      ]),
+      'one_time_pre_keys': publicOneTimePreKeys,
+      if (deviceName != null && deviceName.isNotEmpty)
+        'device_label': deviceName,
+      'meta': {
+        'client': 'island',
+        'bundle_version': 2,
+        if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
+        if (deviceName != null && deviceName.isNotEmpty)
+          'device_name': deviceName,
       },
-    );
+    };
+
+    try {
+      await client.put('/pass/e2ee/devices/me/bundle', data: payload);
+    } on DioException catch (err) {
+      final status = err.response?.statusCode;
+      final body = err.response?.data?.toString() ?? '';
+      final canFallback =
+          status == 404 ||
+          status == 405 ||
+          (status == 400 && body.contains('device id is missing'));
+      if (!canFallback) rethrow;
+      await client.post('/pass/e2ee/keys/upload', data: payload);
+    }
   }
 
   /// Perform global sync to fetch messages from all chat rooms
