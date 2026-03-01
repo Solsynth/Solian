@@ -45,12 +45,12 @@ class ArticleSidebarPanelWidget extends HookConsumerWidget {
                 ? Container(
                     key: const ValueKey(SidebarPanelType.attachments),
                     alignment: Alignment.topCenter,
-                    child: attachmentsContent,
+                    child: SingleChildScrollView(child: attachmentsContent),
                   )
                 : Container(
                     key: const ValueKey(SidebarPanelType.settings),
                     alignment: Alignment.topCenter,
-                    child: settingsContent,
+                    child: SingleChildScrollView(child: settingsContent),
                   ),
           ),
         ),
