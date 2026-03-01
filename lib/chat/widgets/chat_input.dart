@@ -10,6 +10,7 @@ import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:image_picker/image_picker.dart";
 import "package:island/discovery/models/autocomplete_response.dart";
+import "package:island/chat/e2ee_message_display.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_poll.dart";
@@ -993,11 +994,30 @@ class ChatInput extends HookConsumerWidget {
                                     left: 26,
                                   ),
                                   child: Text(
-                                    (messageReplyingTo ??
-                                                messageForwardingTo ??
-                                                messageEditingTo)
-                                            ?.content ??
-                                        'chatNoContent'.tr(),
+                                    (() {
+                                      final actionMessage =
+                                          messageReplyingTo ??
+                                          messageForwardingTo ??
+                                          messageEditingTo;
+                                      if (actionMessage == null) {
+                                        return 'chatNoContent'.tr();
+                                      }
+                                      final resolved =
+                                          resolveE2eeDisplayContentForMessage(
+                                            actionMessage,
+                                          );
+                                      if (resolved.content?.isNotEmpty ==
+                                          true) {
+                                        return resolved.content!;
+                                      }
+                                      if (resolved.decryptFailed) {
+                                        return '[Unable to decrypt this message]';
+                                      }
+                                      if (resolved.emptyAfterDecrypt) {
+                                        return '[Encrypted message has no text content]';
+                                      }
+                                      return 'chatNoContent'.tr();
+                                    })(),
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall!

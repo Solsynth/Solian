@@ -55,13 +55,32 @@ Map<String, dynamic>? decodeE2eeCiphertext({
   required String roomId,
   required String ciphertext,
 }) {
+  Map<String, dynamic>? parseJsonBytes(List<int> bytes) {
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
+    return null;
+  }
+
+  // Compatibility: current server payload may be base64(JSON) or raw JSON.
   try {
     final bytes = base64Decode(ciphertext);
     final magicBytes = utf8.encode(_magic);
-    if (bytes.length < magicBytes.length + 1) return null;
-    for (var i = 0; i < magicBytes.length; i++) {
-      if (bytes[i] != magicBytes[i]) return null;
+    var hasMagic = bytes.length >= magicBytes.length + 1;
+    if (hasMagic) {
+      for (var i = 0; i < magicBytes.length; i++) {
+        if (bytes[i] != magicBytes[i]) {
+          hasMagic = false;
+          break;
+        }
+      }
     }
+
+    if (!hasMagic) {
+      return parseJsonBytes(bytes);
+    }
+
     final nonceLen = bytes[magicBytes.length];
     final nonceStart = magicBytes.length + 1;
     final nonceEnd = nonceStart + nonceLen;
@@ -74,10 +93,12 @@ Map<String, dynamic>? decodeE2eeCiphertext({
       cipher.length,
       (i) => cipher[i] ^ stream[i],
     );
-    final decoded = jsonDecode(utf8.decode(plain));
-    if (decoded is! Map<String, dynamic>) return null;
-    return decoded;
+    return parseJsonBytes(plain);
   } catch (_) {
+    try {
+      final decoded = jsonDecode(ciphertext);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
     return null;
   }
 }

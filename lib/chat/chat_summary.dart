@@ -62,24 +62,61 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
 
 @Riverpod(keepAlive: true)
 class ChatSummary extends _$ChatSummary {
+  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
+    final data = Map<String, dynamic>.from(input);
+    final meta = data['meta'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['meta'] as Map<String, dynamic>)
+        : <String, dynamic>{};
+    if (data['is_encrypted'] == true) {
+      meta['e2ee_is_encrypted'] = true;
+      meta['e2ee_ciphertext'] = data['ciphertext'];
+      meta['e2ee_header'] = data['encryption_header'];
+      meta['e2ee_signature'] = data['encryption_signature'];
+      meta['e2ee_scheme'] = data['encryption_scheme'];
+      meta['e2ee_epoch'] = data['encryption_epoch'];
+      meta['e2ee_message_type'] = data['encryption_message_type'];
+      meta['e2ee_client_message_id'] = data['client_message_id'];
+    }
+    data['meta'] = meta;
+    return data;
+  }
+
+  SnChatMessage? _tryParseChatMessage(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    try {
+      return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Future<Map<String, SnChatSummary>> build() async {
     final client = ref.watch(apiClientProvider);
     final resp = await client.get('/messager/chat/summary');
 
     final Map<String, dynamic> data = resp.data;
-    final summaries = data.map(
-      (key, value) => MapEntry(key, SnChatSummary.fromJson(value)),
-    );
+    final summaries = data.map((key, value) {
+      final json = value is Map<String, dynamic>
+          ? Map<String, dynamic>.from(value)
+          : <String, dynamic>{};
+      final last = _tryParseChatMessage(json['last_message']);
+      if (last != null) {
+        json['last_message'] = last.toJson();
+      }
+      return MapEntry(key, SnChatSummary.fromJson(json));
+    });
 
     final ws = ref.watch(websocketProvider);
     final subscription = ws.dataStream.listen((WebSocketPacket pkt) {
       if (!pkt.type.startsWith('messages')) return;
       if (pkt.type == 'messages.new') {
-        final message = SnChatMessage.fromJson(pkt.data!);
+        final message = _tryParseChatMessage(pkt.data);
+        if (message == null) return;
         updateLastMessage(message.chatRoomId, message);
       } else if (pkt.type == 'messages.update') {
-        final message = SnChatMessage.fromJson(pkt.data!);
+        final message = _tryParseChatMessage(pkt.data);
+        if (message == null) return;
         updateMessageContent(message.chatRoomId, message);
       }
     });

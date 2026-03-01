@@ -8,7 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
-import 'package:island/chat/e2ee_codec.dart';
+import 'package:island/chat/e2ee_message_display.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/core/config.dart';
@@ -34,7 +34,7 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = _resolveDisplayContent(item);
+    final resolved = resolveE2eeDisplayContentForMessage(item);
     final resolvedContent = resolved.content;
     if (item.type.startsWith('system.')) {
       final (icon, text) = _buildSystemMessageSummary(item);
@@ -287,65 +287,11 @@ class MessageContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
-    final resolved = _resolveDisplayContent(item);
+    final resolved = resolveE2eeDisplayContentForMessage(item);
     return item.type != 'text' ||
         (resolved.content?.isNotEmpty ?? false) ||
         resolved.decryptFailed ||
         resolved.emptyAfterDecrypt;
-  }
-
-  static ({
-    String? content,
-    bool isEncrypted,
-    bool decryptFailed,
-    bool emptyAfterDecrypt,
-  })
-  _resolveDisplayContent(SnChatMessage item) {
-    if (item.content?.isNotEmpty ?? false) {
-      return (
-        content: item.content,
-        isEncrypted: item.meta['e2ee_is_encrypted'] == true,
-        decryptFailed: false,
-        emptyAfterDecrypt: false,
-      );
-    }
-    final ciphertext = item.meta['e2ee_ciphertext'];
-    final isEncrypted = item.meta['e2ee_is_encrypted'] == true;
-    if (ciphertext is! String || ciphertext.isEmpty) {
-      return (
-        content: null,
-        isEncrypted: isEncrypted,
-        decryptFailed: false,
-        emptyAfterDecrypt: false,
-      );
-    }
-    final decoded = decodeE2eeCiphertext(
-      roomId: item.chatRoomId,
-      ciphertext: ciphertext,
-    );
-    if (decoded == null) {
-      return (
-        content: null,
-        isEncrypted: true,
-        decryptFailed: true,
-        emptyAfterDecrypt: false,
-      );
-    }
-    final content = decoded['content']?.toString();
-    if (content == null || content.isEmpty) {
-      return (
-        content: null,
-        isEncrypted: true,
-        decryptFailed: false,
-        emptyAfterDecrypt: true,
-      );
-    }
-    return (
-      content: content,
-      isEncrypted: true,
-      decryptFailed: false,
-      emptyAfterDecrypt: false,
-    );
   }
 
   (IconData, String) _buildSystemMessageSummary(SnChatMessage item) {

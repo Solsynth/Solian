@@ -9,7 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
-import 'package:island/chat/e2ee_codec.dart';
+import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
@@ -86,6 +86,7 @@ class MessageItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
+    final resolvedDisplay = resolveE2eeDisplayContentForMessage(remoteMessage);
     final settings = ref.watch(appSettingsProvider);
     final messagesNotifier = ref.read(
       messagesProvider(message.roomId).notifier,
@@ -94,7 +95,7 @@ class MessageItem extends HookConsumerWidget {
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     final currentLanguage = context.locale.toString();
-    final translatableLanguage = remoteMessage.content?.isNotEmpty ?? false;
+    final translatableLanguage = resolvedDisplay.content?.isNotEmpty ?? false;
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
@@ -106,13 +107,14 @@ class MessageItem extends HookConsumerWidget {
       }
 
       if (translating.value) return;
-      if (remoteMessage.content == null) return;
+      final sourceText = resolvedDisplay.content;
+      if (sourceText == null || sourceText.isEmpty) return;
       translating.value = true;
       try {
         final text = await ref.watch(
           translateStringProvider(
             TranslateQuery(
-              text: remoteMessage.content!,
+              text: sourceText,
               lang: currentLanguage.substring(0, 2),
             ),
           ).future,
@@ -445,36 +447,21 @@ class MessageActionSheet extends StatefulWidget {
 class _MessageActionSheetState extends State<MessageActionSheet> {
   bool _isExpanded = false;
   static const int _maxPreviewLines = 3;
-
-  String? _decodeE2eeContent() {
-    final ciphertext = widget.message.meta['e2ee_ciphertext'];
-    if (ciphertext is! String || ciphertext.isEmpty) return null;
-    final decoded = decodeE2eeCiphertext(
-      roomId: widget.message.roomId,
-      ciphertext: ciphertext,
-    );
-    final content = decoded?['content']?.toString();
-    if (content == null || content.isEmpty) return null;
-    return content;
-  }
-
-  bool get _isEncryptedMessage =>
-      widget.message.meta['e2ee_is_encrypted'] == true;
-
-  bool get _decryptFailed =>
-      _isEncryptedMessage &&
-      widget.message.content == null &&
-      _decodeE2eeContent() == null &&
-      widget.message.meta['e2ee_ciphertext'] != null;
-
-  String get _displayContent {
-    final base =
+  E2eeDisplayContent get _resolved => resolveE2eeDisplayContent(
+    roomId: widget.message.roomId,
+    content:
         widget.translatedText ??
         widget.remoteMessage.content ??
-        widget.message.content ??
-        _decodeE2eeContent();
+        widget.message.content,
+    meta: widget.message.meta,
+  );
+
+  bool get _isEncryptedMessage => _resolved.isEncrypted;
+
+  String get _displayContent {
+    final base = _resolved.content;
     if (base != null && base.isNotEmpty) return base;
-    if (_decryptFailed) return '[Unable to decrypt this message]';
+    if (_resolved.decryptFailed) return '[Unable to decrypt this message]';
     if (_isEncryptedMessage) return '[Encrypted message has no text content]';
     return '';
   }
@@ -738,9 +725,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 leading: Icon(Symbols.copy_all),
                 title: Text('copyMessage'.tr()),
                 onTap: () {
-                  Clipboard.setData(
-                    ClipboardData(text: widget.remoteMessage.content ?? ''),
-                  );
+                  Clipboard.setData(ClipboardData(text: _displayContent));
                   Navigator.pop(context);
                 },
               ),
@@ -1130,8 +1115,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                         FileUploadProgressWidget(
                           progress: progress,
                           textColor: textColor,
-                          hasContent:
-                              remoteMessage.content?.isNotEmpty ?? false,
+                          hasContent: MessageContent.hasContent(remoteMessage),
                         ),
                       ],
                     ),
@@ -1261,7 +1245,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                       FileUploadProgressWidget(
                         progress: progress,
                         textColor: textColor,
-                        hasContent: remoteMessage.content?.isNotEmpty ?? false,
+                        hasContent: MessageContent.hasContent(remoteMessage),
                       ),
                     ],
                   ),
@@ -1382,8 +1366,9 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                           FileUploadProgressWidget(
                             progress: progress,
                             textColor: textColor,
-                            hasContent:
-                                remoteMessage.content?.isNotEmpty ?? false,
+                            hasContent: MessageContent.hasContent(
+                              remoteMessage,
+                            ),
                           ),
                         ],
                       ),
@@ -1448,8 +1433,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                         FileUploadProgressWidget(
                           progress: progress,
                           textColor: textColor,
-                          hasContent:
-                              remoteMessage.content?.isNotEmpty ?? false,
+                          hasContent: MessageContent.hasContent(remoteMessage),
                         ),
                       ],
                     ),

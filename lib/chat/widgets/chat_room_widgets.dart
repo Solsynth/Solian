@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -149,13 +150,27 @@ class ChatRoomSubtitle extends StatelessWidget {
                             ).colorScheme.primary,
                           ),
                           Expanded(
-                            child: Text(
-                              (data.lastMessage!.content?.isNotEmpty ?? false)
-                                  ? data.lastMessage!.content!
-                                  : 'messageNone'.tr(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
+                            child: Builder(
+                              builder: (context) {
+                                final resolved =
+                                    resolveE2eeDisplayContentForMessage(
+                                      data.lastMessage!,
+                                    );
+                                final preview =
+                                    resolved.content?.isNotEmpty == true
+                                    ? resolved.content!
+                                    : resolved.decryptFailed
+                                    ? '[Unable to decrypt]'
+                                    : resolved.emptyAfterDecrypt
+                                    ? '[Encrypted: no text content]'
+                                    : 'messageNone'.tr();
+                                return Text(
+                                  preview,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                );
+                              },
                             ),
                           ),
                           Align(

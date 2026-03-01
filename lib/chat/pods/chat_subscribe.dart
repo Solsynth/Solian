@@ -54,16 +54,15 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux);
 
-  bool _isWebSocketConnected() =>
-      ref.read(websocketStateProvider).maybeWhen(
-        connected: () => true,
-        orElse: () => false,
-      );
+  bool _isWebSocketConnected() => ref
+      .read(websocketStateProvider)
+      .maybeWhen(connected: () => true, orElse: () => false);
 
   bool _shouldKeepSubscriptionAlive() {
     if (_isDesktop) return true;
     final lifecycleState = ref.read(appLifecycleStateProvider).value;
-    return lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
+    return lifecycleState == null ||
+        lifecycleState == AppLifecycleState.resumed;
   }
 
   void _sendPacket(WebSocketPacket packet, {required String context}) {
@@ -223,7 +222,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     // Keep subscription alive before the backend expiry window.
     _periodicSubscribeTimer = Timer.periodic(_subscribeRefreshInterval, (_) {
-      _sendSubscribe(reason: 'periodic-refresh');
+      if (ref.mounted) _sendSubscribe(reason: 'periodic-refresh');
     });
 
     ref.listen(appLifecycleStateProvider, (previous, next) {
@@ -240,10 +239,8 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     });
 
     ref.listen(websocketStateProvider, (previous, next) {
-      final wasConnected = previous?.maybeWhen(
-            connected: () => true,
-            orElse: () => false,
-          ) ??
+      final wasConnected =
+          previous?.maybeWhen(connected: () => true, orElse: () => false) ??
           false;
       final isConnected = next.maybeWhen(
         connected: () => true,
