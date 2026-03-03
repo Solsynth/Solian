@@ -10,6 +10,13 @@ List<int> _roomKey(String roomId) {
   return sha256.convert(utf8.encode('island-chat-e2ee-v1:$roomId')).bytes;
 }
 
+String deriveE2eeFileEncryptKey(String roomId) {
+  final keyBytes = sha256
+      .convert(utf8.encode('island-chat-file-e2ee-v1:$roomId'))
+      .bytes;
+  return base64Encode(keyBytes);
+}
+
 List<int> _keystream({
   required List<int> key,
   required List<int> nonce,

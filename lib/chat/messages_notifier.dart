@@ -58,10 +58,37 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool get _isE2eeRoom => _roomEncryptionMode == 3;
 
   String get _e2eeScheme => 'chat.mls.v1';
+  String? get _fileEncryptKey =>
+      _isE2eeRoom ? deriveE2eeFileEncryptKey(roomId) : null;
 
   Options? _mlsWriteOptions() {
     if (!_isE2eeRoom) return null;
     return Options(headers: {'X-Client-Ability': 'chat-mls-v1'});
+  }
+
+  String? _normalizeEncryptionMessageType(
+    dynamic value, {
+    dynamic messageType,
+  }) {
+    final raw = value?.toString();
+    switch (raw) {
+      case 'content.new':
+      case 'text':
+        return 'text';
+      case 'content.edit':
+      case 'messages.update':
+        return 'messages.update';
+      case 'content.delete':
+      case 'messages.delete':
+        return 'messages.delete';
+    }
+    final fallback = messageType?.toString();
+    if (fallback == 'text' ||
+        fallback == 'messages.update' ||
+        fallback == 'messages.delete') {
+      return fallback;
+    }
+    return raw;
   }
 
   Map<String, dynamic> _buildE2eeMessagePayload({
@@ -81,7 +108,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       'encryption_header': base64Encode(utf8.encode('{"v":1}')),
       'encryption_scheme': _e2eeScheme,
       'encryption_epoch': 1,
-      'encryption_message_type': messageType,
+      'encryption_message_type': _normalizeEncryptionMessageType(messageType),
       'client_message_id': nonce,
       'nonce': nonce,
     };
@@ -280,7 +307,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       meta['e2ee_signature'] = data['encryption_signature'];
       meta['e2ee_scheme'] = data['encryption_scheme'];
       meta['e2ee_epoch'] = data['encryption_epoch'];
-      meta['e2ee_message_type'] = data['encryption_message_type'];
+      final normalizedType = _normalizeEncryptionMessageType(
+        data['encryption_message_type'],
+        messageType: data['type'],
+      );
+      if (normalizedType != null) {
+        meta['e2ee_message_type'] = normalizedType;
+      }
       meta['e2ee_client_message_id'] = data['client_message_id'];
     }
     data['meta'] = meta;
@@ -966,6 +999,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             .read(driveFileUploaderProvider)
             .createCloudFile(
               fileData: attachments[idx],
+              encryptPassword: _fileEncryptKey,
               onProgress: (progress, _) {
                 _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
                 onProgress?.call(
@@ -984,7 +1018,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final payload = _isE2eeRoom
           ? _buildE2eeMessagePayload(
               nonce: nonce,
-              messageType: editingTo == null ? 'content.new' : 'content.edit',
+              messageType: editingTo == null ? 'text' : 'messages.update',
               content: content,
               attachmentIds: cloudAttachments.map((e) => e.id).toList(),
             )
@@ -1206,7 +1240,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final payload = _isE2eeRoom
           ? _buildE2eeMessagePayload(
               nonce: nonce,
-              messageType: 'content.new',
+              messageType: 'text',
               content: remoteMessage.content ?? '',
               attachmentIds: attachmentIds,
             )

@@ -11,6 +11,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:image_picker/image_picker.dart";
 import "package:island/discovery/models/autocomplete_response.dart";
 import "package:island/chat/e2ee_message_display.dart";
+import "package:island/chat/e2ee_codec.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_poll.dart";
@@ -250,7 +251,7 @@ class ChatInput extends HookConsumerWidget {
   final SnChatMessage? messageForwardingTo;
   final SnChatMessage? messageEditingTo;
   final List<UniversalFile> attachments;
-  final Function(int) onUploadAttachment;
+  final Function(int, {String? encryptKey}) onUploadAttachment;
   final Function(int) onDeleteAttachment;
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
@@ -552,6 +553,10 @@ class ChatInput extends HookConsumerWidget {
           .toList();
     }
 
+    final roomEncryptKey = chatRoom.encryptionMode == 3
+        ? deriveE2eeFileEncryptKey(chatRoom.id)
+        : null;
+
     return DropTarget(
       onDragEntered: (_) => isDraggingOver.value = true,
       onDragExited: (_) => isDraggingOver.value = false,
@@ -689,7 +694,10 @@ class ChatInput extends HookConsumerWidget {
                                           ?.containsKey(idx) ??
                                       false,
                                   onRequestUpload: () =>
-                                      onUploadAttachment(idx),
+                                      onUploadAttachment(
+                                        idx,
+                                        encryptKey: roomEncryptKey,
+                                      ),
                                   onDelete: () => onDeleteAttachment(idx),
                                   onUpdate: (value) {
                                     attachments[idx] = value;

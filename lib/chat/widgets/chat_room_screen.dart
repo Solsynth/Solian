@@ -396,7 +396,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       toggleSelectionMode();
     }, [selectedMessages, messages, toggleSelectionMode]);
 
-    final uploadAttachment = useCallback((int index) async {
+    final uploadAttachment = useCallback((int index, {String? encryptKey}) async {
       final attachment = inputManager.attachments[index];
       if (attachment.isOnCloud) return;
 
@@ -407,6 +407,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           ref: ref,
           attachments: inputManager.attachments,
           index: index,
+          encryptedUpload: chatRoom.value?.encryptionMode == 3,
         ),
       );
       if (config == null) return;
@@ -419,6 +420,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             .createCloudFile(
               fileData: attachment,
               poolId: config.poolId,
+              encryptPassword: encryptKey,
               mode: attachment.type == UniversalFileType.file
                   ? FileUploadMode.generic
                   : FileUploadMode.mediaSafe,

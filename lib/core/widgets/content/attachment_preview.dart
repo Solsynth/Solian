@@ -87,6 +87,7 @@ class AttachmentPreview extends HookConsumerWidget {
   final UniversalFile item;
   final double? progress;
   final bool isUploading;
+  final bool isEncryptedUpload;
   final Function(int)? onMove;
   final Function? onDelete;
   final Function? onInsert;
@@ -102,6 +103,7 @@ class AttachmentPreview extends HookConsumerWidget {
     required this.item,
     this.progress,
     this.isUploading = false,
+    this.isEncryptedUpload = false,
     this.onRequestUpload,
     this.onMove,
     this.onDelete,
@@ -280,6 +282,12 @@ class AttachmentPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isEncryptedOnCloud =
+        item.isOnCloud &&
+        item.data is SnCloudFile &&
+        DriveE2eeFileEnvelope.isEncryptedFile(item.data as SnCloudFile);
+    final showEncryptedIndicator = isEncryptedUpload || isEncryptedOnCloud;
+
     var ratio = item.isOnCloud
         ? (item.data.fileMeta?['ratio'] is num
               ? item.data.fileMeta!['ratio'].toDouble()
@@ -643,6 +651,39 @@ class AttachmentPreview extends HookConsumerWidget {
                   ),
               ],
             ).padding(horizontal: 12, vertical: 8),
+            if (showEncryptedIndicator)
+              Positioned(
+                bottom: 8,
+                right: 12,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    color: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.lock,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        if (!isCompact) const Gap(6),
+                        if (!isCompact)
+                          Text(
+                            'Encrypted',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

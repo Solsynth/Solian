@@ -113,6 +113,31 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   static const Duration _minSyncInterval = Duration(seconds: 4);
   static const int _maxSyncPagesPerRound = 25;
 
+  String? _normalizeEncryptionMessageType(
+    dynamic value, {
+    dynamic messageType,
+  }) {
+    final raw = value?.toString();
+    switch (raw) {
+      case 'content.new':
+      case 'text':
+        return 'text';
+      case 'content.edit':
+      case 'messages.update':
+        return 'messages.update';
+      case 'content.delete':
+      case 'messages.delete':
+        return 'messages.delete';
+    }
+    final fallback = messageType?.toString();
+    if (fallback == 'text' ||
+        fallback == 'messages.update' ||
+        fallback == 'messages.delete') {
+      return fallback;
+    }
+    return raw;
+  }
+
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
     final data = Map<String, dynamic>.from(input);
     final meta = data['meta'] is Map<String, dynamic>
@@ -125,7 +150,13 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       meta['e2ee_signature'] = data['encryption_signature'];
       meta['e2ee_scheme'] = data['encryption_scheme'];
       meta['e2ee_epoch'] = data['encryption_epoch'];
-      meta['e2ee_message_type'] = data['encryption_message_type'];
+      final normalizedType = _normalizeEncryptionMessageType(
+        data['encryption_message_type'],
+        messageType: data['type'],
+      );
+      if (normalizedType != null) {
+        meta['e2ee_message_type'] = normalizedType;
+      }
       meta['e2ee_client_message_id'] = data['client_message_id'];
     }
     data['meta'] = meta;

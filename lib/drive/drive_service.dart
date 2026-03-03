@@ -486,6 +486,7 @@ class FileUploader {
     required UniversalFile fileData,
     String? poolId,
     String? path,
+    String? encryptPassword,
     FileUploadMode? mode,
     Function(double? progress, Duration estimate)? onProgress,
   }) {
@@ -522,7 +523,14 @@ class FileUploader {
             })
             .then(
               (_) =>
-                  _processUpload(fileData, poolId, path, onProgress, completer),
+                  _processUpload(
+                    fileData,
+                    poolId,
+                    path,
+                    encryptPassword,
+                    onProgress,
+                    completer,
+                  ),
             )
             .catchError((e) {
               debugPrint('Error removing GPS EXIF data: $e');
@@ -530,6 +538,7 @@ class FileUploader {
                 fileData,
                 poolId,
                 path,
+                encryptPassword,
                 onProgress,
                 completer,
               );
@@ -539,7 +548,14 @@ class FileUploader {
       }
     }
 
-    _processUpload(fileData, poolId, path, onProgress, completer);
+    _processUpload(
+      fileData,
+      poolId,
+      path,
+      encryptPassword,
+      onProgress,
+      completer,
+    );
     return completer;
   }
 
@@ -548,6 +564,7 @@ class FileUploader {
     UniversalFile fileData,
     String? poolId,
     String? path,
+    String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer,
   ) {
@@ -563,6 +580,7 @@ class FileUploader {
         fileData: data,
         fileName: fileData.displayName ?? data.name,
         path: path,
+        encryptPassword: encryptPassword,
         contentType: actualMimetype,
         poolId: poolId,
         onProgress: onProgress,
@@ -591,6 +609,7 @@ class FileUploader {
         fileName: actualFilename,
         contentType: actualMimetype,
         path: path,
+        encryptPassword: encryptPassword,
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
@@ -607,6 +626,7 @@ class FileUploader {
     required String contentType,
     String? poolId,
     String? path,
+    String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
@@ -622,6 +642,7 @@ class FileUploader {
           contentType: contentType,
           poolId: poolId,
           path: path,
+          encryptPassword: encryptPassword,
           onProgress: onProgress,
         )
         .then((result) {

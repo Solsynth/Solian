@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
+import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
@@ -17,10 +18,12 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class AttachmentUploadConfig {
   final String poolId;
   final bool hasConstraints;
+  final bool encryptedUpload;
 
   const AttachmentUploadConfig({
     required this.poolId,
     required this.hasConstraints,
+    this.encryptedUpload = false,
   });
 }
 
@@ -29,6 +32,7 @@ class AttachmentUploaderSheet extends StatefulWidget {
   final ComposeState? state;
   final List<UniversalFile>? attachments;
   final int index;
+  final bool encryptedUpload;
 
   const AttachmentUploaderSheet({
     super.key,
@@ -36,6 +40,7 @@ class AttachmentUploaderSheet extends StatefulWidget {
     this.state,
     this.attachments,
     required this.index,
+    this.encryptedUpload = false,
   }) : assert(
          state != null || attachments != null,
          'Either state or attachments must be provided',
@@ -134,10 +139,79 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                           );
 
                           final hasIssues = fileSizeExceeded || !typeAccepted;
+                          final rawAllowEncryption =
+                              selectedPool.policyConfig?['allow_encryption'] ??
+                              selectedPool.policyConfig?['allowEncryption'];
+                          final allowEncryption = rawAllowEncryption is bool
+                              ? rawAllowEncryption
+                              : true;
+                          final isEncryptedOnCloud =
+                              attachment.isOnCloud &&
+                              attachment.data is SnCloudFile &&
+                              DriveE2eeFileEnvelope.isEncryptedFile(
+                                attachment.data as SnCloudFile,
+                              );
+                          final shouldEncrypt =
+                              widget.encryptedUpload || isEncryptedOnCloud;
+                          final encryptionBlocked =
+                              shouldEncrypt && !allowEncryption;
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (shouldEncrypt) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: encryptionBlocked
+                                        ? Theme.of(
+                                            context,
+                                          ).colorScheme.errorContainer
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        encryptionBlocked
+                                            ? Symbols.warning
+                                            : Symbols.lock,
+                                        size: 18,
+                                        color: encryptionBlocked
+                                            ? Theme.of(context).colorScheme.error
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimaryContainer,
+                                      ),
+                                      const Gap(8),
+                                      Expanded(
+                                        child: Text(
+                                          encryptionBlocked
+                                              ? 'Encrypted upload blocked by selected pool policy.'
+                                              : 'Encrypted upload enabled.',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: encryptionBlocked
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.error
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .onPrimaryContainer,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Gap(12),
+                              ],
                               if (hasIssues) ...[
                                 Container(
                                   padding: const EdgeInsets.all(12),
@@ -252,7 +326,11 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                         ],
                       ).padding(horizontal: 4),
                       const Gap(8),
-                      AttachmentPreview(item: attachment, isCompact: true),
+                      AttachmentPreview(
+                        item: attachment,
+                        isCompact: true,
+                        isEncryptedUpload: widget.encryptedUpload,
+                      ),
                     ],
                   ),
                 ),
@@ -307,10 +385,23 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
     final typeAccepted = _isMimeTypeAccepted(mimeType, acceptTypes);
 
     final hasConstraints = fileSizeExceeded || !typeAccepted;
+    final rawAllowEncryption =
+        selectedPool.policyConfig?['allow_encryption'] ??
+        selectedPool.policyConfig?['allowEncryption'];
+    final allowEncryption = rawAllowEncryption is bool
+        ? rawAllowEncryption
+        : true;
+    final isEncryptedOnCloud =
+        attachment.isOnCloud &&
+        attachment.data is SnCloudFile &&
+        DriveE2eeFileEnvelope.isEncryptedFile(attachment.data as SnCloudFile);
+    final shouldEncrypt = widget.encryptedUpload || isEncryptedOnCloud;
+    final encryptionBlocked = shouldEncrypt && !allowEncryption;
 
     return AttachmentUploadConfig(
       poolId: selectedPoolId!,
-      hasConstraints: hasConstraints,
+      hasConstraints: hasConstraints || encryptionBlocked,
+      encryptedUpload: widget.encryptedUpload,
     );
   }
 
