@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
@@ -9,7 +7,6 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
-import 'package:island/core/services/udid.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -58,18 +55,10 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
 }
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
-const String _chatE2eeBundleStoreKey = 'chat_e2ee_bundle_v2';
-const String _chatE2eeBundleLegacyStoreKey = 'chat_e2ee_bundle_v1';
-const String _chatE2eeBundleCheckedAtStoreKey =
-    'chat_e2ee_bundle_checked_at_ms';
-const String _chatE2eeRotationPrefix = 'chat_e2ee_rotate_required_';
 const String _chatRoomEncryptionModePrefix = 'chat_room_encryption_mode_';
-const Duration _chatE2eeBundleRecheckInterval = Duration(hours: 6);
 
 String _chatRoomEncryptionModeStoreKey(String roomId) =>
     '$_chatRoomEncryptionModePrefix$roomId';
-String _chatE2eeRotationStoreKey(String roomId) =>
-    '$_chatE2eeRotationPrefix$roomId';
 
 int _safeToInt(dynamic value, {int fallback = 0}) {
   if (value is int) return value;
@@ -81,48 +70,19 @@ int _safeToInt(dynamic value, {int fallback = 0}) {
 int _parseEncryptionMode(dynamic value) {
   if (value is String) {
     switch (value) {
+      case 'E2eeMls':
+        return 3;
       case 'E2eeDm':
-        return 1;
       case 'E2eeSenderKeyGroup':
-        return 2;
+        // Hard-cut migration maps legacy encrypted rooms to MLS.
+        return 3;
       case 'None':
         return 0;
     }
   }
-  return _safeToInt(value);
-}
-
-Map<String, dynamic> _createE2eeKeyBundle({int oneTimePreKeys = 16}) {
-  final random = Random.secure();
-  String randomBase64(int length) =>
-      base64Encode(List<int>.generate(length, (_) => random.nextInt(256)));
-
-  final signedPreKeyId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final signedPreKeyExpiresAt = DateTime.now().toUtc().add(
-    const Duration(days: 7),
-  );
-  final preKeys = List<Map<String, dynamic>>.generate(oneTimePreKeys, (idx) {
-    final keyId = signedPreKeyId + idx + 1;
-    return {
-      'key_id': keyId,
-      'public_key': randomBase64(32),
-      'private_key': randomBase64(32),
-    };
-  });
-
-  return {
-    'algorithm': 'x25519',
-    'created_at': DateTime.now().toUtc().toIso8601String(),
-    'identity_key': randomBase64(32),
-    'identity_private_key': randomBase64(32),
-    'signed_pre_key_id': signedPreKeyId,
-    'signed_pre_key': randomBase64(32),
-    'signed_pre_key_private_key': randomBase64(32),
-    'signed_pre_key_signature': randomBase64(64),
-    'signed_pre_key_expires_at': signedPreKeyExpiresAt.toIso8601String(),
-    'one_time_pre_keys': preKeys,
-    'meta': {'client': 'island', 'bundle_version': 1},
-  };
+  final parsed = _safeToInt(value);
+  if (parsed == 1 || parsed == 2) return 3;
+  return parsed;
 }
 
 Future<void> _persistRoomEncryptionModeFromJson(
@@ -131,7 +91,7 @@ Future<void> _persistRoomEncryptionModeFromJson(
 ) async {
   final roomId = roomJson['id']?.toString();
   if (roomId == null || roomId.isEmpty) return;
-  final mode = _safeToInt(roomJson['encryption_mode']);
+  final mode = _parseEncryptionMode(roomJson['encryption_mode']);
   await db.setSecret(_chatRoomEncryptionModeStoreKey(roomId), mode.toString());
 }
 
@@ -257,9 +217,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     switch (pkt.type) {
       case 'messages.new':
         {
-          if (message.type == 'system.e2ee.rotate_required') {
-            await _markRoomE2eeRotationRequired(db, message);
-          }
           if (message.type == 'system.e2ee.enabled') {
             await _markRoomE2eeEnabled(db, message);
           }
@@ -554,20 +511,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     return true;
   }
 
-  Future<void> _markRoomE2eeRotationRequired(
-    AppDatabase db,
-    SnChatMessage message,
-  ) async {
-    final roomId = message.meta['room_id']?.toString() ?? message.chatRoomId;
-    final payload = jsonEncode({
-      'requiredAt': DateTime.now().toUtc().toIso8601String(),
-      'rotationHintEpoch': _safeToInt(message.meta['rotation_hint_epoch']),
-      'changedMemberId': message.meta['changed_member_id']?.toString(),
-      'reason': message.meta['reason']?.toString(),
-    });
-    await db.setSecret(_chatE2eeRotationStoreKey(roomId), payload);
-  }
-
   Future<void> _markRoomE2eeEnabled(
     AppDatabase db,
     SnChatMessage message,
@@ -578,101 +521,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       _chatRoomEncryptionModeStoreKey(roomId),
       mode.toString(),
     );
-  }
-
-  Future<void> _ensureE2eeBundle(Dio client, AppDatabase db) async {
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final localBundleRaw =
-        await db.getSecret(_chatE2eeBundleStoreKey) ??
-        await db.getSecret(_chatE2eeBundleLegacyStoreKey);
-    final lastCheckRaw = await db.getSecret(_chatE2eeBundleCheckedAtStoreKey);
-    final lastCheckMs = int.tryParse(lastCheckRaw ?? '') ?? 0;
-    final hasLocalBundle = localBundleRaw != null && localBundleRaw.isNotEmpty;
-    final shouldRecheck =
-        !hasLocalBundle ||
-        nowMs - lastCheckMs > _chatE2eeBundleRecheckInterval.inMilliseconds;
-
-    if (!shouldRecheck) return;
-
-    final bundle = hasLocalBundle
-        ? (jsonDecode(localBundleRaw) as Map).cast<String, dynamic>()
-        : _createE2eeKeyBundle();
-    await _uploadE2eeBundle(client, bundle);
-    await db.setSecret(_chatE2eeBundleStoreKey, jsonEncode(bundle));
-    await db.setSecret(_chatE2eeBundleCheckedAtStoreKey, nowMs.toString());
-  }
-
-  Future<void> _uploadE2eeBundle(
-    Dio client,
-    Map<String, dynamic> localBundle,
-  ) async {
-    T? read<T>(List<String> keys) {
-      for (final key in keys) {
-        final value = localBundle[key];
-        if (value is T) return value;
-      }
-      return null;
-    }
-
-    final publicOneTimePreKeys =
-        ((localBundle['one_time_pre_keys'] as List?) ??
-                (localBundle['oneTimePreKeys'] as List?) ??
-                const [])
-            .whereType<Map>()
-            .map(
-              (entry) => {
-                'key_id': _safeToInt(entry['key_id'] ?? entry['keyId']),
-                'public_key': entry['public_key'] ?? entry['publicKey'],
-              },
-            )
-            .toList();
-
-    String? deviceId;
-    String? deviceName;
-    try {
-      deviceId = await getUdid();
-      deviceName = await getDeviceName();
-    } catch (_) {}
-
-    final payload = <String, dynamic>{
-      'algorithm': localBundle['algorithm'] ?? 'x25519',
-      'identity_key': read<String>(['identity_key', 'identityKey']),
-      'signed_pre_key_id': _safeToInt(
-        read<dynamic>(['signed_pre_key_id', 'signedPreKeyId']),
-      ),
-      'signed_pre_key': read<String>(['signed_pre_key', 'signedPreKey']),
-      'signed_pre_key_signature': read<String>([
-        'signed_pre_key_signature',
-        'signedPreKeySignature',
-      ]),
-      'signed_pre_key_expires_at': read<String>([
-        'signed_pre_key_expires_at',
-        'signedPreKeyExpiresAt',
-      ]),
-      'one_time_pre_keys': publicOneTimePreKeys,
-      if (deviceName != null && deviceName.isNotEmpty)
-        'device_label': deviceName,
-      'meta': {
-        'client': 'island',
-        'bundle_version': 2,
-        if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
-        if (deviceName != null && deviceName.isNotEmpty)
-          'device_name': deviceName,
-      },
-    };
-
-    try {
-      await client.put('/pass/e2ee/devices/me/bundle', data: payload);
-    } on DioException catch (err) {
-      final status = err.response?.statusCode;
-      final body = err.response?.data?.toString() ?? '';
-      final canFallback =
-          status == 404 ||
-          status == 405 ||
-          (status == 400 && body.contains('device id is missing'));
-      if (!canFallback) rethrow;
-      await client.post('/pass/e2ee/keys/upload', data: payload);
-    }
   }
 
   /// Perform global sync to fetch messages from all chat rooms
@@ -717,15 +565,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final db = ref.read(databaseProvider);
       final prefs = ref.read(sharedPreferencesProvider);
       final currentUserId = ref.read(userInfoProvider).value?.id;
-      try {
-        await _ensureE2eeBundle(client, db);
-      } catch (err, stackTrace) {
-        talker.log(
-          'E2EE bootstrap failed, continue with plaintext-compatible sync',
-          exception: err,
-          stackTrace: stackTrace,
-        );
-      }
 
       final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
       final dbLatestCursor = await _getLatestMessageTimestamp(db);

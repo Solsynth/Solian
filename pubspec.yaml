@@ -162,6 +162,7 @@ dependencies:
   flutter_expandable_fab: ^2.5.2
   event_bus: ^2.0.1
   convert: ^3.1.2
+  pointycastle: ^4.0.0
   desktop_drop: ^0.7.0
   flutter_animate: ^4.5.2
   http_parser: ^4.1.2

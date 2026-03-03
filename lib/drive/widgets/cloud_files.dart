@@ -9,6 +9,7 @@ import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/core/widgets/content/profile_decoration.dart';
@@ -46,6 +47,11 @@ class CloudFileWidget extends HookConsumerWidget {
     final unlocked = useState(false);
 
     final meta = item.fileMeta is Map ? (item.fileMeta as Map) : const {};
+    final isEncrypted = DriveE2eeFileEnvelope.isEncryptedFile(item);
+    final e2eeMeta = meta['e2ee'] is Map
+        ? Map<String, dynamic>.from(meta['e2ee'] as Map)
+        : const <String, dynamic>{};
+    final e2eeScheme = e2eeMeta['scheme']?.toString();
     final blurHash = noBlurhash ? null : (meta['blur'] as String?);
     var ratio = meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     if (ratio == 0) ratio = 1.0;
@@ -60,6 +66,10 @@ class CloudFileWidget extends HookConsumerWidget {
         unlocked.value = true;
       },
     );
+
+    if (isEncrypted) {
+      return _EncryptedFileCard(item: item, scheme: e2eeScheme);
+    }
 
     if (item.mimeType == 'application/pdf') {
       return Container(
@@ -328,6 +338,76 @@ class CloudFileWidget extends HookConsumerWidget {
   }
 }
 
+class _EncryptedFileCard extends ConsumerWidget {
+  final SnCloudFile item;
+  final String? scheme;
+  const _EncryptedFileCard({required this.item, required this.scheme});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final label = (scheme != null && scheme!.isNotEmpty)
+        ? 'Encrypted file ($scheme)'
+        : 'Encrypted file';
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
+        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.lock,
+            size: 42,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const Gap(8),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleSmall,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            formatFileSize(item.size),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const Gap(8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton.icon(
+                onPressed: () =>
+                    ref.read(driveFileDownloaderProvider).downloadWithProgress(
+                      item,
+                    ),
+                icon: const Icon(Symbols.download),
+                label: Text('download').tr(),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  context.router.push(FileDetailRoute(item: item));
+                },
+                icon: const Icon(Symbols.info),
+                label: Text('info').tr(),
+              ),
+            ],
+          ),
+        ],
+      ).padding(all: 12),
+    );
+  }
+}
+
 class _DataSavingPlaceholder extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -367,6 +447,16 @@ class CloudVideoWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (DriveE2eeFileEnvelope.isEncryptedFile(item)) {
+      return _EncryptedFileCard(
+        item: item,
+        scheme: (item.fileMeta is Map &&
+                (item.fileMeta as Map)['e2ee'] is Map)
+            ? ((item.fileMeta as Map)['e2ee'] as Map)['scheme']?.toString()
+            : null,
+      );
+    }
+
     final open = useState(false);
 
     final serverUrl = ref.watch(serverUrlProvider);

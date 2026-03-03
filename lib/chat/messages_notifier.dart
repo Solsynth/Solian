@@ -32,7 +32,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatMember _identity;
-  SnChatRoom? _room;
   bool _hasIdentity = false;
   int _roomEncryptionMode = 0;
 
@@ -53,69 +52,16 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _allRemoteMessagesFetched = false;
   StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
   final Set<String> _prefetchedVoiceUrls = <String>{};
-  final Map<String, DateTime> _dmPeerDeviceCheckAt = {};
-  static const Duration _dmPeerDeviceCheckInterval = Duration(minutes: 5);
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
-  bool get _isE2eeRoom => _roomEncryptionMode != 0;
+  bool get _isE2eeRoom => _roomEncryptionMode == 3;
 
-  String get _e2eeScheme => _roomEncryptionMode == 1
-      ? 'pass.e2ee.chat.dm.v1'
-      : 'pass.e2ee.chat.sender_key.v1';
+  String get _e2eeScheme => 'chat.mls.v1';
 
-  String? _resolveDmPeerAccountId() {
-    final room = _room;
-    if (room == null || room.members == null) return null;
-    final currentAccountId = _identity.accountId;
-    for (final member in room.members!) {
-      if (member.accountId != currentAccountId) return member.accountId;
-    }
-    return null;
-  }
-
-  Future<void> _ensureDmPeerHasE2eeDevices() async {
-    if (!_isE2eeRoom || _roomEncryptionMode != 1) return;
-    final peerAccountId = _resolveDmPeerAccountId();
-    if (peerAccountId == null || peerAccountId.isEmpty) return;
-
-    final now = DateTime.now();
-    final checkedAt = _dmPeerDeviceCheckAt[peerAccountId];
-    if (checkedAt != null &&
-        now.difference(checkedAt) < _dmPeerDeviceCheckInterval) {
-      return;
-    }
-
-    int activeCount = 0;
-    try {
-      final resp = await _apiClient.get(
-        '/pass/e2ee/keys/$peerAccountId/devices',
-        queryParameters: {'consumeOneTimePreKey': false},
-      );
-      final raw = resp.data;
-      if (raw is! List) {
-        throw Exception('Invalid E2EE device bundle response.');
-      }
-      activeCount = raw.whereType<Map>().where((item) {
-        final deviceId =
-            item['device_id']?.toString() ?? item['deviceId']?.toString();
-        return deviceId != null && deviceId.isNotEmpty;
-      }).length;
-    } on DioException catch (err) {
-      final status = err.response?.statusCode;
-      if (status != 404 && status != 405) rethrow;
-      final fallback = await _apiClient.get(
-        '/pass/e2ee/keys/$peerAccountId/bundle',
-        queryParameters: {'consumeOneTimePreKey': false},
-      );
-      if (fallback.data is Map) {
-        activeCount = 1;
-      }
-    }
-    if (activeCount <= 0) {
-      throw Exception('Recipient has no active E2EE device bundle.');
-    }
-    _dmPeerDeviceCheckAt[peerAccountId] = now;
+  Options? _mlsWriteOptions() {
+    if (!_isE2eeRoom) return null;
+    return Options(headers: {'X-Client-Ability': 'chat-mls-v1'});
   }
 
   Map<String, dynamic> _buildE2eeMessagePayload({
@@ -224,6 +170,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final response = await _apiClient.post(
       '/messager/chat/$targetRoomId/messages',
       data: payload,
+      options: _mlsWriteOptions(),
     );
     return _tryParseChatMessage(response.data, context: context) ??
         (throw Exception('Invalid chat message response.'));
@@ -250,8 +197,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         type == 'messages.delete') {
       return true;
     }
-    if (type == 'system.e2ee.enabled' ||
-        type == 'system.e2ee.rotate_required') {
+    if (type == 'system.e2ee.enabled') {
       return true;
     }
     return type == 'system.call.member.joined' ||
@@ -390,7 +336,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (room == null) {
       throw Exception('Room not found');
     }
-    _room = room;
     _roomEncryptionMode = room.encryptionMode;
 
     // Allow building even if identity is null for public rooms
@@ -1015,9 +960,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     state = AsyncValue.data([localMessage, ...currentMessages]);
 
     try {
-      if (_isE2eeRoom) {
-        await _ensureDmPeerHasE2eeDevices();
-      }
       final cloudAttachments = <SnCloudFile>[];
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile = await ref
@@ -1068,6 +1010,7 @@ class MessagesNotifier extends _$MessagesNotifier {
               final response = await _apiClient.patch(
                 '/messager/chat/$roomId/messages/${editingTo.id}',
                 data: payload,
+                options: _mlsWriteOptions(),
               );
               return _tryParseChatMessage(
                     response.data,
@@ -1257,9 +1200,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     try {
-      if (_isE2eeRoom) {
-        await _ensureDmPeerHasE2eeDevices();
-      }
       var remoteMessage = message.toRemoteMessage();
       final nonce = message.nonce ?? const Uuid().v4();
       final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
@@ -1541,7 +1481,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      await _apiClient.delete('/messager/chat/$roomId/messages/$messageId');
+      await _apiClient.delete(
+        '/messager/chat/$roomId/messages/$messageId',
+        options: _mlsWriteOptions(),
+      );
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
       talker.log(

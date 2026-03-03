@@ -530,7 +530,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             ),
             actions: [
               chatRoom.when(
-                data: (data) => data?.encryptionMode != 0
+                data: (data) => data?.encryptionMode == 3
                     ? Padding(
                         padding: const EdgeInsets.only(right: 4),
                         child: Icon(

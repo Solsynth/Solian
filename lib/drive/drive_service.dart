@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
@@ -14,10 +17,204 @@ import 'package:path/path.dart' show extension;
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
+import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'drive_service.g.dart';
+
+class DriveE2eeFileEnvelope {
+  static const String scheme = 'file.aesgcm.v1';
+  static const int epoch = 1;
+  static const String _magic = 'DYE2EE1\x00';
+  static const int _version = 1;
+  static const int _nonceLength = 12;
+  static const int _tagLength = 16;
+
+  static bool isEncryptedFile(SnCloudFile file) {
+    final meta = _extractE2eeMeta(file);
+    if (meta == null) return false;
+    final value = meta['scheme']?.toString();
+    return value != null && value.isNotEmpty;
+  }
+
+  static Map<String, dynamic>? _extractE2eeMeta(SnCloudFile file) {
+    final fileMeta = file.fileMeta;
+    if (fileMeta is! Map) return null;
+    final root = Map<String, dynamic>.from(fileMeta as Map);
+    final e2ee = root['e2ee'];
+    if (e2ee is! Map) return null;
+    return Map<String, dynamic>.from(e2ee);
+  }
+
+  static String? extractEncryptionKey(SnCloudFile file) {
+    final fileMeta = file.fileMeta;
+    if (fileMeta is! Map) return null;
+    final root = Map<String, dynamic>.from(fileMeta as Map);
+    final e2ee = root['e2ee'];
+    if (e2ee is Map) {
+      final mapped = Map<String, dynamic>.from(e2ee);
+      final key =
+          mapped['key']?.toString() ?? mapped['encrypt_key']?.toString();
+      if (key != null && key.isNotEmpty) return key;
+    }
+    final topLevel =
+        root['e2ee_key']?.toString() ?? root['encrypt_key']?.toString();
+    if (topLevel != null && topLevel.isNotEmpty) return topLevel;
+    return null;
+  }
+
+  static String generateEncryptKey() {
+    final random = Random.secure();
+    final keyBytes = Uint8List.fromList(
+      List<int>.generate(32, (_) => random.nextInt(256)),
+    );
+    return base64Encode(keyBytes);
+  }
+
+  static Uint8List encryptBytes({
+    required Uint8List plaintext,
+    required String encryptKey,
+    String? encryptionHeader,
+    String? encryptionSignature,
+    int encryptionEpoch = epoch,
+    String encryptionScheme = scheme,
+  }) {
+    final keyBytes = _decodeEncryptKey(encryptKey);
+    final random = Random.secure();
+    final nonce = Uint8List.fromList(
+      List<int>.generate(_nonceLength, (_) => random.nextInt(256)),
+    );
+    final cipher = pc.GCMBlockCipher(pc.AESEngine())
+      ..init(
+        true,
+        pc.AEADParameters(
+          pc.KeyParameter(keyBytes),
+          _tagLength * 8,
+          nonce,
+          Uint8List(0),
+        ),
+      );
+    final encrypted = cipher.process(plaintext);
+    if (encrypted.length < _tagLength) {
+      throw StateError('Encryption output is shorter than expected tag length.');
+    }
+    final ciphertext = encrypted.sublist(0, encrypted.length - _tagLength);
+    final tag = encrypted.sublist(encrypted.length - _tagLength);
+
+    final header = <String, dynamic>{
+      'encryptionScheme': encryptionScheme,
+      'encryptionEpoch': encryptionEpoch,
+      'encryptionHeader': encryptionHeader,
+      'encryptionSignature': encryptionSignature,
+      'kdf': 'none',
+    };
+    final headerBytes = Uint8List.fromList(utf8.encode(jsonEncode(header)));
+    final headerLengthBytes = ByteData(4)
+      ..setUint32(0, headerBytes.length, Endian.big);
+
+    final out = BytesBuilder(copy: false);
+    out.add(utf8.encode(_magic));
+    out.addByte(_version);
+    out.addByte(0); // salt length (raw-key mode)
+    out.add(nonce);
+    out.add(tag);
+    out.add(headerLengthBytes.buffer.asUint8List());
+    out.add(headerBytes);
+    out.add(ciphertext);
+    return out.toBytes();
+  }
+
+  static Uint8List decryptBytes({
+    required Uint8List encryptedPayload,
+    required String encryptKey,
+  }) {
+    final keyBytes = _decodeEncryptKey(encryptKey);
+    var offset = 0;
+
+    if (encryptedPayload.length < _magic.length + 1 + 1) {
+      throw const FormatException('Invalid encrypted payload length.');
+    }
+
+    final magic = utf8.decode(
+      encryptedPayload.sublist(0, _magic.length),
+      allowMalformed: false,
+    );
+    if (magic != _magic) {
+      throw const FormatException('Invalid encrypted payload magic.');
+    }
+    offset += _magic.length;
+
+    final version = encryptedPayload[offset];
+    offset += 1;
+    if (version != _version) {
+      throw FormatException('Unsupported encrypted payload version: $version');
+    }
+
+    final saltLength = encryptedPayload[offset];
+    offset += 1;
+    offset += saltLength;
+
+    if (encryptedPayload.length < offset + _nonceLength + _tagLength + 4) {
+      throw const FormatException('Invalid encrypted payload structure.');
+    }
+
+    final nonce = encryptedPayload.sublist(offset, offset + _nonceLength);
+    offset += _nonceLength;
+    final tag = encryptedPayload.sublist(offset, offset + _tagLength);
+    offset += _tagLength;
+
+    final headerLength = ByteData.sublistView(
+      encryptedPayload,
+      offset,
+      offset + 4,
+    ).getUint32(0, Endian.big);
+    offset += 4;
+
+    if (encryptedPayload.length < offset + headerLength) {
+      throw const FormatException('Invalid encrypted payload header length.');
+    }
+
+    // Header currently carries metadata only; decoded for validation/sanity.
+    final headerBytes = encryptedPayload.sublist(offset, offset + headerLength);
+    offset += headerLength;
+    if (headerBytes.isNotEmpty) {
+      final decoded = jsonDecode(utf8.decode(headerBytes));
+      if (decoded is! Map) {
+        throw const FormatException('Invalid encrypted payload header.');
+      }
+    }
+
+    final ciphertext = encryptedPayload.sublist(offset);
+    final cipherInput = Uint8List(ciphertext.length + tag.length)
+      ..setAll(0, ciphertext)
+      ..setAll(ciphertext.length, tag);
+
+    final cipher = pc.GCMBlockCipher(pc.AESEngine())
+      ..init(
+        false,
+        pc.AEADParameters(
+          pc.KeyParameter(keyBytes),
+          _tagLength * 8,
+          nonce,
+          Uint8List(0),
+        ),
+      );
+    return cipher.process(cipherInput);
+  }
+
+  static Uint8List _decodeEncryptKey(String raw) {
+    try {
+      final bytes = base64Decode(raw);
+      if (bytes.length != 32) {
+        throw const FormatException('encryptKey must decode to 32 bytes.');
+      }
+      return Uint8List.fromList(bytes);
+    } catch (err) {
+      throw FormatException('Invalid encryptKey base64: $err');
+    }
+  }
+}
 
 @Riverpod(keepAlive: true)
 FileUploader driveFileUploader(Ref ref) {
@@ -79,6 +276,11 @@ class FileUploader {
     String? poolId,
     String? bundleId,
     String? encryptPassword,
+    String? encryptKey,
+    String? encryptionScheme,
+    String? encryptionHeader,
+    String? encryptionSignature,
+    int? encryptionEpoch,
     String? expiredAt,
     int? chunkSize,
     String? path,
@@ -95,20 +297,32 @@ class FileUploader {
       throw ArgumentError('Invalid fileData type');
     }
 
+    final payload = <String, dynamic>{
+      'hash': hash,
+      'file_name': fileName,
+      'file_size': fileSize,
+      'content_type': contentType,
+      'pool_id': poolId,
+      'bundle_id': bundleId,
+      'expired_at': expiredAt,
+      'chunk_size': chunkSize,
+      'path': path,
+    };
+
+    if (encryptKey != null && encryptKey.isNotEmpty) {
+      payload['encrypt_key'] = encryptKey;
+      payload['encryption_scheme'] = encryptionScheme;
+      payload['encryption_header'] = encryptionHeader;
+      payload['encryption_signature'] = encryptionSignature;
+      payload['encryption_epoch'] = encryptionEpoch;
+    } else if (encryptPassword != null && encryptPassword.isNotEmpty) {
+      // Backward-compatible pass-through for non-E2EE code paths.
+      payload['encrypt_password'] = encryptPassword;
+    }
+
     final response = await _client.post(
       '/drive/files/upload/create',
-      data: {
-        'hash': hash,
-        'file_name': fileName,
-        'file_size': fileSize,
-        'content_type': contentType,
-        'pool_id': poolId,
-        'bundle_id': bundleId,
-        'encrypt_password': encryptPassword,
-        'expired_at': expiredAt,
-        'chunk_size': chunkSize,
-        'path': path,
-      },
+      data: payload,
     );
 
     return response.data;
@@ -161,15 +375,42 @@ class FileUploader {
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
+    dynamic uploadData = fileData;
+    String? encryptKey;
+    String? encryptionScheme;
+    int? encryptionEpoch;
+
+    if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
+      final plaintext = switch (fileData) {
+        XFile value => Uint8List.fromList(await value.readAsBytes()),
+        Uint8List value => value,
+        _ => throw ArgumentError(
+            'Encrypted upload only supports XFile/Uint8List input.',
+          ),
+      };
+      encryptKey = encryptPassword.trim();
+      encryptionScheme = DriveE2eeFileEnvelope.scheme;
+      encryptionEpoch = DriveE2eeFileEnvelope.epoch;
+      uploadData = DriveE2eeFileEnvelope.encryptBytes(
+        plaintext: plaintext,
+        encryptKey: encryptKey,
+        encryptionScheme: encryptionScheme,
+        encryptionEpoch: encryptionEpoch,
+      );
+    }
+
     // Step 1: Create upload task
     onProgress?.call(null, Duration.zero);
     final createResponse = await createUploadTask(
-      fileData: fileData,
+      fileData: uploadData,
       fileName: fileName,
       contentType: contentType,
       poolId: poolId,
       bundleId: bundleId,
       encryptPassword: encryptPassword,
+      encryptKey: encryptKey,
+      encryptionScheme: encryptionScheme,
+      encryptionEpoch: encryptionEpoch,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
       path: path,
@@ -183,10 +424,10 @@ class FileUploader {
     final taskId = createResponse['task_id'] as String;
     final chunkSize = createResponse['chunk_size'] as int;
     int totalSize;
-    if (fileData is XFile) {
-      totalSize = await fileData.length();
-    } else if (fileData is Uint8List) {
-      totalSize = fileData.length;
+    if (uploadData is XFile) {
+      totalSize = await uploadData.length();
+    } else if (uploadData is Uint8List) {
+      totalSize = uploadData.length;
     } else {
       throw ArgumentError('Invalid fileData type');
     }
@@ -194,10 +435,10 @@ class FileUploader {
     // Step 2: Upload chunks
     int bytesUploaded = 0;
     int chunkIndex = 0;
-    if (fileData is XFile) {
+    if (uploadData is XFile) {
       // Stream chunks from XFile - memory efficient for large files
       await for (final chunk in _readChunksFromStream(
-        fileData.openRead(),
+        uploadData.openRead(),
         chunkSize,
       )) {
         await uploadChunk(
@@ -212,14 +453,14 @@ class FileUploader {
         bytesUploaded += chunk.length;
         chunkIndex++;
       }
-    } else if (fileData is Uint8List) {
+    } else if (uploadData is Uint8List) {
       // For Uint8List, we can use the simple chunked approach
       // since the data is already in memory
-      for (int i = 0; i < fileData.length; i += chunkSize) {
-        final end = i + chunkSize > fileData.length
-            ? fileData.length
+      for (int i = 0; i < uploadData.length; i += chunkSize) {
+        final end = i + chunkSize > uploadData.length
+            ? uploadData.length
             : i + chunkSize;
-        final chunk = Uint8List.fromList(fileData.sublist(i, end));
+        final chunk = Uint8List.fromList(uploadData.sublist(i, end));
         await uploadChunk(
           taskId: taskId,
           chunkIndex: chunkIndex,
@@ -447,6 +688,21 @@ class FileDownloadService {
     return item.name.isEmpty ? '${item.id}.$extName' : item.name;
   }
 
+  Future<void> _tryDecryptDownloadedFile(String filePath, SnCloudFile item) async {
+    if (!DriveE2eeFileEnvelope.isEncryptedFile(item)) return;
+    final key = DriveE2eeFileEnvelope.extractEncryptionKey(item);
+    if (key == null || key.isEmpty) {
+      showSnackBar('Downloaded encrypted file (missing decrypt key).');
+      return;
+    }
+    final encryptedBytes = await File(filePath).readAsBytes();
+    final plaintext = DriveE2eeFileEnvelope.decryptBytes(
+      encryptedPayload: encryptedBytes,
+      encryptKey: key,
+    );
+    await File(filePath).writeAsBytes(plaintext, flush: true);
+  }
+
   Future<String> _downloadToTemp(SnCloudFile item, String extName) async {
     final client = ref.read(apiClientProvider);
     final tempDir = await getTemporaryDirectory();
@@ -457,6 +713,7 @@ class FileDownloadService {
       filePath,
       queryParameters: {'original': true},
     );
+    await _tryDecryptDownloadedFile(filePath, item);
 
     return filePath;
   }
@@ -527,6 +784,7 @@ class FileDownloadService {
           }
         },
       );
+      await _tryDecryptDownloadedFile(filePath, item);
 
       await FileSaver.instance.saveFile(
         name: _getFileName(item, extName),
