@@ -22,10 +22,10 @@ KeyEventResult _preserveComposeFieldFocus(FocusNode node, KeyEvent event) {
       HardwareKeyboard.instance.isAltPressed;
   final isArrowDownEvent = event is KeyDownEvent || event is KeyRepeatEvent;
 
-  // Prevent focus traversal from stealing focus when arrow keys bubble up
-  // from multiline compose fields (e.g. with TypeAhead wrappers).
+  // Do not consume plain arrow keys. They are required for caret movement in
+  // text fields and TypeAhead-backed editors.
   if (isArrowDownEvent && isArrowKey && !hasModifier) {
-    return KeyEventResult.handled;
+    return KeyEventResult.ignored;
   }
   return KeyEventResult.ignored;
 }
