@@ -8,6 +8,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -23,11 +24,13 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'drive_service.g.dart';
 
+const String driveFileKeySecretPrefix = 'drive_e2ee_file_key_';
+
 class DriveE2eeFileEnvelope {
   static const String scheme = 'file.aesgcm.v1';
-  static const int epoch = 1;
   static const String _magic = 'DYE2EE1\x00';
   static const int _version = 1;
+  static const int _saltLength = 16;
   static const int _nonceLength = 12;
   static const int _tagLength = 16;
 
@@ -77,14 +80,33 @@ class DriveE2eeFileEnvelope {
     required String encryptKey,
     String? encryptionHeader,
     String? encryptionSignature,
-    int encryptionEpoch = epoch,
     String encryptionScheme = scheme,
   }) {
-    final keyBytes = _decodeEncryptKey(encryptKey);
+    final ikm = _decodeEncryptKey(encryptKey);
     final random = Random.secure();
+    final salt = Uint8List.fromList(
+      List<int>.generate(_saltLength, (_) => random.nextInt(256)),
+    );
     final nonce = Uint8List.fromList(
       List<int>.generate(_nonceLength, (_) => random.nextInt(256)),
     );
+    final keyBytes = _hkdfSha256(ikm: ikm, salt: salt, outputLength: 32);
+
+    if (encryptionHeader != null && !_isValidBase64(encryptionHeader)) {
+      throw const FormatException('encryptionHeader must be valid base64.');
+    }
+    if (encryptionSignature != null && !_isValidBase64(encryptionSignature)) {
+      throw const FormatException('encryptionSignature must be valid base64.');
+    }
+
+    final aadHeader = <String, dynamic>{
+      'encryptionScheme': encryptionScheme,
+      'encryptionHeader': encryptionHeader,
+      'encryptionSignature': encryptionSignature,
+      'kdf': 'hkdf-sha256',
+    };
+    final aadBytes = Uint8List.fromList(utf8.encode(jsonEncode(aadHeader)));
+
     final cipher = pc.GCMBlockCipher(pc.AESEngine())
       ..init(
         true,
@@ -92,7 +114,7 @@ class DriveE2eeFileEnvelope {
           pc.KeyParameter(keyBytes),
           _tagLength * 8,
           nonce,
-          Uint8List(0),
+          aadBytes,
         ),
       );
     final encrypted = cipher.process(plaintext);
@@ -102,26 +124,18 @@ class DriveE2eeFileEnvelope {
     final ciphertext = encrypted.sublist(0, encrypted.length - _tagLength);
     final tag = encrypted.sublist(encrypted.length - _tagLength);
 
-    final header = <String, dynamic>{
-      'encryptionScheme': encryptionScheme,
-      'encryptionEpoch': encryptionEpoch,
-      'encryptionHeader': encryptionHeader,
-      'encryptionSignature': encryptionSignature,
-      'kdf': 'none',
-    };
-    final headerBytes = Uint8List.fromList(utf8.encode(jsonEncode(header)));
-    final headerLengthBytes = ByteData(4)
-      ..setUint32(0, headerBytes.length, Endian.big);
+    final headerLengthBytes = ByteData(4)..setUint32(0, aadBytes.length, Endian.big);
 
     final out = BytesBuilder(copy: false);
     out.add(utf8.encode(_magic));
     out.addByte(_version);
-    out.addByte(0); // salt length (raw-key mode)
+    out.addByte(salt.length);
+    out.add(salt);
     out.add(nonce);
-    out.add(tag);
     out.add(headerLengthBytes.buffer.asUint8List());
-    out.add(headerBytes);
+    out.add(aadBytes);
     out.add(ciphertext);
+    out.add(tag);
     return out.toBytes();
   }
 
@@ -129,7 +143,25 @@ class DriveE2eeFileEnvelope {
     required Uint8List encryptedPayload,
     required String encryptKey,
   }) {
-    final keyBytes = _decodeEncryptKey(encryptKey);
+    try {
+      return _decryptBytesV2(
+        encryptedPayload: encryptedPayload,
+        encryptKey: encryptKey,
+      );
+    } catch (_) {
+      // Backward compatibility for early client envelope layout.
+      return _decryptBytesLegacyV1(
+        encryptedPayload: encryptedPayload,
+        encryptKey: encryptKey,
+      );
+    }
+  }
+
+  static Uint8List _decryptBytesV2({
+    required Uint8List encryptedPayload,
+    required String encryptKey,
+  }) {
+    final ikm = _decodeEncryptKey(encryptKey);
     var offset = 0;
 
     if (encryptedPayload.length < _magic.length + 1 + 1) {
@@ -153,16 +185,14 @@ class DriveE2eeFileEnvelope {
 
     final saltLength = encryptedPayload[offset];
     offset += 1;
-    offset += saltLength;
-
-    if (encryptedPayload.length < offset + _nonceLength + _tagLength + 4) {
+    if (encryptedPayload.length < offset + saltLength + _nonceLength + 4 + _tagLength) {
       throw const FormatException('Invalid encrypted payload structure.');
     }
+    final salt = encryptedPayload.sublist(offset, offset + saltLength);
+    offset += saltLength;
 
     final nonce = encryptedPayload.sublist(offset, offset + _nonceLength);
     offset += _nonceLength;
-    final tag = encryptedPayload.sublist(offset, offset + _tagLength);
-    offset += _tagLength;
 
     final headerLength = ByteData.sublistView(
       encryptedPayload,
@@ -185,6 +215,79 @@ class DriveE2eeFileEnvelope {
       }
     }
 
+    if (encryptedPayload.length < offset + _tagLength) {
+      throw const FormatException('Invalid encrypted payload ciphertext.');
+    }
+    final ciphertext = encryptedPayload.sublist(
+      offset,
+      encryptedPayload.length - _tagLength,
+    );
+    final tag = encryptedPayload.sublist(
+      encryptedPayload.length - _tagLength,
+    );
+    final cipherInput = Uint8List(ciphertext.length + tag.length)
+      ..setAll(0, ciphertext)
+      ..setAll(ciphertext.length, tag);
+    final keyBytes = _hkdfSha256(ikm: ikm, salt: salt, outputLength: 32);
+
+    final cipher = pc.GCMBlockCipher(pc.AESEngine())
+      ..init(
+        false,
+        pc.AEADParameters(
+          pc.KeyParameter(keyBytes),
+          _tagLength * 8,
+          nonce,
+          headerBytes,
+        ),
+      );
+    return cipher.process(cipherInput);
+  }
+
+  static Uint8List _decryptBytesLegacyV1({
+    required Uint8List encryptedPayload,
+    required String encryptKey,
+  }) {
+    final keyBytes = _decodeEncryptKey(encryptKey);
+    var offset = 0;
+
+    if (encryptedPayload.length < _magic.length + 1 + 1) {
+      throw const FormatException('Invalid encrypted payload length.');
+    }
+    final magic = utf8.decode(encryptedPayload.sublist(0, _magic.length));
+    if (magic != _magic) {
+      throw const FormatException('Invalid encrypted payload magic.');
+    }
+    offset += _magic.length;
+
+    final version = encryptedPayload[offset];
+    offset += 1;
+    if (version != _version) {
+      throw FormatException('Unsupported encrypted payload version: $version');
+    }
+
+    final saltLength = encryptedPayload[offset];
+    offset += 1;
+    offset += saltLength;
+
+    if (encryptedPayload.length < offset + _nonceLength + _tagLength + 4) {
+      throw const FormatException('Invalid legacy encrypted payload structure.');
+    }
+
+    final nonce = encryptedPayload.sublist(offset, offset + _nonceLength);
+    offset += _nonceLength;
+    final tag = encryptedPayload.sublist(offset, offset + _tagLength);
+    offset += _tagLength;
+
+    final headerLength = ByteData.sublistView(
+      encryptedPayload,
+      offset,
+      offset + 4,
+    ).getUint32(0, Endian.big);
+    offset += 4 + headerLength;
+    if (encryptedPayload.length < offset) {
+      throw const FormatException('Invalid legacy encrypted payload header.');
+    }
+
     final ciphertext = encryptedPayload.sublist(offset);
     final cipherInput = Uint8List(ciphertext.length + tag.length)
       ..setAll(0, ciphertext)
@@ -203,6 +306,25 @@ class DriveE2eeFileEnvelope {
     return cipher.process(cipherInput);
   }
 
+  static Uint8List _hkdfSha256({
+    required Uint8List ikm,
+    required Uint8List salt,
+    required int outputLength,
+  }) {
+    final hmac = Hmac(sha256, salt);
+    final prk = hmac.convert(ikm).bytes;
+    final blocks = <int>[];
+    var previous = <int>[];
+    var counter = 1;
+    while (blocks.length < outputLength) {
+      final input = <int>[...previous, counter];
+      previous = Hmac(sha256, prk).convert(input).bytes;
+      blocks.addAll(previous);
+      counter += 1;
+    }
+    return Uint8List.fromList(blocks.sublist(0, outputLength));
+  }
+
   static Uint8List _decodeEncryptKey(String raw) {
     try {
       final bytes = base64Decode(raw);
@@ -212,6 +334,15 @@ class DriveE2eeFileEnvelope {
       return Uint8List.fromList(bytes);
     } catch (err) {
       throw FormatException('Invalid encryptKey base64: $err');
+    }
+  }
+
+  static bool _isValidBase64(String value) {
+    try {
+      base64Decode(value);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }
@@ -276,11 +407,9 @@ class FileUploader {
     String? poolId,
     String? bundleId,
     String? encryptPassword,
-    String? encryptKey,
     String? encryptionScheme,
     String? encryptionHeader,
     String? encryptionSignature,
-    int? encryptionEpoch,
     String? expiredAt,
     int? chunkSize,
     String? path,
@@ -297,6 +426,21 @@ class FileUploader {
       throw ArgumentError('Invalid fileData type');
     }
 
+    if (encryptionScheme != null &&
+        encryptionScheme.isNotEmpty &&
+        (encryptionHeader == null || encryptionHeader.isEmpty)) {
+      throw const FormatException(
+        'encryption_header is required when encryption_scheme is set.',
+      );
+    }
+    if (encryptionHeader != null && !DriveE2eeFileEnvelope._isValidBase64(encryptionHeader)) {
+      throw const FormatException('encryption_header must be valid base64.');
+    }
+    if (encryptionSignature != null &&
+        !DriveE2eeFileEnvelope._isValidBase64(encryptionSignature)) {
+      throw const FormatException('encryption_signature must be valid base64.');
+    }
+
     final payload = <String, dynamic>{
       'hash': hash,
       'file_name': fileName,
@@ -309,15 +453,10 @@ class FileUploader {
       'path': path,
     };
 
-    if (encryptKey != null && encryptKey.isNotEmpty) {
-      payload['encrypt_key'] = encryptKey;
+    if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
       payload['encryption_scheme'] = encryptionScheme;
       payload['encryption_header'] = encryptionHeader;
       payload['encryption_signature'] = encryptionSignature;
-      payload['encryption_epoch'] = encryptionEpoch;
-    } else if (encryptPassword != null && encryptPassword.isNotEmpty) {
-      // Backward-compatible pass-through for non-E2EE code paths.
-      payload['encrypt_password'] = encryptPassword;
     }
 
     final response = await _client.post(
@@ -376,9 +515,10 @@ class FileUploader {
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     dynamic uploadData = fileData;
-    String? encryptKey;
     String? encryptionScheme;
-    int? encryptionEpoch;
+    String? encryptionHeader;
+    String? encryptionSignature;
+    String? localEncryptKey;
 
     if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
       final plaintext = switch (fileData) {
@@ -388,14 +528,16 @@ class FileUploader {
             'Encrypted upload only supports XFile/Uint8List input.',
           ),
       };
-      encryptKey = encryptPassword.trim();
+      localEncryptKey = encryptPassword.trim();
       encryptionScheme = DriveE2eeFileEnvelope.scheme;
-      encryptionEpoch = DriveE2eeFileEnvelope.epoch;
+      final headerJson = jsonEncode({'v': 1, 'kdf': 'hkdf-sha256'});
+      encryptionHeader = base64Encode(utf8.encode(headerJson));
       uploadData = DriveE2eeFileEnvelope.encryptBytes(
         plaintext: plaintext,
-        encryptKey: encryptKey,
+        encryptKey: localEncryptKey,
+        encryptionHeader: encryptionHeader,
+        encryptionSignature: encryptionSignature,
         encryptionScheme: encryptionScheme,
-        encryptionEpoch: encryptionEpoch,
       );
     }
 
@@ -408,9 +550,9 @@ class FileUploader {
       poolId: poolId,
       bundleId: bundleId,
       encryptPassword: encryptPassword,
-      encryptKey: encryptKey,
       encryptionScheme: encryptionScheme,
-      encryptionEpoch: encryptionEpoch,
+      encryptionHeader: encryptionHeader,
+      encryptionSignature: encryptionSignature,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
       path: path,
@@ -479,7 +621,18 @@ class FileUploader {
 
     // Step 3: Complete upload
     onProgress?.call(null, Duration.zero);
-    return await completeUpload(taskId);
+    final uploaded = await completeUpload(taskId);
+    if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
+      await _storeFileEncryptKey(uploaded.id, localEncryptKey);
+    }
+    return uploaded;
+  }
+
+  Future<void> _storeFileEncryptKey(String fileId, String key) async {
+    try {
+      final db = ref.read(databaseProvider);
+      await db.setSecret('$driveFileKeySecretPrefix$fileId', key);
+    } catch (_) {}
   }
 
   Completer<SnCloudFile?> createCloudFile({
@@ -711,7 +864,9 @@ class FileDownloadService {
 
   Future<void> _tryDecryptDownloadedFile(String filePath, SnCloudFile item) async {
     if (!DriveE2eeFileEnvelope.isEncryptedFile(item)) return;
-    final key = DriveE2eeFileEnvelope.extractEncryptionKey(item);
+    final key =
+        await _getStoredFileEncryptKey(item.id) ??
+        DriveE2eeFileEnvelope.extractEncryptionKey(item);
     if (key == null || key.isEmpty) {
       showSnackBar('Downloaded encrypted file (missing decrypt key).');
       return;
@@ -722,6 +877,15 @@ class FileDownloadService {
       encryptKey: key,
     );
     await File(filePath).writeAsBytes(plaintext, flush: true);
+  }
+
+  Future<String?> _getStoredFileEncryptKey(String fileId) async {
+    try {
+      final db = ref.read(databaseProvider);
+      return await db.getSecret('$driveFileKeySecretPrefix$fileId');
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String> _downloadToTemp(SnCloudFile item, String extName) async {

@@ -132,7 +132,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final wsState = ref.read(websocketStateProvider.notifier);
     final packet = WebSocketPacket(
       type: 'messages.send',
-      endpoint: 'DysonNetwork.Messager',
+      endpoint: 'messager',
       data: {
         'chat_room_id': targetRoomId,
         ...payload,

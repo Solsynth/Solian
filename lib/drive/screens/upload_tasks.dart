@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/talker.dart';
@@ -397,25 +399,55 @@ class EnhancedFileUploader extends FileUploader {
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
+    dynamic uploadData = fileData;
+    String? encryptionScheme;
+    String? encryptionHeader;
+    String? encryptionSignature;
+    String? localEncryptKey;
+
+    if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
+      final plaintext = switch (fileData) {
+        XFile value => Uint8List.fromList(await value.readAsBytes()),
+        Uint8List value => value,
+        _ => throw ArgumentError(
+            'Encrypted upload only supports XFile/Uint8List input.',
+          ),
+      };
+      localEncryptKey = encryptPassword.trim();
+      encryptionScheme = DriveE2eeFileEnvelope.scheme;
+      final headerJson = '{"v":1,"kdf":"hkdf-sha256"}';
+      encryptionHeader = base64Encode(utf8.encode(headerJson));
+      uploadData = DriveE2eeFileEnvelope.encryptBytes(
+        plaintext: plaintext,
+        encryptKey: localEncryptKey,
+        encryptionHeader: encryptionHeader,
+        encryptionSignature: encryptionSignature,
+        encryptionScheme: encryptionScheme,
+      );
+    }
+
     // Step 1: Create upload task
     onProgress?.call(null, Duration.zero);
     final createResponse = await createUploadTask(
-      fileData: fileData,
+      fileData: uploadData,
       fileName: fileName,
       contentType: contentType,
       poolId: poolId,
       bundleId: bundleId,
       encryptPassword: encryptPassword,
+      encryptionScheme: encryptionScheme,
+      encryptionHeader: encryptionHeader,
+      encryptionSignature: encryptionSignature,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
       path: path,
     );
 
     int totalSize;
-    if (fileData is XFile) {
-      totalSize = await fileData.length();
-    } else if (fileData is Uint8List) {
-      totalSize = fileData.length;
+    if (uploadData is XFile) {
+      totalSize = await uploadData.length();
+    } else if (uploadData is Uint8List) {
+      totalSize = uploadData.length;
     } else {
       throw ArgumentError('Invalid fileData type');
     }
@@ -477,9 +509,9 @@ class EnhancedFileUploader extends FileUploader {
     // Step 2: Upload chunks
     int bytesUploaded = 0;
     int chunksUploaded = 0;
-    if (fileData is XFile) {
+    if (uploadData is XFile) {
       // Use stream for XFile
-      final subscription = fileData.openRead().listen(null);
+      final subscription = uploadData.openRead().listen(null);
       subscription.pause();
       for (int i = 0; i < chunksCount; i++) {
         subscription.resume();
@@ -508,14 +540,14 @@ class EnhancedFileUploader extends FileUploader {
             .updateUploadProgress(taskId, bytesUploaded, chunksUploaded);
       }
       subscription.cancel();
-    } else if (fileData is Uint8List) {
+    } else if (uploadData is Uint8List) {
       // Use old way for Uint8List
       final chunks = <Uint8List>[];
-      for (int i = 0; i < fileData.length; i += chunkSize) {
-        final end = i + chunkSize > fileData.length
-            ? fileData.length
+      for (int i = 0; i < uploadData.length; i += chunkSize) {
+        final end = i + chunkSize > uploadData.length
+            ? uploadData.length
             : i + chunkSize;
-        chunks.add(Uint8List.fromList(fileData.sublist(i, end)));
+        chunks.add(Uint8List.fromList(uploadData.sublist(i, end)));
       }
 
       // Upload each chunk
@@ -546,6 +578,16 @@ class EnhancedFileUploader extends FileUploader {
 
     // Step 3: Complete upload
     onProgress?.call(null, Duration.zero);
-    return await completeUpload(taskId);
+    final uploaded = await completeUpload(taskId);
+    if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
+      try {
+        final db = ref.read(databaseProvider);
+        await db.setSecret(
+          '$driveFileKeySecretPrefix${uploaded.id}',
+          localEncryptKey,
+        );
+      } catch (_) {}
+    }
+    return uploaded;
   }
 }
