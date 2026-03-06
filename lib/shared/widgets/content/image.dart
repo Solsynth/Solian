@@ -43,7 +43,7 @@ class UniversalImage extends HookConsumerWidget {
 
     final Map<String, String>? httpHeaders =
         uri.startsWith(serverUrl) && token != null
-        ? {'Authorization': 'AtField ${token.token}'}
+        ? {'Authorization': 'Bearer ${token.token}'}
         : null;
 
     useEffect(() {

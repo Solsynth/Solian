@@ -140,7 +140,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/pass/accounts/validate',
+          '/padlock/accounts/validate',
           data: {
             'email': email,
             if (affiliationSpellController.text.isNotEmpty)
@@ -390,7 +390,10 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
       isBusy.value = true;
       try {
         final client = ref.watch(apiClientProvider);
-        await client.post('/pass/accounts/validate', data: {'name': username});
+        await client.post(
+          '/padlock/accounts/validate',
+          data: {'name': username},
+        );
         onNext();
       } catch (err) {
         showErrorAlert(err);
@@ -648,12 +651,12 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     Future<void> performAction() async {
-      String endpoint = '/pass/accounts';
+      String endpoint = '/padlock/accounts';
       Map<String, dynamic> data = {};
 
       if (onboardingToken != null) {
         // OIDC onboarding
-        endpoint = '/pass/account/onboard';
+        endpoint = '/padlock/account/onboard';
         data['onboarding_token'] = onboardingToken;
         data['name'] = usernameController.text;
         data['nick'] = nicknameController.text;
@@ -684,7 +687,7 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(endpoint, data: data);
-        if (endpoint == '/pass/account/onboard') {
+        if (endpoint == '/padlock/account/onboard') {
           // Onboard response has tokens, set them
           final token = resp.data['token'];
           setToken(ref.watch(sharedPreferencesProvider), token);
@@ -796,7 +799,7 @@ class CreateAccountContent extends HookConsumerWidget {
         try {
           // Exchange code for tokens
           final resp = await client.post(
-            '/pass/auth/token',
+            '/padlock/auth/token',
             data: {
               'grant_type': 'authorization_code',
               'code': event.challengeId,
@@ -835,7 +838,7 @@ class CreateAccountContent extends HookConsumerWidget {
       final serverUrl = ref.watch(serverUrlProvider);
       final deviceId = await getUdid();
       final url =
-          Uri.parse('$serverUrl/pass/auth/login/${provider.toLowerCase()}')
+          Uri.parse('$serverUrl/padlock/auth/login/${provider.toLowerCase()}')
               .replace(
                 queryParameters: {
                   'returnUrl': 'solian://auth/callback',

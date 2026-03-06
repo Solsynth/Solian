@@ -105,7 +105,7 @@ class WebAuthServer {
 
   Future<void> _handleMe(HttpRequest request) async {
     final authHeader = request.headers.value('authorization');
-    if (authHeader == null || !authHeader.startsWith('AtField ')) {
+    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
       request.response.statusCode = HttpStatus.unauthorized;
       request.response.write(
         jsonEncode({'error': 'Missing or invalid Authorization header'}),
@@ -120,7 +120,7 @@ class WebAuthServer {
       final dio = _ref.read(apiClientProvider);
       final response = await dio.get(
         '/pass/accounts/me',
-        options: Options(headers: {'Authorization': 'AtField $token'}),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -221,7 +221,7 @@ class WebAuthServer {
       final dio = _ref.read(apiClientProvider);
 
       final response = await dio.post(
-        '/pass/auth/login/session',
+        '/padlock/auth/login/session',
         data: {
           'device_id': await getUdid(),
           'device_name': await getDeviceName(),

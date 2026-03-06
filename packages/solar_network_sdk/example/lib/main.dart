@@ -144,7 +144,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await http.get(
         Uri.parse('https://api.solian.app/pass/accounts/me'),
-        headers: {'Authorization': 'AtField $_token'},
+        headers: {'Authorization': 'Bearer $_token'},
       );
 
       if (response.statusCode == 200) {

@@ -34,7 +34,7 @@ class ImageLoader: ObservableObject {
         // Create request modifier for authorization
         let modifier = AnyModifier { request in
             var r = request
-            r.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+            r.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             r.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
             return r
         }

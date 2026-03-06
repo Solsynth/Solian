@@ -90,7 +90,7 @@ class FileItem extends HookConsumerWidget {
               imageProvider: CachedNetworkImageProvider(
                 imageUrl,
                 headers: token != null
-                    ? {'Authorization': 'AtField $token'}
+                    ? {'Authorization': 'Bearer $token'}
                     : null,
               ),
               heroAttributes: PhotoViewHeroAttributes(tag: file.relativePath),

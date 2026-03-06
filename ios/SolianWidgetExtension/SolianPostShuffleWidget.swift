@@ -126,7 +126,7 @@ class PostShuffleService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 10.0
         

@@ -188,7 +188,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
             if (context.mounted) showLoadingModal(context);
 
             await client.post(
-              '/pass/auth/connect/apple/mobile',
+              '/padlock/auth/connect/apple/mobile',
               data: {
                 'identity_token': credential.identityToken!,
                 'authorization_code': credential.authorizationCode,
@@ -208,7 +208,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           final serverUrl = ref.watch(serverUrlProvider);
           final accessToken = ref.watch(tokenProvider);
           launchUrlString(
-            '$serverUrl/pass/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
+            '$serverUrl/padlock/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
           );
           if (context.mounted) Navigator.pop(context, true);
           break;

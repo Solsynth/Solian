@@ -212,7 +212,7 @@ export class WebAuthClient {
     try {
       const response = await fetch(url, {
         headers: {
-          'Authorization': `AtField ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
 

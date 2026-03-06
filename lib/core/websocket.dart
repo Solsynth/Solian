@@ -76,7 +76,7 @@ class WebSocketService {
       } else {
         _channel = IOWebSocketChannel.connect(
           Uri.parse(url),
-          headers: {'Authorization': 'AtField $token'},
+          headers: {'Authorization': 'Bearer $token'},
         );
       }
       await _channel!.ready;

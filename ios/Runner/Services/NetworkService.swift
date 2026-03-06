@@ -33,7 +33,7 @@ final class NetworkService {
             "Content-Type": "application/json"
         ]
         if let token = UserDefaults.shared.getAuthToken() {
-            headers["Authorization"] = "AtField \(token)"
+            headers["Authorization"] = "Bearer \(token)"
         }
         return headers
     }

@@ -268,7 +268,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final token = ref.read(tokenProvider);
     final headers = token == null
         ? null
-        : <String, String>{'Authorization': 'AtField ${token.token}'};
+        : <String, String>{'Authorization': 'Bearer ${token.token}'};
 
     final cache = DefaultCacheManager();
     try {

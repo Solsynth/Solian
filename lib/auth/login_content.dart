@@ -81,7 +81,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
       // Get token if challenge is completed
       final client = ref.watch(apiClientProvider);
       final tokenResp = await client.post(
-        '/pass/auth/token',
+        '/padlock/auth/token',
         data: {
           'grant_type': 'authorization_code',
           'code': code ?? challenge!.id,
@@ -140,7 +140,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
         // Pass challenge
         final client = ref.watch(apiClientProvider);
         final resp = await client.patch(
-          '/pass/auth/challenge/${challenge!.id}',
+          '/padlock/auth/challenge/${challenge!.id}',
           data: {'factor_id': factor!.id, 'password': pwd},
         );
         final result = SnAuthChallenge.fromJson(resp.data);
@@ -382,7 +382,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
 
       try {
         await client.post(
-          '/pass/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
+          '/padlock/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
         );
         onPickFactor(factors!.where((x) => x == factorPicked.value).first);
         onNext();
@@ -507,12 +507,12 @@ class _LoginLookupScreen extends HookConsumerWidget {
         final client = ref.watch(apiClientProvider);
         try {
           final resp = await client.get(
-            '/pass/auth/challenge/${event.challengeId}',
+            '/padlock/auth/challenge/${event.challengeId}',
           );
           final challenge = SnAuthChallenge.fromJson(resp.data);
           onChallenge(challenge);
           final factorResp = await client.get(
-            '/pass/auth/challenge/${challenge.id}/factors',
+            '/padlock/auth/challenge/${challenge.id}/factors',
           );
           onFactor(
             List<SnAuthFactor>.from(
@@ -557,7 +557,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(
-          '/pass/auth/challenge',
+          '/padlock/auth/challenge',
           data: {
             'account': uname,
             'device_id': await getUdid(),
@@ -577,7 +577,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         final result = SnAuthChallenge.fromJson(resp.data);
         onChallenge(result);
         final factorResp = await client.get(
-          '/pass/auth/challenge/${result.id}/factors',
+          '/padlock/auth/challenge/${result.id}/factors',
         );
         onFactor(
           List<SnAuthFactor>.from(
@@ -606,7 +606,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
 
         if (context.mounted) showLoadingModal(context);
         final resp = await client.post(
-          '/pass/auth/login/apple/mobile',
+          '/padlock/auth/login/apple/mobile',
           data: {
             'identity_token': credential.identityToken!,
             'authorization_code': credential.authorizationCode,
@@ -644,7 +644,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         queryParams['token'] = token!.token;
       }
       final url = Uri.parse(
-        '$serverUrl/pass/auth/login/${provider.toLowerCase()}',
+        '$serverUrl/padlock/auth/login/${provider.toLowerCase()}',
       ).replace(queryParameters: queryParams).toString();
       final isLaunched = await launchUrlString(
         url,

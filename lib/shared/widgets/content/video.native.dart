@@ -36,10 +36,13 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
     final token = ref.read(tokenProvider);
     final Map<String, String>? httpHeaders =
         widget.uri.startsWith(serverUrl) && token != null
-        ? {'Authorization': 'AtField ${token.token}'}
+        ? {'Authorization': 'Bearer ${token.token}'}
         : null;
 
-    _player!.open(Media(widget.uri, httpHeaders: httpHeaders), play: widget.autoplay);
+    _player!.open(
+      Media(widget.uri, httpHeaders: httpHeaders),
+      play: widget.autoplay,
+    );
   }
 
   @override
@@ -64,10 +67,9 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
       controller: _videoController!,
       aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       fit: BoxFit.contain,
-      controls:
-          !kIsWeb && (Platform.isAndroid || Platform.isIOS)
-              ? MaterialVideoControls
-              : MaterialDesktopVideoControls,
+      controls: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
+          ? MaterialVideoControls
+          : MaterialDesktopVideoControls,
     );
   }
 }

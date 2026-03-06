@@ -118,7 +118,7 @@ final apiClientProvider = Provider<Dio>((ref) {
             try {
               final token = await getToken(ref.watch(tokenProvider));
               if (token != null) {
-                options.headers['Authorization'] = 'AtField $token';
+                options.headers['Authorization'] = 'Bearer $token';
               }
             } catch (err) {
               // ignore

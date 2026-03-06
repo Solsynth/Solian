@@ -90,7 +90,7 @@ class WidgetNetworkService {
         
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
         for (key, value) in headers {

@@ -430,7 +430,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
       try {
         final headers = token == null
             ? null
-            : {'Authorization': 'AtField ${token.token}'};
+            : {'Authorization': 'Bearer ${token.token}'};
         final cachedFile = await DefaultCacheManager().getFileFromCache(
           mediaUrl,
         );
@@ -467,7 +467,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
         }
         final headers = token == null
             ? null
-            : {'Authorization': 'AtField ${token.token}'};
+            : {'Authorization': 'Bearer ${token.token}'};
         try {
           final downloaded = await DefaultCacheManager().downloadFile(
             mediaUrl,

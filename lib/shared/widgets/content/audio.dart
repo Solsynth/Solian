@@ -61,7 +61,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       final serverUrl = ref.read(serverUrlProvider);
       final token = ref.read(tokenProvider);
       final authHeaders = url.startsWith(serverUrl) && token != null
-          ? {'Authorization': 'AtField ${token.token}'}
+          ? {'Authorization': 'Bearer ${token.token}'}
           : null;
       DefaultCacheManager().downloadFile(url, authHeaders: authHeaders);
       uri = url;
@@ -74,7 +74,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
     final token = ref.read(tokenProvider);
     final Map<String, String>? httpHeaders =
         uri.startsWith(serverUrl) && token != null
-        ? {'Authorization': 'AtField ${token.token}'}
+        ? {'Authorization': 'Bearer ${token.token}'}
         : null;
 
     _player!.open(Media(uri, httpHeaders: httpHeaders), play: widget.autoplay);

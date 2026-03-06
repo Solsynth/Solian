@@ -80,11 +80,11 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                   ),
                   initialUrlRequest: URLRequest(
                     url: WebUri(
-                      '$serverUrl/pass/auth/login/${widget.provider}',
+                      '$serverUrl/padlock/auth/login/${widget.provider}',
                     ),
                     headers: {
                       if (token?.token.isNotEmpty ?? false)
-                        'Authorization': 'AtField ${token!.token}',
+                        'Authorization': 'Bearer ${token!.token}',
                       'X-Device-Id': deviceId,
                     },
                   ),

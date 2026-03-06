@@ -42,7 +42,7 @@ class NotifyDelegate: UIResponder, UNUserNotificationCenterDelegate {
         ]
         
         AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: HTTPHeaders(
-            [HTTPHeader(name: "Authorization", value: "AtField \(token)")]
+            [HTTPHeader(name: "Authorization", value: "Bearer \(token)")]
         ))
             .validate()
             .responseString { response in
