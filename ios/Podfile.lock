@@ -223,7 +223,7 @@ PODS:
     - Flutter
     - FlutterMacOS
   - KeychainAccess (4.2.2)
-  - Kingfisher (8.6.2)
+  - Kingfisher (8.8.0)
   - KingfisherWebP (1.7.2):
     - Kingfisher (~> 8.0)
     - libwebp (>= 1.1.0)
@@ -281,9 +281,9 @@ PODS:
     - Flutter
   - record_ios (1.2.0):
     - Flutter
-  - SDWebImage (5.21.6):
-    - SDWebImage/Core (= 5.21.6)
-  - SDWebImage/Core (5.21.6)
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
   - sensors_plus (0.0.1):
     - Flutter
   - share_plus (0.0.1):
@@ -540,7 +540,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
   KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
-  Kingfisher: 23d18f54677d973b713e54ce6a8f5eef6e7056ba
+  Kingfisher: beeaf65ed57dfa710d416aea4093277e8a9b1968
   KingfisherWebP: 38b9721821947f547afb78f933f75f4f9e0ae402
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: 53ca658779b78710fb458cccee28b53a13356c15
@@ -562,7 +562,7 @@ SPEC CHECKSUMS:
   quick_actions_ios: 500fcc11711d9f646739093395c4ae8eec25f779
   receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   record_ios: 412daca2350b228e698fffcd08f1f94ceb1e3844
-  SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb

@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: _flutterfire_internals
-      sha256: cd83f7d6bd4e4c0b0b4fef802e8796784032e1cc23d7b0e982cf5d05d9bbe182
+      sha256: afe15ce18a287d2f89da95566e62892df339b1936bbe9b83587df45b944ee72a
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.66"
+    version: "1.3.67"
   adaptive_number:
     dependency: transitive
     description:
@@ -141,10 +141,10 @@ packages:
     dependency: transitive
     description:
       name: build_config
-      sha256: "4f64382b97504dc2fcdf487d5aae33418e08b4703fc21249e4db6d804a4d0187"
+      sha256: "4070d2a59f8eec34c97c86ceb44403834899075f66e8a9d59706f8e7834f6f71"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.3.0"
   build_daemon:
     dependency: transitive
     description:
@@ -157,10 +157,10 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: "39ad4ca8a2876779737c60e4228b4bcd35d4352ef7e14e47514093edc012c734"
+      sha256: "7981eb922842c77033026eb4341d5af651562008cdb116bdfa31fc46516b6462"
       url: "https://pub.dev"
     source: hosted
-    version: "2.11.1"
+    version: "2.12.2"
   built_collection:
     dependency: transitive
     description:
@@ -365,10 +365,10 @@ packages:
     dependency: transitive
     description:
       name: dart_jsonwebtoken
-      sha256: "0de65691c1d736e9459f22f654ddd6fd8368a271d4e41aa07e53e6301eff5075"
+      sha256: c6ecb3bb991c459b91c5adf9e871113dcb32bbe8fe7ca2c92723f88ffc1e0b7a
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.1"
+    version: "3.3.2"
   dart_style:
     dependency: transitive
     description:
@@ -429,10 +429,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: b9d46faecab38fc8cc286f80bc4d61a3bb5d4ac49e51ed877b4d6706efe57b25
+      sha256: aff32c08f92787a557dd5c0145ac91536481831a01b4648136373cddb0e64f8c
       url: "https://pub.dev"
     source: hosted
-    version: "5.9.1"
+    version: "5.9.2"
   dio_smart_retry:
     dependency: "direct main"
     description:
@@ -445,10 +445,10 @@ packages:
     dependency: transitive
     description:
       name: dio_web_adapter
-      sha256: "7586e476d70caecaf1686d21eee7247ea43ef5c345eab9e0cc3583ff13378d78"
+      sha256: "2f9e64323a7c3c7ef69567d5c800424a11f8337b8b228bad02524c9fb3c1f340"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "2.1.2"
   dismissible_page:
     dependency: "direct main"
     description:
@@ -461,10 +461,10 @@ packages:
     dependency: "direct main"
     description:
       name: dropdown_button2
-      sha256: b0fe8d49a030315e9eef6c7ac84ca964250155a6224d491c1365061bc974a9e1
+      sha256: fbb9ea9ea81b04e48d27bb181852b7e11e684aa2a32e95aec4c131be1849e33a
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.9"
+    version: "3.0.0"
   easy_localization:
     dependency: "direct main"
     description:
@@ -597,34 +597,34 @@ packages:
     dependency: "direct main"
     description:
       name: firebase_analytics
-      sha256: "07e0a82e9b045dbd14522a0b23764e2dbcc269720e785d63c6a021133ebb766a"
+      sha256: "8170273394694efdf567e7e30c26457ff346377a52eb679c278f97b36b786d70"
       url: "https://pub.dev"
     source: hosted
-    version: "12.1.2"
+    version: "12.1.3"
   firebase_analytics_platform_interface:
     dependency: transitive
     description:
       name: firebase_analytics_platform_interface
-      sha256: "62fd3f27f342c898bd819fb97fa87c0b971e9fbe03357477282c0e14e1a40c3c"
+      sha256: "2c25cd85f640a47fcc15e970a04a50470f0a4d0e76f23c5bc5ec93a3d48d8775"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.6"
+    version: "5.0.7"
   firebase_analytics_web:
     dependency: transitive
     description:
       name: firebase_analytics_web
-      sha256: "8fc488bb008439fc3b850cfac892dec1ff4cd438eee44438919a14c5e61b9828"
+      sha256: e0eb2b21eccb18109af2c1d3154f9e69b45abf4816e3290a6251008e0503aca9
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1+2"
+    version: "0.6.1+3"
   firebase_core:
     dependency: "direct main"
     description:
       name: firebase_core
-      sha256: "923085c881663ef685269b013e241b428e1fb03cdd0ebde265d9b40ff18abf80"
+      sha256: f0997fee80fbb6d2c658c5b88ae87ba1f9506b5b37126db64fc2e75d8e977fbb
       url: "https://pub.dev"
     source: hosted
-    version: "4.4.0"
+    version: "4.5.0"
   firebase_core_platform_interface:
     dependency: transitive
     description:
@@ -637,50 +637,50 @@ packages:
     dependency: transitive
     description:
       name: firebase_core_web
-      sha256: "83e7356c704131ca4d8d8dd57e360d8acecbca38b1a3705c7ae46cc34c708084"
+      sha256: "856ca92bf2d75a63761286ab8e791bda3a85184c2b641764433b619647acfca6"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "3.5.0"
   firebase_crashlytics:
     dependency: "direct main"
     description:
       name: firebase_crashlytics
-      sha256: a6e6cb8b2ea1214533a54e4c1b11b19c40f6a29333f3ab0854a479fdc3237c5b
+      sha256: "2a6dc88d762af01790a05ff0cf814f7d4020050e8c69dec01962d9ed5dc1a531"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.7"
+    version: "5.0.8"
   firebase_crashlytics_platform_interface:
     dependency: transitive
     description:
       name: firebase_crashlytics_platform_interface
-      sha256: fc6837c4c64c48fa94cab8a872a632b9194fa9208ca76a822f424b3da945584d
+      sha256: "5fd59d76d691f370e42fd2b786d46078e69ed4126ca0d84b585119f55cd97937"
       url: "https://pub.dev"
     source: hosted
-    version: "3.8.17"
+    version: "3.8.18"
   firebase_messaging:
     dependency: "direct main"
     description:
       name: firebase_messaging
-      sha256: "06fad40ea14771e969a8f2bbce1944aa20ee2f4f57f4eca5b3ba346b65f3f644"
+      sha256: bd17823b70e629877904d384841cda72ed2cc197517404c0c90da5c0ba786a8c
       url: "https://pub.dev"
     source: hosted
-    version: "16.1.1"
+    version: "16.1.2"
   firebase_messaging_platform_interface:
     dependency: transitive
     description:
       name: firebase_messaging_platform_interface
-      sha256: "6c49e901c77e6e10e86d98e32056a087eb1ca1b93acdf58524f1961e617657b7"
+      sha256: "550435235cc7d53683f32bf0762c28ef8cfc20a8d36318a033676ae09526d7fb"
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.6"
+    version: "4.7.7"
   firebase_messaging_web:
     dependency: transitive
     description:
       name: firebase_messaging_web
-      sha256: "2756f8fea583ffb9d294d15ddecb3a9ad429b023b70c9990c151fc92c54a32b3"
+      sha256: "6b1b93ed90309fbce91c219e3cd32aa831e8eccaf4a61f3afaea1625479275d2"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.2"
+    version: "4.1.3"
   fixnum:
     dependency: transitive
     description:
@@ -922,34 +922,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: cf206c68707773b670340dfeca7fc95f95509f4ca91a544bdd77d03a8106b91e
+      sha256: "0d9035862236fe38250fe1644d7ed3b8254e34a21b2c837c9f539fbb3bba5ef1"
       url: "https://pub.dev"
     source: hosted
-    version: "21.0.0-dev.2"
+    version: "21.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: "223bdd6e389a5ec02597fb494c8b3d6b0a9119534f9f45b7feef69cc0ee838e5"
+      sha256: e0f25e243c6c44c825bbbc6b2b2e76f7d9222362adcfe9fd780bf01923c840bd
       url: "https://pub.dev"
     source: hosted
-    version: "8.0.0-dev.1"
+    version: "8.0.0"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "2adc3c14a650af4e6235817fbf4335ba14bc3d36d5d497d7104d94e1475d5ddc"
+      sha256: e7db3d5b49c2b7ecc68deba4aaaa67a348f92ee0fef34c8e4b4459dbef0d7307
       url: "https://pub.dev"
     source: hosted
-    version: "11.0.0-dev.1"
+    version: "11.0.0"
   flutter_local_notifications_windows:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: e7136082af98f3459552d2cc423f4b27e3010bbddcd1e575d9a270d47d2384d4
+      sha256: "3a2654ba104fbb52c618ebed9def24ef270228470718c43b3a6afcd5c81bef0c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-dev.1"
+    version: "3.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -1007,10 +1007,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_popup_card
-      sha256: "71bca1521e3bae790162183d4dbfb77b84e11a9604e4b5f3b0edad6c5a1495cd"
+      sha256: "5a026f1a1b8b95958fdef3e4f3d51fd12694edf0b7ff364446ed9b06236fac18"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.6"
+    version: "0.1.0"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -1087,10 +1087,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_svg
-      sha256: "87fbd7c534435b6c5d9d98b01e1fd527812b82e68ddd8bd35fc45ed0fa8f0a95"
+      sha256: "1ded017b39c8e15c8948ea855070a5ff8ff8b3d5e83f3446e02d6bb12add7ad9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.3"
+    version: "2.2.4"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -1116,10 +1116,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_udid
-      sha256: "75a84371d51e1c87c38d6610d47777560a373a8139b2c0c2d8ce86b01a107dbb"
+      sha256: fc599671cbe8b328e509c961ec121880406ed994dde659cc9ece9c7503cd31c7
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.1"
+    version: "4.1.2"
   flutter_web_plugins:
     dependency: "direct main"
     description: flutter
@@ -1233,10 +1233,10 @@ packages:
     dependency: transitive
     description:
       name: hooks
-      sha256: "7a08a0d684cb3b8fb604b78455d5d352f502b68079f7b80b831c62220ab0a4f6"
+      sha256: e79ed1e8e1929bc6ecb6ec85f0cb519c887aa5b423705ded0d0f2d9226def388
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   hooks_riverpod:
     dependency: "direct main"
     description:
@@ -1801,10 +1801,10 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_c
-      sha256: "89e83885ba09da5fdf2cdacc8002a712ca238c28b7f717910b34bcd27b0d03ac"
+      sha256: "92b2ca62c8bd2b8d2f267cdfccf9bfbdb7322f778f8f91b3ce5b5cda23a3899f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.4"
+    version: "0.17.5"
   nested:
     dependency: transitive
     description:
@@ -2514,10 +2514,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: cbc40be9be1c5af4dab4d6e0de4d5d3729e6f3d65b89d21e1815d57705644a6f
+      sha256: "8374d6200ab33ac99031a852eba4c8eb2170c4bf20778b3e2c9eccb45384fb41"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.20"
+    version: "2.4.21"
   shared_preferences_foundation:
     dependency: transitive
     description:
@@ -2918,34 +2918,34 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: f98494dd64c62f21d4b92ccb8b7145003c7cc93030988cb3ad8048601ee71dfb
+      sha256: "46a60c6014a870a71ab8e3fa22f9580a8d36faf9b39431dcf124940601c0c266"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.14"
+    version: "5.1.15"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: "96f387947cf3f890e382dbf7f1c56a78b3e7b7ae8a5c821de3285100cbfdf877"
+      sha256: "9b4d8ada9437b9a928c694c1e86f453b2f7f848aeb4ab948d13c097983703d2a"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.14"
+    version: "5.1.15"
   talker_flutter:
     dependency: "direct main"
     description:
       name: talker_flutter
-      sha256: "6389e5ddbb81ee7007459b87f076ca46b3e3507c2e3c928cfbd92102dbbcc874"
+      sha256: "7e1819c505cdcbf2cf6497410b8fa3b33d170e6f137716bd278940c0e509f414"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.14"
+    version: "5.1.15"
   talker_logger:
     dependency: "direct main"
     description:
       name: talker_logger
-      sha256: cf58477217f02aaf7450f74ca081c633a151e5132203ead02520a403db8ecf21
+      sha256: "70112d016d7b978ccb7ef0b0f4941e0f0b0de88d80589db43143cea1d744eae0"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.14"
+    version: "5.1.15"
   talker_riverpod_logger:
     dependency: "direct main"
     description:
