@@ -83,17 +83,19 @@ class SettingsScreen extends HookConsumerWidget {
                 idx,
                 ele,
               ) {
-                return DropdownMenuItem<Locale?>(
+                return DropdownItem<Locale?>(
                   value: ele,
                   child: Text(_getLanguageDisplayName(ele)).fontSize(14),
                 );
               }),
-              DropdownMenuItem<Locale?>(
+              DropdownItem<Locale?>(
                 value: null,
                 child: Text('languageFollowSystem').tr().fontSize(14),
               ),
             ],
-            value: EasyLocalization.of(context)!.currentLocale,
+            valueListenable: ValueNotifier<Locale?>(
+              EasyLocalization.of(context)!.currentLocale,
+            ),
             onChanged: (Locale? value) {
               if (value != null) {
                 EasyLocalization.of(context)!.setLocale(value);
@@ -106,7 +108,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 160,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -121,20 +122,20 @@ class SettingsScreen extends HookConsumerWidget {
           child: DropdownButton2<String>(
             isExpanded: true,
             items: [
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'system',
                 child: Text('settingsThemeModeSystem').tr().fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'light',
                 child: Text('settingsThemeModeLight').tr().fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'dark',
                 child: Text('settingsThemeModeDark').tr().fontSize(14),
               ),
             ],
-            value: settings.themeMode,
+            valueListenable: ValueNotifier(settings.themeMode),
             onChanged: (String? value) {
               if (value != null) {
                 ref.read(appSettingsProvider.notifier).setThemeMode(value);
@@ -146,7 +147,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 140,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -197,20 +197,22 @@ class SettingsScreen extends HookConsumerWidget {
           child: DropdownButton2<String>(
             isExpanded: true,
             items: [
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'bubble',
                 child: Text('Bubble').fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'column',
                 child: Text('Column').fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'compact',
                 child: Text('Compact').fontSize(14),
               ),
             ],
-            value: settings.messageDisplayStyle,
+            valueListenable: ValueNotifier<String>(
+              settings.messageDisplayStyle,
+            ),
             onChanged: (String? value) {
               if (value != null) {
                 ref
@@ -224,7 +226,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 140,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -239,16 +240,18 @@ class SettingsScreen extends HookConsumerWidget {
           child: DropdownButton2<String>(
             isExpanded: true,
             items: [
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'row',
                 child: Text('Row').fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'column',
                 child: Text('Column').fontSize(14),
               ),
             ],
-            value: settings.attachmentsListStyle,
+            valueListenable: ValueNotifier<String>(
+              settings.attachmentsListStyle,
+            ),
             onChanged: (String? value) {
               if (value != null) {
                 ref
@@ -262,7 +265,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 140,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -679,7 +681,7 @@ class SettingsScreen extends HookConsumerWidget {
                 child: DropdownButton2<String>(
                   isExpanded: true,
                   items: validPools.map((p) {
-                    return DropdownMenuItem<String>(
+                    return DropdownItem<String>(
                       value: p.id,
                       child: Tooltip(
                         message: p.name,
@@ -691,7 +693,7 @@ class SettingsScreen extends HookConsumerWidget {
                       ),
                     );
                   }).toList(),
-                  value: currentPoolId,
+                  valueListenable: ValueNotifier<String?>(currentPoolId),
                   onChanged: (value) {
                     ref
                         .read(appSettingsProvider.notifier)
@@ -703,7 +705,6 @@ class SettingsScreen extends HookConsumerWidget {
                     height: 40,
                     width: 120,
                   ),
-                  menuItemStyleData: const MenuItemStyleData(height: 40),
                 ),
               ),
             );
@@ -834,20 +835,22 @@ class SettingsScreen extends HookConsumerWidget {
           child: DropdownButton2<String>(
             isExpanded: true,
             items: const [
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: kChatEventMessageModeVerbose,
                 child: Text('Verbose'),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: kChatEventMessageModeImportant,
                 child: Text('Important'),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: kChatEventMessageModeNone,
                 child: Text('None'),
               ),
             ],
-            value: settings.chatEventMessageMode,
+            valueListenable: ValueNotifier<String>(
+              settings.chatEventMessageMode,
+            ),
             onChanged: (value) {
               if (value == null) return;
               ref
@@ -859,7 +862,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 140,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -904,24 +906,26 @@ class SettingsScreen extends HookConsumerWidget {
           child: DropdownButton2<String>(
             isExpanded: true,
             items: [
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'dashboard',
                 child: Text('dashboard').tr().fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'explore',
                 child: Text('explore').tr().fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'chat',
                 child: Text('chat').tr().fontSize(14),
               ),
-              DropdownMenuItem<String>(
+              DropdownItem<String>(
                 value: 'account',
                 child: Text('account').tr().fontSize(14),
               ),
             ],
-            value: settings.defaultScreen ?? 'dashboard',
+            valueListenable: ValueNotifier<String>(
+              settings.defaultScreen ?? 'dashboard',
+            ),
             onChanged: (String? value) {
               if (value != null) {
                 ref.read(appSettingsProvider.notifier).setDefaultScreen(value);
@@ -933,7 +937,6 @@ class SettingsScreen extends HookConsumerWidget {
               height: 40,
               width: 140,
             ),
-            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),

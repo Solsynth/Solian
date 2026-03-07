@@ -122,7 +122,8 @@ class ThoughtChatInterface extends HookConsumerWidget {
         (_) => updateAtLatestState(),
       );
 
-      return () => notifier.scrollController.removeListener(updateAtLatestState);
+      return () =>
+          notifier.scrollController.removeListener(updateAtLatestState);
     }, [notifier.scrollController]);
 
     return Center(
@@ -246,7 +247,7 @@ class ServiceSelector extends ConsumerWidget {
 
     return DropdownButtonHideUnderline(
       child: DropdownButton2<String>(
-        value: isValueValid ? currentValue : null,
+        valueListenable: ValueNotifier(isValueValid ? currentValue : null),
         customButton: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -286,7 +287,7 @@ class ServiceSelector extends ConsumerWidget {
         ),
         items: services
             .map(
-              (service) => DropdownMenuItem<String>(
+              (service) => DropdownItem<String>(
                 value: service.id,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,7 +338,6 @@ class ServiceSelector extends ConsumerWidget {
           ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 56,
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),

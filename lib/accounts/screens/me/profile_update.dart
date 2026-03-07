@@ -307,17 +307,17 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                     items: [
                       ...kServerSupportedLanguages.values.map(
-                        (e) => DropdownMenuItem(value: e, child: Text(e)),
+                        (e) => DropdownItem(value: e, child: Text(e)),
                       ),
                       if (!kServerSupportedLanguages.containsValue(
                         language.value,
                       ))
-                        DropdownMenuItem(
+                        DropdownItem(
                           value: language.value,
                           child: Text(language.value),
                         ),
                     ],
-                    value: language.value,
+                    valueListenable: language,
                     onChanged: (value) {
                       language.value = value ?? language.value;
                     },
@@ -335,15 +335,15 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                     items: [
                       ...kServerSupportedRegions.map(
-                        (e) => DropdownMenuItem(value: e, child: Text(e)),
+                        (e) => DropdownItem(value: e, child: Text(e)),
                       ),
                       if (!kServerSupportedRegions.contains(region.value))
-                        DropdownMenuItem(
+                        DropdownItem(
                           value: region.value,
                           child: Text(region.value),
                         ),
                     ],
-                    value: region.value,
+                    valueListenable: region,
                     onChanged: (value) {
                       region.value = value ?? region.value;
                     },
@@ -750,16 +750,16 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                           labelText: 'colorType'.tr(),
                         ),
                         items: [
-                          DropdownMenuItem(
+                          DropdownItem(
                             value: 'plain',
                             child: Text('plain'.tr()),
                           ),
-                          DropdownMenuItem(
+                          DropdownItem(
                             value: 'gradient',
                             child: Text('gradient'.tr()),
                           ),
                         ],
-                        value: usernameColorType.value,
+                        valueListenable: usernameColorType,
                         onChanged: (value) {
                           usernameColorType.value = value ?? 'plain';
                         },
@@ -822,44 +822,46 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                             labelText: 'gradientDirection'.tr(),
                           ),
                           items: [
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to right',
                               child: Text('gradientDirectionToRight'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to left',
                               child: Text('gradientDirectionToLeft'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to bottom',
                               child: Text('gradientDirectionToBottom'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to top',
                               child: Text('gradientDirectionToTop'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to bottom right',
                               child: Text(
                                 'gradientDirectionToBottomRight'.tr(),
                               ),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to bottom left',
                               child: Text('gradientDirectionToBottomLeft'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to top right',
                               child: Text('gradientDirectionToTopRight'.tr()),
                             ),
-                            DropdownMenuItem(
+                            DropdownItem(
                               value: 'to top left',
                               child: Text('gradientDirectionToTopLeft'.tr()),
                             ),
                           ],
-                          value: usernameColorDirection.text.isNotEmpty
-                              ? usernameColorDirection.text
-                              : 'to right',
+                          valueListenable: ValueNotifier<String>(
+                            usernameColorDirection.text.isNotEmpty
+                                ? usernameColorDirection.text
+                                : 'to right',
+                          ),
                           onChanged: (value) {
                             usernameColorDirection.text = value ?? 'to right';
                           },

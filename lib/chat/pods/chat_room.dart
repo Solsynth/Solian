@@ -599,6 +599,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
       final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
       final dbLatestCursor = await _getLatestMessageTimestamp(db);
+      if (savedCursor <= 0 && dbLatestCursor <= 0) {
+        talker.log(
+          'Skipping global sync: no saved sync cursor and no local latest message timestamp.',
+        );
+        return;
+      }
       final currentSyncTimestamp = (savedCursor > 0 && dbLatestCursor > 0)
           ? (savedCursor < dbLatestCursor ? savedCursor : dbLatestCursor)
           : (savedCursor > 0 ? savedCursor : dbLatestCursor);

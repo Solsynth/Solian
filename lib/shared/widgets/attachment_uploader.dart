@@ -182,7 +182,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                             : Symbols.lock,
                                         size: 18,
                                         color: encryptionBlocked
-                                            ? Theme.of(context).colorScheme.error
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.error
                                             : Theme.of(
                                                 context,
                                               ).colorScheme.onPrimaryContainer,
@@ -202,8 +204,8 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                                                         context,
                                                       ).colorScheme.error
                                                     : Theme.of(context)
-                                                        .colorScheme
-                                                        .onPrimaryContainer,
+                                                          .colorScheme
+                                                          .onPrimaryContainer,
                                               ),
                                         ),
                                       ),

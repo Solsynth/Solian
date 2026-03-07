@@ -43,7 +43,7 @@ Future<List<SnContactMethod>> contactMethods(Ref ref) async {
 @riverpod
 Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/passport/accounts/me/connections');
+  final resp = await client.get('/padlock/connections');
   return resp.data
       .map<SnAccountConnection>((e) => SnAccountConnection.fromJson(e))
       .toList();
