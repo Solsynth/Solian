@@ -119,7 +119,7 @@ class WebAuthServer {
     try {
       final dio = _ref.read(apiClientProvider);
       final response = await dio.get(
-        '/pass/accounts/me',
+        '/passport/accounts/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 

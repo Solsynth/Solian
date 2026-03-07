@@ -148,7 +148,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/pass/accounts/me")
+        let url = baseURL.appendingPathComponent("/passport/accounts/me")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -169,7 +169,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -198,7 +198,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
         
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -238,7 +238,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"

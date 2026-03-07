@@ -88,7 +88,9 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/pass/accounts/me/connections/${connection.id}');
+        await client.delete(
+          '/passport/accounts/me/connections/${connection.id}',
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -327,7 +329,7 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                           try {
                             final client = ref.read(apiClientProvider);
                             await client.delete(
-                              '/pass/accounts/me/connections/${connection.id}',
+                              '/passport/accounts/me/connections/${connection.id}',
                             );
                             ref.invalidate(accountConnectionsProvider);
                             return true;

@@ -89,7 +89,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
         }
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/pass/accounts/me/profile',
+          '/passport/accounts/me/profile',
           data: {'${position}_id': cloudFile.id},
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
@@ -116,7 +116,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/pass/accounts/me',
+          '/passport/accounts/me',
           data: {
             'name': usernameController.text,
             'nick': nicknameController.text,
@@ -197,7 +197,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
         };
 
         await client.patch(
-          '/pass/accounts/me/profile',
+          '/passport/accounts/me/profile',
           data: {
             'bio': bioController.text,
             'first_name': firstNameController.text,

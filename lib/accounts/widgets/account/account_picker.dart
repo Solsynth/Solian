@@ -19,7 +19,7 @@ Future<List<SnAccount>> searchAccounts(Ref ref, {required String query}) async {
 
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get(
-    '/pass/accounts/search',
+    '/passport/accounts/search',
     queryParameters: {'query': query},
   );
 

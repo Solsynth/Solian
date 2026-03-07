@@ -539,7 +539,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/pass/accounts/recovery/password',
+          '/passport/accounts/recovery/password',
           data: {'account': uname, 'captcha_token': captchaTk},
         );
         showInfoAlert('loginResetPasswordSent'.tr(), 'done'.tr());

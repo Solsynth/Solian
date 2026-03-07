@@ -32,7 +32,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/pass/accounts/me/factors/${factor.id}');
+        await client.delete('/padlock/factors/${factor.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -50,7 +50,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/pass/accounts/me/factors/${factor.id}/disable');
+        await client.post('/padlock/factors/${factor.id}/disable');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -106,7 +106,7 @@ class AuthFactorSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/pass/accounts/me/factors/${factor.id}/enable',
+          '/padlock/factors/${factor.id}/enable',
           data: jsonEncode(password),
         );
         if (context.mounted) Navigator.pop(context, true);
@@ -193,7 +193,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final apiClient = ref.read(apiClientProvider);
         final resp = await apiClient.post(
-          '/pass/accounts/me/factors',
+          '/padlock/factors',
           data: {'type': factorType.value, 'secret': secretController.text},
         );
         final factor = SnAuthFactor.fromJson(resp.data);

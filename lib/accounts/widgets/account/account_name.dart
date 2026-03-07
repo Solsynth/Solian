@@ -458,7 +458,7 @@ class AccountUnactivatedCard extends HookConsumerWidget {
               final client = ref.watch(apiClientProvider);
               try {
                 showLoadingModal(context);
-                await client.post('/pass/spells/activation/resend');
+                await client.post('/passport/spells/activation/resend');
                 showSnackBar("Activation magic spell has been resend");
               } catch (err) {
                 showErrorAlert(err);

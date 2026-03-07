@@ -422,7 +422,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
               'lease_minutes': kPresenceActivityLease,
             };
 
-            await apiClient.post('/pass/activities', data: activityData);
+            await apiClient.post('/passport/activities', data: activityData);
             setCurrentActivity(appId, activityData);
           } catch (e) {
             talker.log('Failed to set remote activity status: $e');
@@ -440,7 +440,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
         final currentId = currentActivityManualId;
         try {
           await apiClient.delete(
-            '/pass/activities',
+            '/passport/activities',
             queryParameters: {'manualId': currentId},
           );
           setCurrentActivity(null, null);
@@ -507,7 +507,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
     if (state.currentActivityData != null) {
       try {
         await apiClient.post(
-          '/pass/activities',
+          '/passport/activities',
           data: state.currentActivityData,
         );
         talker.log('Activity lease renewed');
@@ -542,7 +542,7 @@ Future<List<SnPresenceActivity>> presenceActivities(
   ref.onDispose(() => timer.cancel());
 
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/pass/activities/$uname');
+  final response = await apiClient.get('/passport/activities/$uname');
   final data = response.data as List<dynamic>;
   return data.map((json) => SnPresenceActivity.fromJson(json)).toList();
 }

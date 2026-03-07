@@ -510,7 +510,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                 final ws = ref.watch(websocketStateProvider.notifier);
                 final apiClient = ref.watch(apiClientProvider);
                 showLoadingModal(context);
-                await apiClient.delete('/pass/accounts/me/sessions/current');
+                await apiClient.delete('/padlock/sessions/current');
                 await resetDatabase(ref);
                 if (!context.mounted) return;
                 hideLoadingModal(context);

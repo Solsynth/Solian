@@ -101,7 +101,7 @@ class CheckInService {
     private let networkService = WidgetNetworkService()
     
     func fetchCheckInResult() async throws -> CheckInResult? {
-        return try await networkService.makeRequest(path: "/pass/accounts/me/check-in")
+        return try await networkService.makeRequest(path: "/passport/accounts/me/check-in")
     }
 }
 
@@ -111,7 +111,7 @@ class NotableDayService {
     func fetchRecentNotableDay() async throws -> NotableDay? {
         print("[WidgetKit] [NotableDayService] Fetching recent notable day...")
         do {
-            let result: [NotableDay]? = try await networkService.makeRequest(path: "/pass/notable/me/recent")
+            let result: [NotableDay]? = try await networkService.makeRequest(path: "/passport/notable/me/recent")
             print("[WidgetKit] [NotableDayService] Result: \(String(describing: result))")
             
             guard let result = result else {
@@ -148,7 +148,7 @@ class NotableDayService {
             }
             
             do {
-                let singleResult: NotableDay? = try await networkService.makeRequest(path: "/pass/notable/me/recent")
+                let singleResult: NotableDay? = try await networkService.makeRequest(path: "/passport/notable/me/recent")
                 print("[WidgetKit] [NotableDayService] Single object decode succeeded: \(singleResult?.localName ?? "nil")")
                 return singleResult
             } catch {
