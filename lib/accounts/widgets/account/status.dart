@@ -47,7 +47,7 @@ Future<SnAccountStatus?> accountStatus(Ref ref, String uname) async {
   }
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get('/pass/accounts/$uname/statuses');
+    final resp = await apiClient.get('/passport/accounts/$uname/statuses');
     return SnAccountStatus.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {

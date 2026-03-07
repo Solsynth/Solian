@@ -156,7 +156,7 @@ final realmIdentityProvider = FutureProvider.autoDispose
       try {
         final apiClient = ref.watch(apiClientProvider);
         final response = await apiClient.get(
-          '/pass/realms/$realmSlug/members/me',
+          '/passport/realms/$realmSlug/members/me',
         );
         return SnRealmMember.fromJson(response.data);
       } catch (err) {
@@ -228,7 +228,7 @@ class RealmDetailScreen extends HookConsumerWidget {
         onPressed: () async {
           try {
             final apiClient = ref.read(apiClientProvider);
-            await apiClient.post('/pass/realms/$slug/members/me');
+            await apiClient.post('/passport/realms/$slug/members/me');
             ref.invalidate(realmIdentityProvider(slug));
             ref.invalidate(realmsJoinedProvider);
             showSnackBar('realmJoinSuccess'.tr());
@@ -505,7 +505,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                     ).then((confirm) {
                       if (confirm) {
                         final client = ref.watch(apiClientProvider);
-                        client.delete('/pass/realms/$realmSlug');
+                        client.delete('/passport/realms/$realmSlug');
                         ref.invalidate(realmsJoinedProvider);
                         if (context.mounted) {
                           context.router.pop(true);
@@ -538,7 +538,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                       if (confirm) {
                         final client = ref.watch(apiClientProvider);
                         await client.delete(
-                          '/pass/realms/$realmSlug/members/me',
+                          '/passport/realms/$realmSlug/members/me',
                         );
                         ref.invalidate(realmsJoinedProvider);
                         if (context.mounted) {
@@ -572,7 +572,7 @@ class _RealmActionMenu extends HookConsumerWidget {
               ) async {
                 if (confirm) {
                   final client = ref.watch(apiClientProvider);
-                  await client.delete('/pass/realms/$realmSlug/members/me');
+                  await client.delete('/passport/realms/$realmSlug/members/me');
                   ref.invalidate(realmsJoinedProvider);
                   if (context.mounted) {
                     context.router.pop(true);
@@ -603,7 +603,7 @@ class RealmMemberListNotifier
     final apiClient = ref.read(apiClientProvider);
 
     final response = await apiClient.get(
-      '/pass/realms/$arg/members',
+      '/passport/realms/$arg/members',
       queryParameters: {
         'offset': fetchedCount,
         'take': pageSize,
@@ -640,7 +640,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/pass/realms/invites/$realmSlug',
+          '/passport/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh the provider
@@ -766,7 +766,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                           try {
                             final apiClient = ref.watch(apiClientProvider);
                             await apiClient.delete(
-                              '/pass/realms/$realmSlug/members/${member.accountId}',
+                              '/passport/realms/$realmSlug/members/${member.accountId}',
                             );
                             // Refresh the provider
                             ref.invalidate(memberListProvider);
@@ -891,7 +891,7 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
 
                       final apiClient = ref.read(apiClientProvider);
                       await apiClient.patch(
-                        '/pass/realms/$realmSlug/members/${member.accountId}/role',
+                        '/passport/realms/$realmSlug/members/${member.accountId}/role',
                         data: newRole,
                       );
 

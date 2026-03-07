@@ -25,7 +25,7 @@ part 'relationship.g.dart';
 @riverpod
 Future<List<SnRelationship>> friendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/pass/relationships/requests');
+  final resp = await client.get('/passport/relationships/requests');
   return resp.data
       .map((e) => SnRelationship.fromJson(e))
       .cast<SnRelationship>()
@@ -58,7 +58,7 @@ class RelationshipListNotifier
     final take = 20;
 
     final response = await client.get(
-      '/pass/relationships',
+      '/passport/relationships',
       queryParameters: {'offset': fetchedCount.toString(), 'take': take},
     );
 
@@ -246,7 +246,7 @@ class RelationshipScreen extends HookConsumerWidget {
       if (result == null) return;
 
       final client = ref.read(apiClientProvider);
-      await client.post('/pass/relationships/${result.id}/friends');
+      await client.post('/passport/relationships/${result.id}/friends');
       ref.invalidate(friendRequestProvider);
     }
 
@@ -258,7 +258,7 @@ class RelationshipScreen extends HookConsumerWidget {
     ) async {
       final client = ref.read(apiClientProvider);
       await client.patch(
-        '/pass/relationships/${relationship.accountId}',
+        '/passport/relationships/${relationship.accountId}',
         data: {'status': newStatus},
       );
       relationshipNotifier.refresh();
@@ -278,7 +278,9 @@ class RelationshipScreen extends HookConsumerWidget {
       showLoadingModal(context);
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/pass/relationships/${relationship.relatedId}');
+        await client.delete(
+          '/passport/relationships/${relationship.relatedId}',
+        );
         relationshipNotifier.refresh();
         showSnackBar('relationshipDeleted'.tr());
       } catch (err) {
@@ -356,7 +358,9 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
     Future<void> cancelRequest(SnRelationship request) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/pass/relationships/${request.relatedId}/friends');
+        await client.delete(
+          '/passport/relationships/${request.relatedId}/friends',
+        );
         ref.invalidate(friendRequestProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -373,7 +377,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
         submitting.value = true;
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/pass/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
+          '/passport/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
         );
         ref.invalidate(friendRequestProvider);
         if (!context.mounted) return;

@@ -43,7 +43,7 @@ Future<List<SnEventCalendarEntry>> eventCalendar(
 ) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get(
-    '/pass/accounts/${query.uname ?? 'me'}/calendar',
+    '/passport/accounts/${query.uname ?? 'me'}/calendar',
     queryParameters: {'year': query.year, 'month': query.month},
   );
   return resp.data

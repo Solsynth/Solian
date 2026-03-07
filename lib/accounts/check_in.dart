@@ -25,7 +25,7 @@ part 'check_in.g.dart';
 Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
-    final resp = await client.get('/pass/accounts/me/check-in');
+    final resp = await client.get('/passport/accounts/me/check-in');
     return SnCheckInResult.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {
@@ -41,7 +41,7 @@ Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
 Future<SnNotableDay?> nextNotableDay(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
-    final resp = await client.get('/pass/notable/me/next');
+    final resp = await client.get('/passport/notable/me/next');
     final day = SnNotableDay.fromJson(resp.data);
     if (day.localizableKey != null) {
       final key = 'notableDay${day.localizableKey}';
@@ -62,7 +62,7 @@ Future<SnNotableDay?> nextNotableDay(Ref ref) async {
 Future<SnNotableDay?> recentNotableDay(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
-    final resp = await client.get('/pass/notable/me/recent');
+    final resp = await client.get('/passport/notable/me/recent');
     final day = SnNotableDay.fromJson(resp.data[0]);
     if (day.localizableKey != null) {
       final key = 'notableDay${day.localizableKey}';
@@ -82,7 +82,7 @@ Future<SnNotableDay?> recentNotableDay(Ref ref) async {
 @riverpod
 Future<SnFortuneSaying> randomFortuneSaying(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/pass/fortune/random');
+  final resp = await client.get('/passport/fortune/random');
   return SnFortuneSaying.fromJson(resp.data[0]);
 }
 
@@ -108,7 +108,7 @@ class CheckInWidget extends HookConsumerWidget {
       final client = ref.read(apiClientProvider);
       try {
         await client.post(
-          '/pass/accounts/me/check-in',
+          '/passport/accounts/me/check-in',
           data: captchatTk == null ? null : jsonEncode(captchatTk),
         );
         ref.invalidate(checkInResultTodayProvider);

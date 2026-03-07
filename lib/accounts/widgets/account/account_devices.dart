@@ -22,9 +22,7 @@ part 'account_devices.g.dart';
 
 @riverpod
 Future<List<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
-  final resp = await ref
-      .watch(apiClientProvider)
-      .get('/pass/accounts/me/devices');
+  final resp = await ref.watch(apiClientProvider).get('/padlock/devices');
   final currentId = await getUdid();
   final data = resp.data.map<SnAuthDeviceWithSession>((e) {
     final ele = SnAuthDeviceWithSession.fromJson(e);
@@ -130,7 +128,9 @@ class _DeviceListTile extends StatelessWidget {
                         children: [
                           InfoRow(
                             label: 'createdAt'.tr(
-                              args: [session.createdAt.toLocal().formatSystem()],
+                              args: [
+                                session.createdAt.toLocal().formatSystem(),
+                              ],
                             ),
                             icon: Symbols.join,
                           ),
@@ -189,7 +189,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/pass/accounts/me/devices/$sessionId');
+        await apiClient.delete('/padlock/devices/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -205,7 +205,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/pass/accounts/me/sessions/$sessionId');
+        await apiClient.delete('/padlock/sessions/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -243,7 +243,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.patch(
-          '/pass/accounts/me/devices/$sessionId/label',
+          '/padlock/devices/$sessionId/label',
           data: jsonEncode(label),
         );
         ref.invalidate(authDevicesProvider);
@@ -330,7 +330,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                                 showLoadingModal(context);
                                 final apiClient = ref.watch(apiClientProvider);
                                 await apiClient.delete(
-                                  '/pass/accounts/me/devices/${device.deviceId}',
+                                  '/padlock/devices/${device.deviceId}',
                                 );
                                 ref.invalidate(authDevicesProvider);
                               } catch (err) {

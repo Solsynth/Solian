@@ -12,7 +12,9 @@ class TicketService {
   TicketService(this.ref);
 
   Future<SnTicket> getTicket(String id) async {
-    final response = await ref.read(apiClientProvider).get('/pass/tickets/$id');
+    final response = await ref
+        .read(apiClientProvider)
+        .get('/passport/tickets/$id');
     return SnTicket.fromJson(response.data);
   }
 
@@ -25,7 +27,7 @@ class TicketService {
     final response = await ref
         .read(apiClientProvider)
         .get(
-          isAdmin ? '/pass/tickets' : '/pass/tickets/me',
+          isAdmin ? '/passport/tickets' : '/passport/tickets/me',
           queryParameters: {'status': ?status, 'offset': offset, 'take': take},
         );
     return (response.data as List)
@@ -43,7 +45,7 @@ class TicketService {
     final response = await ref
         .read(apiClientProvider)
         .post(
-          '/pass/tickets',
+          '/passport/tickets',
           data: {
             'title': title,
             'content': content,
@@ -65,7 +67,7 @@ class TicketService {
     final response = await ref
         .read(apiClientProvider)
         .put(
-          '/pass/tickets/$id',
+          '/passport/tickets/$id',
           data: {
             'title': ?title,
             'content': ?content,
@@ -77,7 +79,7 @@ class TicketService {
   }
 
   Future<void> deleteTicket(String id) async {
-    await ref.read(apiClientProvider).delete('/pass/tickets/$id');
+    await ref.read(apiClientProvider).delete('/passport/tickets/$id');
   }
 
   Future<SnTicketMessage> addMessage(
@@ -88,7 +90,7 @@ class TicketService {
     final response = await ref
         .read(apiClientProvider)
         .post(
-          '/pass/tickets/$ticketId/messages',
+          '/passport/tickets/$ticketId/messages',
           data: {'content': content, 'file_ids': fileIds},
         );
     return SnTicketMessage.fromJson(response.data);
@@ -97,7 +99,7 @@ class TicketService {
   Future<SnTicket> updateTicketStatus(String ticketId, int status) async {
     final response = await ref
         .read(apiClientProvider)
-        .post('/pass/tickets/$ticketId/status', data: {'status': status});
+        .post('/passport/tickets/$ticketId/status', data: {'status': status});
     return SnTicket.fromJson(response.data);
   }
 
@@ -105,7 +107,7 @@ class TicketService {
     final response = await ref
         .read(apiClientProvider)
         .post(
-          '/pass/tickets/$ticketId/assign',
+          '/passport/tickets/$ticketId/assign',
           data: {'assignee_id': assigneeId},
         );
     return SnTicket.fromJson(response.data);
@@ -114,7 +116,7 @@ class TicketService {
   Future<int> getTicketCount({String? status}) async {
     final response = await ref
         .read(apiClientProvider)
-        .get('/pass/tickets/count', queryParameters: {'status': ?status});
+        .get('/passport/tickets/count', queryParameters: {'status': ?status});
     return response.data['count'] as int;
   }
 }
@@ -131,14 +133,14 @@ class AbuseReportService {
   Future<SnAbuseReport> getReport(String id) async {
     final response = await ref
         .read(apiClientProvider)
-        .get('/pass/safety/reports/me/$id');
+        .get('/passport/safety/reports/me/$id');
     return SnAbuseReport.fromJson(response.data);
   }
 
   Future<List<SnAbuseReport>> getReports() async {
     final response = await ref
         .read(apiClientProvider)
-        .get('/pass/safety/reports/me');
+        .get('/passport/safety/reports/me');
     return (response.data as List)
         .map((json) => SnAbuseReport.fromJson(json))
         .toList();

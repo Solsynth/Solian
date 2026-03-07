@@ -19,7 +19,7 @@ part 'friends_overview.g.dart';
 @riverpod
 Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/pass/friends/overview');
+  final resp = await apiClient.get('/passport/friends/overview');
   return (resp.data as List<dynamic>)
       .map((e) => SnFriendOverviewItem.fromJson(e))
       .toList();

@@ -143,7 +143,7 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.solian.app/pass/accounts/me'),
+        Uri.parse('https://api.solian.app/passport/accounts/me'),
         headers: {'Authorization': 'Bearer $_token'},
       );
 

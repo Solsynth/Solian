@@ -636,14 +636,14 @@ Future<SnAccount> account(Ref ref, String uname) async {
     }
   }
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/pass/accounts/$uname");
+  final resp = await apiClient.get("/passport/accounts/$uname");
   return SnAccount.fromJson(resp.data);
 }
 
 @riverpod
 Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/pass/accounts/$uname/badges");
+  final resp = await apiClient.get("/passport/accounts/$uname/badges");
   return List<SnAccountBadge>.from(
     resp.data.map((x) => SnAccountBadge.fromJson(x)),
   );
@@ -692,7 +692,7 @@ Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get("/pass/relationships/${account.id}");
+    final resp = await apiClient.get("/passport/relationships/${account.id}");
     return SnRelationship.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -769,7 +769,9 @@ class AccountProfileScreen extends HookConsumerWidget {
       showLoadingModal(context);
       try {
         final client = ref.watch(apiClientProvider);
-        await client.post('/pass/relationships/${account.value!.id}/friends');
+        await client.post(
+          '/passport/relationships/${account.value!.id}/friends',
+        );
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {
         showErrorAlert(err);
@@ -783,9 +785,13 @@ class AccountProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         if (accountRelationship.value == null) {
-          await client.post('/pass/relationships/${account.value!.id}/block');
+          await client.post(
+            '/passport/relationships/${account.value!.id}/block',
+          );
         } else {
-          await client.delete('/pass/relationships/${account.value!.id}/block');
+          await client.delete(
+            '/passport/relationships/${account.value!.id}/block',
+          );
         }
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {

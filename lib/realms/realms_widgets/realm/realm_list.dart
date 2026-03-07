@@ -43,7 +43,7 @@ class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
     };
 
     final response = await client.get(
-      '/pass/realms/public',
+      '/passport/realms/public',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
