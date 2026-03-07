@@ -22,6 +22,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
@@ -290,7 +291,15 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 ),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => Center(
+              child: ConfuseSpinner(
+                size: 36,
+                speed: 6,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+              ),
+            ),
             error: (error, stack) => ResponseErrorWidget(
               error: error,
               onRetry: () {
@@ -485,12 +494,19 @@ class _ChatListAppBar extends HookConsumerWidget {
             ),
             // Sync indicator
             if (isSyncing)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(right: 8),
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: ConfuseSpinner(
+                    size: 20,
+                    speed: 7,
+                    fontSize: 10,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                  ),
                 ),
               ),
             IconButton(
@@ -816,7 +832,15 @@ class _CollapsedChatListBody extends HookConsumerWidget {
           itemBuilder: (_, index) => avatarTiles[index],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(
+        child: ConfuseSpinner(
+          size: 36,
+          speed: 6,
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
+            0.65,
+          ),
+        ),
+      ),
       error: (error, stack) => IconButton(
         onPressed: () => ref.invalidate(chatRoomJoinedProvider),
         icon: const Icon(Icons.refresh),

@@ -34,6 +34,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
@@ -71,7 +72,15 @@ class ChatRoomScreen extends HookConsumerWidget {
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
         appBar: AppBar(leading: const AutoLeadingButton()),
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: ConfuseSpinner(
+            size: 40,
+            speed: 6,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
+              0.65,
+            ),
+          ),
+        ),
       );
     } else if (chatIdentity.value == null) {
       return chatRoom.when(
@@ -131,7 +140,15 @@ class ChatRoomScreen extends HookConsumerWidget {
         },
         loading: () => AppScaffold(
           appBar: AppBar(leading: const AutoLeadingButton()),
-          body: const Center(child: CircularProgressIndicator()),
+          body: Center(
+            child: ConfuseSpinner(
+              size: 40,
+              speed: 6,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+            ),
+          ),
         ),
         error: (error, _) => AppScaffold(
           appBar: AppBar(leading: const AutoLeadingButton()),
@@ -633,9 +650,16 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 onFollowBack: jumpToLastReadAnchor,
                                 disableAnimation: settings.disableAnimation,
                               ),
-                        loading: () => const Center(
+                        loading: () => Center(
                           key: ValueKey('loading-messages'),
-                          child: CircularProgressIndicator(),
+                          child: ConfuseSpinner(
+                            size: 40,
+                            speed: 6,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withOpacity(0.65),
+                          ),
                         ),
                         error: (error, _) => ResponseErrorWidget(
                           key: const ValueKey('error-messages'),

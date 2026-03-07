@@ -23,6 +23,7 @@ import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/post_featured.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
@@ -678,7 +679,15 @@ class ChatListCard extends HookConsumerWidget {
               ],
             ).padding(horizontal: 16, vertical: 16),
             chatRooms.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(
+                child: ConfuseSpinner(
+                  size: 32,
+                  speed: 6,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                ),
+              ),
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (rooms) {
                 if (rooms.isEmpty) {
@@ -723,7 +732,15 @@ class FortuneCard extends HookConsumerWidget {
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: fortuneAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(
+          child: ConfuseSpinner(
+            size: 32,
+            speed: 6,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
+              0.65,
+            ),
+          ),
+        ),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (fortune) {
           return Row(

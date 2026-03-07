@@ -341,15 +341,19 @@ class PaginationListFooter<T> extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hasBeenVisible = useState(false);
 
-    final placeholder = Skeletonizer(
-      enabled: true,
-      effect: ShimmerEffect(
-        baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-        highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: skeletonChild ?? _DefaultSkeletonChild(maxWidth: skeletonMaxWidth),
-    );
+    final placeholder =
+        skeletonChild ??
+        Skeletonizer(
+          enabled: true,
+          effect: ShimmerEffect(
+            baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            highlightColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
+          ),
+          containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          child: _DefaultSkeletonChild(maxWidth: skeletonMaxWidth),
+        );
     final child = hasBeenVisible.value
         ? (data.isLoading || data.value?.isLoading == true)
               ? placeholder
