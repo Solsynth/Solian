@@ -237,7 +237,7 @@ class ComposeEmbedSheet extends HookConsumerWidget {
                       ),
                       const Gap(16),
                       DropdownButtonFormField2<PostEmbedViewRenderer>(
-                        value: selectedRenderer.value,
+                        valueListenable: selectedRenderer,
                         decoration: InputDecoration(
                           labelText: 'renderer'.tr(),
                           border: OutlineInputBorder(
@@ -253,7 +253,7 @@ class ComposeEmbedSheet extends HookConsumerWidget {
                           padding: EdgeInsets.zero,
                         ),
                         items: PostEmbedViewRenderer.values.map((renderer) {
-                          return DropdownMenuItem(
+                          return DropdownItem(
                             value: renderer,
                             child: Text(
                               renderer.name,

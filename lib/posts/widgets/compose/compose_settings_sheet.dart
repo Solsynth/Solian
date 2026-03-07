@@ -281,7 +281,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             items: (postCategories.value?.items ?? <SnPostCategory>[]).map((
               item,
             ) {
-              return DropdownMenuItem(
+              return DropdownItem(
                 value: item,
                 enabled: false,
                 child: StatefulBuilder(
@@ -323,7 +323,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 ),
               );
             }).toList(),
-            value: currentCategories.isEmpty ? null : currentCategories.last,
+            valueListenable: ValueNotifier(
+              currentCategories.isEmpty ? null : currentCategories.last,
+            ),
             onChanged: (_) {},
             selectedItemBuilder: (context) {
               return (postCategories.value?.items ?? []).map((item) {
@@ -355,12 +357,11 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 );
               }).toList();
             },
-            buttonStyleData: const ButtonStyleData(
+            buttonStyleData: const FormFieldButtonStyleData(
               padding: EdgeInsets.only(left: 16, right: 8),
               height: 38,
             ),
             menuItemStyleData: const MenuItemStyleData(
-              height: 38,
               padding: EdgeInsets.zero,
             ),
           ),
@@ -376,7 +377,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             ),
             hint: Text('realm'.tr(), style: const TextStyle(fontSize: 15)),
             items: [
-              DropdownMenuItem<SnRealm?>(
+              DropdownItem<SnRealm?>(
                 value: null,
                 child: Row(
                   children: [
@@ -392,7 +393,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               // Include current realm if it's not null and not in joined realms
               if (currentRealm != null &&
                   !(userRealms.value ?? []).any((r) => r.id == currentRealm.id))
-                DropdownMenuItem<SnRealm?>(
+                DropdownItem<SnRealm?>(
                   value: currentRealm,
                   child: Row(
                     children: [
@@ -408,7 +409,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 ),
               if (userRealms.hasValue)
                 ...(userRealms.value ?? []).map(
-                  (realm) => DropdownMenuItem<SnRealm?>(
+                  (realm) => DropdownItem<SnRealm?>(
                     value: realm,
                     child: Row(
                       children: [
@@ -424,7 +425,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   ),
                 ),
             ],
-            value: currentRealm,
+            valueListenable: ValueNotifier(currentRealm),
             onChanged: (value) {
               state.realm.value = value;
             },
@@ -449,12 +450,11 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 );
               }).toList();
             },
-            buttonStyleData: const ButtonStyleData(
+            buttonStyleData: const FormFieldButtonStyleData(
               padding: EdgeInsets.only(left: 16, right: 8),
               height: 40,
             ),
             menuItemStyleData: const MenuItemStyleData(
-              height: 56,
               padding: EdgeInsets.zero,
             ),
           ),

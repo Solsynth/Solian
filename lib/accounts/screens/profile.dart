@@ -238,32 +238,6 @@ class _AccountProfileDetail extends StatelessWidget {
             ),
           ],
         ),
-      if (data.profile.location.isNotEmpty)
-        Row(
-          spacing: 6,
-          children: [
-            const Icon(Symbols.location_on, size: 17, fill: 1),
-            Text(data.profile.location),
-          ],
-        ),
-      if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
-        Row(
-          spacing: 6,
-          children: [
-            const Icon(Symbols.person, size: 17, fill: 1),
-            Text(
-              data.profile.gender.isEmpty
-                  ? 'unspecified'.tr()
-                  : data.profile.gender,
-            ),
-            Text('·').bold(),
-            Text(
-              data.profile.pronouns.isEmpty
-                  ? 'unspecified'.tr()
-                  : data.profile.pronouns,
-            ),
-          ],
-        ),
       if (data.profile.firstName.isNotEmpty ||
           data.profile.middleName.isNotEmpty ||
           data.profile.lastName.isNotEmpty)
@@ -277,24 +251,51 @@ class _AccountProfileDetail extends StatelessWidget {
             if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
           ],
         ),
-      Tooltip(
-        message: 'creditsStatus'.tr(),
-        child: Row(
+
+      Row(
+        spacing: 6,
+        children: [
+          const Icon(Symbols.person, size: 17, fill: 1),
+          Text(
+            data.profile.gender.isEmpty
+                ? 'unspecified'.tr()
+                : data.profile.gender,
+          ),
+          Text('·').bold(),
+          Text(
+            data.profile.pronouns.isEmpty
+                ? 'unspecified'.tr()
+                : data.profile.pronouns,
+          ),
+        ],
+      ),
+      if (data.profile.location.isNotEmpty)
+        Row(
           spacing: 6,
           children: [
-            Icon(Symbols.attribution, size: 17, fill: 1).padding(right: 2),
-            Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
-            Text('·').bold(),
-            switch (data.profile.socialCreditsLevel) {
-              -1 => Text('socialCreditsLevelPoor').tr(),
-              0 => Text('socialCreditsLevelNormal').tr(),
-              1 => Text('socialCreditsLevelGood').tr(),
-              2 => Text('socialCreditsLevelExcellent').tr(),
-              _ => Text('unknown').tr(),
-            },
+            const Icon(Symbols.location_on, size: 17, fill: 1),
+            Text(data.profile.location),
           ],
         ),
-      ),
+      if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
+        Tooltip(
+          message: 'creditsStatus'.tr(),
+          child: Row(
+            spacing: 6,
+            children: [
+              Icon(Symbols.attribution, size: 17, fill: 1).padding(right: 2),
+              Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
+              Text('·').bold(),
+              switch (data.profile.socialCreditsLevel) {
+                -1 => Text('socialCreditsLevelPoor').tr(),
+                0 => Text('socialCreditsLevelNormal').tr(),
+                1 => Text('socialCreditsLevelGood').tr(),
+                2 => Text('socialCreditsLevelExcellent').tr(),
+                _ => Text('unknown').tr(),
+              },
+            ],
+          ),
+        ),
       InkWell(
         child: Row(
           spacing: 6,

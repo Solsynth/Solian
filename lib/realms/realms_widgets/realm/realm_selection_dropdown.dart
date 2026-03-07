@@ -27,9 +27,9 @@ class RealmSelectionDropdown extends StatelessWidget {
       child: DropdownButton2<SnRealm?>(
         isExpanded: true,
         hint: Text('realmSelection').tr(),
-        value: value,
+        valueListenable: ValueNotifier(value),
         items: [
-          DropdownMenuItem<SnRealm?>(
+          DropdownItem<SnRealm?>(
             value: null,
             child: Row(
               children: [
@@ -44,7 +44,7 @@ class RealmSelectionDropdown extends StatelessWidget {
           ),
           if (!isLoading && error == null)
             ...realms.map(
-              (realm) => DropdownMenuItem<SnRealm?>(
+              (realm) => DropdownItem<SnRealm?>(
                 value: realm,
                 child: Row(
                   children: [

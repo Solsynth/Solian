@@ -146,7 +146,7 @@ class PublisherMemberListNotifier
 
 class PublisherSelector extends StatelessWidget {
   final SnPublisher? currentPublisher;
-  final List<DropdownMenuItem<SnPublisher>> publishersMenu;
+  final List<DropdownItem<SnPublisher>> publishersMenu;
   final ValueChanged<SnPublisher?>? onChanged;
   final bool isReadOnly;
 
@@ -175,7 +175,9 @@ class PublisherSelector extends StatelessWidget {
 
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnPublisher>(
-        value: isValueValid ? currentValue : null,
+        valueListenable: ValueNotifier<SnPublisher?>(
+          isValueValid ? currentValue : null,
+        ),
         customButton: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -211,7 +213,7 @@ class PublisherSelector extends StatelessWidget {
         ),
         items: publishersMenu
             .map(
-              (item) => DropdownMenuItem<SnPublisher>(
+              (item) => DropdownItem<SnPublisher>(
                 value: item.value,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,7 +258,6 @@ class PublisherSelector extends StatelessWidget {
           ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 56,
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
@@ -400,10 +401,10 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       });
     }
 
-    final List<DropdownMenuItem<SnPublisher>> publishersMenu = publishers.when(
+    final List<DropdownItem<SnPublisher>> publishersMenu = publishers.when(
       data: (data) => data
           .map(
-            (item) => DropdownMenuItem<SnPublisher>(
+            (item) => DropdownItem<SnPublisher>(
               value: item,
               child: ListTile(
                 minTileHeight: 48,

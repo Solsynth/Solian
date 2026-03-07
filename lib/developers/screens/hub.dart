@@ -231,10 +231,10 @@ class DeveloperSelector extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final developers = ref.watch(developersProvider);
 
-    final List<DropdownMenuItem<SnDeveloper>> developersMenu = developers.when(
+    final List<DropdownItem<SnDeveloper>> developersMenu = developers.when(
       data: (data) => data
           .map(
-            (item) => DropdownMenuItem<SnDeveloper>(
+            (item) => DropdownItem<SnDeveloper>(
               value: item,
               child: ListTile(
                 minTileHeight: 48,
@@ -266,7 +266,7 @@ class DeveloperSelector extends HookConsumerWidget {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnDeveloper>(
         alignment: Alignment.centerRight,
-        value: currentDeveloper,
+        valueListenable: ValueNotifier(currentDeveloper),
         hint: CircleAvatar(
           radius: 16,
           child: Icon(
@@ -300,7 +300,6 @@ class DeveloperSelector extends HookConsumerWidget {
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 64,
           padding: EdgeInsets.only(left: 14, right: 14),
         ),
         iconStyleData: IconStyleData(
@@ -348,7 +347,7 @@ class ProjectSelector extends HookConsumerWidget {
 
     return DropdownButtonHideUnderline(
       child: DropdownButton2<DevProject>(
-        value: isValueValid ? currentValue : null,
+        valueListenable: ValueNotifier(isValueValid ? currentValue : null),
         customButton: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -394,7 +393,7 @@ class ProjectSelector extends HookConsumerWidget {
         ),
         items: projects.value!
             .map(
-              (project) => DropdownMenuItem<DevProject>(
+              (project) => DropdownItem<DevProject>(
                 value: project,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,7 +440,6 @@ class ProjectSelector extends HookConsumerWidget {
           ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          height: 56,
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
