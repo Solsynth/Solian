@@ -37,8 +37,8 @@ import 'package:window_manager/window_manager.dart';
 
 const kForceShowStartupSplashForTesting = false;
 const kBootstrapRetryTimeouts = <Duration>[
-  Duration(milliseconds: 500),
-  Duration(seconds: 1),
+  Duration(milliseconds: 1000),
+  Duration(seconds: 2),
   Duration(seconds: 3),
 ];
 

@@ -12,8 +12,8 @@ import 'package:island/core/services/analytics_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _bootstrapRetryTimeouts = <Duration>[
-  Duration(milliseconds: 500),
-  Duration(seconds: 1),
+  Duration(milliseconds: 1000),
+  Duration(seconds: 2),
   Duration(seconds: 3),
 ];
 
