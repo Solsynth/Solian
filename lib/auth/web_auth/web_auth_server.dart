@@ -205,11 +205,12 @@ class WebAuthServer {
       return;
     }
 
-    final String? signedChallenge = data['signed_challenge'];
+    final String? signedChallenge =
+        data['signed_challenge'] ?? data['signedChallenge'] as String?;
 
     if (signedChallenge == null) {
       request.response.statusCode = HttpStatus.badRequest;
-      request.response.write(jsonEncode({'error': 'Missing signedChallenge'}));
+      request.response.write(jsonEncode({'error': 'Missing signed_challenge'}));
       await request.response.close();
       return;
     }
@@ -220,14 +221,28 @@ class WebAuthServer {
     try {
       final dio = _ref.read(apiClientProvider);
 
-      final response = await dio.post(
-        '/padlock/auth/login/session',
-        data: {
-          'device_id': await getUdid(),
-          'device_name': await getDeviceName(),
-          'signed_challenge': signedChallenge,
-        },
-      );
+      Response<dynamic> response;
+      try {
+        response = await dio.post(
+          '/develop/padlock/auth/login/session',
+          data: {
+            'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
+            'signed_challenge': signedChallenge,
+          },
+        );
+      } on DioException catch (e) {
+        // Keep compatibility for non-gateway deployments.
+        if (e.response?.statusCode != HttpStatus.notFound) rethrow;
+        response = await dio.post(
+          '/padlock/auth/login/session',
+          data: {
+            'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
+            'signed_challenge': signedChallenge,
+          },
+        );
+      }
 
       if (response.statusCode == 200 && response.data != null) {
         final webToken = response.data['token'];

@@ -53,27 +53,25 @@ class WebAuthClient {
   ]) async {
     final client = Dio();
     try {
+      final payload = <String, dynamic>{'signed_challenge': signedChallenge};
+      if (deviceInfo != null) payload['device_info'] = deviceInfo;
+
       final response = await client.post(
         'http://127.0.0.1:$_port/exchange',
-        data: jsonEncode({
-          'signed_challenge': signedChallenge,
-          'device_info': ?deviceInfo,
-        }),
-      );
-
-      print(
-        'Exchange response: statusCode=${response.statusCode} data=${jsonEncode(response.data)}',
+        data: jsonEncode(payload),
       );
 
       if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
         return WebAuthResult(
           status: WebAuthStatus.success,
-          token: response.data['token'] as String?,
+          token: data['token'] as String?,
         );
       } else {
+        final data = response.data as Map<String, dynamic>?;
         return WebAuthResult(
           status: WebAuthStatus.error,
-          error: response.data['error'] as String?,
+          error: data?['error'] as String?,
         );
       }
     } finally {
