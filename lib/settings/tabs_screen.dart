@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,6 +20,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
 class TabsScreen extends StatelessWidget {
@@ -217,10 +220,7 @@ class _TabsScreenContent extends HookConsumerWidget {
         : 0;
     final shouldShowBottomNav =
         bottomNavDestinations.isNotEmpty &&
-        shouldShowBottomNavForCurrentPath(
-          context,
-          routes: bottomNavRoutes,
-        );
+        shouldShowBottomNavForCurrentPath(context, routes: bottomNavRoutes);
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
@@ -475,13 +475,16 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
         child: child,
       ),
-      floatingActionButton: shouldShowBottomNav
+      // Mobile can use edge-swipe
+      floatingActionButton:
+          (shouldShowBottomNav ||
+              (!kIsWeb && (Platform.isAndroid || Platform.isIOS)))
           ? null
           : FloatingActionButton.small(
               onPressed: () => scaffoldKey.currentState?.openDrawer(),
               child: const Icon(Symbols.menu_rounded),
-            ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+            ).padding(top: 40),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
       bottomNavigationBar: ConditionalBottomNav(
         routes: bottomNavRoutes,
         child: ClipRRect(
