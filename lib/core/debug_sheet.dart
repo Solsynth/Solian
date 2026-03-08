@@ -8,10 +8,12 @@ import 'package:island/core/network.dart';
 import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:island/talker.dart';
 
@@ -96,6 +98,41 @@ class DebugSheet extends HookConsumerWidget {
                     'Unable to check for updates',
                   );
                 }
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.slideshow),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Show onboarding (new user)'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () async {
+                final info = await PackageInfo.fromPlatform();
+                if (!context.mounted) return;
+                await showAppOnboardingSheet(
+                  context,
+                  version: info.version,
+                  isFirstLaunch: true,
+                  suggestAuth: true,
+                );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.slideshow),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Show onboarding (old user)'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () async {
+                final info = await PackageInfo.fromPlatform();
+                if (!context.mounted) return;
+                await showAppOnboardingSheet(
+                  context,
+                  version: info.version,
+                  isFirstLaunch: false,
+                  suggestAuth: false,
+                );
               },
             ),
             const Divider(height: 8),
