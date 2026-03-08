@@ -53,6 +53,51 @@ final result = await WebAuthClient(
 ).waitForAuth();
 ```
 
+### Native App Connect (solian://)
+
+For native apps (iOS/Android), you can use the `solian://auth/web` protocol
+to request a challenge and exchange a signed challenge with redirect callbacks.
+
+```dart
+final client = WebAuthClient(
+  baseUrl: 'http://127.0.0.1',
+  port: port,
+  webUrl: 'https://app.solian.fr',
+);
+
+// Step 1: request challenge (opens Solian app)
+final challengeUrl = client.getProtocolChallengeUrl(
+  appName: 'Acme Native App',
+  redirectUri: 'acme://auth/callback',
+  state: 'request-123',
+);
+
+// launch challengeUrl with url_launcher
+// callback example:
+// acme://auth/callback?status=ok&challenge=...&state=request-123
+
+// Step 2: sign challenge in your app, then request exchange
+final exchangeUrl = client.getProtocolExchangeUrl(
+  signedChallenge: signedChallenge,
+  redirectUri: 'acme://auth/callback',
+  state: 'request-123',
+);
+
+// launch exchangeUrl
+// callback example:
+// acme://auth/callback?status=success&token=...&state=request-123
+```
+
+Callback query fields:
+
+- `status`: `ok` | `denied` | `success` | `error`
+- `challenge`: present when `status=ok`
+- `token`: present when `status=success`
+- `error`: present when `status=error`
+- `state`: echoed when you pass `state` in request URL
+
+See full protocol details in `docs/web_auth_protocol.md`.
+
 ### Token Management
 
 ```dart

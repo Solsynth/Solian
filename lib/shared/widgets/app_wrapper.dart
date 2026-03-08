@@ -36,6 +36,7 @@ import 'package:island/core/tour/tour.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:snow_fall_animation/snow_fall_animation.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
 const kForceShowStartupSplashForTesting = false;
@@ -443,6 +444,16 @@ class AppWrapper extends HookConsumerWidget {
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {
     String path = '/${uri.host}${uri.path}';
 
+    // Web auth deep links for native apps:
+    // 1) Request challenge:
+    //    solian://auth/web?app=MyApp&redirect_uri=myapp://auth-callback
+    // 2) Exchange signed challenge:
+    //    solian://auth/web?signed_challenge=...&redirect_uri=myapp://auth-callback
+    if (path == '/auth/web') {
+      await _handleProtocolWebAuth(uri, ref);
+      return;
+    }
+
     // Special handling for OIDC auth callback
     if (path == '/auth/callback' && uri.queryParameters.containsKey('token')) {
       final token = uri.queryParameters['token']!;
@@ -505,6 +516,122 @@ class AppWrapper extends HookConsumerWidget {
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       windowManager.show();
     }
+  }
+
+  Future<void> _handleProtocolWebAuth(Uri uri, WidgetRef ref) async {
+    final redirectUriRaw = uri.queryParameters['redirect_uri'];
+    final redirectUri = redirectUriRaw == null ? null : Uri.tryParse(redirectUriRaw);
+    final state = uri.queryParameters['state'];
+
+    if (redirectUri == null || !redirectUri.hasScheme) {
+      return;
+    }
+
+    final appName =
+        uri.queryParameters['app'] ??
+        uri.queryParameters['app_name'] ??
+        'Unknown App';
+    final signedChallenge = uri.queryParameters['signed_challenge'];
+
+    int? port = ref.read(webAuthServerStateProvider).port;
+    port ??= await ref.read(webAuthServerProvider).start();
+
+    final client = Dio();
+    try {
+      if (signedChallenge == null || signedChallenge.isEmpty) {
+        final response = await client.get(
+          'http://127.0.0.1:$port/alive',
+          queryParameters: {'app': appName},
+        );
+        final data = Map<String, dynamic>.from(response.data as Map);
+        final status = data['status'] as String?;
+
+        if (status == 'ok' && data['challenge'] is String) {
+          await _launchWebAuthRedirect(
+            redirectUri: redirectUri,
+            state: state,
+            payload: {
+              'status': 'ok',
+              'challenge': data['challenge'] as String,
+            },
+          );
+          return;
+        }
+
+        if (status == 'denied') {
+          await _launchWebAuthRedirect(
+            redirectUri: redirectUri,
+            state: state,
+            payload: {'status': 'denied'},
+          );
+          return;
+        }
+
+        await _launchWebAuthRedirect(
+          redirectUri: redirectUri,
+          state: state,
+          payload: {'status': 'error', 'error': 'invalid_alive_response'},
+        );
+        return;
+      }
+
+      final response = await client.post(
+        'http://127.0.0.1:$port/exchange',
+        data: jsonEncode({'signed_challenge': signedChallenge}),
+      );
+      final data = Map<String, dynamic>.from(response.data as Map);
+
+      if (data['token'] is String && (data['token'] as String).isNotEmpty) {
+        await _launchWebAuthRedirect(
+          redirectUri: redirectUri,
+          state: state,
+          payload: {'status': 'success', 'token': data['token'] as String},
+        );
+        return;
+      }
+
+      await _launchWebAuthRedirect(
+        redirectUri: redirectUri,
+        state: state,
+        payload: {
+          'status': 'error',
+          'error': (data['error']?.toString() ?? 'exchange_failed'),
+        },
+      );
+    } on DioException catch (e) {
+      final error =
+          (e.response?.data is Map &&
+                  (e.response!.data as Map).containsKey('error'))
+              ? (e.response!.data['error']?.toString() ?? 'exchange_failed')
+              : (e.message ?? 'exchange_failed');
+      await _launchWebAuthRedirect(
+        redirectUri: redirectUri,
+        state: state,
+        payload: {'status': 'error', 'error': error},
+      );
+    } catch (_) {
+      await _launchWebAuthRedirect(
+        redirectUri: redirectUri,
+        state: state,
+        payload: {'status': 'error', 'error': 'unexpected_error'},
+      );
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<void> _launchWebAuthRedirect({
+    required Uri redirectUri,
+    String? state,
+    required Map<String, String> payload,
+  }) async {
+    final queryParams = Map<String, String>.from(redirectUri.queryParameters);
+    if (state != null && state.isNotEmpty) {
+      queryParams['state'] = state;
+    }
+    queryParams.addAll(payload);
+    final target = redirectUri.replace(queryParameters: queryParams).toString();
+    await launchUrlString(target, mode: LaunchMode.externalApplication);
   }
 }
 

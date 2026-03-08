@@ -22,6 +22,42 @@ class WebAuthClient {
     return '$_webUrl/auth/web?port=$_port';
   }
 
+  String getProtocolChallengeUrl({
+    required String appName,
+    required String redirectUri,
+    String? state,
+  }) {
+    final params = <String, String>{
+      'app': appName,
+      'redirect_uri': redirectUri,
+    };
+    if (state != null && state.isNotEmpty) params['state'] = state;
+    return Uri(
+      scheme: 'solian',
+      host: 'auth',
+      path: '/web',
+      queryParameters: params,
+    ).toString();
+  }
+
+  String getProtocolExchangeUrl({
+    required String signedChallenge,
+    required String redirectUri,
+    String? state,
+  }) {
+    final params = <String, String>{
+      'signed_challenge': signedChallenge,
+      'redirect_uri': redirectUri,
+    };
+    if (state != null && state.isNotEmpty) params['state'] = state;
+    return Uri(
+      scheme: 'solian',
+      host: 'auth',
+      path: '/web',
+      queryParameters: params,
+    ).toString();
+  }
+
   Future<WebAuthResult> waitForAuth() async {
     final client = Dio();
     try {
