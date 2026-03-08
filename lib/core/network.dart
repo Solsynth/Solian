@@ -325,8 +325,11 @@ Future<void> _saveTokenPair(
 
 bool _shouldRefreshToken(_StoredTokenPair tokenPair) {
   if (_isNotExpired(tokenPair.expiresAt)) return false;
-  // Allow cookie-based refresh fallback when refresh token is not stored.
-  return tokenPair.refreshToken == null || _isNotExpired(tokenPair.refreshExpiresAt);
+  // Legacy stored tokens may not have refresh token; skip refresh in that case.
+  if (tokenPair.refreshToken == null || tokenPair.refreshToken!.isEmpty) {
+    return false;
+  }
+  return _isNotExpired(tokenPair.refreshExpiresAt);
 }
 
 Future<_StoredTokenPair?> _refreshTokenPair({
