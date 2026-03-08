@@ -36,23 +36,40 @@ String? _normalizeRoutePath(String? route) {
   return path;
 }
 
+bool shouldShowBottomNavForCurrentPath(
+  BuildContext context, {
+  List<String>? routes,
+}) {
+  final effectiveRoutes = routes ?? kTabRoutes;
+  final currentLocation = _normalizeRoutePath(context.router.root.currentPath);
+  if (currentLocation == null) return false;
+
+  return effectiveRoutes.any((route) {
+    final normalized = _normalizeRoutePath(route);
+    if (normalized == null) return false;
+    if (normalized == '/') return currentLocation == '/';
+    return currentLocation == normalized ||
+        currentLocation.startsWith('$normalized/');
+  });
+}
+
 class ConditionalBottomNav extends StatelessWidget {
   final Widget child;
-  const ConditionalBottomNav({super.key, required this.child});
+  final List<String>? routes;
+  const ConditionalBottomNav({super.key, required this.child, this.routes});
 
   @override
   Widget build(BuildContext context) {
-    final routes = kTabRoutes.sublist(
+    final defaultRoutes = kTabRoutes.sublist(
       0,
       isWideScreen(context) ? null : kWideScreenRouteStart,
     );
+    final effectiveRoutes = routes ?? defaultRoutes;
 
-    final currentLocation = _normalizeRoutePath(
-      context.router.root.currentPath,
+    final shouldShowBottomNav = shouldShowBottomNavForCurrentPath(
+      context,
+      routes: effectiveRoutes,
     );
-    final shouldShowBottomNav =
-        currentLocation != null &&
-        routes.any((route) => _normalizeRoutePath(route) == currentLocation);
 
     return shouldShowBottomNav ? child : const SizedBox.shrink();
   }

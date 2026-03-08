@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:convert';
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,14 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/navigation/conditional_bottom_nav.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage()
 class TabsScreen extends StatelessWidget {
@@ -60,18 +63,27 @@ class _TabsScreenContent extends HookConsumerWidget {
 
     final allDestinations = <_TabDestination>[
       _TabDestination(
+        id: 'dashboard',
+        routeIndex: 0,
+        routePath: '/',
         label: 'dashboard'.tr(),
         navigationIcon: Symbols.dashboard_rounded,
         iconBuilder: (selected) =>
             Icon(Symbols.dashboard_rounded, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'explore',
+        routeIndex: 1,
+        routePath: '/explore',
         label: 'explore'.tr(),
         navigationIcon: Symbols.explore_rounded,
         iconBuilder: (selected) =>
             Icon(Symbols.explore_rounded, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'chat',
+        routeIndex: 2,
+        routePath: '/chat',
         label: 'chat'.tr(),
         navigationIcon: Symbols.forum_rounded,
         iconBuilder: (_) => Badge.count(
@@ -81,12 +93,18 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
       ),
       _TabDestination(
+        id: 'realms',
+        routeIndex: 3,
+        routePath: '/realms',
         label: 'realms'.tr(),
         navigationIcon: Symbols.groups_3,
         iconBuilder: (selected) =>
             Icon(Symbols.groups_3, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'account',
+        routeIndex: 4,
+        routePath: '/account',
         label: 'account'.tr(),
         navigationIcon: Symbols.account_circle_rounded,
         iconBuilder: (_) => Badge.count(
@@ -108,72 +126,326 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
       ),
       _TabDestination(
+        id: 'files',
+        routeIndex: 5,
+        routePath: '/files',
         label: 'files'.tr(),
         navigationIcon: Symbols.folder_rounded,
         iconBuilder: (selected) =>
             Icon(Symbols.folder_rounded, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'thought',
+        routeIndex: 6,
+        routePath: '/thought',
         label: 'aiThought'.tr(),
         navigationIcon: Symbols.bubble_chart,
         iconBuilder: (selected) =>
             Icon(Symbols.bubble_chart, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'creators',
+        routeIndex: 7,
+        routePath: '/creators',
         label: 'creatorHub'.tr(),
         navigationIcon: Symbols.design_services_rounded,
         iconBuilder: (selected) =>
             Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
       ),
       _TabDestination(
+        id: 'developers',
+        routeIndex: 8,
+        routePath: '/developers',
         label: 'developerHub'.tr(),
         navigationIcon: Symbols.data_object_rounded,
         iconBuilder: (selected) =>
             Icon(Symbols.data_object_rounded, fill: selected ? 1 : null),
       ),
     ];
-    final railAndDrawerDestinations = allDestinations;
-    final bottomNavRouteIndices = <int>[0, 1, 2, 4];
-    final bottomNavDestinations = bottomNavRouteIndices
-        .map((idx) => allDestinations[idx])
-        .toList();
+    final navCustomization = ref.watch(_navCustomizationProvider);
+    final destinationById = {for (final d in allDestinations) d.id: d};
+    final defaultBottomNavIds = ['dashboard', 'explore', 'chat', 'account'];
+    final defaultRailNavIds = allDestinations.map((e) => e.id).toList();
 
-    final railCurrentIndex = min(
-      tabsRouter.activeIndex,
-      railAndDrawerDestinations.length - 1,
+    List<_TabDestination> resolveDestinations({
+      required List<String> preferredIds,
+      required List<String> fallbackIds,
+      required bool useFallbackWhenEmpty,
+    }) {
+      final resolved = <_TabDestination>[];
+      for (final id in preferredIds) {
+        final dest = destinationById[id];
+        if (dest == null) continue;
+        if (resolved.any((e) => e.id == dest.id)) continue;
+        resolved.add(dest);
+      }
+      if (resolved.isEmpty && useFallbackWhenEmpty) {
+        for (final id in fallbackIds) {
+          final dest = destinationById[id];
+          if (dest == null) continue;
+          if (resolved.any((e) => e.id == dest.id)) continue;
+          resolved.add(dest);
+        }
+      }
+      return resolved;
+    }
+
+    final railDestinations = resolveDestinations(
+      preferredIds: navCustomization.railIds,
+      fallbackIds: defaultRailNavIds,
+      useFallbackWhenEmpty: !navCustomization.hasRailOverride,
     );
-    final selectedBottomNavIndex = bottomNavRouteIndices.indexOf(
-      tabsRouter.activeIndex,
+    final bottomNavDestinations = resolveDestinations(
+      preferredIds: navCustomization.bottomIds,
+      fallbackIds: defaultBottomNavIds,
+      useFallbackWhenEmpty: !navCustomization.hasBottomOverride,
+    );
+    final bottomNavRoutes = bottomNavDestinations
+        .map((d) => d.routePath)
+        .toList();
+    final drawerDestinations = allDestinations;
+
+    final selectedRailIndex = railDestinations.indexWhere(
+      (d) => d.routeIndex == tabsRouter.activeIndex,
+    );
+    final railCurrentIndex = selectedRailIndex >= 0 ? selectedRailIndex : 0;
+    final selectedBottomNavIndex = bottomNavDestinations.indexWhere(
+      (d) => d.routeIndex == tabsRouter.activeIndex,
     );
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final shouldShowBottomNav = selectedBottomNavIndex >= 0;
+    final shouldShowBottomNav = shouldShowBottomNavForCurrentPath(
+      context,
+      routes: bottomNavRoutes,
+    );
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
     }
 
+    void onRailDestinationSelected(int index) {
+      if (index < 0 || index >= railDestinations.length) return;
+      tabsRouter.setActiveIndex(railDestinations[index].routeIndex);
+    }
+
     void onBottomNavDestinationSelected(int index) {
-      if (index < 0 || index >= bottomNavRouteIndices.length) return;
-      tabsRouter.setActiveIndex(bottomNavRouteIndices[index]);
+      if (index < 0 || index >= bottomNavDestinations.length) return;
+      tabsRouter.setActiveIndex(bottomNavDestinations[index].routeIndex);
+    }
+
+    void openNavigationCustomization() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (context) => _NavigationCustomizationSheet(
+          allDestinations: allDestinations,
+          initialBottomIds: navCustomization.bottomIds,
+          initialRailIds: navCustomization.railIds,
+          hasBottomOverride: navCustomization.hasBottomOverride,
+          hasRailOverride: navCustomization.hasRailOverride,
+          onSave: (bottomIds, railIds) {
+            ref
+                .read(_navCustomizationProvider.notifier)
+                .setLayouts(bottomIds: bottomIds, railIds: railIds);
+          },
+          onRestoreDefaults: () {
+            ref.read(_navCustomizationProvider.notifier).restoreDefaults();
+          },
+        ),
+      );
+    }
+
+    Widget buildNavigationDrawerContent() {
+      return SafeArea(
+        child: NavigationDrawer(
+          selectedIndex: tabsRouter.activeIndex,
+          onDestinationSelected: (index) {
+            Navigator.of(context).pop();
+            if (index < 0 || index >= drawerDestinations.length) return;
+            tabsRouter.setActiveIndex(drawerDestinations[index].routeIndex);
+          },
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+                onDestinationSelected(4);
+              },
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                height: 120,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (token != null &&
+                        userInfo.value?.profile.background != null)
+                      CloudFileWidget(
+                        item: userInfo.value!.profile.background!,
+                        fit: BoxFit.cover,
+                      ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.12),
+                            Colors.black.withOpacity(0.48),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (token != null &&
+                              userInfo.value?.profile.picture != null)
+                            ProfilePictureWidget(
+                              file: userInfo.value!.profile.picture,
+                              radius: 18,
+                            )
+                          else
+                            CircleAvatar(
+                              radius: 18,
+                              child: Icon(
+                                token != null
+                                    ? Symbols.account_circle_rounded
+                                    : Symbols.login_rounded,
+                              ),
+                            ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: token == null
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Not logged in',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(color: Colors.white),
+                                      ),
+                                      Text(
+                                        'Tap to sign in',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(color: Colors.white70),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        userInfo.value?.nick ?? 'Account',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(color: Colors.white),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        '@${userInfo.value?.name ?? ''}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(color: Colors.white70),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                          const Icon(
+                            Symbols.chevron_right_rounded,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ...drawerDestinations.map((d) {
+              return NavigationDrawerDestination(
+                label: Text(d.label),
+                icon: Icon(d.navigationIcon),
+                selectedIcon: Icon(d.navigationIcon, fill: 1),
+              );
+            }),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Symbols.tune_rounded),
+              title: Text('Customize Navigation'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 28),
+              dense: true,
+              onTap: () {
+                Navigator.of(context).pop();
+                openNavigationCustomization();
+              },
+            ),
+          ],
+        ),
+      );
     }
 
     if (wideScreen) {
-      return Container(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Row(
+      if (railDestinations.isEmpty) {
+        return Scaffold(
+          key: scaffoldKey,
+          drawer: Drawer(child: buildNavigationDrawerContent()),
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+          body: ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(16)),
+            child: child,
+          ),
+          floatingActionButton: FloatingActionButton.small(
+            onPressed: () => scaffoldKey.currentState?.openDrawer(),
+            child: const Icon(Symbols.menu_rounded),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        );
+      }
+      return Scaffold(
+        key: scaffoldKey,
+        drawer: Drawer(child: buildNavigationDrawerContent()),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        body: Row(
           children: [
             NavigationRail(
               backgroundColor: Colors.transparent,
-              destinations: railAndDrawerDestinations.mapIndexed((idx, d) {
+              destinations: railDestinations.mapIndexed((idx, d) {
                 return NavigationRailDestination(
                   icon: d.iconBuilder(railCurrentIndex == idx),
                   label: Text(d.label),
                 );
               }).toList(),
               selectedIndex: railCurrentIndex,
-              onDestinationSelected: onDestinationSelected,
+              onDestinationSelected: onRailDestinationSelected,
+              trailingAtBottom: true,
+              trailing: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: FloatingActionButton(
+                  onPressed: () => scaffoldKey.currentState?.openDrawer(),
+                  child: const Icon(Symbols.menu_rounded),
+                ),
+              ),
             ),
             Expanded(
               child: ClipRRect(
@@ -193,143 +465,7 @@ class _TabsScreenContent extends HookConsumerWidget {
       backgroundColor: Colors.transparent,
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      drawer: Drawer(
-        child: SafeArea(
-          child: NavigationDrawer(
-            selectedIndex: tabsRouter.activeIndex,
-            onDestinationSelected: (index) {
-              Navigator.of(context).pop();
-              onDestinationSelected(index);
-            },
-            children: [
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  onDestinationSelected(4);
-                },
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  height: 120,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (token != null &&
-                          userInfo.value?.profile.background != null)
-                        CloudFileWidget(
-                          item: userInfo.value!.profile.background!,
-                          fit: BoxFit.cover,
-                        ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.12),
-                              Colors.black.withOpacity(0.48),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            if (token != null &&
-                                userInfo.value?.profile.picture != null)
-                              ProfilePictureWidget(
-                                file: userInfo.value!.profile.picture,
-                                radius: 18,
-                              )
-                            else
-                              CircleAvatar(
-                                radius: 18,
-                                child: Icon(
-                                  token != null
-                                      ? Symbols.account_circle_rounded
-                                      : Symbols.login_rounded,
-                                ),
-                              ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: token == null
-                                  ? Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Not logged in',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(color: Colors.white),
-                                        ),
-                                        Text(
-                                          'Tap to sign in',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(color: Colors.white70),
-                                        ),
-                                      ],
-                                    )
-                                  : Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          userInfo.value?.nick ?? 'Account',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(color: Colors.white),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          '@${userInfo.value?.name ?? ''}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(color: Colors.white70),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                            const Icon(
-                              Symbols.chevron_right_rounded,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              ...railAndDrawerDestinations.map((d) {
-                return NavigationDrawerDestination(
-                  label: Text(d.label),
-                  icon: Icon(d.navigationIcon),
-                  selectedIcon: Icon(d.navigationIcon, fill: 1),
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
+      drawer: Drawer(child: buildNavigationDrawerContent()),
       body: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
@@ -345,6 +481,7 @@ class _TabsScreenContent extends HookConsumerWidget {
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       bottomNavigationBar: ConditionalBottomNav(
+        routes: bottomNavRoutes,
         child: ClipRRect(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
@@ -382,46 +519,18 @@ class _TabsScreenContent extends HookConsumerWidget {
                             onTap: () => scaffoldKey.currentState?.openDrawer(),
                           ),
                         ),
-                        Expanded(
-                          child: _BottomNavButton(
-                            selected: bottomNavCurrentIndex == 0,
-                            icon: bottomNavDestinations[0].iconBuilder(
-                              bottomNavCurrentIndex == 0,
+                        ...bottomNavDestinations.mapIndexed((idx, destination) {
+                          return Expanded(
+                            child: _BottomNavButton(
+                              selected: bottomNavCurrentIndex == idx,
+                              icon: destination.iconBuilder(
+                                bottomNavCurrentIndex == idx,
+                              ),
+                              label: destination.label,
+                              onTap: () => onBottomNavDestinationSelected(idx),
                             ),
-                            label: bottomNavDestinations[0].label,
-                            onTap: () => onBottomNavDestinationSelected(0),
-                          ),
-                        ),
-                        Expanded(
-                          child: _BottomNavButton(
-                            selected: bottomNavCurrentIndex == 1,
-                            icon: bottomNavDestinations[1].iconBuilder(
-                              bottomNavCurrentIndex == 1,
-                            ),
-                            label: bottomNavDestinations[1].label,
-                            onTap: () => onBottomNavDestinationSelected(1),
-                          ),
-                        ),
-                        Expanded(
-                          child: _BottomNavButton(
-                            selected: bottomNavCurrentIndex == 2,
-                            icon: bottomNavDestinations[2].iconBuilder(
-                              bottomNavCurrentIndex == 2,
-                            ),
-                            label: bottomNavDestinations[2].label,
-                            onTap: () => onBottomNavDestinationSelected(2),
-                          ),
-                        ),
-                        Expanded(
-                          child: _BottomNavButton(
-                            selected: bottomNavCurrentIndex == 3,
-                            icon: bottomNavDestinations[3].iconBuilder(
-                              bottomNavCurrentIndex == 3,
-                            ),
-                            label: bottomNavDestinations[3].label,
-                            onTap: () => onBottomNavDestinationSelected(3),
-                          ),
-                        ),
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -455,16 +564,289 @@ class _TabsScreenContent extends HookConsumerWidget {
   }
 }
 
+const _kBottomNavLayoutsKey = 'app_bottom_nav_layouts';
+const _kRailNavLayoutsKey = 'app_rail_nav_layouts';
+
+final _navCustomizationProvider =
+    NotifierProvider<_NavCustomizationNotifier, _NavCustomizationState>(
+      _NavCustomizationNotifier.new,
+    );
+
+class _NavCustomizationState {
+  final List<String> bottomIds;
+  final List<String> railIds;
+  final bool hasBottomOverride;
+  final bool hasRailOverride;
+
+  const _NavCustomizationState({
+    required this.bottomIds,
+    required this.railIds,
+    required this.hasBottomOverride,
+    required this.hasRailOverride,
+  });
+}
+
+class _NavCustomizationNotifier extends Notifier<_NavCustomizationState> {
+  late SharedPreferences _prefs;
+
+  @override
+  _NavCustomizationState build() {
+    _prefs = ref.watch(sharedPreferencesProvider);
+    return _NavCustomizationState(
+      bottomIds: _loadIds(_prefs.getString(_kBottomNavLayoutsKey)),
+      railIds: _loadIds(_prefs.getString(_kRailNavLayoutsKey)),
+      hasBottomOverride: _prefs.containsKey(_kBottomNavLayoutsKey),
+      hasRailOverride: _prefs.containsKey(_kRailNavLayoutsKey),
+    );
+  }
+
+  static List<String> _loadIds(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<String>().toList();
+      }
+    } catch (_) {
+      // Ignore malformed persisted values.
+    }
+    return const [];
+  }
+
+  void setLayouts({
+    required List<String> bottomIds,
+    required List<String> railIds,
+  }) {
+    _prefs.setString(_kBottomNavLayoutsKey, jsonEncode(bottomIds));
+    _prefs.setString(_kRailNavLayoutsKey, jsonEncode(railIds));
+    state = _NavCustomizationState(
+      bottomIds: bottomIds,
+      railIds: railIds,
+      hasBottomOverride: true,
+      hasRailOverride: true,
+    );
+  }
+
+  void restoreDefaults() {
+    _prefs.remove(_kBottomNavLayoutsKey);
+    _prefs.remove(_kRailNavLayoutsKey);
+    state = const _NavCustomizationState(
+      bottomIds: [],
+      railIds: [],
+      hasBottomOverride: false,
+      hasRailOverride: false,
+    );
+  }
+}
+
+class _NavigationCustomizationSheet extends StatefulWidget {
+  final List<_TabDestination> allDestinations;
+  final List<String> initialBottomIds;
+  final List<String> initialRailIds;
+  final bool hasBottomOverride;
+  final bool hasRailOverride;
+  final void Function(List<String> bottomIds, List<String> railIds) onSave;
+  final VoidCallback onRestoreDefaults;
+
+  const _NavigationCustomizationSheet({
+    required this.allDestinations,
+    required this.initialBottomIds,
+    required this.initialRailIds,
+    required this.hasBottomOverride,
+    required this.hasRailOverride,
+    required this.onSave,
+    required this.onRestoreDefaults,
+  });
+
+  @override
+  State<_NavigationCustomizationSheet> createState() =>
+      _NavigationCustomizationSheetState();
+}
+
+class _NavigationCustomizationSheetState
+    extends State<_NavigationCustomizationSheet> {
+  late List<String> _bottomIds;
+  late List<String> _railIds;
+
+  @override
+  void initState() {
+    super.initState();
+    final allIds = widget.allDestinations.map((e) => e.id).toList();
+    final defaultBottom = ['dashboard', 'explore', 'chat', 'account'];
+    final sanitizedBottom = widget.initialBottomIds
+        .where(allIds.contains)
+        .toList();
+    _bottomIds = widget.hasBottomOverride ? sanitizedBottom : defaultBottom;
+
+    final sanitizedRail = widget.initialRailIds.where(allIds.contains).toList();
+    _railIds = widget.hasRailOverride ? sanitizedRail : allIds;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destinationById = {for (final d in widget.allDestinations) d.id: d};
+    final allBottomCandidates = widget.allDestinations;
+
+    return SheetScaffold(
+      titleText: 'Customize Navigation',
+      actions: [
+        IconButton(
+          onPressed: () {
+            widget.onRestoreDefaults();
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Symbols.refresh_rounded),
+          tooltip: 'Restore Defaults',
+        ),
+        IconButton(
+          onPressed: () {
+            widget.onSave(_bottomIds, _railIds);
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Symbols.save_rounded),
+        ),
+      ],
+      child: Material(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bottom Navigation',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: allBottomCandidates.map((d) {
+                    final selected = _bottomIds.contains(d.id);
+                    return FilterChip(
+                      selected: selected,
+                      label: Text(d.label),
+                      avatar: Icon(d.navigationIcon, size: 16),
+                      onSelected: (value) {
+                        setState(() {
+                          if (value) {
+                            if (!_bottomIds.contains(d.id)) {
+                              _bottomIds.add(d.id);
+                            }
+                          } else {
+                            _bottomIds.remove(d.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 8),
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
+                  itemCount: _bottomIds.length,
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final item = _bottomIds.removeAt(oldIndex);
+                      _bottomIds.insert(newIndex, item);
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final id = _bottomIds[index];
+                    final destination = destinationById[id]!;
+                    return ListTile(
+                      key: ValueKey('bottom_$id'),
+                      leading: Icon(destination.navigationIcon),
+                      title: Text(destination.label),
+                      trailing: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Symbols.drag_handle_rounded),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Rail Navigation',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: widget.allDestinations.map((d) {
+                    final selected = _railIds.contains(d.id);
+                    return FilterChip(
+                      selected: selected,
+                      label: Text(d.label),
+                      avatar: Icon(d.navigationIcon, size: 16),
+                      onSelected: (value) {
+                        setState(() {
+                          if (value) {
+                            if (!_railIds.contains(d.id)) _railIds.add(d.id);
+                          } else {
+                            _railIds.remove(d.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 8),
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _railIds.length,
+                  buildDefaultDragHandles: false,
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final item = _railIds.removeAt(oldIndex);
+                      _railIds.insert(newIndex, item);
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final id = _railIds[index];
+                    final destination = destinationById[id]!;
+                    return ListTile(
+                      key: ValueKey('rail_$id'),
+                      leading: Icon(destination.navigationIcon),
+                      title: Text(destination.label),
+                      trailing: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Symbols.drag_handle_rounded),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _OpenDrawerIntent extends Intent {
   const _OpenDrawerIntent();
 }
 
 class _TabDestination {
+  final String id;
+  final int routeIndex;
+  final String routePath;
   final String label;
   final IconData navigationIcon;
   final Widget Function(bool selected) iconBuilder;
 
   const _TabDestination({
+    required this.id,
+    required this.routeIndex,
+    required this.routePath,
     required this.label,
     required this.navigationIcon,
     required this.iconBuilder,

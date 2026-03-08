@@ -96,7 +96,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
           }
         } else {
           if (showSidebar.value) {
-            scaffoldKey.currentState?.openEndDrawer();
+            scaffoldKey.currentState?.openDrawer();
           } else if (scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
             Navigator.of(context).pop();
           }
@@ -125,10 +125,10 @@ class ResponsiveSidebar extends HookConsumerWidget {
     if (isWide) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final constrainedMaxSidebarWidth = (constraints.maxWidth -
-                  minMainContentWidth)
-              .clamp(minWideSidebarWidth, maxWideSidebarWidth)
-              .toDouble();
+          final constrainedMaxSidebarWidth =
+              (constraints.maxWidth - minMainContentWidth)
+                  .clamp(minWideSidebarWidth, maxWideSidebarWidth)
+                  .toDouble();
           final constrainedSidebarWidth = wideSidebarWidth.value
               .clamp(minWideSidebarWidth, constrainedMaxSidebarWidth)
               .toDouble();
@@ -182,11 +182,8 @@ class ResponsiveSidebar extends HookConsumerWidget {
         },
       );
     } else {
-      final effectiveDrawer = drawerWidget ??
-          Drawer(
-            width: sidebarWidth,
-            child: sidebarContent,
-          );
+      final effectiveDrawer =
+          drawerWidget ?? Drawer(width: sidebarWidth, child: sidebarContent);
 
       return Scaffold(
         key: scaffoldKey,
@@ -225,7 +222,8 @@ class ResponsiveSidebar extends HookConsumerWidget {
     required bool enableWideResize,
     required ValueChanged<double> onResize,
   }) {
-    final bgColor = sidebarBackgroundColor ??
+    final bgColor =
+        sidebarBackgroundColor ??
         Theme.of(context).colorScheme.surfaceContainer;
 
     return Transform.translate(
