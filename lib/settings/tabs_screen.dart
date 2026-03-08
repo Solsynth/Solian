@@ -215,10 +215,12 @@ class _TabsScreenContent extends HookConsumerWidget {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final shouldShowBottomNav = shouldShowBottomNavForCurrentPath(
-      context,
-      routes: bottomNavRoutes,
-    );
+    final shouldShowBottomNav =
+        bottomNavDestinations.isNotEmpty &&
+        shouldShowBottomNavForCurrentPath(
+          context,
+          routes: bottomNavRoutes,
+        );
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
