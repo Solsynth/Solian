@@ -148,6 +148,7 @@ class _TabsScreenContent extends HookConsumerWidget {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
+    final shouldShowBottomNav = selectedBottomNavIndex >= 0;
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
@@ -336,14 +337,13 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
         child: child,
       ),
-      floatingActionButton: ConditionalBottomNav(
-        child: FloatingActionButton.small(
-          onPressed: () => scaffoldKey.currentState?.openDrawer(),
-          child: const Icon(Symbols.menu_rounded),
-        ),
-      ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
+      floatingActionButton: shouldShowBottomNav
+          ? null
+          : FloatingActionButton.small(
+              onPressed: () => scaffoldKey.currentState?.openDrawer(),
+              child: const Icon(Symbols.menu_rounded),
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
           borderRadius: BorderRadius.only(
@@ -374,6 +374,16 @@ class _TabsScreenContent extends HookConsumerWidget {
                       children: [
                         Expanded(
                           child: _BottomNavButton(
+                            selected: false,
+                            icon: const Icon(Symbols.menu_rounded),
+                            label: MaterialLocalizations.of(
+                              context,
+                            ).openAppDrawerTooltip,
+                            onTap: () => scaffoldKey.currentState?.openDrawer(),
+                          ),
+                        ),
+                        Expanded(
+                          child: _BottomNavButton(
                             selected: bottomNavCurrentIndex == 0,
                             icon: bottomNavDestinations[0].iconBuilder(
                               bottomNavCurrentIndex == 0,
@@ -392,7 +402,6 @@ class _TabsScreenContent extends HookConsumerWidget {
                             onTap: () => onBottomNavDestinationSelected(1),
                           ),
                         ),
-                        const SizedBox(width: 72),
                         Expanded(
                           child: _BottomNavButton(
                             selected: bottomNavCurrentIndex == 2,

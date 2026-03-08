@@ -96,19 +96,32 @@ class MessagesNotifier extends _$MessagesNotifier {
     required String messageType,
     required String content,
     required List<String> attachmentIds,
+    String? repliedMessageId,
+    String? forwardedMessageId,
+    String? pollId,
+    String? fundId,
   }) {
+    final normalizedMessageType =
+        _normalizeEncryptionMessageType(messageType) ?? 'text';
     final envelope = {
       'content': content,
       'attachments_id': attachmentIds,
       'nonce': nonce,
     };
     return {
+      'type': normalizedMessageType,
+      'attachments_id': attachmentIds,
+      'meta': {'attachments_id': attachmentIds},
+      if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
+      if (forwardedMessageId != null) 'forwarded_message_id': forwardedMessageId,
+      if (pollId != null) 'poll_id': pollId,
+      if (fundId != null) 'fund_id': fundId,
       'is_encrypted': true,
       'ciphertext': encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
       'encryption_header': base64Encode(utf8.encode('{"v":1}')),
       'encryption_scheme': _e2eeScheme,
       'encryption_epoch': 1,
-      'encryption_message_type': _normalizeEncryptionMessageType(messageType),
+      'encryption_message_type': normalizedMessageType,
       'client_message_id': nonce,
       'nonce': nonce,
     };
@@ -178,6 +191,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     required Map<String, dynamic> payload,
     required String context,
   }) async {
+    // MLS writes require strict header enforcement; use HTTP path directly.
+    if (_isE2eeRoom) {
+      final response = await _apiClient.post(
+        '/messager/chat/$targetRoomId/messages',
+        data: payload,
+        options: _mlsWriteOptions(),
+      );
+      return _tryParseChatMessage(response.data, context: context) ??
+          (throw Exception('Invalid chat message response.'));
+    }
+
     if (_isWebSocketConnected()) {
       try {
         return await _sendMessageViaWebSocket(
@@ -1021,6 +1045,10 @@ class MessagesNotifier extends _$MessagesNotifier {
               messageType: editingTo == null ? 'text' : 'messages.update',
               content: content,
               attachmentIds: cloudAttachments.map((e) => e.id).toList(),
+              repliedMessageId: replyingTo?.id,
+              forwardedMessageId: forwardingTo?.id,
+              pollId: poll?.id,
+              fundId: fund?.id,
             )
           : {
               'content': content,

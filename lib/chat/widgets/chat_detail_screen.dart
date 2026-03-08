@@ -473,7 +473,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
     final isManagable =
         chatIdentity.value?.accountId == chatRoom.value?.accountId ||
         chatRoom.value?.type == 1;
-    final canEnableE2ee =
+    final canEnableMls =
         isManagable && (chatRoom.value?.encryptionMode ?? 0) == 0;
 
     return PopupMenuButton(
@@ -505,47 +505,22 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
               ],
             ),
           ),
-        if (canEnableE2ee)
+        if (canEnableMls)
           PopupMenuItem(
             onTap: () async {
-              final room = chatRoom.value;
-              if (room == null) return;
-
-              int targetMode;
-              if (room.type == 1) {
-                final selected = await showDialog<int>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Enable E2EE'),
-                    content: const Text('Choose E2EE mode for this DM room.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(1),
-                        child: const Text('E2EE DM'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(2),
-                        child: const Text('Sender Key'),
-                      ),
-                    ],
-                  ),
-                );
-                if (selected == null) return;
-                targetMode = selected;
-              } else {
-                targetMode = 2;
-              }
+              final confirmed = await showConfirmAlert(
+                'Enable MLS encryption for this chat room? This cannot be undone.',
+                'Enable MLS',
+              );
+              if (!confirmed) return;
 
               try {
                 final client = ref.watch(apiClientProvider);
-                await client.post(
-                  '/messager/chat/$id/e2ee/enable',
-                  data: {'encryption_mode': targetMode},
-                );
+                await client.post('/messager/chat/$id/mls/enable');
                 ref.invalidate(chatRoomProvider(id));
                 ref.invalidate(chatRoomJoinedProvider);
                 if (context.mounted) {
-                  showSnackBar('E2EE enabled successfully.');
+                  showSnackBar('MLS enabled successfully.');
                 }
               } catch (err) {
                 showErrorAlert(err);
@@ -555,7 +530,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
               children: [
                 Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
                 const Gap(12),
-                const Text('Enable E2EE'),
+                const Text('Enable MLS'),
               ],
             ),
           ),
