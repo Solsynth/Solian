@@ -108,10 +108,17 @@ class MessagesNotifier extends _$MessagesNotifier {
       'attachments_id': attachmentIds,
       'nonce': nonce,
     };
+    final meta = <String, dynamic>{
+      'attachments_id': attachmentIds,
+      if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
+      if (forwardedMessageId != null) 'forwarded_message_id': forwardedMessageId,
+      if (pollId != null) 'poll_id': pollId,
+      if (fundId != null) 'fund_id': fundId,
+    };
     return {
       'type': normalizedMessageType,
       'attachments_id': attachmentIds,
-      'meta': {'attachments_id': attachmentIds},
+      'meta': meta,
       if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
       if (forwardedMessageId != null) 'forwarded_message_id': forwardedMessageId,
       if (pollId != null) 'poll_id': pollId,
