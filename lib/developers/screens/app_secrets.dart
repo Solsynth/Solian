@@ -16,6 +16,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_secrets.g.dart';
 
+enum CustomAppSecretTypeOption { oidc, appConnect }
+
 @riverpod
 Future<List<CustomAppSecret>> customAppSecrets(
   Ref ref,
@@ -102,7 +104,7 @@ class AppSecretsScreen extends HookConsumerWidget {
             builder: (context) {
               final descriptionController = useTextEditingController();
               final expiresInController = useTextEditingController();
-              final isOidc = useState(false);
+              final secretType = useState(CustomAppSecretTypeOption.appConnect);
 
               return SheetScaffold(
                 titleText: 'generateSecret'.tr(),
@@ -140,13 +142,23 @@ class AppSecretsScreen extends HookConsumerWidget {
                       const Gap(16),
                       Card(
                         margin: EdgeInsets.zero,
-                        child: SwitchListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          title: Text('isOidc'.tr()),
-                          value: isOidc.value,
-                          onChanged: (value) => isOidc.value = value,
+                        child: Column(
+                          children: [
+                            RadioListTile<CustomAppSecretTypeOption>(
+                              title: const Text('AppConnect'),
+                              value: CustomAppSecretTypeOption.appConnect,
+                              groupValue: secretType.value,
+                              onChanged: (value) => secretType.value =
+                                  value ?? CustomAppSecretTypeOption.appConnect,
+                            ),
+                            RadioListTile<CustomAppSecretTypeOption>(
+                              title: Text('isOidc'.tr()),
+                              value: CustomAppSecretTypeOption.oidc,
+                              groupValue: secretType.value,
+                              onChanged: (value) => secretType.value =
+                                  value ?? CustomAppSecretTypeOption.appConnect,
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -164,7 +176,7 @@ class AppSecretsScreen extends HookConsumerWidget {
                               data: {
                                 'description': description,
                                 'expires_in': expiresIn,
-                                'is_oidc': isOidc.value,
+                                'type': secretType.value.index,
                               },
                             );
                             final newSecret = CustomAppSecret.fromJson(
