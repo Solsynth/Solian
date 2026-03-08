@@ -25,6 +25,10 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'drive_service.g.dart';
 
 const String driveFileKeySecretPrefix = 'drive_e2ee_file_key_';
+const int driveUploadChunkSizeBytes = 5 * 1024 * 1024;
+const int driveDirectUploadMaxChunks = 2;
+const int driveDirectUploadMaxFileSizeBytes =
+    driveUploadChunkSizeBytes * driveDirectUploadMaxChunks;
 
 class DriveE2eeFileEnvelope {
   static const String scheme = 'file.aesgcm.v1';
@@ -119,12 +123,15 @@ class DriveE2eeFileEnvelope {
       );
     final encrypted = cipher.process(plaintext);
     if (encrypted.length < _tagLength) {
-      throw StateError('Encryption output is shorter than expected tag length.');
+      throw StateError(
+        'Encryption output is shorter than expected tag length.',
+      );
     }
     final ciphertext = encrypted.sublist(0, encrypted.length - _tagLength);
     final tag = encrypted.sublist(encrypted.length - _tagLength);
 
-    final headerLengthBytes = ByteData(4)..setUint32(0, aadBytes.length, Endian.big);
+    final headerLengthBytes = ByteData(4)
+      ..setUint32(0, aadBytes.length, Endian.big);
 
     final out = BytesBuilder(copy: false);
     out.add(utf8.encode(_magic));
@@ -185,7 +192,8 @@ class DriveE2eeFileEnvelope {
 
     final saltLength = encryptedPayload[offset];
     offset += 1;
-    if (encryptedPayload.length < offset + saltLength + _nonceLength + 4 + _tagLength) {
+    if (encryptedPayload.length <
+        offset + saltLength + _nonceLength + 4 + _tagLength) {
       throw const FormatException('Invalid encrypted payload structure.');
     }
     final salt = encryptedPayload.sublist(offset, offset + saltLength);
@@ -222,9 +230,7 @@ class DriveE2eeFileEnvelope {
       offset,
       encryptedPayload.length - _tagLength,
     );
-    final tag = encryptedPayload.sublist(
-      encryptedPayload.length - _tagLength,
-    );
+    final tag = encryptedPayload.sublist(encryptedPayload.length - _tagLength);
     final cipherInput = Uint8List(ciphertext.length + tag.length)
       ..setAll(0, ciphertext)
       ..setAll(ciphertext.length, tag);
@@ -270,7 +276,9 @@ class DriveE2eeFileEnvelope {
     offset += saltLength;
 
     if (encryptedPayload.length < offset + _nonceLength + _tagLength + 4) {
-      throw const FormatException('Invalid legacy encrypted payload structure.');
+      throw const FormatException(
+        'Invalid legacy encrypted payload structure.',
+      );
     }
 
     final nonce = encryptedPayload.sublist(offset, offset + _nonceLength);
@@ -357,6 +365,103 @@ class FileUploader {
   late final Dio _client = ref.watch(apiClientProvider);
   FileUploader(this.ref);
 
+  bool shouldUseDirectUpload({
+    required int totalSize,
+    int? customChunkSize,
+  }) {
+    if (customChunkSize != null) return false;
+    return totalSize <= driveDirectUploadMaxFileSizeBytes;
+  }
+
+  Future<int> resolveUploadDataSize(dynamic fileData) async {
+    if (fileData is XFile) return fileData.length();
+    if (fileData is Uint8List) return fileData.length;
+    throw ArgumentError('Invalid fileData type');
+  }
+
+  SnCloudFile _parseUploadedFileResponse(Map<String, dynamic> payload) {
+    final directFile = payload['file'];
+    if (directFile is Map) {
+      return SnCloudFile.fromJson(Map<String, dynamic>.from(directFile));
+    }
+
+    final fileInfo = payload['file_info'];
+    if (fileInfo is Map) {
+      return SnCloudFile.fromJson(Map<String, dynamic>.from(fileInfo));
+    }
+
+    final nestedData = payload['data'];
+    if (nestedData is Map) {
+      final nestedFile = nestedData['file'];
+      if (nestedFile is Map) {
+        return SnCloudFile.fromJson(Map<String, dynamic>.from(nestedFile));
+      }
+      if (nestedData['id'] != null) {
+        return SnCloudFile.fromJson(Map<String, dynamic>.from(nestedData));
+      }
+    }
+
+    if (payload['id'] != null) {
+      return SnCloudFile.fromJson(payload);
+    }
+
+    throw const FormatException(
+      'Unable to parse uploaded file response from direct upload.',
+    );
+  }
+
+  Future<SnCloudFile> uploadFileDirect({
+    required dynamic fileData,
+    required String fileName,
+    required String contentType,
+    String? poolId,
+    String? bundleId,
+    String? expiredAt,
+    String? path,
+    String? encryptionScheme,
+    String? encryptionHeader,
+    String? encryptionSignature,
+    ProgressCallback? onSendProgress,
+  }) async {
+    late final Uint8List bytes;
+    if (fileData is XFile) {
+      bytes = Uint8List.fromList(await fileData.readAsBytes());
+    } else if (fileData is Uint8List) {
+      bytes = fileData;
+    } else {
+      throw ArgumentError('Invalid fileData type');
+    }
+
+    final payload = <String, dynamic>{
+      'file': MultipartFile.fromBytes(bytes, filename: fileName),
+      'poolId': poolId,
+      'path': path,
+      'bundleId': bundleId,
+      'expiredAt': expiredAt,
+    };
+
+    if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
+      payload['encryptionScheme'] = encryptionScheme;
+      payload['encryptionHeader'] = encryptionHeader;
+      payload['encryptionSignature'] = encryptionSignature;
+    }
+    payload.removeWhere((_, value) => value == null);
+
+    final response = await _client.post(
+      '/drive/files/upload/direct',
+      data: FormData.fromMap(payload),
+      onSendProgress: onSendProgress,
+    );
+
+    if (response.data is! Map) {
+      throw const FormatException('Unexpected direct upload response payload.');
+    }
+
+    return _parseUploadedFileResponse(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
   /// Calculates the MD5 hash of file bytes.
   String _calculateFileHash(Uint8List bytes) {
     final digest = md5.convert(bytes);
@@ -414,6 +519,8 @@ class FileUploader {
     int? chunkSize,
     String? path,
   }) async {
+    final stepTimer = Stopwatch()..start();
+
     String hash;
     int fileSize;
     if (fileData is XFile) {
@@ -425,6 +532,10 @@ class FileUploader {
     } else {
       throw ArgumentError('Invalid fileData type');
     }
+    stepTimer.stop();
+    debugPrint(
+      '[DriveUpload] Hash calculation took: ${stepTimer.elapsedMilliseconds}ms',
+    );
 
     if (encryptionScheme != null &&
         encryptionScheme.isNotEmpty &&
@@ -433,7 +544,8 @@ class FileUploader {
         'encryption_header is required when encryption_scheme is set.',
       );
     }
-    if (encryptionHeader != null && !DriveE2eeFileEnvelope._isValidBase64(encryptionHeader)) {
+    if (encryptionHeader != null &&
+        !DriveE2eeFileEnvelope._isValidBase64(encryptionHeader)) {
       throw const FormatException('encryption_header must be valid base64.');
     }
     if (encryptionSignature != null &&
@@ -459,9 +571,16 @@ class FileUploader {
       payload['encryption_signature'] = encryptionSignature;
     }
 
+    stepTimer
+      ..reset()
+      ..start();
     final response = await _client.post(
       '/drive/files/upload/create',
       data: payload,
+    );
+    stepTimer.stop();
+    debugPrint(
+      '[DriveUpload] Create upload task request took: ${stepTimer.elapsedMilliseconds}ms',
     );
 
     return response.data;
@@ -474,6 +593,7 @@ class FileUploader {
     required Uint8List chunkData,
     ProgressCallback? onSendProgress,
   }) async {
+    final stepTimer = Stopwatch()..start();
     final formData = FormData.fromMap({
       'chunk': MultipartFile.fromBytes(
         chunkData,
@@ -486,16 +606,25 @@ class FileUploader {
       data: formData,
       onSendProgress: onSendProgress,
     );
+    stepTimer.stop();
+    debugPrint(
+      '[DriveUpload] Chunk $chunkIndex upload took: ${stepTimer.elapsedMilliseconds}ms',
+    );
   }
 
   /// Completes the upload and returns the CloudFile object.
   Future<SnCloudFile> completeUpload(String taskId) async {
+    final stepTimer = Stopwatch()..start();
     final response = await _client.post(
       '/drive/files/upload/complete/$taskId',
       options: Options(
         sendTimeout: Duration(minutes: 1),
         receiveTimeout: Duration(minutes: 1),
       ),
+    );
+    stepTimer.stop();
+    debugPrint(
+      '[DriveUpload] Complete upload request took: ${stepTimer.elapsedMilliseconds}ms',
     );
 
     return SnCloudFile.fromJson(response.data);
@@ -514,6 +643,7 @@ class FileUploader {
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
+    final overallTimer = Stopwatch()..start();
     dynamic uploadData = fileData;
     String? encryptionScheme;
     String? encryptionHeader;
@@ -521,12 +651,13 @@ class FileUploader {
     String? localEncryptKey;
 
     if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
+      final encryptTimer = Stopwatch()..start();
       final plaintext = switch (fileData) {
         XFile value => Uint8List.fromList(await value.readAsBytes()),
         Uint8List value => value,
         _ => throw ArgumentError(
-            'Encrypted upload only supports XFile/Uint8List input.',
-          ),
+          'Encrypted upload only supports XFile/Uint8List input.',
+        ),
       };
       localEncryptKey = encryptPassword.trim();
       encryptionScheme = DriveE2eeFileEnvelope.scheme;
@@ -539,10 +670,57 @@ class FileUploader {
         encryptionSignature: encryptionSignature,
         encryptionScheme: encryptionScheme,
       );
+      encryptTimer.stop();
+      debugPrint(
+        '[DriveUpload] Encryption took: ${encryptTimer.elapsedMilliseconds}ms',
+      );
+    }
+
+    final totalSize = await resolveUploadDataSize(uploadData);
+
+    if (shouldUseDirectUpload(
+      totalSize: totalSize,
+      customChunkSize: customChunkSize,
+    )) {
+      onProgress?.call(null, Duration.zero);
+      final directTimer = Stopwatch()..start();
+      final uploaded = await uploadFileDirect(
+        fileData: uploadData,
+        fileName: fileName,
+        contentType: contentType,
+        poolId: poolId,
+        bundleId: bundleId,
+        expiredAt: expiredAt,
+        path: path,
+        encryptionScheme: encryptionScheme,
+        encryptionHeader: encryptionHeader,
+        encryptionSignature: encryptionSignature,
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            onProgress?.call(sent / total, Duration.zero);
+          }
+        },
+      );
+      directTimer.stop();
+      debugPrint(
+        '[DriveUpload] Direct upload took: ${directTimer.elapsedMilliseconds}ms',
+      );
+
+      if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
+        await _storeFileEncryptKey(uploaded.id, localEncryptKey);
+      }
+
+      onProgress?.call(null, Duration.zero);
+      overallTimer.stop();
+      debugPrint(
+        '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
+      );
+      return uploaded;
     }
 
     // Step 1: Create upload task
     onProgress?.call(null, Duration.zero);
+    final createTimer = Stopwatch()..start();
     final createResponse = await createUploadTask(
       fileData: uploadData,
       fileName: fileName,
@@ -557,24 +735,24 @@ class FileUploader {
       chunkSize: customChunkSize,
       path: path,
     );
+    createTimer.stop();
+    debugPrint(
+      '[DriveUpload] Step 1 (Create upload task) total took: ${createTimer.elapsedMilliseconds}ms',
+    );
 
     if (createResponse['file_exists'] == true) {
       // File already exists, return the existing file
+      overallTimer.stop();
+      debugPrint(
+        '[DriveUpload] File exists, total upload time: ${overallTimer.elapsedMilliseconds}ms',
+      );
       return SnCloudFile.fromJson(createResponse['file']);
     }
 
     final taskId = createResponse['task_id'] as String;
     final chunkSize = createResponse['chunk_size'] as int;
-    int totalSize;
-    if (uploadData is XFile) {
-      totalSize = await uploadData.length();
-    } else if (uploadData is Uint8List) {
-      totalSize = uploadData.length;
-    } else {
-      throw ArgumentError('Invalid fileData type');
-    }
-
     // Step 2: Upload chunks
+    final chunkTimer = Stopwatch()..start();
     int bytesUploaded = 0;
     int chunkIndex = 0;
     if (uploadData is XFile) {
@@ -618,13 +796,28 @@ class FileUploader {
     } else {
       throw ArgumentError('Invalid fileData type');
     }
+    chunkTimer.stop();
+    debugPrint(
+      '[DriveUpload] Step 2 (Upload $chunkIndex chunks) total took: ${chunkTimer.elapsedMilliseconds}ms',
+    );
 
     // Step 3: Complete upload
     onProgress?.call(null, Duration.zero);
+    final completeTimer = Stopwatch()..start();
     final uploaded = await completeUpload(taskId);
+    completeTimer.stop();
+    debugPrint(
+      '[DriveUpload] Step 3 (Complete upload) took: ${completeTimer.elapsedMilliseconds}ms',
+    );
+
     if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
       await _storeFileEncryptKey(uploaded.id, localEncryptKey);
     }
+
+    overallTimer.stop();
+    debugPrint(
+      '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
+    );
     return uploaded;
   }
 
@@ -675,15 +868,14 @@ class FileUploader {
               await exif.writeAttributes(gpsAttributes);
             })
             .then(
-              (_) =>
-                  _processUpload(
-                    fileData,
-                    poolId,
-                    path,
-                    encryptPassword,
-                    onProgress,
-                    completer,
-                  ),
+              (_) => _processUpload(
+                fileData,
+                poolId,
+                path,
+                encryptPassword,
+                onProgress,
+                completer,
+              ),
             )
             .catchError((e) {
               debugPrint('Error removing GPS EXIF data: $e');
@@ -862,7 +1054,10 @@ class FileDownloadService {
     return item.name.isEmpty ? '${item.id}.$extName' : item.name;
   }
 
-  Future<void> _tryDecryptDownloadedFile(String filePath, SnCloudFile item) async {
+  Future<void> _tryDecryptDownloadedFile(
+    String filePath,
+    SnCloudFile item,
+  ) async {
     if (!DriveE2eeFileEnvelope.isEncryptedFile(item)) return;
     final key =
         await _getStoredFileEncryptKey(item.id) ??
