@@ -47,9 +47,7 @@ bool shouldShowBottomNavForCurrentPath(
   return effectiveRoutes.any((route) {
     final normalized = _normalizeRoutePath(route);
     if (normalized == null) return false;
-    if (normalized == '/') return currentLocation == '/';
-    return currentLocation == normalized ||
-        currentLocation.startsWith('$normalized/');
+    return currentLocation == normalized;
   });
 }
 
