@@ -3,11 +3,13 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/notifications/notification.dart';
@@ -17,6 +19,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/activity/activity_rpc.dart';
+import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
@@ -32,6 +35,13 @@ import 'package:snow_fall_animation/snow_fall_animation.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+const kForceShowStartupSplashForTesting = false;
+const kBootstrapRetryTimeouts = <Duration>[
+  Duration(milliseconds: 500),
+  Duration(seconds: 1),
+  Duration(seconds: 3),
+];
+
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
   const AppWrapper({super.key, required this.child});
@@ -41,8 +51,11 @@ class AppWrapper extends HookConsumerWidget {
     final networkStateShowing = useState(false);
     final websocketState = ref.watch(websocketStateProvider);
     final apiState = ref.watch(networkStatusProvider);
+    final token = ref.watch(tokenProvider);
     final isShowSnow = useState(false);
     final isSnowGone = useState(false);
+    final bootstrapCompleted = useState(false);
+    final startupGateResolved = useState(false);
 
     // Handle network status modal
     useEffect(() {
@@ -192,6 +205,18 @@ class AppWrapper extends HookConsumerWidget {
         settings.festivalFeatures &&
         now.month == 12 &&
         (now.day >= 22 && now.day <= 28);
+    final shouldRunBootstrap = token != null && !bootstrapCompleted.value;
+    final shouldShowStartupSplash =
+        !startupGateResolved.value ||
+        kForceShowStartupSplashForTesting ||
+        shouldRunBootstrap;
+
+    useEffect(() {
+      Future.microtask(() {
+        startupGateResolved.value = true;
+      });
+      return null;
+    }, []);
 
     useEffect(() {
       Future(() {
@@ -232,21 +257,55 @@ class AppWrapper extends HookConsumerWidget {
 
     return TourTriggerWidget(
       key: const Key("app_tour_trigger"),
-      child: Stack(
-        children: [
-          child,
-          if (doesShowSnow && !isSnowGone.value)
-            IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: isShowSnow.value ? 1 : 00,
-                duration: const Duration(seconds: 3),
-                child: SnowFallAnimation(
-                  key: const Key("app_snow_animation"),
-                  config: SnowfallConfig(numberOfSnowflakes: 50, speed: 1.0),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        reverseDuration: const Duration(milliseconds: 500),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeOut,
+        layoutBuilder: (currentChild, previousChildren) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
+        transitionBuilder: (widget, animation) {
+          return FadeTransition(opacity: animation, child: widget);
+        },
+        child: shouldShowStartupSplash
+            ? KeyedSubtree(
+                key: ValueKey('bootstrap_splash'),
+                child: _StartupSplashScreen(
+                  runBootstrap: shouldRunBootstrap,
+                  onCompleted: () {
+                    bootstrapCompleted.value = true;
+                  },
+                ),
+              )
+            : KeyedSubtree(
+                key: const ValueKey('main_content'),
+                child: Stack(
+                  children: [
+                    child,
+                    if (doesShowSnow && !isSnowGone.value)
+                      IgnorePointer(
+                        child: AnimatedOpacity(
+                          opacity: isShowSnow.value ? 1 : 00,
+                          duration: const Duration(seconds: 3),
+                          child: SnowFallAnimation(
+                            key: const Key("app_snow_animation"),
+                            config: SnowfallConfig(
+                              numberOfSnowflakes: 50,
+                              speed: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ),
-        ],
       ),
     );
   }
@@ -366,6 +425,325 @@ class AppWrapper extends HookConsumerWidget {
       windowManager.show();
     }
   }
+}
+
+class _StartupSplashScreen extends HookConsumerWidget {
+  final bool runBootstrap;
+  final VoidCallback onCompleted;
+
+  const _StartupSplashScreen({
+    required this.runBootstrap,
+    required this.onCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> runWithTimeoutRetries({
+      required Future<void> Function(Duration timeout) action,
+      required String stageLabel,
+      required ValueNotifier<String?> subtitle,
+      List<Duration> timeouts = kBootstrapRetryTimeouts,
+    }) async {
+      Object? lastError;
+      StackTrace? lastStackTrace;
+      for (var idx = 0; idx < timeouts.length; idx++) {
+        final timeout = timeouts[idx];
+        try {
+          await action(timeout);
+          return;
+        } catch (error, stackTrace) {
+          lastError = error;
+          lastStackTrace = stackTrace;
+          subtitle.value =
+              '$stageLabel retry ${idx + 1}/${timeouts.length} failed.';
+        }
+      }
+      if (lastError != null && lastStackTrace != null) {
+        Error.throwWithStackTrace(lastError, lastStackTrace);
+      }
+    }
+
+    final subtitle = useState<String?>(null);
+    final stages = useMemoized(
+      () => <_BootstrapStage>[
+        _BootstrapStage(
+          label: 'Checking service health',
+          isCritical: true,
+          action: () async {
+            await runWithTimeoutRetries(
+              stageLabel: 'Health check',
+              subtitle: subtitle,
+              action: (timeout) async {
+                final apiClient = ref.read(apiClientProvider);
+                final response = await apiClient.get(
+                  '/health',
+                  options: Options(
+                    validateStatus: (_) => true,
+                    connectTimeout: timeout,
+                    sendTimeout: timeout,
+                    receiveTimeout: timeout,
+                  ),
+                );
+                final code = response.statusCode ?? 0;
+                if (code != 200) {
+                  throw DioException(
+                    requestOptions: response.requestOptions,
+                    response: response,
+                    error: 'Health check failed with status $code',
+                  );
+                }
+              },
+            );
+          },
+        ),
+        _BootstrapStage(
+          label: 'Loading account profile',
+          isCritical: true,
+          action: () async {
+            await ref
+                .read(userInfoProvider.notifier)
+                .fetchUserForBootstrap(retryTimeouts: kBootstrapRetryTimeouts);
+          },
+        ),
+        _BootstrapStage(
+          label: 'Connecting realtime gateway',
+          isCritical: true,
+          action: () async {
+            ref.read(websocketStateProvider.notifier).connect();
+          },
+        ),
+        _BootstrapStage(
+          label: 'Registering push notifications',
+          isCritical: false,
+          action: () async {
+            final user = await ref.read(userInfoProvider.future);
+            if (user == null) return;
+            final apiClient = ref.read(apiClientProvider);
+            await subscribePushNotification(apiClient);
+          },
+        ),
+        _BootstrapStage(
+          label: 'Preparing local notifications',
+          isCritical: false,
+          action: () async {
+            await initializeLocalNotifications();
+          },
+        ),
+        _BootstrapStage(
+          label: 'Preparing audio assets',
+          isCritical: false,
+          action: () async {
+            await ref.read(audioSessionProvider.future);
+            await ref.read(notificationSfxProvider.future);
+            await ref.read(messageSfxProvider.future);
+          },
+        ),
+      ],
+      [],
+    );
+
+    final isBusy = useState(true);
+    final isErrored = useState(false);
+    final isDismissable = useState(true);
+    final periodCursor = useState(0);
+    final showSkip = useState(false);
+    final isCurrentStageSkippable = useState(false);
+    final phaseNonce = useRef(0);
+    final skipCompleterRef = useRef<Completer<void>?>(null);
+    final warnings = useState<List<String>>([]);
+    final unFocusColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.75);
+
+    Future<void> runStages() async {
+      final phase = ++phaseNonce.value;
+      isBusy.value = true;
+      isErrored.value = false;
+      isDismissable.value = true;
+      subtitle.value = null;
+      showSkip.value = false;
+      warnings.value = [];
+
+      for (var idx = 0; idx < stages.length; idx++) {
+        if (phaseNonce.value != phase) return;
+        final stage = stages[idx];
+        periodCursor.value = idx;
+        isCurrentStageSkippable.value = !stage.isCritical;
+        skipCompleterRef.value = Completer<void>();
+        showSkip.value = false;
+
+        Timer? skipTimer;
+        if (!stage.isCritical) {
+          skipTimer = Timer(const Duration(milliseconds: 500), () {
+            if (phaseNonce.value == phase && isBusy.value) {
+              showSkip.value = true;
+            }
+          });
+        }
+
+        try {
+          if (stage.isCritical) {
+            await stage.action();
+          } else {
+            await Future.any([stage.action(), skipCompleterRef.value!.future]);
+            if (skipCompleterRef.value!.isCompleted) {
+              subtitle.value = 'Skipped optional stage: ${stage.label}';
+            }
+          }
+        } catch (e) {
+          final warning = 'Skipped "${stage.label}" after retries.';
+          warnings.value = [...warnings.value, warning];
+          subtitle.value = '$warning App may have limited functionality.';
+        } finally {
+          skipTimer?.cancel();
+          showSkip.value = false;
+          skipCompleterRef.value = null;
+        }
+      }
+
+      if (phaseNonce.value != phase) return;
+      isBusy.value = false;
+      if (warnings.value.isEmpty) {
+        if (runBootstrap) onCompleted();
+      } else {
+        isErrored.value = true;
+        isDismissable.value = true;
+        subtitle.value =
+            '${warnings.value.length} startup stage(s) were skipped due to network issues. Tap to continue.';
+      }
+    }
+
+    useEffect(() {
+      if (!runBootstrap) {
+        isBusy.value = false;
+        subtitle.value = null;
+        return null;
+      }
+      Future(() => runStages());
+      return () {
+        phaseNonce.value++;
+      };
+    }, [runBootstrap]);
+
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: GestureDetector(
+        onTap: () {
+          if (isBusy.value) return;
+          if (isDismissable.value) {
+            if (runBootstrap) {
+              onCompleted();
+            }
+          } else {
+            Future(() => runStages());
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            SizedBox(
+              height: 280,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  child: Image.asset(
+                    'assets/icons/icon.png',
+                    width: 80,
+                    height: 80,
+                  ),
+                ),
+              ),
+            ),
+            Column(
+              children: [
+                if (isErrored.value && !isDismissable.value && !isBusy.value)
+                  const Icon(Icons.cancel, size: 24),
+                if (isErrored.value && isDismissable.value && !isBusy.value)
+                  const Icon(Icons.warning, size: 24),
+                if ((isErrored.value && isDismissable.value && isBusy.value) ||
+                    isBusy.value)
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
+                if (!isBusy.value && !isErrored.value)
+                  const Icon(Icons.check_circle, size: 24, color: Colors.green),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 280),
+                  child: Column(
+                    children: [
+                      if (subtitle.value == null)
+                        Text(
+                          '${stages[periodCursor.value].label} (${periodCursor.value + 1}/${stages.length})',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 13, color: unFocusColor),
+                        ),
+                      if (subtitle.value != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            subtitle.value!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13, color: unFocusColor),
+                          ),
+                        ),
+                      if (!isBusy.value &&
+                          isErrored.value &&
+                          isDismissable.value)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Text(
+                            'Tap anywhere to dismiss',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13, color: unFocusColor),
+                          ),
+                        ),
+                      if (isBusy.value &&
+                          isCurrentStageSkippable.value &&
+                          showSkip.value)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: TextButton(
+                            onPressed: () {
+                              if (skipCompleterRef.value?.isCompleted ==
+                                  false) {
+                                skipCompleterRef.value?.complete();
+                              }
+                            },
+                            child: const Text('Skip optional stage'),
+                          ),
+                        ),
+                      Text(
+                        '${DateTime.now().year} © Solsynth LLC',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 11, color: unFocusColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BootstrapStage {
+  final String label;
+  final bool isCritical;
+  final Future<void> Function() action;
+
+  const _BootstrapStage({
+    required this.label,
+    required this.isCritical,
+    required this.action,
+  });
 }
 
 class _TrayListenerImpl implements TrayListener {

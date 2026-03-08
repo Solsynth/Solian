@@ -17,14 +17,11 @@ import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
-import 'package:island/core/audio.dart';
-import 'package:island/core/network.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/realtime_posts.dart';
 import 'package:island/route.dart';
-import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/core/services/quick_actions.dart';
@@ -309,8 +306,6 @@ class IslandApp extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
-      // Load userinfo
-      final userNotifier = ref.read(userInfoProvider.notifier);
       ref.listen(websocketStateProvider, (_, state) {
         talker.info('[WebSocket] $state');
         if (state == WebSocketState.connected()) {
@@ -321,21 +316,6 @@ class IslandApp extends HookConsumerWidget {
         if (user.value != null) {
           WidgetSyncService().syncToWidget();
         }
-      });
-      Future(() {
-        userNotifier.fetchUser().then((_) {
-          final user = ref.watch(userInfoProvider);
-          if (user.value != null) {
-            final apiClient = ref.read(apiClientProvider);
-            subscribePushNotification(apiClient);
-            initializeLocalNotifications();
-            ref.read(audioSessionProvider);
-            ref.read(notificationSfxProvider);
-            ref.read(messageSfxProvider);
-            final wsNotifier = ref.read(websocketStateProvider.notifier);
-            wsNotifier.connect();
-          }
-        });
       });
       return null;
     }, []);
