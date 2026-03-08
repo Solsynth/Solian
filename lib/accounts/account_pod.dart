@@ -11,6 +11,12 @@ import 'package:island/talker.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+const _bootstrapRetryTimeouts = <Duration>[
+  Duration(milliseconds: 500),
+  Duration(seconds: 1),
+  Duration(seconds: 3),
+];
+
 class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
   @override
   Future<SnAccount?> build() async {
@@ -19,20 +25,35 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
       talker.info('[UserInfo] No token found, not going to fetch...');
       return null;
     }
-    return _fetchUser();
+    return _fetchUserWithRetry(showErrorDialog: false);
   }
 
-  Future<SnAccount?> _fetchUser() async {
-    try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.get('/passport/accounts/me');
-      final user = SnAccount.fromJson(response.data);
+  Future<SnAccount> _requestUser({Duration? timeout}) async {
+    final client = ref.read(apiClientProvider);
+    final options = timeout == null
+        ? null
+        : Options(
+            connectTimeout: timeout,
+            sendTimeout: timeout,
+            receiveTimeout: timeout,
+          );
+    final response = await client.get(
+      '/passport/accounts/me',
+      options: options,
+    );
+    final user = SnAccount.fromJson(response.data);
+    AnalyticsService().setUserId(user.id);
+    return user;
+  }
 
-      AnalyticsService().setUserId(user.id);
-      return user;
-    } catch (error, stackTrace) {
-      if (error is DioException) {
-        if (error.response?.statusCode == 503) return null;
+  void _handleFetchError(
+    Object error,
+    StackTrace stackTrace, {
+    required bool showErrorDialog,
+  }) {
+    if (error is DioException) {
+      if (error.response?.statusCode == 503) return;
+      if (showErrorDialog) {
         showOverlayDialog<bool>(
           builder: (context, close) => AlertDialog(
             title: Text('failedToLoadUserInfo'.tr()),
@@ -67,18 +88,61 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
           }
         });
       }
-      talker.error(
-        "[UserInfo] Failed to fetch user info...",
-        error,
-        stackTrace,
-      );
-      return null;
     }
+    talker.error("[UserInfo] Failed to fetch user info...", error, stackTrace);
+  }
+
+  Future<SnAccount?> _fetchUserWithRetry({
+    required bool showErrorDialog,
+    bool throwOnFailure = false,
+    List<Duration> retryTimeouts = _bootstrapRetryTimeouts,
+  }) async {
+    Object? lastError;
+    StackTrace? lastStackTrace;
+
+    for (var idx = 0; idx < retryTimeouts.length; idx++) {
+      final timeout = retryTimeouts[idx];
+      try {
+        return await _requestUser(timeout: timeout);
+      } catch (error, stackTrace) {
+        lastError = error;
+        lastStackTrace = stackTrace;
+        talker.warning(
+          '[UserInfo] Retry ${idx + 1}/${retryTimeouts.length} failed '
+          '(timeout: ${timeout.inMilliseconds}ms): $error',
+        );
+      }
+    }
+
+    if (lastError != null && lastStackTrace != null) {
+      _handleFetchError(
+        lastError,
+        lastStackTrace,
+        showErrorDialog: showErrorDialog,
+      );
+      if (throwOnFailure) {
+        Error.throwWithStackTrace(lastError, lastStackTrace);
+      }
+    }
+    return null;
+  }
+
+  Future<SnAccount?> fetchUserForBootstrap({
+    List<Duration> retryTimeouts = _bootstrapRetryTimeouts,
+  }) async {
+    final user = await _fetchUserWithRetry(
+      showErrorDialog: false,
+      throwOnFailure: true,
+      retryTimeouts: retryTimeouts,
+    );
+    state = AsyncValue.data(user);
+    return user;
   }
 
   Future<void> fetchUser() async {
-    ref.invalidateSelf();
-    await future;
+    state = const AsyncValue.loading();
+    final user = await _fetchUserWithRetry(showErrorDialog: true);
+    state = AsyncValue.data(user);
   }
 
   Future<void> logOut() async {
