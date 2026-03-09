@@ -294,7 +294,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   }
 
   void sendReadReceipt() {
-    if (ref.mounted) return;
+    if (!ref.mounted) return;
     _sendPacket(
       WebSocketPacket(
         type: 'messages.read',
