@@ -9,22 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:island/accounts/account_pod.dart';
-import 'package:island/auth/create_account_modal.dart';
-import 'package:island/auth/login_modal.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/app_onboarding_sheet.dart';
+import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/activity/activity_rpc.dart';
-import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
@@ -42,57 +40,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
 const kForceShowStartupSplashForTesting = false;
-const kBootstrapRetryTimeouts = <Duration>[
-  Duration(milliseconds: 1000),
-  Duration(seconds: 2),
-  Duration(seconds: 3),
-];
 const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
-
-Future<void> showAppOnboardingSheet(
-  BuildContext context, {
-  required String version,
-  required bool isFirstLaunch,
-  required bool suggestAuth,
-}) async {
-  final fullHeight = MediaQuery.sizeOf(context).height;
-  await showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    isDismissible: !isFirstLaunch,
-    enableDrag: !isFirstLaunch,
-    showDragHandle: !isFirstLaunch,
-    useSafeArea: true,
-    backgroundColor: Theme.of(context).colorScheme.surface,
-    builder: (context) => _OnboardingSheet(
-      version: version,
-      isFirstLaunch: isFirstLaunch,
-      suggestAuth: suggestAuth,
-      height: fullHeight,
-      onLogin: () => _showLoginSheet(context),
-      onCreateAccount: () => _showCreateAccountSheet(context),
-    ),
-  );
-}
-
-void _showLoginSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    builder: (context) => const LoginModal(),
-  );
-}
-
-void _showCreateAccountSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    builder: (context) => const CreateAccountModal(),
-  );
-}
 
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
@@ -149,7 +97,25 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       final ntySubs = setupNotificationListener(context, ref);
       final sharingService = SharingIntentService();
+      final deeplinkService = DeeplinkService();
       sharingService.initialize(context);
+      deeplinkService.initialize(
+        onDeepLink: (uri) {
+          void handleWhenReady([int retry = 0]) {
+            final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+            if (ctx != null && ctx.mounted) {
+              _handleDeepLink(uri, ref, ctx);
+              return;
+            }
+            if (retry >= 16) return;
+            Future.delayed(const Duration(milliseconds: 250), () {
+              handleWhenReady(retry + 1);
+            });
+          }
+
+          handleWhenReady();
+        },
+      );
       UpdateService().checkForUpdates(context);
 
       final trayService = TrayService.instance;
@@ -186,63 +152,15 @@ class AppWrapper extends HookConsumerWidget {
         if (ctx.mounted) _showThoughtSheet(ctx, event);
       });
 
-      final solianDeepLinkSubs = eventBus.on<SolianDeepLinkEvent>().listen((
-        event,
-      ) {
-        void handleWhenReady([int retry = 0]) {
-          final ctx = ref.read(routerProvider).navigatorKey.currentContext;
-          if (ctx != null && ctx.mounted) {
-            _handleDeepLink(event.uri, ref, ctx);
-            return;
-          }
-          if (retry >= 16) return;
-          Future.delayed(const Duration(milliseconds: 250), () {
-            handleWhenReady(retry + 1);
-          });
-        }
-
-        handleWhenReady();
-      });
-
       // Web auth request listener
       final webAuthSubs = eventBus.on<WebAuthRequestEvent>().listen((event) {
         final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
         if (ctx.mounted) _showWebAuthSheet(ctx, event);
       });
 
-      // Protocol handler listener - only for desktop platforms
-      // protocol_handler plugin is only available and implemented on desktop (Linux, macOS, Windows)
-      ProtocolListener? protocolListener;
-      if (!kIsWeb &&
-          (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
-        protocolListener = _ProtocolListenerImpl(
-          onProtocolUrlReceived: (url) {
-            final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-            _handleDeepLink(Uri.parse(url), ref, ctx);
-          },
-        );
-        protocolHandler.addListener(protocolListener);
-
-        // Handle initial URL
-        protocolHandler.getInitialUrl().then((initialUrl) {
-          if (initialUrl != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-              _handleDeepLink(Uri.parse(initialUrl), ref, ctx);
-            });
-          }
-        });
-      }
-
       return () {
-        // Clean up protocol handler listener only on desktop
-        if (!kIsWeb &&
-            (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
-          if (protocolListener != null) {
-            protocolHandler.removeListener(protocolListener);
-          }
-        }
         ref.read(rpcServerProvider).stop();
+        deeplinkService.dispose();
         trayService.dispose(
           _TrayListenerImpl(
             onTrayIconMouseDown: () => {},
@@ -254,7 +172,6 @@ class AppWrapper extends HookConsumerWidget {
         composeSheetSubs.cancel();
         notificationSheetSubs.cancel();
         thoughtSheetSubs.cancel();
-        solianDeepLinkSubs.cancel();
         webAuthSubs.cancel();
       };
     }, []);
@@ -380,7 +297,7 @@ class AppWrapper extends HookConsumerWidget {
         child: shouldShowStartupSplash
             ? KeyedSubtree(
                 key: ValueKey('bootstrap_splash'),
-                child: _StartupSplashScreen(
+                child: StartupSplashScreen(
                   runBootstrap: shouldRunBootstrap,
                   onCompleted: () {
                     bootstrapCompleted.value = true;
@@ -668,488 +585,6 @@ class AppWrapper extends HookConsumerWidget {
   }
 }
 
-class _StartupSplashScreen extends HookConsumerWidget {
-  final bool runBootstrap;
-  final VoidCallback onCompleted;
-
-  const _StartupSplashScreen({
-    required this.runBootstrap,
-    required this.onCompleted,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> runWithTimeoutRetries({
-      required Future<void> Function(Duration timeout) action,
-      required String stageLabel,
-      required ValueNotifier<String?> subtitle,
-      List<Duration> timeouts = kBootstrapRetryTimeouts,
-    }) async {
-      Object? lastError;
-      StackTrace? lastStackTrace;
-      for (var idx = 0; idx < timeouts.length; idx++) {
-        final timeout = timeouts[idx];
-        try {
-          await action(timeout);
-          return;
-        } catch (error, stackTrace) {
-          lastError = error;
-          lastStackTrace = stackTrace;
-          subtitle.value =
-              '$stageLabel retry ${idx + 1}/${timeouts.length} failed.';
-        }
-      }
-      if (lastError != null && lastStackTrace != null) {
-        Error.throwWithStackTrace(lastError, lastStackTrace);
-      }
-    }
-
-    final subtitle = useState<String?>(null);
-    final stages = useMemoized(
-      () => <_BootstrapStage>[
-        _BootstrapStage(
-          label: 'Checking service health',
-          isCritical: true,
-          action: () async {
-            await runWithTimeoutRetries(
-              stageLabel: 'Health check',
-              subtitle: subtitle,
-              action: (timeout) async {
-                final apiClient = ref.read(apiClientProvider);
-                final response = await apiClient.get(
-                  '/health',
-                  options: Options(
-                    validateStatus: (_) => true,
-                    connectTimeout: timeout,
-                    sendTimeout: timeout,
-                    receiveTimeout: timeout,
-                  ),
-                );
-                final code = response.statusCode ?? 0;
-                if (code != 200) {
-                  throw DioException(
-                    requestOptions: response.requestOptions,
-                    response: response,
-                    error: 'Health check failed with status $code',
-                  );
-                }
-              },
-            );
-          },
-        ),
-        _BootstrapStage(
-          label: 'Loading account profile',
-          isCritical: true,
-          action: () async {
-            await ref
-                .read(userInfoProvider.notifier)
-                .fetchUserForBootstrap(retryTimeouts: kBootstrapRetryTimeouts);
-          },
-        ),
-        _BootstrapStage(
-          label: 'Connecting realtime gateway',
-          isCritical: true,
-          action: () async {
-            ref.read(websocketStateProvider.notifier).connect();
-          },
-        ),
-        _BootstrapStage(
-          label: 'Registering push notifications',
-          isCritical: false,
-          action: () async {
-            final user = await ref.read(userInfoProvider.future);
-            if (user == null) return;
-            final apiClient = ref.read(apiClientProvider);
-            await subscribePushNotification(apiClient);
-          },
-        ),
-        _BootstrapStage(
-          label: 'Preparing local notifications',
-          isCritical: false,
-          action: () async {
-            await initializeLocalNotifications();
-          },
-        ),
-        _BootstrapStage(
-          label: 'Preparing audio assets',
-          isCritical: false,
-          action: () async {
-            await ref.read(audioSessionProvider.future);
-            await ref.read(notificationSfxProvider.future);
-            await ref.read(messageSfxProvider.future);
-          },
-        ),
-      ],
-      [],
-    );
-
-    final isBusy = useState(true);
-    final isErrored = useState(false);
-    final isDismissable = useState(true);
-    final periodCursor = useState(0);
-    final showSkip = useState(false);
-    final isCurrentStageSkippable = useState(false);
-    final phaseNonce = useRef(0);
-    final skipCompleterRef = useRef<Completer<void>?>(null);
-    final warnings = useState<List<String>>([]);
-    final unFocusColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.75);
-
-    Future<void> runStages() async {
-      final phase = ++phaseNonce.value;
-      isBusy.value = true;
-      isErrored.value = false;
-      isDismissable.value = true;
-      subtitle.value = null;
-      showSkip.value = false;
-      warnings.value = [];
-
-      for (var idx = 0; idx < stages.length; idx++) {
-        if (phaseNonce.value != phase) return;
-        final stage = stages[idx];
-        periodCursor.value = idx;
-        isCurrentStageSkippable.value = !stage.isCritical;
-        skipCompleterRef.value = Completer<void>();
-        showSkip.value = false;
-
-        Timer? skipTimer;
-        if (!stage.isCritical) {
-          skipTimer = Timer(const Duration(milliseconds: 500), () {
-            if (phaseNonce.value == phase && isBusy.value) {
-              showSkip.value = true;
-            }
-          });
-        }
-
-        try {
-          if (stage.isCritical) {
-            await stage.action();
-          } else {
-            await Future.any([stage.action(), skipCompleterRef.value!.future]);
-            if (skipCompleterRef.value!.isCompleted) {
-              subtitle.value = 'Skipped optional stage: ${stage.label}';
-            }
-          }
-        } catch (e) {
-          final warning = 'Skipped "${stage.label}" after retries.';
-          warnings.value = [...warnings.value, warning];
-          subtitle.value = '$warning App may have limited functionality.';
-        } finally {
-          skipTimer?.cancel();
-          showSkip.value = false;
-          skipCompleterRef.value = null;
-        }
-      }
-
-      if (phaseNonce.value != phase) return;
-      isBusy.value = false;
-      if (warnings.value.isEmpty) {
-        if (runBootstrap) onCompleted();
-      } else {
-        isErrored.value = true;
-        isDismissable.value = true;
-        subtitle.value =
-            '${warnings.value.length} startup stage(s) were skipped due to network issues. Tap to continue.';
-      }
-    }
-
-    useEffect(() {
-      if (!runBootstrap) {
-        isBusy.value = false;
-        subtitle.value = null;
-        return null;
-      }
-      Future(() => runStages());
-      return () {
-        phaseNonce.value++;
-      };
-    }, [runBootstrap]);
-
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: GestureDetector(
-        onTap: () {
-          if (isBusy.value) return;
-          if (isDismissable.value) {
-            if (runBootstrap) {
-              onCompleted();
-            }
-          } else {
-            Future(() => runStages());
-          }
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            SizedBox(
-              height: 280,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  child: Image.asset(
-                    'assets/icons/icon.png',
-                    width: 80,
-                    height: 80,
-                  ),
-                ),
-              ),
-            ),
-            Column(
-              children: [
-                if (isErrored.value && !isDismissable.value && !isBusy.value)
-                  const Icon(Icons.cancel, size: 24),
-                if (isErrored.value && isDismissable.value && !isBusy.value)
-                  const Icon(Icons.warning, size: 24),
-                if ((isErrored.value && isDismissable.value && isBusy.value) ||
-                    isBusy.value)
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  ),
-                if (!isBusy.value && !isErrored.value)
-                  const Icon(Icons.check_circle, size: 24, color: Colors.green),
-                const SizedBox(height: 12),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 280),
-                  child: Column(
-                    children: [
-                      if (subtitle.value == null)
-                        Text(
-                          '${stages[periodCursor.value].label} (${periodCursor.value + 1}/${stages.length})',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13, color: unFocusColor),
-                        ),
-                      if (subtitle.value != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            subtitle.value!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: unFocusColor),
-                          ),
-                        ),
-                      if (!isBusy.value &&
-                          isErrored.value &&
-                          isDismissable.value)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 5),
-                          child: Text(
-                            'Tap anywhere to dismiss',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: unFocusColor),
-                          ),
-                        ),
-                      if (isBusy.value &&
-                          isCurrentStageSkippable.value &&
-                          showSkip.value)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: TextButton(
-                            onPressed: () {
-                              if (skipCompleterRef.value?.isCompleted ==
-                                  false) {
-                                skipCompleterRef.value?.complete();
-                              }
-                            },
-                            child: const Text('Skip optional stage'),
-                          ),
-                        ),
-                      Text(
-                        '${DateTime.now().year} © Solsynth LLC',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: unFocusColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BootstrapStage {
-  final String label;
-  final bool isCritical;
-  final Future<void> Function() action;
-
-  const _BootstrapStage({
-    required this.label,
-    required this.isCritical,
-    required this.action,
-  });
-}
-
-class _OnboardingSheet extends HookWidget {
-  final String version;
-  final bool isFirstLaunch;
-  final bool suggestAuth;
-  final double height;
-  final VoidCallback onLogin;
-  final VoidCallback onCreateAccount;
-
-  const _OnboardingSheet({
-    required this.version,
-    required this.isFirstLaunch,
-    required this.suggestAuth,
-    required this.height,
-    required this.onLogin,
-    required this.onCreateAccount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pageController = usePageController();
-    final currentPage = useState(0);
-    final pages = [
-      (
-        icon: Icons.waving_hand_rounded,
-        title: isFirstLaunch ? 'Welcome to Solian' : 'What\'s new',
-        description: isFirstLaunch
-            ? 'Set up your feed, join realms, and start chatting in minutes.'
-            : 'You\'re now on version $version. Here are a few highlights to try.',
-      ),
-      (
-        icon: Icons.rocket_launch_rounded,
-        title: 'Highlights',
-        description:
-            'Explore discovery feeds, realtime chat, creator hub tools, and better desktop integration.',
-      ),
-      (
-        icon: Icons.account_circle_rounded,
-        title: 'Account Benefits',
-        description:
-            'Sign in to sync preferences, publish content, and manage your profile across devices.',
-      ),
-    ];
-
-    return SafeArea(
-      child: SizedBox(
-        height: height,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: pageController,
-                  itemCount: pages.length,
-                  onPageChanged: (idx) => currentPage.value = idx,
-                  itemBuilder: (context, idx) {
-                    final page = pages[idx];
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          page.icon,
-                          size: 44,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          page.title,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          page.description,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  pages.length,
-                  (idx) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: currentPage.value == idx ? 22 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: currentPage.value == idx
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    final isLastPage = currentPage.value == pages.length - 1;
-                    if (isLastPage) {
-                      Navigator.pop(context);
-                      return;
-                    }
-                    pageController.nextPage(
-                      duration: const Duration(milliseconds: 240),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                  child: Text(
-                    currentPage.value == pages.length - 1
-                        ? 'Get Started'
-                        : 'Continue',
-                  ),
-                ),
-              ),
-              if (suggestAuth && currentPage.value == pages.length - 1) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      onCreateAccount();
-                    },
-                    child: const Text('Create Account'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      onLogin();
-                    },
-                    child: const Text('Log In'),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 4),
-              if (!isFirstLaunch)
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Skip for now'),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _TrayListenerImpl implements TrayListener {
   final VoidCallback _primaryAction;
   final VoidCallback _secondaryAction;
@@ -1177,14 +612,4 @@ class _TrayListenerImpl implements TrayListener {
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) => _onTrayMenuItemClick(menuItem);
-}
-
-class _ProtocolListenerImpl implements ProtocolListener {
-  final void Function(String) _onProtocolUrlReceived;
-
-  _ProtocolListenerImpl({required void Function(String) onProtocolUrlReceived})
-    : _onProtocolUrlReceived = onProtocolUrlReceived;
-
-  @override
-  void onProtocolUrlReceived(String url) => _onProtocolUrlReceived(url);
 }
