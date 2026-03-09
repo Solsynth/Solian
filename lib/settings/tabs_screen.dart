@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,7 +18,6 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
 class TabsScreen extends StatelessWidget {
@@ -221,6 +218,8 @@ class _TabsScreenContent extends HookConsumerWidget {
     final shouldShowBottomNav =
         bottomNavDestinations.isNotEmpty &&
         shouldShowBottomNavForCurrentPath(context, routes: bottomNavRoutes);
+    final canPopPage = Navigator.of(context).canPop();
+    final isDrawerEnabled = !canPopPage;
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
@@ -411,22 +410,30 @@ class _TabsScreenContent extends HookConsumerWidget {
       if (railDestinations.isEmpty) {
         return Scaffold(
           key: scaffoldKey,
-          drawer: Drawer(child: buildNavigationDrawerContent()),
+          drawer: isDrawerEnabled
+              ? Drawer(child: buildNavigationDrawerContent())
+              : null,
+          drawerEnableOpenDragGesture: isDrawerEnabled,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
           body: ClipRRect(
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(16)),
             child: child,
           ),
-          floatingActionButton: FloatingActionButton.small(
-            onPressed: () => scaffoldKey.currentState?.openDrawer(),
-            child: const Icon(Symbols.menu_rounded),
-          ),
+          floatingActionButton: isDrawerEnabled
+              ? FloatingActionButton.small(
+                  onPressed: () => scaffoldKey.currentState?.openDrawer(),
+                  child: const Icon(Symbols.menu_rounded),
+                )
+              : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         );
       }
       return Scaffold(
         key: scaffoldKey,
-        drawer: Drawer(child: buildNavigationDrawerContent()),
+        drawer: isDrawerEnabled
+            ? Drawer(child: buildNavigationDrawerContent())
+            : null,
+        drawerEnableOpenDragGesture: isDrawerEnabled,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         body: Row(
           children: [
@@ -444,7 +451,9 @@ class _TabsScreenContent extends HookConsumerWidget {
               trailing: Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: FloatingActionButton(
-                  onPressed: () => scaffoldKey.currentState?.openDrawer(),
+                  onPressed: isDrawerEnabled
+                      ? () => scaffoldKey.currentState?.openDrawer()
+                      : null,
                   child: const Icon(Symbols.menu_rounded),
                 ),
               ),
@@ -467,7 +476,10 @@ class _TabsScreenContent extends HookConsumerWidget {
       backgroundColor: Colors.transparent,
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      drawer: Drawer(child: buildNavigationDrawerContent()),
+      drawer: isDrawerEnabled
+          ? Drawer(child: buildNavigationDrawerContent())
+          : null,
+      drawerEnableOpenDragGesture: isDrawerEnabled,
       body: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
@@ -475,16 +487,13 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
         child: child,
       ),
-      // Mobile can use edge-swipe
-      floatingActionButton:
-          (shouldShowBottomNav ||
-              (!kIsWeb && (Platform.isAndroid || Platform.isIOS)))
+      floatingActionButton: (shouldShowBottomNav || !isDrawerEnabled)
           ? null
           : FloatingActionButton.small(
               onPressed: () => scaffoldKey.currentState?.openDrawer(),
               child: const Icon(Symbols.menu_rounded),
-            ).padding(top: 40),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       bottomNavigationBar: ConditionalBottomNav(
         routes: bottomNavRoutes,
         child: ClipRRect(
@@ -492,20 +501,19 @@ class _TabsScreenContent extends HookConsumerWidget {
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
           ),
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: Padding(
@@ -521,7 +529,9 @@ class _TabsScreenContent extends HookConsumerWidget {
                             label: MaterialLocalizations.of(
                               context,
                             ).openAppDrawerTooltip,
-                            onTap: () => scaffoldKey.currentState?.openDrawer(),
+                            onTap: isDrawerEnabled
+                                ? () => scaffoldKey.currentState?.openDrawer()
+                                : null,
                           ),
                         ),
                         ...bottomNavDestinations.mapIndexed((idx, destination) {
@@ -558,7 +568,9 @@ class _TabsScreenContent extends HookConsumerWidget {
         actions: <Type, Action<Intent>>{
           _OpenDrawerIntent: CallbackAction<_OpenDrawerIntent>(
             onInvoke: (_) {
-              scaffoldKey.currentState?.openDrawer();
+              if (isDrawerEnabled) {
+                scaffoldKey.currentState?.openDrawer();
+              }
               return null;
             },
           ),
@@ -862,7 +874,7 @@ class _BottomNavButton extends StatelessWidget {
   final bool selected;
   final Widget icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _BottomNavButton({
     required this.selected,

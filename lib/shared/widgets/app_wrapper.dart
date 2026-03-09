@@ -833,7 +833,7 @@ class _StartupSplashScreen extends HookConsumerWidget {
       };
     }, [runBootstrap]);
 
-    return ColoredBox(
+    return Material(
       color: Theme.of(context).colorScheme.surface,
       child: GestureDetector(
         onTap: () {
