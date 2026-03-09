@@ -422,7 +422,7 @@ class AppWrapper extends HookConsumerWidget {
       isDismissible: false,
       enableDrag: false,
       builder: (context) => AuthRequestSheet(
-        appName: event.appName,
+        app: event.app,
         onAllow: () {
           Navigator.pop(context);
           event.completer.complete(_generateWebAuthChallenge());
