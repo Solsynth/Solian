@@ -215,9 +215,6 @@ class _TabsScreenContent extends HookConsumerWidget {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final shouldShowBottomNav =
-        bottomNavDestinations.isNotEmpty &&
-        shouldShowBottomNavForCurrentPath(context, routes: bottomNavRoutes);
     final canPopPage = Navigator.of(context).canPop();
     final isDrawerEnabled = !canPopPage;
 
@@ -487,13 +484,6 @@ class _TabsScreenContent extends HookConsumerWidget {
         ),
         child: child,
       ),
-      floatingActionButton: (shouldShowBottomNav || !isDrawerEnabled)
-          ? null
-          : FloatingActionButton.small(
-              onPressed: () => scaffoldKey.currentState?.openDrawer(),
-              child: const Icon(Symbols.menu_rounded),
-            ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       bottomNavigationBar: ConditionalBottomNav(
         routes: bottomNavRoutes,
         child: ClipRRect(
