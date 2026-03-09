@@ -46,7 +46,7 @@ final class RealmsJoinedProvider
   }
 }
 
-String _$realmsJoinedHash() => r'b15029acd38f03bbbb8708adb78f25ac357a0421';
+String _$realmsJoinedHash() => r'c3a7118c19045eac2aca89eed612f3f81467eba6';
 
 @ProviderFor(realm)
 final realmProvider = RealmFamily._();
@@ -98,7 +98,7 @@ final class RealmProvider
   }
 }
 
-String _$realmHash() => r'71a126ab2810566646e1629290c1ce9ffa0839e3';
+String _$realmHash() => r'dccdefcdf75b4a2ff87430b143def82183819484';
 
 final class RealmFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRealm?>, String?> {
@@ -157,4 +157,4 @@ final class RealmInvitesProvider
   }
 }
 
-String _$realmInvitesHash() => r'92cce0978c7ca8813e27ae42fc6f3a93a09a8962';
+String _$realmInvitesHash() => r'8c85ab263d0e43fc2e57c813aa4aca04b0f8fccb';

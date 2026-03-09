@@ -7,13 +7,14 @@ import 'package:dio/dio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/udid.dart';
+import 'package:island/auth/web_auth/web_auth_app_info.dart';
 import 'package:island/talker.dart';
 
 class WebAuthRequestEvent {
-  final String appName;
+  final WebAuthAppInfo app;
   final Completer<String?> completer;
 
-  WebAuthRequestEvent({required this.appName, required this.completer});
+  WebAuthRequestEvent({required this.app, required this.completer});
 }
 
 class WebAuthServer {
@@ -145,16 +146,35 @@ class WebAuthServer {
 
   Future<void> _handleAlive(HttpRequest request) async {
     final queryParams = request.uri.queryParameters;
-    final appName = queryParams['app'] ?? 'Unknown App';
+    final appSlug = queryParams['app']?.trim().toLowerCase();
 
-    talker.info('Auth request from app: $appName');
+    if (appSlug == null || appSlug.isEmpty) {
+      request.response.statusCode = HttpStatus.badRequest;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'error': 'Invalid request: missing app slug'}),
+      );
+      await request.response.close();
+      return;
+    }
+
+    final app = await _fetchAppInfoBySlug(appSlug);
+    if (app == null) {
+      request.response.statusCode = HttpStatus.badRequest;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'error': 'Invalid request: app not found'}),
+      );
+      await request.response.close();
+      return;
+    }
+
+    talker.info('Auth request from app: ${app.slug}');
 
     final completer = Completer<String?>();
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      eventBus.fire(
-        WebAuthRequestEvent(appName: appName, completer: completer),
-      );
+      eventBus.fire(WebAuthRequestEvent(app: app, completer: completer));
     });
 
     final challenge = await completer.future;
@@ -177,7 +197,24 @@ class WebAuthServer {
     request.response.write(jsonEncode(response));
     await request.response.close();
 
-    talker.info('Challenge sent to $appName');
+    talker.info('Challenge sent to ${app.slug}');
+  }
+
+  Future<WebAuthAppInfo?> _fetchAppInfoBySlug(String slug) async {
+    final dio = _ref.read(apiClientProvider);
+    try {
+      final response = await dio.get('/develop/apps/${Uri.encodeComponent(slug)}');
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        return WebAuthAppInfo.fromJson(data);
+      }
+      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == HttpStatus.notFound) {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   Future<void> _handleExchange(HttpRequest request) async {

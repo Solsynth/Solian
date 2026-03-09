@@ -15,11 +15,11 @@ final devProjectProvider = DevProjectFamily._();
 final class DevProjectProvider
     extends
         $FunctionalProvider<
-          AsyncValue<DevProject?>,
-          DevProject?,
-          FutureOr<DevProject?>
+          AsyncValue<SnDevProject?>,
+          SnDevProject?,
+          FutureOr<SnDevProject?>
         >
-    with $FutureModifier<DevProject?>, $FutureProvider<DevProject?> {
+    with $FutureModifier<SnDevProject?>, $FutureProvider<SnDevProject?> {
   DevProjectProvider._({
     required DevProjectFamily super.from,
     required (String, String) super.argument,
@@ -43,12 +43,12 @@ final class DevProjectProvider
 
   @$internal
   @override
-  $FutureProviderElement<DevProject?> $createElement(
+  $FutureProviderElement<SnDevProject?> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<DevProject?> create(Ref ref) {
+  FutureOr<SnDevProject?> create(Ref ref) {
     final argument = this.argument as (String, String);
     return devProject(ref, argument.$1, argument.$2);
   }
@@ -64,10 +64,10 @@ final class DevProjectProvider
   }
 }
 
-String _$devProjectHash() => r'd92be3f5cdc510c2a377615ed5c70622a6842bf2';
+String _$devProjectHash() => r'8dd964acd519b058b022ace611db8c4419f90cb6';
 
 final class DevProjectFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<DevProject?>, (String, String)> {
+    with $FunctionalFamilyOverride<FutureOr<SnDevProject?>, (String, String)> {
   DevProjectFamily._()
     : super(
         retry: null,

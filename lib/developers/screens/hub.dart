@@ -42,13 +42,13 @@ Future<List<SnDeveloper>> developers(Ref ref) async {
 }
 
 @riverpod
-Future<List<DevProject>> devProjects(Ref ref, String pubName) async {
+Future<List<SnDevProject>> devProjects(Ref ref, String pubName) async {
   if (pubName.isEmpty) return [];
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/develop/developers/$pubName/projects');
   return (resp.data as List)
-      .map((e) => DevProject.fromJson(e))
-      .cast<DevProject>()
+      .map((e) => SnDevProject.fromJson(e))
+      .cast<SnDevProject>()
       .toList();
 }
 
@@ -65,8 +65,8 @@ class DeveloperHubListScreen extends StatelessWidget {
 
 class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final SnDeveloper? currentDeveloper;
-  final DevProject? currentProject;
-  final ValueChanged<DevProject?> onProjectChanged;
+  final SnDevProject? currentProject;
+  final ValueChanged<SnDevProject?> onProjectChanged;
   final ValueChanged<SnDeveloper?> onDeveloperChanged;
 
   const _ConsoleAppBar({
@@ -100,9 +100,9 @@ class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
 // Main Content Section
 class _MainContentSection extends HookConsumerWidget {
   final SnDeveloper? currentDeveloper;
-  final AsyncValue<List<DevProject>> projects;
+  final AsyncValue<List<SnDevProject>> projects;
   final AsyncValue<DeveloperStats?> developerStats;
-  final ValueChanged<DevProject> onProjectSelected;
+  final ValueChanged<SnDevProject> onProjectSelected;
   final ValueChanged<SnDeveloper> onDeveloperSelected;
   final VoidCallback onCreateProject;
 
@@ -315,8 +315,8 @@ class DeveloperSelector extends HookConsumerWidget {
 
 class ProjectSelector extends HookConsumerWidget {
   final SnDeveloper? currentDeveloper;
-  final DevProject? currentProject;
-  final ValueChanged<DevProject?> onProjectChanged;
+  final SnDevProject? currentProject;
+  final ValueChanged<SnDevProject?> onProjectChanged;
 
   const ProjectSelector({
     super.key,
@@ -346,7 +346,7 @@ class ProjectSelector extends HookConsumerWidget {
         projects.value!.any((p) => p.id == currentValue.id);
 
     return DropdownButtonHideUnderline(
-      child: DropdownButton2<DevProject>(
+      child: DropdownButton2<SnDevProject>(
         valueListenable: ValueNotifier(isValueValid ? currentValue : null),
         customButton: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -393,7 +393,7 @@ class ProjectSelector extends HookConsumerWidget {
         ),
         items: projects.value!
             .map(
-              (project) => DropdownItem<DevProject>(
+              (project) => DropdownItem<SnDevProject>(
                 value: project,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,10 +407,9 @@ class ProjectSelector extends HookConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    if (project.description != null &&
-                        project.description!.isNotEmpty)
+                    if (project.description.isNotEmpty)
                       Text(
-                        project.description!,
+                        project.description,
                         style: DefaultTextStyle.of(context).style.copyWith(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -448,9 +447,9 @@ class ProjectSelector extends HookConsumerWidget {
 }
 
 class _ProjectListTile extends HookConsumerWidget {
-  final DevProject project;
+  final SnDevProject project;
   final String publisherName;
-  final ValueChanged<DevProject>? onProjectSelected;
+  final ValueChanged<SnDevProject>? onProjectSelected;
 
   const _ProjectListTile({
     required this.project,
@@ -466,7 +465,7 @@ class _ProjectListTile extends HookConsumerWidget {
       ),
       leading: const Icon(Symbols.folder_managed),
       title: Text(project.name),
-      subtitle: Text(project.description ?? ''),
+      subtitle: Text(project.description),
       contentPadding: const EdgeInsets.only(left: 16, right: 17),
       trailing: PopupMenuButton(
         itemBuilder: (context) => [
@@ -673,7 +672,7 @@ class _DeveloperUnselectedWidget extends HookConsumerWidget {
 
 class ProjectForm extends HookConsumerWidget {
   final String publisherName;
-  final DevProject? project;
+  final SnDevProject? project;
 
   const ProjectForm({super.key, required this.publisherName, this.project});
 
@@ -711,7 +710,7 @@ class ProjectForm extends HookConsumerWidget {
               );
 
         if (!context.mounted) return;
-        Navigator.of(context).pop(DevProject.fromJson(resp.data));
+        Navigator.of(context).pop(SnDevProject.fromJson(resp.data));
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -870,9 +869,9 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
         ? ref.watch(
             devProjectsProvider(currentDeveloper.value!.publisher!.name),
           )
-        : const AsyncValue<List<DevProject>>.data([]);
+        : const AsyncValue<List<SnDevProject>>.data([]);
 
-    final currentProject = useState<DevProject?>(
+    final currentProject = useState<SnDevProject?>(
       projects.value?.where((p) => p.id == initialProjectId).firstOrNull,
     );
 

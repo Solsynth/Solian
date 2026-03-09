@@ -64,7 +64,7 @@ final class AccountStatusProvider
   }
 }
 
-String _$accountStatusHash() => r'4cac809808e6f1345dab06dc32d759cfcea13315';
+String _$accountStatusHash() => r'53f351fe782bf604f45f3fd311377e218e43451d';
 
 final class AccountStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnAccountStatus?>, String> {

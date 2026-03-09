@@ -18,7 +18,9 @@ import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/activity/activity_rpc.dart';
@@ -184,6 +186,24 @@ class AppWrapper extends HookConsumerWidget {
         if (ctx.mounted) _showThoughtSheet(ctx, event);
       });
 
+      final solianDeepLinkSubs = eventBus.on<SolianDeepLinkEvent>().listen((
+        event,
+      ) {
+        void handleWhenReady([int retry = 0]) {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            _handleDeepLink(event.uri, ref, ctx);
+            return;
+          }
+          if (retry >= 16) return;
+          Future.delayed(const Duration(milliseconds: 250), () {
+            handleWhenReady(retry + 1);
+          });
+        }
+
+        handleWhenReady();
+      });
+
       // Web auth request listener
       final webAuthSubs = eventBus.on<WebAuthRequestEvent>().listen((event) {
         final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
@@ -234,6 +254,7 @@ class AppWrapper extends HookConsumerWidget {
         composeSheetSubs.cancel();
         notificationSheetSubs.cancel();
         thoughtSheetSubs.cancel();
+        solianDeepLinkSubs.cancel();
         webAuthSubs.cancel();
       };
     }, []);
@@ -419,6 +440,7 @@ class AppWrapper extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
+      useSafeArea: true,
       isDismissible: false,
       enableDrag: false,
       builder: (context) => AuthRequestSheet(
@@ -450,7 +472,7 @@ class AppWrapper extends HookConsumerWidget {
     // 2) Exchange signed challenge:
     //    solian://auth/web?signed_challenge=...&redirect_uri=myapp://auth-callback
     if (path == '/auth/web') {
-      await _handleProtocolWebAuth(uri, ref);
+      await _handleProtocolWebAuth(uri, ref, context);
       return;
     }
 
@@ -518,12 +540,22 @@ class AppWrapper extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleProtocolWebAuth(Uri uri, WidgetRef ref) async {
+  Future<void> _handleProtocolWebAuth(
+    Uri uri,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     final redirectUriRaw = uri.queryParameters['redirect_uri'];
-    final redirectUri = redirectUriRaw == null ? null : Uri.tryParse(redirectUriRaw);
+    final redirectUri = redirectUriRaw == null
+        ? null
+        : Uri.tryParse(redirectUriRaw);
     final state = uri.queryParameters['state'];
 
     if (redirectUri == null || !redirectUri.hasScheme) {
+      await _showWebAuthError(
+        context,
+        'Invalid web auth request: missing or invalid redirect_uri.',
+      );
       return;
     }
 
@@ -550,10 +582,7 @@ class AppWrapper extends HookConsumerWidget {
           await _launchWebAuthRedirect(
             redirectUri: redirectUri,
             state: state,
-            payload: {
-              'status': 'ok',
-              'challenge': data['challenge'] as String,
-            },
+            payload: {'status': 'ok', 'challenge': data['challenge'] as String},
           );
           return;
         }
@@ -601,9 +630,9 @@ class AppWrapper extends HookConsumerWidget {
     } on DioException catch (e) {
       final error =
           (e.response?.data is Map &&
-                  (e.response!.data as Map).containsKey('error'))
-              ? (e.response!.data['error']?.toString() ?? 'exchange_failed')
-              : (e.message ?? 'exchange_failed');
+              (e.response!.data as Map).containsKey('error'))
+          ? (e.response!.data['error']?.toString() ?? 'exchange_failed')
+          : (e.message ?? 'exchange_failed');
       await _launchWebAuthRedirect(
         redirectUri: redirectUri,
         state: state,
@@ -618,6 +647,10 @@ class AppWrapper extends HookConsumerWidget {
     } finally {
       client.close();
     }
+  }
+
+  Future<void> _showWebAuthError(BuildContext context, String message) async {
+    showInfoAlert(message, 'App Connect Request Invalid', icon: Symbols.error);
   }
 
   Future<void> _launchWebAuthRedirect({
@@ -1002,115 +1035,115 @@ class _OnboardingSheet extends HookWidget {
         height: height,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: pageController,
-                itemCount: pages.length,
-                onPageChanged: (idx) => currentPage.value = idx,
-                itemBuilder: (context, idx) {
-                  final page = pages[idx];
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        page.icon,
-                        size: 44,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        page.title,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        page.description,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  );
-                },
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: pageController,
+                  itemCount: pages.length,
+                  onPageChanged: (idx) => currentPage.value = idx,
+                  itemBuilder: (context, idx) {
+                    final page = pages[idx];
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          page.icon,
+                          size: 44,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          page.title,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          page.description,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                pages.length,
-                (idx) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: currentPage.value == idx ? 22 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: currentPage.value == idx
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(99),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  pages.length,
+                  (idx) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: currentPage.value == idx ? 22 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: currentPage.value == idx
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  final isLastPage = currentPage.value == pages.length - 1;
-                  if (isLastPage) {
-                    Navigator.pop(context);
-                    return;
-                  }
-                  pageController.nextPage(
-                    duration: const Duration(milliseconds: 240),
-                    curve: Curves.easeOut,
-                  );
-                },
-                child: Text(
-                  currentPage.value == pages.length - 1
-                      ? 'Get Started'
-                      : 'Continue',
-                ),
-              ),
-            ),
-            if (suggestAuth && currentPage.value == pages.length - 1) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: FilledButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    onCreateAccount();
+                    final isLastPage = currentPage.value == pages.length - 1;
+                    if (isLastPage) {
+                      Navigator.pop(context);
+                      return;
+                    }
+                    pageController.nextPage(
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.easeOut,
+                    );
                   },
-                  child: const Text('Create Account'),
+                  child: Text(
+                    currentPage.value == pages.length - 1
+                        ? 'Get Started'
+                        : 'Continue',
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    onLogin();
-                  },
-                  child: const Text('Log In'),
+              if (suggestAuth && currentPage.value == pages.length - 1) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onCreateAccount();
+                    },
+                    child: const Text('Create Account'),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onLogin();
+                    },
+                    child: const Text('Log In'),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 4),
+              if (!isFirstLaunch)
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Skip for now'),
+                ),
             ],
-            const SizedBox(height: 4),
-            if (!isFirstLaunch)
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Skip for now'),
-              ),
-          ],
-        ),
+          ),
         ),
       ),
     );

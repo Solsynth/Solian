@@ -47,7 +47,7 @@ final class CheckInResultTodayProvider
 }
 
 String _$checkInResultTodayHash() =>
-    r'b4dc97b2243f542b36c295dc5cce3fe6097cb308';
+    r'edaf1b13c2661920e916dc48674bc2c492d90d5c';
 
 @ProviderFor(nextNotableDay)
 final nextNotableDayProvider = NextNotableDayProvider._();
@@ -86,7 +86,7 @@ final class NextNotableDayProvider
   }
 }
 
-String _$nextNotableDayHash() => r'60d0546a086bdcb89c433c38133eb4197e4fb0a6';
+String _$nextNotableDayHash() => r'e79b2de0d9eb79096297370ca192d0d0a432a7f2';
 
 @ProviderFor(recentNotableDay)
 final recentNotableDayProvider = RecentNotableDayProvider._();
@@ -125,7 +125,7 @@ final class RecentNotableDayProvider
   }
 }
 
-String _$recentNotableDayHash() => r'e0cc4a0e8016afe1c469a7c744dbab41e0d54c2d';
+String _$recentNotableDayHash() => r'1ae516a467f086fd81c8c393177365446f221545';
 
 @ProviderFor(randomFortuneSaying)
 final randomFortuneSayingProvider = RandomFortuneSayingProvider._();
@@ -165,4 +165,4 @@ final class RandomFortuneSayingProvider
 }
 
 String _$randomFortuneSayingHash() =>
-    r'861378dba8021e8555b568fb8e0390b2b24056f6';
+    r'fa05dd1fb7ee3b2d9c2fa28b41791ad858789988';

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:island/core/services/event_bus.dart';
+import 'package:island/route.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,13 +15,11 @@ class SharingIntentService {
   SharingIntentService._internal();
 
   StreamSubscription<List<SharedMediaFile>>? _intentSub;
-  BuildContext? _context;
 
   /// Initialize the sharing intent service
-  void initialize(BuildContext context) {
+  void initialize(BuildContext _) {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
     debugPrint("SharingIntentService: Initializing with context");
-    _context = context;
     _setupSharingListeners();
   }
 
@@ -58,14 +58,10 @@ class SharingIntentService {
   }
 
   /// Handle shared media files
-  void _handleSharedContent(List<SharedMediaFile> sharedFiles) {
-    if (_context == null) {
-      debugPrint(
-        "SharingIntentService: Context is null, cannot handle shared content",
-      );
-      return;
-    }
-
+  void _handleSharedContent(
+    List<SharedMediaFile> sharedFiles, {
+    int retryCount = 0,
+  }) {
     debugPrint(
       "SharingIntentService: Received ${sharedFiles.length} shared files",
     );
@@ -92,17 +88,49 @@ class SharingIntentService {
         .map((file) => file.path)
         .toList();
 
+    // Treat solian:// URLs as deep links, not share payload.
+    String? solianDeepLink;
+    for (final url in links) {
+      final normalized = url.trim();
+      if (normalized.toLowerCase().startsWith('solian://')) {
+        solianDeepLink = normalized;
+        break;
+      }
+    }
+    if (solianDeepLink != null) {
+      final uri = Uri.tryParse(solianDeepLink);
+      if (uri != null) {
+        debugPrint("SharingIntentService: Dispatching deep link $solianDeepLink");
+        eventBus.fire(SolianDeepLinkEvent(uri));
+        return;
+      }
+    }
+
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) {
+      if (retryCount >= 12) {
+        debugPrint(
+          "SharingIntentService: Navigator context unavailable, dropping shared content",
+        );
+        return;
+      }
+      debugPrint(
+        "SharingIntentService: Navigator context not ready, retrying...",
+      );
+      Future.delayed(const Duration(milliseconds: 250), () {
+        _handleSharedContent(sharedFiles, retryCount: retryCount + 1);
+      });
+      return;
+    }
+
     // Show ShareSheet with the shared files
     if (files.isNotEmpty) {
-      showShareSheet(context: _context!, content: ShareContent.files(files));
+      showShareSheet(context: ctx, content: ShareContent.files(files));
     } else if (links.isNotEmpty) {
-      showShareSheet(
-        context: _context!,
-        content: ShareContent.link(links.first),
-      );
+      showShareSheet(context: ctx, content: ShareContent.link(links.first));
     } else {
       showShareSheet(
-        context: _context!,
+        context: ctx,
         content: ShareContent.text(
           sharedFiles
               .where((file) => file.type == SharedMediaType.text)
@@ -116,6 +144,5 @@ class SharingIntentService {
   /// Dispose of resources
   void dispose() {
     _intentSub?.cancel();
-    _context = null;
   }
 }

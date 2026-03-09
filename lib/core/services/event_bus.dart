@@ -123,3 +123,11 @@ class ShowThoughtSheetEvent {
     this.attachedPosts = const [],
   });
 }
+
+/// Event fired when a custom solian:// deep link is received on platforms
+/// that deliver it via sharing intents.
+class SolianDeepLinkEvent {
+  final Uri uri;
+
+  const SolianDeepLinkEvent(this.uri);
+}

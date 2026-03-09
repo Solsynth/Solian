@@ -15,10 +15,10 @@ import 'package:styled_widget/styled_widget.dart';
 part 'edit_project.g.dart';
 
 @riverpod
-Future<DevProject?> devProject(Ref ref, String pubName, String id) async {
+Future<SnDevProject?> devProject(Ref ref, String pubName, String id) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/develop/developers/$pubName/projects/$id');
-  return DevProject.fromJson(resp.data);
+  return SnDevProject.fromJson(resp.data);
 }
 
 @RoutePage()
@@ -45,7 +45,7 @@ class DeveloperProjectEditScreen extends HookConsumerWidget {
       if (projectData?.value != null) {
         nameController.text = projectData!.value!.name;
         slugController.text = projectData.value!.slug;
-        descriptionController.text = projectData.value!.description ?? '';
+        descriptionController.text = projectData.value!.description;
       }
       return null;
     }, [projectData]);

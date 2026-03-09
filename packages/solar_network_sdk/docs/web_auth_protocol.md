@@ -22,12 +22,12 @@ Both calls require `redirect_uri` so Solian can return result data to your app.
 Use this URL format:
 
 ```text
-solian://auth/web?app=<app_name>&redirect_uri=<encoded_redirect_uri>&state=<optional_state>
+solian://auth/web?app=<app_slug>&redirect_uri=<encoded_redirect_uri>&state=<optional_state>
 ```
 
 Parameters:
 
-- `app`: display name shown in Solian auth approval sheet.
+- `app`: app slug (required). Solian resolves app metadata from `/develop/apps/<slug>`.
 - `redirect_uri`: your app callback URI (must include a scheme), e.g. `acme://auth/callback`.
 - `state` (optional): opaque value that Solian echoes back.
 
@@ -79,7 +79,7 @@ Error callback:
 
 `WebAuthClient` provides helper builders:
 
-- `getProtocolChallengeUrl({ appName, redirectUri, state })`
+- `getProtocolChallengeUrl({ appSlug, redirectUri, state })`
 - `getProtocolExchangeUrl({ signedChallenge, redirectUri, state })`
 
 These produce properly encoded `solian://auth/web` URLs.

@@ -18,6 +18,7 @@ import 'package:path/path.dart' show extension;
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -432,8 +433,25 @@ class FileUploader {
       throw ArgumentError('Invalid fileData type');
     }
 
+    final normalizedName = fileName.trim();
+    final multipartFileName = normalizedName.isEmpty
+        ? 'upload.bin'
+        : normalizedName;
+
+    MediaType? multipartContentType;
+    final normalizedContentType = contentType.trim();
+    if (normalizedContentType.isNotEmpty) {
+      try {
+        multipartContentType = MediaType.parse(normalizedContentType);
+      } catch (_) {}
+    }
+
     final payload = <String, dynamic>{
-      'file': MultipartFile.fromBytes(bytes, filename: fileName),
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: multipartFileName,
+        contentType: multipartContentType,
+      ),
       'poolId': poolId,
       'path': path,
       'bundleId': bundleId,

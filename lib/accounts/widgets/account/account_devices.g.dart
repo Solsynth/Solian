@@ -48,4 +48,4 @@ final class AuthDevicesProvider
   }
 }
 
-String _$authDevicesHash() => r'1af378149286020ec263be178c573ccc247a0cd1';
+String _$authDevicesHash() => r'5f53b5a28a76e5af9d0177d369ebf2734b5d987f';

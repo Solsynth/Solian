@@ -9,7 +9,7 @@ import 'package:styled_widget/styled_widget.dart';
 
 class ProjectDetailView extends HookConsumerWidget {
   final String publisherName;
-  final DevProject project;
+  final SnDevProject project;
   final VoidCallback onBackToHub;
 
   const ProjectDetailView({

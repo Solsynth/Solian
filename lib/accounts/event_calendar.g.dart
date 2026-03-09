@@ -73,7 +73,7 @@ final class EventCalendarProvider
   }
 }
 
-String _$eventCalendarHash() => r'3a33581c28bcd44bc5eb3abdb770171b4d275a5d';
+String _$eventCalendarHash() => r'ca5c5c2b42d7ce1f2431c8025603eb0a2ebdf940';
 
 /// Provider for fetching event calendar data
 /// This can be used anywhere in the app where calendar data is needed

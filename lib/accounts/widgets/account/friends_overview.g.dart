@@ -48,4 +48,4 @@ final class FriendsOverviewProvider
   }
 }
 
-String _$friendsOverviewHash() => r'5ef86c6849804c97abd3df094f120c7dd5e938db';
+String _$friendsOverviewHash() => r'53e307d6de0953e58a6e69fc702ea9f00ad0fd21';

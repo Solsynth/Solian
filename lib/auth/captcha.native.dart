@@ -13,20 +13,22 @@ class CaptchaScreenContent extends ConsumerWidget {
 
     if (!captchaUrl.hasValue) return Center(child: CircularProgressIndicator());
 
-    return SheetScaffold(
-      titleText: "Anti-Robot",
-      child: InAppWebView(
-        initialUrlRequest: URLRequest(
-          url: WebUri('${captchaUrl.value}?redirect_uri=solian://captcha'),
+    return SafeArea(
+      child: SheetScaffold(
+        titleText: "Anti-Robot",
+        child: InAppWebView(
+          initialUrlRequest: URLRequest(
+            url: WebUri('${captchaUrl.value}?redirect_uri=solian://captcha'),
+          ),
+          shouldOverrideUrlLoading: (controller, navigationAction) async {
+            Uri? url = navigationAction.request.url;
+            if (url != null && url.queryParameters.containsKey('captcha_tk')) {
+              Navigator.pop(context, url.queryParameters['captcha_tk']!);
+              return NavigationActionPolicy.CANCEL;
+            }
+            return NavigationActionPolicy.ALLOW;
+          },
         ),
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          Uri? url = navigationAction.request.url;
-          if (url != null && url.queryParameters.containsKey('captcha_tk')) {
-            Navigator.pop(context, url.queryParameters['captcha_tk']!);
-            return NavigationActionPolicy.CANCEL;
-          }
-          return NavigationActionPolicy.ALLOW;
-        },
       ),
     );
   }

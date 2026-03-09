@@ -1,23 +1,23 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/developers/models/developer.dart';
 
-class DevProject {
-  final String id;
-  final String slug;
-  final String name;
-  final String? description;
+part 'dev_project.freezed.dart';
+part 'dev_project.g.dart';
 
-  DevProject({
-    required this.id,
-    required this.slug,
-    required this.name,
-    this.description,
-  });
+@freezed
+sealed class SnDevProject with _$SnDevProject {
+  const factory SnDevProject({
+    required String id,
+    required String slug,
+    required String name,
+    required String description,
+    required SnDeveloper developer,
+    required String developerId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnDevProject;
 
-  factory DevProject.fromJson(Map<String, dynamic> json) {
-    return DevProject(
-      id: json['id'],
-      slug: json['slug'],
-      name: json['name'],
-      description: json['description'],
-    );
-  }
+  factory SnDevProject.fromJson(Map<String, dynamic> json) =>
+      _$SnDevProjectFromJson(json);
 }

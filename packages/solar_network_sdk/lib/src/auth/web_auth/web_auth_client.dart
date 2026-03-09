@@ -23,12 +23,12 @@ class WebAuthClient {
   }
 
   String getProtocolChallengeUrl({
-    required String appName,
+    required String appSlug,
     required String redirectUri,
     String? state,
   }) {
     final params = <String, String>{
-      'app': appName,
+      'app': appSlug,
       'redirect_uri': redirectUri,
     };
     if (state != null && state.isNotEmpty) params['state'] = state;

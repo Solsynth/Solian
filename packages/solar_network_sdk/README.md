@@ -67,7 +67,7 @@ final client = WebAuthClient(
 
 // Step 1: request challenge (opens Solian app)
 final challengeUrl = client.getProtocolChallengeUrl(
-  appName: 'Acme Native App',
+  appSlug: 'sopush',
   redirectUri: 'acme://auth/callback',
   state: 'request-123',
 );

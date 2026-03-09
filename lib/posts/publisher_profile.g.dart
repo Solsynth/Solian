@@ -141,7 +141,7 @@ final class PublisherBadgesProvider
   }
 }
 
-String _$publisherBadgesHash() => r'26776fd6cb611953f52bdb6a7dfa004c34d5cd8e';
+String _$publisherBadgesHash() => r'a355f0d1d150e820464cd23eaf8acfdc76992991';
 
 final class PublisherBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {

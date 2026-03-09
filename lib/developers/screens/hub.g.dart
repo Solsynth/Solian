@@ -131,11 +131,13 @@ final devProjectsProvider = DevProjectsFamily._();
 final class DevProjectsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<DevProject>>,
-          List<DevProject>,
-          FutureOr<List<DevProject>>
+          AsyncValue<List<SnDevProject>>,
+          List<SnDevProject>,
+          FutureOr<List<SnDevProject>>
         >
-    with $FutureModifier<List<DevProject>>, $FutureProvider<List<DevProject>> {
+    with
+        $FutureModifier<List<SnDevProject>>,
+        $FutureProvider<List<SnDevProject>> {
   DevProjectsProvider._({
     required DevProjectsFamily super.from,
     required String super.argument,
@@ -159,12 +161,12 @@ final class DevProjectsProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<DevProject>> $createElement(
+  $FutureProviderElement<List<SnDevProject>> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<DevProject>> create(Ref ref) {
+  FutureOr<List<SnDevProject>> create(Ref ref) {
     final argument = this.argument as String;
     return devProjects(ref, argument);
   }
@@ -180,10 +182,10 @@ final class DevProjectsProvider
   }
 }
 
-String _$devProjectsHash() => r'715b395bebda785d38691ffee3b88e50b498c91a';
+String _$devProjectsHash() => r'746bb10ccd198eaec456af840ffef38b4f688310';
 
 final class DevProjectsFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<DevProject>>, String> {
+    with $FunctionalFamilyOverride<FutureOr<List<SnDevProject>>, String> {
   DevProjectsFamily._()
     : super(
         retry: null,

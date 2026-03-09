@@ -63,7 +63,7 @@ final class AccountProvider
   }
 }
 
-String _$accountHash() => r'5e2b7bd59151b4638a5561f495537c259f767123';
+String _$accountHash() => r'81cc3c5902f718a484a8bcd79d2712a4c0b0edd8';
 
 final class AccountFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnAccount>, String> {
@@ -140,7 +140,7 @@ final class AccountBadgesProvider
   }
 }
 
-String _$accountBadgesHash() => r'68db63f49827020beecbdbf20529520d0cd14a7d';
+String _$accountBadgesHash() => r'4591e9a3662b3124ed15d185dd986df17a8f8400';
 
 final class AccountBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
@@ -363,7 +363,7 @@ final class AccountRelationshipProvider
 }
 
 String _$accountRelationshipHash() =>
-    r'319f743261b113a1d3c6a397d48d13c858312669';
+    r'141b2d2ad1fe2e9e99891c37a2fd6972c5a80d93';
 
 final class AccountRelationshipFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnRelationship?>, String> {

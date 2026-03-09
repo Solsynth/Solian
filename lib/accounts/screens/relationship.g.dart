@@ -48,4 +48,4 @@ final class FriendRequestProvider
   }
 }
 
-String _$friendRequestHash() => r'b066553f9bd0505a7a272cf10cb3ca312152acd6';
+String _$friendRequestHash() => r'5e74fc4f61df8e0671adfa8820a5c2637791099e';
