@@ -200,6 +200,7 @@ class _TabsScreenContent extends HookConsumerWidget {
       fallbackIds: defaultBottomNavIds,
       useFallbackWhenEmpty: !navCustomization.hasBottomOverride,
     );
+    final rootTabRoutes = allDestinations.map((d) => d.routePath).toList();
     final bottomNavRoutes = bottomNavDestinations
         .map((d) => d.routePath)
         .toList();
@@ -215,8 +216,10 @@ class _TabsScreenContent extends HookConsumerWidget {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final canPopPage = Navigator.of(context).canPop();
-    final isDrawerEnabled = !canPopPage;
+    final isDrawerEnabled = shouldShowBottomNavForCurrentPath(
+      context,
+      routes: rootTabRoutes,
+    );
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
