@@ -149,7 +149,7 @@ export class WebAuthClient {
    * @returns The token result
    */
   async exchangeToken(options: ExchangeTokenOptions): Promise<WebAuthResult> {
-    const { port, signedChallenge, deviceInfo } = options;
+    const { port, signedChallenge, secretId, deviceInfo } = options;
     const url = `${this.config.baseUrl}:${port}/exchange`;
 
     try {
@@ -160,6 +160,7 @@ export class WebAuthClient {
         },
         body: JSON.stringify({
           signed_challenge: signedChallenge,
+          ...(secretId ? { secret_id: secretId } : {}),
           ...(deviceInfo ?? {}),
         }),
       });
@@ -179,6 +180,14 @@ export class WebAuthClient {
         return {
           status: WebAuthStatus.success,
           token: data.token,
+          refreshToken:
+            typeof data.refresh_token === 'string' ? data.refresh_token : undefined,
+          expiresIn:
+            typeof data.expires_in === 'number' ? data.expires_in : undefined,
+          refreshExpiresIn:
+            typeof data.refresh_expires_in === 'number'
+              ? data.refresh_expires_in
+              : undefined,
         };
       }
 

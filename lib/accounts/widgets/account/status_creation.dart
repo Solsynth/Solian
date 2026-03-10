@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -19,11 +20,15 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final attitude = useState<int>(initialStatus?.attitude ?? 1);
-    final isInvisible = useState(initialStatus?.isInvisible ?? false);
-    final isNotDisturb = useState(initialStatus?.isNotDisturb ?? false);
+    final statusType = useState<int>(
+      initialStatus?.type ?? SnAccountStatusType.defaultType,
+    );
     final clearedAt = useState<DateTime?>(initialStatus?.clearedAt);
     final labelController = useTextEditingController(
       text: initialStatus?.label ?? '',
+    );
+    final symbolController = useTextEditingController(
+      text: initialStatus?.symbol ?? '',
     );
 
     final submitting = useState(false);
@@ -53,10 +58,11 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
           '/passport/accounts/me/statuses',
           data: {
             'attitude': attitude.value,
-            'is_invisible': isInvisible.value,
-            'is_not_disturb': isNotDisturb.value,
+            'type': statusType.value,
             'cleared_at': clearedAt.value?.toUtc().toIso8601String(),
             if (labelController.text.isNotEmpty) 'label': labelController.text,
+            if (symbolController.text.isNotEmpty)
+              'symbol': symbolController.text,
           },
           options: Options(method: initialStatus == null ? 'POST' : 'PATCH'),
         );
@@ -119,6 +125,18 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),
+            const Gap(16),
+            TextField(
+              controller: symbolController,
+              decoration: InputDecoration(
+                labelText: 'statusSymbol'.tr(),
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
+            ),
             const SizedBox(height: 24),
             Text(
               'statusAttitude'.tr(),
@@ -149,24 +167,50 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
               },
             ),
             const Gap(12),
-            SwitchListTile(
-              title: Text('statusInvisible'.tr()),
-              subtitle: Text('statusInvisibleDescription'.tr()),
-              value: isInvisible.value,
-              contentPadding: EdgeInsets.symmetric(horizontal: 8),
-              onChanged: (bool value) {
-                isInvisible.value = value;
+            Text(
+              'statusVisibility'.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: [
+                ButtonSegment<int>(
+                  value: SnAccountStatusType.defaultType,
+                  icon: const Icon(Symbols.circle),
+                  label: Text('online'.tr()),
+                ),
+                ButtonSegment<int>(
+                  value: SnAccountStatusType.busy,
+                  icon: const Icon(Symbols.schedule),
+                  label: Text('statusBusy'.tr()),
+                ),
+                ButtonSegment<int>(
+                  value: SnAccountStatusType.doNotDisturb,
+                  icon: const Icon(Symbols.do_not_disturb_on),
+                  label: Text('statusNotDisturb'.tr()),
+                ),
+                ButtonSegment<int>(
+                  value: SnAccountStatusType.invisible,
+                  icon: const Icon(Symbols.visibility_off),
+                  label: Text('statusInvisible'.tr()),
+                ),
+              ],
+              selected: {statusType.value},
+              onSelectionChanged: (Set<int> newSelection) {
+                statusType.value = newSelection.first;
               },
             ),
-            SwitchListTile(
-              title: Text('statusNotDisturb'.tr()),
-              subtitle: Text('statusNotDisturbDescription'.tr()),
-              value: isNotDisturb.value,
-              contentPadding: EdgeInsets.symmetric(horizontal: 8),
-              onChanged: (bool value) {
-                isNotDisturb.value = value;
+            const Gap(8),
+            Text(
+              switch (statusType.value) {
+                SnAccountStatusType.busy => 'statusBusyDescription'.tr(),
+                SnAccountStatusType.doNotDisturb =>
+                  'statusNotDisturbDescription'.tr(),
+                SnAccountStatusType.invisible =>
+                  'statusInvisibleDescription'.tr(),
+                _ => 'statusVisibleDescription'.tr(),
               },
-            ),
+            ).opacity(0.75),
             const SizedBox(height: 24),
             Text(
               'statusClearTime'.tr(),

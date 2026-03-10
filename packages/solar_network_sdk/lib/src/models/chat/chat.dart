@@ -113,6 +113,31 @@ sealed class SnChatSummary with _$SnChatSummary {
       _$SnChatSummaryFromJson(json);
 }
 
+@freezed
+sealed class SnChatOnlineAccount with _$SnChatOnlineAccount {
+  const factory SnChatOnlineAccount({
+    required String id,
+    required String name,
+    required String nick,
+  }) = _SnChatOnlineAccount;
+
+  factory SnChatOnlineAccount.fromJson(Map<String, dynamic> json) =>
+      _$SnChatOnlineAccountFromJson(json);
+}
+
+@freezed
+sealed class SnChatOnlineStatus with _$SnChatOnlineStatus {
+  const factory SnChatOnlineStatus({
+    required int onlineCount,
+    SnAccountStatus? directMessageStatus,
+    @Default([]) List<String> onlineUserNames,
+    @Default([]) List<SnChatOnlineAccount> onlineAccounts,
+  }) = _SnChatOnlineStatus;
+
+  factory SnChatOnlineStatus.fromJson(Map<String, dynamic> json) =>
+      _$SnChatOnlineStatusFromJson(json);
+}
+
 class MessageChangeAction {
   static const String create = "create";
   static const String update = "update";

@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/status_creation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -166,7 +167,9 @@ class AccountStatusWidget extends HookConsumerWidget {
             Icon(
               Symbols.circle,
               fill: 1,
-              color: Colors.green,
+              color: showsOnlinePresence(status.value)
+                  ? Colors.green
+                  : Colors.grey,
               size: 16,
             ).padding(right: 4)
           else
@@ -197,7 +200,7 @@ class AccountStatusWidget extends HookConsumerWidget {
                   richMessage: getActivityFullMessage(status.value),
                   child: Text(
                     getActivityTitle(status.value?.label, status.value?.meta) ??
-                        'unknown'.tr(),
+                        getStatusDisplayLabel(context, status.value),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -207,10 +210,10 @@ class AccountStatusWidget extends HookConsumerWidget {
           else
             Flexible(
               child: Text(
-                (status.value?.label ?? 'offline').toLowerCase(),
+                getStatusDisplayLabel(context, status.value),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-              ).tr(),
+              ),
             ),
           if (getActivitySubtitle(status.value?.meta) != null)
             Flexible(
@@ -254,12 +257,14 @@ class AccountStatusLabel extends StatelessWidget {
         Icon(
           Symbols.circle,
           fill: 1,
-          color: status.isOnline ? Colors.green : Colors.grey,
+          color: showsOnlinePresence(status) ? Colors.green : Colors.grey,
           size: 14,
         ).padding(right: 4),
+        if (getStatusDisplaySymbol(status) case final symbol?)
+          Text(symbol, style: style).padding(right: 4),
         Flexible(
           child: Text(
-            status.label,
+            getStatusDisplayLabel(context, status),
             style: style,
             maxLines: maxLines,
             overflow: overflow,

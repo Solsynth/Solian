@@ -13,7 +13,8 @@ part of 'chat_online_count.dart';
 final chatOnlineCountProvider = ChatOnlineCountNotifierFamily._();
 
 final class ChatOnlineCountNotifierProvider
-    extends $AsyncNotifierProvider<ChatOnlineCountNotifier, int> {
+    extends
+        $AsyncNotifierProvider<ChatOnlineCountNotifier, SnChatOnlineStatus> {
   ChatOnlineCountNotifierProvider._({
     required ChatOnlineCountNotifierFamily super.from,
     required String super.argument,
@@ -52,15 +53,15 @@ final class ChatOnlineCountNotifierProvider
 }
 
 String _$chatOnlineCountNotifierHash() =>
-    r'b2f9f17bfece1937ec90590b8f11db2bec923156';
+    r'373d7c3c21a79e7efa2965e4e9b8fe47dd7acf37';
 
 final class ChatOnlineCountNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           ChatOnlineCountNotifier,
-          AsyncValue<int>,
-          int,
-          FutureOr<int>,
+          AsyncValue<SnChatOnlineStatus>,
+          SnChatOnlineStatus,
+          FutureOr<SnChatOnlineStatus>,
           String
         > {
   ChatOnlineCountNotifierFamily._()
@@ -79,20 +80,22 @@ final class ChatOnlineCountNotifierFamily extends $Family
   String toString() => r'chatOnlineCountProvider';
 }
 
-abstract class _$ChatOnlineCountNotifier extends $AsyncNotifier<int> {
+abstract class _$ChatOnlineCountNotifier
+    extends $AsyncNotifier<SnChatOnlineStatus> {
   late final _$args = ref.$arg as String;
   String get chatroomId => _$args;
 
-  FutureOr<int> build(String chatroomId);
+  FutureOr<SnChatOnlineStatus> build(String chatroomId);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<int>, int>;
+    final ref =
+        this.ref as $Ref<AsyncValue<SnChatOnlineStatus>, SnChatOnlineStatus>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<int>, int>,
-              AsyncValue<int>,
+              AnyNotifier<AsyncValue<SnChatOnlineStatus>, SnChatOnlineStatus>,
+              AsyncValue<SnChatOnlineStatus>,
               Object?,
               Object?
             >;

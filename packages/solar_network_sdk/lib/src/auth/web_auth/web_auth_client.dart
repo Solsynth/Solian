@@ -43,12 +43,14 @@ class WebAuthClient {
   String getProtocolExchangeUrl({
     required String signedChallenge,
     required String redirectUri,
+    String? secretId,
     String? state,
   }) {
     final params = <String, String>{
       'signed_challenge': signedChallenge,
       'redirect_uri': redirectUri,
     };
+    if (secretId != null && secretId.isNotEmpty) params['secret_id'] = secretId;
     if (state != null && state.isNotEmpty) params['state'] = state;
     return Uri(
       scheme: 'solian',
@@ -84,13 +86,17 @@ class WebAuthClient {
   }
 
   Future<WebAuthResult> exchangeToken(
-    String signedChallenge, [
+    String signedChallenge, {
     Map<String, dynamic>? deviceInfo,
-  ]) async {
+    String? secretId,
+  }) async {
     final client = Dio();
     try {
       final payload = <String, dynamic>{'signed_challenge': signedChallenge};
       if (deviceInfo != null) payload['device_info'] = deviceInfo;
+      if (secretId != null && secretId.isNotEmpty) {
+        payload['secret_id'] = secretId;
+      }
 
       final response = await client.post(
         'http://127.0.0.1:$_port/exchange',
@@ -102,6 +108,13 @@ class WebAuthClient {
         return WebAuthResult(
           status: WebAuthStatus.success,
           token: data['token'] as String?,
+          refreshToken: data['refresh_token'] as String?,
+          expiresIn:
+              data['expires_in'] is num ? (data['expires_in'] as num).toInt() : null,
+          refreshExpiresIn:
+              data['refresh_expires_in'] is num
+                  ? (data['refresh_expires_in'] as num).toInt()
+                  : null,
         );
       } else {
         final data = response.data as Map<String, dynamic>?;
@@ -122,7 +135,18 @@ class WebAuthResult {
   final WebAuthStatus status;
   final String? challenge;
   final String? token;
+  final String? refreshToken;
+  final int? expiresIn;
+  final int? refreshExpiresIn;
   final String? error;
 
-  WebAuthResult({required this.status, this.challenge, this.token, this.error});
+  WebAuthResult({
+    required this.status,
+    this.challenge,
+    this.token,
+    this.refreshToken,
+    this.expiresIn,
+    this.refreshExpiresIn,
+    this.error,
+  });
 }

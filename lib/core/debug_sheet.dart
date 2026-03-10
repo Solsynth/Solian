@@ -14,6 +14,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:island/talker.dart';
 

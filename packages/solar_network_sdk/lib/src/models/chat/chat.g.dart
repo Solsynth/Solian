@@ -211,6 +211,52 @@ Map<String, dynamic> _$SnChatSummaryToJson(_SnChatSummary instance) =>
       'last_message': instance.lastMessage?.toJson(),
     };
 
+_SnChatOnlineAccount _$SnChatOnlineAccountFromJson(Map<String, dynamic> json) =>
+    _SnChatOnlineAccount(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      nick: json['nick'] as String,
+    );
+
+Map<String, dynamic> _$SnChatOnlineAccountToJson(
+  _SnChatOnlineAccount instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'nick': instance.nick,
+};
+
+_SnChatOnlineStatus _$SnChatOnlineStatusFromJson(Map<String, dynamic> json) =>
+    _SnChatOnlineStatus(
+      onlineCount: (json['online_count'] as num).toInt(),
+      directMessageStatus: json['direct_message_status'] == null
+          ? null
+          : SnAccountStatus.fromJson(
+              json['direct_message_status'] as Map<String, dynamic>,
+            ),
+      onlineUserNames:
+          (json['online_user_names'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      onlineAccounts:
+          (json['online_accounts'] as List<dynamic>?)
+              ?.map(
+                (e) => SnChatOnlineAccount.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$SnChatOnlineStatusToJson(
+  _SnChatOnlineStatus instance,
+) => <String, dynamic>{
+  'online_count': instance.onlineCount,
+  'direct_message_status': instance.directMessageStatus?.toJson(),
+  'online_user_names': instance.onlineUserNames,
+  'online_accounts': instance.onlineAccounts.map((e) => e.toJson()).toList(),
+};
+
 _MessageSyncResponse _$MessageSyncResponseFromJson(Map<String, dynamic> json) =>
     _MessageSyncResponse(
       messages:

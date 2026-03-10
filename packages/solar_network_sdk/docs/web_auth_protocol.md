@@ -54,19 +54,20 @@ Error callback:
 After your app signs the challenge with APP_CONNECT secret, use:
 
 ```text
-solian://auth/web?signed_challenge=<signature>&redirect_uri=<encoded_redirect_uri>&state=<optional_state>
+solian://auth/web?signed_challenge=<signature>&redirect_uri=<encoded_redirect_uri>&secret_id=<optional_secret_id>&state=<optional_state>
 ```
 
 Parameters:
 
 - `signed_challenge`: APP_CONNECT signature (snake_case field name).
 - `redirect_uri`: your app callback URI.
+- `secret_id` (optional): validate against a specific APP_CONNECT secret.
 - `state` (optional): opaque value echoed back.
 
 Success callback:
 
 ```text
-<redirect_uri>?status=success&token=<session_token>&state=<state>
+<redirect_uri>?status=success&token=<session_token>&refresh_token=<refresh_token>&expires_in=<seconds>&refresh_expires_in=<seconds>&state=<state>
 ```
 
 Error callback:
@@ -80,7 +81,7 @@ Error callback:
 `WebAuthClient` provides helper builders:
 
 - `getProtocolChallengeUrl({ appSlug, redirectUri, state })`
-- `getProtocolExchangeUrl({ signedChallenge, redirectUri, state })`
+- `getProtocolExchangeUrl({ signedChallenge, redirectUri, secretId, state })`
 
 These produce properly encoded `solian://auth/web` URLs.
 
@@ -88,4 +89,6 @@ These produce properly encoded `solian://auth/web` URLs.
 
 - Solian expects snake_case fields for APP_CONNECT payloads.
 - `redirect_uri` must be a valid URI with scheme.
+- Successful exchange may also include `refresh_token`, `expires_in`, and `refresh_expires_in`.
+- The local app validates `challenge + signature (+ secret_id)` before creating session tokens.
 - Preserve and verify `state` in callback to prevent request mix-up.

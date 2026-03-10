@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/activity_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -77,11 +78,11 @@ class EventDetailsWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if ((getActivityTitle(status.label, status.meta) ??
-                                  status.label)
+                                  getStatusDisplayLabel(context, status))
                               .isNotEmpty)
                             Text(
                               getActivityTitle(status.label, status.meta) ??
-                                  status.label,
+                                  getStatusDisplayLabel(context, status),
                             ),
                           if (getActivitySubtitle(status.meta) != null)
                             Text(

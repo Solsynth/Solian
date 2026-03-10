@@ -22,6 +22,7 @@ class WebAuthServer {
   HttpServer? _server;
   String? _challenge;
   DateTime? _challengeTimestamp;
+  WebAuthAppInfo? _challengeApp;
 
   final _challengeTtl = const Duration(seconds: 300);
 
@@ -189,6 +190,7 @@ class WebAuthServer {
 
     _challenge = challenge;
     _challengeTimestamp = DateTime.now();
+    _challengeApp = app;
 
     final response = {'status': 'ok', 'challenge': challenge};
 
@@ -203,7 +205,9 @@ class WebAuthServer {
   Future<WebAuthAppInfo?> _fetchAppInfoBySlug(String slug) async {
     final dio = _ref.read(apiClientProvider);
     try {
-      final response = await dio.get('/develop/apps/${Uri.encodeComponent(slug)}');
+      final response = await dio.get(
+        '/develop/apps/${Uri.encodeComponent(slug)}',
+      );
       final data = response.data;
       if (response.statusCode == 200 && data is Map<String, dynamic>) {
         return WebAuthAppInfo.fromJson(data);
@@ -220,6 +224,7 @@ class WebAuthServer {
   Future<void> _handleExchange(HttpRequest request) async {
     if (_challenge == null ||
         _challengeTimestamp == null ||
+        _challengeApp == null ||
         DateTime.now().difference(_challengeTimestamp!) > _challengeTtl) {
       request.response.statusCode = HttpStatus.badRequest;
       request.response.write(
@@ -242,8 +247,8 @@ class WebAuthServer {
       return;
     }
 
-    final String? signedChallenge =
-        data['signed_challenge'] ?? data['signedChallenge'] as String?;
+    final String? signedChallenge = data['signed_challenge'] as String?;
+    final String? secretId = data['secret_id'] as String?;
 
     if (signedChallenge == null) {
       request.response.statusCode = HttpStatus.badRequest;
@@ -252,40 +257,68 @@ class WebAuthServer {
       return;
     }
 
+    final challenge = _challenge!;
+    final challengeApp = _challengeApp!;
     _challenge = null;
     _challengeTimestamp = null;
+    _challengeApp = null;
 
     try {
       final dio = _ref.read(apiClientProvider);
 
-      Response<dynamic> response;
-      try {
-        response = await dio.post(
-          '/develop/padlock/auth/login/session',
-          data: {
-            'device_id': await getUdid(),
-            'device_name': await getDeviceName(),
-            'signed_challenge': signedChallenge,
-          },
+      final validationResponse = await dio.post(
+        '/develop/connect/${Uri.encodeComponent(challengeApp.id)}/validate',
+        data: {
+          'challenge': challenge,
+          'signature': signedChallenge,
+          if (secretId != null && secretId.isNotEmpty) 'secret_id': secretId,
+        },
+      );
+
+      final validationData = Map<String, dynamic>.from(
+        validationResponse.data as Map,
+      );
+      final isValid = validationData['valid'] == true;
+      if (!isValid) {
+        request.response.statusCode = HttpStatus.unauthorized;
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(
+          jsonEncode({
+            'error': 'App Connect validation failed',
+            if (validationData['secret_id'] != null)
+              'secret_id': validationData['secret_id'],
+          }),
         );
-      } on DioException catch (e) {
-        // Keep compatibility for non-gateway deployments.
-        if (e.response?.statusCode != HttpStatus.notFound) rethrow;
-        response = await dio.post(
-          '/padlock/auth/login/session',
-          data: {
-            'device_id': await getUdid(),
-            'device_name': await getDeviceName(),
-            'signed_challenge': signedChallenge,
-          },
-        );
+        return;
       }
 
+      Response<dynamic> response;
+
+      response = await dio.post(
+        '/padlock/auth/login/session',
+        data: {
+          'device_id': await getUdid(),
+          'device_name': await getDeviceName(),
+        },
+      );
+
       if (response.statusCode == 200 && response.data != null) {
-        final webToken = response.data['token'];
+        final responseData = Map<String, dynamic>.from(response.data as Map);
         request.response.statusCode = HttpStatus.ok;
         request.response.headers.contentType = ContentType.json;
-        request.response.write(jsonEncode({'token': webToken}));
+        request.response.write(
+          jsonEncode({
+            'token': responseData['token'],
+            if (responseData['refresh_token'] != null)
+              'refresh_token': responseData['refresh_token'],
+            if (responseData['expires_in'] != null)
+              'expires_in': responseData['expires_in'],
+            if (responseData['refresh_expires_in'] != null)
+              'refresh_expires_in': responseData['refresh_expires_in'],
+            if (validationData['secret_id'] != null)
+              'secret_id': validationData['secret_id'],
+          }),
+        );
       } else {
         throw Exception(
           'Backend exchange failed with status ${response.statusCode}',

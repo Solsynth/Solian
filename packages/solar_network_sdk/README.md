@@ -80,12 +80,13 @@ final challengeUrl = client.getProtocolChallengeUrl(
 final exchangeUrl = client.getProtocolExchangeUrl(
   signedChallenge: signedChallenge,
   redirectUri: 'acme://auth/callback',
+  secretId: 'optional-secret-id',
   state: 'request-123',
 );
 
 // launch exchangeUrl
 // callback example:
-// acme://auth/callback?status=success&token=...&state=request-123
+// acme://auth/callback?status=success&token=...&refresh_token=...&expires_in=3600&refresh_expires_in=2592000&state=request-123
 ```
 
 Callback query fields:
@@ -93,6 +94,9 @@ Callback query fields:
 - `status`: `ok` | `denied` | `success` | `error`
 - `challenge`: present when `status=ok`
 - `token`: present when `status=success`
+- `refresh_token`: may be present when `status=success`
+- `expires_in`: may be present when `status=success`
+- `refresh_expires_in`: may be present when `status=success`
 - `error`: present when `status=error`
 - `state`: echoed when you pass `state` in request URL
 

@@ -476,11 +476,9 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
-    final appName =
-        uri.queryParameters['app'] ??
-        uri.queryParameters['app_name'] ??
-        'Unknown App';
+    final appName = uri.queryParameters['app'] ?? 'Unknown App';
     final signedChallenge = uri.queryParameters['signed_challenge'];
+    final secretId = uri.queryParameters['secret_id'];
 
     int? port = ref.read(webAuthServerStateProvider).port;
     port ??= await ref.read(webAuthServerProvider).start();
@@ -523,15 +521,33 @@ class AppWrapper extends HookConsumerWidget {
 
       final response = await client.post(
         'http://127.0.0.1:$port/exchange',
-        data: jsonEncode({'signed_challenge': signedChallenge}),
+        data: jsonEncode({
+          'signed_challenge': signedChallenge,
+          if (secretId != null && secretId.isNotEmpty) 'secret_id': secretId,
+        }),
       );
       final data = Map<String, dynamic>.from(response.data as Map);
 
       if (data['token'] is String && (data['token'] as String).isNotEmpty) {
+        final payload = <String, String>{
+          'status': 'success',
+          'token': data['token'] as String,
+        };
+        if (data['refresh_token'] is String &&
+            (data['refresh_token'] as String).isNotEmpty) {
+          payload['refresh_token'] = data['refresh_token'] as String;
+        }
+        if (data['expires_in'] != null) {
+          payload['expires_in'] = data['expires_in'].toString();
+        }
+        if (data['refresh_expires_in'] != null) {
+          payload['refresh_expires_in'] =
+              data['refresh_expires_in'].toString();
+        }
         await _launchWebAuthRedirect(
           redirectUri: redirectUri,
           state: state,
-          payload: {'status': 'success', 'token': data['token'] as String},
+          payload: payload,
         );
         return;
       }

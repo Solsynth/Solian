@@ -1697,6 +1697,571 @@ $SnChatMessageCopyWith<$Res>? get lastMessage {
 
 
 /// @nodoc
+mixin _$SnChatOnlineAccount {
+
+ String get id; String get name; String get nick;
+/// Create a copy of SnChatOnlineAccount
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnChatOnlineAccountCopyWith<SnChatOnlineAccount> get copyWith => _$SnChatOnlineAccountCopyWithImpl<SnChatOnlineAccount>(this as SnChatOnlineAccount, _$identity);
+
+  /// Serializes this SnChatOnlineAccount to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatOnlineAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,nick);
+
+@override
+String toString() {
+  return 'SnChatOnlineAccount(id: $id, name: $name, nick: $nick)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnChatOnlineAccountCopyWith<$Res>  {
+  factory $SnChatOnlineAccountCopyWith(SnChatOnlineAccount value, $Res Function(SnChatOnlineAccount) _then) = _$SnChatOnlineAccountCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name, String nick
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnChatOnlineAccountCopyWithImpl<$Res>
+    implements $SnChatOnlineAccountCopyWith<$Res> {
+  _$SnChatOnlineAccountCopyWithImpl(this._self, this._then);
+
+  final SnChatOnlineAccount _self;
+  final $Res Function(SnChatOnlineAccount) _then;
+
+/// Create a copy of SnChatOnlineAccount
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnChatOnlineAccount].
+extension SnChatOnlineAccountPatterns on SnChatOnlineAccount {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnChatOnlineAccount value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnChatOnlineAccount value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnChatOnlineAccount value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String nick)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount() when $default != null:
+return $default(_that.id,_that.name,_that.nick);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String nick)  $default,) {final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount():
+return $default(_that.id,_that.name,_that.nick);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String nick)?  $default,) {final _that = this;
+switch (_that) {
+case _SnChatOnlineAccount() when $default != null:
+return $default(_that.id,_that.name,_that.nick);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnChatOnlineAccount implements SnChatOnlineAccount {
+  const _SnChatOnlineAccount({required this.id, required this.name, required this.nick});
+  factory _SnChatOnlineAccount.fromJson(Map<String, dynamic> json) => _$SnChatOnlineAccountFromJson(json);
+
+@override final  String id;
+@override final  String name;
+@override final  String nick;
+
+/// Create a copy of SnChatOnlineAccount
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnChatOnlineAccountCopyWith<_SnChatOnlineAccount> get copyWith => __$SnChatOnlineAccountCopyWithImpl<_SnChatOnlineAccount>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnChatOnlineAccountToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatOnlineAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,nick);
+
+@override
+String toString() {
+  return 'SnChatOnlineAccount(id: $id, name: $name, nick: $nick)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnChatOnlineAccountCopyWith<$Res> implements $SnChatOnlineAccountCopyWith<$Res> {
+  factory _$SnChatOnlineAccountCopyWith(_SnChatOnlineAccount value, $Res Function(_SnChatOnlineAccount) _then) = __$SnChatOnlineAccountCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name, String nick
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnChatOnlineAccountCopyWithImpl<$Res>
+    implements _$SnChatOnlineAccountCopyWith<$Res> {
+  __$SnChatOnlineAccountCopyWithImpl(this._self, this._then);
+
+  final _SnChatOnlineAccount _self;
+  final $Res Function(_SnChatOnlineAccount) _then;
+
+/// Create a copy of SnChatOnlineAccount
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? nick = null,}) {
+  return _then(_SnChatOnlineAccount(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnChatOnlineStatus {
+
+ int get onlineCount; SnAccountStatus? get directMessageStatus; List<String> get onlineUserNames; List<SnChatOnlineAccount> get onlineAccounts;
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnChatOnlineStatusCopyWith<SnChatOnlineStatus> get copyWith => _$SnChatOnlineStatusCopyWithImpl<SnChatOnlineStatus>(this as SnChatOnlineStatus, _$identity);
+
+  /// Serializes this SnChatOnlineStatus to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatOnlineStatus&&(identical(other.onlineCount, onlineCount) || other.onlineCount == onlineCount)&&(identical(other.directMessageStatus, directMessageStatus) || other.directMessageStatus == directMessageStatus)&&const DeepCollectionEquality().equals(other.onlineUserNames, onlineUserNames)&&const DeepCollectionEquality().equals(other.onlineAccounts, onlineAccounts));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,onlineCount,directMessageStatus,const DeepCollectionEquality().hash(onlineUserNames),const DeepCollectionEquality().hash(onlineAccounts));
+
+@override
+String toString() {
+  return 'SnChatOnlineStatus(onlineCount: $onlineCount, directMessageStatus: $directMessageStatus, onlineUserNames: $onlineUserNames, onlineAccounts: $onlineAccounts)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnChatOnlineStatusCopyWith<$Res>  {
+  factory $SnChatOnlineStatusCopyWith(SnChatOnlineStatus value, $Res Function(SnChatOnlineStatus) _then) = _$SnChatOnlineStatusCopyWithImpl;
+@useResult
+$Res call({
+ int onlineCount, SnAccountStatus? directMessageStatus, List<String> onlineUserNames, List<SnChatOnlineAccount> onlineAccounts
+});
+
+
+$SnAccountStatusCopyWith<$Res>? get directMessageStatus;
+
+}
+/// @nodoc
+class _$SnChatOnlineStatusCopyWithImpl<$Res>
+    implements $SnChatOnlineStatusCopyWith<$Res> {
+  _$SnChatOnlineStatusCopyWithImpl(this._self, this._then);
+
+  final SnChatOnlineStatus _self;
+  final $Res Function(SnChatOnlineStatus) _then;
+
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? onlineCount = null,Object? directMessageStatus = freezed,Object? onlineUserNames = null,Object? onlineAccounts = null,}) {
+  return _then(_self.copyWith(
+onlineCount: null == onlineCount ? _self.onlineCount : onlineCount // ignore: cast_nullable_to_non_nullable
+as int,directMessageStatus: freezed == directMessageStatus ? _self.directMessageStatus : directMessageStatus // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,onlineUserNames: null == onlineUserNames ? _self.onlineUserNames : onlineUserNames // ignore: cast_nullable_to_non_nullable
+as List<String>,onlineAccounts: null == onlineAccounts ? _self.onlineAccounts : onlineAccounts // ignore: cast_nullable_to_non_nullable
+as List<SnChatOnlineAccount>,
+  ));
+}
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get directMessageStatus {
+    if (_self.directMessageStatus == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.directMessageStatus!, (value) {
+    return _then(_self.copyWith(directMessageStatus: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnChatOnlineStatus].
+extension SnChatOnlineStatusPatterns on SnChatOnlineStatus {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnChatOnlineStatus value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnChatOnlineStatus value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnChatOnlineStatus value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int onlineCount,  SnAccountStatus? directMessageStatus,  List<String> onlineUserNames,  List<SnChatOnlineAccount> onlineAccounts)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus() when $default != null:
+return $default(_that.onlineCount,_that.directMessageStatus,_that.onlineUserNames,_that.onlineAccounts);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int onlineCount,  SnAccountStatus? directMessageStatus,  List<String> onlineUserNames,  List<SnChatOnlineAccount> onlineAccounts)  $default,) {final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus():
+return $default(_that.onlineCount,_that.directMessageStatus,_that.onlineUserNames,_that.onlineAccounts);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int onlineCount,  SnAccountStatus? directMessageStatus,  List<String> onlineUserNames,  List<SnChatOnlineAccount> onlineAccounts)?  $default,) {final _that = this;
+switch (_that) {
+case _SnChatOnlineStatus() when $default != null:
+return $default(_that.onlineCount,_that.directMessageStatus,_that.onlineUserNames,_that.onlineAccounts);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnChatOnlineStatus implements SnChatOnlineStatus {
+  const _SnChatOnlineStatus({required this.onlineCount, this.directMessageStatus, final  List<String> onlineUserNames = const [], final  List<SnChatOnlineAccount> onlineAccounts = const []}): _onlineUserNames = onlineUserNames,_onlineAccounts = onlineAccounts;
+  factory _SnChatOnlineStatus.fromJson(Map<String, dynamic> json) => _$SnChatOnlineStatusFromJson(json);
+
+@override final  int onlineCount;
+@override final  SnAccountStatus? directMessageStatus;
+ final  List<String> _onlineUserNames;
+@override@JsonKey() List<String> get onlineUserNames {
+  if (_onlineUserNames is EqualUnmodifiableListView) return _onlineUserNames;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_onlineUserNames);
+}
+
+ final  List<SnChatOnlineAccount> _onlineAccounts;
+@override@JsonKey() List<SnChatOnlineAccount> get onlineAccounts {
+  if (_onlineAccounts is EqualUnmodifiableListView) return _onlineAccounts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_onlineAccounts);
+}
+
+
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnChatOnlineStatusCopyWith<_SnChatOnlineStatus> get copyWith => __$SnChatOnlineStatusCopyWithImpl<_SnChatOnlineStatus>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnChatOnlineStatusToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatOnlineStatus&&(identical(other.onlineCount, onlineCount) || other.onlineCount == onlineCount)&&(identical(other.directMessageStatus, directMessageStatus) || other.directMessageStatus == directMessageStatus)&&const DeepCollectionEquality().equals(other._onlineUserNames, _onlineUserNames)&&const DeepCollectionEquality().equals(other._onlineAccounts, _onlineAccounts));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,onlineCount,directMessageStatus,const DeepCollectionEquality().hash(_onlineUserNames),const DeepCollectionEquality().hash(_onlineAccounts));
+
+@override
+String toString() {
+  return 'SnChatOnlineStatus(onlineCount: $onlineCount, directMessageStatus: $directMessageStatus, onlineUserNames: $onlineUserNames, onlineAccounts: $onlineAccounts)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnChatOnlineStatusCopyWith<$Res> implements $SnChatOnlineStatusCopyWith<$Res> {
+  factory _$SnChatOnlineStatusCopyWith(_SnChatOnlineStatus value, $Res Function(_SnChatOnlineStatus) _then) = __$SnChatOnlineStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ int onlineCount, SnAccountStatus? directMessageStatus, List<String> onlineUserNames, List<SnChatOnlineAccount> onlineAccounts
+});
+
+
+@override $SnAccountStatusCopyWith<$Res>? get directMessageStatus;
+
+}
+/// @nodoc
+class __$SnChatOnlineStatusCopyWithImpl<$Res>
+    implements _$SnChatOnlineStatusCopyWith<$Res> {
+  __$SnChatOnlineStatusCopyWithImpl(this._self, this._then);
+
+  final _SnChatOnlineStatus _self;
+  final $Res Function(_SnChatOnlineStatus) _then;
+
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? onlineCount = null,Object? directMessageStatus = freezed,Object? onlineUserNames = null,Object? onlineAccounts = null,}) {
+  return _then(_SnChatOnlineStatus(
+onlineCount: null == onlineCount ? _self.onlineCount : onlineCount // ignore: cast_nullable_to_non_nullable
+as int,directMessageStatus: freezed == directMessageStatus ? _self.directMessageStatus : directMessageStatus // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,onlineUserNames: null == onlineUserNames ? _self._onlineUserNames : onlineUserNames // ignore: cast_nullable_to_non_nullable
+as List<String>,onlineAccounts: null == onlineAccounts ? _self._onlineAccounts : onlineAccounts // ignore: cast_nullable_to_non_nullable
+as List<SnChatOnlineAccount>,
+  ));
+}
+
+/// Create a copy of SnChatOnlineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get directMessageStatus {
+    if (_self.directMessageStatus == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.directMessageStatus!, (value) {
+    return _then(_self.copyWith(directMessageStatus: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$MessageSyncResponse {
 
  List<SnChatMessage> get messages; int get totalCount; DateTime get currentTimestamp;

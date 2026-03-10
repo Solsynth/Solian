@@ -26,6 +26,12 @@ export interface WebAuthResult {
   challenge?: string;
   /** The auth token (only when status is 'success') */
   token?: string;
+  /** The refresh token (only when status is 'success' and available) */
+  refreshToken?: string;
+  /** Access token lifetime in seconds */
+  expiresIn?: number;
+  /** Refresh token lifetime in seconds */
+  refreshExpiresIn?: number;
   /** Error message (only when status is 'error') */
   error?: string;
 }
@@ -60,6 +66,8 @@ export interface ExchangeTokenOptions {
   port: number;
   /** The signed challenge returned from waitForAuth */
   signedChallenge: string;
+  /** Optional APP_CONNECT secret id to scope validation */
+  secretId?: string;
   /** Optional device information */
   deviceInfo?: Record<string, unknown>;
 }

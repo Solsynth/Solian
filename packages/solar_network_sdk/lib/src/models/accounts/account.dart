@@ -4,6 +4,27 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'account.freezed.dart';
 part 'account.g.dart';
 
+abstract final class SnAccountStatusType {
+  static const int defaultType = 0;
+  static const int busy = 1;
+  static const int doNotDisturb = 2;
+  static const int invisible = 3;
+}
+
+Object? _readStatusType(Map<dynamic, dynamic> json, String key) {
+  if (json.containsKey(key)) return json[key];
+  if (json['is_invisible'] == true) {
+    return SnAccountStatusType.invisible;
+  }
+  if (json['is_not_disturb'] == true) {
+    return SnAccountStatusType.doNotDisturb;
+  }
+  return SnAccountStatusType.defaultType;
+}
+
+int _statusTypeFromJson(Object? value) =>
+    (value as num?)?.toInt() ?? SnAccountStatusType.defaultType;
+
 @freezed
 sealed class SnAccount with _$SnAccount {
   const factory SnAccount({
@@ -107,12 +128,16 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     required String id,
     required int attitude,
     required bool isOnline,
-    required bool isInvisible,
-    required bool isNotDisturb,
     required bool isCustomized,
+    @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)
+    @Default(SnAccountStatusType.defaultType)
+    int type,
     @Default("") String label,
+    String? symbol,
     required Map<String, dynamic>? meta,
     required DateTime? clearedAt,
+    String? appIdentifier,
+    @Default(false) bool isAutomated,
     required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -121,6 +146,12 @@ sealed class SnAccountStatus with _$SnAccountStatus {
 
   factory SnAccountStatus.fromJson(Map<String, dynamic> json) =>
       _$SnAccountStatusFromJson(json);
+}
+
+extension SnAccountStatusCompat on SnAccountStatus {
+  bool get isInvisible => type == SnAccountStatusType.invisible;
+  bool get isNotDisturb => type == SnAccountStatusType.doNotDisturb;
+  bool get isBusy => type == SnAccountStatusType.busy;
 }
 
 @freezed
