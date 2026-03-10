@@ -1120,6 +1120,7 @@
   "chatReplyingTo": "Replying to {}",
   "chatForwarding": "Forwarding message",
   "chatEditing": "Editing message",
+  "chatDirectMessageStatusHint": "The other is {}.",
   "chatNoContent": "No content",
   "sensitiveCategories": {
     "language": "Language",

@@ -9,10 +9,12 @@ import "package:flutter_typeahead/flutter_typeahead.dart";
 import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:image_picker/image_picker.dart";
+import "package:island/accounts/utils/account_status_utils.dart";
 import "package:island/discovery/models/autocomplete_response.dart";
 import "package:island/chat/e2ee_message_display.dart";
 import "package:island/chat/e2ee_codec.dart";
 import "package:island/chat/messages_notifier.dart";
+import "package:island/chat/pods/chat_online_count.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_poll.dart";
 import "package:island/stickers/widgets/stickers/sticker_picker.dart";
@@ -52,6 +54,71 @@ void _insertPlaceholder(TextEditingController controller, String placeholder) {
 const kInputDrawerExpandedHeight = 180.0;
 
 const kExpandedSectionTabHeight = 32.0;
+
+class _DirectMessageStatusBanner extends ConsumerWidget {
+  final SnChatRoom chatRoom;
+  final List<SnChatMember> validMembers;
+
+  const _DirectMessageStatusBanner({
+    required this.chatRoom,
+    required this.validMembers,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (chatRoom.type != 1) {
+      return const SizedBox.shrink();
+    }
+
+    final dmMember = validMembers.firstOrNull;
+    final onlineStatus = ref.watch(chatOnlineCountProvider(chatRoom.id));
+    final status = onlineStatus.value?.directMessageStatus;
+
+    final shouldShowHint =
+        status != null &&
+        (status.type == SnAccountStatusType.busy ||
+            status.type == SnAccountStatusType.doNotDisturb);
+
+    if (dmMember == null || !shouldShowHint) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      key: ValueKey('dm-status-${dmMember.accountId}-${status.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      margin: const EdgeInsets.only(left: 8, right: 8, top: 6, bottom: 4),
+      child: Row(
+        children: [
+          Icon(
+            getStatusIndicatorIcon(status),
+            size: 18,
+            color: getStatusIndicatorColor(status),
+          ),
+          const Gap(8),
+          Flexible(
+            child: Text(
+              'chatDirectMessageStatusHint'.tr(
+                args: [getStatusDisplayLabel(context, status)],
+              ),
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ExpandedSection extends StatelessWidget {
   final TextEditingController messageController;
@@ -556,6 +623,7 @@ class ChatInput extends HookConsumerWidget {
     final roomEncryptKey = chatRoom.encryptionMode == 3
         ? deriveE2eeFileEncryptKey(chatRoom.id)
         : null;
+    final validMembers = getValidMembers(chatRoom.members ?? const []);
 
     return DropTarget(
       onDragEntered: (_) => isDraggingOver.value = true,
@@ -590,6 +658,10 @@ class ChatInput extends HookConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
             child: Column(
               children: [
+                _DirectMessageStatusBanner(
+                  chatRoom: chatRoom,
+                  validMembers: validMembers,
+                ),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 150),
                   switchInCurve: Curves.fastEaseInToSlowEaseOut,
@@ -693,11 +765,10 @@ class ChatInput extends HookConsumerWidget {
                                       attachmentProgress['chat-upload']
                                           ?.containsKey(idx) ??
                                       false,
-                                  onRequestUpload: () =>
-                                      onUploadAttachment(
-                                        idx,
-                                        encryptKey: roomEncryptKey,
-                                      ),
+                                  onRequestUpload: () => onUploadAttachment(
+                                    idx,
+                                    encryptKey: roomEncryptKey,
+                                  ),
                                   onDelete: () => onDeleteAttachment(idx),
                                   onUpdate: (value) {
                                     attachments[idx] = value;

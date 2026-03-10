@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
@@ -52,7 +53,7 @@ class FriendsOverviewWidget extends HookConsumerWidget {
       data: (friends) {
         // Filter for online friends
         final onlineFriends = friends
-            .where((friend) => friend.status.isOnline)
+            .where((friend) => showsOnlinePresence(friend.status))
             .toList();
 
         if (onlineFriends.isEmpty && hideWhenEmpty) {
@@ -277,26 +278,32 @@ class _FriendTile extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: friend.activities.isNotEmpty
                         ? Colors.blue.withOpacity(0.8)
-                        : Colors.green,
+                        : getStatusIndicatorColor(friend.status),
                     shape: friend.activities.isNotEmpty
                         ? BoxShape.rectangle
-                        : BoxShape.circle,
+                        : getStatusIndicatorIcon(friend.status) ==
+                              Symbols.circle
+                        ? BoxShape.circle
+                        : BoxShape.rectangle,
                     borderRadius: friend.activities.isNotEmpty
                         ? BorderRadius.circular(4)
-                        : null,
+                        : getStatusIndicatorIcon(friend.status) ==
+                              Symbols.circle
+                        ? null
+                        : BorderRadius.circular(4),
                     border: Border.all(
                       color: theme.colorScheme.surface,
                       width: 2,
                     ),
                   ),
-                  child: friend.activities.isNotEmpty
-                      ? Icon(
-                          Symbols.play_arrow,
-                          size: 10,
-                          color: Colors.white,
-                          fill: 1,
-                        )
-                      : null,
+                  child: Icon(
+                    friend.activities.isNotEmpty
+                        ? Symbols.play_arrow
+                        : getStatusIndicatorIcon(friend.status),
+                    size: 10,
+                    color: Colors.white,
+                    fill: 1,
+                  ),
                 ),
               ),
             ],

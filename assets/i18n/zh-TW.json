@@ -1101,6 +1101,7 @@
     "chatReplyingTo": "回復給 {}",
     "chatForwarding": "正在轉傳訊息",
     "chatEditing": "訊息編輯中",
+    "chatDirectMessageStatusHint": "對方目前{}。",
     "chatNoContent": "內容為空",
     "sensitiveCategories": {
         "language": "語言",

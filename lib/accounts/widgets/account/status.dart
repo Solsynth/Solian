@@ -163,21 +163,12 @@ class AccountStatusWidget extends HookConsumerWidget {
       child: Row(
         spacing: 4,
         children: [
-          if (status.value?.isOnline ?? false)
-            Icon(
-              Symbols.circle,
-              fill: 1,
-              color: showsOnlinePresence(status.value)
-                  ? Colors.green
-                  : Colors.grey,
-              size: 16,
-            ).padding(right: 4)
-          else
-            Icon(
-              Symbols.circle,
-              color: Colors.grey,
-              size: 16,
-            ).padding(right: 4),
+          Icon(
+            getStatusIndicatorIcon(status.value),
+            fill: 1,
+            color: getStatusIndicatorColor(status.value),
+            size: 16,
+          ).padding(right: 4),
           if (status.value?.isCustomized ?? false)
             Flexible(
               child: GestureDetector(
@@ -255,13 +246,11 @@ class AccountStatusLabel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(
-          Symbols.circle,
+          getStatusIndicatorIcon(status),
           fill: 1,
-          color: showsOnlinePresence(status) ? Colors.green : Colors.grey,
+          color: getStatusIndicatorColor(status),
           size: 14,
         ).padding(right: 4),
-        if (getStatusDisplaySymbol(status) case final symbol?)
-          Text(symbol, style: style).padding(right: 4),
         Flexible(
           child: Text(
             getStatusDisplayLabel(context, status),

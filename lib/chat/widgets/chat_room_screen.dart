@@ -76,9 +76,9 @@ class ChatRoomScreen extends HookConsumerWidget {
           child: ConfuseSpinner(
             size: 40,
             speed: 6,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
-              0.65,
-            ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
           ),
         ),
       );
@@ -206,11 +206,12 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [id]);
 
     useEffect(() {
-      // Realtime call presence now depends on provider participants.
-      // Poll and invalidate in room scope for call button/overlay state.
+      // Room presence is polled in room scope for call state and DM/member status.
+      ref.invalidate(chatOnlineCountProvider(id));
       ref.invalidate(activeCallParticipantCountProvider(id));
       ref.invalidate(activeCallParticipantsProvider(id));
-      final timer = Timer.periodic(const Duration(seconds: 8), (_) {
+      final timer = Timer.periodic(const Duration(minutes: 1), (_) {
+        ref.invalidate(chatOnlineCountProvider(id));
         ref.invalidate(activeCallParticipantCountProvider(id));
         ref.invalidate(activeCallParticipantsProvider(id));
       });
@@ -413,7 +414,10 @@ class ChatRoomScreen extends HookConsumerWidget {
       toggleSelectionMode();
     }, [selectedMessages, messages, toggleSelectionMode]);
 
-    final uploadAttachment = useCallback((int index, {String? encryptKey}) async {
+    final uploadAttachment = useCallback((
+      int index, {
+      String? encryptKey,
+    }) async {
       final attachment = inputManager.attachments[index];
       if (attachment.isOnCloud) return;
 
@@ -539,11 +543,10 @@ class ChatRoomScreen extends HookConsumerWidget {
             centerTitle: false,
             automaticallyImplyLeading: false,
             title: chatRoom.when(
-              data: (room) =>
-                  RoomAppBar(
-                    room: room!,
-                    onlineCount: onlineCount.value?.onlineCount ?? 0,
-                  ),
+              data: (room) => RoomAppBar(
+                room: room!,
+                onlineCount: onlineCount.value?.onlineCount ?? 0,
+              ),
               loading: () => const Text('Loading...'),
               error: (err, _) => ResponseErrorWidget(
                 error: err,
@@ -658,10 +661,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                           child: ConfuseSpinner(
                             size: 40,
                             speed: 6,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withOpacity(0.65),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
                           ),
                         ),
                         error: (error, _) => ResponseErrorWidget(
