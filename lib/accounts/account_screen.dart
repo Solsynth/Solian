@@ -218,108 +218,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                 context.router.push(const LevelingRoute());
               },
             ).padding(horizontal: 12),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  const minWidth = 160.0;
-                  const spacing = 8.0;
-                  const padding = 24.0; // 12 * 2
-                  final totalMin = 3 * minWidth + 2 * spacing;
-                  final availableWidth = constraints.maxWidth - padding;
-                  final children = [
-                    Card(
-                      margin: EdgeInsets.zero,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            Icon(Symbols.settings, size: 20),
-                            Flexible(
-                              child: Text(
-                                'appSettings',
-                                maxLines: 1,
-                              ).tr().fontSize(13).bold(),
-                            ),
-                          ],
-                        ).padding(horizontal: 16, vertical: 12),
-                        onTap: () {
-                          context.router.push(const SettingsRoute());
-                        },
-                      ),
-                    ),
-                    Card(
-                      margin: EdgeInsets.zero,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            Icon(Symbols.person_edit, size: 20),
-                            Flexible(
-                              child: Text(
-                                'updateYourProfile',
-                                maxLines: 1,
-                              ).tr().fontSize(13).bold(),
-                            ),
-                          ],
-                        ).padding(horizontal: 16, vertical: 12),
-                        onTap: () {
-                          context.router.push(
-                            const AccountUpdateProfileRoute(),
-                          );
-                        },
-                      ),
-                    ),
-                    Card(
-                      margin: EdgeInsets.zero,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            Icon(Symbols.manage_accounts, size: 20),
-                            Flexible(
-                              child: Text(
-                                'accountSettings',
-                                maxLines: 1,
-                              ).tr().fontSize(13).bold(),
-                            ),
-                          ],
-                        ).padding(horizontal: 16, vertical: 12),
-                        onTap: () {
-                          context.router.push(const AccountSettingsRoute());
-                        },
-                      ),
-                    ),
-                  ];
-                  if (availableWidth > totalMin) {
-                    return Row(
-                      spacing: 8,
-                      children: children
-                          .map((child) => Expanded(child: child))
-                          .toList(),
-                    ).padding(horizontal: 12).height(48);
-                  } else {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        spacing: 8,
-                        children: children
-                            .map(
-                              (child) =>
-                                  SizedBox(width: minWidth, child: child),
-                            )
-                            .toList(),
-                      ).padding(horizontal: 12),
-                    ).height(48);
-                  }
-                },
-              ),
-            ),
             Builder(
               builder: (context) {
                 final menuItems = [
@@ -394,6 +292,37 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     );
                   }).toList(),
                 );
+              },
+            ),
+            const Divider(height: 1).padding(vertical: 8),
+            ListTile(
+              leading: const Icon(Symbols.settings),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
+              title: Text('appSettings').tr(),
+              onTap: () {
+                context.router.push(const SettingsRoute());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Symbols.person_edit),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
+              title: Text('updateYourProfile').tr(),
+              onTap: () {
+                context.router.push(const AccountUpdateProfileRoute());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Symbols.manage_accounts),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
+              title: Text('accountSettings').tr(),
+              onTap: () {
+                context.router.push(const AccountSettingsRoute());
               },
             ),
             const Divider(height: 1).padding(vertical: 8),
