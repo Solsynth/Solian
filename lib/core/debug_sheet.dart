@@ -8,7 +8,6 @@ import 'package:island/core/network.dart';
 import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';

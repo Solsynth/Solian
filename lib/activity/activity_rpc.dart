@@ -165,17 +165,6 @@ class ActivityRpcServer {
 
     talker.log('New WS connection! origin: $origin, params: $params');
 
-    if (origin.isNotEmpty &&
-        ![
-          'https://discord.com',
-          'https://ptb.discord.com',
-          'https://canary.discord.com',
-        ].contains(origin)) {
-      talker.log('[$kRpcLogPrefix] Disallowed origin: $origin');
-      socket.sink.close();
-      return;
-    }
-
     if (encoding != 'json') {
       talker.log('Unsupported encoding requested: $encoding');
       socket.sink.close();
