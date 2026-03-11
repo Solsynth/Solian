@@ -99,6 +99,7 @@ class _DirectMessageStatusBanner extends ConsumerWidget {
         children: [
           Icon(
             getStatusIndicatorIcon(status),
+            fill: getStatusIndicatorFill(status),
             size: 18,
             color: getStatusIndicatorColor(status),
           ),

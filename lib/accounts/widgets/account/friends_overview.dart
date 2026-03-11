@@ -302,7 +302,9 @@ class _FriendTile extends ConsumerWidget {
                         : getStatusIndicatorIcon(friend.status),
                     size: 10,
                     color: Colors.white,
-                    fill: 1,
+                    fill: friend.activities.isNotEmpty
+                        ? 1
+                        : getStatusIndicatorFill(friend.status),
                   ),
                 ),
               ),

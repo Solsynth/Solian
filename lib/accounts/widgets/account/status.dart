@@ -165,7 +165,7 @@ class AccountStatusWidget extends HookConsumerWidget {
         children: [
           Icon(
             getStatusIndicatorIcon(status.value),
-            fill: 1,
+            fill: getStatusIndicatorFill(status.value),
             color: getStatusIndicatorColor(status.value),
             size: 16,
           ).padding(right: 4),
@@ -247,7 +247,7 @@ class AccountStatusLabel extends StatelessWidget {
       children: [
         Icon(
           getStatusIndicatorIcon(status),
-          fill: 1,
+          fill: getStatusIndicatorFill(status),
           color: getStatusIndicatorColor(status),
           size: 14,
         ).padding(right: 4),

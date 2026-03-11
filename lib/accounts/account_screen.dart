@@ -218,68 +218,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                 context.router.push(const LevelingRoute());
               },
             ).padding(horizontal: 12),
-            if (!isWideScreen(context)) const SizedBox.shrink(),
-            if (!isWideScreen(context))
-              Row(
-                spacing: 8,
-                children: [
-                  Expanded(
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Symbols.draw, size: 28).padding(bottom: 8),
-                            Text(
-                              'creatorHub',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ).tr().fontSize(16).bold(),
-                            Text(
-                              'creatorHubDescription',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ).tr(),
-                          ],
-                        ).padding(horizontal: 16, vertical: 12),
-                        onTap: () {
-                          context.router.navigate(const CreatorHubRoute());
-                        },
-                      ),
-                    ).height(140),
-                  ),
-                  Expanded(
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Symbols.code, size: 28).padding(bottom: 8),
-                            Text(
-                              'developerPortal',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ).tr().fontSize(16).bold(),
-                            Text(
-                              'developerPortalDescription',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ).tr(),
-                          ],
-                        ).padding(horizontal: 16, vertical: 12),
-                        onTap: () {
-                          context.router.navigate(DeveloperHubRoute());
-                        },
-                      ),
-                    ).height(140),
-                  ),
-                ],
-              ).padding(horizontal: 12),
-            const SizedBox.shrink(),
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width,
@@ -398,22 +336,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       );
                     },
                   },
-                  if (!isWideScreen(context))
-                    {
-                      'icon': Symbols.files,
-                      'title': 'files',
-                      'onTap': () {
-                        context.router.navigate(const FileListRoute());
-                      },
-                    },
-                  if (!isWideScreen(context))
-                    {
-                      'icon': Symbols.groups_3,
-                      'title': 'realms',
-                      'onTap': () {
-                        context.router.navigate(const RealmListRoute());
-                      },
-                    },
                   {
                     'icon': Symbols.wallet,
                     'title': 'wallet',

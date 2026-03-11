@@ -411,22 +411,21 @@ class ExploreScreen extends HookConsumerWidget {
                     selectedCategories.value,
                     selectedTags.value,
                   ),
-                ] else
-                  if (isListInitialLoading)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: ConfuseSpinner(
-                          speed: 7,
-                          size: 72,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                        ),
+                ] else if (isListInitialLoading)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: ConfuseSpinner(
+                        speed: 7,
+                        size: 72,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.65),
                       ),
-                    )
-                  else
-                    bodyView!,
+                    ),
+                  )
+                else
+                  bodyView!,
               ],
             ),
           ),
@@ -509,6 +508,7 @@ class ExploreScreen extends HookConsumerWidget {
     final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
 
     return AppBar(
+      automaticallyImplyLeading: false,
       flexibleSpace: Container(
         height: 48,
         margin: EdgeInsets.only(

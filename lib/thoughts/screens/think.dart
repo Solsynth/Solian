@@ -145,7 +145,7 @@ class ThoughtScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        leading: const AutoLeadingButton(),
+        automaticallyImplyLeading: false,
         flexibleSpace: Row(
           children: [
             ServiceSelector(
@@ -154,7 +154,7 @@ class ThoughtScreen extends HookConsumerWidget {
               onServiceChanged: chatNotifier.setSelectedServiceId,
               isStreaming: chatState.isStreaming,
               isDisabled: statusAsync.value == false,
-            ).padding(left: 12),
+            ).padding(left: 12, top: MediaQuery.paddingOf(context).top),
           ],
         ).center(),
         actions: [

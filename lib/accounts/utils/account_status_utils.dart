@@ -48,6 +48,10 @@ IconData getStatusIndicatorIcon(SnAccountStatus? status) {
   };
 }
 
+double getStatusIndicatorFill(SnAccountStatus? status) {
+  return (status?.isOnline ?? false) ? 1 : 0;
+}
+
 Color getStatusIndicatorColor(SnAccountStatus? status) {
   if (status == null) {
     return Colors.grey;
