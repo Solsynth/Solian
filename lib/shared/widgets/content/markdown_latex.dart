@@ -5,8 +5,8 @@ import 'package:markdown/markdown.dart' as m;
 
 SpanNodeGeneratorWithTag latexGenerator = SpanNodeGeneratorWithTag(
   tag: _latexTag,
-  generator:
-      (e, config, visitor) => LatexNode(e.attributes, e.textContent, config),
+  generator: (e, config, visitor) =>
+      LatexNode(e.attributes, e.textContent, config),
 );
 
 const _latexTag = 'latex';
@@ -67,14 +67,13 @@ class LatexNode extends SpanNode {
     );
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child:
-          !isInline
-              ? Container(
-                width: double.infinity,
-                margin: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: latex),
-              )
-              : latex,
+      child: !isInline
+          ? SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: latex),
+            )
+          : latex,
     );
   }
 }

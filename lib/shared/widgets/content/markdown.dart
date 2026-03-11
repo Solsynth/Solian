@@ -117,7 +117,9 @@ class MarkdownTextContent extends HookConsumerWidget {
           PConfig(
             textStyle: (textStyle ?? Theme.of(context).textTheme.bodyMedium!),
           ),
-          HrConfig(height: 1, color: Theme.of(context).dividerColor),
+          Heading1Config(),
+          Heading2Config(),
+          Heading3Config(),
           PreConfig(
             theme: isDark ? a11yDarkTheme : a11yLightTheme,
             textStyle: GoogleFonts.robotoMono(fontSize: 14),
@@ -243,7 +245,14 @@ class MarkdownTextContent extends HookConsumerWidget {
     List<markdown.BlockSyntax> extraBlockSyntaxList = const [],
   }) {
     return MarkdownGenerator(
-      generators: [latexGenerator, ...generators],
+      generators: [
+        latexGenerator,
+        ...generators,
+        SpanNodeGeneratorWithTag(
+          tag: MarkdownTag.hr.name,
+          generator: (e, config, visitor) => DividerNode(),
+        ),
+      ],
       inlineSyntaxList: [
         _MentionInlineSyntax(),
         _HighlightInlineSyntax(),
@@ -721,4 +730,88 @@ class StickerSpanNode extends SpanNode {
       ),
     );
   }
+}
+
+class DividerNode extends SpanNode {
+  DividerNode();
+
+  @override
+  InlineSpan build() {
+    return WidgetSpan(child: const Divider());
+  }
+}
+
+class Heading1Config extends HeadingConfig {
+  @override
+  final TextStyle style;
+
+  const Heading1Config({
+    this.style = const TextStyle(
+      fontSize: 32,
+      height: 40 / 32,
+      fontWeight: FontWeight.bold,
+    ),
+  });
+
+  @override
+  String get tag => MarkdownTag.h1.name;
+
+  static Heading1Config get darkConfig => const Heading1Config(
+    style: TextStyle(
+      fontSize: 32,
+      height: 40 / 32,
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+}
+
+class Heading2Config extends HeadingConfig {
+  @override
+  final TextStyle style;
+
+  const Heading2Config({
+    this.style = const TextStyle(
+      fontSize: 24,
+      height: 30 / 24,
+      fontWeight: FontWeight.bold,
+    ),
+  });
+
+  @override
+  String get tag => MarkdownTag.h2.name;
+
+  static Heading2Config get darkConfig => const Heading2Config(
+    style: TextStyle(
+      fontSize: 24,
+      height: 30 / 24,
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+}
+
+class Heading3Config extends HeadingConfig {
+  @override
+  final TextStyle style;
+
+  const Heading3Config({
+    this.style = const TextStyle(
+      fontSize: 20,
+      height: 25 / 20,
+      fontWeight: FontWeight.bold,
+    ),
+  });
+
+  @override
+  String get tag => MarkdownTag.h3.name;
+
+  static Heading3Config get darkConfig => const Heading3Config(
+    style: TextStyle(
+      fontSize: 20,
+      height: 25 / 20,
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  );
 }
