@@ -17,7 +17,7 @@ class ActivityListNotifier
   static const Duration retryAdjustmentDuration = Duration(seconds: 10);
   static const int maxRetryAttempts = 1;
 
-  String? currentMode;
+  String currentMode = 'personalized';
 
   StreamSubscription? _postCreatedSubscription;
   StreamSubscription? _postUpdateSubscription;
@@ -182,6 +182,7 @@ class ActivityListNotifier
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
+      'mode': currentMode,
       if (currentFilter != null) 'filter': currentFilter,
       'showFediverse': settings.showFediverseContent,
     };
@@ -194,7 +195,7 @@ class ActivityListNotifier
     final payload = Map<String, dynamic>.from(response.data as Map);
     final rawItems = (payload['items'] as List?) ?? const [];
     final nextCursor = payload['next_cursor'] as String?;
-    currentMode = payload['mode'] as String?;
+    currentMode = (payload['mode'] as String?) ?? currentMode;
 
     final List<SnTimelineEvent> items = rawItems
         .whereType<Map>()
@@ -299,5 +300,35 @@ class ActivityListNotifier
     }).toList();
 
     state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  Future<void> applyMode(String mode) async {
+    if (currentMode == mode) return;
+
+    state = AsyncData(
+      PaginationState(
+        items: [],
+        isLoading: true,
+        isReloading: true,
+        totalCount: null,
+        hasMore: true,
+        cursor: null,
+      ),
+    );
+    currentMode = mode;
+
+    final newItems = await fetch();
+
+    if (!ref.mounted) return;
+    state = AsyncData(
+      PaginationState(
+        items: newItems,
+        isLoading: false,
+        isReloading: false,
+        totalCount: totalCount,
+        hasMore: hasMore,
+        cursor: cursor,
+      ),
+    );
   }
 }
