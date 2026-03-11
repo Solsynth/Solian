@@ -61,6 +61,7 @@ class ExploreScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFilter = useState<String?>(null);
+    final currentMode = useState('personalized');
     final selectedPublisherNames = useState<List<String>>([]);
     final selectedCategoryIds = useState<List<String>>([]);
     final selectedTagIds = useState<List<String>>([]);
@@ -69,6 +70,12 @@ class ExploreScreen extends HookConsumerWidget {
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
       notifier.applyFilter(filter);
+    }
+
+    void handleModeChange(String? mode) {
+      if (mode == null) return;
+      currentMode.value = mode;
+      notifier.applyMode(mode);
     }
 
     final now = DateTime.now();
@@ -137,6 +144,10 @@ class ExploreScreen extends HookConsumerWidget {
                 color: currentFilter.value == 'friends'
                     ? Theme.of(context).colorScheme.primary
                     : null,
+              ),
+              _TimelineModeDropdown(
+                value: currentMode.value,
+                onChanged: handleModeChange,
               ),
             ],
           ),
@@ -216,7 +227,9 @@ class ExploreScreen extends HookConsumerWidget {
         ? null
         : _buildAppBar(
             currentFilter.value,
+            currentMode.value,
             handleFilterChange,
+            handleModeChange,
             context,
             hasSubscriptionsSelected,
           );
@@ -502,7 +515,9 @@ class ExploreScreen extends HookConsumerWidget {
 
   PreferredSizeWidget _buildAppBar(
     String? currentFilter,
+    String currentMode,
     void Function(String?) handleFilterChange,
+    void Function(String?) handleModeChange,
     BuildContext context,
     bool hasSubscriptionsSelected,
   ) {
@@ -559,6 +574,11 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 tooltip: 'exploreFilterFriends'.tr(),
                 isSelected: currentFilter == 'friends',
+              ),
+              _TimelineModeDropdown(
+                value: currentMode,
+                onChanged: handleModeChange,
+                foregroundColor: foregroundColor,
               ),
               const Spacer(),
               IconButton(
@@ -668,6 +688,49 @@ class ExploreScreen extends HookConsumerWidget {
           child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
         ),
       ).padding(horizontal: 8),
+    );
+  }
+}
+
+class _TimelineModeDropdown extends StatelessWidget {
+  final String value;
+  final ValueChanged<String?> onChanged;
+  final Color? foregroundColor;
+
+  const _TimelineModeDropdown({
+    required this.value,
+    required this.onChanged,
+    this.foregroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveForegroundColor =
+        foregroundColor ?? Theme.of(context).colorScheme.onSurface;
+
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          iconEnabledColor: effectiveForegroundColor,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: effectiveForegroundColor),
+          borderRadius: BorderRadius.circular(12),
+
+          onChanged: onChanged,
+          items: const [
+            DropdownMenuItem(
+              value: 'personalized',
+              child: Text('Personalized'),
+            ),
+            DropdownMenuItem(value: 'top', child: Text('Top')),
+            DropdownMenuItem(value: 'latest', child: Text('Latest')),
+          ],
+        ),
+      ),
     );
   }
 }
