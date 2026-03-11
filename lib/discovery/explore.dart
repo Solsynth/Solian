@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -729,18 +730,38 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
 
 class _DiscoveryActivityItem extends StatelessWidget {
   final Map<String, dynamic> data;
+  final String eventType;
+  final String resourceIdentifier;
 
-  const _DiscoveryActivityItem({required this.data});
+  const _DiscoveryActivityItem({
+    required this.data,
+    required this.eventType,
+    required this.resourceIdentifier,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final items = data['items'] as List;
-    final type = items.firstOrNull?['type'] ?? 'unknown';
+    final items =
+        (data['items'] as List?)?.whereType<Map>().toList() ?? const [];
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    final type = _resolveDiscoveryType(
+      eventType: eventType,
+      resourceIdentifier: resourceIdentifier,
+      data: data,
+      items: items,
+    );
+    final title = _resolveDiscoveryTitle(type, data);
+    final isSingleSuggestion = type != 'post' && items.length == 1;
 
     var flexWeights = isWideScreen(context) ? <int>[3, 2, 1] : <int>[4, 1];
     if (type == 'post') flexWeights = <int>[3, 2];
 
-    final height = type == 'post' ? 280.0 : 180.0;
+    final height = switch (type) {
+      'post' => 280.0,
+      _ when isSingleSuggestion => 250.0,
+      _ => 180.0,
+    };
 
     final contentWidget = switch (type) {
       'post' => SuperListView.separated(
@@ -749,7 +770,8 @@ class _DiscoveryActivityItem extends StatelessWidget {
         separatorBuilder: (context, index) => const Gap(12),
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         itemBuilder: (context, index) {
-          final item = items[index];
+          final item = Map<String, dynamic>.from(items[index]);
+          final itemData = _extractDiscoveryItemData(item);
           return Container(
             width: 320,
             decoration: BoxDecoration(
@@ -763,7 +785,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(8)),
               child: SingleChildScrollView(
                 child: PostActionableItem(
-                  item: SnPost.fromJson(item['data']),
+                  item: SnPost.fromJson(itemData),
                   isCompact: true,
                 ),
               ),
@@ -771,6 +793,72 @@ class _DiscoveryActivityItem extends StatelessWidget {
           );
         },
       ),
+      _ when isSingleSuggestion => () {
+        final item = Map<String, dynamic>.from(items.single);
+        final itemData = _extractDiscoveryItemData(item);
+        final reasons =
+            (item['reasons'] as List?)?.whereType<String>().toList() ??
+            const <String>[];
+        if (reasons.isEmpty) reasons.add('We think you might like this.');
+        final score = item['score'] is num
+            ? (item['score'] as num).toDouble()
+            : null;
+
+        return Column(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SizedBox(
+                width: double.infinity,
+                child: _buildDiscoveryCard(
+                  type,
+                  itemData,
+                  maxWidth: double.infinity,
+                ),
+              ),
+            ),
+            if (reasons.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    const Icon(Symbols.mindfulness, size: 16),
+                    for (final reason in reasons.take(3))
+                      Text(
+                        reason,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            if (score != null && kDebugMode)
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.rule, size: 16),
+                    Text(
+                      'Score: $score',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      }(),
       _ => CarouselView.weighted(
         flexWeights: flexWeights,
         consumeMaxWeight: false,
@@ -781,21 +869,11 @@ class _DiscoveryActivityItem extends StatelessWidget {
         itemSnapping: false,
         children: [
           for (final item in items)
-            switch (type) {
-              'realm' => RealmDiscoveryCard(
-                realm: SnRealm.fromJson(item['data']),
-                maxWidth: 280,
-              ),
-              'publisher' => PublisherDiscoveryCard(
-                publisher: SnPublisher.fromJson(item['data']),
-                maxWidth: 280,
-              ),
-              'article' => WebArticleDiscoveryCard(
-                article: SnWebArticle.fromJson(item['data']),
-                maxWidth: 280,
-              ),
-              _ => const Placeholder(),
-            },
+            () {
+              final itemMap = Map<String, dynamic>.from(item);
+              final itemData = _extractDiscoveryItemData(itemMap);
+              return _buildDiscoveryCard(type, itemData);
+            }(),
         ],
       ),
     };
@@ -811,19 +889,14 @@ class _DiscoveryActivityItem extends StatelessWidget {
               Icon(switch (type) {
                 'realm' => Symbols.public,
                 'publisher' => Symbols.account_circle,
+                'account' => Symbols.person,
                 'article' => Symbols.auto_stories,
                 'post' => Symbols.shuffle,
                 _ => Symbols.explore,
               }, size: 19),
               const Gap(8),
               Text(
-                (switch (type) {
-                  'realm' => 'discoverRealms',
-                  'publisher' => 'discoverPublishers',
-                  'article' => 'discoverWebArticles',
-                  'post' => 'discoverShuffledPost',
-                  _ => 'unknown',
-                }).tr(),
+                title,
                 style: Theme.of(context).textTheme.titleMedium,
               ).padding(top: 1),
             ],
@@ -834,6 +907,172 @@ class _DiscoveryActivityItem extends StatelessWidget {
           ).padding(bottom: 8, horizontal: 8),
         ],
       ),
+    );
+  }
+
+  Widget _buildDiscoveryCard(
+    String type,
+    Map<String, dynamic> itemData, {
+    double? maxWidth,
+  }) {
+    return switch (type) {
+      'realm' => RealmDiscoveryCard(
+        realm: SnRealm.fromJson(itemData),
+        maxWidth: maxWidth ?? 280,
+      ),
+      'publisher' => PublisherDiscoveryCard(
+        publisher: SnPublisher.fromJson(itemData),
+        maxWidth: maxWidth ?? 280,
+      ),
+      'account' => AccountDiscoveryCard(
+        account: SnAccount.fromJson(itemData),
+        maxWidth: maxWidth ?? 280,
+      ),
+      'article' => WebArticleDiscoveryCard(
+        article: SnWebArticle.fromJson(itemData),
+        maxWidth: maxWidth ?? 280,
+      ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
+String _resolveDiscoveryType({
+  required String eventType,
+  required String resourceIdentifier,
+  required Map<String, dynamic> data,
+  required List<Map> items,
+}) {
+  if (eventType == 'discovery.v2') {
+    final kind = data['kind'];
+    if (kind is String && kind.isNotEmpty) return kind;
+
+    final parts = resourceIdentifier.split(':');
+    if (parts.length > 1 && parts.last.isNotEmpty) return parts.last;
+  }
+
+  final itemType = items.firstOrNull?['type'];
+  if (itemType is String && itemType.isNotEmpty) return itemType;
+
+  final fallbackKind = data['kind'];
+  if (fallbackKind is String && fallbackKind.isNotEmpty) return fallbackKind;
+
+  return 'unknown';
+}
+
+String _resolveDiscoveryTitle(String type, Map<String, dynamic> data) {
+  final customTitle = data['title'];
+  if (customTitle is String && customTitle.isNotEmpty) return customTitle;
+
+  return (switch (type) {
+    'realm' => 'discoverRealms',
+    'publisher' => 'discoverPublishers',
+    'account' => 'accounts',
+    'article' => 'discoverWebArticles',
+    'post' => 'discoverShuffledPost',
+    _ => 'unknown',
+  }).tr();
+}
+
+Map<String, dynamic> _extractDiscoveryItemData(Map<String, dynamic> item) {
+  final raw = item['data'];
+  if (raw is Map<String, dynamic>) return raw;
+  if (raw is Map) return Map<String, dynamic>.from(raw);
+  return item;
+}
+
+class AccountDiscoveryCard extends StatelessWidget {
+  final SnAccount account;
+  final double? maxWidth;
+
+  const AccountDiscoveryCard({super.key, required this.account, this.maxWidth});
+
+  @override
+  Widget build(BuildContext context) {
+    final background = account.profile.background;
+    final imageWidget = background != null
+        ? CloudImageWidget(file: background, fit: BoxFit.cover)
+        : ColoredBox(color: Theme.of(context).colorScheme.secondaryContainer);
+
+    final card = Card(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () {
+          context.router.push(AccountProfileRoute(name: account.name));
+        },
+        child: AspectRatio(
+          aspectRatio: 16 / 7,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              imageWidget,
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.7),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ProfilePictureWidget(
+                          file: account.profile.picture,
+                          radius: 12,
+                        ),
+                      ),
+                      const Gap(2),
+                      Text(
+                        account.nick,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '@${account.name}',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+      child: card,
     );
   }
 }
@@ -883,7 +1122,12 @@ class _ActivityListView extends HookConsumerWidget {
             itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);
             break;
           case 'discovery':
-            itemWidget = _DiscoveryActivityItem(data: item.data!);
+          case 'discovery.v2':
+            itemWidget = _DiscoveryActivityItem(
+              data: item.data!,
+              eventType: item.type,
+              resourceIdentifier: item.resourceIdentifier,
+            );
             break;
           default:
             itemWidget = const Placeholder();

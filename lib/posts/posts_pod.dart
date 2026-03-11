@@ -17,6 +17,8 @@ class ActivityListNotifier
   static const Duration retryAdjustmentDuration = Duration(seconds: 10);
   static const int maxRetryAttempts = 1;
 
+  String? currentMode;
+
   StreamSubscription? _postCreatedSubscription;
   StreamSubscription? _postUpdateSubscription;
   StreamSubscription? _postDeleteSubscription;
@@ -189,27 +191,18 @@ class ActivityListNotifier
       queryParameters: queryParameters,
     );
 
-    final List<SnTimelineEvent> items = (response.data as List)
-        .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
+    final payload = Map<String, dynamic>.from(response.data as Map);
+    final rawItems = (payload['items'] as List?) ?? const [];
+    final nextCursor = payload['next_cursor'] as String?;
+    currentMode = payload['mode'] as String?;
+
+    final List<SnTimelineEvent> items = rawItems
+        .whereType<Map>()
+        .map((e) => SnTimelineEvent.fromJson(Map<String, dynamic>.from(e)))
         .toList();
 
-    hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
-    // Find the latest createdAt timestamp from all items for cursor-based pagination
-    // This ensures we get items created before this timestamp, regardless of sort order
-    if (items.isNotEmpty) {
-      final newestCreatedAt = items
-          .where((e) => e.type.startsWith('posts.'))
-          .map((e) => e.createdAt)
-          .reduce((a, b) => a.isBefore(b) ? a : b);
-      if (cursor != null) {
-        final prevCursor = DateTime.tryParse(cursor!);
-        if (prevCursor != null && prevCursor.isAfter(newestCreatedAt)) {
-          cursor = newestCreatedAt.toUtc().toIso8601String();
-        }
-      } else {
-        cursor = newestCreatedAt.toUtc().toIso8601String();
-      }
-    }
+    hasMore = nextCursor != null && nextCursor.isNotEmpty;
+    cursor = hasMore ? nextCursor : null;
 
     // Check for duplicate items by id
     final existingItemIds = state.value?.items.map((e) => e.id).toSet() ?? {};
@@ -219,7 +212,7 @@ class ActivityListNotifier
 
     // If no new items and we haven't reached max retry attempts, adjust cursor and retry
     if (uniqueItems.isEmpty && retryCount < maxRetryAttempts) {
-      final prevCursor = DateTime.tryParse(cursor ?? '');
+      final prevCursor = DateTime.tryParse(nextCursor ?? '');
       if (prevCursor != null) {
         // Adjust cursor by subtracting retry adjustment duration
         final adjustedCursor = prevCursor.subtract(retryAdjustmentDuration);
