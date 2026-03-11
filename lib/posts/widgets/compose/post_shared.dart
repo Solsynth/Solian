@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -37,15 +38,31 @@ String _convertContentToMarkdown(SnPost post) {
 }
 
 class RepliesState {
-  final List<SnPost> posts;
+  final List<ThreadedReplyNode> posts;
   final bool loading;
 
   RepliesState({required this.posts, required this.loading});
 
-  RepliesState copyWith({List<SnPost>? posts, bool? loading}) {
+  RepliesState copyWith({List<ThreadedReplyNode>? posts, bool? loading}) {
     return RepliesState(
       posts: posts ?? this.posts,
       loading: loading ?? this.loading,
+    );
+  }
+}
+
+class ThreadedReplyNode {
+  final SnPost post;
+  final List<ThreadedReplyNode> replies;
+
+  const ThreadedReplyNode({required this.post, required this.replies});
+
+  factory ThreadedReplyNode.fromJson(Map<String, dynamic> json) {
+    return ThreadedReplyNode(
+      post: SnPost.fromJson(json['post'] as Map<String, dynamic>),
+      replies: (json['replies'] as List<dynamic>? ?? const [])
+          .map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -63,13 +80,18 @@ class RepliesNotifier extends _$RepliesNotifier {
     final client = ref.read(apiClientProvider);
 
     final response = await client.get(
-      '/sphere/posts/$parentId/replies',
+      '/sphere/posts/$parentId/replies/threaded',
       queryParameters: {'offset': state.posts.length, 'take': pageSize},
     );
 
     if (!ref.mounted) return;
     state = state.copyWith(
-      posts: [...state.posts, ...response.data.map((e) => SnPost.fromJson(e))],
+      posts: [
+        ...state.posts,
+        ...(response.data as List<dynamic>).map(
+          (e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>),
+        ),
+      ],
       loading: false,
     );
   }
@@ -175,64 +197,67 @@ class PostReplyPreview extends HookConsumerWidget {
         ? null
         : ref.watch(postFeaturedReplyProvider(parent.id));
 
+    Widget buildReplyNode(
+      ThreadedReplyNode node,
+      double maxWidth, {
+      double indent = 24,
+    }) {
+      final post = node.post;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  _buildProfilePicture(
+                    context,
+                    post,
+                    radius: 12,
+                  ).padding(top: 4),
+                  if (post.content?.isNotEmpty ?? false)
+                    Expanded(
+                      child: MarkdownTextContent(
+                        content: _convertContentToMarkdown(post),
+                        attachments: post.attachments,
+                        noMentionChip: post.fediverseUri != null,
+                      ).padding(top: 2),
+                    )
+                  else
+                    Expanded(
+                      child: Text(
+                        'postHasAttachments',
+                        style: TextStyle(height: 2),
+                      ).plural(post.attachments.length).padding(top: 2),
+                    ),
+                ],
+              ),
+            ),
+            onTap: () {
+              onOpen?.call();
+              context.router.push(PostDetailRoute(id: post.id));
+            },
+          ),
+          for (final child in node.replies)
+            buildReplyNode(
+              child,
+              math.max(maxWidth - indent, 200),
+              indent: indent,
+            ).padding(left: indent),
+        ],
+      );
+    }
+
     Widget itemBuilder(double maxWidth) {
       return isOpenable
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final post in repliesState.posts)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 8,
-                            children: [
-                              _buildProfilePicture(
-                                context,
-                                post,
-                                radius: 12,
-                              ).padding(top: 4),
-                              if (post.content?.isNotEmpty ?? false)
-                                Expanded(
-                                  child: MarkdownTextContent(
-                                    content: _convertContentToMarkdown(post),
-                                    attachments: post.attachments,
-                                    noMentionChip: post.fediverseUri != null,
-                                  ).padding(top: 2),
-                                )
-                              else
-                                Expanded(
-                                  child:
-                                      Text(
-                                            'postHasAttachments',
-                                            style: TextStyle(height: 2),
-                                          )
-                                          .plural(post.attachments.length)
-                                          .padding(top: 2),
-                                ),
-                            ],
-                          ),
-                        ),
-                        onTap: () {
-                          onOpen?.call();
-                          context.router.push(PostDetailRoute(id: post.id));
-                        },
-                      ),
-                      if (post.repliesCount > 0)
-                        PostReplyPreview(
-                          parent: post,
-                          isOpenable: true,
-                          isCompact: true,
-                          isAutoload: false,
-                          itemMaxWidth: math.max(maxWidth - 24, 200),
-                          onOpen: onOpen,
-                        ).padding(left: 24),
-                    ],
-                  ),
+                for (final node in repliesState.posts)
+                  buildReplyNode(node, maxWidth),
                 if (repliesState.loading)
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -901,6 +926,17 @@ class PostBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadataChildren = <Widget>[];
 
+    if (item.debugRank != null && kDebugMode) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.rule, size: 16),
+            Text('Rank: ${item.debugRank}').fontSize(13),
+          ],
+        ),
+      );
+    }
     if (item.pinMode != null) {
       metadataChildren.add(
         Row(

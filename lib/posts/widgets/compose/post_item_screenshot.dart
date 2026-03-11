@@ -145,6 +145,56 @@ class PostItemScreenshot extends ConsumerWidget {
                 final repliesState = ref.watch(repliesProvider(item.id));
                 final posts = repliesState.posts;
 
+                Widget buildReplyNode(
+                  ThreadedReplyNode node, {
+                  double indent = 20,
+                }) {
+                  final post = node.post;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 8,
+                          children: [
+                            ProfilePictureWidget(
+                              file:
+                                  post.publisher?.picture ??
+                                  post.publisher?.account?.profile.picture,
+                              radius: 12,
+                            ).padding(top: 4),
+                            if (post.content?.isNotEmpty ?? false)
+                              Expanded(
+                                child: MarkdownTextContent(
+                                  content: post.content!,
+                                  attachments: post.attachments,
+                                  noMentionChip: post.fediverseUri != null,
+                                ).padding(top: 2),
+                              )
+                            else
+                              Expanded(
+                                child:
+                                    Text(
+                                          'postHasAttachments',
+                                          style: const TextStyle(height: 2),
+                                        )
+                                        .plural(post.attachments.length)
+                                        .padding(top: 2),
+                              ),
+                          ],
+                        ),
+                      ),
+                      for (final child in node.replies)
+                        buildReplyNode(
+                          child,
+                          indent: indent,
+                        ).padding(left: indent, top: 4),
+                    ],
+                  );
+                }
+
                 return Container(
                   margin: EdgeInsets.only(
                     left: renderingPadding.horizontal,
@@ -187,41 +237,7 @@ class PostItemScreenshot extends ConsumerWidget {
                           ],
                         ).padding(horizontal: 5),
                       if (posts.isNotEmpty)
-                        ...posts.map(
-                          (post) => ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                ProfilePictureWidget(
-                                  file:
-                                      post.publisher?.picture ??
-                                      post.publisher?.account?.profile.picture,
-                                  radius: 12,
-                                ).padding(top: 4),
-                                if (post.content?.isNotEmpty ?? false)
-                                  Expanded(
-                                    child: MarkdownTextContent(
-                                      content: post.content!,
-                                      attachments: post.attachments,
-                                      noMentionChip: item.fediverseUri != null,
-                                    ).padding(top: 2),
-                                  )
-                                else
-                                  Expanded(
-                                    child:
-                                        Text(
-                                              'postHasAttachments',
-                                              style: const TextStyle(height: 2),
-                                            )
-                                            .plural(post.attachments.length)
-                                            .padding(top: 2),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        ...posts.map((post) => buildReplyNode(post)),
                     ],
                   ),
                 );
