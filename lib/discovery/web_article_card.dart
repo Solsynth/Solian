@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/models/webfeed.dart';
+import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -73,16 +75,18 @@ class WebArticleCard extends StatelessWidget {
   }
 }
 
-class WebArticleDiscoveryCard extends StatelessWidget {
+class WebArticleDiscoveryCard extends ConsumerWidget {
   final SnWebArticle article;
   final double? maxWidth;
   final bool showDetails;
+  final bool showFeedback;
 
   const WebArticleDiscoveryCard({
     super.key,
     required this.article,
     this.maxWidth,
     this.showDetails = false,
+    this.showFeedback = true,
   });
 
   void _onTap(BuildContext context) {
@@ -90,7 +94,7 @@ class WebArticleDiscoveryCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -106,7 +110,6 @@ class WebArticleDiscoveryCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Image or fallback
                 article.preview?.imageUrl != null
                     ? CachedNetworkImage(
                         imageUrl: article.preview!.imageUrl!,
@@ -124,7 +127,6 @@ class WebArticleDiscoveryCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                // Gradient overlay
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -137,7 +139,6 @@ class WebArticleDiscoveryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Title
                 Align(
                   alignment: Alignment.bottomLeft,
                   child: Container(
@@ -201,6 +202,15 @@ class WebArticleDiscoveryCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (showFeedback)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: DiscoveryFeedbackWidget(
+                      kind: 'article',
+                      referenceId: article.id,
+                    ),
+                  ),
               ],
             ),
           ),
