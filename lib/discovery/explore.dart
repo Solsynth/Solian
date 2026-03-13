@@ -29,6 +29,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/web_article_card.dart';
+import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
@@ -822,7 +823,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
 
     final height = switch (type) {
       'post' => 280.0,
-      _ when isSingleSuggestion => 250.0,
+      _ when isSingleSuggestion => null,
       _ => 180.0,
     };
 
@@ -835,6 +836,10 @@ class _DiscoveryActivityItem extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = Map<String, dynamic>.from(items[index]);
           final itemData = _extractDiscoveryItemData(item);
+          final post = SnPost.fromJson(itemData);
+          final rank = item['rank'] as String?;
+          final isHighestOrLowest = rank == 'highest' || rank == 'lowest';
+
           return Container(
             width: 320,
             decoration: BoxDecoration(
@@ -844,14 +849,84 @@ class _DiscoveryActivityItem extends StatelessWidget {
               ),
               borderRadius: const BorderRadius.all(Radius.circular(8)),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-              child: SingleChildScrollView(
-                child: PostActionableItem(
-                  item: SnPost.fromJson(itemData),
-                  isCompact: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                    child: SingleChildScrollView(
+                      child: PostActionableItem(item: post, isCompact: true),
+                    ),
+                  ),
                 ),
-              ),
+                if (isHighestOrLowest)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 8,
+                      right: 8,
+                      bottom: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        if (rank == 'highest')
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Top Pick',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                  ),
+                            ),
+                          ),
+                        if (rank == 'lowest')
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Not Recommended',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                  ),
+                            ),
+                          ),
+                        const Spacer(),
+                        DiscoveryFeedbackWidget(
+                          kind: 'post',
+                          referenceId: post.id,
+                          showNotInterested: false,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           );
         },
@@ -863,7 +938,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
             (item['reasons'] as List?)?.whereType<String>().toList() ??
             const <String>[];
         if (reasons.isEmpty) reasons.add('We think you might like this.');
-        final score = item['score'] is num
+        final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
             : null;
 
@@ -871,16 +946,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: _buildDiscoveryCard(
-                  type,
-                  itemData,
-                  maxWidth: double.infinity,
-                ),
-              ),
-            ),
+            _buildDiscoveryCard(type, itemData, maxWidth: double.infinity),
             if (reasons.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8),
@@ -901,7 +967,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                   ],
                 ),
               ),
-            if (score != null && kDebugMode)
+            if (rank != null && kDebugMode)
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8),
                 child: Row(
@@ -909,7 +975,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                   children: [
                     const Icon(Symbols.rule, size: 16),
                     Text(
-                      'Score: $score',
+                      'Rank: $rank',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -1044,14 +1110,20 @@ Map<String, dynamic> _extractDiscoveryItemData(Map<String, dynamic> item) {
   return item;
 }
 
-class AccountDiscoveryCard extends StatelessWidget {
+class AccountDiscoveryCard extends ConsumerWidget {
   final SnAccount account;
   final double? maxWidth;
+  final bool showFeedback;
 
-  const AccountDiscoveryCard({super.key, required this.account, this.maxWidth});
+  const AccountDiscoveryCard({
+    super.key,
+    required this.account,
+    this.maxWidth,
+    this.showFeedback = true,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final background = account.profile.background;
     final imageWidget = background != null
         ? CloudImageWidget(file: background, fit: BoxFit.cover)
@@ -1127,6 +1199,15 @@ class AccountDiscoveryCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (showFeedback)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: DiscoveryFeedbackWidget(
+                    kind: 'account',
+                    referenceId: account.id,
+                  ),
+                ),
             ],
           ),
         ),
