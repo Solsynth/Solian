@@ -10,6 +10,7 @@ class DiscoveryFeedbackWidget extends HookConsumerWidget {
   final String kind;
   final String referenceId;
   final bool showNotInterested;
+  final bool showBackground;
   final VoidCallback? onFeedbackSubmitted;
 
   const DiscoveryFeedbackWidget({
@@ -17,6 +18,7 @@ class DiscoveryFeedbackWidget extends HookConsumerWidget {
     required this.kind,
     required this.referenceId,
     this.showNotInterested = true,
+    this.showBackground = true,
     this.onFeedbackSubmitted,
   });
 
@@ -92,6 +94,42 @@ class DiscoveryFeedbackWidget extends HookConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
+    final actionsWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _FeedbackButton(
+          icon: Symbols.thumb_up,
+          isSelected: feedbackGiven.value == DiscoveryFeedbackValue.positive,
+          isLoading: isLoading.value,
+          onPressed: () => submitFeedback(DiscoveryFeedbackValue.positive),
+          tooltip: 'Show more like this'.tr(),
+          color: colorScheme.primary,
+        ),
+        const Gap(4),
+        _FeedbackButton(
+          icon: Symbols.thumb_down,
+          isSelected: feedbackGiven.value == DiscoveryFeedbackValue.negative,
+          isLoading: isLoading.value,
+          onPressed: () => submitFeedback(DiscoveryFeedbackValue.negative),
+          tooltip: 'Show less like this'.tr(),
+          color: colorScheme.error,
+        ),
+        if (showNotInterested) ...[
+          const Gap(8),
+          _FeedbackButton(
+            icon: Symbols.hide_source,
+            isSelected: isUninterested.value,
+            isLoading: isLoading.value,
+            onPressed: toggleUninterested,
+            tooltip: 'Not interested'.tr(),
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ],
+    );
+
+    if (!showBackground) return actionsWidget;
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface.withOpacity(0.9),
@@ -105,39 +143,7 @@ class DiscoveryFeedbackWidget extends HookConsumerWidget {
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _FeedbackButton(
-            icon: Symbols.thumb_up,
-            isSelected: feedbackGiven.value == DiscoveryFeedbackValue.positive,
-            isLoading: isLoading.value,
-            onPressed: () => submitFeedback(DiscoveryFeedbackValue.positive),
-            tooltip: 'Show more like this'.tr(),
-            color: colorScheme.primary,
-          ),
-          const Gap(4),
-          _FeedbackButton(
-            icon: Symbols.thumb_down,
-            isSelected: feedbackGiven.value == DiscoveryFeedbackValue.negative,
-            isLoading: isLoading.value,
-            onPressed: () => submitFeedback(DiscoveryFeedbackValue.negative),
-            tooltip: 'Show less like this'.tr(),
-            color: colorScheme.error,
-          ),
-          if (showNotInterested) ...[
-            const Gap(8),
-            _FeedbackButton(
-              icon: Symbols.hide_source,
-              isSelected: isUninterested.value,
-              isLoading: isLoading.value,
-              onPressed: toggleUninterested,
-              tooltip: 'Not interested'.tr(),
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ],
-      ),
+      child: actionsWidget,
     );
   }
 

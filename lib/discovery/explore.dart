@@ -838,7 +838,6 @@ class _DiscoveryActivityItem extends StatelessWidget {
           final itemData = _extractDiscoveryItemData(item);
           final post = SnPost.fromJson(itemData);
           final rank = item['rank'] as String?;
-          final isHighestOrLowest = rank == 'highest' || rank == 'lowest';
 
           return Container(
             width: 320,
@@ -849,83 +848,94 @@ class _DiscoveryActivityItem extends StatelessWidget {
               ),
               borderRadius: const BorderRadius.all(Radius.circular(8)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Expanded(
+                Positioned.fill(
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: SingleChildScrollView(
                       child: PostActionableItem(item: post, isCompact: true),
                     ),
                   ),
                 ),
-                if (isHighestOrLowest)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 8,
-                      right: 8,
-                      bottom: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        if (rank == 'highest')
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Top Pick',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  ),
-                            ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Row(
+                    children: [
+                      if (rank == 'highest')
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
                           ),
-                        if (rank == 'lowest')
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Not Recommended',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                  ),
-                            ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        const Spacer(),
-                        DiscoveryFeedbackWidget(
-                          kind: 'post',
-                          referenceId: post.id,
-                          showNotInterested: false,
+                          child: Text(
+                            'Top Pick',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
+                          ),
+                        ),
+                      if (rank == 'lowest')
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Not Recommended',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: DiscoveryFeedbackWidget(
+                      kind: 'post',
+                      referenceId: post.id,
+                      showNotInterested: false,
+                    ),
                   ),
+                ),
               ],
             ),
           );
@@ -1253,14 +1263,58 @@ class _ActivityListView extends HookConsumerWidget {
         switch (item.type) {
           case 'posts.new':
           case 'posts.new.replies':
+            final postData = item.data!;
+            final postJson = postData is Map<String, dynamic>
+                ? postData
+                : (postData as Map).cast<String, dynamic>();
+            final post = SnPost.fromJson(postJson);
+
+            final currentData = data;
+            final postsInBatch = currentData
+                .where(
+                  (e) => e.type == 'posts.new' || e.type == 'posts.new.replies',
+                )
+                .map((e) {
+                  final d = e.data;
+                  if (d is Map<String, dynamic>) return SnPost.fromJson(d);
+                  if (d is Map) {
+                    return SnPost.fromJson(Map<String, dynamic>.from(d));
+                  }
+                  return null;
+                })
+                .whereType<SnPost>()
+                .toList();
+
+            double? minRank;
+            double? maxRank;
+            if (postsInBatch.isNotEmpty) {
+              final ranks = postsInBatch
+                  .map((p) => p.debugRank)
+                  .whereType<double>()
+                  .toList();
+              if (ranks.isNotEmpty) {
+                minRank = ranks.reduce((a, b) => a < b ? a : b);
+                maxRank = ranks.reduce((a, b) => a > b ? a : b);
+              }
+            }
+
+            final isHighest =
+                post.debugRank != null && post.debugRank == maxRank;
+            final isLowest =
+                post.debugRank != null && post.debugRank == minRank;
+
             itemWidget = PostActionableItem(
               borderRadius: 8,
-              item: SnPost.fromJson(item.data!),
+              item: post,
+              showFeedback: isHighest || isLowest,
               onRefresh: () {
                 notifier.refresh();
               },
-              onUpdate: (post) {
-                notifier.updateOne(index, item.copyWith(data: post.toJson()));
+              onUpdate: (updatedPost) {
+                notifier.updateOne(
+                  index,
+                  item.copyWith(data: updatedPost.toJson()),
+                );
               },
             );
             itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);

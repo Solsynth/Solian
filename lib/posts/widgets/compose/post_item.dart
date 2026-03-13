@@ -11,6 +11,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
@@ -70,6 +71,7 @@ class PostActionableItem extends HookConsumerWidget {
   final bool isEmbedOpenable;
   final bool isCompact;
   final bool hideAttachments;
+  final bool showFeedback;
   final double? borderRadius;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -84,6 +86,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.isEmbedOpenable = false,
     this.isCompact = false,
     this.hideAttachments = false,
+    this.showFeedback = false,
     this.borderRadius,
     this.onRefresh,
     this.onUpdate,
@@ -297,7 +300,40 @@ class PostActionableItem extends HookConsumerWidget {
         borderRadius: borderRadius != null
             ? BorderRadius.all(Radius.circular(borderRadius!))
             : null,
-        child: widgetItem,
+        child: showFeedback
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  widgetItem,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        const Icon(Symbols.mindfulness, size: 20).opacity(0.75),
+                        Text(
+                          "Are we recommending the content you like?",
+                        ).tr().fontSize(13).opacity(0.75),
+                        const Spacer(),
+                        DiscoveryFeedbackWidget(
+                          kind: 'post',
+                          referenceId: item.id,
+                          showNotInterested: true,
+                          showBackground: false,
+                        ),
+                      ],
+                    ),
+                  ).clipRRect(bottomLeft: 8, bottomRight: 8),
+                ],
+              )
+            : widgetItem,
       ),
     );
   }
