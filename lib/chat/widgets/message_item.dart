@@ -8,10 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
+import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/chat/messages_notifier.dart';
@@ -1141,6 +1141,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
             if (showAvatar) ...[
               const Gap(8),
               MessageSenderInfo(
+                roomId: message.roomId,
                 sender: sender,
                 createdAt: message.createdAt,
                 textColor: textColor,
@@ -1269,8 +1270,9 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
             DateFormat('HH:mm').format(message.createdAt.toLocal()),
             style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
           ).padding(top: isMultiline ? 2 : 0),
-          AccountPfcRegion(
-            uname: sender.account.name,
+          ChatRoomMemberRegion(
+            roomId: message.roomId,
+            member: sender,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -1393,14 +1395,16 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                 Row(
                   spacing: 8,
                   children: [
-                    AccountPfcRegion(
-                      uname: sender.account.name,
+                    ChatRoomMemberRegion(
+                      roomId: message.roomId,
+                      member: sender,
                       child: ProfilePictureWidget(
                         file: sender.account.profile.picture,
                         radius: kAvatarRadius,
                       ),
                     ),
                     MessageSenderInfo(
+                      roomId: message.roomId,
                       sender: sender,
                       createdAt: message.createdAt,
                       textColor: textColor,

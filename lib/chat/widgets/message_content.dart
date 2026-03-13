@@ -297,6 +297,21 @@ class MessageContent extends StatelessWidget {
   (IconData, String) _buildSystemMessageSummary(SnChatMessage item) {
     final reason = item.meta['reason']?.toString();
     final isRemoved = reason == 'removed';
+    final timeoutUntilRaw =
+        item.meta['timeout_until'] ??
+        item.meta['timeoutUntil'] ??
+        item.meta['until'];
+    final targetName =
+        item.meta['member_nick']?.toString() ??
+        item.meta['member_name']?.toString() ??
+        item.meta['target_nick']?.toString() ??
+        item.meta['target_name']?.toString() ??
+        item.meta['display_name']?.toString();
+    final timeoutUntil = switch (timeoutUntilRaw) {
+      DateTime value => value,
+      String value => DateTime.tryParse(value),
+      _ => null,
+    };
 
     switch (item.type) {
       case 'system.member.joined':
@@ -328,6 +343,27 @@ class MessageContent extends StatelessWidget {
               (isRemoved
                   ? 'A member was removed from the call'
                   : 'A member left the call'),
+        );
+      case 'system.member.timed_out':
+        return (
+          Symbols.timer_pause,
+          item.content ??
+              switch ((targetName, timeoutUntil)) {
+                (final name?, final until?) =>
+                  '$name was timed out until ${DateFormat('yyyy-MM-dd HH:mm').format(until.toLocal())}',
+                (null, final until?) =>
+                  'A member was timed out until ${DateFormat('yyyy-MM-dd HH:mm').format(until.toLocal())}',
+                (final name?, null) => '$name was timed out',
+                _ => 'A member was timed out',
+              },
+        );
+      case 'system.member.timeout_removed':
+        return (
+          Symbols.timer_off,
+          item.content ??
+              (targetName != null
+                  ? '$targetName can chat again'
+                  : 'A member timeout was removed'),
         );
       default:
         return (Symbols.info_rounded, item.content ?? 'System message');

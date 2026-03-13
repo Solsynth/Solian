@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MessageSenderInfo extends StatelessWidget {
+  final String roomId;
   final SnChatMember sender;
   final DateTime createdAt;
   final Color textColor;
@@ -15,6 +16,7 @@ class MessageSenderInfo extends StatelessWidget {
 
   const MessageSenderInfo({
     super.key,
+    required this.roomId,
     required this.sender,
     required this.createdAt,
     required this.textColor,
@@ -37,8 +39,9 @@ class MessageSenderInfo extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           if (showAvatar)
-            AccountPfcRegion(
-              uname: sender.account.name,
+            ChatRoomMemberRegion(
+              roomId: roomId,
+              member: sender,
               child: ProfilePictureWidget(
                 file: sender.account.profile.picture,
                 radius: 14,
@@ -65,8 +68,9 @@ class MessageSenderInfo extends StatelessWidget {
       return Row(
         spacing: 8,
         children: [
-          AccountPfcRegion(
-            uname: sender.account.name,
+          ChatRoomMemberRegion(
+            roomId: roomId,
+            member: sender,
             child: ProfilePictureWidget(
               file: sender.account.profile.picture,
               radius: 14,
@@ -102,8 +106,9 @@ class MessageSenderInfo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showAvatar)
-          AccountPfcRegion(
-            uname: sender.account.name,
+          ChatRoomMemberRegion(
+            roomId: roomId,
+            member: sender,
             child: ProfilePictureWidget(
               file: sender.account.profile.picture,
               radius: 16,

@@ -96,7 +96,7 @@ class CallParticipantCard extends HookConsumerWidget {
               spacing: 4,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (canModerate || true)
+                if (canModerate)
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
