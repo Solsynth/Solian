@@ -15,10 +15,14 @@ part 'post_subscription_filter.g.dart';
 class PublisherSubscriptionLiveItem {
   final SnPublisherSubscription subscription;
   final bool isLive;
+  final DateTime? latestContentAt;
+  final bool hasNewContent;
 
   const PublisherSubscriptionLiveItem({
     required this.subscription,
     required this.isLive,
+    this.latestContentAt,
+    this.hasNewContent = false,
   });
 }
 
@@ -54,9 +58,17 @@ final publishersSubscriptionsLiveProvider =
         final sub = SnPublisherSubscription.fromJson(
           Map<String, dynamic>.from(subRaw is Map ? subRaw : json),
         );
+        DateTime? latestContentAt;
+        if (json['latest_content_at'] != null) {
+          latestContentAt = DateTime.tryParse(
+            json['latest_content_at'] as String,
+          );
+        }
         return PublisherSubscriptionLiveItem(
           subscription: sub,
           isLive: json['is_live'] == true,
+          latestContentAt: latestContentAt,
+          hasNewContent: json['has_new_content'] == true,
         );
       }).toList();
     });
@@ -71,6 +83,34 @@ Future<List<SnCategorySubscription>> categoriesSubscriptions(Ref ref) async {
       .map((json) => SnCategorySubscription.fromJson(json))
       .cast<SnCategorySubscription>()
       .toList();
+}
+
+@riverpod
+Future<DateTime?> publisherSubscriptionReadStatus(
+  Ref ref,
+  String publisherName,
+) async {
+  final client = ref.read(apiClientProvider);
+
+  final response = await client.get(
+    '/sphere/publishers/$publisherName/subscription/read-status',
+  );
+
+  if (response.data == null) return null;
+
+  final lastReadAt = response.data['last_read_at'];
+  if (lastReadAt == null) return null;
+
+  return DateTime.tryParse(lastReadAt as String);
+}
+
+Future<void> markPublisherAsRead(WidgetRef ref, String publisherName) async {
+  final client = ref.read(apiClientProvider);
+
+  await client.put(
+    '/sphere/publishers/$publisherName/subscription/read-status',
+    data: {},
+  );
 }
 
 class PostSubscriptionFilterWidget extends HookConsumerWidget {
@@ -162,6 +202,15 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                       title: Row(
                         children: [
                           Expanded(child: Text(publisher.nick)),
+                          if (item.hasNewContent)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                           if (item.isLive)
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -198,12 +247,18 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                       ),
                       value: isSelected,
-                      onChanged: (value) {
+                      onChanged: (value) async {
                         if (value == true) {
                           selectedPublishers.value = [
-                            ...selectedPublishers.value,
                             subscription.publisher.name,
                           ];
+                          selectedCategories.value = [];
+                          selectedTags.value = [];
+                          await markPublisherAsRead(
+                            ref,
+                            subscription.publisher.name,
+                          );
+                          ref.invalidate(publishersSubscriptionsLiveProvider);
                         } else {
                           selectedPublishers.value = selectedPublishers.value
                               .where(
@@ -287,6 +342,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                           : isTagSelected,
                       onChanged: (value) {
                         if (value == true) {
+                          selectedPublishers.value = [];
                           if (category != null) {
                             selectedCategories.value = [
                               ...selectedCategories.value,

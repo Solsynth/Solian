@@ -53,7 +53,7 @@ final class ChatOnlineCountNotifierProvider
 }
 
 String _$chatOnlineCountNotifierHash() =>
-    r'373d7c3c21a79e7efa2965e4e9b8fe47dd7acf37';
+    r'3cd061b48d445707416609393525d327054ec3ac';
 
 final class ChatOnlineCountNotifierFamily extends $Family
     with

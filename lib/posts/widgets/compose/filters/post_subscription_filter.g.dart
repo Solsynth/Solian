@@ -92,3 +92,83 @@ final class CategoriesSubscriptionsProvider
 
 String _$categoriesSubscriptionsHash() =>
     r'14a8f04d258d1a10aae20ca959495926840c9386';
+
+@ProviderFor(publisherSubscriptionReadStatus)
+final publisherSubscriptionReadStatusProvider =
+    PublisherSubscriptionReadStatusFamily._();
+
+final class PublisherSubscriptionReadStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DateTime?>,
+          DateTime?,
+          FutureOr<DateTime?>
+        >
+    with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
+  PublisherSubscriptionReadStatusProvider._({
+    required PublisherSubscriptionReadStatusFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherSubscriptionReadStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherSubscriptionReadStatusHash();
+
+  @override
+  String toString() {
+    return r'publisherSubscriptionReadStatusProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<DateTime?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DateTime?> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherSubscriptionReadStatus(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherSubscriptionReadStatusProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherSubscriptionReadStatusHash() =>
+    r'b5c03eded3c24d5f4aaac56bd87e9ba762379b2f';
+
+final class PublisherSubscriptionReadStatusFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<DateTime?>, String> {
+  PublisherSubscriptionReadStatusFamily._()
+    : super(
+        retry: null,
+        name: r'publisherSubscriptionReadStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherSubscriptionReadStatusProvider call(String publisherName) =>
+      PublisherSubscriptionReadStatusProvider._(
+        argument: publisherName,
+        from: this,
+      );
+
+  @override
+  String toString() => r'publisherSubscriptionReadStatusProvider';
+}
