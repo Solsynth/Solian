@@ -5,9 +5,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
+import 'package:island/creators/models/pub_quota_info.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
@@ -16,6 +18,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -65,6 +68,13 @@ Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/sphere/publishers/$uname/features');
   return Map<String, bool>.from(response.data);
+}
+
+@riverpod
+Future<PublisherQuotaInfo> publisherQuotaInfo(Ref ref) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/sphere/publishers/quota');
+  return PublisherQuotaInfo.fromJson(response.data);
 }
 
 @riverpod
@@ -274,88 +284,146 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final publishers = ref.watch(publishersManagedProvider);
     final publisherInvites = ref.watch(publisherInvitesProvider);
+    final publisherQuota = ref.watch(publisherQuotaInfoProvider);
 
     final hasPublishers = publishers.value?.isNotEmpty ?? false;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          if (!hasPublishers) ...[
-            if (publishers.isLoading)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: const CircularProgressIndicator(),
-              )
-            else
-              ...([
-                const Icon(
-                  Symbols.info,
-                  fill: 1,
-                  size: 32,
-                ).padding(bottom: 6, top: 24),
-                Text(
-                  'creatorHubUnselectedHint',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ).tr(),
-              ]),
-            const Gap(24),
-          ],
-          if (hasPublishers)
-            ...(publishers.value?.map(
-                  (publisher) => ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    ),
-                    leading: ProfilePictureWidget(file: publisher.picture),
-                    title: Text(publisher.nick),
-                    subtitle: Text('@${publisher.name}'),
-                    onTap: () => onPublisherSelected(publisher),
-                  ),
-                ) ??
-                []),
-          const Divider(height: 1),
-          ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
+    return Column(
+      children: [
+        ?publisherQuota.whenOrNull(
+          data: (data) => Card(
+            margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: HookBuilder(
+              builder: (context) {
+                final isCollapsed = useState(true);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${data.used} / ${data.total}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).padding(horizontal: 4),
+                    Row(
+                      children: [
+                        Text('publisherQuotaSlotUsed').tr(),
+                        const Spacer(),
+                        InkWell(
+                          onTap: () => isCollapsed.value = !isCollapsed.value,
+                          child: const Icon(Symbols.info, size: 16),
+                        ),
+                      ],
+                    ).padding(horizontal: 4),
+                    if (!isCollapsed.value)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8, bottom: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'publisherQuotaInfoHint',
+                        ).tr().fontSize(13).opacity(0.75),
+                      ),
+                    const Gap(8),
+                    LinearProgressIndicator(value: data.used / data.total),
+                  ],
+                ).padding(horizontal: 16, vertical: 12);
+              },
             ),
-            leading: const CircleAvatar(child: Icon(Symbols.mail)),
-            title: Text('publisherCollabInvitation').tr(),
-            subtitle: Text(
-              'publisherCollabInvitationCount',
-            ).plural(publisherInvites.value?.length ?? 0),
-            trailing: const Icon(Symbols.chevron_right),
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => const _PublisherInviteSheet(),
-              );
-            },
           ),
-          ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
-            leading: const CircleAvatar(child: Icon(Symbols.add)),
-            title: Text('createPublisher').tr(),
-            subtitle: Text('createPublisherHint').tr(),
-            trailing: const Icon(Symbols.chevron_right),
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => const NewPublisherScreen(),
-              ).then((value) {
-                if (value != null) {
-                  ref.invalidate(publishersManagedProvider);
-                }
-              });
-            },
+        ),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              if (!hasPublishers) ...[
+                if (publishers.isLoading)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: const ConfuseSpinner(),
+                  )
+                else
+                  ...([
+                    const Icon(
+                      Symbols.info,
+                      fill: 1,
+                      size: 32,
+                    ).padding(bottom: 6, top: 24),
+                    Text(
+                      'creatorHubUnselectedHint',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ).tr(),
+                  ]),
+                const Gap(24),
+              ],
+              if (hasPublishers)
+                ...(publishers.value?.map(
+                      (publisher) => ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                        ),
+                        leading: ProfilePictureWidget(file: publisher.picture),
+                        title: Text(publisher.nick),
+                        subtitle: Text('@${publisher.name}'),
+                        onTap: () => onPublisherSelected(publisher),
+                      ),
+                    ) ??
+                    []),
+              const Divider(height: 1),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                leading: const CircleAvatar(child: Icon(Symbols.mail)),
+                title: Text('publisherCollabInvitation').tr(),
+                subtitle: Text(
+                  'publisherCollabInvitationCount',
+                ).plural(publisherInvites.value?.length ?? 0),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => const _PublisherInviteSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                leading: const CircleAvatar(child: Icon(Symbols.add)),
+                title: Text('createPublisher').tr(),
+                subtitle: Text('createPublisherHint').tr(),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => const NewPublisherScreen(),
+                  ).then((value) {
+                    if (value != null) {
+                      ref.invalidate(publishersManagedProvider);
+                    }
+                  });
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
