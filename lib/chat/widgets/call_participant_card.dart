@@ -25,7 +25,9 @@ class CallParticipantCard extends HookConsumerWidget {
         .toDouble();
     ref.watch(callProvider);
     final callNotifier = ref.watch(callProvider.notifier);
-    final participantAccount = ref.watch(accountProvider(live.participant.identity));
+    final participantAccount = ref.watch(
+      accountProvider(live.participant.identity),
+    );
     final isAdmin = callNotifier.isAdmin;
     final isLocalParticipant = live.remoteParticipant is LocalParticipant;
     final targetAccountId = participantAccount.value?.id;
@@ -35,6 +37,49 @@ class CallParticipantCard extends HookConsumerWidget {
         targetAccountId != null &&
         targetAccountId.isNotEmpty;
     final moderationLoading = useState(false);
+
+    Future<void> handleMuteToggle() async {
+      moderationLoading.value = true;
+      try {
+        if (live.remoteParticipant.isMuted) {
+          await callNotifier.unmuteParticipantByAccountId(targetAccountId!);
+          showSnackBar('Participant unmuted');
+        } else {
+          await callNotifier.muteParticipantByAccountId(targetAccountId!);
+          showSnackBar('Participant muted');
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        moderationLoading.value = false;
+      }
+    }
+
+    Future<void> handleKickParticipant() async {
+      final confirmed = await showConfirmAlert(
+        'Remove this participant from the call?',
+        'Kick participant',
+        icon: Symbols.person_remove,
+        isDanger: true,
+      );
+      if (!confirmed) return;
+
+      moderationLoading.value = true;
+      try {
+        try {
+          await callNotifier.kickParticipantByAccountId(targetAccountId!);
+          showSnackBar('Participant removed');
+        } catch (err) {
+          showErrorAlert(err);
+        } finally {
+          moderationLoading.value = false;
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        moderationLoading.value = false;
+      }
+    }
 
     final volumeSliderValue = useState(callNotifier.getParticipantVolume(live));
 
@@ -49,7 +94,42 @@ class CallParticipantCard extends HookConsumerWidget {
           children: [
             Column(
               spacing: 4,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (canModerate || true)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.start,
+                    runAlignment: WrapAlignment.start,
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed: moderationLoading.value
+                            ? null
+                            : handleMuteToggle,
+                        icon: Icon(
+                          live.remoteParticipant.isMuted
+                              ? Symbols.mic
+                              : Symbols.mic_off,
+                        ),
+                        tooltip: live.remoteParticipant.isMuted
+                            ? 'Unmute'
+                            : 'Mute',
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      IconButton.filledTonal(
+                        onPressed: moderationLoading.value
+                            ? null
+                            : handleKickParticipant,
+                        icon: const Icon(Symbols.person_remove),
+                        tooltip: 'Kick',
+                        style: FilledButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ).padding(bottom: 8),
                 Row(
                   children: [
                     const Icon(Symbols.sound_detection_loud_sound, size: 16),
@@ -91,77 +171,6 @@ class CallParticipantCard extends HookConsumerWidget {
                   ],
                 ),
                 _CallParticipantStatsPanel(participant: live.remoteParticipant),
-                if (canModerate)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.tonalIcon(
-                        onPressed: moderationLoading.value
-                            ? null
-                            : () async {
-                                moderationLoading.value = true;
-                                try {
-                                  if (live.remoteParticipant.isMuted) {
-                                    await callNotifier
-                                        .unmuteParticipantByAccountId(
-                                          targetAccountId,
-                                        );
-                                    showSnackBar('Participant unmuted');
-                                  } else {
-                                    await callNotifier
-                                        .muteParticipantByAccountId(
-                                          targetAccountId,
-                                        );
-                                    showSnackBar('Participant muted');
-                                  }
-                                } catch (err) {
-                                  showErrorAlert(err);
-                                } finally {
-                                  moderationLoading.value = false;
-                                }
-                              },
-                        icon: Icon(
-                          live.remoteParticipant.isMuted
-                              ? Symbols.mic
-                              : Symbols.mic_off,
-                          size: 16,
-                        ),
-                        label: Text(
-                          live.remoteParticipant.isMuted ? 'Unmute' : 'Mute',
-                        ),
-                      ),
-                      FilledButton.tonalIcon(
-                        onPressed: moderationLoading.value
-                            ? null
-                            : () async {
-                                final confirmed = await showConfirmAlert(
-                                  'Remove this participant from the call?',
-                                  'Kick participant',
-                                  icon: Symbols.person_remove,
-                                  isDanger: true,
-                                );
-                                if (!confirmed) return;
-                                moderationLoading.value = true;
-                                try {
-                                  await callNotifier.kickParticipantByAccountId(
-                                    targetAccountId,
-                                  );
-                                  showSnackBar('Participant removed');
-                                } catch (err) {
-                                  showErrorAlert(err);
-                                } finally {
-                                  moderationLoading.value = false;
-                                }
-                              },
-                        icon: const Icon(Symbols.person_remove, size: 16),
-                        label: const Text('Kick'),
-                        style: FilledButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                  ).padding(top: 8),
               ],
             ).padding(horizontal: 20, top: 16),
             AccountNameplate(
