@@ -22,6 +22,7 @@ import "package:island/stickers/models/sticker.dart";
 import "package:island/core/config.dart";
 import "package:island/accounts/account_pod.dart";
 import "package:island/discovery/discovery_service.dart";
+import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/core/widgets/content/attachment_preview.dart";
 import "package:island/drive/drive_service.dart";
@@ -112,6 +113,48 @@ class _DirectMessageStatusBanner extends ConsumerWidget {
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChatTimeoutBanner extends StatelessWidget {
+  final DateTime timeoutUntil;
+
+  const _ChatTimeoutBanner({required this.timeoutUntil});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: ValueKey('chat-timeout-${timeoutUntil.toUtc().toIso8601String()}'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.75),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      margin: const EdgeInsets.only(left: 8, right: 8, top: 6, bottom: 4),
+      child: Row(
+        children: [
+          Icon(
+            Symbols.timer_pause,
+            size: 18,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              'You are timed out until ${DateFormat('yyyy-MM-dd HH:mm').format(timeoutUntil.toLocal())}. You cannot send messages right now.',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onErrorContainer,
               ),
             ),
           ),
@@ -359,6 +402,7 @@ class ChatInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inputFocusNode = useFocusNode();
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(chatRoom.id));
     final chatSubscribe = ref.watch(chatSubscribeProvider(chatRoom.id));
     final isExpanded = useState(false);
     final isDraggingOver = useState(false);
@@ -378,6 +422,10 @@ class ChatInput extends HookConsumerWidget {
     final recordingStartedAt = useRef<DateTime?>(null);
     final messagesNotifier = ref.read(messagesProvider(chatRoom.id).notifier);
     const maxVoiceRecordDuration = Duration(minutes: 5);
+    final timeoutUntil = roomIdentity.value?.timeoutUntil;
+    final hasActiveTimeout =
+        timeoutUntil != null && timeoutUntil.isAfter(DateTime.now());
+    final canCompose = !hasActiveTimeout;
 
     useEffect(() {
       return () {
@@ -389,6 +437,7 @@ class ChatInput extends HookConsumerWidget {
     }, [recorder, amplitudeStream]);
 
     void send() {
+      if (!canCompose) return;
       if (isExpanded.value) isExpanded.value = false;
       onSend.call();
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -402,6 +451,7 @@ class ChatInput extends HookConsumerWidget {
     finishVoiceRecording;
 
     Future<void> startVoiceRecording() async {
+      if (!canCompose) return;
       if (kIsWeb) {
         showSnackBar('Voice recording is not supported on web yet.');
         return;
@@ -507,6 +557,16 @@ class ChatInput extends HookConsumerWidget {
       }
       isVoiceMode.value = false;
     }
+
+    useEffect(() {
+      if (hasActiveTimeout) {
+        isExpanded.value = false;
+        if (isVoiceMode.value) {
+          leaveVoiceMode();
+        }
+      }
+      return null;
+    }, [hasActiveTimeout]);
 
     void insertNewLine() {
       final text = messageController.text;
@@ -663,6 +723,8 @@ class ChatInput extends HookConsumerWidget {
                   chatRoom: chatRoom,
                   validMembers: validMembers,
                 ),
+                if (hasActiveTimeout)
+                  _ChatTimeoutBanner(timeoutUntil: timeoutUntil),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 150),
                   switchInCurve: Curves.fastEaseInToSlowEaseOut,
@@ -1165,45 +1227,55 @@ class ChatInput extends HookConsumerWidget {
                                   )
                                 : const Icon(Symbols.add, key: ValueKey('add')),
                           ),
-                          onPressed: () {
-                            if (isVoiceMode.value) {
-                              leaveVoiceMode();
-                              return;
-                            }
-                            isExpanded.value = !isExpanded.value;
-                          },
+                          onPressed: canCompose
+                              ? () {
+                                  if (isVoiceMode.value) {
+                                    leaveVoiceMode();
+                                    return;
+                                  }
+                                  isExpanded.value = !isExpanded.value;
+                                }
+                              : null,
                         ),
                         if (!isVoiceMode.value)
-                          UploadMenu(
-                            items: [
-                              UploadMenuItemData(
-                                Symbols.add_a_photo,
-                                'addPhoto',
-                                () => onPickFile(true),
+                          IgnorePointer(
+                            ignoring: !canCompose,
+                            child: Opacity(
+                              opacity: canCompose ? 1 : 0.45,
+                              child: UploadMenu(
+                                items: [
+                                  UploadMenuItemData(
+                                    Symbols.add_a_photo,
+                                    'addPhoto',
+                                    () => onPickFile(true),
+                                  ),
+                                  UploadMenuItemData(
+                                    Symbols.videocam,
+                                    'addVideo',
+                                    () => onPickFile(false),
+                                  ),
+                                  UploadMenuItemData(
+                                    Symbols.mic,
+                                    'addAudio',
+                                    onPickAudio,
+                                  ),
+                                  UploadMenuItemData(
+                                    Symbols.file_upload,
+                                    'uploadFile',
+                                    onPickGeneralFile,
+                                  ),
+                                  if (onLinkAttachment != null)
+                                    UploadMenuItemData(
+                                      Symbols.attach_file,
+                                      'linkAttachment',
+                                      onLinkAttachment!,
+                                    ),
+                                ],
+                                iconColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface,
                               ),
-                              UploadMenuItemData(
-                                Symbols.videocam,
-                                'addVideo',
-                                () => onPickFile(false),
-                              ),
-                              UploadMenuItemData(
-                                Symbols.mic,
-                                'addAudio',
-                                onPickAudio,
-                              ),
-                              UploadMenuItemData(
-                                Symbols.file_upload,
-                                'uploadFile',
-                                onPickGeneralFile,
-                              ),
-                              if (onLinkAttachment != null)
-                                UploadMenuItemData(
-                                  Symbols.attach_file,
-                                  'linkAttachment',
-                                  onLinkAttachment!,
-                                ),
-                            ],
-                            iconColor: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                       ],
                     ),
@@ -1320,6 +1392,8 @@ class ChatInput extends HookConsumerWidget {
                                 return TextField(
                                   focusNode: focusNode,
                                   controller: controller,
+                                  enabled: canCompose,
+                                  readOnly: !canCompose,
                                   keyboardType: TextInputType.multiline,
                                   decoration: InputDecoration(
                                     hintMaxLines: 1,
@@ -1357,7 +1431,7 @@ class ChatInput extends HookConsumerWidget {
                                       ? TextInputAction.send
                                       : null,
                                   onEditingComplete: () {
-                                    if (settings.enterToSend) {
+                                    if (settings.enterToSend && canCompose) {
                                       inputFocusNode.requestFocus();
                                     }
                                   },
@@ -1491,7 +1565,7 @@ class ChatInput extends HookConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.send),
                         color: Theme.of(context).colorScheme.primary,
-                        onPressed: send,
+                        onPressed: canCompose ? send : null,
                       ),
                   ],
                 ),

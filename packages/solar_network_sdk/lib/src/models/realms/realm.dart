@@ -22,6 +22,8 @@ sealed class SnRealm with _$SnRealm {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    @Default(0) int boostPoints,
+    @Default(0) int boostLevel,
   }) = _SnRealm;
 
   factory SnRealm.fromJson(Map<String, dynamic> json) =>
@@ -41,6 +43,16 @@ sealed class SnRealmMember with _$SnRealmMember {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     required SnAccountStatus? status,
+    required String? nick,
+    required String? bio,
+    required String? labelId,
+    required String? labelName,
+    required String? labelDescription,
+    required String? labelColor,
+    required String? labelIcon,
+    required int experience,
+    required int level,
+    required double levelingProgress,
   }) = _SnRealmMember;
 
   factory SnRealmMember.fromJson(Map<String, dynamic> json) =>

@@ -29,6 +29,8 @@ _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   deletedAt: json['deleted_at'] == null
       ? null
       : DateTime.parse(json['deleted_at'] as String),
+  boostPoints: (json['boost_points'] as num?)?.toInt() ?? 0,
+  boostLevel: (json['boost_level'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
@@ -46,6 +48,8 @@ Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
+  'boost_points': instance.boostPoints,
+  'boost_level': instance.boostLevel,
 };
 
 _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
@@ -70,6 +74,16 @@ _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
       status: json['status'] == null
           ? null
           : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
+      nick: json['nick'] as String?,
+      bio: json['bio'] as String?,
+      labelId: json['label_id'] as String?,
+      labelName: json['label_name'] as String?,
+      labelDescription: json['label_description'] as String?,
+      labelColor: json['label_color'] as String?,
+      labelIcon: json['label_icon'] as String?,
+      experience: (json['experience'] as num).toInt(),
+      level: (json['level'] as num).toInt(),
+      levelingProgress: (json['leveling_progress'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
@@ -84,4 +98,14 @@ Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'status': instance.status?.toJson(),
+      'nick': instance.nick,
+      'bio': instance.bio,
+      'label_id': instance.labelId,
+      'label_name': instance.labelName,
+      'label_description': instance.labelDescription,
+      'label_color': instance.labelColor,
+      'label_icon': instance.labelIcon,
+      'experience': instance.experience,
+      'level': instance.level,
+      'leveling_progress': instance.levelingProgress,
     };
