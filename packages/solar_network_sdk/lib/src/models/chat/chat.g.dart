@@ -171,6 +171,15 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
       status: json['status'] == null
           ? null
           : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
+      realmNick: json['realm_nick'] as String?,
+      realmBio: json['realm_bio'] as String?,
+      realmExperience: (json['realm_experience'] as num?)?.toInt(),
+      realmLevel: (json['realm_level'] as num?)?.toInt(),
+      realmLevelingProgress: (json['realm_leveling_progress'] as num?)
+          ?.toDouble(),
+      realmLabel: json['realm_label'] == null
+          ? null
+          : SnRealmLabel.fromJson(json['realm_label'] as Map<String, dynamic>),
       lastTyped: json['last_typed'] == null
           ? null
           : DateTime.parse(json['last_typed'] as String),
@@ -192,6 +201,12 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'break_until': instance.breakUntil?.toIso8601String(),
       'timeout_until': instance.timeoutUntil?.toIso8601String(),
       'status': instance.status?.toJson(),
+      'realm_nick': instance.realmNick,
+      'realm_bio': instance.realmBio,
+      'realm_experience': instance.realmExperience,
+      'realm_level': instance.realmLevel,
+      'realm_leveling_progress': instance.realmLevelingProgress,
+      'realm_label': instance.realmLabel?.toJson(),
       'last_typed': instance.lastTyped?.toIso8601String(),
     };
 

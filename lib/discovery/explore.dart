@@ -21,7 +21,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/realms/realms_widgets/realm/realm_card.dart';
+import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
