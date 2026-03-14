@@ -58,6 +58,22 @@ class IapService {
                 productId: productId,
               ),
             );
+          } else if (purchase.status == PurchaseStatus.restored) {
+            final transactionId =
+                purchase.verificationData.localVerificationData;
+            final productId = purchase.productID;
+            final signedTransactionInfo =
+                purchase.verificationData.serverVerificationData;
+
+            _purchaseController.add(
+              IapPurchaseResult(
+                success: true,
+                transactionId: transactionId,
+                productId: productId,
+                signedTransactionInfo: signedTransactionInfo,
+                isRestored: true,
+              ),
+            );
           } else if (purchase.status == PurchaseStatus.error) {
             _purchaseController.add(
               IapPurchaseResult(
@@ -141,6 +157,18 @@ class IapService {
     }
   }
 
+  Future<void> restorePurchases() async {
+    if (!_isAvailable) {
+      return;
+    }
+
+    try {
+      await _inAppPurchase.restorePurchases();
+    } catch (e) {
+      debugPrint('Failed to restore purchases: $e');
+    }
+  }
+
   void dispose() {
     _purchaseSubscription?.cancel();
     _purchaseController.close();
@@ -152,12 +180,16 @@ class IapPurchaseResult {
   final String? error;
   final String? transactionId;
   final String? productId;
+  final String? signedTransactionInfo;
+  final bool isRestored;
 
   IapPurchaseResult({
     required this.success,
     this.error,
     this.transactionId,
     this.productId,
+    this.signedTransactionInfo,
+    this.isRestored = false,
   });
 }
 

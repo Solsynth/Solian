@@ -508,6 +508,7 @@
   "biometricAuthFailed": "Biometric authentication failed. Please try again.",
   "paymentSuccess": "Payment completed successfully!",
   "membershipPurchaseSuccess": "Membership purchased successfully!",
+  "membershipRestoreSuccess": "Membership restored successfully!",
   "paymentError": "Payment failed: {error}",
   "usePinInstead": "Use PIN Code",
   "levelProgress": "Level Progress",

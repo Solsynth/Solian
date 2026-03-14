@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -437,8 +438,16 @@ class StellarProgramTab extends HookConsumerWidget {
           _buildMembershipTiers(context, ref, membership),
 
           // Restore Purchase Button
-          // As you know Apple platform need IAP
-          if (kIsWeb || !(Platform.isIOS || Platform.isMacOS))
+          if (Platform.isIOS || Platform.isMacOS)
+            OutlinedButton.icon(
+              onPressed: () => _restorePurchaseIap(context, ref),
+              icon: const Icon(Icons.restore),
+              label: Text('restorePurchase'.tr()),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ).padding(top: 12)
+          else if (kIsWeb || !(Platform.isIOS || Platform.isMacOS))
             OutlinedButton.icon(
               onPressed: () => _showRestorePurchaseSheet(context, ref),
               icon: const Icon(Icons.restore),
@@ -685,6 +694,75 @@ class StellarProgramTab extends HookConsumerWidget {
       context: context,
       builder: (context) => const RestorePurchaseSheet(),
     );
+  }
+
+  Future<void> _restorePurchaseIap(BuildContext context, WidgetRef ref) async {
+    final iapService = ref.read(iapServiceProvider);
+    final client = ref.read(apiClientProvider);
+    final userAsync = ref.read(userInfoProvider);
+
+    try {
+      showLoadingModal(context);
+
+      if (userAsync.hasValue && userAsync.value != null) {
+        iapService.setUserId(userAsync.value!.id);
+      }
+
+      await iapService.initialize();
+      if (!iapService.isAvailable) {
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert('IAP is not available on this platform');
+        }
+        return;
+      }
+
+      final restoredProductIds = <String>[];
+
+      final subscription = iapService.purchaseResultStream.listen((
+        result,
+      ) async {
+        if (result.isRestored && result.signedTransactionInfo != null) {
+          restoredProductIds.add(result.productId ?? '');
+
+          try {
+            await client.post(
+              '/wallet/subscriptions/order/restore/apple',
+              data: {'signed_transaction_info': result.signedTransactionInfo},
+            );
+          } catch (e) {
+            debugPrint('Failed to restore purchase: $e');
+          }
+        } else if (!result.success && result.error != null) {
+          if (context.mounted) {
+            showSnackBar(result.error!);
+          }
+        }
+      });
+
+      await iapService.restorePurchases();
+
+      await Future.delayed(const Duration(seconds: 3));
+
+      await subscription.cancel();
+
+      ref.invalidate(accountStellarSubscriptionProvider);
+      ref.read(userInfoProvider.notifier).fetchUser();
+
+      if (context.mounted) {
+        hideLoadingModal(context);
+        if (restoredProductIds.isNotEmpty) {
+          showSnackBar('membershipRestoreSuccess'.tr());
+        } else {
+          showSnackBar('noPurchasesToRestore'.tr());
+        }
+      }
+    } catch (err) {
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
   }
 
   Future<void> _purchaseMembership(
