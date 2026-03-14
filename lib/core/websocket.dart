@@ -42,12 +42,15 @@ final websocketProvider = Provider<WebSocketService>((ref) {
 class WebSocketService {
   late Ref _ref;
   WebSocketChannel? _channel;
+  StreamSubscription? _channelSubscription;
   final StreamController<WebSocketPacket> _streamController =
       StreamController<WebSocketPacket>.broadcast();
   final StreamController<WebSocketState> _statusStreamController =
       StreamController<WebSocketState>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
+  int _connectionGeneration = 0;
+  bool _isClosing = false;
 
   DateTime? _heartbeatAt;
   Duration? heartbeatDelay;
@@ -62,10 +65,13 @@ class WebSocketService {
 
   Future<void> connect(Ref ref) async {
     _ref = ref;
+    _isClosing = false;
+    final connectionGeneration = ++_connectionGeneration;
+    await _disposeActiveChannel();
     _statusStreamController.sink.add(WebSocketState.connecting());
 
-    final baseUrl = ref.watch(serverUrlProvider);
-    final token = await getToken(ref.watch(tokenProvider));
+    final baseUrl = ref.read(serverUrlProvider);
+    final token = await getToken(ref.read(tokenProvider));
 
     final url = '$baseUrl/ws'.replaceFirst('http', 'ws');
 
@@ -80,10 +86,17 @@ class WebSocketService {
         );
       }
       await _channel!.ready;
+      if (connectionGeneration != _connectionGeneration) {
+        await _channel!.sink.close();
+        return;
+      }
+      _reconnectCount = 0;
+      _reconnectWindowStart = null;
       _statusStreamController.sink.add(WebSocketState.connected());
       _scheduleHeartbeat();
-      _channel!.stream.listen(
+      _channelSubscription = _channel!.stream.listen(
         (data) {
+          if (connectionGeneration != _connectionGeneration) return;
           final dataStr = data is Uint8List
               ? utf8.decode(data)
               : data.toString();
@@ -104,29 +117,39 @@ class WebSocketService {
           }
         },
         onDone: () {
+          if (connectionGeneration != _connectionGeneration || _isClosing) {
+            return;
+          }
           talker.info(
             '[WebSocket] Connection closed, attempting to reconnect...',
           );
-          _scheduleReconnect();
           _statusStreamController.sink.add(WebSocketState.disconnected());
+          _scheduleReconnect();
         },
         onError: (error) {
+          if (connectionGeneration != _connectionGeneration || _isClosing) {
+            return;
+          }
           talker.error(
             '[WebSocket] Error occurred: $error, attempting to reconnect...',
           );
-          _scheduleReconnect();
           _statusStreamController.sink.add(
             WebSocketState.error(error.toString()),
           );
+          _scheduleReconnect();
         },
       );
     } catch (err) {
+      if (connectionGeneration != _connectionGeneration || _isClosing) return;
       talker.error('[WebSocket] Failed to connect: $err');
+      _statusStreamController.sink.add(WebSocketState.error(err.toString()));
       _scheduleReconnect();
     }
   }
 
   void _scheduleReconnect() {
+    if (_isClosing) return;
+
     // Check if we've exceeded the reconnect limit
     final now = DateTime.now();
     if (_reconnectWindowStart == null ||
@@ -179,12 +202,30 @@ class WebSocketService {
   WebSocketChannel? get ws => _channel;
 
   void sendMessage(String message) {
-    _channel!.sink.add(message);
+    _channel?.sink.add(message);
   }
 
   void close() {
+    _isClosing = true;
     _reconnectTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _heartbeatAt = null;
+    heartbeatDelay = null;
+    _channelSubscription?.cancel();
+    _channelSubscription = null;
     _channel?.sink.close();
+    _channel = null;
+  }
+
+  Future<void> _disposeActiveChannel() async {
+    _reconnectTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _heartbeatAt = null;
+    heartbeatDelay = null;
+    await _channelSubscription?.cancel();
+    _channelSubscription = null;
+    await _channel?.sink.close();
+    _channel = null;
   }
 }
 
@@ -195,11 +236,19 @@ final websocketStateProvider =
 
 class WebSocketStateNotifier extends Notifier<WebSocketState> {
   Timer? _reconnectTimer;
+  StreamSubscription<WebSocketState>? _statusSubscription;
 
   @override
   WebSocketState build() {
+    _statusSubscription?.cancel();
+    final service = ref.read(websocketProvider);
+    _statusSubscription = service.statusStream.listen((event) {
+      state = event;
+    });
+
     ref.onDispose(() {
       _reconnectTimer?.cancel();
+      _statusSubscription?.cancel();
     });
     return const WebSocketState.disconnected();
   }
@@ -209,10 +258,6 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
     try {
       final service = ref.read(websocketProvider);
       await service.connect(ref);
-      state = const WebSocketState.connected();
-      service.statusStream.listen((event) {
-        state = event;
-      });
     } catch (err) {
       state = WebSocketState.error('Failed to connect: $err');
       _scheduleReconnect();
