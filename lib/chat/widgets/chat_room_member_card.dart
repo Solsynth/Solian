@@ -13,7 +13,9 @@ import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/core/utils/text.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -199,10 +201,16 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AccountName(
-                            account: effectiveMember.account,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                          Row(
+                            children: [
+                              AccountName(
+                                account: effectiveMember.account,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              if (effectiveMember.realmLabel != null)
+                                RealmLabel(label: effectiveMember.realmLabel!),
+                            ],
                           ),
                           Text(
                             '@${effectiveMember.account.name}',

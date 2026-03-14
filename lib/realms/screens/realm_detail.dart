@@ -5,6 +5,7 @@ import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
+import 'package:island/core/utils/text.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -32,16 +33,6 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 const _realmBoostThresholds = [0, 1000, 5000, 15000];
-
-Color? _parseHexColor(String? value) {
-  if (value == null || value.isEmpty) return null;
-  final normalized = value.replaceFirst('#', '');
-  if (normalized.length != 6 && normalized.length != 8) return null;
-  final buffer = StringBuffer();
-  if (normalized.length == 6) buffer.write('ff');
-  buffer.write(normalized);
-  return Color(int.tryParse(buffer.toString(), radix: 16) ?? 0);
-}
 
 class _RealmExperienceCard extends StatelessWidget {
   const _RealmExperienceCard({required this.identity});
@@ -534,7 +525,7 @@ class RealmDetailScreen extends HookConsumerWidget {
     }
 
     Widget realmIdentityWidget(SnRealm realm, SnRealmMember identity) {
-      final labelColor = _parseHexColor(identity.labelColor);
+      final labelColor = identity.label?.color.parseHexColor();
 
       return Card(
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -592,8 +583,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    if ((identity.labelIcon ?? '').isNotEmpty) ...[
-                      Text(identity.labelIcon!),
+                    if ((identity.label?.icon ?? '').isNotEmpty) ...[
+                      Text(identity.label!.icon),
                       const Gap(8),
                     ],
                     Expanded(
@@ -601,15 +592,15 @@ class RealmDetailScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            identity.labelName!,
+                            identity.label!.name,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: labelColor,
                             ),
                           ),
-                          if ((identity.labelDescription ?? '').isNotEmpty)
+                          if ((identity.label?.description ?? '').isNotEmpty)
                             Text(
-                              identity.labelDescription!,
+                              identity.label!.description,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                         ],
@@ -691,7 +682,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 }
                 return Column(
                   children: labels.map((label) {
-                    final labelColor = _parseHexColor(label.color);
+                    final labelColor = label.color?.parseHexColor();
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),

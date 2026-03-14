@@ -365,7 +365,7 @@ $SnCloudFileCopyWith<$Res>? get background {
 /// @nodoc
 mixin _$SnRealmMember {
 
- String get realmId; SnRealm? get realm; String get accountId; SnAccount? get account; int get role; DateTime? get joinedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; SnAccountStatus? get status; String? get nick; String? get bio; String? get labelId; String? get labelName; String? get labelDescription; String? get labelColor; String? get labelIcon; int get experience; int get level; double get levelingProgress;
+ String get realmId; SnRealm? get realm; String get accountId; SnAccount? get account; int get role; DateTime? get joinedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; SnAccountStatus? get status; String? get nick; String? get bio; String? get labelId; SnRealmLabel? get label; int get experience; int get level; double get levelingProgress;
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -378,16 +378,16 @@ $SnRealmMemberCopyWith<SnRealmMember> get copyWith => _$SnRealmMemberCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.labelId, labelId) || other.labelId == labelId)&&(identical(other.labelName, labelName) || other.labelName == labelName)&&(identical(other.labelDescription, labelDescription) || other.labelDescription == labelDescription)&&(identical(other.labelColor, labelColor) || other.labelColor == labelColor)&&(identical(other.labelIcon, labelIcon) || other.labelIcon == labelIcon)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.labelId, labelId) || other.labelId == labelId)&&(identical(other.label, label) || other.label == label)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status,nick,bio,labelId,labelName,labelDescription,labelColor,labelIcon,experience,level,levelingProgress]);
+int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status,nick,bio,labelId,label,experience,level,levelingProgress);
 
 @override
 String toString() {
-  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status, nick: $nick, bio: $bio, labelId: $labelId, labelName: $labelName, labelDescription: $labelDescription, labelColor: $labelColor, labelIcon: $labelIcon, experience: $experience, level: $level, levelingProgress: $levelingProgress)';
+  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status, nick: $nick, bio: $bio, labelId: $labelId, label: $label, experience: $experience, level: $level, levelingProgress: $levelingProgress)';
 }
 
 
@@ -398,11 +398,11 @@ abstract mixin class $SnRealmMemberCopyWith<$Res>  {
   factory $SnRealmMemberCopyWith(SnRealmMember value, $Res Function(SnRealmMember) _then) = _$SnRealmMemberCopyWithImpl;
 @useResult
 $Res call({
- String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status, String? nick, String? bio, String? labelId, String? labelName, String? labelDescription, String? labelColor, String? labelIcon, int experience, int level, double levelingProgress
+ String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status, String? nick, String? bio, String? labelId, SnRealmLabel? label, int experience, int level, double levelingProgress
 });
 
 
-$SnRealmCopyWith<$Res>? get realm;$SnAccountCopyWith<$Res>? get account;$SnAccountStatusCopyWith<$Res>? get status;
+$SnRealmCopyWith<$Res>? get realm;$SnAccountCopyWith<$Res>? get account;$SnAccountStatusCopyWith<$Res>? get status;$SnRealmLabelCopyWith<$Res>? get label;
 
 }
 /// @nodoc
@@ -415,7 +415,7 @@ class _$SnRealmMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,Object? nick = freezed,Object? bio = freezed,Object? labelId = freezed,Object? labelName = freezed,Object? labelDescription = freezed,Object? labelColor = freezed,Object? labelIcon = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,Object? nick = freezed,Object? bio = freezed,Object? labelId = freezed,Object? label = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,}) {
   return _then(_self.copyWith(
 realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
@@ -430,11 +430,8 @@ as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_n
 as SnAccountStatus?,nick: freezed == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String?,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,labelId: freezed == labelId ? _self.labelId : labelId // ignore: cast_nullable_to_non_nullable
-as String?,labelName: freezed == labelName ? _self.labelName : labelName // ignore: cast_nullable_to_non_nullable
-as String?,labelDescription: freezed == labelDescription ? _self.labelDescription : labelDescription // ignore: cast_nullable_to_non_nullable
-as String?,labelColor: freezed == labelColor ? _self.labelColor : labelColor // ignore: cast_nullable_to_non_nullable
-as String?,labelIcon: freezed == labelIcon ? _self.labelIcon : labelIcon // ignore: cast_nullable_to_non_nullable
-as String?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
+as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as SnRealmLabel?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : levelingProgress // ignore: cast_nullable_to_non_nullable
 as double,
@@ -475,6 +472,18 @@ $SnAccountStatusCopyWith<$Res>? get status {
 
   return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
     return _then(_self.copyWith(status: value));
+  });
+}/// Create a copy of SnRealmMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnRealmLabelCopyWith<$Res>? get label {
+    if (_self.label == null) {
+    return null;
+  }
+
+  return $SnRealmLabelCopyWith<$Res>(_self.label!, (value) {
+    return _then(_self.copyWith(label: value));
   });
 }
 }
@@ -555,10 +564,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  String? labelName,  String? labelDescription,  String? labelColor,  String? labelIcon,  int experience,  int level,  double levelingProgress)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  SnRealmLabel? label,  int experience,  int level,  double levelingProgress)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRealmMember() when $default != null:
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.labelName,_that.labelDescription,_that.labelColor,_that.labelIcon,_that.experience,_that.level,_that.levelingProgress);case _:
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.label,_that.experience,_that.level,_that.levelingProgress);case _:
   return orElse();
 
 }
@@ -576,10 +585,10 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  String? labelName,  String? labelDescription,  String? labelColor,  String? labelIcon,  int experience,  int level,  double levelingProgress)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  SnRealmLabel? label,  int experience,  int level,  double levelingProgress)  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmMember():
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.labelName,_that.labelDescription,_that.labelColor,_that.labelIcon,_that.experience,_that.level,_that.levelingProgress);}
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.label,_that.experience,_that.level,_that.levelingProgress);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -593,10 +602,10 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  String? labelName,  String? labelDescription,  String? labelColor,  String? labelIcon,  int experience,  int level,  double levelingProgress)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status,  String? nick,  String? bio,  String? labelId,  SnRealmLabel? label,  int experience,  int level,  double levelingProgress)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmMember() when $default != null:
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.labelName,_that.labelDescription,_that.labelColor,_that.labelIcon,_that.experience,_that.level,_that.levelingProgress);case _:
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status,_that.nick,_that.bio,_that.labelId,_that.label,_that.experience,_that.level,_that.levelingProgress);case _:
   return null;
 
 }
@@ -608,7 +617,7 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 @JsonSerializable()
 
 class _SnRealmMember implements SnRealmMember {
-  const _SnRealmMember({required this.realmId, required this.realm, required this.accountId, required this.account, required this.role, required this.joinedAt, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.status, required this.nick, required this.bio, required this.labelId, required this.labelName, required this.labelDescription, required this.labelColor, required this.labelIcon, required this.experience, required this.level, required this.levelingProgress});
+  const _SnRealmMember({required this.realmId, required this.realm, required this.accountId, required this.account, required this.role, required this.joinedAt, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.status, required this.nick, required this.bio, required this.labelId, required this.label, required this.experience, required this.level, required this.levelingProgress});
   factory _SnRealmMember.fromJson(Map<String, dynamic> json) => _$SnRealmMemberFromJson(json);
 
 @override final  String realmId;
@@ -624,10 +633,7 @@ class _SnRealmMember implements SnRealmMember {
 @override final  String? nick;
 @override final  String? bio;
 @override final  String? labelId;
-@override final  String? labelName;
-@override final  String? labelDescription;
-@override final  String? labelColor;
-@override final  String? labelIcon;
+@override final  SnRealmLabel? label;
 @override final  int experience;
 @override final  int level;
 @override final  double levelingProgress;
@@ -645,16 +651,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.labelId, labelId) || other.labelId == labelId)&&(identical(other.labelName, labelName) || other.labelName == labelName)&&(identical(other.labelDescription, labelDescription) || other.labelDescription == labelDescription)&&(identical(other.labelColor, labelColor) || other.labelColor == labelColor)&&(identical(other.labelIcon, labelIcon) || other.labelIcon == labelIcon)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.labelId, labelId) || other.labelId == labelId)&&(identical(other.label, label) || other.label == label)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status,nick,bio,labelId,labelName,labelDescription,labelColor,labelIcon,experience,level,levelingProgress]);
+int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status,nick,bio,labelId,label,experience,level,levelingProgress);
 
 @override
 String toString() {
-  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status, nick: $nick, bio: $bio, labelId: $labelId, labelName: $labelName, labelDescription: $labelDescription, labelColor: $labelColor, labelIcon: $labelIcon, experience: $experience, level: $level, levelingProgress: $levelingProgress)';
+  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status, nick: $nick, bio: $bio, labelId: $labelId, label: $label, experience: $experience, level: $level, levelingProgress: $levelingProgress)';
 }
 
 
@@ -665,11 +671,11 @@ abstract mixin class _$SnRealmMemberCopyWith<$Res> implements $SnRealmMemberCopy
   factory _$SnRealmMemberCopyWith(_SnRealmMember value, $Res Function(_SnRealmMember) _then) = __$SnRealmMemberCopyWithImpl;
 @override @useResult
 $Res call({
- String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status, String? nick, String? bio, String? labelId, String? labelName, String? labelDescription, String? labelColor, String? labelIcon, int experience, int level, double levelingProgress
+ String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status, String? nick, String? bio, String? labelId, SnRealmLabel? label, int experience, int level, double levelingProgress
 });
 
 
-@override $SnRealmCopyWith<$Res>? get realm;@override $SnAccountCopyWith<$Res>? get account;@override $SnAccountStatusCopyWith<$Res>? get status;
+@override $SnRealmCopyWith<$Res>? get realm;@override $SnAccountCopyWith<$Res>? get account;@override $SnAccountStatusCopyWith<$Res>? get status;@override $SnRealmLabelCopyWith<$Res>? get label;
 
 }
 /// @nodoc
@@ -682,7 +688,7 @@ class __$SnRealmMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,Object? nick = freezed,Object? bio = freezed,Object? labelId = freezed,Object? labelName = freezed,Object? labelDescription = freezed,Object? labelColor = freezed,Object? labelIcon = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,Object? nick = freezed,Object? bio = freezed,Object? labelId = freezed,Object? label = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,}) {
   return _then(_SnRealmMember(
 realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
@@ -697,11 +703,8 @@ as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_n
 as SnAccountStatus?,nick: freezed == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String?,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,labelId: freezed == labelId ? _self.labelId : labelId // ignore: cast_nullable_to_non_nullable
-as String?,labelName: freezed == labelName ? _self.labelName : labelName // ignore: cast_nullable_to_non_nullable
-as String?,labelDescription: freezed == labelDescription ? _self.labelDescription : labelDescription // ignore: cast_nullable_to_non_nullable
-as String?,labelColor: freezed == labelColor ? _self.labelColor : labelColor // ignore: cast_nullable_to_non_nullable
-as String?,labelIcon: freezed == labelIcon ? _self.labelIcon : labelIcon // ignore: cast_nullable_to_non_nullable
-as String?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
+as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as SnRealmLabel?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : levelingProgress // ignore: cast_nullable_to_non_nullable
 as double,
@@ -744,7 +747,303 @@ $SnAccountStatusCopyWith<$Res>? get status {
   return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
     return _then(_self.copyWith(status: value));
   });
+}/// Create a copy of SnRealmMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnRealmLabelCopyWith<$Res>? get label {
+    if (_self.label == null) {
+    return null;
+  }
+
+  return $SnRealmLabelCopyWith<$Res>(_self.label!, (value) {
+    return _then(_self.copyWith(label: value));
+  });
 }
+}
+
+
+/// @nodoc
+mixin _$SnRealmLabel {
+
+ String get id; String get realmId; String get name; String get description; String get color; dynamic get icon; String get createdByAccountId; DateTime get createdAt; DateTime get updatedAt; dynamic get deletedAt;
+/// Create a copy of SnRealmLabel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnRealmLabelCopyWith<SnRealmLabel> get copyWith => _$SnRealmLabelCopyWithImpl<SnRealmLabel>(this as SnRealmLabel, _$identity);
+
+  /// Serializes this SnRealmLabel to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.icon, icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,const DeepCollectionEquality().hash(icon),createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+
+@override
+String toString() {
+  return 'SnRealmLabel(id: $id, realmId: $realmId, name: $name, description: $description, color: $color, icon: $icon, createdByAccountId: $createdByAccountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnRealmLabelCopyWith<$Res>  {
+  factory $SnRealmLabelCopyWith(SnRealmLabel value, $Res Function(SnRealmLabel) _then) = _$SnRealmLabelCopyWithImpl;
+@useResult
+$Res call({
+ String id, String realmId, String name, String description, String color, dynamic icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnRealmLabelCopyWithImpl<$Res>
+    implements $SnRealmLabelCopyWith<$Res> {
+  _$SnRealmLabelCopyWithImpl(this._self, this._then);
+
+  final SnRealmLabel _self;
+  final $Res Function(SnRealmLabel) _then;
+
+/// Create a copy of SnRealmLabel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = null,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as dynamic,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as dynamic,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnRealmLabel].
+extension SnRealmLabelPatterns on SnRealmLabel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnRealmLabel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnRealmLabel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnRealmLabel value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmLabel():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnRealmLabel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmLabel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnRealmLabel() when $default != null:
+return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmLabel():
+return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmLabel() when $default != null:
+return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnRealmLabel implements SnRealmLabel {
+  const _SnRealmLabel({required this.id, required this.realmId, required this.name, required this.description, required this.color, required this.icon, required this.createdByAccountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnRealmLabel.fromJson(Map<String, dynamic> json) => _$SnRealmLabelFromJson(json);
+
+@override final  String id;
+@override final  String realmId;
+@override final  String name;
+@override final  String description;
+@override final  String color;
+@override final  dynamic icon;
+@override final  String createdByAccountId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  dynamic deletedAt;
+
+/// Create a copy of SnRealmLabel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnRealmLabelCopyWith<_SnRealmLabel> get copyWith => __$SnRealmLabelCopyWithImpl<_SnRealmLabel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnRealmLabelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.icon, icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,const DeepCollectionEquality().hash(icon),createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+
+@override
+String toString() {
+  return 'SnRealmLabel(id: $id, realmId: $realmId, name: $name, description: $description, color: $color, icon: $icon, createdByAccountId: $createdByAccountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnRealmLabelCopyWith<$Res> implements $SnRealmLabelCopyWith<$Res> {
+  factory _$SnRealmLabelCopyWith(_SnRealmLabel value, $Res Function(_SnRealmLabel) _then) = __$SnRealmLabelCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String realmId, String name, String description, String color, dynamic icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnRealmLabelCopyWithImpl<$Res>
+    implements _$SnRealmLabelCopyWith<$Res> {
+  __$SnRealmLabelCopyWithImpl(this._self, this._then);
+
+  final _SnRealmLabel _self;
+  final $Res Function(_SnRealmLabel) _then;
+
+/// Create a copy of SnRealmLabel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = null,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnRealmLabel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as dynamic,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as dynamic,
+  ));
+}
+
+
 }
 
 // dart format on

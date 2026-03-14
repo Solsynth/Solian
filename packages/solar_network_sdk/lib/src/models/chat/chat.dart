@@ -94,6 +94,13 @@ sealed class SnChatMember with _$SnChatMember {
     required DateTime? breakUntil,
     required DateTime? timeoutUntil,
     required SnAccountStatus? status,
+    // Realm related-content
+    required String? realmNick,
+    required String? realmBio,
+    required int? realmExperience,
+    required int? realmLevel,
+    required double? realmLevelingProgress,
+    required SnRealmLabel? realmLabel,
     // Frontend data
     DateTime? lastTyped,
   }) = _SnChatMember;

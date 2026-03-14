@@ -825,6 +825,12 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
                 updatedAt: mRow.updatedAt,
                 deletedAt: mRow.deletedAt,
                 chatRoom: null,
+                realmNick: mRow.realmNick ?? '',
+                realmBio: mRow.realmBio ?? '',
+                realmExperience: mRow.realmExperience,
+                realmLevel: mRow.realmLevel,
+                realmLevelingProgress: mRow.realmLevelingProgress,
+                realmLabel: mRow.realmLabel != null ? SnRealmLabel.fromJson(mRow.realmLabel!) : null,
               );
             }).toList();
             return SnChatRoom(
@@ -957,6 +963,12 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
             updatedAt: mRow.updatedAt,
             deletedAt: mRow.deletedAt,
             chatRoom: null,
+            realmNick: mRow.realmNick ?? '',
+            realmBio: mRow.realmBio ?? '',
+            realmExperience: mRow.realmExperience,
+            realmLevel: mRow.realmLevel,
+            realmLevelingProgress: mRow.realmLevelingProgress,
+                realmLabel: mRow.realmLabel != null ? SnRealmLabel.fromJson(mRow.realmLabel!) : null,
           );
         }).toList();
 
@@ -1056,6 +1068,12 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
             updatedAt: localMemberData.updatedAt,
             deletedAt: localMemberData.deletedAt,
             chatRoom: null,
+            realmNick: localMemberData.realmNick ?? '',
+            realmBio: localMemberData.realmBio ?? '',
+            realmExperience: localMemberData.realmExperience,
+            realmLevel: localMemberData.realmLevel,
+            realmLevelingProgress: localMemberData.realmLevelingProgress,
+            realmLabel: localMemberData.realmLabel != null ? SnRealmLabel.fromJson(localMemberData.realmLabel!) : null,
           );
 
           // Background sync
@@ -1124,6 +1142,12 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
       updatedAt: localMemberData.updatedAt,
       deletedAt: localMemberData.deletedAt,
       chatRoom: null,
+      realmNick: localMemberData.realmNick ?? '',
+      realmBio: localMemberData.realmBio ?? '',
+      realmExperience: localMemberData.realmExperience,
+      realmLevel: localMemberData.realmLevel,
+      realmLevelingProgress: localMemberData.realmLevelingProgress,
+      realmLabel: localMemberData.realmLabel != null ? SnRealmLabel.fromJson(localMemberData.realmLabel!) : null,
     );
   }
 }
