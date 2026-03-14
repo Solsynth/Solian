@@ -446,39 +446,32 @@ class AppBackground extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
 
     if (isRoot || !isWideScreen(context)) {
-      return imageFileAsync.when(
-        data: (file) {
-          if (file != null && settings.showBackgroundImage) {
-            return Container(
-              color: Theme.of(context).colorScheme.surface,
-              child: Container(
-                decoration: BoxDecoration(
-                  backgroundBlendMode: BlendMode.darken,
+      return imageFileAsync.whenOrNull(
+            data: (file) {
+              if (file != null && settings.showBackgroundImage) {
+                return Material(
                   color: Theme.of(context).colorScheme.surface,
-                  image: DecorationImage(
-                    opacity: 0.2,
-                    image: FileImage(file),
-                    fit: BoxFit.cover,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      backgroundBlendMode: BlendMode.darken,
+                      color: Theme.of(context).colorScheme.surface,
+                      image: DecorationImage(
+                        opacity: 0.2,
+                        image: FileImage(file),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: child,
                   ),
-                ),
+                );
+              }
+              return Material(
+                color: Theme.of(context).colorScheme.surface,
                 child: child,
-              ),
-            );
-          }
-          return Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: child,
-          );
-        },
-        loading: () => Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: child,
-        ),
-        error: (_, _) => Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: child,
-        ),
-      );
+              );
+            },
+          ) ??
+          Material(color: Theme.of(context).colorScheme.surface, child: child);
     }
 
     return Material(color: Colors.transparent, child: child);
