@@ -257,53 +257,55 @@ class AppDatabase {
     Future<SnAccount?> Function(String accountId)? fetchAccount,
   }) async {
     final data = jsonDecode(dbMessage.data) as Map<String, dynamic>;
-    final sender = SnChatMember(
-      id: 'unknown',
-      chatRoomId: dbMessage.roomId,
-      accountId: dbMessage.senderId,
-      account: SnAccount(
-        id: 'unknown',
-        name: 'unknown',
-        nick: dbMessage.senderId,
-        activatedAt: null,
-        profile: SnAccountProfile(
-          picture: null,
+    final sender =
+        _parseSenderSnapshot(data['sender']) ??
+        SnChatMember(
           id: 'unknown',
-          experience: 0,
-          level: 1,
-          levelingProgress: 0.0,
-          background: null,
-          verification: null,
+          chatRoomId: dbMessage.roomId,
+          accountId: dbMessage.senderId,
+          account: SnAccount(
+            id: 'unknown',
+            name: 'unknown',
+            nick: dbMessage.senderId,
+            activatedAt: null,
+            profile: SnAccountProfile(
+              picture: null,
+              id: 'unknown',
+              experience: 0,
+              level: 1,
+              levelingProgress: 0.0,
+              background: null,
+              verification: null,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              deletedAt: null,
+            ),
+            language: '',
+            isSuperuser: false,
+            automatedId: null,
+            perkSubscription: null,
+            deletedAt: null,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          nick: dbMessage.senderId,
+          notify: 0,
+          joinedAt: null,
+          breakUntil: null,
+          timeoutUntil: null,
+          status: null,
+          lastTyped: null,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           deletedAt: null,
-        ),
-        language: '',
-        isSuperuser: false,
-        automatedId: null,
-        perkSubscription: null,
-        deletedAt: null,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      nick: dbMessage.senderId,
-      notify: 0,
-      joinedAt: null,
-      breakUntil: null,
-      timeoutUntil: null,
-      status: null,
-      lastTyped: null,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      deletedAt: null,
-      chatRoom: null,
-      realmNick: '',
-      realmBio: '',
-      realmExperience: null,
-      realmLevel: null,
-      realmLevelingProgress: null,
-      realmLabel: null,
-    );
+          chatRoom: null,
+          realmNick: '',
+          realmBio: '',
+          realmExperience: null,
+          realmLevel: null,
+          realmLevelingProgress: null,
+          realmLabel: null,
+        );
 
     return LocalChatMessage(
       id: dbMessage.id,
@@ -327,6 +329,15 @@ class AppDatabase {
       repliedMessageId: dbMessage.repliedMessageId,
       forwardedMessageId: dbMessage.forwardedMessageId,
     );
+  }
+
+  SnChatMember? _parseSenderSnapshot(dynamic raw) {
+    if (raw is! Map) return null;
+    try {
+      return SnChatMember.fromJson(Map<String, dynamic>.from(raw));
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> saveChatRooms(

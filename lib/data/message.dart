@@ -64,7 +64,7 @@ class LocalChatMessage {
     String? nonce,
   }) {
     final jsonData = message.toJson();
-    jsonData.remove('sender');
+    jsonData['sender'] = message.sender.toJson();
     if (jsonData['meta'] == null) jsonData['meta'] = <String, dynamic>{};
     if (jsonData['members_mentioned'] == null) {
       jsonData['members_mentioned'] = <String>[];

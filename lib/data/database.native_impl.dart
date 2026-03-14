@@ -447,6 +447,7 @@ class AppDatabase {
     Future<SnAccount?> Function(String accountId)? fetchAccount,
   }) async {
     final data = jsonDecode(dbMessage.data) as Map<String, dynamic>;
+    final senderSnapshot = _parseSenderSnapshot(data['sender']);
     SnChatMember? sender;
     try {
       final senderRow = await getMemberById(dbMessage.senderId);
@@ -472,12 +473,18 @@ class AppDatabase {
           realmExperience: senderRow.realmExperience,
           realmLevel: senderRow.realmLevel,
           realmLevelingProgress: senderRow.realmLevelingProgress,
-          realmLabel: senderRow.realmLabel != null ? SnRealmLabel.fromJson(senderRow.realmLabel!) : null,
+          realmLabel: senderRow.realmLabel != null
+              ? SnRealmLabel.fromJson(senderRow.realmLabel!)
+              : null,
         );
       }
     } catch (_) {
       sender = null;
     }
+
+    sender = _mergeSenderSnapshot(sender, senderSnapshot);
+
+    sender ??= senderSnapshot;
 
     sender ??= SnChatMember(
       id: 'unknown',
@@ -548,6 +555,52 @@ class AppDatabase {
       reactions: dbMessage.reactions,
       repliedMessageId: dbMessage.repliedMessageId,
       forwardedMessageId: dbMessage.forwardedMessageId,
+    );
+  }
+
+  SnChatMember? _parseSenderSnapshot(dynamic raw) {
+    if (raw is! Map) return null;
+    try {
+      return SnChatMember.fromJson(Map<String, dynamic>.from(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  SnChatMember? _mergeSenderSnapshot(
+    SnChatMember? primary,
+    SnChatMember? fallback,
+  ) {
+    if (primary == null) return fallback;
+    if (fallback == null) return primary;
+
+    final hasPrimaryRealmData =
+        primary.realmLabel != null ||
+        (primary.realmNick?.isNotEmpty ?? false) ||
+        (primary.realmBio?.isNotEmpty ?? false) ||
+        primary.realmExperience != null ||
+        primary.realmLevel != null ||
+        primary.realmLevelingProgress != null;
+
+    return primary.copyWith(
+      account: primary.account.id != 'unknown'
+          ? primary.account
+          : fallback.account,
+      nick: primary.nick ?? fallback.nick,
+      notify: primary.notify != 0 ? primary.notify : fallback.notify,
+      joinedAt: primary.joinedAt ?? fallback.joinedAt,
+      breakUntil: primary.breakUntil ?? fallback.breakUntil,
+      timeoutUntil: primary.timeoutUntil ?? fallback.timeoutUntil,
+      createdAt: primary.createdAt,
+      updatedAt: primary.updatedAt,
+      deletedAt: primary.deletedAt ?? fallback.deletedAt,
+      realmNick: hasPrimaryRealmData ? primary.realmNick : fallback.realmNick,
+      realmBio: hasPrimaryRealmData ? primary.realmBio : fallback.realmBio,
+      realmExperience: primary.realmExperience ?? fallback.realmExperience,
+      realmLevel: primary.realmLevel ?? fallback.realmLevel,
+      realmLevelingProgress:
+          primary.realmLevelingProgress ?? fallback.realmLevelingProgress,
+      realmLabel: primary.realmLabel ?? fallback.realmLabel,
     );
   }
 
