@@ -299,3 +299,46 @@ final class AccountGiftFamily extends $Family
   @override
   String toString() => r'accountGiftProvider';
 }
+
+@ProviderFor(accountSubscriptionCatalog)
+final accountSubscriptionCatalogProvider =
+    AccountSubscriptionCatalogProvider._();
+
+final class AccountSubscriptionCatalogProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnSubscriptionCatalog>>,
+          List<SnSubscriptionCatalog>,
+          FutureOr<List<SnSubscriptionCatalog>>
+        >
+    with
+        $FutureModifier<List<SnSubscriptionCatalog>>,
+        $FutureProvider<List<SnSubscriptionCatalog>> {
+  AccountSubscriptionCatalogProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountSubscriptionCatalogProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountSubscriptionCatalogHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnSubscriptionCatalog>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnSubscriptionCatalog>> create(Ref ref) {
+    return accountSubscriptionCatalog(ref);
+  }
+}
+
+String _$accountSubscriptionCatalogHash() =>
+    r'5b5e10e09f987eb7181a924be94c8c06fb36e737';

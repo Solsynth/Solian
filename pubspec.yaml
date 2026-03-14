@@ -111,7 +111,7 @@ dependencies:
   flutter_popup_card: ^0.1.1
   timezone: ^0.11.0
   flutter_timezone: ^5.0.1
-  fl_chart: ^1.1.1
+  fl_chart: ^1.2.0
   sign_in_with_apple: ^7.0.1
   flutter_svg: ^2.2.4
   native_exif: ^0.7.0
@@ -141,7 +141,7 @@ dependencies:
   tray_manager: ^0.5.2
   flutter_webrtc: ^1.2.1
   flutter_local_notifications: ^21.0.0
-  wakelock_plus: ^1.4.0
+  wakelock_plus: ^1.5.1
   slide_countdown: ^2.0.2
   shelf: ^1.4.2
   shelf_web_socket: ^3.0.0
@@ -177,6 +177,7 @@ dependencies:
   just_audio: ^0.10.5
   audio_session: ^0.2.2
   auto_route: ^11.1.0
+  in_app_purchase: ^3.2.3
 
 dev_dependencies:
   flutter_test:

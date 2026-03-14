@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,6 +24,7 @@
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */; };
+		73D801DE2F65CF6900AC3735 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73D801DD2F65CF6900AC3735 /* StoreKit.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		755557017FD1B99AFC4F9127 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29812C17FFBE7DBBC7203981 /* Pods_RunnerTests.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -146,6 +147,7 @@
 		73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyDelegate.swift; sourceTree = "<group>"; };
+		73D801DD2F65CF6900AC3735 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B87C0E607033790E71B54D73 /* Pods_Runner.framework in Frameworks */,
+				73D801DE2F65CF6900AC3735 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +336,7 @@
 		498A09270B73B217F0279168 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				73D801DD2F65CF6900AC3735 /* StoreKit.framework */,
 				F6D834CA86410B09796B312B /* Pods_Runner.framework */,
 				29812C17FFBE7DBBC7203981 /* Pods_RunnerTests.framework */,
 				AA0CA8A3E15DEE023BB27438 /* Pods_NotificationService.framework */,

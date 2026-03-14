@@ -17,6 +17,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/payments/payment_overlay.dart';
+import 'package:island/payments/iap_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -68,6 +69,15 @@ Future<SnWalletGift> accountGift(Ref ref, String giftId) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/wallet/subscriptions/gifts/$giftId');
   return SnWalletGift.fromJson(resp.data);
+}
+
+@riverpod
+Future<List<SnSubscriptionCatalog>> accountSubscriptionCatalog(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/wallet/subscriptions/catalog');
+  return (resp.data as List)
+      .map((e) => SnSubscriptionCatalog.fromJson(e))
+      .toList();
 }
 
 class PurchaseGiftSheet extends StatefulWidget {
@@ -416,16 +426,15 @@ class StellarProgramTab extends HookConsumerWidget {
               icon: const Icon(Symbols.cancel),
               label: Text('membershipCancel'.tr()),
             ),
+            const Gap(12),
           ],
 
-          if (!isActive) ...[
-            Text(
-              'chooseYourPlan'.tr(),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const Gap(12),
-            _buildMembershipTiers(context, ref, membership),
-          ],
+          Text(
+            'chooseYourPlan'.tr(),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const Gap(12),
+          _buildMembershipTiers(context, ref, membership),
 
           // Restore Purchase Button
           // As you know Apple platform need IAP
@@ -495,130 +504,131 @@ class StellarProgramTab extends HookConsumerWidget {
     WidgetRef ref,
     SnWalletSubscription? currentMembership,
   ) {
-    final tiers = [
-      {
-        'id': 'solian.stellar.primary',
-        'name': 'membershipTierStellar'.tr(),
-        'price': 'membershipPriceStellar'.tr(),
-        'color': Colors.blue,
-      },
-      {
-        'id': 'solian.stellar.nova',
-        'name': 'membershipTierNova'.tr(),
-        'price': 'membershipPriceNova'.tr(),
-        'color': Color.fromRGBO(57, 197, 187, 1),
-      },
-      {
-        'id': 'solian.stellar.supernova',
-        'name': 'membershipTierSupernova'.tr(),
-        'price': 'membershipPriceSupernova'.tr(),
-        'color': Colors.orange,
-      },
-    ];
+    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
 
-    return Column(
-      children: tiers.map((tier) {
-        final isCurrentTier = currentMembership?.identifier == tier['id'];
-        final tierColor = tier['color'] as Color;
+    return catalogAsync.when(
+      data: (catalog) {
+        final tiers =
+            catalog.where((c) => c.groupIdentifier == 'solian.stellar').toList()
+              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: isCurrentTier
-                  ? null
-                  : () =>
-                        _purchaseMembership(context, ref, tier['id'] as String),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isCurrentTier
-                      ? tierColor.withOpacity(0.1)
-                      : Theme.of(context).colorScheme.surface,
+        if (tiers.isEmpty) {
+          return Center(child: Text('noTiersAvailable'.tr()));
+        }
+
+        final tierWidgets = <Widget>[];
+        for (final tier in tiers) {
+          final isCurrentTier =
+              currentMembership?.identifier == tier.identifier;
+          final tierColor = _parseColor(tier.displayConfig?.color);
+
+          tierWidgets.add(
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isCurrentTier
+                      ? null
+                      : () => _purchaseMembership(context, ref, tier),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isCurrentTier
-                        ? tierColor
-                        : Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                    width: isCurrentTier ? 2 : 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: tierColor,
-                        borderRadius: BorderRadius.circular(2),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isCurrentTier
+                          ? tierColor.withOpacity(0.1)
+                          : Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isCurrentTier
+                            ? tierColor
+                            : Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
+                        width: isCurrentTier ? 2 : 1,
                       ),
                     ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: tierColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                tier['name'] as String,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isCurrentTier ? tierColor : null,
-                                ),
-                              ),
-                              const Gap(8),
-                              if (isCurrentTier)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: tierColor,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'membershipCurrentBadge'.tr(),
+                              Row(
+                                children: [
+                                  Text(
+                                    tier.displayName,
                                     style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: isCurrentTier ? tierColor : null,
                                     ),
                                   ),
-                                ),
+                                  const Gap(8),
+                                  if (isCurrentTier)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: tierColor,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'membershipCurrentBadge'.tr(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              Text(
+                                '${tier.basePrice} ${tier.currency}/month',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
                             ],
                           ),
-                          Text(
-                            tier['price'] as String,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                        ),
+                        if (!isCurrentTier)
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    if (!isCurrentTier)
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }
+
+        return Column(children: tierWidgets);
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text('Error loading tiers: $error')),
     );
   }
 
@@ -648,6 +658,25 @@ class StellarProgramTab extends HookConsumerWidget {
     }
   }
 
+  Color _parseColor(String? colorString) {
+    if (colorString == null || colorString.isEmpty) {
+      return Colors.blue;
+    }
+    try {
+      if (colorString.startsWith('#')) {
+        final hexColor = colorString.substring(1);
+        if (hexColor.length == 6) {
+          return Color(int.parse('FF$hexColor', radix: 16));
+        } else if (hexColor.length == 8) {
+          return Color(int.parse(hexColor, radix: 16));
+        }
+      }
+      return Colors.blue;
+    } catch (e) {
+      return Colors.blue;
+    }
+  }
+
   Future<void> _showRestorePurchaseSheet(
     BuildContext context,
     WidgetRef ref,
@@ -659,6 +688,82 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Future<void> _purchaseMembership(
+    BuildContext context,
+    WidgetRef ref,
+    SnSubscriptionCatalog tier,
+  ) async {
+    final appleStoreProductIds = tier.providerMappings.appleStore;
+
+    if (appleStoreProductIds.isNotEmpty) {
+      await _purchaseWithIap(context, ref, tier, appleStoreProductIds.first);
+      return;
+    }
+
+    await _purchaseWithWallet(context, ref, tier.identifier);
+  }
+
+  Future<void> _purchaseWithIap(
+    BuildContext context,
+    WidgetRef ref,
+    SnSubscriptionCatalog tier,
+    String productId,
+  ) async {
+    final iapService = ref.read(iapServiceProvider);
+    final userAsync = ref.read(userInfoProvider);
+
+    try {
+      showLoadingModal(context);
+
+      if (userAsync.hasValue && userAsync.value != null) {
+        iapService.setUserId(userAsync.value!.id);
+      }
+
+      await iapService.initialize();
+      if (!iapService.isAvailable) {
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert('IAP is not available on this platform');
+        }
+        return;
+      }
+
+      final loaded = await iapService.loadProducts({productId});
+      if (!loaded) {
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert('Failed to load products');
+        }
+        return;
+      }
+
+      final result = await iapService.purchaseProduct(productId);
+
+      if (context.mounted) hideLoadingModal(context);
+
+      if (result == null) {
+        showSnackBar('Purchase has been cancelled.');
+      } else if (result.error != null) {
+        showErrorAlert(result.error);
+      } else if (result.success) {
+        // Wait for a while to let the backend process the purchase and update the subscription status
+        showSnackBar('坐与放宽，我们正在处理您的购买...');
+        await Future.delayed(const Duration(seconds: 2));
+        // Invalidate subscription to refresh status
+        ref.invalidate(accountStellarSubscriptionProvider);
+        ref.read(userInfoProvider.notifier).fetchUser();
+        if (context.mounted) {
+          showSnackBar('membershipPurchaseSuccess'.tr());
+        }
+      }
+    } catch (err) {
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+  }
+
+  Future<void> _purchaseWithWallet(
     BuildContext context,
     WidgetRef ref,
     String tierId,
@@ -685,7 +790,6 @@ class StellarProgramTab extends HookConsumerWidget {
 
       if (context.mounted) hideLoadingModal(context);
 
-      // Show payment overlay to complete the payment
       if (!context.mounted) return;
       final paidOrder = await PaymentOverlay.show(
         context: context,
@@ -696,7 +800,6 @@ class StellarProgramTab extends HookConsumerWidget {
       if (context.mounted) showLoadingModal(context);
 
       if (paidOrder != null) {
-        // Wait for server to handle order
         await Future.delayed(const Duration(seconds: 1));
         ref.invalidate(accountStellarSubscriptionProvider);
         ref.read(userInfoProvider.notifier).fetchUser();
@@ -766,97 +869,96 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Widget _buildGiftPurchaseOptions(BuildContext context, WidgetRef ref) {
-    final tiers = [
-      {
-        'id': 'solian.stellar.primary',
-        'name': 'stellarGift'.tr(),
-        'price': 'sameAsMembership'.tr(),
-        'color': Colors.blue,
-      },
-      {
-        'id': 'solian.stellar.nova',
-        'name': 'novaGift'.tr(),
-        'price': 'sameAsMembership'.tr(),
-        'color': Color.fromRGBO(57, 197, 187, 1),
-      },
-      {
-        'id': 'solian.stellar.supernova',
-        'name': 'supernovaGift'.tr(),
-        'price': 'sameAsMembership'.tr(),
-        'color': Colors.orange,
-      },
-    ];
+    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
 
-    return Column(
-      children: tiers.map((tier) {
-        final tierColor = tier['color'] as Color;
+    return catalogAsync.when(
+      data: (catalog) {
+        final tiers =
+            catalog.where((c) => c.groupIdentifier == 'solian.stellar').toList()
+              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () =>
-                  _showPurchaseGiftDialog(context, ref, tier['id'] as String),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+        if (tiers.isEmpty) {
+          return Center(child: Text('noTiersAvailable'.tr()));
+        }
+
+        final tierWidgets = <Widget>[];
+        for (final tier in tiers) {
+          final tierColor = _parseColor(tier.displayConfig?.color);
+
+          tierWidgets.add(
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () =>
+                      _showPurchaseGiftDialog(context, ref, tier.identifier),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: tierColor,
-                        borderRadius: BorderRadius.circular(2),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            tier['name'] as String,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: tierColor,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          Text(
-                            tier['price'] as String,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${tier.displayName} Gift',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
+                              ),
+                              Text(
+                                '${tier.basePrice} ${tier.currency}/month',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
                     ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }
+
+        return Column(children: tierWidgets);
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text('Error loading gift options: $error')),
     );
   }
 

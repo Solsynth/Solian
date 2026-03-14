@@ -318,10 +318,13 @@ class PostActionableItem extends HookConsumerWidget {
                       spacing: 8,
                       children: [
                         const Icon(Symbols.mindfulness, size: 20).opacity(0.75),
-                        Text(
-                          "Are we recommending the content you like?",
-                        ).tr().fontSize(13).opacity(0.75),
-                        const Spacer(),
+                        Expanded(
+                          child: Text(
+                            "Are we recommending the content you like?",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).tr().fontSize(13).opacity(0.75),
+                        ),
                         DiscoveryFeedbackWidget(
                           kind: 'post',
                           referenceId: item.id,

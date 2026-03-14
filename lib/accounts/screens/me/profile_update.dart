@@ -116,7 +116,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/passport/accounts/me',
+          '/padlock/accounts/me',
           data: {
             'name': usernameController.text,
             'nick': nicknameController.text,

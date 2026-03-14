@@ -84,7 +84,7 @@ final class ChatRoomJoinedNotifierProvider
 }
 
 String _$chatRoomJoinedNotifierHash() =>
-    r'02bc4f0261345b8269c7bef01715cb1bb9f35709';
+    r'5e4e4485d456ad46703f1bfe961e73f0f87cc28e';
 
 abstract class _$ChatRoomJoinedNotifier
     extends $AsyncNotifier<List<SnChatRoom>> {
@@ -147,7 +147,7 @@ final class ChatRoomNotifierProvider
   }
 }
 
-String _$chatRoomNotifierHash() => r'ecf0feafcea212914656a6cbbfabd8047797e228';
+String _$chatRoomNotifierHash() => r'654627180cd3b4ca19d871aa5e2512eb246f34d0';
 
 final class ChatRoomNotifierFamily extends $Family
     with
@@ -238,7 +238,7 @@ final class ChatRoomIdentityNotifierProvider
 }
 
 String _$chatRoomIdentityNotifierHash() =>
-    r'0328996d95e15b44528e2c8d3a6808a8409e30a7';
+    r'a7ede1960bbe310711869f989af89ab3badc9fe5';
 
 final class ChatRoomIdentityNotifierFamily extends $Family
     with

@@ -215,6 +215,9 @@ PODS:
     - GoogleUtilities/Privacy
   - image_picker_ios (0.0.1):
     - Flutter
+  - in_app_purchase_storekit (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - in_app_review (2.0.0):
     - Flutter
   - irondash_engine_context (0.0.1):
@@ -334,6 +337,7 @@ DEPENDENCIES:
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - gal (from `.symlinks/plugins/gal/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
@@ -441,6 +445,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/gal/darwin"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
+  in_app_purchase_storekit:
+    :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   in_app_review:
     :path: ".symlinks/plugins/in_app_review/ios"
   irondash_engine_context:
@@ -536,6 +542,7 @@ SPEC CHECKSUMS:
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
