@@ -3195,94 +3195,102 @@ $SnAccountCopyWith<$Res>? get recipientAccount {
 
 
 /// @nodoc
-mixin _$SnLotteryTicket {
+mixin _$SnSubscriptionCatalog {
 
- String get id; String get accountId; SnAccount? get account; List<int> get regionOneNumbers; int get regionTwoNumber; int get multiplier; int get drawStatus; DateTime? get drawDate; List<int>? get matchedRegionOneNumbers; int? get matchedRegionTwoNumber; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
-/// Create a copy of SnLotteryTicket
+ String get identifier; String get groupIdentifier; String get displayName; String get currency; int get basePrice; int get perkLevel; int get minimumAccountLevel; double get experienceMultiplier; int get goldenPointReward; SnSubscriptionDisplayConfig? get displayConfig; List<String> get allowedPaymentMethods; SnProductProviderMappings get providerMappings;
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnLotteryTicketCopyWith<SnLotteryTicket> get copyWith => _$SnLotteryTicketCopyWithImpl<SnLotteryTicket>(this as SnLotteryTicket, _$identity);
+$SnSubscriptionCatalogCopyWith<SnSubscriptionCatalog> get copyWith => _$SnSubscriptionCatalogCopyWithImpl<SnSubscriptionCatalog>(this as SnSubscriptionCatalog, _$identity);
 
-  /// Serializes this SnLotteryTicket to a JSON map.
+  /// Serializes this SnSubscriptionCatalog to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnLotteryTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other.regionOneNumbers, regionOneNumbers)&&(identical(other.regionTwoNumber, regionTwoNumber) || other.regionTwoNumber == regionTwoNumber)&&(identical(other.multiplier, multiplier) || other.multiplier == multiplier)&&(identical(other.drawStatus, drawStatus) || other.drawStatus == drawStatus)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other.matchedRegionOneNumbers, matchedRegionOneNumbers)&&(identical(other.matchedRegionTwoNumber, matchedRegionTwoNumber) || other.matchedRegionTwoNumber == matchedRegionTwoNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionCatalog&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.perkLevel, perkLevel) || other.perkLevel == perkLevel)&&(identical(other.minimumAccountLevel, minimumAccountLevel) || other.minimumAccountLevel == minimumAccountLevel)&&(identical(other.experienceMultiplier, experienceMultiplier) || other.experienceMultiplier == experienceMultiplier)&&(identical(other.goldenPointReward, goldenPointReward) || other.goldenPointReward == goldenPointReward)&&(identical(other.displayConfig, displayConfig) || other.displayConfig == displayConfig)&&const DeepCollectionEquality().equals(other.allowedPaymentMethods, allowedPaymentMethods)&&(identical(other.providerMappings, providerMappings) || other.providerMappings == providerMappings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,account,const DeepCollectionEquality().hash(regionOneNumbers),regionTwoNumber,multiplier,drawStatus,drawDate,const DeepCollectionEquality().hash(matchedRegionOneNumbers),matchedRegionTwoNumber,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,identifier,groupIdentifier,displayName,currency,basePrice,perkLevel,minimumAccountLevel,experienceMultiplier,goldenPointReward,displayConfig,const DeepCollectionEquality().hash(allowedPaymentMethods),providerMappings);
 
 @override
 String toString() {
-  return 'SnLotteryTicket(id: $id, accountId: $accountId, account: $account, regionOneNumbers: $regionOneNumbers, regionTwoNumber: $regionTwoNumber, multiplier: $multiplier, drawStatus: $drawStatus, drawDate: $drawDate, matchedRegionOneNumbers: $matchedRegionOneNumbers, matchedRegionTwoNumber: $matchedRegionTwoNumber, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSubscriptionCatalog(identifier: $identifier, groupIdentifier: $groupIdentifier, displayName: $displayName, currency: $currency, basePrice: $basePrice, perkLevel: $perkLevel, minimumAccountLevel: $minimumAccountLevel, experienceMultiplier: $experienceMultiplier, goldenPointReward: $goldenPointReward, displayConfig: $displayConfig, allowedPaymentMethods: $allowedPaymentMethods, providerMappings: $providerMappings)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnLotteryTicketCopyWith<$Res>  {
-  factory $SnLotteryTicketCopyWith(SnLotteryTicket value, $Res Function(SnLotteryTicket) _then) = _$SnLotteryTicketCopyWithImpl;
+abstract mixin class $SnSubscriptionCatalogCopyWith<$Res>  {
+  factory $SnSubscriptionCatalogCopyWith(SnSubscriptionCatalog value, $Res Function(SnSubscriptionCatalog) _then) = _$SnSubscriptionCatalogCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, SnAccount? account, List<int> regionOneNumbers, int regionTwoNumber, int multiplier, int drawStatus, DateTime? drawDate, List<int>? matchedRegionOneNumbers, int? matchedRegionTwoNumber, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String identifier, String groupIdentifier, String displayName, String currency, int basePrice, int perkLevel, int minimumAccountLevel, double experienceMultiplier, int goldenPointReward, SnSubscriptionDisplayConfig? displayConfig, List<String> allowedPaymentMethods, SnProductProviderMappings providerMappings
 });
 
 
-$SnAccountCopyWith<$Res>? get account;
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig;$SnProductProviderMappingsCopyWith<$Res> get providerMappings;
 
 }
 /// @nodoc
-class _$SnLotteryTicketCopyWithImpl<$Res>
-    implements $SnLotteryTicketCopyWith<$Res> {
-  _$SnLotteryTicketCopyWithImpl(this._self, this._then);
+class _$SnSubscriptionCatalogCopyWithImpl<$Res>
+    implements $SnSubscriptionCatalogCopyWith<$Res> {
+  _$SnSubscriptionCatalogCopyWithImpl(this._self, this._then);
 
-  final SnLotteryTicket _self;
-  final $Res Function(SnLotteryTicket) _then;
+  final SnSubscriptionCatalog _self;
+  final $Res Function(SnSubscriptionCatalog) _then;
 
-/// Create a copy of SnLotteryTicket
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? account = freezed,Object? regionOneNumbers = null,Object? regionTwoNumber = null,Object? multiplier = null,Object? drawStatus = null,Object? drawDate = freezed,Object? matchedRegionOneNumbers = freezed,Object? matchedRegionTwoNumber = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? groupIdentifier = null,Object? displayName = null,Object? currency = null,Object? basePrice = null,Object? perkLevel = null,Object? minimumAccountLevel = null,Object? experienceMultiplier = null,Object? goldenPointReward = null,Object? displayConfig = freezed,Object? allowedPaymentMethods = null,Object? providerMappings = null,}) {
   return _then(_self.copyWith(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount?,regionOneNumbers: null == regionOneNumbers ? _self.regionOneNumbers : regionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>,regionTwoNumber: null == regionTwoNumber ? _self.regionTwoNumber : regionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int,multiplier: null == multiplier ? _self.multiplier : multiplier // ignore: cast_nullable_to_non_nullable
-as int,drawStatus: null == drawStatus ? _self.drawStatus : drawStatus // ignore: cast_nullable_to_non_nullable
-as int,drawDate: freezed == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
-as DateTime?,matchedRegionOneNumbers: freezed == matchedRegionOneNumbers ? _self.matchedRegionOneNumbers : matchedRegionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>?,matchedRegionTwoNumber: freezed == matchedRegionTwoNumber ? _self.matchedRegionTwoNumber : matchedRegionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as String,basePrice: null == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
+as int,perkLevel: null == perkLevel ? _self.perkLevel : perkLevel // ignore: cast_nullable_to_non_nullable
+as int,minimumAccountLevel: null == minimumAccountLevel ? _self.minimumAccountLevel : minimumAccountLevel // ignore: cast_nullable_to_non_nullable
+as int,experienceMultiplier: null == experienceMultiplier ? _self.experienceMultiplier : experienceMultiplier // ignore: cast_nullable_to_non_nullable
+as double,goldenPointReward: null == goldenPointReward ? _self.goldenPointReward : goldenPointReward // ignore: cast_nullable_to_non_nullable
+as int,displayConfig: freezed == displayConfig ? _self.displayConfig : displayConfig // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionDisplayConfig?,allowedPaymentMethods: null == allowedPaymentMethods ? _self.allowedPaymentMethods : allowedPaymentMethods // ignore: cast_nullable_to_non_nullable
+as List<String>,providerMappings: null == providerMappings ? _self.providerMappings : providerMappings // ignore: cast_nullable_to_non_nullable
+as SnProductProviderMappings,
   ));
 }
-/// Create a copy of SnLotteryTicket
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res>? get account {
-    if (_self.account == null) {
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig {
+    if (_self.displayConfig == null) {
     return null;
   }
 
-  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
-    return _then(_self.copyWith(account: value));
+  return $SnSubscriptionDisplayConfigCopyWith<$Res>(_self.displayConfig!, (value) {
+    return _then(_self.copyWith(displayConfig: value));
+  });
+}/// Create a copy of SnSubscriptionCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnProductProviderMappingsCopyWith<$Res> get providerMappings {
+  
+  return $SnProductProviderMappingsCopyWith<$Res>(_self.providerMappings, (value) {
+    return _then(_self.copyWith(providerMappings: value));
   });
 }
 }
 
 
-/// Adds pattern-matching-related methods to [SnLotteryTicket].
-extension SnLotteryTicketPatterns on SnLotteryTicket {
+/// Adds pattern-matching-related methods to [SnSubscriptionCatalog].
+extension SnSubscriptionCatalogPatterns on SnSubscriptionCatalog {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -3295,10 +3303,10 @@ extension SnLotteryTicketPatterns on SnLotteryTicket {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnLotteryTicket value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSubscriptionCatalog value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnLotteryTicket() when $default != null:
+case _SnSubscriptionCatalog() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -3317,10 +3325,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnLotteryTicket value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSubscriptionCatalog value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnLotteryTicket():
+case _SnSubscriptionCatalog():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -3335,10 +3343,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnLotteryTicket value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSubscriptionCatalog value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnLotteryTicket() when $default != null:
+case _SnSubscriptionCatalog() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -3356,10 +3364,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String groupIdentifier,  String displayName,  String currency,  int basePrice,  int perkLevel,  int minimumAccountLevel,  double experienceMultiplier,  int goldenPointReward,  SnSubscriptionDisplayConfig? displayConfig,  List<String> allowedPaymentMethods,  SnProductProviderMappings providerMappings)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnLotteryTicket() when $default != null:
-return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+case _SnSubscriptionCatalog() when $default != null:
+return $default(_that.identifier,_that.groupIdentifier,_that.displayName,_that.currency,_that.basePrice,_that.perkLevel,_that.minimumAccountLevel,_that.experienceMultiplier,_that.goldenPointReward,_that.displayConfig,_that.allowedPaymentMethods,_that.providerMappings);case _:
   return orElse();
 
 }
@@ -3377,10 +3385,10 @@ return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String groupIdentifier,  String displayName,  String currency,  int basePrice,  int perkLevel,  int minimumAccountLevel,  double experienceMultiplier,  int goldenPointReward,  SnSubscriptionDisplayConfig? displayConfig,  List<String> allowedPaymentMethods,  SnProductProviderMappings providerMappings)  $default,) {final _that = this;
 switch (_that) {
-case _SnLotteryTicket():
-return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+case _SnSubscriptionCatalog():
+return $default(_that.identifier,_that.groupIdentifier,_that.displayName,_that.currency,_that.basePrice,_that.perkLevel,_that.minimumAccountLevel,_that.experienceMultiplier,_that.goldenPointReward,_that.displayConfig,_that.allowedPaymentMethods,_that.providerMappings);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3394,10 +3402,10 @@ return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String groupIdentifier,  String displayName,  String currency,  int basePrice,  int perkLevel,  int minimumAccountLevel,  double experienceMultiplier,  int goldenPointReward,  SnSubscriptionDisplayConfig? displayConfig,  List<String> allowedPaymentMethods,  SnProductProviderMappings providerMappings)?  $default,) {final _that = this;
 switch (_that) {
-case _SnLotteryTicket() when $default != null:
-return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+case _SnSubscriptionCatalog() when $default != null:
+return $default(_that.identifier,_that.groupIdentifier,_that.displayName,_that.currency,_that.basePrice,_that.perkLevel,_that.minimumAccountLevel,_that.experienceMultiplier,_that.goldenPointReward,_that.displayConfig,_that.allowedPaymentMethods,_that.providerMappings);case _:
   return null;
 
 }
@@ -3408,160 +3416,159 @@ return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_t
 /// @nodoc
 @JsonSerializable()
 
-class _SnLotteryTicket implements SnLotteryTicket {
-  const _SnLotteryTicket({required this.id, required this.accountId, required this.account, required final  List<int> regionOneNumbers, required this.regionTwoNumber, required this.multiplier, required this.drawStatus, required this.drawDate, required final  List<int>? matchedRegionOneNumbers, required this.matchedRegionTwoNumber, required this.createdAt, required this.updatedAt, required this.deletedAt}): _regionOneNumbers = regionOneNumbers,_matchedRegionOneNumbers = matchedRegionOneNumbers;
-  factory _SnLotteryTicket.fromJson(Map<String, dynamic> json) => _$SnLotteryTicketFromJson(json);
+class _SnSubscriptionCatalog implements SnSubscriptionCatalog {
+  const _SnSubscriptionCatalog({required this.identifier, required this.groupIdentifier, required this.displayName, required this.currency, required this.basePrice, required this.perkLevel, required this.minimumAccountLevel, required this.experienceMultiplier, required this.goldenPointReward, required this.displayConfig, required final  List<String> allowedPaymentMethods, required this.providerMappings}): _allowedPaymentMethods = allowedPaymentMethods;
+  factory _SnSubscriptionCatalog.fromJson(Map<String, dynamic> json) => _$SnSubscriptionCatalogFromJson(json);
 
-@override final  String id;
-@override final  String accountId;
-@override final  SnAccount? account;
- final  List<int> _regionOneNumbers;
-@override List<int> get regionOneNumbers {
-  if (_regionOneNumbers is EqualUnmodifiableListView) return _regionOneNumbers;
+@override final  String identifier;
+@override final  String groupIdentifier;
+@override final  String displayName;
+@override final  String currency;
+@override final  int basePrice;
+@override final  int perkLevel;
+@override final  int minimumAccountLevel;
+@override final  double experienceMultiplier;
+@override final  int goldenPointReward;
+@override final  SnSubscriptionDisplayConfig? displayConfig;
+ final  List<String> _allowedPaymentMethods;
+@override List<String> get allowedPaymentMethods {
+  if (_allowedPaymentMethods is EqualUnmodifiableListView) return _allowedPaymentMethods;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_regionOneNumbers);
+  return EqualUnmodifiableListView(_allowedPaymentMethods);
 }
 
-@override final  int regionTwoNumber;
-@override final  int multiplier;
-@override final  int drawStatus;
-@override final  DateTime? drawDate;
- final  List<int>? _matchedRegionOneNumbers;
-@override List<int>? get matchedRegionOneNumbers {
-  final value = _matchedRegionOneNumbers;
-  if (value == null) return null;
-  if (_matchedRegionOneNumbers is EqualUnmodifiableListView) return _matchedRegionOneNumbers;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
-}
+@override final  SnProductProviderMappings providerMappings;
 
-@override final  int? matchedRegionTwoNumber;
-@override final  DateTime createdAt;
-@override final  DateTime updatedAt;
-@override final  DateTime? deletedAt;
-
-/// Create a copy of SnLotteryTicket
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnLotteryTicketCopyWith<_SnLotteryTicket> get copyWith => __$SnLotteryTicketCopyWithImpl<_SnLotteryTicket>(this, _$identity);
+_$SnSubscriptionCatalogCopyWith<_SnSubscriptionCatalog> get copyWith => __$SnSubscriptionCatalogCopyWithImpl<_SnSubscriptionCatalog>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnLotteryTicketToJson(this, );
+  return _$SnSubscriptionCatalogToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnLotteryTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other._regionOneNumbers, _regionOneNumbers)&&(identical(other.regionTwoNumber, regionTwoNumber) || other.regionTwoNumber == regionTwoNumber)&&(identical(other.multiplier, multiplier) || other.multiplier == multiplier)&&(identical(other.drawStatus, drawStatus) || other.drawStatus == drawStatus)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other._matchedRegionOneNumbers, _matchedRegionOneNumbers)&&(identical(other.matchedRegionTwoNumber, matchedRegionTwoNumber) || other.matchedRegionTwoNumber == matchedRegionTwoNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionCatalog&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.perkLevel, perkLevel) || other.perkLevel == perkLevel)&&(identical(other.minimumAccountLevel, minimumAccountLevel) || other.minimumAccountLevel == minimumAccountLevel)&&(identical(other.experienceMultiplier, experienceMultiplier) || other.experienceMultiplier == experienceMultiplier)&&(identical(other.goldenPointReward, goldenPointReward) || other.goldenPointReward == goldenPointReward)&&(identical(other.displayConfig, displayConfig) || other.displayConfig == displayConfig)&&const DeepCollectionEquality().equals(other._allowedPaymentMethods, _allowedPaymentMethods)&&(identical(other.providerMappings, providerMappings) || other.providerMappings == providerMappings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,account,const DeepCollectionEquality().hash(_regionOneNumbers),regionTwoNumber,multiplier,drawStatus,drawDate,const DeepCollectionEquality().hash(_matchedRegionOneNumbers),matchedRegionTwoNumber,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,identifier,groupIdentifier,displayName,currency,basePrice,perkLevel,minimumAccountLevel,experienceMultiplier,goldenPointReward,displayConfig,const DeepCollectionEquality().hash(_allowedPaymentMethods),providerMappings);
 
 @override
 String toString() {
-  return 'SnLotteryTicket(id: $id, accountId: $accountId, account: $account, regionOneNumbers: $regionOneNumbers, regionTwoNumber: $regionTwoNumber, multiplier: $multiplier, drawStatus: $drawStatus, drawDate: $drawDate, matchedRegionOneNumbers: $matchedRegionOneNumbers, matchedRegionTwoNumber: $matchedRegionTwoNumber, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSubscriptionCatalog(identifier: $identifier, groupIdentifier: $groupIdentifier, displayName: $displayName, currency: $currency, basePrice: $basePrice, perkLevel: $perkLevel, minimumAccountLevel: $minimumAccountLevel, experienceMultiplier: $experienceMultiplier, goldenPointReward: $goldenPointReward, displayConfig: $displayConfig, allowedPaymentMethods: $allowedPaymentMethods, providerMappings: $providerMappings)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnLotteryTicketCopyWith<$Res> implements $SnLotteryTicketCopyWith<$Res> {
-  factory _$SnLotteryTicketCopyWith(_SnLotteryTicket value, $Res Function(_SnLotteryTicket) _then) = __$SnLotteryTicketCopyWithImpl;
+abstract mixin class _$SnSubscriptionCatalogCopyWith<$Res> implements $SnSubscriptionCatalogCopyWith<$Res> {
+  factory _$SnSubscriptionCatalogCopyWith(_SnSubscriptionCatalog value, $Res Function(_SnSubscriptionCatalog) _then) = __$SnSubscriptionCatalogCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, SnAccount? account, List<int> regionOneNumbers, int regionTwoNumber, int multiplier, int drawStatus, DateTime? drawDate, List<int>? matchedRegionOneNumbers, int? matchedRegionTwoNumber, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String identifier, String groupIdentifier, String displayName, String currency, int basePrice, int perkLevel, int minimumAccountLevel, double experienceMultiplier, int goldenPointReward, SnSubscriptionDisplayConfig? displayConfig, List<String> allowedPaymentMethods, SnProductProviderMappings providerMappings
 });
 
 
-@override $SnAccountCopyWith<$Res>? get account;
+@override $SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig;@override $SnProductProviderMappingsCopyWith<$Res> get providerMappings;
 
 }
 /// @nodoc
-class __$SnLotteryTicketCopyWithImpl<$Res>
-    implements _$SnLotteryTicketCopyWith<$Res> {
-  __$SnLotteryTicketCopyWithImpl(this._self, this._then);
+class __$SnSubscriptionCatalogCopyWithImpl<$Res>
+    implements _$SnSubscriptionCatalogCopyWith<$Res> {
+  __$SnSubscriptionCatalogCopyWithImpl(this._self, this._then);
 
-  final _SnLotteryTicket _self;
-  final $Res Function(_SnLotteryTicket) _then;
+  final _SnSubscriptionCatalog _self;
+  final $Res Function(_SnSubscriptionCatalog) _then;
 
-/// Create a copy of SnLotteryTicket
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? account = freezed,Object? regionOneNumbers = null,Object? regionTwoNumber = null,Object? multiplier = null,Object? drawStatus = null,Object? drawDate = freezed,Object? matchedRegionOneNumbers = freezed,Object? matchedRegionTwoNumber = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_SnLotteryTicket(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount?,regionOneNumbers: null == regionOneNumbers ? _self._regionOneNumbers : regionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>,regionTwoNumber: null == regionTwoNumber ? _self.regionTwoNumber : regionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int,multiplier: null == multiplier ? _self.multiplier : multiplier // ignore: cast_nullable_to_non_nullable
-as int,drawStatus: null == drawStatus ? _self.drawStatus : drawStatus // ignore: cast_nullable_to_non_nullable
-as int,drawDate: freezed == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
-as DateTime?,matchedRegionOneNumbers: freezed == matchedRegionOneNumbers ? _self._matchedRegionOneNumbers : matchedRegionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>?,matchedRegionTwoNumber: freezed == matchedRegionTwoNumber ? _self.matchedRegionTwoNumber : matchedRegionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? groupIdentifier = null,Object? displayName = null,Object? currency = null,Object? basePrice = null,Object? perkLevel = null,Object? minimumAccountLevel = null,Object? experienceMultiplier = null,Object? goldenPointReward = null,Object? displayConfig = freezed,Object? allowedPaymentMethods = null,Object? providerMappings = null,}) {
+  return _then(_SnSubscriptionCatalog(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as String,basePrice: null == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
+as int,perkLevel: null == perkLevel ? _self.perkLevel : perkLevel // ignore: cast_nullable_to_non_nullable
+as int,minimumAccountLevel: null == minimumAccountLevel ? _self.minimumAccountLevel : minimumAccountLevel // ignore: cast_nullable_to_non_nullable
+as int,experienceMultiplier: null == experienceMultiplier ? _self.experienceMultiplier : experienceMultiplier // ignore: cast_nullable_to_non_nullable
+as double,goldenPointReward: null == goldenPointReward ? _self.goldenPointReward : goldenPointReward // ignore: cast_nullable_to_non_nullable
+as int,displayConfig: freezed == displayConfig ? _self.displayConfig : displayConfig // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionDisplayConfig?,allowedPaymentMethods: null == allowedPaymentMethods ? _self._allowedPaymentMethods : allowedPaymentMethods // ignore: cast_nullable_to_non_nullable
+as List<String>,providerMappings: null == providerMappings ? _self.providerMappings : providerMappings // ignore: cast_nullable_to_non_nullable
+as SnProductProviderMappings,
   ));
 }
 
-/// Create a copy of SnLotteryTicket
+/// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res>? get account {
-    if (_self.account == null) {
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig {
+    if (_self.displayConfig == null) {
     return null;
   }
 
-  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
-    return _then(_self.copyWith(account: value));
+  return $SnSubscriptionDisplayConfigCopyWith<$Res>(_self.displayConfig!, (value) {
+    return _then(_self.copyWith(displayConfig: value));
+  });
+}/// Create a copy of SnSubscriptionCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnProductProviderMappingsCopyWith<$Res> get providerMappings {
+  
+  return $SnProductProviderMappingsCopyWith<$Res>(_self.providerMappings, (value) {
+    return _then(_self.copyWith(providerMappings: value));
   });
 }
 }
 
 
 /// @nodoc
-mixin _$SnLotteryRecord {
+mixin _$SnSubscriptionDisplayConfig {
 
- String get id; DateTime get drawDate; List<int> get winningRegionOneNumbers; int get winningRegionTwoNumber; int get totalTickets; int get totalPrizesAwarded; double get totalPrizeAmount; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
-/// Create a copy of SnLotteryRecord
+ String get color; dynamic get backgroundColor; dynamic get badgeText;
+/// Create a copy of SnSubscriptionDisplayConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnLotteryRecordCopyWith<SnLotteryRecord> get copyWith => _$SnLotteryRecordCopyWithImpl<SnLotteryRecord>(this as SnLotteryRecord, _$identity);
+$SnSubscriptionDisplayConfigCopyWith<SnSubscriptionDisplayConfig> get copyWith => _$SnSubscriptionDisplayConfigCopyWithImpl<SnSubscriptionDisplayConfig>(this as SnSubscriptionDisplayConfig, _$identity);
 
-  /// Serializes this SnLotteryRecord to a JSON map.
+  /// Serializes this SnSubscriptionDisplayConfig to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnLotteryRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other.winningRegionOneNumbers, winningRegionOneNumbers)&&(identical(other.winningRegionTwoNumber, winningRegionTwoNumber) || other.winningRegionTwoNumber == winningRegionTwoNumber)&&(identical(other.totalTickets, totalTickets) || other.totalTickets == totalTickets)&&(identical(other.totalPrizesAwarded, totalPrizesAwarded) || other.totalPrizesAwarded == totalPrizesAwarded)&&(identical(other.totalPrizeAmount, totalPrizeAmount) || other.totalPrizeAmount == totalPrizeAmount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionDisplayConfig&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.backgroundColor, backgroundColor)&&const DeepCollectionEquality().equals(other.badgeText, badgeText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,drawDate,const DeepCollectionEquality().hash(winningRegionOneNumbers),winningRegionTwoNumber,totalTickets,totalPrizesAwarded,totalPrizeAmount,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,color,const DeepCollectionEquality().hash(backgroundColor),const DeepCollectionEquality().hash(badgeText));
 
 @override
 String toString() {
-  return 'SnLotteryRecord(id: $id, drawDate: $drawDate, winningRegionOneNumbers: $winningRegionOneNumbers, winningRegionTwoNumber: $winningRegionTwoNumber, totalTickets: $totalTickets, totalPrizesAwarded: $totalPrizesAwarded, totalPrizeAmount: $totalPrizeAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSubscriptionDisplayConfig(color: $color, backgroundColor: $backgroundColor, badgeText: $badgeText)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnLotteryRecordCopyWith<$Res>  {
-  factory $SnLotteryRecordCopyWith(SnLotteryRecord value, $Res Function(SnLotteryRecord) _then) = _$SnLotteryRecordCopyWithImpl;
+abstract mixin class $SnSubscriptionDisplayConfigCopyWith<$Res>  {
+  factory $SnSubscriptionDisplayConfigCopyWith(SnSubscriptionDisplayConfig value, $Res Function(SnSubscriptionDisplayConfig) _then) = _$SnSubscriptionDisplayConfigCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime drawDate, List<int> winningRegionOneNumbers, int winningRegionTwoNumber, int totalTickets, int totalPrizesAwarded, double totalPrizeAmount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String color, dynamic backgroundColor, dynamic badgeText
 });
 
 
@@ -3569,36 +3576,29 @@ $Res call({
 
 }
 /// @nodoc
-class _$SnLotteryRecordCopyWithImpl<$Res>
-    implements $SnLotteryRecordCopyWith<$Res> {
-  _$SnLotteryRecordCopyWithImpl(this._self, this._then);
+class _$SnSubscriptionDisplayConfigCopyWithImpl<$Res>
+    implements $SnSubscriptionDisplayConfigCopyWith<$Res> {
+  _$SnSubscriptionDisplayConfigCopyWithImpl(this._self, this._then);
 
-  final SnLotteryRecord _self;
-  final $Res Function(SnLotteryRecord) _then;
+  final SnSubscriptionDisplayConfig _self;
+  final $Res Function(SnSubscriptionDisplayConfig) _then;
 
-/// Create a copy of SnLotteryRecord
+/// Create a copy of SnSubscriptionDisplayConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? drawDate = null,Object? winningRegionOneNumbers = null,Object? winningRegionTwoNumber = null,Object? totalTickets = null,Object? totalPrizesAwarded = null,Object? totalPrizeAmount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? color = null,Object? backgroundColor = freezed,Object? badgeText = freezed,}) {
   return _then(_self.copyWith(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,drawDate: null == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
-as DateTime,winningRegionOneNumbers: null == winningRegionOneNumbers ? _self.winningRegionOneNumbers : winningRegionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>,winningRegionTwoNumber: null == winningRegionTwoNumber ? _self.winningRegionTwoNumber : winningRegionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int,totalTickets: null == totalTickets ? _self.totalTickets : totalTickets // ignore: cast_nullable_to_non_nullable
-as int,totalPrizesAwarded: null == totalPrizesAwarded ? _self.totalPrizesAwarded : totalPrizesAwarded // ignore: cast_nullable_to_non_nullable
-as int,totalPrizeAmount: null == totalPrizeAmount ? _self.totalPrizeAmount : totalPrizeAmount // ignore: cast_nullable_to_non_nullable
-as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,backgroundColor: freezed == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as dynamic,badgeText: freezed == badgeText ? _self.badgeText : badgeText // ignore: cast_nullable_to_non_nullable
+as dynamic,
   ));
 }
 
 }
 
 
-/// Adds pattern-matching-related methods to [SnLotteryRecord].
-extension SnLotteryRecordPatterns on SnLotteryRecord {
+/// Adds pattern-matching-related methods to [SnSubscriptionDisplayConfig].
+extension SnSubscriptionDisplayConfigPatterns on SnSubscriptionDisplayConfig {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -3611,10 +3611,10 @@ extension SnLotteryRecordPatterns on SnLotteryRecord {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnLotteryRecord value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSubscriptionDisplayConfig value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnLotteryRecord() when $default != null:
+case _SnSubscriptionDisplayConfig() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -3633,10 +3633,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnLotteryRecord value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSubscriptionDisplayConfig value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnLotteryRecord():
+case _SnSubscriptionDisplayConfig():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -3651,10 +3651,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnLotteryRecord value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSubscriptionDisplayConfig value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnLotteryRecord() when $default != null:
+case _SnSubscriptionDisplayConfig() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -3672,10 +3672,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String color,  dynamic backgroundColor,  dynamic badgeText)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnLotteryRecord() when $default != null:
-return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+case _SnSubscriptionDisplayConfig() when $default != null:
+return $default(_that.color,_that.backgroundColor,_that.badgeText);case _:
   return orElse();
 
 }
@@ -3693,10 +3693,10 @@ return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winn
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String color,  dynamic backgroundColor,  dynamic badgeText)  $default,) {final _that = this;
 switch (_that) {
-case _SnLotteryRecord():
-return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+case _SnSubscriptionDisplayConfig():
+return $default(_that.color,_that.backgroundColor,_that.badgeText);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3710,10 +3710,10 @@ return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winn
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String color,  dynamic backgroundColor,  dynamic badgeText)?  $default,) {final _that = this;
 switch (_that) {
-case _SnLotteryRecord() when $default != null:
-return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+case _SnSubscriptionDisplayConfig() when $default != null:
+return $default(_that.color,_that.backgroundColor,_that.badgeText);case _:
   return null;
 
 }
@@ -3724,61 +3724,48 @@ return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winn
 /// @nodoc
 @JsonSerializable()
 
-class _SnLotteryRecord implements SnLotteryRecord {
-  const _SnLotteryRecord({required this.id, required this.drawDate, required final  List<int> winningRegionOneNumbers, required this.winningRegionTwoNumber, required this.totalTickets, required this.totalPrizesAwarded, required this.totalPrizeAmount, required this.createdAt, required this.updatedAt, required this.deletedAt}): _winningRegionOneNumbers = winningRegionOneNumbers;
-  factory _SnLotteryRecord.fromJson(Map<String, dynamic> json) => _$SnLotteryRecordFromJson(json);
+class _SnSubscriptionDisplayConfig implements SnSubscriptionDisplayConfig {
+  const _SnSubscriptionDisplayConfig({required this.color, required this.backgroundColor, required this.badgeText});
+  factory _SnSubscriptionDisplayConfig.fromJson(Map<String, dynamic> json) => _$SnSubscriptionDisplayConfigFromJson(json);
 
-@override final  String id;
-@override final  DateTime drawDate;
- final  List<int> _winningRegionOneNumbers;
-@override List<int> get winningRegionOneNumbers {
-  if (_winningRegionOneNumbers is EqualUnmodifiableListView) return _winningRegionOneNumbers;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_winningRegionOneNumbers);
-}
+@override final  String color;
+@override final  dynamic backgroundColor;
+@override final  dynamic badgeText;
 
-@override final  int winningRegionTwoNumber;
-@override final  int totalTickets;
-@override final  int totalPrizesAwarded;
-@override final  double totalPrizeAmount;
-@override final  DateTime createdAt;
-@override final  DateTime updatedAt;
-@override final  DateTime? deletedAt;
-
-/// Create a copy of SnLotteryRecord
+/// Create a copy of SnSubscriptionDisplayConfig
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnLotteryRecordCopyWith<_SnLotteryRecord> get copyWith => __$SnLotteryRecordCopyWithImpl<_SnLotteryRecord>(this, _$identity);
+_$SnSubscriptionDisplayConfigCopyWith<_SnSubscriptionDisplayConfig> get copyWith => __$SnSubscriptionDisplayConfigCopyWithImpl<_SnSubscriptionDisplayConfig>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnLotteryRecordToJson(this, );
+  return _$SnSubscriptionDisplayConfigToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnLotteryRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other._winningRegionOneNumbers, _winningRegionOneNumbers)&&(identical(other.winningRegionTwoNumber, winningRegionTwoNumber) || other.winningRegionTwoNumber == winningRegionTwoNumber)&&(identical(other.totalTickets, totalTickets) || other.totalTickets == totalTickets)&&(identical(other.totalPrizesAwarded, totalPrizesAwarded) || other.totalPrizesAwarded == totalPrizesAwarded)&&(identical(other.totalPrizeAmount, totalPrizeAmount) || other.totalPrizeAmount == totalPrizeAmount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionDisplayConfig&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.backgroundColor, backgroundColor)&&const DeepCollectionEquality().equals(other.badgeText, badgeText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,drawDate,const DeepCollectionEquality().hash(_winningRegionOneNumbers),winningRegionTwoNumber,totalTickets,totalPrizesAwarded,totalPrizeAmount,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,color,const DeepCollectionEquality().hash(backgroundColor),const DeepCollectionEquality().hash(badgeText));
 
 @override
 String toString() {
-  return 'SnLotteryRecord(id: $id, drawDate: $drawDate, winningRegionOneNumbers: $winningRegionOneNumbers, winningRegionTwoNumber: $winningRegionTwoNumber, totalTickets: $totalTickets, totalPrizesAwarded: $totalPrizesAwarded, totalPrizeAmount: $totalPrizeAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSubscriptionDisplayConfig(color: $color, backgroundColor: $backgroundColor, badgeText: $badgeText)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnLotteryRecordCopyWith<$Res> implements $SnLotteryRecordCopyWith<$Res> {
-  factory _$SnLotteryRecordCopyWith(_SnLotteryRecord value, $Res Function(_SnLotteryRecord) _then) = __$SnLotteryRecordCopyWithImpl;
+abstract mixin class _$SnSubscriptionDisplayConfigCopyWith<$Res> implements $SnSubscriptionDisplayConfigCopyWith<$Res> {
+  factory _$SnSubscriptionDisplayConfigCopyWith(_SnSubscriptionDisplayConfig value, $Res Function(_SnSubscriptionDisplayConfig) _then) = __$SnSubscriptionDisplayConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime drawDate, List<int> winningRegionOneNumbers, int winningRegionTwoNumber, int totalTickets, int totalPrizesAwarded, double totalPrizeAmount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String color, dynamic backgroundColor, dynamic badgeText
 });
 
 
@@ -3786,28 +3773,302 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnLotteryRecordCopyWithImpl<$Res>
-    implements _$SnLotteryRecordCopyWith<$Res> {
-  __$SnLotteryRecordCopyWithImpl(this._self, this._then);
+class __$SnSubscriptionDisplayConfigCopyWithImpl<$Res>
+    implements _$SnSubscriptionDisplayConfigCopyWith<$Res> {
+  __$SnSubscriptionDisplayConfigCopyWithImpl(this._self, this._then);
 
-  final _SnLotteryRecord _self;
-  final $Res Function(_SnLotteryRecord) _then;
+  final _SnSubscriptionDisplayConfig _self;
+  final $Res Function(_SnSubscriptionDisplayConfig) _then;
 
-/// Create a copy of SnLotteryRecord
+/// Create a copy of SnSubscriptionDisplayConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? drawDate = null,Object? winningRegionOneNumbers = null,Object? winningRegionTwoNumber = null,Object? totalTickets = null,Object? totalPrizesAwarded = null,Object? totalPrizeAmount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_SnLotteryRecord(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,drawDate: null == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
-as DateTime,winningRegionOneNumbers: null == winningRegionOneNumbers ? _self._winningRegionOneNumbers : winningRegionOneNumbers // ignore: cast_nullable_to_non_nullable
-as List<int>,winningRegionTwoNumber: null == winningRegionTwoNumber ? _self.winningRegionTwoNumber : winningRegionTwoNumber // ignore: cast_nullable_to_non_nullable
-as int,totalTickets: null == totalTickets ? _self.totalTickets : totalTickets // ignore: cast_nullable_to_non_nullable
-as int,totalPrizesAwarded: null == totalPrizesAwarded ? _self.totalPrizesAwarded : totalPrizesAwarded // ignore: cast_nullable_to_non_nullable
-as int,totalPrizeAmount: null == totalPrizeAmount ? _self.totalPrizeAmount : totalPrizeAmount // ignore: cast_nullable_to_non_nullable
-as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+@override @pragma('vm:prefer-inline') $Res call({Object? color = null,Object? backgroundColor = freezed,Object? badgeText = freezed,}) {
+  return _then(_SnSubscriptionDisplayConfig(
+color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,backgroundColor: freezed == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as dynamic,badgeText: freezed == badgeText ? _self.badgeText : badgeText // ignore: cast_nullable_to_non_nullable
+as dynamic,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnProductProviderMappings {
+
+ List<String> get afdian; List<String> get paddle; List<String> get appleStore;
+/// Create a copy of SnProductProviderMappings
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnProductProviderMappingsCopyWith<SnProductProviderMappings> get copyWith => _$SnProductProviderMappingsCopyWithImpl<SnProductProviderMappings>(this as SnProductProviderMappings, _$identity);
+
+  /// Serializes this SnProductProviderMappings to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnProductProviderMappings&&const DeepCollectionEquality().equals(other.afdian, afdian)&&const DeepCollectionEquality().equals(other.paddle, paddle)&&const DeepCollectionEquality().equals(other.appleStore, appleStore));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(afdian),const DeepCollectionEquality().hash(paddle),const DeepCollectionEquality().hash(appleStore));
+
+@override
+String toString() {
+  return 'SnProductProviderMappings(afdian: $afdian, paddle: $paddle, appleStore: $appleStore)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnProductProviderMappingsCopyWith<$Res>  {
+  factory $SnProductProviderMappingsCopyWith(SnProductProviderMappings value, $Res Function(SnProductProviderMappings) _then) = _$SnProductProviderMappingsCopyWithImpl;
+@useResult
+$Res call({
+ List<String> afdian, List<String> paddle, List<String> appleStore
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnProductProviderMappingsCopyWithImpl<$Res>
+    implements $SnProductProviderMappingsCopyWith<$Res> {
+  _$SnProductProviderMappingsCopyWithImpl(this._self, this._then);
+
+  final SnProductProviderMappings _self;
+  final $Res Function(SnProductProviderMappings) _then;
+
+/// Create a copy of SnProductProviderMappings
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? afdian = null,Object? paddle = null,Object? appleStore = null,}) {
+  return _then(_self.copyWith(
+afdian: null == afdian ? _self.afdian : afdian // ignore: cast_nullable_to_non_nullable
+as List<String>,paddle: null == paddle ? _self.paddle : paddle // ignore: cast_nullable_to_non_nullable
+as List<String>,appleStore: null == appleStore ? _self.appleStore : appleStore // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnProductProviderMappings].
+extension SnProductProviderMappingsPatterns on SnProductProviderMappings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnProductProviderMappings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnProductProviderMappings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnProductProviderMappings value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnProductProviderMappings():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnProductProviderMappings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnProductProviderMappings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String> afdian,  List<String> paddle,  List<String> appleStore)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnProductProviderMappings() when $default != null:
+return $default(_that.afdian,_that.paddle,_that.appleStore);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String> afdian,  List<String> paddle,  List<String> appleStore)  $default,) {final _that = this;
+switch (_that) {
+case _SnProductProviderMappings():
+return $default(_that.afdian,_that.paddle,_that.appleStore);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String> afdian,  List<String> paddle,  List<String> appleStore)?  $default,) {final _that = this;
+switch (_that) {
+case _SnProductProviderMappings() when $default != null:
+return $default(_that.afdian,_that.paddle,_that.appleStore);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnProductProviderMappings implements SnProductProviderMappings {
+  const _SnProductProviderMappings({required final  List<String> afdian, required final  List<String> paddle, required final  List<String> appleStore}): _afdian = afdian,_paddle = paddle,_appleStore = appleStore;
+  factory _SnProductProviderMappings.fromJson(Map<String, dynamic> json) => _$SnProductProviderMappingsFromJson(json);
+
+ final  List<String> _afdian;
+@override List<String> get afdian {
+  if (_afdian is EqualUnmodifiableListView) return _afdian;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_afdian);
+}
+
+ final  List<String> _paddle;
+@override List<String> get paddle {
+  if (_paddle is EqualUnmodifiableListView) return _paddle;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_paddle);
+}
+
+ final  List<String> _appleStore;
+@override List<String> get appleStore {
+  if (_appleStore is EqualUnmodifiableListView) return _appleStore;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_appleStore);
+}
+
+
+/// Create a copy of SnProductProviderMappings
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnProductProviderMappingsCopyWith<_SnProductProviderMappings> get copyWith => __$SnProductProviderMappingsCopyWithImpl<_SnProductProviderMappings>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnProductProviderMappingsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnProductProviderMappings&&const DeepCollectionEquality().equals(other._afdian, _afdian)&&const DeepCollectionEquality().equals(other._paddle, _paddle)&&const DeepCollectionEquality().equals(other._appleStore, _appleStore));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_afdian),const DeepCollectionEquality().hash(_paddle),const DeepCollectionEquality().hash(_appleStore));
+
+@override
+String toString() {
+  return 'SnProductProviderMappings(afdian: $afdian, paddle: $paddle, appleStore: $appleStore)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnProductProviderMappingsCopyWith<$Res> implements $SnProductProviderMappingsCopyWith<$Res> {
+  factory _$SnProductProviderMappingsCopyWith(_SnProductProviderMappings value, $Res Function(_SnProductProviderMappings) _then) = __$SnProductProviderMappingsCopyWithImpl;
+@override @useResult
+$Res call({
+ List<String> afdian, List<String> paddle, List<String> appleStore
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnProductProviderMappingsCopyWithImpl<$Res>
+    implements _$SnProductProviderMappingsCopyWith<$Res> {
+  __$SnProductProviderMappingsCopyWithImpl(this._self, this._then);
+
+  final _SnProductProviderMappings _self;
+  final $Res Function(_SnProductProviderMappings) _then;
+
+/// Create a copy of SnProductProviderMappings
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? afdian = null,Object? paddle = null,Object? appleStore = null,}) {
+  return _then(_SnProductProviderMappings(
+afdian: null == afdian ? _self._afdian : afdian // ignore: cast_nullable_to_non_nullable
+as List<String>,paddle: null == paddle ? _self._paddle : paddle // ignore: cast_nullable_to_non_nullable
+as List<String>,appleStore: null == appleStore ? _self._appleStore : appleStore // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

@@ -392,81 +392,78 @@ Map<String, dynamic> _$SnWalletFundRecipientToJson(
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
-_SnLotteryTicket _$SnLotteryTicketFromJson(Map<String, dynamic> json) =>
-    _SnLotteryTicket(
-      id: json['id'] as String,
-      accountId: json['account_id'] as String,
-      account: json['account'] == null
-          ? null
-          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-      regionOneNumbers: (json['region_one_numbers'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
-      regionTwoNumber: (json['region_two_number'] as num).toInt(),
-      multiplier: (json['multiplier'] as num).toInt(),
-      drawStatus: (json['draw_status'] as num).toInt(),
-      drawDate: json['draw_date'] == null
-          ? null
-          : DateTime.parse(json['draw_date'] as String),
-      matchedRegionOneNumbers:
-          (json['matched_region_one_numbers'] as List<dynamic>?)
-              ?.map((e) => (e as num).toInt())
-              .toList(),
-      matchedRegionTwoNumber: (json['matched_region_two_number'] as num?)
-          ?.toInt(),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt: json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
-    );
-
-Map<String, dynamic> _$SnLotteryTicketToJson(_SnLotteryTicket instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'account_id': instance.accountId,
-      'account': instance.account?.toJson(),
-      'region_one_numbers': instance.regionOneNumbers,
-      'region_two_number': instance.regionTwoNumber,
-      'multiplier': instance.multiplier,
-      'draw_status': instance.drawStatus,
-      'draw_date': instance.drawDate?.toIso8601String(),
-      'matched_region_one_numbers': instance.matchedRegionOneNumbers,
-      'matched_region_two_number': instance.matchedRegionTwoNumber,
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'deleted_at': instance.deletedAt?.toIso8601String(),
-    };
-
-_SnLotteryRecord _$SnLotteryRecordFromJson(
+_SnSubscriptionCatalog _$SnSubscriptionCatalogFromJson(
   Map<String, dynamic> json,
-) => _SnLotteryRecord(
-  id: json['id'] as String,
-  drawDate: DateTime.parse(json['draw_date'] as String),
-  winningRegionOneNumbers: (json['winning_region_one_numbers'] as List<dynamic>)
-      .map((e) => (e as num).toInt())
-      .toList(),
-  winningRegionTwoNumber: (json['winning_region_two_number'] as num).toInt(),
-  totalTickets: (json['total_tickets'] as num).toInt(),
-  totalPrizesAwarded: (json['total_prizes_awarded'] as num).toInt(),
-  totalPrizeAmount: (json['total_prize_amount'] as num).toDouble(),
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt: json['deleted_at'] == null
+) => _SnSubscriptionCatalog(
+  identifier: json['identifier'] as String,
+  groupIdentifier: json['group_identifier'] as String,
+  displayName: json['display_name'] as String,
+  currency: json['currency'] as String,
+  basePrice: (json['base_price'] as num).toInt(),
+  perkLevel: (json['perk_level'] as num).toInt(),
+  minimumAccountLevel: (json['minimum_account_level'] as num).toInt(),
+  experienceMultiplier: (json['experience_multiplier'] as num).toDouble(),
+  goldenPointReward: (json['golden_point_reward'] as num).toInt(),
+  displayConfig: json['display_config'] == null
       ? null
-      : DateTime.parse(json['deleted_at'] as String),
+      : SnSubscriptionDisplayConfig.fromJson(
+          json['display_config'] as Map<String, dynamic>,
+        ),
+  allowedPaymentMethods: (json['allowed_payment_methods'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
+  providerMappings: SnProductProviderMappings.fromJson(
+    json['provider_mappings'] as Map<String, dynamic>,
+  ),
 );
 
-Map<String, dynamic> _$SnLotteryRecordToJson(_SnLotteryRecord instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'draw_date': instance.drawDate.toIso8601String(),
-      'winning_region_one_numbers': instance.winningRegionOneNumbers,
-      'winning_region_two_number': instance.winningRegionTwoNumber,
-      'total_tickets': instance.totalTickets,
-      'total_prizes_awarded': instance.totalPrizesAwarded,
-      'total_prize_amount': instance.totalPrizeAmount,
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'deleted_at': instance.deletedAt?.toIso8601String(),
-    };
+Map<String, dynamic> _$SnSubscriptionCatalogToJson(
+  _SnSubscriptionCatalog instance,
+) => <String, dynamic>{
+  'identifier': instance.identifier,
+  'group_identifier': instance.groupIdentifier,
+  'display_name': instance.displayName,
+  'currency': instance.currency,
+  'base_price': instance.basePrice,
+  'perk_level': instance.perkLevel,
+  'minimum_account_level': instance.minimumAccountLevel,
+  'experience_multiplier': instance.experienceMultiplier,
+  'golden_point_reward': instance.goldenPointReward,
+  'display_config': instance.displayConfig?.toJson(),
+  'allowed_payment_methods': instance.allowedPaymentMethods,
+  'provider_mappings': instance.providerMappings.toJson(),
+};
+
+_SnSubscriptionDisplayConfig _$SnSubscriptionDisplayConfigFromJson(
+  Map<String, dynamic> json,
+) => _SnSubscriptionDisplayConfig(
+  color: json['color'] as String,
+  backgroundColor: json['background_color'],
+  badgeText: json['badge_text'],
+);
+
+Map<String, dynamic> _$SnSubscriptionDisplayConfigToJson(
+  _SnSubscriptionDisplayConfig instance,
+) => <String, dynamic>{
+  'color': instance.color,
+  'background_color': instance.backgroundColor,
+  'badge_text': instance.badgeText,
+};
+
+_SnProductProviderMappings _$SnProductProviderMappingsFromJson(
+  Map<String, dynamic> json,
+) => _SnProductProviderMappings(
+  afdian: (json['afdian'] as List<dynamic>).map((e) => e as String).toList(),
+  paddle: (json['paddle'] as List<dynamic>).map((e) => e as String).toList(),
+  appleStore: (json['apple_store'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
+);
+
+Map<String, dynamic> _$SnProductProviderMappingsToJson(
+  _SnProductProviderMappings instance,
+) => <String, dynamic>{
+  'afdian': instance.afdian,
+  'paddle': instance.paddle,
+  'apple_store': instance.appleStore,
+};
