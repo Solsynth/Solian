@@ -404,6 +404,15 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     return raw.map((key, value) => MapEntry(key.toString(), value == true));
   }
 
+  Map<String, int>? _extractReactionSnapshot(SnChatMessage message) {
+    final raw = message.meta['reactions_count'];
+    if (raw is! Map) return null;
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
   LocalChatMessage _copyWithReactionMaps(
     LocalChatMessage message, {
     required Map<String, int> reactionsCount,
@@ -472,13 +481,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     LocalChatMessage existing,
   ) {
     final mergedData = Map<String, dynamic>.from(incoming.data);
-    if (!mergedData.containsKey('reactions_count') &&
-        existing.data.containsKey('reactions_count')) {
-      mergedData['reactions_count'] = existing.data['reactions_count'];
-    }
-    if (!mergedData.containsKey('reactions_made') &&
-        existing.data.containsKey('reactions_made')) {
-      mergedData['reactions_made'] = existing.data['reactions_made'];
+    for (final key in const ['sender', 'reactions_count', 'reactions_made']) {
+      if (!mergedData.containsKey(key) && existing.data.containsKey(key)) {
+        mergedData[key] = existing.data[key];
+      }
     }
     if (mergedData.length == incoming.data.length) return incoming;
     return _copyWithMergedData(incoming, mergedData);
@@ -504,7 +510,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     );
     if (targetMessage == null) return false;
 
-    final reactionsCount = _extractReactionsCount(targetMessage);
+    final snapshot = _extractReactionSnapshot(packet);
+    final reactionsCount = snapshot ?? _extractReactionsCount(targetMessage);
     final reactionsMade = _extractReactionsMade(targetMessage);
 
     if (packet.type == 'messages.reaction.added') {
@@ -514,18 +521,22 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               ? (packet.meta['reaction'] as Map)['symbol']?.toString()
               : null);
       if (symbol == null || symbol.isEmpty) return false;
-      reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+      if (snapshot == null) {
+        reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+      }
       if (currentUserId != null && packet.senderId == currentUserId) {
         reactionsMade[symbol] = true;
       }
     } else if (packet.type == 'messages.reaction.removed') {
       final symbol = packet.meta['symbol']?.toString();
       if (symbol == null || symbol.isEmpty) return false;
-      final nextCount = (reactionsCount[symbol] ?? 0) - 1;
-      if (nextCount > 0) {
-        reactionsCount[symbol] = nextCount;
-      } else {
-        reactionsCount.remove(symbol);
+      if (snapshot == null) {
+        final nextCount = (reactionsCount[symbol] ?? 0) - 1;
+        if (nextCount > 0) {
+          reactionsCount[symbol] = nextCount;
+        } else {
+          reactionsCount.remove(symbol);
+        }
       }
       if (currentUserId != null && packet.senderId == currentUserId) {
         reactionsMade.remove(symbol);
@@ -830,7 +841,9 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
                 realmExperience: mRow.realmExperience,
                 realmLevel: mRow.realmLevel,
                 realmLevelingProgress: mRow.realmLevelingProgress,
-                realmLabel: mRow.realmLabel != null ? SnRealmLabel.fromJson(mRow.realmLabel!) : null,
+                realmLabel: mRow.realmLabel != null
+                    ? SnRealmLabel.fromJson(mRow.realmLabel!)
+                    : null,
               );
             }).toList();
             return SnChatRoom(
@@ -968,7 +981,9 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
             realmExperience: mRow.realmExperience,
             realmLevel: mRow.realmLevel,
             realmLevelingProgress: mRow.realmLevelingProgress,
-                realmLabel: mRow.realmLabel != null ? SnRealmLabel.fromJson(mRow.realmLabel!) : null,
+            realmLabel: mRow.realmLabel != null
+                ? SnRealmLabel.fromJson(mRow.realmLabel!)
+                : null,
           );
         }).toList();
 
@@ -1073,7 +1088,9 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
             realmExperience: localMemberData.realmExperience,
             realmLevel: localMemberData.realmLevel,
             realmLevelingProgress: localMemberData.realmLevelingProgress,
-            realmLabel: localMemberData.realmLabel != null ? SnRealmLabel.fromJson(localMemberData.realmLabel!) : null,
+            realmLabel: localMemberData.realmLabel != null
+                ? SnRealmLabel.fromJson(localMemberData.realmLabel!)
+                : null,
           );
 
           // Background sync
@@ -1147,7 +1164,9 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
       realmExperience: localMemberData.realmExperience,
       realmLevel: localMemberData.realmLevel,
       realmLevelingProgress: localMemberData.realmLevelingProgress,
-      realmLabel: localMemberData.realmLabel != null ? SnRealmLabel.fromJson(localMemberData.realmLabel!) : null,
+      realmLabel: localMemberData.realmLabel != null
+          ? SnRealmLabel.fromJson(localMemberData.realmLabel!)
+          : null,
     );
   }
 }

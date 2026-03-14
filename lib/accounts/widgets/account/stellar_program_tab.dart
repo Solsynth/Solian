@@ -27,6 +27,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'stellar_program_tab.g.dart';
 
+enum PaymentMethod { wallet, appleIap }
+
 @riverpod
 Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   try {
@@ -300,13 +302,19 @@ class StellarProgramTab extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
+    final paymentMethod = useState(PaymentMethod.wallet);
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildMembershipSection(context, ref, stellarSubscription),
+          _buildMembershipSection(
+            context,
+            ref,
+            stellarSubscription,
+            paymentMethod,
+          ),
           const Gap(16),
           _buildGiftingSection(context, ref),
           const Gap(16),
@@ -319,9 +327,11 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
+    ValueNotifier<PaymentMethod> paymentMethod,
   ) {
     return stellarSubscriptionAsync.when(
-      data: (membership) => _buildMembershipContent(context, ref, membership),
+      data: (membership) =>
+          _buildMembershipContent(context, ref, membership, paymentMethod),
       loading: () => Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -361,8 +371,18 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnWalletSubscription? membership,
+    ValueNotifier<PaymentMethod> paymentMethod,
   ) {
     final isActive = membership?.isActive ?? false;
+    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+    final supportsWallet =
+        catalogAsync.hasValue &&
+        catalogAsync.value!.any(
+          (c) =>
+              c.groupIdentifier == 'solian.stellar' &&
+              c.allowedPaymentMethods.contains('solian.wallet'),
+        );
+    final supportsIap = Platform.isIOS || Platform.isMacOS;
 
     Future<void> membershipCancel() async {
       if (!isActive || membership == null) return;
@@ -435,7 +455,13 @@ class StellarProgramTab extends HookConsumerWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const Gap(12),
-          _buildMembershipTiers(context, ref, membership),
+
+          if (supportsWallet && supportsIap) ...[
+            _buildPaymentMethodTabs(context, paymentMethod),
+            const Gap(12),
+          ],
+
+          _buildMembershipTiers(context, ref, membership, paymentMethod),
 
           // Restore Purchase Button
           if (Platform.isIOS || Platform.isMacOS)
@@ -508,10 +534,75 @@ class StellarProgramTab extends HookConsumerWidget {
     );
   }
 
+  Widget _buildPaymentMethodTabs(
+    BuildContext context,
+    ValueNotifier<PaymentMethod> paymentMethod,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => paymentMethod.value = PaymentMethod.wallet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: paymentMethod.value == PaymentMethod.wallet
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'wallet'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: paymentMethod.value == PaymentMethod.wallet
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => paymentMethod.value = PaymentMethod.appleIap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: paymentMethod.value == PaymentMethod.appleIap
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'appleIap'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: paymentMethod.value == PaymentMethod.appleIap
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMembershipTiers(
     BuildContext context,
     WidgetRef ref,
     SnWalletSubscription? currentMembership,
+    ValueNotifier<PaymentMethod> paymentMethod,
   ) {
     final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
 
@@ -531,26 +622,51 @@ class StellarProgramTab extends HookConsumerWidget {
               currentMembership?.identifier == tier.identifier;
           final tierColor = _parseColor(tier.displayConfig?.color);
 
+          final supportsWallet = tier.allowedPaymentMethods.contains(
+            'solian.wallet',
+          );
+          final supportsIap = tier.allowedPaymentMethods.contains(
+            'apple_store',
+          );
+          final selectedMethod = paymentMethod.value;
+          final isSupported =
+              (selectedMethod == PaymentMethod.wallet && supportsWallet) ||
+              (selectedMethod == PaymentMethod.appleIap && supportsIap);
+
           tierWidgets.add(
             Container(
               margin: const EdgeInsets.only(bottom: 8),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: isCurrentTier
+                  onTap: isCurrentTier || !isSupported
                       ? null
-                      : () => _purchaseMembership(context, ref, tier),
+                      : () => _purchaseMembership(
+                          context,
+                          ref,
+                          tier,
+                          selectedMethod,
+                        ),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isCurrentTier
                           ? tierColor.withOpacity(0.1)
+                          : !isSupported
+                          ? Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withOpacity(0.5)
                           : Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isCurrentTier
                             ? tierColor
+                            : !isSupported
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.1)
                             : Theme.of(
                                 context,
                               ).colorScheme.outline.withOpacity(0.2),
@@ -573,6 +689,7 @@ class StellarProgramTab extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
+                                spacing: 8,
                                 children: [
                                   Text(
                                     tier.displayName,
@@ -582,7 +699,6 @@ class StellarProgramTab extends HookConsumerWidget {
                                       color: isCurrentTier ? tierColor : null,
                                     ),
                                   ),
-                                  const Gap(8),
                                   if (isCurrentTier)
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -599,6 +715,29 @@ class StellarProgramTab extends HookConsumerWidget {
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  if (!isSupported)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'paymentMethodNotSupported'.tr(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -769,12 +908,14 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnSubscriptionCatalog tier,
+    PaymentMethod paymentMethod,
   ) async {
-    final appleStoreProductIds = tier.providerMappings.appleStore;
-
-    if (appleStoreProductIds.isNotEmpty) {
-      await _purchaseWithIap(context, ref, tier, appleStoreProductIds.first);
-      return;
+    if (paymentMethod == PaymentMethod.appleIap) {
+      final appleStoreProductIds = tier.providerMappings.appleStore;
+      if (appleStoreProductIds.isNotEmpty) {
+        await _purchaseWithIap(context, ref, tier, appleStoreProductIds.first);
+        return;
+      }
     }
 
     await _purchaseWithWallet(context, ref, tier.identifier);

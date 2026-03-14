@@ -711,15 +711,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           existing,
           fetchAccount: _fetchAccount,
         );
-        final mergedData = Map<String, dynamic>.from(localMessage.data);
-        if (!mergedData.containsKey('reactions_count') &&
-            existingLocal.data.containsKey('reactions_count')) {
-          mergedData['reactions_count'] = existingLocal.data['reactions_count'];
-        }
-        if (!mergedData.containsKey('reactions_made') &&
-            existingLocal.data.containsKey('reactions_made')) {
-          mergedData['reactions_made'] = existingLocal.data['reactions_made'];
-        }
+        final mergedData = _mergeMessageData(
+          localMessage.data,
+          existingLocal.data,
+        );
         if (mergedData.length != localMessage.data.length) {
           localMessage = _copyWithMergedData(localMessage, mergedData);
         }
@@ -1580,6 +1575,28 @@ class MessagesNotifier extends _$MessagesNotifier {
     return raw.map((key, value) => MapEntry(key.toString(), value == true));
   }
 
+  Map<String, int>? _extractReactionSnapshot(SnChatMessage remoteMessage) {
+    final raw = remoteMessage.meta['reactions_count'];
+    if (raw is! Map) return null;
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
+  Map<String, dynamic> _mergeMessageData(
+    Map<String, dynamic> incoming,
+    Map<String, dynamic> existing,
+  ) {
+    final merged = Map<String, dynamic>.from(incoming);
+    for (final key in const ['sender', 'reactions_count', 'reactions_made']) {
+      if (!merged.containsKey(key) && existing.containsKey(key)) {
+        merged[key] = existing[key];
+      }
+    }
+    return merged;
+  }
+
   LocalChatMessage _copyWithReactionMaps(
     LocalChatMessage message, {
     required Map<String, int> reactionsCount,
@@ -1690,6 +1707,46 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  Future<void> _applyReactionSnapshot({
+    required String messageId,
+    required Map<String, int> reactionsCount,
+    bool? madeByCurrentUser,
+    String? symbol,
+  }) async {
+    final message = await fetchMessageById(messageId);
+    if (message == null) {
+      talker.log(
+        'Cannot apply reaction snapshot: message $messageId not found',
+      );
+      return;
+    }
+
+    final reactionsMade = _extractReactionsMade(message);
+    if (symbol != null && symbol.isNotEmpty && madeByCurrentUser != null) {
+      if (madeByCurrentUser) {
+        reactionsMade[symbol] = true;
+      } else {
+        reactionsMade.remove(symbol);
+      }
+    }
+
+    final updatedMessage = _copyWithReactionMaps(
+      message,
+      reactionsCount: reactionsCount,
+      reactionsMade: reactionsMade,
+    );
+
+    await _database.updateMessage(_database.messageToCompanion(updatedMessage));
+
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final index = currentMessages.indexWhere((m) => m.id == messageId);
+    if (ref.mounted && index >= 0) {
+      final newList = [...currentMessages];
+      newList[index] = updatedMessage;
+      state = AsyncValue.data(newList);
+    }
+  }
+
   Future<void> reactToMessage(
     String messageId, {
     required String symbol,
@@ -1726,6 +1783,19 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (targetId == null || targetId.isEmpty) return;
     final reactionSenderId = remoteMessage.senderId;
+    final snapshot = _extractReactionSnapshot(remoteMessage);
+
+    if (snapshot != null) {
+      await _applyReactionSnapshot(
+        messageId: targetId,
+        reactionsCount: snapshot,
+        symbol: symbol,
+        madeByCurrentUser: _hasIdentity
+            ? (reactionSenderId.isNotEmpty && reactionSenderId == _identity.id)
+            : null,
+      );
+      return;
+    }
 
     await _applyReactionDelta(
       messageId: targetId,
@@ -1743,6 +1813,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     final targetId = remoteMessage.meta['message_id']?.toString();
     final symbol = remoteMessage.meta['symbol']?.toString();
     if (targetId == null || symbol == null || symbol.isEmpty) return;
+    final snapshot = _extractReactionSnapshot(remoteMessage);
+
+    if (snapshot != null) {
+      await _applyReactionSnapshot(
+        messageId: targetId,
+        reactionsCount: snapshot,
+        symbol: symbol,
+        madeByCurrentUser: _hasIdentity
+            ? (remoteMessage.senderId == _identity.id ? false : null)
+            : null,
+      );
+      return;
+    }
 
     await _applyReactionDelta(
       messageId: targetId,
