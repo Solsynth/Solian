@@ -37,6 +37,9 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 
+bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+bool get _isDesktop => !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -45,68 +48,70 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+  if (_isMobile) {
     talker.info(
       "[SplashScreen] Keeping the flash screen to loading other resources...",
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
 
-  if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+  if (_isDesktop) {
     talker.info("[SplashScreen] Initializing desktop window manager...");
     await protocolHandler.register('solian');
     await hotKeyManager.unregisterAll();
     talker.info("[SplashScreen] Desktop window manager is ready!");
   }
 
-  try {
-    await EasyLocalization.ensureInitialized();
-    // Disable logs
-    EasyLocalization.logger.enableBuildModes = [];
-
-    if (kIsWeb || !Platform.isLinux) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
-      // Although previous if case checked this. Still check is web or not
-      // Otherwise the web platform will broke due to there is no Platform api on the web
-      // Skip crashlytics setup on debug mode to prevent unexpected report to firebase
-      if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
-        FlutterError.onError =
-            FirebaseCrashlytics.instance.recordFlutterFatalError;
-        PlatformDispatcher.instance.onError = (error, stack) {
-          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-          return true;
-        };
+  final nonFirebaseInitFutures = [
+    EasyLocalization.ensureInitialized(),
+    () async {
+      try {
+        talker.info("[SplashScreen] Loading timezone database...");
+        await initializeTzdb();
+        talker.info("[SplashScreen] Time zone database was loaded!");
+      } catch (err) {
+        talker.error("[SplashScreen] Failed to load timezone database... $err");
       }
+    }(),
+    () async {
+      try {
+        talker.info("[QuickActions] Initializing Quick Actions service...");
+        final quickActionsService = QuickActionsService();
+        await quickActionsService.initialize();
+        talker.info("[QuickActions] Quick Actions service is ready!");
+      } catch (err) {
+        talker.error(
+          "[QuickActions] Failed to initialize Quick Actions service... $err",
+        );
+      }
+    }(),
+  ];
+
+  Future<void> _initializeFirebase() async {
+    try {
+      if (kIsWeb || !Platform.isLinux) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler,
+        );
+        if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
+          FlutterError.onError =
+              FirebaseCrashlytics.instance.recordFlutterFatalError;
+          PlatformDispatcher.instance.onError = (error, stack) {
+            FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+            return true;
+          };
+        }
+      }
+      talker.info("[SplashScreen] Firebase is ready!");
+    } catch (err) {
+      showErrorAlert(err);
     }
-
-    talker.info("[SplashScreen] Firebase is ready!");
-  } catch (err) {
-    showErrorAlert(err);
   }
 
-  try {
-    talker.info("[SplashScreen] Loading timezone database...");
-    await initializeTzdb();
-    talker.info("[SplashScreen] Time zone database was loaded!");
-  } catch (err) {
-    talker.error("[SplashScreen] Failed to load timezone database... $err");
-  }
-
-  try {
-    talker.info("[QuickActions] Initializing Quick Actions service...");
-    final quickActionsService = QuickActionsService();
-    await quickActionsService.initialize();
-    talker.info("[QuickActions] Quick Actions service is ready!");
-  } catch (err) {
-    talker.error(
-      "[QuickActions] Failed to initialize Quick Actions service... $err",
-    );
-  }
+  await Future.wait([...nonFirebaseInitFutures, _initializeFirebase()]);
 
   try {
     talker.info("[Analytics] Initializing Analytics service...");
@@ -118,15 +123,13 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+  if (_isDesktop) {
     await windowManager.ensureInitialized();
 
     const defaultSize = Size(360, 640);
-
-    // Get saved window size from preferences
-    final savedSizeString = prefs.getString(kAppWindowSize);
     Size initialSize = defaultSize;
 
+    final savedSizeString = prefs.getString(kAppWindowSize);
     if (savedSizeString != null) {
       try {
         final parts = savedSizeString.split(',');
@@ -181,7 +184,7 @@ void main() async {
     talker.info("[SplashScreen] Android image picker is ready!");
   }
 
-  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+  if (_isMobile) {
     FlutterNativeSplash.remove();
     talker.info("[SplashScreen] Now hiding splash screen...");
   }
@@ -232,8 +235,6 @@ void main() async {
   );
 }
 
-// Router will be provided through Riverpod
-
 final globalOverlay = GlobalKey<OverlayState>();
 
 class IslandApp extends HookConsumerWidget {
@@ -244,7 +245,6 @@ class IslandApp extends HookConsumerWidget {
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
 
-    // Convert string theme mode to ThemeMode enum
     ThemeMode getThemeMode() {
       final themeMode = settings.themeMode ?? 'system';
       switch (themeMode) {
@@ -262,11 +262,9 @@ class IslandApp extends HookConsumerWidget {
       if (notification.data['meta']?['action_uri'] != null) {
         var uri = notification.data['meta']['action_uri'] as String;
         if (uri.startsWith('/')) {
-          // In-app routes
           final router = ref.read(routerProvider);
           router.push(notification.data['meta']['action_uri']);
         } else {
-          // External links
           launchUrlString(uri);
         }
       }
@@ -277,19 +275,16 @@ class IslandApp extends HookConsumerWidget {
         return null;
       }
 
-      // When the app is opened from a terminated state.
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
           handleMessage(message);
         }
       });
 
-      // When the app is in the background and opened.
       final onMessageOpenedAppSubscription = FirebaseMessaging
           .onMessageOpenedApp
           .listen(handleMessage);
 
-      // When the app is in the foreground.
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
       ) {
@@ -368,3 +363,4 @@ class IslandApp extends HookConsumerWidget {
     );
   }
 }
+
