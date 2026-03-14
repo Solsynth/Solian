@@ -314,6 +314,48 @@ final class PublisherFeaturesFamily extends $Family
   String toString() => r'publisherFeaturesProvider';
 }
 
+@ProviderFor(publisherQuotaInfo)
+final publisherQuotaInfoProvider = PublisherQuotaInfoProvider._();
+
+final class PublisherQuotaInfoProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PublisherQuotaInfo>,
+          PublisherQuotaInfo,
+          FutureOr<PublisherQuotaInfo>
+        >
+    with
+        $FutureModifier<PublisherQuotaInfo>,
+        $FutureProvider<PublisherQuotaInfo> {
+  PublisherQuotaInfoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'publisherQuotaInfoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherQuotaInfoHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PublisherQuotaInfo> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PublisherQuotaInfo> create(Ref ref) {
+    return publisherQuotaInfo(ref);
+  }
+}
+
+String _$publisherQuotaInfoHash() =>
+    r'9c73aa7ee63e9e627ba8ac1333ea5f882ef89365';
+
 @ProviderFor(publisherInvites)
 final publisherInvitesProvider = PublisherInvitesProvider._();
 

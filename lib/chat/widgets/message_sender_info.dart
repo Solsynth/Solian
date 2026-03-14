@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MessageSenderInfo extends StatelessWidget {
+  final String roomId;
   final SnChatMember sender;
   final DateTime createdAt;
   final Color textColor;
@@ -15,6 +17,7 @@ class MessageSenderInfo extends StatelessWidget {
 
   const MessageSenderInfo({
     super.key,
+    required this.roomId,
     required this.sender,
     required this.createdAt,
     required this.textColor,
@@ -37,20 +40,27 @@ class MessageSenderInfo extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           if (showAvatar)
-            AccountPfcRegion(
-              uname: sender.account.name,
+            ChatRoomMemberRegion(
+              roomId: roomId,
+              member: sender,
               child: ProfilePictureWidget(
                 file: sender.account.profile.picture,
                 radius: 14,
               ),
             ),
           if (showAvatar) const Gap(4),
-          AccountName(
-            account: sender.account,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              AccountName(
+                account: sender.account,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (sender.realmLabel != null)
+                RealmLabel(label: sender.realmLabel!),
+            ],
           ),
           const Gap(6),
           Text(
@@ -65,8 +75,9 @@ class MessageSenderInfo extends StatelessWidget {
       return Row(
         spacing: 8,
         children: [
-          AccountPfcRegion(
-            uname: sender.account.name,
+          ChatRoomMemberRegion(
+            roomId: roomId,
+            member: sender,
             child: ProfilePictureWidget(
               file: sender.account.profile.picture,
               radius: 14,
@@ -76,12 +87,18 @@ class MessageSenderInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AccountName(
-                  account: sender.account,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  children: [
+                    AccountName(
+                      account: sender.account,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (sender.realmLabel != null)
+                      RealmLabel(label: sender.realmLabel!),
+                  ],
                 ),
                 Text(
                   timestamp,
@@ -102,8 +119,9 @@ class MessageSenderInfo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showAvatar)
-          AccountPfcRegion(
-            uname: sender.account.name,
+          ChatRoomMemberRegion(
+            roomId: roomId,
+            member: sender,
             child: ProfilePictureWidget(
               file: sender.account.profile.picture,
               radius: 16,
@@ -114,9 +132,15 @@ class MessageSenderInfo extends StatelessWidget {
           spacing: 2,
           children: [
             Text(timestamp, style: TextStyle(fontSize: 10, color: textColor)),
-            AccountName(
-              account: sender.account,
-              style: Theme.of(context).textTheme.bodySmall,
+            Row(
+              children: [
+                AccountName(
+                  account: sender.account,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                if (sender.realmLabel != null)
+                  RealmLabel(label: sender.realmLabel!),
+              ],
             ),
           ],
         ),

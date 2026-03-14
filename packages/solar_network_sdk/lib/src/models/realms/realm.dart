@@ -22,6 +22,8 @@ sealed class SnRealm with _$SnRealm {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    @Default(0) int boostPoints,
+    @Default(0) int boostLevel,
   }) = _SnRealm;
 
   factory SnRealm.fromJson(Map<String, dynamic> json) =>
@@ -41,8 +43,34 @@ sealed class SnRealmMember with _$SnRealmMember {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     required SnAccountStatus? status,
+    required String? nick,
+    required String? bio,
+    required String? labelId,
+    required SnRealmLabel? label,
+    required int experience,
+    required int level,
+    required double levelingProgress,
   }) = _SnRealmMember;
 
   factory SnRealmMember.fromJson(Map<String, dynamic> json) =>
       _$SnRealmMemberFromJson(json);
+}
+
+@freezed
+sealed class SnRealmLabel with _$SnRealmLabel {
+  const factory SnRealmLabel({
+    required String id,
+    required String realmId,
+    required String name,
+    required String description,
+    required String color,
+    required dynamic icon,
+    required String createdByAccountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required dynamic deletedAt,
+  }) = _SnRealmLabel;
+
+  factory SnRealmLabel.fromJson(Map<String, dynamic> json) =>
+      _$SnRealmLabelFromJson(json);
 }

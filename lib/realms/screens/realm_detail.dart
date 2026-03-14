@@ -2,11 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
+import 'package:island/core/utils/text.dart';
+import 'package:island/payments/payment_overlay.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
+import 'package:island/realms/models/realm_overview.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:island/core/services/color.dart';
@@ -15,17 +20,117 @@ import 'package:island/core/services/color_extraction.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
+import 'package:island/realms/screens/realms.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+const _realmBoostThresholds = [0, 1000, 5000, 15000];
+
+class _RealmExperienceCard extends StatelessWidget {
+  const _RealmExperienceCard({required this.identity});
+
+  final SnRealmMember identity;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = identity.levelingProgress.clamp(0.0, 1.0);
+    final progressPercent = (progress * 100).toStringAsFixed(1);
+    final accent = Theme.of(context).colorScheme.tertiary;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            accent.withOpacity(0.14),
+            Theme.of(context).colorScheme.surfaceContainerLow,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Realm XP',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: accent.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Lv ${identity.level}',
+                  style: TextStyle(color: accent, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const Gap(10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${identity.experience} total XP',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '$progressPercent%',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const Gap(10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 12,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              color: accent,
+            ),
+          ),
+          const Gap(8),
+          Text(
+            progress >= 1
+                ? 'Ready for the next realm level.'
+                : '$progressPercent% toward the next realm level',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _RealmPinnedPostsPageView extends HookConsumerWidget {
   final String realmSlug;
@@ -134,13 +239,20 @@ class _RealmPinnedPostsPageView extends HookConsumerWidget {
   }
 }
 
+final realmOverviewProvider = FutureProvider.autoDispose
+    .family<SnRealm, String>((ref, realmSlug) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final response = await apiClient.get('/passport/realms/$realmSlug');
+      return SnRealm.fromJson(response.data as Map<String, dynamic>);
+    });
+
 final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
     .family<Color?, String>((ref, realmSlug) async {
-      final realm = await ref.watch(realmProvider(realmSlug).future);
-      if (realm?.background == null) return null;
+      final realm = await ref.watch(realmOverviewProvider(realmSlug).future);
+      if (realm.background == null) return null;
       final colors = await ColorExtractionService.getColorsFromImage(
         CloudImageWidget.provider(
-          file: realm!.background!,
+          file: realm.background!,
           serverUrl: ref.watch(serverUrlProvider),
         ),
       );
@@ -151,6 +263,44 @@ final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
           : Colors.white;
     });
 
+final realmBoostStatusProvider = FutureProvider.autoDispose
+    .family<RealmBoostStatus, String>((ref, realmSlug) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final response = await apiClient.get(
+        '/passport/realms/$realmSlug/boosts',
+      );
+      return RealmBoostStatus.fromJson(response.data as Map<String, dynamic>);
+    });
+
+final realmBoostLeaderboardProvider = FutureProvider.autoDispose
+    .family<List<RealmBoostLeaderboardEntry>, String>((ref, realmSlug) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final response = await apiClient.get(
+        '/passport/realms/$realmSlug/boosts/leaderboard',
+        queryParameters: {'take': 20},
+      );
+      final data = response.data as List;
+      return data
+          .map(
+            (e) => RealmBoostLeaderboardEntry.fromJson(
+              Map<String, dynamic>.from(e),
+            ),
+          )
+          .toList();
+    });
+
+final realmLabelsProvider = FutureProvider.autoDispose
+    .family<List<RealmLabel>, String>((ref, realmSlug) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final response = await apiClient.get(
+        '/passport/realms/$realmSlug/labels',
+      );
+      final data = response.data as List;
+      return data
+          .map((e) => RealmLabel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    });
+
 final realmIdentityProvider = FutureProvider.autoDispose
     .family<SnRealmMember?, String>((ref, realmSlug) async {
       try {
@@ -158,7 +308,7 @@ final realmIdentityProvider = FutureProvider.autoDispose
         final response = await apiClient.get(
           '/passport/realms/$realmSlug/members/me',
         );
-        return SnRealmMember.fromJson(response.data);
+        return SnRealmMember.fromJson(response.data as Map<String, dynamic>);
       } catch (err) {
         if (err is DioException && err.response?.statusCode == 404) {
           return null; // No identity found, user is not a member
@@ -184,7 +334,8 @@ class RealmDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final realmState = ref.watch(realmProvider(slug));
+    final realmState = ref.watch(realmOverviewProvider(slug));
+    final overviewOrNull = realmState.asData?.value;
     final appbarColor = ref.watch(realmAppbarForegroundColorProvider(slug));
 
     final iconShadow = Shadow(
@@ -195,6 +346,13 @@ class RealmDetailScreen extends HookConsumerWidget {
 
     final realmIdentity = ref.watch(realmIdentityProvider(slug));
     final realmChatRooms = ref.watch(realmChatRoomsProvider(slug));
+    final realmBoostStatus = ref.watch(realmBoostStatusProvider(slug));
+    final realmLabels = ref.watch(realmLabelsProvider(slug));
+    final boostFallback = RealmBoostStatus(
+      boostPoints: overviewOrNull?.boostPoints ?? 0,
+      boostLevel: overviewOrNull?.boostLevel ?? 0,
+      labelCap: 0,
+    );
 
     Widget realmDescriptionWidget(SnRealm realm) => Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -230,6 +388,7 @@ class RealmDetailScreen extends HookConsumerWidget {
             final apiClient = ref.read(apiClientProvider);
             await apiClient.post('/passport/realms/$slug/members/me');
             ref.invalidate(realmIdentityProvider(slug));
+            ref.invalidate(realmOverviewProvider(slug));
             ref.invalidate(realmsJoinedProvider);
             showSnackBar('realmJoinSuccess'.tr());
           } catch (err) {
@@ -240,6 +399,389 @@ class RealmDetailScreen extends HookConsumerWidget {
         label: const Text('realmJoin').tr(),
       ).padding(all: 16),
     );
+
+    Widget realmBoostWidget(SnRealm realm, RealmBoostStatus boost) {
+      final currentThreshold =
+          _realmBoostThresholds[boost.boostLevel.clamp(
+            0,
+            _realmBoostThresholds.length - 1,
+          )];
+      final nextThreshold = boost.boostLevel >= _realmBoostThresholds.length - 1
+          ? null
+          : _realmBoostThresholds[boost.boostLevel + 1];
+      final progress = nextThreshold == null
+          ? 1.0
+          : ((boost.boostPoints - currentThreshold) /
+                    (nextThreshold - currentThreshold))
+                .clamp(0.0, 1.0);
+
+      return Card(
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Realm Boost',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Boost leaderboard',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useRootNavigator: true,
+                      builder: (_) =>
+                          _RealmBoostLeaderboardSheet(realmSlug: slug),
+                    );
+                  },
+                  icon: const Icon(Symbols.leaderboard),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useRootNavigator: true,
+                      builder: (_) => _RealmBoostSheet(
+                        realmSlug: slug,
+                        realmName: realm.name,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Symbols.volunteer_activism),
+                  label: const Text('Boost'),
+                ),
+              ],
+            ),
+            const Gap(12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  avatar: const Icon(Symbols.rocket_launch, size: 18),
+                  label: Text('Level ${boost.boostLevel}'),
+                ),
+                Chip(label: Text('${boost.boostPoints} points')),
+                Chip(label: Text('Label cap ${boost.labelCap}')),
+                Chip(
+                  label: Text(
+                    nextThreshold == null
+                        ? 'Max tier unlocked'
+                        : '${(nextThreshold - boost.boostPoints).clamp(0, nextThreshold)} to next level',
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 10,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      const Gap(6),
+                      Text(
+                        nextThreshold == null
+                            ? '15,000 points reached'
+                            : '${boost.boostPoints} / $nextThreshold points',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Gap(8),
+            Text(
+              boost.boostLevel >= 3
+                  ? 'All realm boost tiers unlocked.'
+                  : switch (boost.boostLevel) {
+                      0 => 'Level 1 unlocks custom realm profiles and labels.',
+                      1 => 'Level 2 unlocks elevated promotions.',
+                      2 => 'Level 3 unlocks the highest label capacity.',
+                      _ => 'Boost progress available.',
+                    },
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const Gap(6),
+            Text(
+              'Boosts are purchased as shares. Each share costs 100 points and is applied after the payment order is processed.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ).padding(all: 16),
+      );
+    }
+
+    Widget realmIdentityWidget(SnRealm realm, SnRealmMember identity) {
+      final labelColor = identity.label?.color.parseHexColor();
+
+      return Card(
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Realm Identity',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Text(
+                  identity.role >= 100
+                      ? 'permissionOwner'
+                      : identity.role >= 50
+                      ? 'permissionModerator'
+                      : 'permissionMember',
+                ).tr(),
+              ],
+            ),
+            const Gap(12),
+            if (identity.nick?.isNotEmpty ?? false)
+              Text(
+                identity.nick!,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            if (identity.nick?.isNotEmpty ?? false) const Gap(4),
+            if (identity.bio?.isNotEmpty ?? false)
+              Text(
+                identity.bio!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            if ((identity.bio?.isEmpty ?? true) &&
+                (identity.nick?.isEmpty ?? true))
+              Text(
+                realm.boostLevel >= 1
+                    ? 'No realm-specific profile set yet.'
+                    : 'Boost this realm to unlock custom nick and bio.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            if (identity.labelId != null) ...[
+              const Gap(12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: (labelColor ?? Theme.of(context).colorScheme.primary)
+                      .withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    if ((identity.label?.icon ?? '').isNotEmpty) ...[
+                      Text(identity.label!.icon),
+                      const Gap(8),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            identity.label!.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: labelColor,
+                            ),
+                          ),
+                          if ((identity.label?.description ?? '').isNotEmpty)
+                            Text(
+                              identity.label!.description,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const Gap(12),
+            _RealmExperienceCard(identity: identity),
+          ],
+        ).padding(all: 16),
+      );
+    }
+
+    Widget realmLabelsWidget(
+      SnRealm realm,
+      SnRealmMember identity,
+      RealmBoostStatus boost,
+    ) {
+      if (identity.role < 50) return const SizedBox.shrink();
+
+      return Card(
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Realm Labels',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Refresh labels',
+                  onPressed: () => ref.invalidate(realmLabelsProvider(slug)),
+                  icon: const Icon(Symbols.refresh),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: boost.boostLevel < 1
+                      ? null
+                      : () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useRootNavigator: true,
+                            builder: (_) =>
+                                _RealmLabelEditorSheet(realmSlug: slug),
+                          );
+                        },
+                  icon: const Icon(Symbols.add),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            const Gap(8),
+            Text(
+              boost.boostLevel < 1
+                  ? 'Boost this realm to level 1 to unlock labels.'
+                  : 'Using ${realmLabels.asData?.value.length ?? 0} / ${boost.labelCap} labels',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const Gap(12),
+            realmLabels.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Text(
+                'Error: $error',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              data: (labels) {
+                if (labels.isEmpty) {
+                  return Text(
+                    'No labels created yet.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return Column(
+                  children: labels.map((label) {
+                    final labelColor = label.color?.parseHexColor();
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color:
+                            (labelColor ??
+                                    Theme.of(context).colorScheme.primary)
+                                .withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          if ((label.icon ?? '').isNotEmpty) ...[
+                            Text(label.icon!),
+                            const Gap(8),
+                          ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  label.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: labelColor,
+                                  ),
+                                ),
+                                if ((label.description ?? '').isNotEmpty)
+                                  Text(
+                                    label.description!,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Edit label',
+                            onPressed: boost.boostLevel < 1
+                                ? null
+                                : () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      useRootNavigator: true,
+                                      builder: (_) => _RealmLabelEditorSheet(
+                                        realmSlug: slug,
+                                        label: label,
+                                      ),
+                                    );
+                                  },
+                            icon: const Icon(Symbols.edit),
+                          ),
+                          IconButton(
+                            tooltip: 'Delete label',
+                            onPressed: boost.boostLevel < 1
+                                ? null
+                                : () {
+                                    showConfirmAlert(
+                                      'Delete this label?',
+                                      label.name,
+                                      isDanger: true,
+                                    ).then((confirm) async {
+                                      if (confirm != true) return;
+                                      try {
+                                        final apiClient = ref.read(
+                                          apiClientProvider,
+                                        );
+                                        await apiClient.delete(
+                                          '/passport/realms/$slug/labels/${label.id}',
+                                        );
+                                        ref.invalidate(
+                                          realmLabelsProvider(slug),
+                                        );
+                                        ref.invalidate(
+                                          realmMemberListNotifierProvider(slug),
+                                        );
+                                        ref.invalidate(
+                                          realmIdentityProvider(slug),
+                                        );
+                                      } catch (err) {
+                                        showErrorAlert(err);
+                                      }
+                                    });
+                                  },
+                            icon: const Icon(Symbols.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ).padding(all: 16),
+      );
+    }
 
     Widget realmChatRoomListWidget(SnRealm realm) => Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -279,14 +821,14 @@ class RealmDetailScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: isWideScreen(context)
           ? realmState.when(
-              data: (realm) => AppBar(
+              data: (overview) => AppBar(
                 foregroundColor: appbarColor.value,
                 leading: AutoLeadingButton(),
                 flexibleSpace: Stack(
                   children: [
                     Positioned.fill(
-                      child: realm!.background != null
-                          ? CloudImageWidget(file: realm.background!)
+                      child: overview.background != null
+                          ? CloudImageWidget(file: overview.background!)
                           : Container(
                               color: Theme.of(
                                 context,
@@ -295,7 +837,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     ),
                     FlexibleSpaceBar(
                       title: Text(
-                        realm.name,
+                        overview.name,
                         style: TextStyle(
                           color:
                               appbarColor.value ??
@@ -330,7 +872,7 @@ class RealmDetailScreen extends HookConsumerWidget {
       body: realmState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
-        data: (realm) => isWideScreen(context)
+        data: (overview) => isWideScreen(context)
             ? Row(
                 children: [
                   Flexible(
@@ -348,23 +890,58 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ),
                   Flexible(
                     flex: 2,
-                    child: Column(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
                       children: [
-                        realmIdentity.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, _) => const SizedBox.shrink(),
-                          data: (identity) => Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              realmDescriptionWidget(realm!),
-                              if (identity == null && realm.isCommunity)
-                                realmActionWidget(realm)
-                              else
-                                const SizedBox.shrink(),
-                            ],
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            realmDescriptionWidget(overview),
+                            realmBoostStatus.when(
+                              data: (boost) =>
+                                  realmBoostWidget(overview, boost),
+                              loading: () =>
+                                  realmBoostWidget(overview, boostFallback),
+                              error: (_, _) =>
+                                  realmBoostWidget(overview, boostFallback),
+                            ),
+                            realmIdentity.when(
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
+                              data: (identity) {
+                                if (identity != null) {
+                                  return realmIdentityWidget(
+                                    overview,
+                                    identity,
+                                  );
+                                }
+                                if (overview.isCommunity) {
+                                  return realmActionWidget(overview);
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                            realmIdentity.when(
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
+                              data: (identity) {
+                                if (identity == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                return realmBoostStatus.when(
+                                  data: (boost) => realmLabelsWidget(
+                                    overview,
+                                    identity,
+                                    boost,
+                                  ),
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        realmChatRoomListWidget(realm!),
+                        realmChatRoomListWidget(overview),
                       ],
                     ),
                   ),
@@ -380,8 +957,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                     flexibleSpace: Stack(
                       children: [
                         Positioned.fill(
-                          child: realm!.background != null
-                              ? CloudImageWidget(file: realm.background!)
+                          child: overview.background != null
+                              ? CloudImageWidget(file: overview.background!)
                               : Container(
                                   color: Theme.of(
                                     context,
@@ -390,7 +967,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                         ),
                         FlexibleSpaceBar(
                           title: Text(
-                            realm.name,
+                            overview.name,
                             style: TextStyle(
                               color:
                                   appbarColor.value ??
@@ -421,22 +998,49 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ),
                   SliverGap(4),
                   SliverToBoxAdapter(
-                    child: realmIdentity.when(
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                      data: (identity) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          realmDescriptionWidget(realm),
-                          if (identity == null && realm.isCommunity)
-                            realmActionWidget(realm)
-                          else
-                            const SizedBox.shrink(),
-                        ],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        realmDescriptionWidget(overview),
+                        realmBoostStatus.when(
+                          data: (boost) => realmBoostWidget(overview, boost),
+                          loading: () =>
+                              realmBoostWidget(overview, boostFallback),
+                          error: (_, _) =>
+                              realmBoostWidget(overview, boostFallback),
+                        ),
+                        realmIdentity.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                          data: (identity) {
+                            if (identity != null) {
+                              return realmIdentityWidget(overview, identity);
+                            }
+                            if (overview.isCommunity) {
+                              return realmActionWidget(overview);
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        realmIdentity.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                          data: (identity) {
+                            if (identity == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return realmBoostStatus.when(
+                              data: (boost) =>
+                                  realmLabelsWidget(overview, identity, boost),
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  SliverToBoxAdapter(child: realmChatRoomListWidget(realm)),
+                  SliverToBoxAdapter(child: realmChatRoomListWidget(overview)),
                   SliverToBoxAdapter(
                     child: _RealmPinnedPostsPageView(realmSlug: slug),
                   ),
@@ -507,6 +1111,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                         final client = ref.watch(apiClientProvider);
                         client.delete('/passport/realms/$realmSlug');
                         ref.invalidate(realmsJoinedProvider);
+                        ref.invalidate(realmOverviewProvider(realmSlug));
                         if (context.mounted) {
                           context.router.pop(true);
                         }
@@ -541,6 +1146,8 @@ class _RealmActionMenu extends HookConsumerWidget {
                           '/passport/realms/$realmSlug/members/me',
                         );
                         ref.invalidate(realmsJoinedProvider);
+                        ref.invalidate(realmIdentityProvider(realmSlug));
+                        ref.invalidate(realmOverviewProvider(realmSlug));
                         if (context.mounted) {
                           context.router.pop(true);
                         }
@@ -574,6 +1181,8 @@ class _RealmActionMenu extends HookConsumerWidget {
                   final client = ref.watch(apiClientProvider);
                   await client.delete('/passport/realms/$realmSlug/members/me');
                   ref.invalidate(realmsJoinedProvider);
+                  ref.invalidate(realmIdentityProvider(realmSlug));
+                  ref.invalidate(realmOverviewProvider(realmSlug));
                   if (context.mounted) {
                     context.router.pop(true);
                   }
@@ -735,6 +1344,25 @@ class _RealmMemberListSheet extends HookConsumerWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if ((realmIdentity.value?.role ?? 0) >= 50)
+                    IconButton(
+                      icon: const Icon(Symbols.label),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => _RealmMemberLabelSheet(
+                            realmSlug: realmSlug,
+                            member: member,
+                          ),
+                        ).then((value) {
+                          if (value != null) {
+                            ref.invalidate(memberListProvider);
+                            ref.invalidate(realmIdentityProvider(realmSlug));
+                          }
+                        });
+                      },
+                    ),
                   if ((realmIdentity.value?.role ?? 0) >= 50)
                     IconButton(
                       icon: const Icon(Symbols.edit),
@@ -907,6 +1535,479 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
             ).padding(vertical: 16, horizontal: 24),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RealmMemberLabelSheet extends HookConsumerWidget {
+  const _RealmMemberLabelSheet({required this.realmSlug, required this.member});
+
+  final String realmSlug;
+  final SnRealmMember member;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final labels = ref.watch(realmLabelsProvider(realmSlug));
+    final selectedLabelId = useState<String?>(null);
+
+    return SheetScaffold(
+      titleText: 'Assign Label',
+      child: labels.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('Error: $error')),
+        data: (items) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                member.account?.nick ?? member.accountId,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const Gap(12),
+              DropdownButtonFormField<String?>(
+                value: selectedLabelId.value,
+                decoration: const InputDecoration(
+                  labelText: 'Label',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('No label'),
+                  ),
+                  ...items.map(
+                    (label) => DropdownMenuItem<String?>(
+                      value: label.id,
+                      child: Text(label.name),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => selectedLabelId.value = value,
+              ),
+              const Gap(16),
+              FilledButton.icon(
+                onPressed: () async {
+                  try {
+                    final apiClient = ref.read(apiClientProvider);
+                    await apiClient.patch(
+                      '/passport/realms/$realmSlug/members/${member.accountId}/label',
+                      data: {'label_id': selectedLabelId.value},
+                    );
+                    if (context.mounted) Navigator.pop(context, true);
+                  } catch (err) {
+                    showErrorAlert(err);
+                  }
+                },
+                icon: const Icon(Symbols.save),
+                label: const Text('saveChanges').tr(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmLabelEditorSheet extends HookConsumerWidget {
+  const _RealmLabelEditorSheet({required this.realmSlug, this.label});
+
+  final String realmSlug;
+  final RealmLabel? label;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nameController = useTextEditingController(text: label?.name ?? '');
+    final descriptionController = useTextEditingController(
+      text: label?.description ?? '',
+    );
+    final colorController = useTextEditingController(text: label?.color ?? '');
+    final iconController = useTextEditingController(text: label?.icon ?? '');
+
+    return SheetScaffold(
+      titleText: label == null ? 'Create Label' : 'Edit Label',
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const Gap(12),
+            TextField(
+              controller: descriptionController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const Gap(12),
+            TextField(
+              controller: colorController,
+              decoration: const InputDecoration(
+                labelText: 'Color',
+                hintText: '#FFB347',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const Gap(12),
+            TextField(
+              controller: iconController,
+              decoration: const InputDecoration(
+                labelText: 'Icon',
+                hintText: 'emoji or short symbol',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const Gap(16),
+            FilledButton.icon(
+              onPressed: () async {
+                if (nameController.text.trim().isEmpty) {
+                  showSnackBar('Name is required.');
+                  return;
+                }
+
+                try {
+                  final apiClient = ref.read(apiClientProvider);
+                  final payload = {
+                    'name': nameController.text.trim(),
+                    'description': descriptionController.text.trim().isEmpty
+                        ? null
+                        : descriptionController.text.trim(),
+                    'color': colorController.text.trim().isEmpty
+                        ? null
+                        : colorController.text.trim(),
+                    'icon': iconController.text.trim().isEmpty
+                        ? null
+                        : iconController.text.trim(),
+                  };
+                  if (label == null) {
+                    await apiClient.post(
+                      '/passport/realms/$realmSlug/labels',
+                      data: payload,
+                    );
+                  } else {
+                    await apiClient.patch(
+                      '/passport/realms/$realmSlug/labels/${label!.id}',
+                      data: payload,
+                    );
+                  }
+                  ref.invalidate(realmLabelsProvider(realmSlug));
+                  if (context.mounted) Navigator.pop(context, true);
+                } catch (err) {
+                  showErrorAlert(err);
+                }
+              },
+              icon: const Icon(Symbols.save),
+              label: Text(label == null ? 'create'.tr() : 'saveChanges'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmBoostSheet extends HookConsumerWidget {
+  const _RealmBoostSheet({required this.realmSlug, required this.realmName});
+
+  final String realmSlug;
+  final String realmName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sharesController = useTextEditingController(text: '1');
+    final shares = int.tryParse(sharesController.text.trim()) ?? 1;
+    final amountPoints = shares * 100;
+
+    return SheetScaffold(
+      titleText: 'Boost Realm',
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    realmName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Gap(8),
+                  Text(
+                    'Boost shares are paid with wallet points. One share equals 100 points.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(20),
+            Text(
+              'Boost shares',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Gap(8),
+            TextField(
+              controller: sharesController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: 'Enter number of shares...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+              ),
+            ),
+            const Gap(16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withOpacity(0.28),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$shares share${shares == 1 ? '' : 's'}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          '$amountPoints points',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Symbols.local_atm),
+                ],
+              ),
+            ),
+            const Gap(24),
+            FilledButton.tonalIcon(
+              onPressed: () async {
+                final value = int.tryParse(sharesController.text.trim());
+                if (value == null || value <= 0) {
+                  showSnackBar('Please enter a valid share count.');
+                  return;
+                }
+
+                try {
+                  showLoadingModal(context);
+
+                  final client = ref.read(apiClientProvider);
+                  final response = await client.post(
+                    '/passport/realms/$realmSlug/boosts',
+                    data: {'shares': value},
+                  );
+
+                  final orderId = response.data['order_id'] as String;
+                  final orderResponse = await client.get(
+                    '/wallet/orders/$orderId',
+                  );
+                  final order = SnWalletOrder.fromJson(orderResponse.data);
+
+                  if (!context.mounted) return;
+                  hideLoadingModal(context);
+
+                  final paidOrder = await PaymentOverlay.show(
+                    context: context,
+                    order: order,
+                    enableBiometric: true,
+                  );
+
+                  if (paidOrder != null && context.mounted) {
+                    ref.invalidate(realmBoostStatusProvider(realmSlug));
+                    ref.invalidate(realmBoostLeaderboardProvider(realmSlug));
+                    ref.invalidate(realmLabelsProvider(realmSlug));
+                    ref.invalidate(realmOverviewProvider(realmSlug));
+                    showSnackBar(
+                      'Boost payment completed. Realm points will update after the order event is processed.',
+                    );
+                    Navigator.of(context).pop();
+                  }
+                } catch (err) {
+                  if (context.mounted) {
+                    hideLoadingModal(context);
+                    showErrorAlert(err);
+                  }
+                }
+              },
+              icon: const Icon(Symbols.volunteer_activism),
+              label: const Text('Donate boost'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmBoostLeaderboardSheet extends ConsumerWidget {
+  const _RealmBoostLeaderboardSheet({required this.realmSlug});
+
+  final String realmSlug;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final leaderboardAsync = ref.watch(
+      realmBoostLeaderboardProvider(realmSlug),
+    );
+
+    return SheetScaffold(
+      titleText: 'Boost Leaderboard',
+      child: leaderboardAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => Center(
+          child: Text(
+            'Failed to load boost leaderboard',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        data: (entries) {
+          if (entries.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Symbols.leaderboard, size: 40),
+                  const Gap(12),
+                  Text(
+                    'No boosts yet',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              final rank = index + 1;
+              final rankColor = switch (rank) {
+                1 => Colors.amber,
+                2 => Colors.grey,
+                3 => Colors.brown,
+                _ => Theme.of(context).colorScheme.onSurfaceVariant,
+              };
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: rankColor.withOpacity(0.18),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$rank',
+                            style: TextStyle(
+                              color: rankColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Gap(12),
+                      if (entry.account?.profile.picture != null)
+                        ProfilePictureWidget(
+                          file: entry.account!.profile.picture,
+                          radius: 18,
+                        )
+                      else
+                        CircleAvatar(
+                          radius: 18,
+                          child: Text(
+                            entry.account?.nick.substring(0, 1).toUpperCase() ??
+                                '?',
+                          ),
+                        ),
+                      const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (entry.account != null)
+                              AccountName(
+                                account: entry.account!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            else
+                              Text(
+                                entry.accountId,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            Text(
+                              '${entry.boosts} boost order${entry.boosts == 1 ? '' : 's'}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${entry.amountPoints.toStringAsFixed(0)} pts',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            '${entry.shares.toStringAsFixed(0)} shares',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

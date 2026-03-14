@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -10,8 +11,14 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class RealmDiscoveryCard extends ConsumerWidget {
   final SnRealm realm;
   final double? maxWidth;
+  final bool showFeedback;
 
-  const RealmDiscoveryCard({super.key, required this.realm, this.maxWidth});
+  const RealmDiscoveryCard({
+    super.key,
+    required this.realm,
+    this.maxWidth,
+    this.showFeedback = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,6 +97,15 @@ class RealmDiscoveryCard extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (showFeedback)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: DiscoveryFeedbackWidget(
+                    kind: 'realm',
+                    referenceId: realm.id,
+                  ),
+                ),
             ],
           ),
         ),

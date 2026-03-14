@@ -1879,5 +1879,9 @@
   "open": "Open",
   "liveChat": "Live Chat",
   "watchToJoin":"Watch to Join",
-  "searchUsersEmpty": "Search for users.."
+  "searchUsersEmpty": "Search for users..",
+  "publisherQuotaSlotUsed": "Slot Used",
+  "publisherQuotaInfoHint": "Publisher slots are used when you create a publisher. If you have no available slots, you won't be able to create new publishers until. It does not limit the number of publishers you can collaberate with others.",
+  "realmQuotaSlotUsed": "Slot Used",
+  "realmQuotaInfoHint": "Realm slots are used when you create a realm. If you have no available slots, you won't be able to create new realms until. It does not limit the number of realms you can collaborate with others."
 }

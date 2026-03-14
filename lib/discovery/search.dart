@@ -14,7 +14,7 @@ import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/realms/realms_widgets/realm/realm_list.dart';
+import 'package:island/realms/widgets/realm_list.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';

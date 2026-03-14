@@ -4,9 +4,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/services/image.dart';
+import 'package:island/realms/models/realm_quota_info.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
@@ -14,8 +16,18 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+part 'realm_form.g.dart';
+
+@riverpod
+Future<RealmQuotaInfo> realmQuotaInfo(Ref ref) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/passport/realms/quota');
+  return RealmQuotaInfo.fromJson(response.data);
+}
 
 @RoutePage()
 class RealmNewScreen extends StatelessWidget {
@@ -192,6 +204,77 @@ class RealmEditScreen extends HookConsumerWidget {
                 ],
               ),
             ).padding(bottom: 32),
+            if (slug == null) ...[
+              ref
+                      .watch(realmQuotaInfoProvider)
+                      .whenOrNull(
+                        data: (data) => Card(
+                          margin: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                          ),
+                          child: HookBuilder(
+                            builder: (context) {
+                              final isCollapsed = useState(true);
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${data.used} / ${data.total}',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ).padding(horizontal: 4),
+                                  Row(
+                                    children: [
+                                      Text('realmQuotaSlotUsed').tr(),
+                                      const Spacer(),
+                                      InkWell(
+                                        onTap: () => isCollapsed.value =
+                                            !isCollapsed.value,
+                                        child: const Icon(
+                                          Symbols.info,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ).padding(horizontal: 4),
+                                  if (!isCollapsed.value)
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 4,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        'realmQuotaInfoHint',
+                                      ).tr().fontSize(13).opacity(0.75),
+                                    ),
+                                  const Gap(8),
+                                  LinearProgressIndicator(
+                                    value: data.total > 0
+                                        ? data.used / data.total
+                                        : 0,
+                                  ),
+                                ],
+                              ).padding(horizontal: 16, vertical: 12);
+                            },
+                          ),
+                        ),
+                      ) ??
+                  const SizedBox.shrink(),
+            ],
             Form(
               key: formKey,
               child: Column(

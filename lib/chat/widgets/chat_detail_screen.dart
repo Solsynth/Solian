@@ -10,6 +10,7 @@ import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
+import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
@@ -745,33 +746,31 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                     ],
                   ),
                   subtitle: Text("@${member.account.name}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isManagable)
-                        IconButton(
-                          icon: const Icon(Symbols.delete),
-                          onPressed: () {
-                            showConfirmAlert(
-                              'removeChatMemberHint'.tr(),
-                              'removeChatMember'.tr(),
-                            ).then((confirm) async {
-                              if (confirm != true) return;
-                              try {
-                                final apiClient = ref.watch(apiClientProvider);
-                                await apiClient.delete(
-                                  '/messager/chat/$roomId/members/${member.accountId}',
-                                );
-                                // Refresh both providers
-                                memberNotifier.refresh();
-                              } catch (err) {
-                                showErrorAlert(err);
-                              }
-                            });
-                          },
-                        ),
-                    ],
+                  trailing: IconButton(
+                    icon: const Icon(Symbols.more_horiz),
+                    onPressed: () {
+                      showChatRoomMemberCard(
+                        context,
+                        roomId: roomId,
+                        member: member,
+                        canModerate: isManagable,
+                        onUpdated: () async {
+                          memberNotifier.refresh();
+                        },
+                      );
+                    },
                   ),
+                  onTap: () {
+                    showChatRoomMemberCard(
+                      context,
+                      roomId: roomId,
+                      member: member,
+                      canModerate: isManagable,
+                      onUpdated: () async {
+                        memberNotifier.refresh();
+                      },
+                    );
+                  },
                 );
               },
             ),

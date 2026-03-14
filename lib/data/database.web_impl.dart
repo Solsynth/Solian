@@ -96,6 +96,12 @@ class ChatMember {
     required this.createdAt,
     required this.updatedAt,
     required this.deletedAt,
+    required this.realmNick,
+    required this.realmBio,
+    required this.realmExperience,
+    required this.realmLevel,
+    required this.realmLevelingProgress,
+    required this.realmLabel,
   });
 
   final String id;
@@ -110,6 +116,12 @@ class ChatMember {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? realmNick;
+  final String? realmBio;
+  final int? realmExperience;
+  final int? realmLevel;
+  final double? realmLevelingProgress;
+  final Map<String, dynamic>? realmLabel;
 }
 
 class Realm {
@@ -285,6 +297,12 @@ class AppDatabase {
       updatedAt: DateTime.now(),
       deletedAt: null,
       chatRoom: null,
+      realmNick: '',
+      realmBio: '',
+      realmExperience: null,
+      realmLevel: null,
+      realmLevelingProgress: null,
+      realmLabel: null,
     );
 
     return LocalChatMessage(

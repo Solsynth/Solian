@@ -29,6 +29,8 @@ _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   deletedAt: json['deleted_at'] == null
       ? null
       : DateTime.parse(json['deleted_at'] as String),
+  boostPoints: (json['boost_points'] as num?)?.toInt() ?? 0,
+  boostLevel: (json['boost_level'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
@@ -46,6 +48,8 @@ Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
+  'boost_points': instance.boostPoints,
+  'boost_level': instance.boostLevel,
 };
 
 _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
@@ -70,6 +74,15 @@ _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
       status: json['status'] == null
           ? null
           : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
+      nick: json['nick'] as String?,
+      bio: json['bio'] as String?,
+      labelId: json['label_id'] as String?,
+      label: json['label'] == null
+          ? null
+          : SnRealmLabel.fromJson(json['label'] as Map<String, dynamic>),
+      experience: (json['experience'] as num).toInt(),
+      level: (json['level'] as num).toInt(),
+      levelingProgress: (json['leveling_progress'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
@@ -84,4 +97,39 @@ Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'status': instance.status?.toJson(),
+      'nick': instance.nick,
+      'bio': instance.bio,
+      'label_id': instance.labelId,
+      'label': instance.label?.toJson(),
+      'experience': instance.experience,
+      'level': instance.level,
+      'leveling_progress': instance.levelingProgress,
+    };
+
+_SnRealmLabel _$SnRealmLabelFromJson(Map<String, dynamic> json) =>
+    _SnRealmLabel(
+      id: json['id'] as String,
+      realmId: json['realm_id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      color: json['color'] as String,
+      icon: json['icon'],
+      createdByAccountId: json['created_by_account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'],
+    );
+
+Map<String, dynamic> _$SnRealmLabelToJson(_SnRealmLabel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'realm_id': instance.realmId,
+      'name': instance.name,
+      'description': instance.description,
+      'color': instance.color,
+      'icon': instance.icon,
+      'created_by_account_id': instance.createdByAccountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt,
     };

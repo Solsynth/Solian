@@ -39,6 +39,7 @@ class MessageListTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           MessageSenderInfo(
+            roomId: message.roomId,
             sender: sender,
             createdAt: message.createdAt,
             textColor: Theme.of(context).colorScheme.onSurfaceVariant,

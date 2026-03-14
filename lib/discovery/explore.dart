@@ -21,7 +21,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/realms/realms_widgets/realm/realm_card.dart';
+import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
@@ -29,6 +29,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/web_article_card.dart';
+import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
@@ -822,7 +823,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
 
     final height = switch (type) {
       'post' => 280.0,
-      _ when isSingleSuggestion => 250.0,
+      _ when isSingleSuggestion => null,
       _ => 180.0,
     };
 
@@ -835,6 +836,9 @@ class _DiscoveryActivityItem extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = Map<String, dynamic>.from(items[index]);
           final itemData = _extractDiscoveryItemData(item);
+          final post = SnPost.fromJson(itemData);
+          final rank = item['rank'] as String?;
+
           return Container(
             width: 320,
             decoration: BoxDecoration(
@@ -844,14 +848,95 @@ class _DiscoveryActivityItem extends StatelessWidget {
               ),
               borderRadius: const BorderRadius.all(Radius.circular(8)),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-              child: SingleChildScrollView(
-                child: PostActionableItem(
-                  item: SnPost.fromJson(itemData),
-                  isCompact: true,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    child: SingleChildScrollView(
+                      child: PostActionableItem(item: post, isCompact: true),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Row(
+                    children: [
+                      if (rank == 'highest')
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Top Pick',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
+                          ),
+                        ),
+                      if (rank == 'lowest')
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Not Recommended',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: DiscoveryFeedbackWidget(
+                      kind: 'post',
+                      referenceId: post.id,
+                      showNotInterested: false,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -863,7 +948,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
             (item['reasons'] as List?)?.whereType<String>().toList() ??
             const <String>[];
         if (reasons.isEmpty) reasons.add('We think you might like this.');
-        final score = item['score'] is num
+        final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
             : null;
 
@@ -871,16 +956,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: _buildDiscoveryCard(
-                  type,
-                  itemData,
-                  maxWidth: double.infinity,
-                ),
-              ),
-            ),
+            _buildDiscoveryCard(type, itemData, maxWidth: double.infinity),
             if (reasons.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8),
@@ -901,7 +977,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                   ],
                 ),
               ),
-            if (score != null && kDebugMode)
+            if (rank != null && kDebugMode)
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8),
                 child: Row(
@@ -909,7 +985,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                   children: [
                     const Icon(Symbols.rule, size: 16),
                     Text(
-                      'Score: $score',
+                      'Rank: $rank',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -1044,14 +1120,20 @@ Map<String, dynamic> _extractDiscoveryItemData(Map<String, dynamic> item) {
   return item;
 }
 
-class AccountDiscoveryCard extends StatelessWidget {
+class AccountDiscoveryCard extends ConsumerWidget {
   final SnAccount account;
   final double? maxWidth;
+  final bool showFeedback;
 
-  const AccountDiscoveryCard({super.key, required this.account, this.maxWidth});
+  const AccountDiscoveryCard({
+    super.key,
+    required this.account,
+    this.maxWidth,
+    this.showFeedback = true,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final background = account.profile.background;
     final imageWidget = background != null
         ? CloudImageWidget(file: background, fit: BoxFit.cover)
@@ -1127,6 +1209,15 @@ class AccountDiscoveryCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (showFeedback)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: DiscoveryFeedbackWidget(
+                    kind: 'account',
+                    referenceId: account.id,
+                  ),
+                ),
             ],
           ),
         ),
@@ -1172,14 +1263,58 @@ class _ActivityListView extends HookConsumerWidget {
         switch (item.type) {
           case 'posts.new':
           case 'posts.new.replies':
+            final postData = item.data!;
+            final postJson = postData is Map<String, dynamic>
+                ? postData
+                : (postData as Map).cast<String, dynamic>();
+            final post = SnPost.fromJson(postJson);
+
+            final currentData = data;
+            final postsInBatch = currentData
+                .where(
+                  (e) => e.type == 'posts.new' || e.type == 'posts.new.replies',
+                )
+                .map((e) {
+                  final d = e.data;
+                  if (d is Map<String, dynamic>) return SnPost.fromJson(d);
+                  if (d is Map) {
+                    return SnPost.fromJson(Map<String, dynamic>.from(d));
+                  }
+                  return null;
+                })
+                .whereType<SnPost>()
+                .toList();
+
+            double? minRank;
+            double? maxRank;
+            if (postsInBatch.isNotEmpty) {
+              final ranks = postsInBatch
+                  .map((p) => p.debugRank)
+                  .whereType<double>()
+                  .toList();
+              if (ranks.isNotEmpty) {
+                minRank = ranks.reduce((a, b) => a < b ? a : b);
+                maxRank = ranks.reduce((a, b) => a > b ? a : b);
+              }
+            }
+
+            final isHighest =
+                post.debugRank != null && post.debugRank == maxRank;
+            final isLowest =
+                post.debugRank != null && post.debugRank == minRank;
+
             itemWidget = PostActionableItem(
               borderRadius: 8,
-              item: SnPost.fromJson(item.data!),
+              item: post,
+              showFeedback: isHighest || isLowest,
               onRefresh: () {
                 notifier.refresh();
               },
-              onUpdate: (post) {
-                notifier.updateOne(index, item.copyWith(data: post.toJson()));
+              onUpdate: (updatedPost) {
+                notifier.updateOne(
+                  index,
+                  item.copyWith(data: updatedPost.toJson()),
+                );
               },
             );
             itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);
