@@ -122,8 +122,8 @@ class DiscoveryFeedbackService {
         'kind': kind.value,
         'reference_id': referenceId,
         'feedback': feedback.alias,
-        if (reason case final reason?) 'reason': reason,
-        if (suppress case final suppress?) 'suppress': suppress,
+        'reason': ?reason,
+        'suppress': ?suppress,
       },
     );
   }
@@ -142,7 +142,7 @@ class DiscoveryFeedbackService {
         'reference_id': referenceId,
         'score_delta': scoreDelta,
         'interaction_count': interactionCount,
-        if (signalType case final signalType?) 'signal_type': signalType,
+        'signal_type': ?signalType,
       },
     );
   }

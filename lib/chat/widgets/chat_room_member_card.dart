@@ -379,3 +379,38 @@ Future<void> showChatRoomMemberCard(
     dimBackground: true,
   );
 }
+
+class ChatRoomMemberRegion extends HookConsumerWidget {
+  final String roomId;
+  final SnChatMember member;
+  final Widget child;
+
+  const ChatRoomMemberRegion({
+    super.key,
+    required this.roomId,
+    required this.member,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
+    final chatRoom = ref.watch(chatRoomProvider(roomId));
+    final canModerate =
+        chatRoom.value?.accountId == roomIdentity.value?.accountId ||
+        chatRoom.value?.type == 1;
+
+    return GestureDetector(
+      child: child,
+      onTapDown: (details) {
+        showChatRoomMemberCard(
+          context,
+          roomId: roomId,
+          member: member,
+          canModerate: canModerate,
+          offset: details.localPosition,
+        );
+      },
+    );
+  }
+}
