@@ -6,6 +6,7 @@ import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class MessageSenderInfo extends StatelessWidget {
   final String roomId;
@@ -59,7 +60,7 @@ class MessageSenderInfo extends StatelessWidget {
                 ),
               ),
               if (sender.realmLabel != null)
-                RealmLabel(label: sender.realmLabel!),
+                RealmLabelWidget(label: sender.realmLabel!).padding(left: 6),
             ],
           ),
           const Gap(6),
@@ -97,7 +98,9 @@ class MessageSenderInfo extends StatelessWidget {
                       ),
                     ),
                     if (sender.realmLabel != null)
-                      RealmLabel(label: sender.realmLabel!),
+                      RealmLabelWidget(
+                        label: sender.realmLabel!,
+                      ).padding(left: 6),
                   ],
                 ),
                 Text(
@@ -139,7 +142,7 @@ class MessageSenderInfo extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (sender.realmLabel != null)
-                  RealmLabel(label: sender.realmLabel!),
+                  RealmLabelWidget(label: sender.realmLabel!).padding(left: 6),
               ],
             ),
           ],

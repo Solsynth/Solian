@@ -11,6 +11,7 @@ _RealmBoostStatus _$RealmBoostStatusFromJson(Map<String, dynamic> json) =>
       boostPoints: (json['boost_points'] as num).toInt(),
       boostLevel: (json['boost_level'] as num).toInt(),
       labelCap: (json['label_cap'] as num).toInt(),
+      expiresAfterDays: (json['expires_after_days'] as num).toInt(),
     );
 
 Map<String, dynamic> _$RealmBoostStatusToJson(_RealmBoostStatus instance) =>
@@ -18,6 +19,7 @@ Map<String, dynamic> _$RealmBoostStatusToJson(_RealmBoostStatus instance) =>
       'boost_points': instance.boostPoints,
       'boost_level': instance.boostLevel,
       'label_cap': instance.labelCap,
+      'expires_after_days': instance.expiresAfterDays,
     };
 
 _RealmBoostLeaderboardEntry _$RealmBoostLeaderboardEntryFromJson(
@@ -27,9 +29,12 @@ _RealmBoostLeaderboardEntry _$RealmBoostLeaderboardEntryFromJson(
   account: json['account'] == null
       ? null
       : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
-  amountPoints: (json['amount_points'] as num).toDouble(),
+  amountGolds: (json['amount_golds'] as num).toDouble(),
   shares: (json['shares'] as num).toDouble(),
   boosts: (json['boosts'] as num).toInt(),
+  lastBoostedAt: json['last_boosted_at'] == null
+      ? null
+      : DateTime.parse(json['last_boosted_at'] as String),
 );
 
 Map<String, dynamic> _$RealmBoostLeaderboardEntryToJson(
@@ -37,9 +42,10 @@ Map<String, dynamic> _$RealmBoostLeaderboardEntryToJson(
 ) => <String, dynamic>{
   'account_id': instance.accountId,
   'account': instance.account?.toJson(),
-  'amount_points': instance.amountPoints,
+  'amount_golds': instance.amountGolds,
   'shares': instance.shares,
   'boosts': instance.boosts,
+  'last_boosted_at': instance.lastBoostedAt?.toIso8601String(),
 };
 
 _RealmLabel _$RealmLabelFromJson(Map<String, dynamic> json) => _RealmLabel(

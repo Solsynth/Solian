@@ -10,6 +10,7 @@ sealed class RealmBoostStatus with _$RealmBoostStatus {
     required int boostPoints,
     required int boostLevel,
     required int labelCap,
+    required int expiresAfterDays,
   }) = _RealmBoostStatus;
 
   factory RealmBoostStatus.fromJson(Map<String, dynamic> json) =>
@@ -21,9 +22,10 @@ sealed class RealmBoostLeaderboardEntry with _$RealmBoostLeaderboardEntry {
   const factory RealmBoostLeaderboardEntry({
     required String accountId,
     required SnAccount? account,
-    required double amountPoints,
+    required double amountGolds,
     required double shares,
     required int boosts,
+    required DateTime? lastBoostedAt,
   }) = _RealmBoostLeaderboardEntry;
 
   factory RealmBoostLeaderboardEntry.fromJson(Map<String, dynamic> json) =>
