@@ -259,3 +259,42 @@ sealed class SnProductProviderMappings with _$SnProductProviderMappings {
   factory SnProductProviderMappings.fromJson(Map<String, dynamic> json) =>
       _$SnProductProviderMappingsFromJson(json);
 }
+
+@freezed
+sealed class SnSubscriptionGroup with _$SnSubscriptionGroup {
+  const factory SnSubscriptionGroup({
+    required String groupIdentifier,
+    required SnSubscriptionGroupCatalog catalog,
+    required SnSubscriptionCatalog? current,
+    required SnSubscriptionCatalog? next,
+    required List<SnActiveSubscription> subscriptions,
+  }) = _SnSubscriptionGroup;
+
+  factory SnSubscriptionGroup.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionGroupFromJson(json);
+}
+
+@freezed
+sealed class SnSubscriptionGroupCatalog with _$SnSubscriptionGroupCatalog {
+  const factory SnSubscriptionGroupCatalog({
+    required String groupIdentifier,
+    required String displayName,
+    required int maxPerkLevel,
+    required SnSubscriptionDisplayConfig? displayConfig,
+    required List<SnSubscriptionCatalog> items,
+  }) = _SnSubscriptionGroupCatalog;
+
+  factory SnSubscriptionGroupCatalog.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionGroupCatalogFromJson(json);
+}
+
+@freezed
+sealed class SnActiveSubscription with _$SnActiveSubscription {
+  const factory SnActiveSubscription({
+    required SnWalletSubscription subscription,
+    required SnSubscriptionCatalog definition,
+  }) = _SnActiveSubscription;
+
+  factory SnActiveSubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnActiveSubscriptionFromJson(json);
+}

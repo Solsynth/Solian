@@ -4075,4 +4075,940 @@ as List<String>,
 
 }
 
+
+/// @nodoc
+mixin _$SnSubscriptionGroup {
+
+ String get groupIdentifier; SnSubscriptionGroupCatalog get catalog; SnSubscriptionCatalog? get current; SnSubscriptionCatalog? get next; List<SnActiveSubscription> get subscriptions;
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnSubscriptionGroupCopyWith<SnSubscriptionGroup> get copyWith => _$SnSubscriptionGroupCopyWithImpl<SnSubscriptionGroup>(this as SnSubscriptionGroup, _$identity);
+
+  /// Serializes this SnSubscriptionGroup to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&(identical(other.current, current) || other.current == current)&&(identical(other.next, next) || other.next == next)&&const DeepCollectionEquality().equals(other.subscriptions, subscriptions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,current,next,const DeepCollectionEquality().hash(subscriptions));
+
+@override
+String toString() {
+  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, current: $current, next: $next, subscriptions: $subscriptions)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnSubscriptionGroupCopyWith<$Res>  {
+  factory $SnSubscriptionGroupCopyWith(SnSubscriptionGroup value, $Res Function(SnSubscriptionGroup) _then) = _$SnSubscriptionGroupCopyWithImpl;
+@useResult
+$Res call({
+ String groupIdentifier, SnSubscriptionGroupCatalog catalog, SnSubscriptionCatalog? current, SnSubscriptionCatalog? next, List<SnActiveSubscription> subscriptions
+});
+
+
+$SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;$SnSubscriptionCatalogCopyWith<$Res>? get current;$SnSubscriptionCatalogCopyWith<$Res>? get next;
+
+}
+/// @nodoc
+class _$SnSubscriptionGroupCopyWithImpl<$Res>
+    implements $SnSubscriptionGroupCopyWith<$Res> {
+  _$SnSubscriptionGroupCopyWithImpl(this._self, this._then);
+
+  final SnSubscriptionGroup _self;
+  final $Res Function(SnSubscriptionGroup) _then;
+
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? current = freezed,Object? next = freezed,Object? subscriptions = null,}) {
+  return _then(_self.copyWith(
+groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,catalog: null == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionGroupCatalog,current: freezed == current ? _self.current : current // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog?,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog?,subscriptions: null == subscriptions ? _self.subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as List<SnActiveSubscription>,
+  ));
+}
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionGroupCatalogCopyWith<$Res> get catalog {
+  
+  return $SnSubscriptionGroupCatalogCopyWith<$Res>(_self.catalog, (value) {
+    return _then(_self.copyWith(catalog: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res>? get current {
+    if (_self.current == null) {
+    return null;
+  }
+
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.current!, (value) {
+    return _then(_self.copyWith(current: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res>? get next {
+    if (_self.next == null) {
+    return null;
+  }
+
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.next!, (value) {
+    return _then(_self.copyWith(next: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnSubscriptionGroup].
+extension SnSubscriptionGroupPatterns on SnSubscriptionGroup {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSubscriptionGroup value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSubscriptionGroup value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSubscriptionGroup value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnSubscriptionCatalog? current,  SnSubscriptionCatalog? next,  List<SnActiveSubscription> subscriptions)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup() when $default != null:
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnSubscriptionCatalog? current,  SnSubscriptionCatalog? next,  List<SnActiveSubscription> subscriptions)  $default,) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup():
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnSubscriptionCatalog? current,  SnSubscriptionCatalog? next,  List<SnActiveSubscription> subscriptions)?  $default,) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroup() when $default != null:
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnSubscriptionGroup implements SnSubscriptionGroup {
+  const _SnSubscriptionGroup({required this.groupIdentifier, required this.catalog, required this.current, required this.next, required final  List<SnActiveSubscription> subscriptions}): _subscriptions = subscriptions;
+  factory _SnSubscriptionGroup.fromJson(Map<String, dynamic> json) => _$SnSubscriptionGroupFromJson(json);
+
+@override final  String groupIdentifier;
+@override final  SnSubscriptionGroupCatalog catalog;
+@override final  SnSubscriptionCatalog? current;
+@override final  SnSubscriptionCatalog? next;
+ final  List<SnActiveSubscription> _subscriptions;
+@override List<SnActiveSubscription> get subscriptions {
+  if (_subscriptions is EqualUnmodifiableListView) return _subscriptions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_subscriptions);
+}
+
+
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnSubscriptionGroupCopyWith<_SnSubscriptionGroup> get copyWith => __$SnSubscriptionGroupCopyWithImpl<_SnSubscriptionGroup>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnSubscriptionGroupToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&(identical(other.current, current) || other.current == current)&&(identical(other.next, next) || other.next == next)&&const DeepCollectionEquality().equals(other._subscriptions, _subscriptions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,current,next,const DeepCollectionEquality().hash(_subscriptions));
+
+@override
+String toString() {
+  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, current: $current, next: $next, subscriptions: $subscriptions)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnSubscriptionGroupCopyWith<$Res> implements $SnSubscriptionGroupCopyWith<$Res> {
+  factory _$SnSubscriptionGroupCopyWith(_SnSubscriptionGroup value, $Res Function(_SnSubscriptionGroup) _then) = __$SnSubscriptionGroupCopyWithImpl;
+@override @useResult
+$Res call({
+ String groupIdentifier, SnSubscriptionGroupCatalog catalog, SnSubscriptionCatalog? current, SnSubscriptionCatalog? next, List<SnActiveSubscription> subscriptions
+});
+
+
+@override $SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;@override $SnSubscriptionCatalogCopyWith<$Res>? get current;@override $SnSubscriptionCatalogCopyWith<$Res>? get next;
+
+}
+/// @nodoc
+class __$SnSubscriptionGroupCopyWithImpl<$Res>
+    implements _$SnSubscriptionGroupCopyWith<$Res> {
+  __$SnSubscriptionGroupCopyWithImpl(this._self, this._then);
+
+  final _SnSubscriptionGroup _self;
+  final $Res Function(_SnSubscriptionGroup) _then;
+
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? current = freezed,Object? next = freezed,Object? subscriptions = null,}) {
+  return _then(_SnSubscriptionGroup(
+groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,catalog: null == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionGroupCatalog,current: freezed == current ? _self.current : current // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog?,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog?,subscriptions: null == subscriptions ? _self._subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as List<SnActiveSubscription>,
+  ));
+}
+
+/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionGroupCatalogCopyWith<$Res> get catalog {
+  
+  return $SnSubscriptionGroupCatalogCopyWith<$Res>(_self.catalog, (value) {
+    return _then(_self.copyWith(catalog: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res>? get current {
+    if (_self.current == null) {
+    return null;
+  }
+
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.current!, (value) {
+    return _then(_self.copyWith(current: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res>? get next {
+    if (_self.next == null) {
+    return null;
+  }
+
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.next!, (value) {
+    return _then(_self.copyWith(next: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnSubscriptionGroupCatalog {
+
+ String get groupIdentifier; String get displayName; int get maxPerkLevel; SnSubscriptionDisplayConfig? get displayConfig; List<SnSubscriptionCatalog> get items;
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnSubscriptionGroupCatalogCopyWith<SnSubscriptionGroupCatalog> get copyWith => _$SnSubscriptionGroupCatalogCopyWithImpl<SnSubscriptionGroupCatalog>(this as SnSubscriptionGroupCatalog, _$identity);
+
+  /// Serializes this SnSubscriptionGroupCatalog to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionGroupCatalog&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.maxPerkLevel, maxPerkLevel) || other.maxPerkLevel == maxPerkLevel)&&(identical(other.displayConfig, displayConfig) || other.displayConfig == displayConfig)&&const DeepCollectionEquality().equals(other.items, items));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,groupIdentifier,displayName,maxPerkLevel,displayConfig,const DeepCollectionEquality().hash(items));
+
+@override
+String toString() {
+  return 'SnSubscriptionGroupCatalog(groupIdentifier: $groupIdentifier, displayName: $displayName, maxPerkLevel: $maxPerkLevel, displayConfig: $displayConfig, items: $items)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnSubscriptionGroupCatalogCopyWith<$Res>  {
+  factory $SnSubscriptionGroupCatalogCopyWith(SnSubscriptionGroupCatalog value, $Res Function(SnSubscriptionGroupCatalog) _then) = _$SnSubscriptionGroupCatalogCopyWithImpl;
+@useResult
+$Res call({
+ String groupIdentifier, String displayName, int maxPerkLevel, SnSubscriptionDisplayConfig? displayConfig, List<SnSubscriptionCatalog> items
+});
+
+
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig;
+
+}
+/// @nodoc
+class _$SnSubscriptionGroupCatalogCopyWithImpl<$Res>
+    implements $SnSubscriptionGroupCatalogCopyWith<$Res> {
+  _$SnSubscriptionGroupCatalogCopyWithImpl(this._self, this._then);
+
+  final SnSubscriptionGroupCatalog _self;
+  final $Res Function(SnSubscriptionGroupCatalog) _then;
+
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? displayName = null,Object? maxPerkLevel = null,Object? displayConfig = freezed,Object? items = null,}) {
+  return _then(_self.copyWith(
+groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,maxPerkLevel: null == maxPerkLevel ? _self.maxPerkLevel : maxPerkLevel // ignore: cast_nullable_to_non_nullable
+as int,displayConfig: freezed == displayConfig ? _self.displayConfig : displayConfig // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionDisplayConfig?,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
+as List<SnSubscriptionCatalog>,
+  ));
+}
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig {
+    if (_self.displayConfig == null) {
+    return null;
+  }
+
+  return $SnSubscriptionDisplayConfigCopyWith<$Res>(_self.displayConfig!, (value) {
+    return _then(_self.copyWith(displayConfig: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnSubscriptionGroupCatalog].
+extension SnSubscriptionGroupCatalogPatterns on SnSubscriptionGroupCatalog {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSubscriptionGroupCatalog value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSubscriptionGroupCatalog value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSubscriptionGroupCatalog value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupIdentifier,  String displayName,  int maxPerkLevel,  SnSubscriptionDisplayConfig? displayConfig,  List<SnSubscriptionCatalog> items)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog() when $default != null:
+return $default(_that.groupIdentifier,_that.displayName,_that.maxPerkLevel,_that.displayConfig,_that.items);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupIdentifier,  String displayName,  int maxPerkLevel,  SnSubscriptionDisplayConfig? displayConfig,  List<SnSubscriptionCatalog> items)  $default,) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog():
+return $default(_that.groupIdentifier,_that.displayName,_that.maxPerkLevel,_that.displayConfig,_that.items);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupIdentifier,  String displayName,  int maxPerkLevel,  SnSubscriptionDisplayConfig? displayConfig,  List<SnSubscriptionCatalog> items)?  $default,) {final _that = this;
+switch (_that) {
+case _SnSubscriptionGroupCatalog() when $default != null:
+return $default(_that.groupIdentifier,_that.displayName,_that.maxPerkLevel,_that.displayConfig,_that.items);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnSubscriptionGroupCatalog implements SnSubscriptionGroupCatalog {
+  const _SnSubscriptionGroupCatalog({required this.groupIdentifier, required this.displayName, required this.maxPerkLevel, required this.displayConfig, required final  List<SnSubscriptionCatalog> items}): _items = items;
+  factory _SnSubscriptionGroupCatalog.fromJson(Map<String, dynamic> json) => _$SnSubscriptionGroupCatalogFromJson(json);
+
+@override final  String groupIdentifier;
+@override final  String displayName;
+@override final  int maxPerkLevel;
+@override final  SnSubscriptionDisplayConfig? displayConfig;
+ final  List<SnSubscriptionCatalog> _items;
+@override List<SnSubscriptionCatalog> get items {
+  if (_items is EqualUnmodifiableListView) return _items;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_items);
+}
+
+
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnSubscriptionGroupCatalogCopyWith<_SnSubscriptionGroupCatalog> get copyWith => __$SnSubscriptionGroupCatalogCopyWithImpl<_SnSubscriptionGroupCatalog>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnSubscriptionGroupCatalogToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionGroupCatalog&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.maxPerkLevel, maxPerkLevel) || other.maxPerkLevel == maxPerkLevel)&&(identical(other.displayConfig, displayConfig) || other.displayConfig == displayConfig)&&const DeepCollectionEquality().equals(other._items, _items));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,groupIdentifier,displayName,maxPerkLevel,displayConfig,const DeepCollectionEquality().hash(_items));
+
+@override
+String toString() {
+  return 'SnSubscriptionGroupCatalog(groupIdentifier: $groupIdentifier, displayName: $displayName, maxPerkLevel: $maxPerkLevel, displayConfig: $displayConfig, items: $items)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnSubscriptionGroupCatalogCopyWith<$Res> implements $SnSubscriptionGroupCatalogCopyWith<$Res> {
+  factory _$SnSubscriptionGroupCatalogCopyWith(_SnSubscriptionGroupCatalog value, $Res Function(_SnSubscriptionGroupCatalog) _then) = __$SnSubscriptionGroupCatalogCopyWithImpl;
+@override @useResult
+$Res call({
+ String groupIdentifier, String displayName, int maxPerkLevel, SnSubscriptionDisplayConfig? displayConfig, List<SnSubscriptionCatalog> items
+});
+
+
+@override $SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig;
+
+}
+/// @nodoc
+class __$SnSubscriptionGroupCatalogCopyWithImpl<$Res>
+    implements _$SnSubscriptionGroupCatalogCopyWith<$Res> {
+  __$SnSubscriptionGroupCatalogCopyWithImpl(this._self, this._then);
+
+  final _SnSubscriptionGroupCatalog _self;
+  final $Res Function(_SnSubscriptionGroupCatalog) _then;
+
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? groupIdentifier = null,Object? displayName = null,Object? maxPerkLevel = null,Object? displayConfig = freezed,Object? items = null,}) {
+  return _then(_SnSubscriptionGroupCatalog(
+groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,maxPerkLevel: null == maxPerkLevel ? _self.maxPerkLevel : maxPerkLevel // ignore: cast_nullable_to_non_nullable
+as int,displayConfig: freezed == displayConfig ? _self.displayConfig : displayConfig // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionDisplayConfig?,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+as List<SnSubscriptionCatalog>,
+  ));
+}
+
+/// Create a copy of SnSubscriptionGroupCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionDisplayConfigCopyWith<$Res>? get displayConfig {
+    if (_self.displayConfig == null) {
+    return null;
+  }
+
+  return $SnSubscriptionDisplayConfigCopyWith<$Res>(_self.displayConfig!, (value) {
+    return _then(_self.copyWith(displayConfig: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnActiveSubscription {
+
+ SnWalletSubscription get subscription; SnSubscriptionCatalog get definition;
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnActiveSubscriptionCopyWith<SnActiveSubscription> get copyWith => _$SnActiveSubscriptionCopyWithImpl<SnActiveSubscription>(this as SnActiveSubscription, _$identity);
+
+  /// Serializes this SnActiveSubscription to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActiveSubscription&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.definition, definition) || other.definition == definition));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,subscription,definition);
+
+@override
+String toString() {
+  return 'SnActiveSubscription(subscription: $subscription, definition: $definition)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnActiveSubscriptionCopyWith<$Res>  {
+  factory $SnActiveSubscriptionCopyWith(SnActiveSubscription value, $Res Function(SnActiveSubscription) _then) = _$SnActiveSubscriptionCopyWithImpl;
+@useResult
+$Res call({
+ SnWalletSubscription subscription, SnSubscriptionCatalog definition
+});
+
+
+$SnWalletSubscriptionCopyWith<$Res> get subscription;$SnSubscriptionCatalogCopyWith<$Res> get definition;
+
+}
+/// @nodoc
+class _$SnActiveSubscriptionCopyWithImpl<$Res>
+    implements $SnActiveSubscriptionCopyWith<$Res> {
+  _$SnActiveSubscriptionCopyWithImpl(this._self, this._then);
+
+  final SnActiveSubscription _self;
+  final $Res Function(SnActiveSubscription) _then;
+
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? subscription = null,Object? definition = null,}) {
+  return _then(_self.copyWith(
+subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription,definition: null == definition ? _self.definition : definition // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog,
+  ));
+}
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res> get subscription {
+  
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.subscription, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res> get definition {
+  
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.definition, (value) {
+    return _then(_self.copyWith(definition: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnActiveSubscription].
+extension SnActiveSubscriptionPatterns on SnActiveSubscription {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnActiveSubscription value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnActiveSubscription() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnActiveSubscription value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnActiveSubscription():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnActiveSubscription value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnActiveSubscription() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnWalletSubscription subscription,  SnSubscriptionCatalog definition)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnActiveSubscription() when $default != null:
+return $default(_that.subscription,_that.definition);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnWalletSubscription subscription,  SnSubscriptionCatalog definition)  $default,) {final _that = this;
+switch (_that) {
+case _SnActiveSubscription():
+return $default(_that.subscription,_that.definition);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnWalletSubscription subscription,  SnSubscriptionCatalog definition)?  $default,) {final _that = this;
+switch (_that) {
+case _SnActiveSubscription() when $default != null:
+return $default(_that.subscription,_that.definition);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnActiveSubscription implements SnActiveSubscription {
+  const _SnActiveSubscription({required this.subscription, required this.definition});
+  factory _SnActiveSubscription.fromJson(Map<String, dynamic> json) => _$SnActiveSubscriptionFromJson(json);
+
+@override final  SnWalletSubscription subscription;
+@override final  SnSubscriptionCatalog definition;
+
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnActiveSubscriptionCopyWith<_SnActiveSubscription> get copyWith => __$SnActiveSubscriptionCopyWithImpl<_SnActiveSubscription>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnActiveSubscriptionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnActiveSubscription&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.definition, definition) || other.definition == definition));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,subscription,definition);
+
+@override
+String toString() {
+  return 'SnActiveSubscription(subscription: $subscription, definition: $definition)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnActiveSubscriptionCopyWith<$Res> implements $SnActiveSubscriptionCopyWith<$Res> {
+  factory _$SnActiveSubscriptionCopyWith(_SnActiveSubscription value, $Res Function(_SnActiveSubscription) _then) = __$SnActiveSubscriptionCopyWithImpl;
+@override @useResult
+$Res call({
+ SnWalletSubscription subscription, SnSubscriptionCatalog definition
+});
+
+
+@override $SnWalletSubscriptionCopyWith<$Res> get subscription;@override $SnSubscriptionCatalogCopyWith<$Res> get definition;
+
+}
+/// @nodoc
+class __$SnActiveSubscriptionCopyWithImpl<$Res>
+    implements _$SnActiveSubscriptionCopyWith<$Res> {
+  __$SnActiveSubscriptionCopyWithImpl(this._self, this._then);
+
+  final _SnActiveSubscription _self;
+  final $Res Function(_SnActiveSubscription) _then;
+
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? subscription = null,Object? definition = null,}) {
+  return _then(_SnActiveSubscription(
+subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription,definition: null == definition ? _self.definition : definition // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionCatalog,
+  ));
+}
+
+/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res> get subscription {
+  
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.subscription, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}/// Create a copy of SnActiveSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnSubscriptionCatalogCopyWith<$Res> get definition {
+  
+  return $SnSubscriptionCatalogCopyWith<$Res>(_self.definition, (value) {
+    return _then(_self.copyWith(definition: value));
+  });
+}
+}
+
 // dart format on
