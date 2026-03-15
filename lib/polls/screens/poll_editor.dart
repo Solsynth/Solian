@@ -10,9 +10,10 @@ import 'package:island/talker.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:uuid/uuid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+const _emptyGuid = '00000000-0000-0000-0000-000000000000';
 
 class PollEditorState {
   String? id; // for editing
@@ -32,9 +33,52 @@ class PollEditorState {
 
 /// Riverpod Notifier state
 class PollEditor extends Notifier<PollEditorState> {
+  late PollEditorState _initialState;
+
   @override
   PollEditorState build() {
-    return PollEditorState();
+    final initial = PollEditorState();
+    _initialState = _cloneState(initial);
+    return initial;
+  }
+
+  PollEditorState _cloneState(PollEditorState source) {
+    return PollEditorState(
+      id: source.id,
+      title: source.title,
+      description: source.description,
+      endedAt: source.endedAt,
+      questions: source.questions
+          .map(
+            (q) => q.copyWith(
+              options: q.options
+                  ?.map((o) => o.copyWith())
+                  .toList(growable: false),
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+
+  void _commitState(PollEditorState next, {bool markAsInitial = false}) {
+    state = next;
+    if (markAsInitial) {
+      _initialState = _cloneState(next);
+    }
+  }
+
+  void reset() {
+    _commitState(PollEditorState(), markAsInitial: true);
+  }
+
+  void restoreInitial() {
+    state = _cloneState(_initialState);
+  }
+
+  Future<void> initialize(BuildContext context, {String? pollId}) async {
+    reset();
+    if (pollId == null || pollId.isEmpty) return;
+    await setEditingId(context, pollId);
   }
 
   void setTitle(String? value) {
@@ -84,12 +128,15 @@ class PollEditor extends Notifier<PollEditorState> {
 
       final poll = SnPoll.fromJson(json);
 
-      state = PollEditorState(
-        id: poll.id,
-        title: poll.title,
-        description: poll.description,
-        endedAt: poll.endedAt,
-        questions: poll.questions,
+      _commitState(
+        PollEditorState(
+          id: poll.id,
+          title: poll.title,
+          description: poll.description,
+          endedAt: poll.endedAt,
+          questions: poll.questions,
+        ),
+        markAsInitial: true,
       );
     } on DioException catch (e) {
       talker.error('Failed to load poll $id: ${e.message}');
@@ -105,12 +152,12 @@ class PollEditor extends Notifier<PollEditorState> {
     final nextOrder = state.questions.length;
     final isOptionsType = _isOptionsType(type);
     final q = SnPollQuestion(
-      id: const Uuid().v4(),
+      id: _emptyGuid,
       type: type,
       options: isOptionsType
           ? [
               SnPollOption(
-                id: const Uuid().v4(),
+                id: _emptyGuid,
                 label: 'pollOptionDefaultLabel'.tr(),
                 order: 0,
               ),
@@ -190,7 +237,7 @@ class PollEditor extends Notifier<PollEditorState> {
               ? q.options
               : [
                   SnPollOption(
-                    id: const Uuid().v4(),
+                    id: _emptyGuid,
                     label: 'pollOptionDefaultLabel'.tr(),
                     order: 0,
                   ),
@@ -225,7 +272,7 @@ class PollEditor extends Notifier<PollEditorState> {
     final nextOrder = opts.length;
     opts.add(
       SnPollOption(
-        id: const Uuid().v4(),
+        id: _emptyGuid,
         label: 'Option ${nextOrder + 1}',
         order: nextOrder,
       ),
@@ -331,17 +378,40 @@ final pollEditorProvider = NotifierProvider<PollEditor, PollEditorState>(
 );
 
 @RoutePage()
-class PollEditorScreen extends ConsumerWidget {
+class PollEditorScreen extends ConsumerStatefulWidget {
   const PollEditorScreen({
     super.key,
     this.initialPollId,
     this.initialPublisher,
   });
 
-  // Submit helpers declared before build to avoid forward reference issues
+  final String? initialPollId;
+  final String? initialPublisher;
 
-  Future<void> _submitPoll(BuildContext context, WidgetRef ref) async {
-    final model = ref.watch(pollEditorProvider);
+  @override
+  ConsumerState<PollEditorScreen> createState() => _PollEditorScreenState();
+}
+
+class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(pollEditorProvider.notifier)
+          .initialize(context, pollId: widget.initialPollId);
+    });
+  }
+
+  @override
+  void dispose() {
+    ref.read(pollEditorProvider.notifier).reset();
+    super.dispose();
+  }
+
+  Future<void> _submitPoll(BuildContext context) async {
+    final model = ref.read(pollEditorProvider);
     final dio = ref.read(apiClientProvider);
 
     // Build payload
@@ -352,10 +422,12 @@ class PollEditorScreen extends ConsumerWidget {
       'questions': model.questions
           .map(
             (q) => {
+              'id': q.id.isEmpty ? _emptyGuid : q.id,
               'type': q.type.index,
               'options': q.options
                   ?.map(
                     (o) => {
+                      'id': o.id.isEmpty ? _emptyGuid : o.id,
                       'label': o.label,
                       'description': o.description,
                       'order': o.order,
@@ -379,12 +451,12 @@ class PollEditorScreen extends ConsumerWidget {
       final Response res = await (isUpdate
           ? dio.patch(
               path,
-              queryParameters: {'pub': initialPublisher},
+              queryParameters: {'pub': widget.initialPublisher},
               data: body,
             )
           : dio.post(
               path,
-              queryParameters: {'pub': initialPublisher},
+              queryParameters: {'pub': widget.initialPublisher},
               data: body,
             ));
 
@@ -397,21 +469,10 @@ class PollEditorScreen extends ConsumerWidget {
     }
   }
 
-  // If editing, provide existing poll id and preselected publisher name (optional)
-  final String? initialPollId;
-  final String? initialPublisher;
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final model = ref.watch(pollEditorProvider);
     final notifier = ref.watch(pollEditorProvider.notifier);
-
-    // initialize editing state if provided
-    if (initialPollId != null && model.id != initialPollId) {
-      Future(() {
-        if (context.mounted) notifier.setEditingId(context, initialPollId);
-      });
-    }
 
     return SheetScaffold(
       titleText: model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr(),
@@ -448,6 +509,7 @@ class PollEditorScreen extends ConsumerWidget {
           ),
         );
         if (confirmed == true) {
+          notifier.restoreInitial();
           if (context.mounted) Navigator.of(context).pop();
         }
       },
@@ -564,7 +626,7 @@ class PollEditorScreen extends ConsumerWidget {
                         itemBuilder: (context, index) {
                           final q = model.questions[index];
                           return Card(
-                            key: ValueKey('q_$index'),
+                            key: ValueKey(q.id),
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             clipBehavior: Clip.antiAlias,
                             child: Column(
@@ -610,6 +672,7 @@ class PollEditorScreen extends ConsumerWidget {
                     children: [
                       OutlinedButton.icon(
                         onPressed: () {
+                          notifier.restoreInitial();
                           Navigator.of(context).maybePop();
                         },
                         icon: const Icon(Icons.close),
@@ -618,7 +681,7 @@ class PollEditorScreen extends ConsumerWidget {
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: () {
-                          _submitPoll(context, ref);
+                          _submitPoll(context);
                         },
                         icon: const Icon(Icons.cloud_upload_outlined),
                         label: Text(
@@ -648,6 +711,7 @@ class PollEditorScreen extends ConsumerWidget {
     for (var i = 0; i < model.questions.length; i++) {
       final q = model.questions[i];
       buf.writeln('    {');
+      buf.writeln('      "id": ${_jsonStr(q.id)},');
       buf.writeln('      "type": "${q.type.name}",');
       buf.writeln('      "title": ${_jsonStr(q.title)},');
       buf.writeln('      "description": ${_jsonStr(q.description)},');
@@ -658,7 +722,7 @@ class PollEditorScreen extends ConsumerWidget {
         for (var j = 0; j < q.options!.length; j++) {
           final o = q.options![j];
           buf.writeln(
-            '        { "label": ${_jsonStr(o.label)}, "description": ${_jsonStr(o.description)}, "order": ${o.order} }${j == q.options!.length - 1 ? '' : ','}',
+            '        { "id": ${_jsonStr(o.id)}, "label": ${_jsonStr(o.label)}, "description": ${_jsonStr(o.description)}, "order": ${o.order} }${j == q.options!.length - 1 ? '' : ','}',
           );
         }
         buf.writeln('      ]');
