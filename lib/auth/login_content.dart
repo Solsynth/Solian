@@ -186,10 +186,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
                   ? AutofillHints.password
                   : AutofillHints.oneTimeCode,
             ],
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: 'password'.tr(),
-            ),
+            decoration: InputDecoration(labelText: 'password'.tr()),
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
           ).padding(horizontal: 7)
@@ -687,8 +684,6 @@ class _LoginLookupScreen extends HookConsumerWidget {
           controller: usernameController,
           autofillHints: const [AutofillHints.username],
           decoration: InputDecoration(
-            isDense: true,
-            border: const UnderlineInputBorder(),
             labelText: 'username'.tr(),
             helperText: 'usernameLookupHint'.tr(),
           ),
@@ -737,25 +732,30 @@ class _LoginLookupScreen extends HookConsumerWidget {
           ).padding(horizontal: 8, vertical: 8)
         else
           const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => requestResetPassword(),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Text('forgotPassword'.tr()),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: isBusy.value ? null : () => performNewTicket(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [Text('next').tr(), const Icon(Symbols.chevron_right)],
             ),
-            TextButton(
-              onPressed: isBusy.value ? null : () => performNewTicket(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: isBusy.value ? null : () => requestResetPassword(),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Text('forgotPassword'.tr()),
+                const Icon(Symbols.key_off),
+              ],
             ),
-          ],
+          ).padding(left: 12),
         ),
         const Gap(12),
         Align(

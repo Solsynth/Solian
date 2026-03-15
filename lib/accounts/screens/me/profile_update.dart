@@ -607,12 +607,11 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                            width: 1,
-                          ),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                          width: 1,
                         ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
