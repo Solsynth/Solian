@@ -3,10 +3,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/discovery/search.dart';
 import 'package:island/realms/widgets/realm_list_tile.dart';
+import 'package:island/realms/widgets/realm_tile.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -44,14 +46,28 @@ class RealmListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final realms = ref.watch(realmsJoinedProvider);
     final realmInvites = ref.watch(realmInvitesProvider);
-
     final userInfo = ref.watch(userInfoProvider);
+    final realmDisplayMode = ref.watch(
+      appSettingsProvider.select((settings) => settings.realmDisplayMode),
+    );
+    final isCardMode = realmDisplayMode == kRealmDisplayModeCard;
 
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
         actions: [
+          IconButton(
+            icon: Icon(isCardMode ? Symbols.view_list : Symbols.grid_view),
+            tooltip: isCardMode ? 'Switch to list view' : 'Switch to card view',
+            onPressed: () {
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setRealmDisplayMode(
+                    isCardMode ? kRealmDisplayModeList : kRealmDisplayModeCard,
+                  );
+            },
+          ),
           IconButton(
             icon: const Icon(Symbols.travel_explore),
             onPressed: () => context.router.push(
@@ -139,7 +155,9 @@ class RealmListScreen extends HookConsumerWidget {
                         itemBuilder: (context, item) {
                           return ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 540),
-                            child: RealmListTile(realm: value[item]),
+                            child: isCardMode
+                                ? RealmListTile(realm: value[item])
+                                : RealmTile(realm: value[item]),
                           ).padding(horizontal: 8).center();
                         },
                         separatorBuilder: (_, _) => const Gap(8),
