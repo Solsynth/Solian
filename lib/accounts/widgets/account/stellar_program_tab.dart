@@ -303,6 +303,30 @@ class StellarProgramTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
     final paymentMethod = useState(PaymentMethod.wallet);
+    final iapProducts = useState<Map<String, String>>({});
+    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+
+    if (paymentMethod.value == PaymentMethod.appleIap &&
+        iapProducts.value.isEmpty &&
+        catalogAsync.hasValue) {
+      final appleProductIds = catalogAsync.value!
+          .where((c) => c.groupIdentifier == 'solian.stellar')
+          .expand((c) => c.providerMappings.appleStore)
+          .toSet();
+
+      if (appleProductIds.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final iapService = ref.read(iapServiceProvider);
+          await iapService.initialize();
+          await iapService.loadProducts(appleProductIds);
+          final products = <String, String>{};
+          for (final product in iapService.products) {
+            products[product.id] = product.price;
+          }
+          iapProducts.value = products;
+        });
+      }
+    }
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -314,6 +338,7 @@ class StellarProgramTab extends HookConsumerWidget {
             ref,
             stellarSubscription,
             paymentMethod,
+            iapProducts,
           ),
           const Gap(16),
           _buildGiftingSection(context, ref),
@@ -328,10 +353,16 @@ class StellarProgramTab extends HookConsumerWidget {
     WidgetRef ref,
     AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
     ValueNotifier<PaymentMethod> paymentMethod,
+    ValueNotifier<Map<String, String>> iapProducts,
   ) {
     return stellarSubscriptionAsync.when(
-      data: (membership) =>
-          _buildMembershipContent(context, ref, membership, paymentMethod),
+      data: (membership) => _buildMembershipContent(
+        context,
+        ref,
+        membership,
+        paymentMethod,
+        iapProducts,
+      ),
       loading: () => Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -372,6 +403,7 @@ class StellarProgramTab extends HookConsumerWidget {
     WidgetRef ref,
     SnWalletSubscription? membership,
     ValueNotifier<PaymentMethod> paymentMethod,
+    ValueNotifier<Map<String, String>> iapProducts,
   ) {
     final isActive = membership?.isActive ?? false;
     final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
@@ -461,7 +493,13 @@ class StellarProgramTab extends HookConsumerWidget {
             const Gap(12),
           ],
 
-          _buildMembershipTiers(context, ref, membership, paymentMethod),
+          _buildMembershipTiers(
+            context,
+            ref,
+            membership,
+            paymentMethod,
+            iapProducts,
+          ),
 
           // Restore Purchase Button
           if (Platform.isIOS || Platform.isMacOS)
@@ -557,7 +595,7 @@ class StellarProgramTab extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'wallet'.tr(),
+                  'walletExchange'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: paymentMethod.value == PaymentMethod.wallet
@@ -603,6 +641,7 @@ class StellarProgramTab extends HookConsumerWidget {
     WidgetRef ref,
     SnWalletSubscription? currentMembership,
     ValueNotifier<PaymentMethod> paymentMethod,
+    ValueNotifier<Map<String, String>> iapProducts,
   ) {
     final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
 
@@ -632,6 +671,16 @@ class StellarProgramTab extends HookConsumerWidget {
           final isSupported =
               (selectedMethod == PaymentMethod.wallet && supportsWallet) ||
               (selectedMethod == PaymentMethod.appleIap && supportsIap);
+
+          String priceDisplay;
+          if (selectedMethod == PaymentMethod.appleIap &&
+              tier.providerMappings.appleStore.isNotEmpty) {
+            final productId = tier.providerMappings.appleStore.first;
+            final applePrice = iapProducts.value[productId] ?? '...';
+            priceDisplay = '$applePrice/month';
+          } else {
+            priceDisplay = '${tier.basePrice} ${tier.currency}/month';
+          }
 
           tierWidgets.add(
             Container(
@@ -744,7 +793,7 @@ class StellarProgramTab extends HookConsumerWidget {
                                 ],
                               ),
                               Text(
-                                '${tier.basePrice} ${tier.currency}/month',
+                                priceDisplay,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(

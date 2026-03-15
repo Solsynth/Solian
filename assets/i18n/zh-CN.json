@@ -1596,5 +1596,7 @@
   "startRtmpEgressTitle": "启动 RTMP 转推",
   "rtmpUrlsOnePerLine": "RTMP 地址（一行一个）",
   "recordingFilePathOptional": "录制文件路径（可选）",
-  "start": "开始"
+  "start": "开始",
+  "walletExchange": "源点兑换",
+  "appleIap": "App Store"
 }
