@@ -265,8 +265,6 @@ sealed class SnSubscriptionGroup with _$SnSubscriptionGroup {
   const factory SnSubscriptionGroup({
     required String groupIdentifier,
     required SnSubscriptionGroupCatalog catalog,
-    required SnSubscriptionCatalog? current,
-    required SnSubscriptionCatalog? next,
     required List<SnActiveSubscription> subscriptions,
   }) = _SnSubscriptionGroup;
 

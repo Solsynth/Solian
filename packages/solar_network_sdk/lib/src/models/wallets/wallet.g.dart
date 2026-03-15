@@ -468,31 +468,22 @@ Map<String, dynamic> _$SnProductProviderMappingsToJson(
   'apple_store': instance.appleStore,
 };
 
-_SnSubscriptionGroup _$SnSubscriptionGroupFromJson(
-  Map<String, dynamic> json,
-) => _SnSubscriptionGroup(
-  groupIdentifier: json['group_identifier'] as String,
-  catalog: SnSubscriptionGroupCatalog.fromJson(
-    json['catalog'] as Map<String, dynamic>,
-  ),
-  current: json['current'] == null
-      ? null
-      : SnSubscriptionCatalog.fromJson(json['current'] as Map<String, dynamic>),
-  next: json['next'] == null
-      ? null
-      : SnSubscriptionCatalog.fromJson(json['next'] as Map<String, dynamic>),
-  subscriptions: (json['subscriptions'] as List<dynamic>)
-      .map((e) => SnActiveSubscription.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
+_SnSubscriptionGroup _$SnSubscriptionGroupFromJson(Map<String, dynamic> json) =>
+    _SnSubscriptionGroup(
+      groupIdentifier: json['group_identifier'] as String,
+      catalog: SnSubscriptionGroupCatalog.fromJson(
+        json['catalog'] as Map<String, dynamic>,
+      ),
+      subscriptions: (json['subscriptions'] as List<dynamic>)
+          .map((e) => SnActiveSubscription.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$SnSubscriptionGroupToJson(
   _SnSubscriptionGroup instance,
 ) => <String, dynamic>{
   'group_identifier': instance.groupIdentifier,
   'catalog': instance.catalog.toJson(),
-  'current': instance.current?.toJson(),
-  'next': instance.next?.toJson(),
   'subscriptions': instance.subscriptions.map((e) => e.toJson()).toList(),
 };
 

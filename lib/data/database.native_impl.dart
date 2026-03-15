@@ -586,7 +586,7 @@ class AppDatabase {
       account: primary.account.id != 'unknown'
           ? primary.account
           : fallback.account,
-      nick: primary.nick ?? fallback.nick,
+      nick: (primary.nick?.isNotEmpty == true) ? primary.nick : fallback.nick,
       notify: primary.notify != 0 ? primary.notify : fallback.notify,
       joinedAt: primary.joinedAt ?? fallback.joinedAt,
       breakUntil: primary.breakUntil ?? fallback.breakUntil,

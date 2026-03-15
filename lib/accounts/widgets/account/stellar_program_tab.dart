@@ -30,6 +30,33 @@ part 'stellar_program_tab.g.dart';
 
 enum PaymentMethodTab { wallet, appleIap, afdian }
 
+final selectedTabProvider = NotifierProvider<SelectedTabNotifier, int>(
+  SelectedTabNotifier.new,
+);
+
+class SelectedTabNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setTab(int value) {
+    state = value;
+  }
+}
+
+final iapProductsProvider =
+    NotifierProvider<IapProductsNotifier, Map<String, String>>(
+      IapProductsNotifier.new,
+    );
+
+class IapProductsNotifier extends Notifier<Map<String, String>> {
+  @override
+  Map<String, String> build() => {};
+
+  void setProducts(Map<String, String> products) {
+    state = products;
+  }
+}
+
 @riverpod
 Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   try {
@@ -301,14 +328,13 @@ class StellarProgramTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tabController = useTabController(initialLength: 2);
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
-    final selectedTab = useState(0);
-    final iapProducts = useState<Map<String, String>>({});
+    final selectedTab = ref.watch(selectedTabProvider);
+    final iapProducts = ref.watch(iapProductsProvider);
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
-    if (selectedTab.value == 1 &&
-        iapProducts.value.isEmpty &&
-        groupAsync.hasValue) {
+    if (selectedTab == 1 && iapProducts.isEmpty && groupAsync.hasValue) {
       final group = groupAsync.value!;
       final appleProductIds = group.catalog.items
           .expand((c) => c.providerMappings.appleStore)
@@ -323,7 +349,7 @@ class StellarProgramTab extends HookConsumerWidget {
           for (final product in iapService.products) {
             products[product.id] = product.price;
           }
-          iapProducts.value = products;
+          ref.read(iapProductsProvider.notifier).setProducts(products);
         });
       }
     }
@@ -335,6 +361,7 @@ class StellarProgramTab extends HookConsumerWidget {
         children: [
           _buildMembershipSection(
             context,
+            tabController,
             ref,
             stellarSubscription,
             selectedTab,
@@ -350,14 +377,16 @@ class StellarProgramTab extends HookConsumerWidget {
 
   Widget _buildMembershipSection(
     BuildContext context,
+    TabController tabController,
     WidgetRef ref,
     AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
-    ValueNotifier<int> selectedTab,
-    ValueNotifier<Map<String, String>> iapProducts,
+    int selectedTab,
+    Map<String, String> iapProducts,
   ) {
     return stellarSubscriptionAsync.when(
       data: (membership) => _buildMembershipContent(
         context,
+        tabController,
         ref,
         membership,
         selectedTab,
@@ -400,10 +429,11 @@ class StellarProgramTab extends HookConsumerWidget {
 
   Widget _buildMembershipContent(
     BuildContext context,
+    TabController tabController,
     WidgetRef ref,
     SnWalletSubscription? membership,
-    ValueNotifier<int> selectedTab,
-    ValueNotifier<Map<String, String>> iapProducts,
+    int selectedTab,
+    Map<String, String> iapProducts,
   ) {
     final isActive = membership?.isActive ?? false;
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
@@ -493,10 +523,22 @@ class StellarProgramTab extends HookConsumerWidget {
           const Gap(12),
 
           if (supportsWallet && (supportsIap || showAfdianTab)) ...[
-            _buildPaymentMethodTabBar(context, selectedTab, showAfdianTab),
+            _buildPaymentMethodTabBar(
+              context,
+              tabController,
+              ref,
+              selectedTab,
+              showAfdianTab,
+            ),
             const Gap(12),
           ] else if (showAfdianTab && !supportsWallet) ...[
-            _buildPaymentMethodTabBar(context, selectedTab, showAfdianTab),
+            _buildPaymentMethodTabBar(
+              context,
+              tabController,
+              ref,
+              selectedTab,
+              showAfdianTab,
+            ),
             const Gap(12),
           ],
 
@@ -581,25 +623,18 @@ class StellarProgramTab extends HookConsumerWidget {
 
   Widget _buildPaymentMethodTabBar(
     BuildContext context,
-    ValueNotifier<int> selectedTab,
+    TabController controller,
+    WidgetRef ref,
+    int selectedTab,
     bool showAfdianTab,
   ) {
-    if (showAfdianTab) {
-      if (selectedTab.value != 2 && selectedTab.value != 0) {
-        selectedTab.value = 2;
-      }
-    } else {
-      if (selectedTab.value > 1) {
-        selectedTab.value = 0;
-      }
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: TabBar(
+        controller: controller,
         tabs: showAfdianTab
             ? [Tab(text: 'afdian'.tr()), Tab(text: 'walletExchange'.tr())]
             : [Tab(text: 'walletExchange'.tr()), Tab(text: 'appleIap'.tr())],
@@ -613,9 +648,9 @@ class StellarProgramTab extends HookConsumerWidget {
         dividerColor: Colors.transparent,
         onTap: (index) {
           if (showAfdianTab) {
-            selectedTab.value = index == 0 ? 2 : 0;
+            ref.read(selectedTabProvider.notifier).setTab(index == 0 ? 2 : 0);
           } else {
-            selectedTab.value = index;
+            ref.read(selectedTabProvider.notifier).setTab(index);
           }
         },
         labelStyle: const TextStyle(fontWeight: FontWeight.w600),
@@ -627,8 +662,8 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnWalletSubscription? currentMembership,
-    ValueNotifier<int> selectedTab,
-    ValueNotifier<Map<String, String>> iapProducts,
+    int selectedTab,
+    Map<String, String> iapProducts,
   ) {
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
@@ -657,7 +692,7 @@ class StellarProgramTab extends HookConsumerWidget {
             'apple_store',
           );
           final supportsAfdian = tier.allowedPaymentMethods.contains('afdian');
-          final selectedMethod = selectedTab.value;
+          final selectedMethod = selectedTab;
           final isSupported =
               (selectedMethod == 0 && supportsWallet) ||
               (selectedMethod == 1 && supportsIap) ||
@@ -667,7 +702,7 @@ class StellarProgramTab extends HookConsumerWidget {
           if (selectedMethod == 1 &&
               tier.providerMappings.appleStore.isNotEmpty) {
             final productId = tier.providerMappings.appleStore.first;
-            final applePrice = iapProducts.value[productId] ?? '...';
+            final applePrice = iapProducts[productId] ?? '...';
             priceDisplay = '$applePrice/month';
           } else if (selectedMethod == 2 &&
               tier.providerMappings.afdian.isNotEmpty) {
@@ -774,7 +809,7 @@ class StellarProgramTab extends HookConsumerWidget {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        'selectedTabNotSupported'.tr(),
+                                        'paymentMethodNotSupported'.tr(),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,

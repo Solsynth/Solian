@@ -1621,7 +1621,7 @@
   "settingsDefaultScreen": "Default Screen",
   "notableDayChristmas": "Christmas",
   "notableDayNewYear": "New Year",
-  "noSubscription": "No subscriptions",
+  "noSubscriptions": "No subscriptions",
   "embedLinks": {
     "one": "{} link",
     "other": "{} links"
