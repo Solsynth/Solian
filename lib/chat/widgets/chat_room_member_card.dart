@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
@@ -8,13 +7,16 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/accounts/widgets/account/activity_presence.dart';
+import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/core/services/timezone/native.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_label.dart';
+import 'package:island/shared/widgets/account_profile_popup.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -72,12 +74,6 @@ class ChatRoomMemberCard extends HookConsumerWidget {
       )),
     );
     final effectiveMember = remoteMemberAsync.value ?? member;
-    final fallbackStatus = ref.watch(
-      accountStatusProvider(effectiveMember.account.name),
-    );
-    final width = math
-        .min(MediaQuery.of(context).size.width - 80, 360)
-        .toDouble();
     final apiClient = ref.watch(apiClientProvider);
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isSelf = currentUserId == effectiveMember.accountId;
@@ -88,7 +84,6 @@ class ChatRoomMemberCard extends HookConsumerWidget {
         activeTimeoutUntil.isAfter(DateTime.now());
     final canManageTarget = canModerate && !isSelf;
     final loading = useState(false);
-    final effectiveStatus = effectiveMember.status ?? fallbackStatus.value;
     final isOwner = roomAsync.value?.accountId == effectiveMember.accountId;
 
     Future<void> refreshAfterAction() async {
@@ -175,192 +170,311 @@ class ChatRoomMemberCard extends HookConsumerWidget {
       }
     }
 
-    return PopupCard(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: SizedBox(
-        width: width,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    Widget buildHeader() {
+      return Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Row(
           children: [
+            const Gap(28),
+            Icon(
+              Symbols.group,
+              size: 20,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            const Gap(12),
+            Expanded(
+              child: Text(
+                'Chat Member',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return AccountProfilePopupCard(
+      header: buildHeader(),
+      child: Column(
+        spacing: 12,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProfilePictureWidget(
+                file: effectiveMember.account.profile.picture,
+                radius: 22,
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        AccountName(
+                          account: effectiveMember.account,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (effectiveMember.realmLabel != null)
+                          RealmLabel(label: effectiveMember.realmLabel!),
+                      ],
+                    ),
+                    Text(
+                      '@${effectiveMember.account.name}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const Gap(8),
+                    Text(
+                      'Joined ${effectiveMember.joinedAt?.formatSystem()} · ${effectiveMember.joinedAt?.formatRelative(context)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AccountStatusWidget(
+                uname: effectiveMember.account.name,
+                padding: EdgeInsets.zero,
+              ),
+              Tooltip(
+                message: 'creditsStatus'.tr(),
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      Symbols.attribution,
+                      size: 17,
+                      fill: 1,
+                    ).padding(right: 2),
+                    Text(
+                      '${effectiveMember.account.profile.socialCredits.toStringAsFixed(2)} pts',
+                    ).fontSize(12),
+                    switch (effectiveMember
+                        .account
+                        .profile
+                        .socialCreditsLevel) {
+                      -1 => Text('socialCreditsLevelPoor').tr(),
+                      0 => Text('socialCreditsLevelNormal').tr(),
+                      1 => Text('socialCreditsLevelGood').tr(),
+                      2 => Text('socialCreditsLevelExcellent').tr(),
+                      _ => Text('unknown').tr(),
+                    }.fontSize(12),
+                  ],
+                ),
+              ),
+              if (effectiveMember.account.automatedId != null)
+                Row(
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      Symbols.smart_toy,
+                      size: 17,
+                      fill: 1,
+                    ).padding(right: 2),
+                    Text('accountAutomated').tr().fontSize(12),
+                  ],
+                ),
+              if (effectiveMember.account.profile.timeZone.isNotEmpty &&
+                  !kIsWeb)
+                () {
+                  try {
+                    final tzInfo = getTzInfo(
+                      effectiveMember.account.profile.timeZone,
+                    );
+                    return Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          Symbols.alarm,
+                          size: 17,
+                          fill: 1,
+                        ).padding(right: 2),
+                        Text(
+                          tzInfo.$2.formatCustomGlobal('HH:mm'),
+                        ).fontSize(12),
+                        Text(tzInfo.$1.formatOffsetLocal()).fontSize(12),
+                      ],
+                    ).padding(top: 2);
+                  } catch (e) {
+                    return Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          Symbols.alarm,
+                          size: 17,
+                          fill: 1,
+                        ).padding(right: 2),
+                        Text('timezoneNotFound'.tr()).fontSize(12),
+                      ],
+                    ).padding(top: 2);
+                  }
+                }(),
+              Row(
+                spacing: 6,
+                children: [
+                  Icon(Symbols.stairs, size: 17, fill: 1).padding(right: 2),
+                  Text(
+                    'levelingProgressLevel'.tr(
+                      args: [effectiveMember.account.profile.level.toString()],
+                    ),
+                  ).fontSize(12),
+                  Expanded(
+                    child: Tooltip(
+                      message:
+                          '${(effectiveMember.account.profile.levelingProgress * 100).toStringAsFixed(2)}%',
+                      child: LinearProgressIndicator(
+                        value: effectiveMember.account.profile.levelingProgress,
+                        stopIndicatorRadius: 0,
+                        trackGap: 0,
+                        minHeight: 4,
+                      ).padding(top: 1),
+                    ),
+                  ),
+                ],
+              ).padding(top: 2),
+              if (effectiveMember.account.badges.isNotEmpty)
+                BadgeList(
+                  badges: effectiveMember.account.badges,
+                ).padding(top: 12),
+              ActivityPresenceWidget(
+                uname: effectiveMember.account.name,
+                isCompact: true,
+                compactPadding: const EdgeInsets.only(top: 12),
+              ),
+            ],
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (isOwner)
+                Chip(
+                  avatar: const Icon(Symbols.shield_person, size: 18),
+                  label: const Text('Owner'),
+                )
+              else
+                Chip(
+                  avatar: const Icon(Symbols.person, size: 18),
+                  label: const Text('Member'),
+                ),
+              if (isSelf)
+                Chip(
+                  avatar: const Icon(Symbols.person, size: 18),
+                  label: const Text('You'),
+                ),
+              if (isPendingInvite)
+                Chip(
+                  avatar: const Icon(Symbols.pending_actions, size: 18),
+                  label: const Text('Invite pending'),
+                ),
+              if (hasActiveTimeout)
+                Chip(
+                  avatar: const Icon(Symbols.timer_pause, size: 18),
+                  label: Text(
+                    'Timed out until ${activeTimeoutUntil.formatSystem()}',
+                  ),
+                ),
+            ],
+          ),
+          if (canManageTarget && !isPendingInvite)
             Column(
-              spacing: 12,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
                   children: [
-                    ProfilePictureWidget(
-                      file: effectiveMember.account.profile.picture,
-                      radius: 22,
+                    const Icon(Symbols.timer, size: 16),
+                    Text(
+                      'Timeout Actions',
+                      style: Theme.of(context).textTheme.labelMedium,
                     ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              AccountName(
-                                account: effectiveMember.account,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              if (effectiveMember.realmLabel != null)
-                                RealmLabel(label: effectiveMember.realmLabel!),
-                            ],
-                          ),
-                          Text(
-                            '@${effectiveMember.account.name}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const Gap(8),
-                          Text(
-                            'Joined ${effectiveMember.joinedAt?.formatSystem()} · ${effectiveMember.joinedAt?.formatRelative(context)}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (effectiveStatus != null)
-                      AccountStatusLabel(
-                        status: effectiveStatus,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                   ],
-                ),
+                ).opacity(0.75),
+                const Gap(4),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    if (isOwner)
-                      Chip(
-                        avatar: const Icon(Symbols.shield_person, size: 18),
-                        label: const Text('Owner'),
-                      )
-                    else
-                      Chip(
-                        avatar: const Icon(Symbols.person, size: 18),
-                        label: const Text('Member'),
-                      ),
-                    if (isSelf)
-                      Chip(
-                        avatar: const Icon(Symbols.person, size: 18),
-                        label: const Text('You'),
-                      ),
-                    if (isPendingInvite)
-                      Chip(
-                        avatar: const Icon(Symbols.pending_actions, size: 18),
-                        label: const Text('Invite pending'),
-                      ),
                     if (hasActiveTimeout)
-                      Chip(
-                        avatar: const Icon(Symbols.timer_pause, size: 18),
-                        label: Text(
-                          'Timed out until ${activeTimeoutUntil.formatSystem()}',
-                        ),
-                      ),
-                  ],
-                ),
-                if (canManageTarget && !isPendingInvite)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        spacing: 8,
-                        children: [
-                          const Icon(Symbols.timer, size: 16),
-                          Text(
-                            'Timeout Actions',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                        ],
-                      ).opacity(0.75),
-                      const Gap(4),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          if (hasActiveTimeout)
-                            FilledButton.tonalIcon(
-                              icon: Icon(
-                                Symbols.timer_off,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                              label: const Text(
-                                'Cancel timeout',
-                              ).textColor(Theme.of(context).colorScheme.error),
-                              onPressed: loading.value ? null : removeTimeout,
-                            ),
-                          FilledButton.tonal(
-                            onPressed: loading.value
-                                ? null
-                                : () =>
-                                      applyTimeout(const Duration(minutes: 10)),
-                            child: const Text('10m'),
-                          ),
-                          FilledButton.tonal(
-                            onPressed: loading.value
-                                ? null
-                                : () => applyTimeout(const Duration(hours: 1)),
-                            child: const Text('1hr'),
-                          ),
-                          FilledButton.tonal(
-                            onPressed: loading.value
-                                ? null
-                                : () => applyTimeout(const Duration(days: 1)),
-                            child: const Text('1d'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                if (canManageTarget)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        spacing: 8,
-                        children: [
-                          const Icon(Symbols.group, size: 16),
-                          Text(
-                            'Membership Actions',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                        ],
-                      ).opacity(0.75),
-                      const Gap(4),
                       FilledButton.tonalIcon(
                         icon: Icon(
-                          Symbols.person_remove,
+                          Symbols.timer_off,
                           color: Theme.of(context).colorScheme.error,
                         ),
-                        label: Text(
-                          isPendingInvite ? 'Remove invite' : 'Remove member',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                        onPressed: loading.value ? null : removeMember,
+                        label: const Text(
+                          'Cancel timeout',
+                        ).textColor(Theme.of(context).colorScheme.error),
+                        onPressed: loading.value ? null : removeTimeout,
                       ),
-                    ],
-                  ),
+                    FilledButton.tonal(
+                      onPressed: loading.value
+                          ? null
+                          : () => applyTimeout(const Duration(minutes: 10)),
+                      child: const Text('10m'),
+                    ),
+                    FilledButton.tonal(
+                      onPressed: loading.value
+                          ? null
+                          : () => applyTimeout(const Duration(hours: 1)),
+                      child: const Text('1hr'),
+                    ),
+                    FilledButton.tonal(
+                      onPressed: loading.value
+                          ? null
+                          : () => applyTimeout(const Duration(days: 1)),
+                      child: const Text('1d'),
+                    ),
+                  ],
+                ),
               ],
-            ).padding(horizontal: 20, top: 16),
-            AccountNameplate(
-              name: effectiveMember.account.name,
-              isOutlined: false,
             ),
-          ],
-        ),
-      ),
+          if (canManageTarget)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.group, size: 16),
+                    Text(
+                      'Membership Actions',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
+                ).opacity(0.75),
+                const Gap(4),
+                FilledButton.tonalIcon(
+                  icon: Icon(
+                    Symbols.person_remove,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  label: Text(
+                    isPendingInvite ? 'Remove invite' : 'Remove member',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  onPressed: loading.value ? null : removeMember,
+                ),
+              ],
+            ),
+        ],
+      ).padding(horizontal: 20, vertical: 16),
     );
   }
 }

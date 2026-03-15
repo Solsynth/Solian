@@ -19,7 +19,7 @@ class RealmLabel extends StatelessWidget {
         label.name,
         style: Theme.of(
           context,
-        ).textTheme.labelSmall?.copyWith(color: Colors.white),
+        ).textTheme.labelSmall?.copyWith(color: Colors.white, fontSize: 9),
       ),
     );
   }
