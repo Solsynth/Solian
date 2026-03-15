@@ -33,11 +33,12 @@ enum PaymentMethod { wallet, appleIap }
 Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   try {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/wallet/subscriptions/fuzzy/solian.stellar');
+    final resp = await client.get(
+      '/wallet/subscriptions/groups/solian.stellar/active',
+    );
     return SnWalletSubscription.fromJson(resp.data);
   } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) return null;
-    rethrow;
+    return null;
   }
 }
 
@@ -75,12 +76,10 @@ Future<SnWalletGift> accountGift(Ref ref, String giftId) async {
 }
 
 @riverpod
-Future<List<SnSubscriptionCatalog>> accountSubscriptionCatalog(Ref ref) async {
+Future<SnSubscriptionGroup?> accountSubscriptionGroup(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/wallet/subscriptions/catalog');
-  return (resp.data as List)
-      .map((e) => SnSubscriptionCatalog.fromJson(e))
-      .toList();
+  final resp = await client.get('/wallet/subscriptions/groups/solian.stellar');
+  return SnSubscriptionGroup.fromJson(resp.data);
 }
 
 class PurchaseGiftSheet extends StatefulWidget {
@@ -304,13 +303,13 @@ class StellarProgramTab extends HookConsumerWidget {
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
     final paymentMethod = useState(PaymentMethod.wallet);
     final iapProducts = useState<Map<String, String>>({});
-    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
     if (paymentMethod.value == PaymentMethod.appleIap &&
         iapProducts.value.isEmpty &&
-        catalogAsync.hasValue) {
-      final appleProductIds = catalogAsync.value!
-          .where((c) => c.groupIdentifier == 'solian.stellar')
+        groupAsync.hasValue) {
+      final group = groupAsync.value!;
+      final appleProductIds = group.catalog.items
           .expand((c) => c.providerMappings.appleStore)
           .toSet();
 
@@ -406,15 +405,13 @@ class StellarProgramTab extends HookConsumerWidget {
     ValueNotifier<Map<String, String>> iapProducts,
   ) {
     final isActive = membership?.isActive ?? false;
-    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
     final supportsWallet =
-        catalogAsync.hasValue &&
-        catalogAsync.value!.any(
-          (c) =>
-              c.groupIdentifier == 'solian.stellar' &&
-              c.allowedPaymentMethods.contains('solian.wallet'),
+        groupAsync.hasValue &&
+        groupAsync.value!.catalog.items.any(
+          (c) => c.allowedPaymentMethods.contains('solian.wallet'),
         );
-    final supportsIap = Platform.isIOS || Platform.isMacOS;
+    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
     Future<void> membershipCancel() async {
       if (!isActive || membership == null) return;
@@ -502,7 +499,7 @@ class StellarProgramTab extends HookConsumerWidget {
           ),
 
           // Restore Purchase Button
-          if (Platform.isIOS || Platform.isMacOS)
+          if (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
             OutlinedButton.icon(
               onPressed: () => _restorePurchaseIap(context, ref),
               icon: const Icon(Icons.restore),
@@ -511,7 +508,7 @@ class StellarProgramTab extends HookConsumerWidget {
                 minimumSize: const Size(double.infinity, 48),
               ),
             ).padding(top: 12)
-          else if (kIsWeb || !(Platform.isIOS || Platform.isMacOS))
+          else
             OutlinedButton.icon(
               onPressed: () => _showRestorePurchaseSheet(context, ref),
               icon: const Icon(Icons.restore),
@@ -643,13 +640,15 @@ class StellarProgramTab extends HookConsumerWidget {
     ValueNotifier<PaymentMethod> paymentMethod,
     ValueNotifier<Map<String, String>> iapProducts,
   ) {
-    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
-    return catalogAsync.when(
-      data: (catalog) {
-        final tiers =
-            catalog.where((c) => c.groupIdentifier == 'solian.stellar').toList()
-              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+    return groupAsync.when(
+      data: (group) {
+        if (group == null) {
+          return Center(child: Text('noTiersAvailable'.tr()));
+        }
+        final tiers = group.catalog.items.toList()
+          ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));
@@ -1137,13 +1136,15 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Widget _buildGiftPurchaseOptions(BuildContext context, WidgetRef ref) {
-    final catalogAsync = ref.watch(accountSubscriptionCatalogProvider);
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
-    return catalogAsync.when(
-      data: (catalog) {
-        final tiers =
-            catalog.where((c) => c.groupIdentifier == 'solian.stellar').toList()
-              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+    return groupAsync.when(
+      data: (group) {
+        if (group == null) {
+          return Center(child: Text('noTiersAvailable'.tr()));
+        }
+        final tiers = group.catalog.items.toList()
+          ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));

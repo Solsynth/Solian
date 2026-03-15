@@ -467,3 +467,75 @@ Map<String, dynamic> _$SnProductProviderMappingsToJson(
   'paddle': instance.paddle,
   'apple_store': instance.appleStore,
 };
+
+_SnSubscriptionGroup _$SnSubscriptionGroupFromJson(
+  Map<String, dynamic> json,
+) => _SnSubscriptionGroup(
+  groupIdentifier: json['group_identifier'] as String,
+  catalog: SnSubscriptionGroupCatalog.fromJson(
+    json['catalog'] as Map<String, dynamic>,
+  ),
+  current: json['current'] == null
+      ? null
+      : SnSubscriptionCatalog.fromJson(json['current'] as Map<String, dynamic>),
+  next: json['next'] == null
+      ? null
+      : SnSubscriptionCatalog.fromJson(json['next'] as Map<String, dynamic>),
+  subscriptions: (json['subscriptions'] as List<dynamic>)
+      .map((e) => SnActiveSubscription.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
+
+Map<String, dynamic> _$SnSubscriptionGroupToJson(
+  _SnSubscriptionGroup instance,
+) => <String, dynamic>{
+  'group_identifier': instance.groupIdentifier,
+  'catalog': instance.catalog.toJson(),
+  'current': instance.current?.toJson(),
+  'next': instance.next?.toJson(),
+  'subscriptions': instance.subscriptions.map((e) => e.toJson()).toList(),
+};
+
+_SnSubscriptionGroupCatalog _$SnSubscriptionGroupCatalogFromJson(
+  Map<String, dynamic> json,
+) => _SnSubscriptionGroupCatalog(
+  groupIdentifier: json['group_identifier'] as String,
+  displayName: json['display_name'] as String,
+  maxPerkLevel: (json['max_perk_level'] as num).toInt(),
+  displayConfig: json['display_config'] == null
+      ? null
+      : SnSubscriptionDisplayConfig.fromJson(
+          json['display_config'] as Map<String, dynamic>,
+        ),
+  items: (json['items'] as List<dynamic>)
+      .map((e) => SnSubscriptionCatalog.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
+
+Map<String, dynamic> _$SnSubscriptionGroupCatalogToJson(
+  _SnSubscriptionGroupCatalog instance,
+) => <String, dynamic>{
+  'group_identifier': instance.groupIdentifier,
+  'display_name': instance.displayName,
+  'max_perk_level': instance.maxPerkLevel,
+  'display_config': instance.displayConfig?.toJson(),
+  'items': instance.items.map((e) => e.toJson()).toList(),
+};
+
+_SnActiveSubscription _$SnActiveSubscriptionFromJson(
+  Map<String, dynamic> json,
+) => _SnActiveSubscription(
+  subscription: SnWalletSubscription.fromJson(
+    json['subscription'] as Map<String, dynamic>,
+  ),
+  definition: SnSubscriptionCatalog.fromJson(
+    json['definition'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SnActiveSubscriptionToJson(
+  _SnActiveSubscription instance,
+) => <String, dynamic>{
+  'subscription': instance.subscription.toJson(),
+  'definition': instance.definition.toJson(),
+};

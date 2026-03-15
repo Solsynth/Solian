@@ -50,7 +50,7 @@ final class AccountStellarSubscriptionProvider
 }
 
 String _$accountStellarSubscriptionHash() =>
-    r'fd0aa9b7110e5d0ba68d8a57bd0e4dc191586e3b';
+    r'ebab0cee5e8598a2bf3ad5ed2592373b4411631f';
 
 @ProviderFor(accountSentGifts)
 final accountSentGiftsProvider = AccountSentGiftsFamily._();
@@ -300,45 +300,44 @@ final class AccountGiftFamily extends $Family
   String toString() => r'accountGiftProvider';
 }
 
-@ProviderFor(accountSubscriptionCatalog)
-final accountSubscriptionCatalogProvider =
-    AccountSubscriptionCatalogProvider._();
+@ProviderFor(accountSubscriptionGroup)
+final accountSubscriptionGroupProvider = AccountSubscriptionGroupProvider._();
 
-final class AccountSubscriptionCatalogProvider
+final class AccountSubscriptionGroupProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<SnSubscriptionCatalog>>,
-          List<SnSubscriptionCatalog>,
-          FutureOr<List<SnSubscriptionCatalog>>
+          AsyncValue<SnSubscriptionGroup?>,
+          SnSubscriptionGroup?,
+          FutureOr<SnSubscriptionGroup?>
         >
     with
-        $FutureModifier<List<SnSubscriptionCatalog>>,
-        $FutureProvider<List<SnSubscriptionCatalog>> {
-  AccountSubscriptionCatalogProvider._()
+        $FutureModifier<SnSubscriptionGroup?>,
+        $FutureProvider<SnSubscriptionGroup?> {
+  AccountSubscriptionGroupProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'accountSubscriptionCatalogProvider',
+        name: r'accountSubscriptionGroupProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$accountSubscriptionCatalogHash();
+  String debugGetCreateSourceHash() => _$accountSubscriptionGroupHash();
 
   @$internal
   @override
-  $FutureProviderElement<List<SnSubscriptionCatalog>> $createElement(
+  $FutureProviderElement<SnSubscriptionGroup?> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<SnSubscriptionCatalog>> create(Ref ref) {
-    return accountSubscriptionCatalog(ref);
+  FutureOr<SnSubscriptionGroup?> create(Ref ref) {
+    return accountSubscriptionGroup(ref);
   }
 }
 
-String _$accountSubscriptionCatalogHash() =>
-    r'5b5e10e09f987eb7181a924be94c8c06fb36e737';
+String _$accountSubscriptionGroupHash() =>
+    r'81d83e46ad17ad3f8f08df3580d657116b1f9eaf';
