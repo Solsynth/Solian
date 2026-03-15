@@ -663,6 +663,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 ),
                 IconButton(
                   tooltip: 'Refresh labels',
+                  visualDensity: VisualDensity(vertical: -3),
                   onPressed: () => ref.invalidate(realmLabelsProvider(slug)),
                   icon: const Icon(Symbols.refresh),
                 ),
@@ -1728,6 +1729,7 @@ class _RealmLabelEditorSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: label == null ? 'Create Label' : 'Edit Label',
+      heightFactor: 0.6,
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 16,
@@ -1740,19 +1742,13 @@ class _RealmLabelEditorSheet extends HookConsumerWidget {
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
             const Gap(12),
             TextField(
               controller: descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Description'),
             ),
             const Gap(12),
             TextField(
@@ -1760,7 +1756,6 @@ class _RealmLabelEditorSheet extends HookConsumerWidget {
               decoration: const InputDecoration(
                 labelText: 'Color',
                 hintText: '#FFB347',
-                border: OutlineInputBorder(),
               ),
             ),
             const Gap(12),
@@ -1769,7 +1764,6 @@ class _RealmLabelEditorSheet extends HookConsumerWidget {
               decoration: const InputDecoration(
                 labelText: 'Icon',
                 hintText: 'emoji or short symbol',
-                border: OutlineInputBorder(),
               ),
             ),
             const Gap(16),
