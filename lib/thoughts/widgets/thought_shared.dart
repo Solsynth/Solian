@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dismissible_page/dismissible_page.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -219,7 +218,7 @@ void _handleProposalAction(BuildContext context, Map<String, String> proposal) {
   }
 }
 
-/// A service selector dropdown widget for use in app bars
+/// A service selector widget for use in app bars.
 class ServiceSelector extends ConsumerWidget {
   final List<ThoughtService> services;
   final String selectedServiceId;
@@ -238,109 +237,89 @@ class ServiceSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (services.isEmpty) return const SizedBox.shrink();
+    return HookBuilder(
+      builder: (context) {
+        if (services.isEmpty) return const SizedBox.shrink();
+        final colorScheme = Theme.of(context).colorScheme;
+        final selectedIndex = services.indexWhere(
+          (s) => s.id == selectedServiceId,
+        );
+        final effectiveIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        final isInteractive = !isStreaming && !isDisabled;
+        final tabController = useTabController(
+          initialLength: services.length,
+          initialIndex: effectiveIndex,
+        );
 
-    // Ensure the selected value is valid
-    final currentValue = selectedServiceId;
-    final isValueValid =
-        currentValue.isNotEmpty && services.any((s) => s.id == currentValue);
+        useEffect(() {
+          if (tabController.index != effectiveIndex) {
+            tabController.animateTo(effectiveIndex);
+          }
+          return null;
+        }, [effectiveIndex, tabController]);
 
-    return DropdownButtonHideUnderline(
-      child: DropdownButton2<String>(
-        valueListenable: ValueNotifier(isValueValid ? currentValue : null),
-        customButton: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 6,
-            children: [
-              Icon(
-                Symbols.smart_toy,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
+        return IgnorePointer(
+          ignoring: !isInteractive,
+          child: Opacity(
+            opacity: isInteractive ? 1 : 0.7,
+            child: TabBar(
+              controller: tabController,
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              dividerColor: Colors.transparent,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+              padding: EdgeInsets.zero,
+              indicator: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withOpacity(0.65),
+                  width: 1,
+                ),
               ),
-              Flexible(
-                child: Text(
-                  isValueValid
-                      ? 'thinkService${services.firstWhere((s) => s.id == currentValue).id.capitalizeEachWord()}'
-                            .tr()
-                      : 'Select Service',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface,
+              labelColor: colorScheme.onSurface,
+              unselectedLabelColor: Theme.of(
+                context,
+              ).appBarTheme.foregroundColor!,
+              onTap: (index) => onServiceChanged(services[index].id),
+              tabs: services.map((service) {
+                final isSelected =
+                    services[tabController.index].id == service.id;
+                return Tab(
+                  height: 40,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        service.id == 'michan'
+                            ? Symbols.chat_bubble
+                            : Symbols.smart_toy,
+                        size: 16,
+                        fill: isSelected ? 1 : 0,
+                        color: isSelected
+                            ? colorScheme.onSurface
+                            : Theme.of(context).appBarTheme.foregroundColor,
+                      ),
+                      const Gap(6),
+                      Text(
+                        'thinkService${service.id.capitalizeEachWord()}'.tr(),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: isSelected
+                              ? colorScheme.onSurface
+                              : Theme.of(context).appBarTheme.foregroundColor,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Icon(
-                Symbols.keyboard_arrow_down,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ],
+                );
+              }).toList(),
+            ),
           ),
-        ),
-        items: services
-            .map(
-              (service) => DropdownItem<String>(
-                value: service.id,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'thinkService${service.id.capitalizeEachWord()}'.tr(),
-                      style: DefaultTextStyle.of(context).style.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'thinkService${service.id.capitalizeEachWord()}Description'
-                          .tr(),
-                      style: DefaultTextStyle.of(context).style.copyWith(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-        onChanged: !isStreaming && !isDisabled
-            ? (value) {
-                if (value != null) {
-                  onServiceChanged(value);
-                }
-              }
-            : null,
-        isDense: true,
-        buttonStyleData: const ButtonStyleData(
-          padding: EdgeInsets.zero,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-          ),
-        ),
-        dropdownStyleData: DropdownStyleData(
-          maxHeight: 300,
-          width: 240,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).colorScheme.surfaceContainer,
-          ),
-        ),
-        menuItemStyleData: const MenuItemStyleData(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -660,6 +639,12 @@ class ThoughtItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = !isStreaming && thought!.role == ThinkingThoughtRole.user;
+    final effectiveBotName = (thought?.botName ?? agentService).toLowerCase();
+    final isMichanStyle = effectiveBotName == 'michan';
+
+    if (isMichanStyle) {
+      return _buildMichanChatItem(context, isUser);
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -689,6 +674,64 @@ class ThoughtItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
               children: buildWidgetsList(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMichanChatItem(BuildContext context, bool isUser) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bubbleColor = isUser
+        ? colorScheme.primaryContainer.withOpacity(0.55)
+        : colorScheme.surfaceContainer;
+    final bubbleBorderColor = isUser
+        ? colorScheme.primary.withOpacity(0.18)
+        : colorScheme.outline.withOpacity(0.18);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                crossAxisAlignment: isUser
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ThoughtHeader(
+                      agentService: agentService,
+                      item: thought,
+                      isStreaming: isStreaming,
+                      isUser: isUser,
+                    ),
+                  ),
+                  const Gap(4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: bubbleColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: bubbleBorderColor, width: 1),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: buildWidgetsList(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -11,7 +11,6 @@ import "package:island/thoughts/widgets/thought_chat_notifier.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
-import "package:styled_widget/styled_widget.dart";
 
 /// A dialog-based thought chat interface that uses [ResponsiveSidebar].
 ///
@@ -100,6 +99,17 @@ class ThoughtSheet extends HookConsumerWidget {
 
     void closeSidebar() => showSidebar.value = false;
 
+    void handleServiceChanged(String serviceId) {
+      final previousServiceId = chatState.selectedServiceId;
+      if (serviceId == 'michan' && previousServiceId != 'michan') {
+        chatNotifier.clearChat(selectedServiceId: serviceId);
+        showSidebar.value = false;
+        return;
+      }
+
+      chatNotifier.setSelectedServiceId(serviceId);
+    }
+
     // Full screen for mobile dialog
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -108,23 +118,26 @@ class ThoughtSheet extends HookConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(chatState.currentTopic ?? 'aiThought'.tr()),
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Gap(8),
-              IconButton(
-                icon: const Icon(Symbols.close),
-                onPressed: () => Navigator.of(context).pop(),
-                tooltip: 'close'.tr(),
+          leading: IconButton(
+            icon: const Icon(Symbols.close),
+            onPressed: () => Navigator.of(context).pop(),
+            tooltip: 'close'.tr(),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(52),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: ServiceSelector(
+                  services: chatState.services,
+                  selectedServiceId: chatState.selectedServiceId,
+                  onServiceChanged: handleServiceChanged,
+                  isStreaming: chatState.isStreaming,
+                  isDisabled: statusAsync.value == false,
+                ),
               ),
-              ServiceSelector(
-                services: chatState.services,
-                selectedServiceId: chatState.selectedServiceId,
-                onServiceChanged: chatNotifier.setSelectedServiceId,
-                isStreaming: chatState.isStreaming,
-                isDisabled: statusAsync.value == false,
-              ),
-            ],
+            ),
           ),
           actions: [
             IconButton(
@@ -300,6 +313,17 @@ class _ThoughtPanel extends HookConsumerWidget {
 
     void closeSidebar() => showSidebar.value = false;
 
+    void handleServiceChanged(String serviceId) {
+      final previousServiceId = chatState.selectedServiceId;
+      if (serviceId == 'michan' && previousServiceId != 'michan') {
+        chatNotifier.clearChat(selectedServiceId: serviceId);
+        showSidebar.value = false;
+        return;
+      }
+
+      chatNotifier.setSelectedServiceId(serviceId);
+    }
+
     return Material(
       type: MaterialType.transparency,
       child: Container(
@@ -323,18 +347,22 @@ class _ThoughtPanel extends HookConsumerWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               automaticallyImplyLeading: false,
-              flexibleSpace: Row(
-                children: [
-                  const Gap(16),
-                  ServiceSelector(
-                    services: chatState.services,
-                    selectedServiceId: chatState.selectedServiceId,
-                    onServiceChanged: chatNotifier.setSelectedServiceId,
-                    isStreaming: chatState.isStreaming,
-                    isDisabled: statusAsync.value == false,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(52),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: ServiceSelector(
+                      services: chatState.services,
+                      selectedServiceId: chatState.selectedServiceId,
+                      onServiceChanged: handleServiceChanged,
+                      isStreaming: chatState.isStreaming,
+                      isDisabled: statusAsync.value == false,
+                    ),
                   ),
-                ],
-              ).center(),
+                ),
+              ),
               actions: [
                 IconButton(
                   icon: const Icon(Symbols.close),

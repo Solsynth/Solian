@@ -24,9 +24,14 @@ class ThoughtHeader extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoProvider);
+    final botName = item?.botName ?? agentService;
 
     if (!isStreaming) {
       return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         spacing: 6,
         children: [
           if (isUser)
@@ -46,9 +51,7 @@ class ThoughtHeader extends HookConsumerWidget {
           Text(
             isUser
                 ? userInfo.value?.nick ?? 'unknown'.tr()
-                : item?.botName != null
-                ? 'thinkService${item?.botName!.capitalizeEachWord()}'.tr()
-                : 'thinkService${agentService.capitalizeEachWord()}'.tr(),
+                : 'thinkService${botName.capitalizeEachWord()}'.tr(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
               fontWeight: FontWeight.w600,
               color: isUser
@@ -60,6 +63,10 @@ class ThoughtHeader extends HookConsumerWidget {
       );
     } else {
       return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         spacing: 6,
         children: [
           Icon(
@@ -71,7 +78,7 @@ class ThoughtHeader extends HookConsumerWidget {
             fill: 1,
           ),
           Text(
-            'thoughtAiName'.tr(),
+            'thinkService${botName.capitalizeEachWord()}'.tr(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
               fontWeight: FontWeight.w600,
               color: isUser

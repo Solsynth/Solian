@@ -62,7 +62,7 @@ final class ThoughtChatNotifierProvider
 }
 
 String _$thoughtChatNotifierHash() =>
-    r'969a5b5049012ff8b3fb1f0db939be9183ae08ca';
+    r'e0dd1c7b3d6f807066a41a9a8eb8b6f4a8dddfa7';
 
 /// Notifier for managing thought chat state
 

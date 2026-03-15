@@ -68,7 +68,7 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
   const factory StreamThinkingRequest({
     required String userMessage,
     String? sequenceId,
-    @Default([]) List<String> accpetProposals,
+    @Default([]) List<String> acceptProposals,
     List<String>? attachedPosts,
     List<Map<String, dynamic>>? attachedMessages,
     List<String>? attachedFiles,

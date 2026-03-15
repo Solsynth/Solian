@@ -389,7 +389,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     final request = StreamThinkingRequest(
       userMessage: userMessage,
       sequenceId: state.sequenceId,
-      accpetProposals: ['post_create'],
+      acceptProposals: ['post_create'],
       attachedMessages: shouldIncludeAttachments ? _attachedMessages : const [],
       attachedPosts: shouldIncludeAttachments ? _attachedPosts : const [],
       attachedFiles: attachmentIds,
@@ -555,11 +555,11 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   }
 
   /// Clears the chat state for a new conversation
-  void clearChat() {
+  void clearChat({String? selectedServiceId}) {
     state = ThoughtChatState(
       currentTopic: 'aiThought'.tr(),
       services: state.services,
-      selectedServiceId: state.selectedServiceId,
+      selectedServiceId: selectedServiceId ?? state.selectedServiceId,
     );
     messageController.clear();
   }

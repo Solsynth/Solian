@@ -16,7 +16,6 @@ import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
-import "package:styled_widget/styled_widget.dart";
 
 part 'think.g.dart';
 
@@ -141,22 +140,42 @@ class ThoughtScreen extends HookConsumerWidget {
       markThoughtSequenceAsRead(ref.read(apiClientProvider), sequenceId);
     }
 
+    void handleServiceChanged(String serviceId) {
+      final previousServiceId = chatState.selectedServiceId;
+      if (serviceId == 'michan' && previousServiceId != 'michan') {
+        if (selectedSequenceId.value != null) {
+          ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
+        }
+        selectedSequenceId.value = null;
+        chatNotifier.clearChat(selectedServiceId: serviceId);
+        showSidebar.value = false;
+        return;
+      }
+
+      chatNotifier.setSelectedServiceId(serviceId);
+    }
+
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
         automaticallyImplyLeading: false,
-        flexibleSpace: Row(
-          children: [
-            ServiceSelector(
-              services: chatState.services,
-              selectedServiceId: chatState.selectedServiceId,
-              onServiceChanged: chatNotifier.setSelectedServiceId,
-              isStreaming: chatState.isStreaming,
-              isDisabled: statusAsync.value == false,
-            ).padding(left: 12, top: MediaQuery.paddingOf(context).top),
-          ],
-        ).center(),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(52),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: ServiceSelector(
+                services: chatState.services,
+                selectedServiceId: chatState.selectedServiceId,
+                onServiceChanged: handleServiceChanged,
+                isStreaming: chatState.isStreaming,
+                isDisabled: statusAsync.value == false,
+              ),
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add),
