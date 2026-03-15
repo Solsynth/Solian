@@ -1523,7 +1523,7 @@
   "discoverRealmsDescription": "发现领域并加入它们。",
   "postShuffleDescription": "打乱帖子以随机查看帖子。",
   "levelingDescription": "查看您的升级进度和历史记录。",
-  "notableDayToday": "{} 就是今天！",
+  "notableDayToday": "{} 就是今天!",
   "authSessionLogout": "注销登录",
   "authSessionLogoutHint": "确认要退出登录吗？此操作将仅结束当前浏览会话，不会影响其他已登录的设备。",
   "filesDescription": "在 Solar Network Drive 管理您的文件。",
