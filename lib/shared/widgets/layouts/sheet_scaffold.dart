@@ -63,7 +63,10 @@ class SheetScaffold extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            thickness: 1 / MediaQuery.devicePixelRatioOf(context),
+          ),
           Expanded(child: child),
         ],
       ),
