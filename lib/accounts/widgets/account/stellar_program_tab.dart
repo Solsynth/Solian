@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -27,6 +27,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 part 'stellar_program_tab.g.dart';
+
+const kDebugShowAfdian = false;
 
 enum PaymentMethodTab { wallet, appleIap, afdian }
 
@@ -448,7 +450,7 @@ class StellarProgramTab extends HookConsumerWidget {
         groupAsync.value!.catalog.items.any(
           (c) => c.allowedPaymentMethods.contains('afdian'),
         );
-    final showAfdianTab = supportsAfdian && !supportsIap;
+    final showAfdianTab = (supportsAfdian && !supportsIap) || kDebugShowAfdian;
 
     Future<void> membershipCancel() async {
       if (!isActive || membership == null) return;
@@ -548,6 +550,7 @@ class StellarProgramTab extends HookConsumerWidget {
             membership,
             selectedTab,
             iapProducts,
+            showAfdianTab,
           ),
 
           // Restore Purchase Button
@@ -637,7 +640,7 @@ class StellarProgramTab extends HookConsumerWidget {
         controller: controller,
         tabs: showAfdianTab
             ? [Tab(text: 'afdian'.tr()), Tab(text: 'walletExchange'.tr())]
-            : [Tab(text: 'walletExchange'.tr()), Tab(text: 'appleIap'.tr())],
+            : [Tab(text: 'appleIap'.tr()), Tab(text: 'walletExchange'.tr())],
         labelColor: Theme.of(context).colorScheme.onPrimary,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicator: BoxDecoration(
@@ -650,7 +653,7 @@ class StellarProgramTab extends HookConsumerWidget {
           if (showAfdianTab) {
             ref.read(selectedTabProvider.notifier).setTab(index == 0 ? 2 : 0);
           } else {
-            ref.read(selectedTabProvider.notifier).setTab(index);
+            ref.read(selectedTabProvider.notifier).setTab(index == 0 ? 1 : 0);
           }
         },
         labelStyle: const TextStyle(fontWeight: FontWeight.w600),
@@ -664,6 +667,7 @@ class StellarProgramTab extends HookConsumerWidget {
     SnWalletSubscription? currentMembership,
     int selectedTab,
     Map<String, String> iapProducts,
+    bool showAfdianTab,
   ) {
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
@@ -692,23 +696,27 @@ class StellarProgramTab extends HookConsumerWidget {
             'apple_store',
           );
           final supportsAfdian = tier.allowedPaymentMethods.contains('afdian');
-          final selectedMethod = selectedTab;
+          final effectiveMethod = showAfdianTab
+              ? (selectedTab == 0 ? 2 : 0)
+              : (selectedTab == 0 ? 1 : 0);
           final isSupported =
-              (selectedMethod == 0 && supportsWallet) ||
-              (selectedMethod == 1 && supportsIap) ||
-              (selectedMethod == 2 && supportsAfdian);
+              (effectiveMethod == 0 && supportsWallet) ||
+              (effectiveMethod == 1 && supportsIap) ||
+              (effectiveMethod == 2 && supportsAfdian);
 
           String priceDisplay;
-          if (selectedMethod == 1 &&
+          if (effectiveMethod == 1 &&
               tier.providerMappings.appleStore.isNotEmpty) {
             final productId = tier.providerMappings.appleStore.first;
             final applePrice = iapProducts[productId] ?? '...';
             priceDisplay = '$applePrice/month';
-          } else if (selectedMethod == 2 &&
+          } else if (effectiveMethod == 2 &&
               tier.providerMappings.afdian.isNotEmpty) {
             priceDisplay = '${tier.basePrice} ${tier.currency}/month';
-          } else {
+          } else if (effectiveMethod == 0) {
             priceDisplay = '${tier.basePrice} ${tier.currency}/month';
+          } else {
+            priceDisplay = 'pricingAtCheckout'.tr();
           }
 
           tierWidgets.add(
@@ -723,7 +731,7 @@ class StellarProgramTab extends HookConsumerWidget {
                           context,
                           ref,
                           tier,
-                          selectedMethod,
+                          effectiveMethod,
                         ),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(

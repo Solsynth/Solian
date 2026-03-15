@@ -227,10 +227,30 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        AccountName(
-                          account: effectiveMember.account,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        if (effectiveMember.nick?.isNotEmpty == true)
+                          Tooltip(
+                            message: 'Original nick: ${effectiveMember.account.nick}',
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AccountName(
+                                  account: effectiveMember.account,
+                                  textOverride: effectiveMember.nick,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const Gap(4),
+                                Icon(
+                                  Symbols.edit,
+                                  size: 14,
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          AccountName(
+                            account: effectiveMember.account,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         if (effectiveMember.realmLabel != null)
                           RealmLabelWidget(
                             label: effectiveMember.realmLabel!,
@@ -241,6 +261,19 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                       '@${effectiveMember.account.name}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (effectiveMember.realmBio?.isNotEmpty == true)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          effectiveMember.realmBio!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     const Gap(8),
                     Text(
                       'Joined ${effectiveMember.joinedAt?.formatSystem()} · ${effectiveMember.joinedAt?.formatRelative(context)}',

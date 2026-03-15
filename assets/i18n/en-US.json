@@ -534,7 +534,7 @@
   "membershipFeatureAllNova": "All Nova features",
   "membershipFeatureExclusiveContent": "Exclusive content",
   "membershipFeatureVipSupport": "VIP support",
-  "membershipCurrentBadge": "CURRENT",
+  "membershipCurrentBadge": "Current",
   "restorePurchase": "Restore Purchase",
   "restorePurchaseDescription": "Enter your payment provider and order ID to restore your purchase.",
   "provider": "Provider",
@@ -1890,5 +1890,6 @@
   "paymentMethodNotSupported": "Not Available",
   "walletExchange": "In-app Credits",
   "appleIap": "App Store",
-  "afdian": "Afdian"
+  "afdian": "Afdian",
+  "pricingAtCheckout": "Pricing at checkout"
 }
