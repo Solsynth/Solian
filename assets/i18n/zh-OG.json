@@ -76,6 +76,8 @@
     "explore": "探索",
     "exploreFilterSubscriptions": "訂閱",
     "exploreFilterFriends": "知交",
+    "explorePreferred": "算法倾向",
+    "exploreSubscriptionFilterHint": "選擇發佈者、類與籤",
     "account": "賬戶",
     "name": "名",
     "slug": "別稱",

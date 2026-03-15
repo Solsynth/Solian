@@ -75,6 +75,8 @@
     "explore": "探索",
     "exploreFilterSubscriptions": "フォロー中",
     "exploreFilterFriends": "フレンド",
+    "explorePreferred": "表示順",
+    "exploreSubscriptionFilterHint": "投稿者、カテゴリ、タグを選択",
     "account": "アカウント",
     "name": "名前",
     "slug": "スラッグ (識別子)",

@@ -75,6 +75,8 @@
   "explore": "探索",
   "exploreFilterSubscriptions": "已关注",
   "exploreFilterFriends": "好友圈",
+  "explorePreferred": "算法倾向",
+  "exploreSubscriptionFilterHint": "选择创作者、类别或标签",
   "account": "账号",
   "name": "名称",
   "slug": "别名",
@@ -1598,5 +1600,6 @@
   "recordingFilePathOptional": "录制文件路径（可选）",
   "start": "开始",
   "walletExchange": "源点兑换",
-  "appleIap": "App Store"
+  "appleIap": "App Store",
+  "afdian": "爱发电"
 }

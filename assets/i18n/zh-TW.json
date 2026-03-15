@@ -75,6 +75,8 @@
     "explore": "探索",
     "exploreFilterSubscriptions": "已關注",
     "exploreFilterFriends": "好友圈",
+    "explorePreferred": "演算法倾向",
+    "exploreSubscriptionFilterHint": "選擇創作者、類別或標籤",
     "account": "賬號",
     "name": "名稱",
     "slug": "別名",

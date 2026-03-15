@@ -75,6 +75,8 @@
     "explore": "Explore",
     "exploreFilterSubscriptions": "Subscriptions",
     "exploreFilterFriends": "Friends",
+    "explorePreferred": "Preferred",
+    "exploreSubscriptionFilterHint": "Choose publishers, categories, or tags",
     "account": "Account",
     "name": "Name",
     "slug": "Slug",

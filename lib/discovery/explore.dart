@@ -24,6 +24,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -95,131 +96,21 @@ class ExploreScreen extends HookConsumerWidget {
 
     final isWide = isWideScreen(context);
 
-    final hasSubscriptionsSelected = selectedPublisherNames.value.isNotEmpty;
+    final hasSubscriptionFiltersApplied =
+        selectedPublisherNames.value.isNotEmpty ||
+        selectedCategoryIds.value.isNotEmpty ||
+        selectedTagIds.value.isNotEmpty;
 
     final filterBar = Card(
       margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      child: Row(
-        children: [
-          Row(
-            spacing: 8,
-            children: [
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange(null),
-                icon: Icon(
-                  Symbols.explore,
-                  fill: currentFilter.value == null ? 1 : null,
-                ),
-                tooltip: 'explore'.tr(),
-                isSelected: currentFilter.value == null,
-                color: currentFilter.value == null
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
-              ),
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange('subscriptions'),
-                icon: Icon(
-                  Symbols.subscriptions,
-                  fill: currentFilter.value == 'subscriptions' ? 1 : null,
-                ),
-                tooltip: 'exploreFilterSubscriptions'.tr(),
-                isSelected: currentFilter.value == 'subscriptions',
-                color: currentFilter.value == 'subscriptions'
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
-              ),
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange('friends'),
-                icon: Icon(
-                  Symbols.people,
-                  fill: currentFilter.value == 'friends' ? 1 : null,
-                ),
-                tooltip: 'exploreFilterFriends'.tr(),
-                isSelected: currentFilter.value == 'friends',
-                color: currentFilter.value == 'friends'
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
-              ),
-              _TimelineModeDropdown(
-                value: currentMode.value,
-                onChanged: handleModeChange,
-              ),
-            ],
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {
-              context.router.push(ArticleStandRoute());
-            },
-            icon: Icon(Symbols.auto_stories),
-            tooltip: 'webArticlesStand'.tr(),
-          ),
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.search),
-                    const Gap(12),
-                    Text('search').tr(),
-                  ],
-                ),
-                onTap: () {
-                  context.router.push(UniversalSearchRoute());
-                },
-              ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.live_tv),
-                    const Gap(12),
-                    Text('livestreams').tr(),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ActiveLivestreamsScreen(),
-                    ),
-                  );
-                },
-              ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.category),
-                    const Gap(12),
-                    Text('categoriesAndTags').tr(),
-                  ],
-                ),
-                onTap: () {
-                  context.router.push(PostCategoriesListRoute());
-                },
-              ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    const Icon(Symbols.shuffle),
-                    const Gap(12),
-                    Text('postShuffle').tr(),
-                  ],
-                ),
-                onTap: () {
-                  context.router.push(PostShuffleRoute());
-                },
-              ),
-            ],
-            icon: Icon(Symbols.action_key),
-            tooltip: 'search'.tr(),
-          ),
-        ],
-      ).padding(horizontal: 8, vertical: 4),
+      child: _ExploreFilterToolbar(
+        currentFilter: currentFilter.value,
+        currentMode: currentMode.value,
+        onFilterChange: handleFilterChange,
+        onModeChange: handleModeChange,
+        onOpenSubscriptionFilters: null,
+        disableFilterSwitching: hasSubscriptionFiltersApplied,
+      ).padding(horizontal: 12, vertical: 12),
     );
 
     final userInfo = ref.watch(userInfoProvider);
@@ -232,7 +123,15 @@ class ExploreScreen extends HookConsumerWidget {
             handleFilterChange,
             handleModeChange,
             context,
-            hasSubscriptionsSelected,
+            hasSubscriptionFiltersApplied,
+            userInfo.value != null
+                ? () => _showSubscriptionFilterSheet(
+                    context,
+                    selectedPublisherNames,
+                    selectedCategoryIds,
+                    selectedTagIds,
+                  )
+                : null,
           );
 
     return AppScaffold(
@@ -296,7 +195,50 @@ class ExploreScreen extends HookConsumerWidget {
               selectedCategoryIds,
               selectedTagIds,
             )
-          : _buildNarrowBody(context, ref, currentFilter.value),
+          : _buildNarrowBody(
+              context,
+              ref,
+              currentFilter.value,
+              selectedPublisherNames.value,
+              selectedCategoryIds.value,
+              selectedTagIds.value,
+            ),
+    );
+  }
+
+  Future<void> _showSubscriptionFilterSheet(
+    BuildContext context,
+    ValueNotifier<List<String>> selectedPublishers,
+    ValueNotifier<List<String>> selectedCategories,
+    ValueNotifier<List<String>> selectedTags,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (sheetContext) {
+        return SheetScaffold(
+          titleText: 'exploreFilterSubscriptions'.tr(),
+          heightFactor: 0.4,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: PostSubscriptionFilterWidget(
+              initialSelectedPublishers: selectedPublishers.value,
+              initialSelectedCategories: selectedCategories.value,
+              initialSelectedTags: selectedTags.value,
+              onSelectedPublishersChanged: (names) {
+                selectedPublishers.value = names;
+              },
+              onSelectedCategoriesChanged: (ids) {
+                selectedCategories.value = ids;
+              },
+              onSelectedTagsChanged: (ids) {
+                selectedTags.value = ids;
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -520,136 +462,40 @@ class ExploreScreen extends HookConsumerWidget {
     void Function(String?) handleFilterChange,
     void Function(String?) handleModeChange,
     BuildContext context,
-    bool hasSubscriptionsSelected,
+    bool hasSubscriptionFiltersApplied,
+    VoidCallback? onOpenSubscriptionFilters,
   ) {
-    final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
+    final toolbarHeight = switch (currentFilter) {
+      null => 126.0,
+      'subscriptions' when onOpenSubscriptionFilters != null => 120.0,
+      _ => 78.0,
+    };
+    final verticalPadding = switch (currentFilter) {
+      null => 8.0,
+      'subscriptions' when onOpenSubscriptionFilters != null => 8.0,
+      _ => 6.0,
+    };
 
     return AppBar(
       automaticallyImplyLeading: false,
+      toolbarHeight: toolbarHeight,
       flexibleSpace: Container(
-        height: 48,
+        height: toolbarHeight,
         margin: EdgeInsets.only(
           left: 8,
           right: 8,
-          top: 4 + MediaQuery.of(context).padding.top,
-          bottom: 4,
+          top: 2 + MediaQuery.of(context).padding.top,
+          bottom: 2,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            spacing: 8,
-            children: [
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange(null),
-                icon: Icon(
-                  Symbols.explore,
-                  color: foregroundColor,
-                  fill: currentFilter == null ? 1 : null,
-                ),
-                tooltip: 'explore'.tr(),
-                isSelected: currentFilter == null,
-                color: currentFilter == null ? foregroundColor : null,
-              ),
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange('subscriptions'),
-                icon: Icon(
-                  Symbols.subscriptions,
-                  color: foregroundColor,
-                  fill: currentFilter == 'subscription' ? 1 : null,
-                ),
-                tooltip: 'exploreFilterSubscriptions'.tr(),
-                isSelected: currentFilter == 'subscriptions',
-              ),
-              IconButton(
-                onPressed: hasSubscriptionsSelected
-                    ? null
-                    : () => handleFilterChange('friends'),
-                icon: Icon(
-                  Symbols.people,
-                  color: foregroundColor,
-                  fill: currentFilter == 'friends' ? 1 : null,
-                ),
-                tooltip: 'exploreFilterFriends'.tr(),
-                isSelected: currentFilter == 'friends',
-              ),
-              _TimelineModeDropdown(
-                value: currentMode,
-                onChanged: handleModeChange,
-                foregroundColor: foregroundColor,
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  context.router.push(const ArticleStandRoute());
-                },
-                icon: Icon(Symbols.auto_stories, color: foregroundColor),
-                tooltip: 'webArticlesStand'.tr(),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.search),
-                        const Gap(12),
-                        Text('search').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.router.push(UniversalSearchRoute());
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.live_tv),
-                        const Gap(12),
-                        Text('livestreams').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ActiveLivestreamsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.category),
-                        const Gap(12),
-                        Text('categoriesAndTags').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.router.push(PostCategoriesListRoute());
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.shuffle),
-                        const Gap(12),
-                        Text('postShuffle').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      context.router.push(const PostShuffleRoute());
-                    },
-                  ),
-                ],
-                icon: Icon(Symbols.action_key, color: foregroundColor),
-                tooltip: 'search'.tr(),
-              ),
-            ],
-          ),
-        ),
+        child: _ExploreFilterToolbar(
+          currentFilter: currentFilter,
+          currentMode: currentMode,
+          onFilterChange: handleFilterChange,
+          onModeChange: handleModeChange,
+          onOpenSubscriptionFilters: onOpenSubscriptionFilters,
+          disableFilterSwitching: hasSubscriptionFiltersApplied,
+          showCompactActions: true,
+        ).padding(horizontal: 12, vertical: verticalPadding),
       ),
     );
   }
@@ -658,7 +504,14 @@ class ExploreScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String? currentFilter,
+    List<String> selectedPublishers,
+    List<String> selectedCategories,
+    List<String> selectedTags,
   ) {
+    final usePostList =
+        selectedPublishers.isNotEmpty ||
+        selectedCategories.isNotEmpty ||
+        selectedTags.isNotEmpty;
     final activityState = ref.watch(activityListProvider);
     final isListInitialLoading =
         (activityState.isLoading || activityState.value?.isLoading == true) &&
@@ -685,10 +538,465 @@ class ExploreScreen extends HookConsumerWidget {
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: ExtendedRefreshIndicator(
-          onRefresh: notifier.refresh,
-          child: CustomScrollView(slivers: [SliverGap(8), bodyView]),
+          onRefresh: usePostList ? () async {} : notifier.refresh,
+          child: CustomScrollView(
+            slivers: [
+              const SliverGap(8),
+              if (usePostList) ...[
+                _buildLiveStreamsOnTop(context, ref, selectedPublishers),
+                _buildPostList(
+                  context,
+                  ref,
+                  selectedPublishers,
+                  selectedCategories,
+                  selectedTags,
+                ),
+              ] else
+                bodyView,
+            ],
+          ),
         ),
       ).padding(horizontal: 8),
+    );
+  }
+}
+
+class _ExploreFilterToolbar extends StatelessWidget {
+  final String? currentFilter;
+  final String currentMode;
+  final void Function(String?) onFilterChange;
+  final void Function(String?) onModeChange;
+  final VoidCallback? onOpenSubscriptionFilters;
+  final bool disableFilterSwitching;
+  final bool showCompactActions;
+
+  const _ExploreFilterToolbar({
+    required this.currentFilter,
+    required this.currentMode,
+    required this.onFilterChange,
+    required this.onModeChange,
+    required this.onOpenSubscriptionFilters,
+    required this.disableFilterSwitching,
+    this.showCompactActions = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final secondarySurfaceColor = theme.colorScheme.surfaceContainerHighest
+        .withOpacity(0.55);
+    final rowTwo = switch (currentFilter) {
+      null => _RankingToolbar(
+        currentMode: currentMode,
+        onModeChange: onModeChange,
+        backgroundColor: secondarySurfaceColor,
+      ),
+      'subscriptions' when onOpenSubscriptionFilters != null =>
+        _SubscriptionFilterPromptTile(
+          onTap: onOpenSubscriptionFilters!,
+          backgroundColor: secondarySurfaceColor,
+        ),
+      _ => null,
+    };
+    final selectedIndex = switch (currentFilter) {
+      'subscriptions' => 1,
+      'friends' => 2,
+      _ => 0,
+    };
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useSingleActionMenu =
+            showCompactActions && constraints.maxWidth < 540;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withOpacity(0.55),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: Stack(
+                      children: [
+                        AnimatedAlign(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          alignment: switch (selectedIndex) {
+                            1 => Alignment.center,
+                            2 => Alignment.centerRight,
+                            _ => Alignment.centerLeft,
+                          },
+                          child: FractionallySizedBox(
+                            widthFactor: 1 / 3,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 1,
+                              ),
+                              child: Container(
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _FilterToggleButton(
+                                label: 'explore'.tr(),
+                                icon: Symbols.explore,
+                                isSelected: currentFilter == null,
+                                onTap: disableFilterSwitching
+                                    ? null
+                                    : () => onFilterChange(null),
+                              ),
+                            ),
+                            Expanded(
+                              child: _FilterToggleButton(
+                                label: 'exploreFilterSubscriptions'.tr(),
+                                icon: Symbols.subscriptions,
+                                isSelected: currentFilter == 'subscriptions',
+                                onTap: disableFilterSwitching
+                                    ? null
+                                    : () => onFilterChange('subscriptions'),
+                              ),
+                            ),
+                            Expanded(
+                              child: _FilterToggleButton(
+                                label: 'exploreFilterFriends'.tr(),
+                                icon: Symbols.people,
+                                isSelected: currentFilter == 'friends',
+                                onTap: disableFilterSwitching
+                                    ? null
+                                    : () => onFilterChange('friends'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Gap(8),
+                if (!useSingleActionMenu)
+                  IconButton(
+                    onPressed: () {
+                      context.router.push(const ArticleStandRoute());
+                    },
+                    icon: const Icon(Symbols.auto_stories),
+                    tooltip: 'webArticlesStand'.tr(),
+                    visualDensity: showCompactActions
+                        ? VisualDensity.compact
+                        : VisualDensity.standard,
+                  ),
+                PopupMenuButton<_ExploreAction>(
+                  itemBuilder: (context) => [
+                    if (useSingleActionMenu)
+                      PopupMenuItem(
+                        value: _ExploreAction.articles,
+                        child: Row(
+                          children: [
+                            const Icon(Symbols.auto_stories),
+                            const Gap(12),
+                            Text('webArticlesStand').tr(),
+                          ],
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: _ExploreAction.search,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.search),
+                          const Gap(12),
+                          Text('search').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.livestreams,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.live_tv),
+                          const Gap(12),
+                          Text('livestreams').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.categories,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.category),
+                          const Gap(12),
+                          Text('categoriesAndTags').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.shuffle,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.shuffle),
+                          const Gap(12),
+                          Text('postShuffle').tr(),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    switch (value) {
+                      case _ExploreAction.articles:
+                        context.router.push(const ArticleStandRoute());
+                        break;
+                      case _ExploreAction.search:
+                        context.router.push(UniversalSearchRoute());
+                        break;
+                      case _ExploreAction.livestreams:
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ActiveLivestreamsScreen(),
+                          ),
+                        );
+                        break;
+                      case _ExploreAction.categories:
+                        context.router.push(PostCategoriesListRoute());
+                        break;
+                      case _ExploreAction.shuffle:
+                        context.router.push(const PostShuffleRoute());
+                        break;
+                    }
+                  },
+                  icon: const Icon(Symbols.action_key),
+                  tooltip: 'search'.tr(),
+                ),
+              ],
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: rowTwo == null
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 180),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SizeTransition(
+                              sizeFactor: animation,
+                              axisAlignment: -1,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: KeyedSubtree(
+                          key: ValueKey(currentFilter ?? 'explore'),
+                          child: rowTwo,
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _FilterToggleButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  const _FilterToggleButton({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final disabled = onTap == null;
+    final foreground = disabled
+        ? colorScheme.onSurface.withOpacity(0.38)
+        : isSelected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.symmetric(
+              horizontal: isSelected ? 10 : 8,
+              vertical: isSelected ? 11 : 10,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    icon,
+                    key: ValueKey('${label}_$isSelected'),
+                    size: 18,
+                    color: foreground,
+                    fill: isSelected ? 1 : 0,
+                  ),
+                ),
+                const Gap(6),
+                Flexible(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    style: theme.textTheme.labelMedium!.copyWith(
+                      color: foreground,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum _ExploreAction { articles, search, livestreams, categories, shuffle }
+
+class _RankingToolbar extends StatelessWidget {
+  final String currentMode;
+  final void Function(String?) onModeChange;
+  final Color backgroundColor;
+
+  const _RankingToolbar({
+    required this.currentMode,
+    required this.onModeChange,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      key: const ValueKey('ranking_toolbar'),
+      color: backgroundColor,
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.dividerColor.withOpacity(0.4)),
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Symbols.tune,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const Gap(10),
+            Expanded(
+              child: Text(
+                'explorePreferred'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            _TimelineModeDropdown(value: currentMode, onChanged: onModeChange),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SubscriptionFilterPromptTile extends StatelessWidget {
+  final VoidCallback onTap;
+  final Color backgroundColor;
+
+  const _SubscriptionFilterPromptTile({
+    required this.onTap,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      key: const ValueKey('subscription_toolbar'),
+      color: backgroundColor,
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                Symbols.tune,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const Gap(10),
+              Expanded(
+                child: Text(
+                  'exploreFilterSubscriptions'.tr(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
+                ),
+              ),
+              const Gap(8),
+              Icon(
+                Symbols.chevron_right,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -696,21 +1004,15 @@ class ExploreScreen extends HookConsumerWidget {
 class _TimelineModeDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String?> onChanged;
-  final Color? foregroundColor;
 
-  const _TimelineModeDropdown({
-    required this.value,
-    required this.onChanged,
-    this.foregroundColor,
-  });
+  const _TimelineModeDropdown({required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    final effectiveForegroundColor =
-        foregroundColor ?? Theme.of(context).colorScheme.onSurface;
+    final effectiveForegroundColor = Theme.of(context).colorScheme.onSurface;
 
     return Container(
-      height: 36,
+      height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
