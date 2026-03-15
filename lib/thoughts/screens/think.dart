@@ -34,6 +34,7 @@ Future<List<SnThinkingThought>> thoughtSequence(
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get(
     '/insight/thought/sequences/$sequenceId',
+    queryParameters: {'offset': 0, 'take': 50},
   );
   return (response.data as List)
       .map((e) => SnThinkingThought.fromJson(e))
@@ -142,17 +143,20 @@ class ThoughtScreen extends HookConsumerWidget {
 
     void handleServiceChanged(String serviceId) {
       final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == 'michan' && previousServiceId != 'michan') {
-        if (selectedSequenceId.value != null) {
-          ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
-        }
-        selectedSequenceId.value = null;
-        chatNotifier.clearChat(selectedServiceId: serviceId);
-        showSidebar.value = false;
+      if (serviceId == previousServiceId) {
         return;
       }
 
-      chatNotifier.setSelectedServiceId(serviceId);
+      if (selectedSequenceId.value != null) {
+        ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
+      }
+      selectedSequenceId.value = null;
+      chatNotifier.clearChat(selectedServiceId: serviceId);
+      showSidebar.value = false;
+
+      if (serviceId == 'michan') {
+        chatNotifier.loadMichanCanonicalThread();
+      }
     }
 
     return AppScaffold(

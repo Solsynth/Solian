@@ -213,6 +213,45 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
   }
 
+  Future<void> loadMichanCanonicalThread() async {
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final sequenceResponse = await apiClient.get(
+        '/insight/thought/michan/sequence',
+      );
+      final sequence = SnThinkingSequence.fromJson(sequenceResponse.data);
+
+      final thoughtsResponse = await apiClient.get(
+        '/insight/thought/sequences/${sequence.id}',
+        queryParameters: {'offset': 0, 'take': 50},
+      );
+      final thoughts = (thoughtsResponse.data as List)
+          .map((e) => SnThinkingThought.fromJson(e))
+          .toList();
+
+      state = state.copyWith(
+        sequenceId: sequence.id,
+        localThoughts: thoughts,
+        currentTopic: sequence.topic ?? 'aiThought'.tr(),
+        selectedServiceId: 'michan',
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) {
+        state = state.copyWith(
+          sequenceId: null,
+          localThoughts: const [],
+          currentTopic: 'aiThought'.tr(),
+          selectedServiceId: 'michan',
+        );
+        return;
+      }
+      showErrorAlert(error);
+    } catch (error) {
+      showErrorAlert(error);
+    }
+  }
+
   /// Updates the sequence ID (e.g., when loaded from external source)
   void updateSequenceId(String? sequenceId) {
     state = state.copyWith(

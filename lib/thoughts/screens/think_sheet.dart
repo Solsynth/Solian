@@ -101,13 +101,16 @@ class ThoughtSheet extends HookConsumerWidget {
 
     void handleServiceChanged(String serviceId) {
       final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == 'michan' && previousServiceId != 'michan') {
-        chatNotifier.clearChat(selectedServiceId: serviceId);
-        showSidebar.value = false;
+      if (serviceId == previousServiceId) {
         return;
       }
 
-      chatNotifier.setSelectedServiceId(serviceId);
+      chatNotifier.clearChat(selectedServiceId: serviceId);
+      showSidebar.value = false;
+
+      if (serviceId == 'michan') {
+        chatNotifier.loadMichanCanonicalThread();
+      }
     }
 
     // Full screen for mobile dialog
@@ -315,13 +318,16 @@ class _ThoughtPanel extends HookConsumerWidget {
 
     void handleServiceChanged(String serviceId) {
       final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == 'michan' && previousServiceId != 'michan') {
-        chatNotifier.clearChat(selectedServiceId: serviceId);
-        showSidebar.value = false;
+      if (serviceId == previousServiceId) {
         return;
       }
 
-      chatNotifier.setSelectedServiceId(serviceId);
+      chatNotifier.clearChat(selectedServiceId: serviceId);
+      showSidebar.value = false;
+
+      if (serviceId == 'michan') {
+        chatNotifier.loadMichanCanonicalThread();
+      }
     }
 
     return Material(
