@@ -53,6 +53,8 @@ class MessageSenderInfo extends StatelessWidget {
           Row(
             children: [
               AccountName(
+                textOverride:
+                    sender.nick ?? sender.realmNick ?? sender.account.nick,
                 account: sender.account,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: textColor,
@@ -91,6 +93,10 @@ class MessageSenderInfo extends StatelessWidget {
                 Row(
                   children: [
                     AccountName(
+                      textOverride:
+                          sender.nick ??
+                          sender.realmNick ??
+                          sender.account.nick,
                       account: sender.account,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: textColor,
@@ -138,6 +144,8 @@ class MessageSenderInfo extends StatelessWidget {
             Row(
               children: [
                 AccountName(
+                  textOverride:
+                      sender.nick ?? sender.realmNick ?? sender.account.nick,
                   account: sender.account,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

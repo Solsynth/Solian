@@ -728,12 +728,7 @@ class ProjectForm extends HookConsumerWidget {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'name'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'name'.tr()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'fieldCannotBeEmpty'.tr();
@@ -747,9 +742,7 @@ class ProjectForm extends HookConsumerWidget {
                 controller: slugController,
                 decoration: InputDecoration(
                   labelText: 'slug'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
+
                   helperText: 'slugHint'.tr(),
                 ),
                 validator: (value) {
@@ -765,9 +758,7 @@ class ProjectForm extends HookConsumerWidget {
                 controller: descriptionController,
                 decoration: InputDecoration(
                   labelText: 'description'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
+
                   alignLabelWithHint: true,
                 ),
                 minLines: 3,

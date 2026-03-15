@@ -227,7 +227,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                 decoration: InputDecoration(
                   labelText: 'chatBreakCustomMinutes'.tr(),
                   hintText: 'chatBreakEnterMinutes'.tr(),
-                  border: const OutlineInputBorder(),
+
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.check),
                     onPressed: () {

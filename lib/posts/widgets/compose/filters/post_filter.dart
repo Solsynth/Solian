@@ -167,9 +167,6 @@ class PostFilterWidget extends HookConsumerWidget {
                         labelText: 'search'.tr(),
                         hintText: 'searchPosts'.tr(),
                         prefixIcon: const Icon(Symbols.search),
-                        border: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
@@ -184,9 +181,6 @@ class PostFilterWidget extends HookConsumerWidget {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'sortBy'.tr(),
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -232,11 +226,6 @@ class PostFilterWidget extends HookConsumerWidget {
                           child: InputDecorator(
                             decoration: InputDecoration(
                               labelText: 'fromDate'.tr(),
-                              border: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,
@@ -278,11 +267,6 @@ class PostFilterWidget extends HookConsumerWidget {
                           child: InputDecorator(
                             decoration: InputDecoration(
                               labelText: 'toDate'.tr(),
-                              border: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,

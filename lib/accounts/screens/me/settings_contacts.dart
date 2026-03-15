@@ -243,10 +243,7 @@ class ContactMethodNewSheet extends HookConsumerWidget {
         children: [
           DropdownButtonFormField<int>(
             value: contactType.value,
-            decoration: InputDecoration(
-              labelText: 'contactMethodType'.tr(),
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: 'contactMethodType'.tr()),
             items: [
               DropdownMenuItem<int>(
                 value: 0,
@@ -303,7 +300,6 @@ class ContactMethodNewSheet extends HookConsumerWidget {
                 1 => 'contactMethodPhoneHint'.tr(),
                 _ => 'contactMethodAddressHint'.tr(),
               },
-              border: const OutlineInputBorder(),
             ),
             keyboardType: switch (contactType.value) {
               0 => TextInputType.emailAddress,

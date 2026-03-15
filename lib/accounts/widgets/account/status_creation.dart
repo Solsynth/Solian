@@ -116,24 +116,14 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
             const Gap(24),
             TextField(
               controller: labelController,
-              decoration: InputDecoration(
-                labelText: 'statusLabel'.tr(),
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
+              decoration: InputDecoration(labelText: 'statusLabel'.tr()),
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const Gap(16),
             TextField(
               controller: symbolController,
-              decoration: InputDecoration(
-                labelText: 'statusSymbol'.tr(),
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
+              decoration: InputDecoration(labelText: 'statusSymbol'.tr()),
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),

@@ -106,12 +106,7 @@ class BotKeysScreen extends HookConsumerWidget {
               children: [
                 TextFormField(
                   controller: keyNameController,
-                  decoration: InputDecoration(
-                    labelText: 'keyName'.tr(),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
+                  decoration: InputDecoration(labelText: 'keyName'.tr()),
                   autofocus: true,
                 ),
                 const SizedBox(height: 20),

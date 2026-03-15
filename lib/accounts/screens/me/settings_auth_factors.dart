@@ -228,10 +228,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
         children: [
           DropdownButtonFormField<int>(
             value: factorType.value,
-            decoration: InputDecoration(
-              labelText: 'authFactor'.tr(),
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: 'authFactor'.tr()),
             items: kFactorTypes.entries.map((entry) {
               return DropdownMenuItem<int>(
                 value: entry.key,
@@ -257,7 +254,6 @@ class AuthFactorNewSheet extends HookConsumerWidget {
                 prefixIcon: const Icon(Symbols.password_2),
                 labelText: 'authFactorSecret'.tr(),
                 hintText: 'authFactorSecretHint'.tr(),
-                border: const OutlineInputBorder(),
               ),
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),

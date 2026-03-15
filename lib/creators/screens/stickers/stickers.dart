@@ -233,12 +233,7 @@ class StickerPackForm extends HookConsumerWidget {
               ),
               TextFormField(
                 controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'name'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'name'.tr()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'fieldCannotBeEmpty'.tr();
@@ -252,9 +247,6 @@ class StickerPackForm extends HookConsumerWidget {
                 controller: descriptionController,
                 decoration: InputDecoration(
                   labelText: 'description'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
                   alignLabelWithHint: true,
                 ),
                 minLines: 3,
@@ -266,9 +258,6 @@ class StickerPackForm extends HookConsumerWidget {
                 controller: prefixController,
                 decoration: InputDecoration(
                   labelText: 'stickerPackPrefix'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
                   helperText: 'stickerPackPrefixHint'.tr(),
                 ),
                 validator: (value) {

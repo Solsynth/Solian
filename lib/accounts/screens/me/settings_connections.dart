@@ -231,7 +231,6 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ).padding(all: 16),
                 labelText: 'accountConnectionProvider'.tr(),
-                border: const OutlineInputBorder(),
               ),
               items: providers.map((String provider) {
                 return DropdownMenuItem<String>(

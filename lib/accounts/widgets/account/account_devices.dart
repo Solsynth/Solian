@@ -222,7 +222,6 @@ class AccountSessionSheet extends HookConsumerWidget {
             controller: controller,
             decoration: InputDecoration(
               isDense: true,
-              border: const OutlineInputBorder(),
               hintText: 'authDeviceLabelHint'.tr(),
             ),
             autofocus: true,

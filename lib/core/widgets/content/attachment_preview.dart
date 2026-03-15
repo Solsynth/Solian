@@ -149,7 +149,7 @@ class AttachmentPreview extends HookConsumerWidget {
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'fileName'.tr(),
-                  border: const OutlineInputBorder(),
+
                   errorText: errorMessage,
                 ),
               ),

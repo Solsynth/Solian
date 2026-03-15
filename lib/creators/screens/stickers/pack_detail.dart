@@ -387,9 +387,6 @@ class StickerForm extends HookConsumerWidget {
                 decoration: InputDecoration(
                   labelText: 'stickerSlug'.tr(),
                   helperText: 'stickerSlugHint'.tr(),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
                 ),
                 onTapOutside: (_) =>
                     FocusManager.instance.primaryFocus?.unfocus(),

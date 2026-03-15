@@ -980,12 +980,7 @@ class _EditLivestreamSheet extends HookConsumerWidget {
     }
 
     InputDecoration inputDecoration(String label) {
-      return InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-      );
+      return InputDecoration(labelText: label);
     }
 
     return SheetScaffold(

@@ -97,12 +97,7 @@ class PostAwardSheet extends HookConsumerWidget {
             TextField(
               controller: messageController,
               maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'awardMessageHint'.tr(),
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
-              ),
+              decoration: InputDecoration(hintText: 'awardMessageHint'.tr()),
             ),
             const Gap(16),
             Text(
@@ -139,9 +134,7 @@ class PostAwardSheet extends HookConsumerWidget {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: 'awardAmountHint'.tr(),
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
+
                 suffixText: 'NSP',
               ),
             ),

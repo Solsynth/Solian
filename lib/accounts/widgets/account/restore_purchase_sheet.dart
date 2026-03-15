@@ -111,10 +111,7 @@ class RestorePurchaseSheet extends HookConsumerWidget {
             const Gap(8),
             TextField(
               controller: orderIdController,
-              decoration: InputDecoration(
-                hintText: 'enterOrderId'.tr(),
-                border: const OutlineInputBorder(),
-              ),
+              decoration: InputDecoration(hintText: 'enterOrderId'.tr()),
             ),
             const Gap(24),
 

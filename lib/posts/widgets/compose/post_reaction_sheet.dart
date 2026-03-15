@@ -616,9 +616,7 @@ class CustomReactionForm extends HookConsumerWidget {
             decoration: InputDecoration(
               labelText: 'stickerPlaceholder'.tr(),
               hintText: 'prefix+slug',
-              border: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
+
               suffixIcon: InkWell(
                 onTapDown: (details) async {
                   final screenSize = MediaQuery.sizeOf(context);

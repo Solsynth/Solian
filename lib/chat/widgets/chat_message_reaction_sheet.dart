@@ -163,7 +163,9 @@ class ChatMessageReactionSheet extends StatelessWidget {
                     offset: const Offset(0, 0),
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
                       child: InkWell(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(8),
@@ -273,7 +275,9 @@ class ChatMessageReactionSheet extends StatelessWidget {
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: Card(
-                      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
                       child: InkWell(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(8),
@@ -291,7 +295,8 @@ class ChatMessageReactionSheet extends StatelessWidget {
                                       'assets/images/stickers/$symbol.png',
                                     ),
                                     fit: BoxFit.cover,
-                                    colorFilter: (reactionsMade[symbol] ?? false)
+                                    colorFilter:
+                                        (reactionsMade[symbol] ?? false)
                                         ? ColorFilter.mode(
                                             Theme.of(context)
                                                 .colorScheme
@@ -391,9 +396,7 @@ class _CustomReactionForm extends HookConsumerWidget {
             decoration: InputDecoration(
               labelText: 'stickerPlaceholder'.tr(),
               hintText: 'prefix+slug',
-              border: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
+
               suffixIcon: InkWell(
                 onTapDown: (details) async {
                   final screenSize = MediaQuery.sizeOf(context);

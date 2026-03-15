@@ -1081,9 +1081,6 @@ class _TextAnswerPreview extends StatelessWidget {
         labelText: long
             ? 'pollLongTextAnswerPreview'.tr()
             : 'pollShortTextAnswerPreview'.tr(),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
       ),
     );
   }

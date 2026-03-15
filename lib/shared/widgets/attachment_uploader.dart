@@ -100,7 +100,7 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
                         },
                         decoration: InputDecoration(
                           labelText: 'selectPool'.tr(),
-                          border: const OutlineInputBorder(),
+
                           hintText: 'choosePool'.tr(),
                         ),
                       ),
