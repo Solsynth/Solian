@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -499,6 +500,8 @@ class RealmDetailScreen extends HookConsumerWidget {
     }
 
     Widget realmIdentityWidget(SnRealm realm, SnRealmMember identity) {
+      final userInfo = ref.watch(userInfoProvider);
+
       return Card(
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
@@ -514,6 +517,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 ),
                 IconButton(
                   tooltip: 'Edit realm identity',
+                  visualDensity: VisualDensity(vertical: -3),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -554,11 +558,11 @@ class RealmDetailScreen extends HookConsumerWidget {
             ),
             const Gap(12),
             if (identity.nick?.isNotEmpty ?? false)
-              Text(
-                identity.nick!,
-                style: Theme.of(context).textTheme.headlineSmall,
+              AccountName(
+                textOverride: identity.nick,
+                account: userInfo.value!,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
-            if (identity.nick?.isNotEmpty ?? false) const Gap(4),
             if (identity.bio?.isNotEmpty ?? false)
               Text(
                 identity.bio!,
@@ -1575,6 +1579,7 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
     final bioController = useTextEditingController(text: identity.bio ?? '');
 
     return SheetScaffold(
+      heightFactor: 0.6,
       titleText: 'Edit Realm Identity',
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
@@ -1626,11 +1631,6 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
               },
               icon: const Icon(Symbols.save),
               label: const Text('saveChanges').tr(),
-            ),
-            const Gap(8),
-            Text(
-              'Realm profile customization availability is enforced by the server.',
-              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
