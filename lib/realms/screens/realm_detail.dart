@@ -512,6 +512,21 @@ class RealmDetailScreen extends HookConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
+                IconButton(
+                  tooltip: 'Edit realm identity',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useRootNavigator: true,
+                      builder: (_) => _RealmIdentityEditorSheet(
+                        realmSlug: slug,
+                        identity: identity,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Symbols.edit),
+                ),
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
@@ -1538,6 +1553,85 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
                 ),
               ],
             ).padding(vertical: 16, horizontal: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmIdentityEditorSheet extends HookConsumerWidget {
+  const _RealmIdentityEditorSheet({
+    required this.realmSlug,
+    required this.identity,
+  });
+
+  final String realmSlug;
+  final SnRealmMember identity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nickController = useTextEditingController(text: identity.nick ?? '');
+    final bioController = useTextEditingController(text: identity.bio ?? '');
+
+    return SheetScaffold(
+      titleText: 'Edit Realm Identity',
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: nickController,
+              maxLength: 1024,
+              decoration: InputDecoration(labelText: 'nickname'.tr()),
+            ),
+            const Gap(12),
+            TextField(
+              controller: bioController,
+              maxLines: 4,
+              maxLength: 4096,
+              decoration: InputDecoration(labelText: 'bio'.tr()),
+            ),
+            const Gap(16),
+            FilledButton.icon(
+              onPressed: () async {
+                try {
+                  final apiClient = ref.read(apiClientProvider);
+                  await apiClient.patch(
+                    '/passport/realms/$realmSlug/members/me/profile',
+                    data: {
+                      'nick': nickController.text.trim().isEmpty
+                          ? null
+                          : nickController.text.trim(),
+                      'bio': bioController.text.trim().isEmpty
+                          ? null
+                          : bioController.text.trim(),
+                    },
+                  );
+                  ref.invalidate(realmIdentityProvider(realmSlug));
+                  ref.invalidate(realmMemberListNotifierProvider(realmSlug));
+                  if (context.mounted) {
+                    showSnackBar('saveChanges'.tr());
+                    Navigator.pop(context, true);
+                  }
+                } catch (err) {
+                  showErrorAlert(err);
+                }
+              },
+              icon: const Icon(Symbols.save),
+              label: const Text('saveChanges').tr(),
+            ),
+            const Gap(8),
+            Text(
+              'Realm profile customization availability is enforced by the server.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
       ),
