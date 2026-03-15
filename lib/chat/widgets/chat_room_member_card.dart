@@ -225,7 +225,9 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         if (effectiveMember.realmLabel != null)
-                          RealmLabel(label: effectiveMember.realmLabel!),
+                          RealmLabelWidget(
+                            label: effectiveMember.realmLabel!,
+                          ).padding(left: 6),
                       ],
                     ),
                     Text(

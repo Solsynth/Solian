@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class RealmLabel extends StatelessWidget {
+class RealmLabelWidget extends StatelessWidget {
   final SnRealmLabel label;
-  const RealmLabel({super.key, required this.label});
+  final double? fontSize;
+  const RealmLabelWidget({super.key, required this.label, this.fontSize});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 6),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: label.color.parseHexColor(),
@@ -17,9 +17,10 @@ class RealmLabel extends StatelessWidget {
       ),
       child: Text(
         label.name,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: Colors.white, fontSize: 9),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: Colors.white,
+          fontSize: fontSize ?? 9,
+        ),
       ),
     );
   }

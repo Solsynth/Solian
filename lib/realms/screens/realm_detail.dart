@@ -11,6 +11,7 @@ import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:island/realms/models/realm_overview.dart';
+import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -63,18 +64,10 @@ class _RealmExperienceCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  'Realm XP',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 5,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: accent.withOpacity(0.14),
@@ -82,22 +75,14 @@ class _RealmExperienceCard extends StatelessWidget {
                 ),
                 child: Text(
                   'Lv ${identity.level}',
-                  style: TextStyle(color: accent, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          const Gap(10),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${identity.experience} total XP',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: TextStyle(
+                    color: accent,
                     fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
               ),
+              const Spacer(),
               Text(
                 '$progressPercent%',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -108,24 +93,15 @@ class _RealmExperienceCard extends StatelessWidget {
             ],
           ),
           const Gap(10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 12,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              color: accent,
-            ),
-          ),
-          const Gap(8),
-          Text(
-            progress >= 1
-                ? 'Ready for the next realm level.'
-                : '$progressPercent% toward the next realm level',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
+            minHeight: 4,
+            stopIndicatorColor: accent,
+            color: accent,
+          ).padding(horizontal: 2),
         ],
       ),
     );
@@ -352,6 +328,7 @@ class RealmDetailScreen extends HookConsumerWidget {
       boostPoints: overviewOrNull?.boostPoints ?? 0,
       boostLevel: overviewOrNull?.boostLevel ?? 0,
       labelCap: 0,
+      expiresAfterDays: 30,
     );
 
     Widget realmDescriptionWidget(SnRealm realm) => Card(
@@ -401,19 +378,10 @@ class RealmDetailScreen extends HookConsumerWidget {
     );
 
     Widget realmBoostWidget(SnRealm realm, RealmBoostStatus boost) {
-      final currentThreshold =
-          _realmBoostThresholds[boost.boostLevel.clamp(
-            0,
-            _realmBoostThresholds.length - 1,
-          )];
       final nextThreshold = boost.boostLevel >= _realmBoostThresholds.length - 1
           ? null
           : _realmBoostThresholds[boost.boostLevel + 1];
-      final progress = nextThreshold == null
-          ? 1.0
-          : ((boost.boostPoints - currentThreshold) /
-                    (nextThreshold - currentThreshold))
-                .clamp(0.0, 1.0);
+      final progress = boost.boostPoints / (nextThreshold ?? 1);
 
       return Card(
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -439,6 +407,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                           _RealmBoostLeaderboardSheet(realmSlug: slug),
                     );
                   },
+                  visualDensity: VisualDensity(vertical: -3),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   icon: const Icon(Symbols.leaderboard),
                 ),
                 FilledButton.tonalIcon(
@@ -453,29 +423,46 @@ class RealmDetailScreen extends HookConsumerWidget {
                       ),
                     );
                   },
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity(vertical: -3),
+                  ),
                   icon: const Icon(Symbols.volunteer_activism),
                   label: const Text('Boost'),
                 ),
               ],
             ),
             const Gap(12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Chip(
-                  avatar: const Icon(Symbols.rocket_launch, size: 18),
-                  label: Text('Level ${boost.boostLevel}'),
+                Row(
+                  spacing: 6,
+                  children: [
+                    Icon(Symbols.rocket_launch, size: 17, fill: 1),
+                    Text('Boost Level ${boost.boostLevel}').fontSize(12),
+                  ],
                 ),
-                Chip(label: Text('${boost.boostPoints} points')),
-                Chip(label: Text('Label cap ${boost.labelCap}')),
-                Chip(
-                  label: Text(
-                    nextThreshold == null
-                        ? 'Max tier unlocked'
-                        : '${(nextThreshold - boost.boostPoints).clamp(0, nextThreshold)} to next level',
-                  ),
+                const Gap(4),
+
+                Row(
+                  spacing: 6,
+                  children: [
+                    Icon(Symbols.label, size: 17, fill: 1),
+                    Text('Label cap ${boost.labelCap}').fontSize(12),
+                  ],
                 ),
+              ],
+            ),
+            const Gap(4),
+            Row(
+              spacing: 6,
+              children: [
+                Icon(Symbols.local_fire_department, size: 17, fill: 1),
+                Text(
+                  nextThreshold == null
+                      ? 'Boost maxed out'
+                      : '${boost.boostPoints}/$nextThreshold boosts',
+                ).fontSize(12),
               ],
             ),
             const Gap(12),
@@ -484,20 +471,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 10,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      const Gap(6),
-                      Text(
-                        nextThreshold == null
-                            ? '15,000 points reached'
-                            : '${boost.boostPoints} / $nextThreshold points',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+                    children: [LinearProgressIndicator(value: progress)],
                   ),
                 ),
               ],
@@ -507,7 +481,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               boost.boostLevel >= 3
                   ? 'All realm boost tiers unlocked.'
                   : switch (boost.boostLevel) {
-                      0 => 'Level 1 unlocks custom realm profiles and labels.',
+                      0 => 'Level 1 unlocks custom labels.',
                       1 => 'Level 2 unlocks elevated promotions.',
                       2 => 'Level 3 unlocks the highest label capacity.',
                       _ => 'Boost progress available.',
@@ -516,7 +490,7 @@ class RealmDetailScreen extends HookConsumerWidget {
             ),
             const Gap(6),
             Text(
-              'Boosts are purchased as shares. Each share costs 100 points and is applied after the payment order is processed.',
+              'Boosts are active for ${boost.expiresAfterDays} days. Each share costs 10 golds and only active boosts count toward unlocks.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -525,8 +499,6 @@ class RealmDetailScreen extends HookConsumerWidget {
     }
 
     Widget realmIdentityWidget(SnRealm realm, SnRealmMember identity) {
-      final labelColor = identity.label?.color.parseHexColor();
-
       return Card(
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
@@ -540,13 +512,29 @@ class RealmDetailScreen extends HookConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                Text(
-                  identity.role >= 100
-                      ? 'permissionOwner'
-                      : identity.role >= 50
-                      ? 'permissionModerator'
-                      : 'permissionMember',
-                ).tr(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child:
+                      Text(
+                            identity.role >= 100
+                                ? 'permissionOwner'
+                                : identity.role >= 50
+                                ? 'permissionModerator'
+                                : 'permissionMember',
+                          )
+                          .tr()
+                          .fontSize(10)
+                          .textColor(
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                          ),
+                ),
               ],
             ),
             const Gap(12),
@@ -577,34 +565,51 @@ class RealmDetailScreen extends HookConsumerWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: (labelColor ?? Theme.of(context).colorScheme.primary)
-                      .withOpacity(0.12),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.secondaryFixedDim,
+                  ),
+                  color: Theme.of(context).colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
                   children: [
-                    if ((identity.label?.icon ?? '').isNotEmpty) ...[
-                      Text(identity.label!.icon),
-                      const Gap(8),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            identity.label!.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: labelColor,
+                    Row(
+                      spacing: 4,
+                      children: [
+                        Icon(
+                          Symbols.label,
+                          size: 16,
+                          fill: 1,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                        Text('Realm Label')
+                            .fontSize(12)
+                            .textColor(
+                              Theme.of(
+                                context,
+                              ).colorScheme.onSecondaryContainer,
                             ),
-                          ),
-                          if ((identity.label?.description ?? '').isNotEmpty)
-                            Text(
+                      ],
+                    ),
+                    Row(
+                      spacing: 8,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if ((identity.label?.icon ?? '').isNotEmpty)
+                          Text(identity.label!.icon),
+                        RealmLabelWidget(label: identity.label!, fontSize: 11),
+                        if ((identity.label?.description ?? '').isNotEmpty)
+                          Expanded(
+                            child: Text(
                               identity.label!.description,
                               style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                        ],
-                      ),
+                            ).padding(top: 2),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -1732,7 +1737,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sharesController = useTextEditingController(text: '1');
     final shares = int.tryParse(sharesController.text.trim()) ?? 1;
-    final amountPoints = shares * 100;
+    final amountGolds = shares * 10;
 
     return SheetScaffold(
       titleText: 'Boost Realm',
@@ -1758,7 +1763,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   ),
                   const Gap(8),
                   Text(
-                    'Boost shares are paid with wallet points. One share equals 100 points.',
+                    'Boost shares are paid with golds. One share equals 10 golds and stays active for 30 days.',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -1801,7 +1806,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
-                          '$amountPoints points',
+                          '$amountGolds golds',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -1850,7 +1855,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                     ref.invalidate(realmLabelsProvider(realmSlug));
                     ref.invalidate(realmOverviewProvider(realmSlug));
                     showSnackBar(
-                      'Boost payment completed. Realm points will update after the order event is processed.',
+                      'Boost payment completed. Active boost points will update after the order event is processed.',
                     );
                     Navigator.of(context).pop();
                   }
@@ -1989,7 +1994,7 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${entry.amountPoints.toStringAsFixed(0)} pts',
+                            '${entry.amountGolds.toStringAsFixed(0)} golds',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w700,

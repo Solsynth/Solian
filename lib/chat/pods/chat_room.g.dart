@@ -37,7 +37,7 @@ final class ChatGlobalSyncNotifierProvider
 }
 
 String _$chatGlobalSyncNotifierHash() =>
-    r'c7a173f1ec1e4e74d1649e7b72602ac670a865c8';
+    r'24b38b30a4011c71d6a71b3730e35e0b80fbeb6d';
 
 /// Global chat sync notifier that syncs messages from all chat rooms
 
