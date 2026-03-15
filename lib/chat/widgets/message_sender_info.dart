@@ -52,15 +52,15 @@ class MessageSenderInfo extends StatelessWidget {
           if (showAvatar) const Gap(4),
           Row(
             children: [
-              AccountName(
-                textOverride:
-                    sender.nick ?? sender.realmNick ?? sender.account.nick,
-                account: sender.account,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
+                AccountName(
+                  textOverride:
+                      (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
+                  account: sender.account,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
               if (sender.realmLabel != null)
                 RealmLabelWidget(label: sender.realmLabel!).padding(left: 6),
             ],
@@ -94,9 +94,7 @@ class MessageSenderInfo extends StatelessWidget {
                   children: [
                     AccountName(
                       textOverride:
-                          sender.nick ??
-                          sender.realmNick ??
-                          sender.account.nick,
+                          (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
                       account: sender.account,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: textColor,
@@ -145,7 +143,7 @@ class MessageSenderInfo extends StatelessWidget {
               children: [
                 AccountName(
                   textOverride:
-                      sender.nick ?? sender.realmNick ?? sender.account.nick,
+                      (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
                   account: sender.account,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

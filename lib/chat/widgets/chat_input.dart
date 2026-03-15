@@ -773,7 +773,7 @@ class ChatInput extends HookConsumerWidget {
                                     chatSubscribe.length,
                                     args: [
                                       chatSubscribe
-                                          .map((x) => x.nick ?? x.account.nick)
+                                          .map((x) => (x.nick?.isNotEmpty == true) ? x.nick : x.account.nick)
                                           .join(', '),
                                     ],
                                   ),
