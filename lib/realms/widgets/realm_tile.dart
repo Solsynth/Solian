@@ -14,7 +14,11 @@ class RealmTile extends HookConsumerWidget {
     return ListTile(
       leading: ProfilePictureWidget(file: realm.picture),
       title: Text(realm.name),
-      subtitle: Text(realm.description),
+      subtitle: Text(
+        realm.description,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       onTap: () => context.router.push(RealmDetailRoute(slug: realm.slug)),
     );
   }

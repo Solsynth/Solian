@@ -46,10 +46,13 @@ const kAppShowFediverseContent = 'app_show_fediverse_content';
 const kAppShowChatSystemMessages = 'app_show_chat_system_messages';
 const kAppShowChatEventMessages = kAppShowChatSystemMessages;
 const kAppChatEventMessageMode = 'app_chat_event_message_mode';
+const kAppRealmDisplayMode = 'app_realm_display_mode';
 const kChatEventMessageModeVerbose = 'verbose';
 const kChatEventMessageModeImportant = 'important';
 const kChatEventMessageModeNone = 'none';
 const kAppDashboardConfig = 'app_dashboard_config';
+const kRealmDisplayModeList = 'list';
+const kRealmDisplayModeCard = 'card';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -116,6 +119,7 @@ sealed class AppSettings with _$AppSettings {
     required String? dashSearchEngine,
     required String? defaultScreen,
     required bool showFediverseContent,
+    required String realmDisplayMode,
     required String chatEventMessageMode,
     required bool showChatSystemMessages,
     required DashboardConfig? dashboardConfig,
@@ -160,6 +164,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
       showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
+      realmDisplayMode:
+          prefs.getString(kAppRealmDisplayMode) ?? kRealmDisplayModeCard,
       chatEventMessageMode: chatEventMessageMode,
       showChatSystemMessages: chatEventMessageMode != kChatEventMessageModeNone,
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
@@ -378,6 +384,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppShowFediverseContent, value);
     state = state.copyWith(showFediverseContent: value);
+  }
+
+  void setRealmDisplayMode(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppRealmDisplayMode, value);
+    state = state.copyWith(realmDisplayMode: value);
   }
 
   void setShowChatSystemMessages(bool value) {

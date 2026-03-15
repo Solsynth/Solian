@@ -23,8 +23,8 @@ class RealmDiscoveryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Widget imageWidget;
-    if (realm.picture != null) {
-      imageWidget = imageWidget = CloudImageWidget(
+    if (realm.background != null) {
+      imageWidget = CloudImageWidget(
         file: realm.background,
         fit: BoxFit.cover,
       );
