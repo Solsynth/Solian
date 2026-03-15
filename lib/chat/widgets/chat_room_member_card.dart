@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/core/services/timezone/native.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_label.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/account_profile_popup.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -209,9 +211,14 @@ class ChatRoomMemberCard extends HookConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ProfilePictureWidget(
-                file: effectiveMember.account.profile.picture,
-                radius: 22,
+              GestureDetector(
+                child: ProfilePictureWidget(
+                  file: effectiveMember.account.profile.picture,
+                  radius: 22,
+                ),
+                onTap: () => context.router.push(
+                  AccountProfileRoute(name: effectiveMember.account.name),
+                ),
               ),
               const Gap(12),
               Expanded(
