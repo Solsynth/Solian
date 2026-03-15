@@ -123,6 +123,12 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   SnPollQuestion get _current => _questions![_index];
 
+  bool _isExpired(SnPollWithStats poll) {
+    final endedAt = poll.endedAt;
+    if (endedAt == null) return false;
+    return endedAt.toUtc().isBefore(DateTime.now().toUtc());
+  }
+
   void _loadCurrentIntoLocalState() {
     final q = _current;
     final saved = _answers[q.id];
@@ -256,6 +262,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   void _next(SnPollWithStats poll) {
     if (_submitting) return;
+    if (!_isCurrentAnswered()) {
+      showSnackBar('${'required'.tr()}: ${_current.title}');
+      return;
+    }
     _persistCurrentAnswer();
     if (_index < _questions!.length - 1) {
       setState(() {
@@ -518,53 +528,80 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildSubmittedView(BuildContext context, SnPollWithStats poll) {
+  Widget _buildStatsStepper(
+    BuildContext context,
+    SnPollWithStats poll, {
+    required bool canModify,
+  }) {
+    final isLast = _index == _questions!.length - 1;
+    final expired = _isExpired(poll);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final q in _questions!)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        q.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    if (q.isRequired)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          '*',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                        ),
-                      ),
-                  ],
-                ),
-                if (q.description != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      q.description!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-                _buildStats(context, q, poll.stats),
-              ],
-            ),
+        _buildHeader(context, poll),
+        const SizedBox(height: 12),
+        _AnimatedStep(
+          key: ValueKey('stats_${_current.id}'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [_buildStats(context, _current, poll.stats)],
           ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            OutlinedButton.icon(
+              icon: const Icon(Icons.arrow_back),
+              label: Text(_index == 0 ? 'close'.tr() : 'back'.tr()),
+              onPressed: () {
+                if (_index == 0) {
+                  widget.onCancel?.call();
+                  return;
+                }
+                setState(() {
+                  _index--;
+                  _userHasEdited = false;
+                  _loadCurrentIntoLocalState();
+                });
+              },
+            ),
+            const Spacer(),
+            if (canModify && !expired)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.edit),
+                label: Text('modifyAnswers'.tr()),
+                onPressed: () {
+                  setState(() {
+                    _isModifying = true;
+                    _index = 0;
+                    _userHasEdited = false;
+                    _loadCurrentIntoLocalState();
+                  });
+                },
+              ),
+            if (canModify && !expired) const SizedBox(width: 8),
+            FilledButton.icon(
+              icon: Icon(isLast ? Icons.check : Icons.arrow_forward),
+              label: Text(isLast ? 'done'.tr() : 'next'.tr()),
+              onPressed: () {
+                if (isLast) {
+                  if (canModify && !expired) {
+                    setState(() {
+                      _isModifying = false;
+                    });
+                  }
+                  return;
+                }
+                setState(() {
+                  _index++;
+                  _userHasEdited = false;
+                  _loadCurrentIntoLocalState();
+                });
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -599,49 +636,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               ],
             ),
           ),
-        for (final q in _questions!)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        q.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    if (q.isRequired)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          '*',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                        ),
-                      ),
-                  ],
-                ),
-                if (q.description != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      q.description!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-                _buildStats(context, q, poll.stats),
-              ],
-            ),
-          ),
+        const SizedBox(height: 4),
+        _buildStatsStepper(context, poll, canModify: false),
       ],
     );
   }
@@ -731,6 +727,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         ),
       ),
       data: (poll) {
+        final expired = _isExpired(poll);
         // Initialize questions when data is available
         _questions = [...poll.questions]
           ..sort((a, b) => a.order.compareTo(b.order));
@@ -779,8 +776,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                   key: const ValueKey('submitted_expanded'),
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildSubmittedView(context, poll),
-                    _buildNavBar(context, poll),
+                    _buildStatsStepper(context, poll, canModify: true),
                   ],
                 ),
               ),
@@ -788,8 +784,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           );
         }
 
-        // If poll is in readonly mode, show readonly view
-        if (widget.isReadonly) {
+        // If poll is in readonly mode or expired, show readonly view
+        if (widget.isReadonly || expired) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
