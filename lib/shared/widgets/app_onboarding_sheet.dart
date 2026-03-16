@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/auth/create_account_modal.dart';
 import 'package:island/auth/login_modal.dart';
+import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
+import 'package:island/core/services/update_service.dart';
 
 Future<void> showAppOnboardingSheet(
   BuildContext context, {
@@ -9,7 +11,7 @@ Future<void> showAppOnboardingSheet(
   required bool isFirstLaunch,
   required bool suggestAuth,
 }) async {
-  final fullHeight = MediaQuery.sizeOf(context).height * 0.75;
+  final fullHeight = MediaQuery.sizeOf(context).height * 0.80;
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -48,12 +50,46 @@ void _showCreateAccountSheet(BuildContext context) {
   );
 }
 
+void showStellarProgramSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    builder: (context) => DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) => Column(
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(child: StellarProgramTab()),
+        ],
+      ),
+    ),
+  );
+}
+
 class _OnboardingPageData {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String description;
   final List<_FeatureItem>? features;
+  final String? changelog;
+  final bool isPerksPage;
+  final _PerksType? perksType;
 
   const _OnboardingPageData({
     required this.icon,
@@ -61,6 +97,9 @@ class _OnboardingPageData {
     required this.title,
     required this.description,
     this.features,
+    this.changelog,
+    this.isPerksPage = false,
+    this.perksType,
   });
 }
 
@@ -70,6 +109,8 @@ class _FeatureItem {
 
   const _FeatureItem({required this.icon, required this.label});
 }
+
+enum _PerksType { boosts, identity, tiers }
 
 class _OnboardingSheet extends HookWidget {
   final String version;
@@ -93,6 +134,25 @@ class _OnboardingSheet extends HookWidget {
     final pageController = usePageController();
     final currentPage = useState(0);
     final colorScheme = Theme.of(context).colorScheme;
+    final changelog = useState<String?>(null);
+    final isLoading = useState(true);
+
+    useEffect(() {
+      if (!isFirstLaunch) {
+        UpdateService()
+            .fetchLatestRelease()
+            .then((release) {
+              changelog.value = release?.body;
+              isLoading.value = false;
+            })
+            .catchError((_) {
+              isLoading.value = false;
+            });
+      } else {
+        isLoading.value = false;
+      }
+      return null;
+    }, [isFirstLaunch]);
 
     final List<_OnboardingPageData> firstLaunchPages = [
       _OnboardingPageData(
@@ -185,54 +245,72 @@ class _OnboardingSheet extends HookWidget {
     ];
 
     final List<_OnboardingPageData> whatsNewPages = [
-      _OnboardingPageData(
-        icon: Icons.rocket_launch_rounded,
-        iconColor: colorScheme.primary,
-        title: "What's New in $version",
-        description:
-            'Check out the latest features and improvements we\'ve brought to Solar Network.',
-        features: const [
-          _FeatureItem(
-            icon: Icons.upgrade_outlined,
-            label: 'Performance boost',
-          ),
-          _FeatureItem(icon: Icons.tune_outlined, label: 'Better experience'),
-          _FeatureItem(icon: Icons.bug_report_outlined, label: 'Bug fixes'),
-        ],
-      ),
-      _OnboardingPageData(
-        icon: Icons.edit_note_rounded,
-        iconColor: Colors.orange,
-        title: 'Enhanced Content',
-        description:
-            'New ways to express yourself with improved Posts, Articles, and Moments.',
-        features: const [
-          _FeatureItem(icon: Icons.edit_outlined, label: 'Better editor'),
-          _FeatureItem(icon: Icons.format_size_outlined, label: 'Rich text'),
-          _FeatureItem(
-            icon: Icons.photo_library_outlined,
-            label: 'Media gallery',
-          ),
-        ],
-      ),
-      _OnboardingPageData(
-        icon: Icons.chat_rounded,
-        iconColor: Colors.indigo,
-        title: 'Better Connections',
-        description:
-            'Improved chat experience with faster messaging and enhanced group support.',
-        features: const [
-          _FeatureItem(icon: Icons.speed_outlined, label: 'Faster delivery'),
-          _FeatureItem(icon: Icons.group_add_outlined, label: 'Bigger groups'),
-          _FeatureItem(
-            icon: Icons.notifications_outlined,
-            label: 'Smart alerts',
-          ),
-        ],
-      ),
+      if (!isLoading.value) ...[
+        _OnboardingPageData(
+          icon: Icons.rocket_launch_rounded,
+          iconColor: colorScheme.primary,
+          title: "What's New in $version",
+          description: changelog.value?.isNotEmpty == true
+              ? 'Check out the latest features and improvements:'
+              : 'Check out the latest features and improvements we\'ve brought to Solar Network.',
+          features: changelog.value?.isNotEmpty == true
+              ? null
+              : const [
+                  _FeatureItem(
+                    icon: Icons.upgrade_outlined,
+                    label: 'Performance boost',
+                  ),
+                  _FeatureItem(
+                    icon: Icons.tune_outlined,
+                    label: 'Better experience',
+                  ),
+                  _FeatureItem(
+                    icon: Icons.bug_report_outlined,
+                    label: 'Bug fixes',
+                  ),
+                ],
+          changelog: changelog.value,
+        ),
+        _OnboardingPageData(
+          icon: Icons.speed_rounded,
+          iconColor: Colors.green,
+          title: 'Realm Boosts',
+          description:
+              'Supercharge your realm with boosts! Increase member limits, enable custom emojis, and unlock premium features for your community.',
+          isPerksPage: true,
+          perksType: _PerksType.boosts,
+        ),
+        _OnboardingPageData(
+          icon: Icons.badge_rounded,
+          iconColor: Colors.purple,
+          title: 'Labels & Identity',
+          description:
+              'Stand out with custom labels and identity features. Available for Nova and Supernova members.',
+          isPerksPage: true,
+          perksType: _PerksType.identity,
+        ),
+        _OnboardingPageData(
+          icon: Icons.star_rounded,
+          iconColor: Colors.amber,
+          title: 'Stellar Program',
+          description:
+              'Check out our membership tiers and exclusive benefits. Upgrade to unlock more features!',
+          isPerksPage: true,
+          perksType: _PerksType.tiers,
+        ),
+      ],
     ];
 
     final pages = isFirstLaunch ? firstLaunchPages : whatsNewPages;
+
+    if (isLoading.value && !isFirstLaunch) {
+      return SafeArea(
+        child: SizedBox(
+          height: height,
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
     return SafeArea(
       child: SizedBox(
@@ -380,100 +458,592 @@ class _OnboardingPageState extends State<_OnboardingPage>
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: widget.isActive ? 1.0 : 0.0,
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _iconScale.value,
-                    child: Opacity(opacity: _iconOpacity.value, child: child),
-                  );
-                },
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        widget.data.iconColor.withValues(alpha: 0.15),
-                        widget.data.iconColor.withValues(alpha: 0.05),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: Icon(
-                    widget.data.icon,
-                    size: 44,
-                    color: widget.data.iconColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _titleSlide.value),
-                    child: Opacity(opacity: _titleOpacity.value, child: child),
-                  );
-                },
-                child: Text(
-                  widget.data.title,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Opacity(opacity: _descFade.value, child: child);
-                },
-                child: Column(
-                  children: [
-                    Text(
-                      widget.data.description,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        height: 1.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    if (widget.data.features != null) ...[
-                      const SizedBox(height: 24),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: widget.data.features!
-                            .map(
-                              (f) => _FeatureChip(
-                                icon: f.icon,
-                                label: f.label,
-                                color: widget.data.iconColor,
-                              ),
-                            )
-                            .toList(),
-                      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 16),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _iconScale.value,
+                  child: Opacity(opacity: _iconOpacity.value, child: child),
+                );
+              },
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      widget.data.iconColor.withValues(alpha: 0.15),
+                      widget.data.iconColor.withValues(alpha: 0.05),
                     ],
-                  ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  widget.data.icon,
+                  size: 36,
+                  color: widget.data.iconColor,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _titleSlide.value),
+                  child: Opacity(opacity: _titleOpacity.value, child: child),
+                );
+              },
+              child: Text(
+                widget.data.title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(opacity: _descFade.value, child: child);
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.data.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (widget.data.changelog != null &&
+                      widget.data.changelog!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(maxHeight: 60),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          widget.data.changelog!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (widget.data.isPerksPage) ...[
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: _buildPerksContent(widget.data.perksType),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => showStellarProgramSheet(context),
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: const Text('View Full Details'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                    ),
+                  ],
+                  if (widget.data.features != null &&
+                      !widget.data.isPerksPage) ...[
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      alignment: WrapAlignment.center,
+                      children: widget.data.features!
+                          .map(
+                            (f) => _FeatureChip(
+                              icon: f.icon,
+                              label: f.label,
+                              color: widget.data.iconColor,
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPerksContent(_PerksType? type) {
+    switch (type) {
+      case _PerksType.boosts:
+        return _RealmBoostsTable();
+      case _PerksType.identity:
+        return _LabelsIdentityTable();
+      case _PerksType.tiers:
+      default:
+        return _StellarPerksTable();
+    }
+  }
+}
+
+class _RealmBoostsTable extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(11),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Level',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Lv 1',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Lv 2',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Lv 3',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildBoostRow(context, 'Custom label', '✓', '✓', '✓'),
+          _buildBoostRow(context, 'Extra quota', '—', '✓', '✓'),
+          _buildBoostRow(context, 'Boosted visibility', '—', '✓', '✓'),
+          _buildBoostRow(context, 'Max quota', '—', '—', '✓', isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBoostRow(
+    BuildContext context,
+    String benefit,
+    String lv1,
+    String lv2,
+    String lv3, {
+    bool isLast = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              benefit,
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              lv1,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: colorScheme.primary),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              lv2,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: colorScheme.primary),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              lv3,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: colorScheme.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LabelsIdentityTable extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(11),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Feature',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Stellar',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Nova or above',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildLabelRow(context, 'Realm nick', 'Not included', 'Included'),
+          _buildLabelRow(context, 'Realm bio', 'Not included', 'Included'),
+          _buildLabelRow(context, 'Chat nick', 'Not included', 'Included'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabelRow(
+    BuildContext context,
+    String feature,
+    String stellar,
+    String nova, {
+    bool isLast = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              feature,
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              stellar,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.blue.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              nova,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.purple.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StellarPerksTable extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(11),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Benefit',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Stellar',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Nova',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Supernova',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildPerkRow(context, 'Cloud storage', '5GB', '10GB', '15GB'),
+          _buildPerkRow(
+            context,
+            'Username color',
+            'Limited',
+            'Unlimited',
+            'Unlimited + gradient',
+          ),
+          _buildPerkRow(
+            context,
+            'Translation',
+            'Included',
+            'Included',
+            'Included',
+          ),
+          _buildPerkRow(context, 'Leveling boost', '1.5x', '2x', '2.5x'),
+          _buildPerkRow(
+            context,
+            'Verification',
+            'Eligible',
+            'Eligible',
+            'Eligible',
+          ),
+          _buildPerkRow(context, 'Publisher quota', '2/3/5*', 'Same', 'Same'),
+          _buildPerkRow(context, 'Realm quota', 'Not included', '0-3*', 'Same'),
+          _buildPerkRow(
+            context,
+            'Bot quota',
+            'Not included',
+            '0-3*',
+            'Same',
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerkRow(
+    BuildContext context,
+    String benefit,
+    String stellar,
+    String nova,
+    String supernova, {
+    bool isLast = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              benefit,
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              stellar,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.blue.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              nova,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.purple.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              supernova,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.orange.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
