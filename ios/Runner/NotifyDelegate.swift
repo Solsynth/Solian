@@ -28,33 +28,35 @@ class NotifyDelegate: UIResponder, UNUserNotificationCenterDelegate {
             return
         }
         
-        guard let token = UserDefaults.standard.getFlutterToken() else {
-            completionHandler()
-            return
-        }
-        
-        let serverUrl = UserDefaults.standard.getServerUrl()
-        let url = "\(serverUrl)/messager/chat/\(metadata["room_id"] ?? "")/messages"
-        
-        let parameters: [String: Any?] = [
-            "content": textResponse.userText,
-            "replied_message_id": metadata["message_id"]
-        ]
-        
-        AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: HTTPHeaders(
-            [HTTPHeader(name: "Authorization", value: "Bearer \(token)")]
-        ))
-            .validate()
-            .responseString { response in
-                switch response.result {
-                case .success(_):
-                    break
-                case .failure(let error):
-                    print("Failed to send chat reply message: \(error)")
-                    break
-                }
-                // Call completion handler after network request is finished
+        Task {
+            guard let token = await UserDefaults.standard.getValidFlutterToken() else {
                 completionHandler()
+                return
             }
+
+            let serverUrl = UserDefaults.standard.getServerUrl()
+            let url = "\(serverUrl)/messager/chat/\(metadata["room_id"] ?? "")/messages"
+
+            let parameters: [String: Any?] = [
+                "content": textResponse.userText,
+                "replied_message_id": metadata["message_id"]
+            ]
+
+            AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: HTTPHeaders(
+                [HTTPHeader(name: "Authorization", value: "Bearer \(token)")]
+            ))
+                .validate()
+                .responseString { response in
+                    switch response.result {
+                    case .success(_):
+                        break
+                    case .failure(let error):
+                        print("Failed to send chat reply message: \(error)")
+                        break
+                    }
+                    // Call completion handler after network request is finished
+                    completionHandler()
+                }
+        }
     }
 }

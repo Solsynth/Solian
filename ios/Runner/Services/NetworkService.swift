@@ -27,15 +27,18 @@ final class NetworkService {
         UserDefaults.shared.getServerUrl()
     }
 
-    private var authHeaders: [String: String] {
-        var headers = [
+    private var baseHeaders: [String: String] {
+        [
             "Accept": "application/json",
             "Content-Type": "application/json"
         ]
-        if let token = UserDefaults.shared.getAuthToken() {
-            headers["Authorization"] = "Bearer \(token)"
+    }
+
+    private func applyAuthHeaders(to request: inout URLRequest) async {
+        baseHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        if let token = await UserDefaults.shared.getValidFlutterToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        return headers
     }
 
     func getNotificationCount() async throws -> Int {
@@ -85,7 +88,7 @@ final class NetworkService {
 
     private func get<T: Decodable>(url: URL) async throws -> T {
         var request = URLRequest(url: url)
-        authHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        await applyAuthHeaders(to: &request)
 
         let (data, response) = try await session.data(for: request)
         try validateResponse(response)
@@ -95,7 +98,7 @@ final class NetworkService {
     private func post<T: Decodable>(url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        authHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        await applyAuthHeaders(to: &request)
 
         let (data, response) = try await session.data(for: request)
         try validateResponse(response)
@@ -110,7 +113,7 @@ final class NetworkService {
     private func post<T: Decodable, B: Encodable>(url: URL, body: B) async throws -> T {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        authHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        await applyAuthHeaders(to: &request)
 
         request.httpBody = try JSONEncoder().encode(body)
 

@@ -71,19 +71,20 @@ class WebSocketService {
     _statusStreamController.sink.add(WebSocketState.connecting());
 
     final baseUrl = ref.read(serverUrlProvider);
-    final token = await getToken(ref.read(tokenProvider));
+    final token = await getValidAuthToken(ref);
 
     final url = '$baseUrl/ws'.replaceFirst('http', 'ws');
 
     talker.info('[WebSocket] Trying connecting to $url');
     try {
       if (kIsWeb) {
-        _channel = WebSocketChannel.connect(Uri.parse('$url?tk=$token'));
+        final wsUrl = token?.isNotEmpty ?? false ? '$url?tk=$token' : url;
+        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
       } else {
-        _channel = IOWebSocketChannel.connect(
-          Uri.parse(url),
-          headers: {'Authorization': 'Bearer $token'},
-        );
+        final headers = token?.isNotEmpty ?? false
+            ? {'Authorization': 'Bearer ${token!}'}
+            : null;
+        _channel = IOWebSocketChannel.connect(Uri.parse(url), headers: headers);
       }
       await _channel!.ready;
       if (connectionGeneration != _connectionGeneration) {

@@ -119,17 +119,7 @@ final apiClientProvider = Provider<Dio>((ref) {
       onRequest:
           (RequestOptions options, RequestInterceptorHandler handler) async {
             try {
-              final prefs = ref.read(sharedPreferencesProvider);
-              var tokenPair = _readTokenPairFromPrefs(prefs);
-              if (tokenPair != null && _shouldRefreshToken(tokenPair)) {
-                tokenPair = await _refreshTokenPair(
-                  ref: ref,
-                  prefs: prefs,
-                  current: tokenPair,
-                );
-              }
-
-              final token = tokenPair?.token;
+              final token = await getValidAuthToken(ref);
               if (token?.isNotEmpty ?? false) {
                 options.headers['Authorization'] = 'Bearer ${token!}';
               }
@@ -229,6 +219,19 @@ final tokenProvider = Provider<AppToken?>((ref) {
   return AppToken(token: tokenPair.token);
 });
 
+Future<String?> getValidAuthToken(Ref ref) async {
+  final prefs = ref.read(sharedPreferencesProvider);
+  var tokenPair = _readTokenPairFromPrefs(prefs);
+  if (tokenPair != null && _shouldRefreshToken(tokenPair)) {
+    tokenPair = await _refreshTokenPair(
+      ref: ref,
+      prefs: prefs,
+      current: tokenPair,
+    );
+  }
+  return tokenPair?.token;
+}
+
 Future<String?> getToken(AppToken? token) async {
   return token?.token;
 }
@@ -248,18 +251,16 @@ Future<void> setToken(
   final tokenPair = _StoredTokenPair(
     token: token,
     refreshToken: preservedRefreshToken,
-    expiresAt:
-        expiresIn != null
-            ? now.add(Duration(seconds: expiresIn))
-            : (sameAsExisting ? existing?.expiresAt : null) ??
-                _decodeJwtExpiry(token),
-    refreshExpiresAt:
-        refreshExpiresIn != null
-            ? now.add(Duration(seconds: refreshExpiresIn))
-            : (sameAsExisting ? existing?.refreshExpiresAt : null) ??
-                (preservedRefreshToken != null
-                    ? _decodeJwtExpiry(preservedRefreshToken)
-                    : null),
+    expiresAt: expiresIn != null
+        ? now.add(Duration(seconds: expiresIn))
+        : (sameAsExisting ? existing?.expiresAt : null) ??
+              _decodeJwtExpiry(token),
+    refreshExpiresAt: refreshExpiresIn != null
+        ? now.add(Duration(seconds: refreshExpiresIn))
+        : (sameAsExisting ? existing?.refreshExpiresAt : null) ??
+              (preservedRefreshToken != null
+                  ? _decodeJwtExpiry(preservedRefreshToken)
+                  : null),
   );
   await _saveTokenPair(prefs, tokenPair);
 }
@@ -318,7 +319,9 @@ Future<void> _saveTokenPair(
     if (tokenPair.expiresAt != null)
       'expires_at': tokenPair.expiresAt!.toUtc().toIso8601String(),
     if (tokenPair.refreshExpiresAt != null)
-      'refresh_expires_at': tokenPair.refreshExpiresAt!.toUtc().toIso8601String(),
+      'refresh_expires_at': tokenPair.refreshExpiresAt!
+          .toUtc()
+          .toIso8601String(),
   };
   await prefs.setString(kTokenPairStoreKey, jsonEncode(payload));
 }
@@ -376,13 +379,17 @@ Future<_StoredTokenPair?> _refreshTokenPair({
         token: nextToken,
         refreshToken: nextRefreshToken,
         expiresAt:
-            (expiresIn != null ? now.add(Duration(seconds: expiresIn)) : null) ??
+            (expiresIn != null
+                ? now.add(Duration(seconds: expiresIn))
+                : null) ??
             _decodeJwtExpiry(nextToken),
         refreshExpiresAt:
             (refreshExpiresIn != null
                 ? now.add(Duration(seconds: refreshExpiresIn))
                 : null) ??
-            (nextRefreshToken != null ? _decodeJwtExpiry(nextRefreshToken) : null),
+            (nextRefreshToken != null
+                ? _decodeJwtExpiry(nextRefreshToken)
+                : null),
       );
 
       await _saveTokenPair(prefs, refreshed);
@@ -430,8 +437,10 @@ DateTime? _decodeJwtExpiry(String token) {
     if (map is! Map) return null;
     final exp = map['exp'];
     if (exp is int) {
-      return DateTime.fromMillisecondsSinceEpoch(exp * 1000, isUtc: true)
-          .toLocal();
+      return DateTime.fromMillisecondsSinceEpoch(
+        exp * 1000,
+        isUtc: true,
+      ).toLocal();
     }
   } catch (_) {
     return null;

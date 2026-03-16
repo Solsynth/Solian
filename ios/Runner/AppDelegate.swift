@@ -101,16 +101,18 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         print("[iOS] Received message: \(message)")
         if let request = message["request"] as? String, request == "data" {
-            let token = UserDefaults.standard.getFlutterToken()
-            let serverUrl = UserDefaults.standard.getServerUrl()
+            Task {
+                let token = await UserDefaults.standard.getValidFlutterToken()
+                let serverUrl = UserDefaults.standard.getServerUrl()
 
-            var data: [String: Any] = ["serverUrl": serverUrl]
-            if let token = token {
-                data["token"] = token
+                var data: [String: Any] = ["serverUrl": serverUrl]
+                if let token = token {
+                    data["token"] = token
+                }
+
+                print("[iOS] Replying with data: \(data)")
+                replyHandler(data)
             }
-
-            print("[iOS] Replying with data: \(data)")
-            replyHandler(data)
         }
     }
 
@@ -119,19 +121,21 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
             return
         }
 
-        let token = UserDefaults.standard.getFlutterToken()
-        let serverUrl = UserDefaults.standard.getServerUrl()
+        Task {
+            let token = await UserDefaults.standard.getValidFlutterToken()
+            let serverUrl = UserDefaults.standard.getServerUrl()
 
-        var data: [String: Any] = ["serverUrl": serverUrl]
-        if let token = token {
-            data["token"] = token
-        }
+            var data: [String: Any] = ["serverUrl": serverUrl]
+            if let token = token {
+                data["token"] = token
+            }
 
-        do {
-            try session.updateApplicationContext(data)
-            print("[iOS] Sent application context: \(data)")
-        } catch {
-            print("[iOS] Failed to send application context: \(error.localizedDescription)")
+            do {
+                try session.updateApplicationContext(data)
+                print("[iOS] Sent application context: \(data)")
+            } catch {
+                print("[iOS] Failed to send application context: \(error.localizedDescription)")
+            }
         }
     }
 }
