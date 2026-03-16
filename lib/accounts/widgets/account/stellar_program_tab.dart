@@ -38,7 +38,7 @@ final selectedTabProvider = NotifierProvider<SelectedTabNotifier, int>(
 
 class SelectedTabNotifier extends Notifier<int> {
   @override
-  int build() => 0;
+  int build() => 1;
 
   void setTab(int value) {
     state = value;
@@ -336,6 +336,38 @@ class StellarProgramTab extends HookConsumerWidget {
     final iapProducts = ref.watch(iapProductsProvider);
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
+    final showAfdianTab =
+        groupAsync.hasValue &&
+        groupAsync.value!.catalog.items.any(
+          (c) => c.allowedPaymentMethods.contains('afdian'),
+        );
+
+    useEffect(() {
+      if (!tabController.indexIsChanging) {
+        final targetIndex = showAfdianTab
+            ? (selectedTab == 2 ? 0 : 1)
+            : (selectedTab == 1 ? 0 : 1);
+        if (tabController.index != targetIndex) {
+          tabController.animateTo(targetIndex);
+        }
+      }
+      return;
+    }, [showAfdianTab, selectedTab]);
+
+    useEffect(() {
+      void listener() {
+        final newTab = showAfdianTab
+            ? (tabController.index == 0 ? 2 : 0)
+            : (tabController.index == 0 ? 1 : 0);
+        if (ref.read(selectedTabProvider) != newTab) {
+          ref.read(selectedTabProvider.notifier).setTab(newTab);
+        }
+      }
+
+      tabController.addListener(listener);
+      return () => tabController.removeListener(listener);
+    }, [tabController, showAfdianTab]);
+
     if (selectedTab == 1 && iapProducts.isEmpty && groupAsync.hasValue) {
       final group = groupAsync.value!;
       final appleProductIds = group.catalog.items
@@ -546,6 +578,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
           _buildMembershipTiers(
             context,
+            tabController,
             ref,
             membership,
             selectedTab,
@@ -663,6 +696,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
   Widget _buildMembershipTiers(
     BuildContext context,
+    TabController tabController,
     WidgetRef ref,
     SnWalletSubscription? currentMembership,
     int selectedTab,
@@ -697,8 +731,8 @@ class StellarProgramTab extends HookConsumerWidget {
           );
           final supportsAfdian = tier.allowedPaymentMethods.contains('afdian');
           final effectiveMethod = showAfdianTab
-              ? (selectedTab == 0 ? 2 : 0)
-              : (selectedTab == 0 ? 1 : 0);
+              ? (tabController.index == 0 ? 2 : 0)
+              : (tabController.index == 0 ? 1 : 0);
           final isSupported =
               (effectiveMethod == 0 && supportsWallet) ||
               (effectiveMethod == 1 && supportsIap) ||
