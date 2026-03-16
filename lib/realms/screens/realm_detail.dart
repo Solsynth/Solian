@@ -1827,19 +1827,31 @@ class _RealmBoostSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final boostStatus = ref.watch(realmBoostStatusProvider(realmSlug));
     final sharesController = useTextEditingController(text: '1');
-    final shares = int.tryParse(sharesController.text.trim()) ?? 1;
+    final shares = useState<int>(1);
     final selectedCurrency = useState<String?>(null);
+
+    // Listen to text changes and update shares dynamically
+    useEffect(() {
+      void listener() {
+        final parsed = int.tryParse(sharesController.text.trim());
+        shares.value = (parsed != null && parsed > 0) ? parsed : 0;
+      }
+
+      sharesController.addListener(listener);
+      return () => sharesController.removeListener(listener);
+    }, [sharesController]);
 
     final status = boostStatus.asData?.value;
     selectedCurrency.value ??= status?.defaultCurrency ?? 'golds';
     final currency = selectedCurrency.value ?? 'golds';
     final amount = switch (currency) {
-      'points' => shares * 1000,
-      _ => shares,
+      'points' => shares.value * 1000,
+      _ => shares.value,
     };
 
     return SheetScaffold(
       titleText: 'Boost Realm',
+      heightFactor: 0.7,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1868,12 +1880,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                 ],
               ),
             ),
-            const Gap(20),
-            Text(
-              'Boost shares',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Gap(8),
+            const Gap(16),
             TextField(
               controller: sharesController,
               keyboardType: TextInputType.number,
@@ -1889,13 +1896,17 @@ class _RealmBoostSheet extends HookConsumerWidget {
               value: currency,
               decoration: const InputDecoration(
                 labelText: 'Currency',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
               ),
               items: (status?.supportedCurrencies ?? const ['golds', 'points'])
                   .map(
                     (item) => DropdownMenuItem<String>(
                       value: item,
-                      child: Text(item),
+                      child: Text(
+                        'walletCurrencyShort${item.capitalizeEachWord()}',
+                      ).tr(),
                     ),
                   )
                   .toList(),
@@ -1912,7 +1923,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                 color: Theme.of(
                   context,
                 ).colorScheme.primaryContainer.withOpacity(0.28),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
@@ -1921,7 +1932,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$shares share${shares == 1 ? '' : 's'}',
+                          '${shares.value} share${shares.value == 1 ? '' : 's'}',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
