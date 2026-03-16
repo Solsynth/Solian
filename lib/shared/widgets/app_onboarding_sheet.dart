@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:island/auth/create_account_modal.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
@@ -158,87 +159,100 @@ class _OnboardingSheet extends HookWidget {
       _OnboardingPageData(
         icon: Icons.favorite_rounded,
         iconColor: colorScheme.primary,
-        title: 'Welcome to Solar Network',
-        description:
-            'A peaceful space to express yourself freely and connect with others. Join a vibrant community built on respect and creativity.',
-        features: const [
-          _FeatureItem(icon: Icons.people_outline, label: 'Friendly community'),
+        title: 'onboardingWelcomeTitle'.tr(),
+        description: 'onboardingWelcomeDesc'.tr(),
+        features: [
+          _FeatureItem(
+            icon: Icons.people_outline,
+            label: 'onboardingFeatureFriendlyCommunity'.tr(),
+          ),
           _FeatureItem(
             icon: Icons.privacy_tip_outlined,
-            label: 'Your privacy matters',
+            label: 'onboardingFeaturePrivacy'.tr(),
           ),
           _FeatureItem(
             icon: Icons.rocket_launch_outlined,
-            label: 'No pressure',
+            label: 'onboardingFeatureNoPressure'.tr(),
           ),
         ],
       ),
       _OnboardingPageData(
         icon: Icons.edit_note_rounded,
         iconColor: Colors.orange,
-        title: 'Express Yourself',
-        description:
-            'Share your thoughts with Posts, write long-form Articles, or capture moments with Moments — choose the format that fits your story.',
-        features: const [
-          _FeatureItem(icon: Icons.article_outlined, label: 'Posts & Articles'),
+        title: 'onboardingExpressTitle'.tr(),
+        description: 'onboardingExpressDesc'.tr(),
+        features: [
+          _FeatureItem(
+            icon: Icons.article_outlined,
+            label: 'onboardingFeaturePostsArticles'.tr(),
+          ),
           _FeatureItem(
             icon: Icons.auto_awesome_outlined,
-            label: 'Rich formatting',
+            label: 'onboardingFeatureRichFormatting'.tr(),
           ),
-          _FeatureItem(icon: Icons.image_outlined, label: 'Media support'),
+          _FeatureItem(
+            icon: Icons.image_outlined,
+            label: 'onboardingFeatureMediaSupport'.tr(),
+          ),
         ],
       ),
       _OnboardingPageData(
         icon: Icons.groups_rounded,
         iconColor: Colors.teal,
-        title: 'Join Realms',
-        description:
-            'Discover communities organized by shared interests. From hobby groups to creative collectives, find your people.',
-        features: const [
+        title: 'onboardingRealmsTitle'.tr(),
+        description: 'onboardingRealmsDesc'.tr(),
+        features: [
           _FeatureItem(
             icon: Icons.explore_outlined,
-            label: 'Discover communities',
+            label: 'onboardingFeatureDiscover'.tr(),
           ),
-          _FeatureItem(icon: Icons.topic_outlined, label: 'Topic-based'),
+          _FeatureItem(
+            icon: Icons.topic_outlined,
+            label: 'onboardingFeatureTopicBased'.tr(),
+          ),
           _FeatureItem(
             icon: Icons.celebration_outlined,
-            label: 'Events & more',
+            label: 'onboardingFeatureEvents'.tr(),
           ),
         ],
       ),
       _OnboardingPageData(
         icon: Icons.chat_rounded,
         iconColor: Colors.indigo,
-        title: 'Chat Instantly',
-        description:
-            'Connect through real-time messaging with friends and group chats. Stay in touch across all your devices.',
-        features: const [
+        title: 'onboardingChatTitle'.tr(),
+        description: 'onboardingChatDesc'.tr(),
+        features: [
           _FeatureItem(
             icon: Icons.security_outlined,
-            label: 'End-to-end encryption supported',
+            label: 'onboardingFeatureE2E'.tr(),
           ),
-          _FeatureItem(icon: Icons.group_outlined, label: 'Group chats'),
-          _FeatureItem(icon: Icons.devices_outlined, label: 'Cross-device'),
+          _FeatureItem(
+            icon: Icons.group_outlined,
+            label: 'onboardingFeatureGroupChats'.tr(),
+          ),
+          _FeatureItem(
+            icon: Icons.devices_outlined,
+            label: 'onboardingFeatureCrossDevice'.tr(),
+          ),
         ],
       ),
       _OnboardingPageData(
         icon: Icons.star_rounded,
         iconColor: Colors.amber,
-        title: 'Stellar Program',
-        description:
-            'Unlock exclusive benefits with our membership program. Earn rewards, access premium features, and support the community.',
-        features: const [
+        title: 'onboardingStellarTitle'.tr(),
+        description: 'onboardingStellarDesc'.tr(),
+        features: [
           _FeatureItem(
             icon: Icons.workspace_premium_outlined,
-            label: 'Premium features',
+            label: 'onboardingFeaturePremium'.tr(),
           ),
           _FeatureItem(
             icon: Icons.card_giftcard_outlined,
-            label: 'Exclusive rewards',
+            label: 'onboardingFeatureRewards'.tr(),
           ),
           _FeatureItem(
             icon: Icons.volunteer_activism_outlined,
-            label: 'Support the community',
+            label: 'onboardingFeatureSupport'.tr(),
           ),
         ],
       ),
@@ -249,24 +263,24 @@ class _OnboardingSheet extends HookWidget {
         _OnboardingPageData(
           icon: Icons.rocket_launch_rounded,
           iconColor: colorScheme.primary,
-          title: "What's New in $version",
+          title: 'onboardingWhatsNewTitle'.tr(args: [version]),
           description: changelog.value?.isNotEmpty == true
-              ? 'Check out the latest features and improvements:'
-              : 'Check out the latest features and improvements we\'ve brought to Solar Network.',
+              ? 'onboardingWhatsNewDesc'.tr()
+              : 'onboardingWhatsNewDesc'.tr(),
           features: changelog.value?.isNotEmpty == true
               ? null
-              : const [
+              : [
                   _FeatureItem(
                     icon: Icons.upgrade_outlined,
-                    label: 'Performance boost',
+                    label: 'onboardingPerformance'.tr(),
                   ),
                   _FeatureItem(
                     icon: Icons.tune_outlined,
-                    label: 'Better experience',
+                    label: 'onboardingBetterExperience'.tr(),
                   ),
                   _FeatureItem(
                     icon: Icons.bug_report_outlined,
-                    label: 'Bug fixes',
+                    label: 'onboardingBugFixes'.tr(),
                   ),
                 ],
           changelog: changelog.value,
@@ -274,27 +288,24 @@ class _OnboardingSheet extends HookWidget {
         _OnboardingPageData(
           icon: Icons.speed_rounded,
           iconColor: Colors.green,
-          title: 'Realm Boosts',
-          description:
-              'Supercharge your realm with boosts! Increase member limits, enable custom emojis, and unlock premium features for your community.',
+          title: 'onboardingRealmBoostsTitle'.tr(),
+          description: 'onboardingRealmBoostsDesc'.tr(),
           isPerksPage: true,
           perksType: _PerksType.boosts,
         ),
         _OnboardingPageData(
           icon: Icons.badge_rounded,
           iconColor: Colors.purple,
-          title: 'Labels & Identity',
-          description:
-              'Stand out with custom labels and identity features. Available for Nova and Supernova members.',
+          title: 'onboardingLabelIdentityTitle'.tr(),
+          description: 'onboardingLabelIdentityDesc'.tr(),
           isPerksPage: true,
           perksType: _PerksType.identity,
         ),
         _OnboardingPageData(
           icon: Icons.star_rounded,
           iconColor: Colors.amber,
-          title: 'Stellar Program',
-          description:
-              'Check out our membership tiers and exclusive benefits. Upgrade to unlock more features!',
+          title: 'onboardingStellarTitle'.tr(),
+          description: 'onboardingStellarDesc'.tr(),
           isPerksPage: true,
           perksType: _PerksType.tiers,
         ),
@@ -555,7 +566,8 @@ class _OnboardingPageState extends State<_OnboardingPage>
                   ],
                   if (widget.data.isPerksPage) ...[
                     const SizedBox(height: 16),
-                    Expanded(
+                    SizedBox(
+                      height: 180,
                       child: SingleChildScrollView(
                         child: _buildPerksContent(widget.data.perksType),
                       ),
@@ -564,7 +576,7 @@ class _OnboardingPageState extends State<_OnboardingPage>
                     OutlinedButton.icon(
                       onPressed: () => showStellarProgramSheet(context),
                       icon: const Icon(Icons.open_in_new, size: 18),
-                      label: const Text('View Full Details'),
+                      label: Text('onboardingViewFullDetails'.tr()),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 40),
                       ),
@@ -680,10 +692,23 @@ class _RealmBoostsTable extends StatelessWidget {
               ],
             ),
           ),
-          _buildBoostRow(context, 'Custom label', '✓', '✓', '✓'),
-          _buildBoostRow(context, 'Extra quota', '—', '✓', '✓'),
-          _buildBoostRow(context, 'Boosted visibility', '—', '✓', '✓'),
-          _buildBoostRow(context, 'Max quota', '—', '—', '✓', isLast: true),
+          _buildBoostRow(context, 'onboardingCustomLabel'.tr(), '✓', '✓', '✓'),
+          _buildBoostRow(context, 'onboardingExtraQuota'.tr(), '✓', '✓', '✓'),
+          _buildBoostRow(
+            context,
+            'onboardingBoostedVisibility'.tr(),
+            '✓',
+            '✓',
+            '✓',
+          ),
+          _buildBoostRow(
+            context,
+            'onboardingMaxQuota'.tr(),
+            '✓',
+            '✓',
+            '✓',
+            isLast: true,
+          ),
         ],
       ),
     );
@@ -849,21 +874,44 @@ class _LabelsIdentityTable extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              stellar,
-              textAlign: TextAlign.center,
+              'onboardingLevel'.tr(),
               style: TextStyle(
-                fontSize: 11,
-                color: Colors.blue.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ),
           Expanded(
             child: Text(
-              nova,
+              'onboardingLv1'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 11,
-                color: Colors.purple.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              'onboardingLv2'.tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              'onboardingLv3'.tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: colorScheme.primary,
               ),
             ),
           ),
@@ -1172,8 +1220,10 @@ class _ActionButtons extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: Text(
                 isLastPage
-                    ? (isFirstLaunch ? 'Get Started' : 'Got it')
-                    : 'Continue',
+                    ? (isFirstLaunch
+                          ? 'onboardingGetStarted'.tr()
+                          : 'onboardingGotIt'.tr())
+                    : 'onboardingContinue'.tr(),
                 key: ValueKey(isLastPage),
                 style: const TextStyle(
                   fontSize: 16,
@@ -1185,10 +1235,13 @@ class _ActionButtons extends StatelessWidget {
         ),
         if (suggestAuth && isLastPage) ...[
           const SizedBox(height: 12),
-          _SecondaryButton(text: 'Create Account', onPressed: onCreateAccount),
+          _SecondaryButton(
+            text: 'onboardingCreateAccount'.tr(),
+            onPressed: onCreateAccount,
+          ),
           const SizedBox(height: 8),
           _SecondaryButton(
-            text: 'Log In',
+            text: 'onboardingLogIn'.tr(),
             onPressed: onLogin,
             isOutlined: true,
           ),
@@ -1198,7 +1251,7 @@ class _ActionButtons extends StatelessWidget {
           TextButton(
             onPressed: onSkip,
             child: Text(
-              'Skip for now',
+              'onboardingSkipForNow'.tr(),
               style: TextStyle(
                 color: Theme.of(
                   context,
