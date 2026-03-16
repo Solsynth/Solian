@@ -766,7 +766,7 @@ $SnRealmLabelCopyWith<$Res>? get label {
 /// @nodoc
 mixin _$SnRealmLabel {
 
- String get id; String get realmId; String get name; String get description; String get color; dynamic get icon; String get createdByAccountId; DateTime get createdAt; DateTime get updatedAt; dynamic get deletedAt;
+ String get id; String get realmId; String get name; String get description; String? get color; String? get icon; String get createdByAccountId; DateTime get createdAt; DateTime get updatedAt; dynamic get deletedAt;
 /// Create a copy of SnRealmLabel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -779,12 +779,12 @@ $SnRealmLabelCopyWith<SnRealmLabel> get copyWith => _$SnRealmLabelCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.icon, icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,const DeepCollectionEquality().hash(icon),createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,icon,createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
 
 @override
 String toString() {
@@ -799,7 +799,7 @@ abstract mixin class $SnRealmLabelCopyWith<$Res>  {
   factory $SnRealmLabelCopyWith(SnRealmLabel value, $Res Function(SnRealmLabel) _then) = _$SnRealmLabelCopyWithImpl;
 @useResult
 $Res call({
- String id, String realmId, String name, String description, String color, dynamic icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+ String id, String realmId, String name, String description, String? color, String? icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
 });
 
 
@@ -816,15 +816,15 @@ class _$SnRealmLabelCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmLabel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = null,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = freezed,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as dynamic,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
+as String,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as String?,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -910,7 +910,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String? color,  String? icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRealmLabel() when $default != null:
 return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -931,7 +931,7 @@ return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String realmId,  String name,  String description,  String? color,  String? icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmLabel():
 return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -948,7 +948,7 @@ return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String realmId,  String name,  String description,  String color,  dynamic icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String realmId,  String name,  String description,  String? color,  String? icon,  String createdByAccountId,  DateTime createdAt,  DateTime updatedAt,  dynamic deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmLabel() when $default != null:
 return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,_that.icon,_that.createdByAccountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -963,15 +963,15 @@ return $default(_that.id,_that.realmId,_that.name,_that.description,_that.color,
 @JsonSerializable()
 
 class _SnRealmLabel implements SnRealmLabel {
-  const _SnRealmLabel({required this.id, required this.realmId, required this.name, required this.description, required this.color, required this.icon, required this.createdByAccountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnRealmLabel({required this.id, required this.realmId, this.name = "", this.description = "", required this.color, required this.icon, required this.createdByAccountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnRealmLabel.fromJson(Map<String, dynamic> json) => _$SnRealmLabelFromJson(json);
 
 @override final  String id;
 @override final  String realmId;
-@override final  String name;
-@override final  String description;
-@override final  String color;
-@override final  dynamic icon;
+@override@JsonKey() final  String name;
+@override@JsonKey() final  String description;
+@override final  String? color;
+@override final  String? icon;
 @override final  String createdByAccountId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -990,12 +990,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.icon, icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmLabel&&(identical(other.id, id) || other.id == id)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.createdByAccountId, createdByAccountId) || other.createdByAccountId == createdByAccountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,const DeepCollectionEquality().hash(icon),createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+int get hashCode => Object.hash(runtimeType,id,realmId,name,description,color,icon,createdByAccountId,createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
 
 @override
 String toString() {
@@ -1010,7 +1010,7 @@ abstract mixin class _$SnRealmLabelCopyWith<$Res> implements $SnRealmLabelCopyWi
   factory _$SnRealmLabelCopyWith(_SnRealmLabel value, $Res Function(_SnRealmLabel) _then) = __$SnRealmLabelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String realmId, String name, String description, String color, dynamic icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+ String id, String realmId, String name, String description, String? color, String? icon, String createdByAccountId, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
 });
 
 
@@ -1027,15 +1027,15 @@ class __$SnRealmLabelCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmLabel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = null,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = freezed,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnRealmLabel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as dynamic,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
+as String,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as String?,createdByAccountId: null == createdByAccountId ? _self.createdByAccountId : createdByAccountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

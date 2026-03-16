@@ -621,7 +621,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if ((identity.label?.icon ?? '').isNotEmpty)
-                          Text(identity.label!.icon),
+                          Text(identity.label!.icon!),
                         RealmLabelWidget(label: identity.label!, fontSize: 11),
                         if ((identity.label?.description ?? '').isNotEmpty)
                           Expanded(
