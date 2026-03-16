@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RealmBoostStatus {
 
- int get boostPoints; int get boostLevel; int get labelCap; int get expiresAfterDays;
+ int get boostPoints; int get boostLevel; int get labelCap; int get expiresAfterDays; List<String> get supportedCurrencies; String get defaultCurrency;
 /// Create a copy of RealmBoostStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $RealmBoostStatusCopyWith<RealmBoostStatus> get copyWith => _$RealmBoostStatusCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RealmBoostStatus&&(identical(other.boostPoints, boostPoints) || other.boostPoints == boostPoints)&&(identical(other.boostLevel, boostLevel) || other.boostLevel == boostLevel)&&(identical(other.labelCap, labelCap) || other.labelCap == labelCap)&&(identical(other.expiresAfterDays, expiresAfterDays) || other.expiresAfterDays == expiresAfterDays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RealmBoostStatus&&(identical(other.boostPoints, boostPoints) || other.boostPoints == boostPoints)&&(identical(other.boostLevel, boostLevel) || other.boostLevel == boostLevel)&&(identical(other.labelCap, labelCap) || other.labelCap == labelCap)&&(identical(other.expiresAfterDays, expiresAfterDays) || other.expiresAfterDays == expiresAfterDays)&&const DeepCollectionEquality().equals(other.supportedCurrencies, supportedCurrencies)&&(identical(other.defaultCurrency, defaultCurrency) || other.defaultCurrency == defaultCurrency));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,boostPoints,boostLevel,labelCap,expiresAfterDays);
+int get hashCode => Object.hash(runtimeType,boostPoints,boostLevel,labelCap,expiresAfterDays,const DeepCollectionEquality().hash(supportedCurrencies),defaultCurrency);
 
 @override
 String toString() {
-  return 'RealmBoostStatus(boostPoints: $boostPoints, boostLevel: $boostLevel, labelCap: $labelCap, expiresAfterDays: $expiresAfterDays)';
+  return 'RealmBoostStatus(boostPoints: $boostPoints, boostLevel: $boostLevel, labelCap: $labelCap, expiresAfterDays: $expiresAfterDays, supportedCurrencies: $supportedCurrencies, defaultCurrency: $defaultCurrency)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $RealmBoostStatusCopyWith<$Res>  {
   factory $RealmBoostStatusCopyWith(RealmBoostStatus value, $Res Function(RealmBoostStatus) _then) = _$RealmBoostStatusCopyWithImpl;
 @useResult
 $Res call({
- int boostPoints, int boostLevel, int labelCap, int expiresAfterDays
+ int boostPoints, int boostLevel, int labelCap, int expiresAfterDays, List<String> supportedCurrencies, String defaultCurrency
 });
 
 
@@ -65,13 +65,15 @@ class _$RealmBoostStatusCopyWithImpl<$Res>
 
 /// Create a copy of RealmBoostStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? boostPoints = null,Object? boostLevel = null,Object? labelCap = null,Object? expiresAfterDays = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? boostPoints = null,Object? boostLevel = null,Object? labelCap = null,Object? expiresAfterDays = null,Object? supportedCurrencies = null,Object? defaultCurrency = null,}) {
   return _then(_self.copyWith(
 boostPoints: null == boostPoints ? _self.boostPoints : boostPoints // ignore: cast_nullable_to_non_nullable
 as int,boostLevel: null == boostLevel ? _self.boostLevel : boostLevel // ignore: cast_nullable_to_non_nullable
 as int,labelCap: null == labelCap ? _self.labelCap : labelCap // ignore: cast_nullable_to_non_nullable
 as int,expiresAfterDays: null == expiresAfterDays ? _self.expiresAfterDays : expiresAfterDays // ignore: cast_nullable_to_non_nullable
-as int,
+as int,supportedCurrencies: null == supportedCurrencies ? _self.supportedCurrencies : supportedCurrencies // ignore: cast_nullable_to_non_nullable
+as List<String>,defaultCurrency: null == defaultCurrency ? _self.defaultCurrency : defaultCurrency // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -153,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays,  List<String> supportedCurrencies,  String defaultCurrency)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RealmBoostStatus() when $default != null:
-return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays);case _:
+return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays,_that.supportedCurrencies,_that.defaultCurrency);case _:
   return orElse();
 
 }
@@ -174,10 +176,10 @@ return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays,  List<String> supportedCurrencies,  String defaultCurrency)  $default,) {final _that = this;
 switch (_that) {
 case _RealmBoostStatus():
-return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays);}
+return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays,_that.supportedCurrencies,_that.defaultCurrency);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +193,10 @@ return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int boostPoints,  int boostLevel,  int labelCap,  int expiresAfterDays,  List<String> supportedCurrencies,  String defaultCurrency)?  $default,) {final _that = this;
 switch (_that) {
 case _RealmBoostStatus() when $default != null:
-return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays);case _:
+return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresAfterDays,_that.supportedCurrencies,_that.defaultCurrency);case _:
   return null;
 
 }
@@ -206,13 +208,21 @@ return $default(_that.boostPoints,_that.boostLevel,_that.labelCap,_that.expiresA
 @JsonSerializable()
 
 class _RealmBoostStatus implements RealmBoostStatus {
-  const _RealmBoostStatus({required this.boostPoints, required this.boostLevel, required this.labelCap, required this.expiresAfterDays});
+  const _RealmBoostStatus({required this.boostPoints, required this.boostLevel, required this.labelCap, required this.expiresAfterDays, required final  List<String> supportedCurrencies, required this.defaultCurrency}): _supportedCurrencies = supportedCurrencies;
   factory _RealmBoostStatus.fromJson(Map<String, dynamic> json) => _$RealmBoostStatusFromJson(json);
 
 @override final  int boostPoints;
 @override final  int boostLevel;
 @override final  int labelCap;
 @override final  int expiresAfterDays;
+ final  List<String> _supportedCurrencies;
+@override List<String> get supportedCurrencies {
+  if (_supportedCurrencies is EqualUnmodifiableListView) return _supportedCurrencies;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_supportedCurrencies);
+}
+
+@override final  String defaultCurrency;
 
 /// Create a copy of RealmBoostStatus
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RealmBoostStatus&&(identical(other.boostPoints, boostPoints) || other.boostPoints == boostPoints)&&(identical(other.boostLevel, boostLevel) || other.boostLevel == boostLevel)&&(identical(other.labelCap, labelCap) || other.labelCap == labelCap)&&(identical(other.expiresAfterDays, expiresAfterDays) || other.expiresAfterDays == expiresAfterDays));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RealmBoostStatus&&(identical(other.boostPoints, boostPoints) || other.boostPoints == boostPoints)&&(identical(other.boostLevel, boostLevel) || other.boostLevel == boostLevel)&&(identical(other.labelCap, labelCap) || other.labelCap == labelCap)&&(identical(other.expiresAfterDays, expiresAfterDays) || other.expiresAfterDays == expiresAfterDays)&&const DeepCollectionEquality().equals(other._supportedCurrencies, _supportedCurrencies)&&(identical(other.defaultCurrency, defaultCurrency) || other.defaultCurrency == defaultCurrency));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,boostPoints,boostLevel,labelCap,expiresAfterDays);
+int get hashCode => Object.hash(runtimeType,boostPoints,boostLevel,labelCap,expiresAfterDays,const DeepCollectionEquality().hash(_supportedCurrencies),defaultCurrency);
 
 @override
 String toString() {
-  return 'RealmBoostStatus(boostPoints: $boostPoints, boostLevel: $boostLevel, labelCap: $labelCap, expiresAfterDays: $expiresAfterDays)';
+  return 'RealmBoostStatus(boostPoints: $boostPoints, boostLevel: $boostLevel, labelCap: $labelCap, expiresAfterDays: $expiresAfterDays, supportedCurrencies: $supportedCurrencies, defaultCurrency: $defaultCurrency)';
 }
 
 
@@ -247,7 +257,7 @@ abstract mixin class _$RealmBoostStatusCopyWith<$Res> implements $RealmBoostStat
   factory _$RealmBoostStatusCopyWith(_RealmBoostStatus value, $Res Function(_RealmBoostStatus) _then) = __$RealmBoostStatusCopyWithImpl;
 @override @useResult
 $Res call({
- int boostPoints, int boostLevel, int labelCap, int expiresAfterDays
+ int boostPoints, int boostLevel, int labelCap, int expiresAfterDays, List<String> supportedCurrencies, String defaultCurrency
 });
 
 
@@ -264,13 +274,15 @@ class __$RealmBoostStatusCopyWithImpl<$Res>
 
 /// Create a copy of RealmBoostStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? boostPoints = null,Object? boostLevel = null,Object? labelCap = null,Object? expiresAfterDays = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? boostPoints = null,Object? boostLevel = null,Object? labelCap = null,Object? expiresAfterDays = null,Object? supportedCurrencies = null,Object? defaultCurrency = null,}) {
   return _then(_RealmBoostStatus(
 boostPoints: null == boostPoints ? _self.boostPoints : boostPoints // ignore: cast_nullable_to_non_nullable
 as int,boostLevel: null == boostLevel ? _self.boostLevel : boostLevel // ignore: cast_nullable_to_non_nullable
 as int,labelCap: null == labelCap ? _self.labelCap : labelCap // ignore: cast_nullable_to_non_nullable
 as int,expiresAfterDays: null == expiresAfterDays ? _self.expiresAfterDays : expiresAfterDays // ignore: cast_nullable_to_non_nullable
-as int,
+as int,supportedCurrencies: null == supportedCurrencies ? _self._supportedCurrencies : supportedCurrencies // ignore: cast_nullable_to_non_nullable
+as List<String>,defaultCurrency: null == defaultCurrency ? _self.defaultCurrency : defaultCurrency // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -281,7 +293,7 @@ as int,
 /// @nodoc
 mixin _$RealmBoostLeaderboardEntry {
 
- String get accountId; SnAccount? get account; double get amountGolds; double get shares; int get boosts; DateTime? get lastBoostedAt;
+ String get accountId; SnAccount? get account; double get amountGolds; double get amountPoints; double get shares; int get boosts; DateTime? get lastBoostedAt;
 /// Create a copy of RealmBoostLeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -294,16 +306,16 @@ $RealmBoostLeaderboardEntryCopyWith<RealmBoostLeaderboardEntry> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RealmBoostLeaderboardEntry&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.amountGolds, amountGolds) || other.amountGolds == amountGolds)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.boosts, boosts) || other.boosts == boosts)&&(identical(other.lastBoostedAt, lastBoostedAt) || other.lastBoostedAt == lastBoostedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RealmBoostLeaderboardEntry&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.amountGolds, amountGolds) || other.amountGolds == amountGolds)&&(identical(other.amountPoints, amountPoints) || other.amountPoints == amountPoints)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.boosts, boosts) || other.boosts == boosts)&&(identical(other.lastBoostedAt, lastBoostedAt) || other.lastBoostedAt == lastBoostedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountId,account,amountGolds,shares,boosts,lastBoostedAt);
+int get hashCode => Object.hash(runtimeType,accountId,account,amountGolds,amountPoints,shares,boosts,lastBoostedAt);
 
 @override
 String toString() {
-  return 'RealmBoostLeaderboardEntry(accountId: $accountId, account: $account, amountGolds: $amountGolds, shares: $shares, boosts: $boosts, lastBoostedAt: $lastBoostedAt)';
+  return 'RealmBoostLeaderboardEntry(accountId: $accountId, account: $account, amountGolds: $amountGolds, amountPoints: $amountPoints, shares: $shares, boosts: $boosts, lastBoostedAt: $lastBoostedAt)';
 }
 
 
@@ -314,7 +326,7 @@ abstract mixin class $RealmBoostLeaderboardEntryCopyWith<$Res>  {
   factory $RealmBoostLeaderboardEntryCopyWith(RealmBoostLeaderboardEntry value, $Res Function(RealmBoostLeaderboardEntry) _then) = _$RealmBoostLeaderboardEntryCopyWithImpl;
 @useResult
 $Res call({
- String accountId, SnAccount? account, double amountGolds, double shares, int boosts, DateTime? lastBoostedAt
+ String accountId, SnAccount? account, double amountGolds, double amountPoints, double shares, int boosts, DateTime? lastBoostedAt
 });
 
 
@@ -331,11 +343,12 @@ class _$RealmBoostLeaderboardEntryCopyWithImpl<$Res>
 
 /// Create a copy of RealmBoostLeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? account = freezed,Object? amountGolds = null,Object? shares = null,Object? boosts = null,Object? lastBoostedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? account = freezed,Object? amountGolds = null,Object? amountPoints = null,Object? shares = null,Object? boosts = null,Object? lastBoostedAt = freezed,}) {
   return _then(_self.copyWith(
 accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,amountGolds: null == amountGolds ? _self.amountGolds : amountGolds // ignore: cast_nullable_to_non_nullable
+as double,amountPoints: null == amountPoints ? _self.amountPoints : amountPoints // ignore: cast_nullable_to_non_nullable
 as double,shares: null == shares ? _self.shares : shares // ignore: cast_nullable_to_non_nullable
 as double,boosts: null == boosts ? _self.boosts : boosts // ignore: cast_nullable_to_non_nullable
 as int,lastBoostedAt: freezed == lastBoostedAt ? _self.lastBoostedAt : lastBoostedAt // ignore: cast_nullable_to_non_nullable
@@ -433,10 +446,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountId,  SnAccount? account,  double amountGolds,  double shares,  int boosts,  DateTime? lastBoostedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountId,  SnAccount? account,  double amountGolds,  double amountPoints,  double shares,  int boosts,  DateTime? lastBoostedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RealmBoostLeaderboardEntry() when $default != null:
-return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_that.boosts,_that.lastBoostedAt);case _:
+return $default(_that.accountId,_that.account,_that.amountGolds,_that.amountPoints,_that.shares,_that.boosts,_that.lastBoostedAt);case _:
   return orElse();
 
 }
@@ -454,10 +467,10 @@ return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountId,  SnAccount? account,  double amountGolds,  double shares,  int boosts,  DateTime? lastBoostedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountId,  SnAccount? account,  double amountGolds,  double amountPoints,  double shares,  int boosts,  DateTime? lastBoostedAt)  $default,) {final _that = this;
 switch (_that) {
 case _RealmBoostLeaderboardEntry():
-return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_that.boosts,_that.lastBoostedAt);}
+return $default(_that.accountId,_that.account,_that.amountGolds,_that.amountPoints,_that.shares,_that.boosts,_that.lastBoostedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -471,10 +484,10 @@ return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountId,  SnAccount? account,  double amountGolds,  double shares,  int boosts,  DateTime? lastBoostedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountId,  SnAccount? account,  double amountGolds,  double amountPoints,  double shares,  int boosts,  DateTime? lastBoostedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _RealmBoostLeaderboardEntry() when $default != null:
-return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_that.boosts,_that.lastBoostedAt);case _:
+return $default(_that.accountId,_that.account,_that.amountGolds,_that.amountPoints,_that.shares,_that.boosts,_that.lastBoostedAt);case _:
   return null;
 
 }
@@ -486,12 +499,13 @@ return $default(_that.accountId,_that.account,_that.amountGolds,_that.shares,_th
 @JsonSerializable()
 
 class _RealmBoostLeaderboardEntry implements RealmBoostLeaderboardEntry {
-  const _RealmBoostLeaderboardEntry({required this.accountId, required this.account, required this.amountGolds, required this.shares, required this.boosts, required this.lastBoostedAt});
+  const _RealmBoostLeaderboardEntry({required this.accountId, required this.account, required this.amountGolds, required this.amountPoints, required this.shares, required this.boosts, required this.lastBoostedAt});
   factory _RealmBoostLeaderboardEntry.fromJson(Map<String, dynamic> json) => _$RealmBoostLeaderboardEntryFromJson(json);
 
 @override final  String accountId;
 @override final  SnAccount? account;
 @override final  double amountGolds;
+@override final  double amountPoints;
 @override final  double shares;
 @override final  int boosts;
 @override final  DateTime? lastBoostedAt;
@@ -509,16 +523,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RealmBoostLeaderboardEntry&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.amountGolds, amountGolds) || other.amountGolds == amountGolds)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.boosts, boosts) || other.boosts == boosts)&&(identical(other.lastBoostedAt, lastBoostedAt) || other.lastBoostedAt == lastBoostedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RealmBoostLeaderboardEntry&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.amountGolds, amountGolds) || other.amountGolds == amountGolds)&&(identical(other.amountPoints, amountPoints) || other.amountPoints == amountPoints)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.boosts, boosts) || other.boosts == boosts)&&(identical(other.lastBoostedAt, lastBoostedAt) || other.lastBoostedAt == lastBoostedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountId,account,amountGolds,shares,boosts,lastBoostedAt);
+int get hashCode => Object.hash(runtimeType,accountId,account,amountGolds,amountPoints,shares,boosts,lastBoostedAt);
 
 @override
 String toString() {
-  return 'RealmBoostLeaderboardEntry(accountId: $accountId, account: $account, amountGolds: $amountGolds, shares: $shares, boosts: $boosts, lastBoostedAt: $lastBoostedAt)';
+  return 'RealmBoostLeaderboardEntry(accountId: $accountId, account: $account, amountGolds: $amountGolds, amountPoints: $amountPoints, shares: $shares, boosts: $boosts, lastBoostedAt: $lastBoostedAt)';
 }
 
 
@@ -529,7 +543,7 @@ abstract mixin class _$RealmBoostLeaderboardEntryCopyWith<$Res> implements $Real
   factory _$RealmBoostLeaderboardEntryCopyWith(_RealmBoostLeaderboardEntry value, $Res Function(_RealmBoostLeaderboardEntry) _then) = __$RealmBoostLeaderboardEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String accountId, SnAccount? account, double amountGolds, double shares, int boosts, DateTime? lastBoostedAt
+ String accountId, SnAccount? account, double amountGolds, double amountPoints, double shares, int boosts, DateTime? lastBoostedAt
 });
 
 
@@ -546,11 +560,12 @@ class __$RealmBoostLeaderboardEntryCopyWithImpl<$Res>
 
 /// Create a copy of RealmBoostLeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? accountId = null,Object? account = freezed,Object? amountGolds = null,Object? shares = null,Object? boosts = null,Object? lastBoostedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? accountId = null,Object? account = freezed,Object? amountGolds = null,Object? amountPoints = null,Object? shares = null,Object? boosts = null,Object? lastBoostedAt = freezed,}) {
   return _then(_RealmBoostLeaderboardEntry(
 accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,amountGolds: null == amountGolds ? _self.amountGolds : amountGolds // ignore: cast_nullable_to_non_nullable
+as double,amountPoints: null == amountPoints ? _self.amountPoints : amountPoints // ignore: cast_nullable_to_non_nullable
 as double,shares: null == shares ? _self.shares : shares // ignore: cast_nullable_to_non_nullable
 as double,boosts: null == boosts ? _self.boosts : boosts // ignore: cast_nullable_to_non_nullable
 as int,lastBoostedAt: freezed == lastBoostedAt ? _self.lastBoostedAt : lastBoostedAt // ignore: cast_nullable_to_non_nullable

@@ -330,6 +330,8 @@ class RealmDetailScreen extends HookConsumerWidget {
       boostLevel: overviewOrNull?.boostLevel ?? 0,
       labelCap: 0,
       expiresAfterDays: 30,
+      supportedCurrencies: const ['golds', 'points'],
+      defaultCurrency: 'golds',
     );
 
     Widget realmDescriptionWidget(SnRealm realm) => Card(
@@ -491,7 +493,7 @@ class RealmDetailScreen extends HookConsumerWidget {
             ),
             const Gap(6),
             Text(
-              'Boosts are active for ${boost.expiresAfterDays} days. Each share costs 10 golds and only active boosts count toward unlocks.',
+              'Boosts are active for ${boost.expiresAfterDays} days. Supported currencies: ${boost.supportedCurrencies.join(', ')}. One share is 1 gold or 1000 points.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -1823,9 +1825,18 @@ class _RealmBoostSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final boostStatus = ref.watch(realmBoostStatusProvider(realmSlug));
     final sharesController = useTextEditingController(text: '1');
     final shares = int.tryParse(sharesController.text.trim()) ?? 1;
-    final amountGolds = shares * 10;
+    final selectedCurrency = useState<String?>(null);
+
+    final status = boostStatus.asData?.value;
+    selectedCurrency.value ??= status?.defaultCurrency ?? 'golds';
+    final currency = selectedCurrency.value ?? 'golds';
+    final amount = switch (currency) {
+      'points' => shares * 1000,
+      _ => shares,
+    };
 
     return SheetScaffold(
       titleText: 'Boost Realm',
@@ -1851,7 +1862,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   ),
                   const Gap(8),
                   Text(
-                    'Boost shares are paid with golds. One share equals 10 golds and stays active for 30 days.',
+                    'Choose a wallet currency before creating the boost order. Shares stay active for 30 days after payment is applied.',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -1872,6 +1883,27 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
+            ),
+            const Gap(12),
+            DropdownButtonFormField<String>(
+              value: currency,
+              decoration: const InputDecoration(
+                labelText: 'Currency',
+                border: OutlineInputBorder(),
+              ),
+              items: (status?.supportedCurrencies ?? const ['golds', 'points'])
+                  .map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  selectedCurrency.value = value;
+                }
+              },
             ),
             const Gap(16),
             Container(
@@ -1894,7 +1926,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
-                          '$amountGolds golds',
+                          '$amount $currency',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -1919,7 +1951,11 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   final client = ref.read(apiClientProvider);
                   final response = await client.post(
                     '/passport/realms/$realmSlug/boosts',
-                    data: {'shares': value},
+                    data: {
+                      'shares': value,
+                      if (selectedCurrency.value != null)
+                        'currency': selectedCurrency.value,
+                    },
                   );
 
                   final orderId = response.data['order_id'] as String;
@@ -2075,6 +2111,11 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                               '${entry.boosts} boost order${entry.boosts == 1 ? '' : 's'}',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
+                            if (entry.lastBoostedAt != null)
+                              Text(
+                                'Last boosted ${DateFormat.yMd().add_jm().format(entry.lastBoostedAt!.toLocal())}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                           ],
                         ),
                       ),
@@ -2088,6 +2129,11 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          if (entry.amountPoints > 0)
+                            Text(
+                              '${entry.amountPoints.toStringAsFixed(0)} points',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           Text(
                             '${entry.shares.toStringAsFixed(0)} shares',
                             style: Theme.of(context).textTheme.bodySmall,
