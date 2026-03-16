@@ -34,7 +34,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-const _realmBoostThresholds = [0, 1000, 5000, 15000];
+const _realmBoostThresholds = [0, 10, 25, 50];
 
 class _RealmExperienceCard extends StatelessWidget {
   const _RealmExperienceCard({required this.identity});
