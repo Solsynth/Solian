@@ -386,6 +386,30 @@ class ChatDetailScreen extends HookConsumerWidget {
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 24,
                               ),
+                              leading: const Icon(Symbols.edit),
+                              trailing: const Icon(Symbols.chevron_right),
+                              title: const Text('nickname').tr(),
+                              subtitle: Text(
+                                identity?.nick?.isNotEmpty ?? false
+                                    ? identity!.nick!
+                                    : 'No chat-specific nick set yet.',
+                              ),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  useRootNavigator: true,
+                                  builder: (_) => _ChatIdentityEditorSheet(
+                                    roomId: identity!.chatRoomId,
+                                    identity: identity,
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
                               leading: const Icon(Symbols.notifications),
                               trailing: const Icon(Symbols.chevron_right),
                               title: const Text('chatNotifyLevel').tr(),
@@ -776,6 +800,70 @@ class _ChatMemberListSheet extends HookConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChatIdentityEditorSheet extends HookConsumerWidget {
+  const _ChatIdentityEditorSheet({
+    required this.roomId,
+    required this.identity,
+  });
+
+  final String roomId;
+  final SnChatMember identity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nickController = useTextEditingController(text: identity.nick ?? '');
+
+    return SheetScaffold(
+      heightFactor: 0.4,
+      titleText: 'Edit Chat Identity',
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: nickController,
+              maxLength: 1024,
+              decoration: InputDecoration(labelText: 'nickname'.tr()),
+            ),
+            const Gap(16),
+            FilledButton.icon(
+              onPressed: () async {
+                try {
+                  final apiClient = ref.read(apiClientProvider);
+                  await apiClient.patch(
+                    '/messager/chat/$roomId/members/me',
+                    data: {
+                      'nick': nickController.text.trim().isEmpty
+                          ? null
+                          : nickController.text.trim(),
+                    },
+                  );
+                  ref.invalidate(chatRoomIdentityProvider(roomId));
+                  ref.invalidate(chatMemberListProvider(roomId));
+                  if (context.mounted) {
+                    showSnackBar('saveChanges'.tr());
+                    Navigator.pop(context, true);
+                  }
+                } catch (err) {
+                  showErrorAlert(err);
+                }
+              },
+              icon: const Icon(Symbols.save),
+              label: const Text('saveChanges').tr(),
+            ),
+          ],
+        ),
       ),
     );
   }
