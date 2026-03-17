@@ -17,6 +17,19 @@ class BadgeList extends StatelessWidget {
   }
 }
 
+Color _getSponsorColor(int level) {
+  // Level 0 = red, level 36+ = golden
+  // Interpolate from red to golden based on level
+  final clampedLevel = level.clamp(0, 36);
+  final t = clampedLevel / 36.0;
+  
+  // Red to Golden (goldenrod - more orange-gold, less yellow)
+  const redColor = Colors.red;
+  const goldenColor = Color(0xFFDAA520); // Goldenrod
+  
+  return Color.lerp(redColor, goldenColor, t)!;
+}
+
 class BadgeItem extends StatelessWidget {
   final SnAccountBadge badge;
   const BadgeItem({super.key, required this.badge});
@@ -24,20 +37,35 @@ class BadgeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final template = kBadgeTemplates[badge.type];
-    final name = badge.label ?? template?.name.tr() ?? 'unknown'.tr();
-    final description = badge.caption ?? template?.description.tr() ?? '';
+    final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
+    final templateDesc = template?.description.tr();
+    final badgeCaption = badge.caption;
+    final description = [
+      if (templateDesc != null && templateDesc.isNotEmpty) templateDesc,
+      if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
+    ].join('\n');
+
+    // Determine badge color - special handling for sponsor badges
+    Color badgeColor;
+    if (badge.type == 'sponsor') {
+      final levelStr = badge.meta['level']?.toString() ?? '0';
+      final level = int.tryParse(levelStr) ?? 0;
+      badgeColor = _getSponsorColor(level);
+    } else {
+      badgeColor = template?.color ?? Colors.blue;
+    }
 
     return Tooltip(
       message: '$name\n$description',
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: (template?.color ?? Colors.blue).withOpacity(0.2),
+          color: badgeColor.withOpacity(0.2),
           shape: BoxShape.circle,
         ),
         child: Icon(
           template?.icon ?? Icons.stars,
-          color: template?.color ?? Colors.blue,
+          color: badgeColor,
           size: 20,
         ),
       ),
