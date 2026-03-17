@@ -1950,5 +1950,8 @@
   "onboardingCustomStatus": "Custom status",
   "onboardingProfileTheme": "Profile theme",
   "benefitsComparison": "Benefits Comparison",
-  "subscribeNow": "Subscribe Now"
+  "subscribeNow": "Subscribe Now",
+  "subscriptionAutoRenewDisclaimer": "Auto-renewable subscription. Cancel anytime in App Store.",
+  "noPurchasesToRestore": "No purchase to restore",
+  "termsLink": "Terms of Service"
 }

@@ -527,9 +527,38 @@ class StellarProgramTab extends HookConsumerWidget {
                 size: 24,
               ),
               const Gap(8),
-              Text(
-                'stellarMembership'.tr(),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  'stellarMembership'.tr(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return SheetScaffold(
+                        titleText: 'About Stellar Program',
+                        child: Column(
+                          spacing: 12,
+                          children: [
+                            Text(
+                              'Stellar Program allows your unlocks more personalization settings on the Solar Network. And most imporantly, it helps support the development of the Solian and the Solar Network!',
+                            ),
+                            Text(
+                              'To learn more about the Stellar Program benefits, scroll the page to see the comparison table.',
+                            ),
+                          ],
+                        ).padding(horizontal: 24, vertical: 16),
+                      );
+                    },
+                  );
+                },
+                icon: const Icon(Symbols.help, size: 20),
+                visualDensity: VisualDensity(horizontal: -4, vertical: -4),
               ),
             ],
           ),
@@ -610,6 +639,22 @@ class StellarProgramTab extends HookConsumerWidget {
                 minimumSize: const Size(double.infinity, 48),
               ),
             ).padding(top: 12),
+
+          // Terms Link
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: InkWell(
+              onTap: () => launchUrlString(
+                'https://solsynth.dev/terms/user-agreement',
+                mode: LaunchMode.externalApplication,
+              ),
+              child: Text(
+                'termsLink'.tr(),
+                style: TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
+              ).opacity(0.75),
+            ),
+          ),
         ],
       ).padding(all: 16),
     );
@@ -1763,7 +1808,7 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 380 + 16,
+          height: 400,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -1990,6 +2035,17 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
                       child: Text('subscribeNow'.tr()),
                     ),
                   ),
+                  if (effectiveMethod == 1) ...[
+                    const Gap(8),
+                    Text(
+                      'subscriptionAutoRenewDisclaimer'.tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),
