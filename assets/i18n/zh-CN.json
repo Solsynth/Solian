@@ -1658,5 +1658,7 @@
   "onboardingProfileBanner": "个人横幅",
   "onboardingGradientUsername": "渐变用户名",
   "onboardingCustomStatus": "自定义状态",
-  "onboardingProfileTheme": "个人主题"
+  "onboardingProfileTheme": "个人主题",
+  "benefitsComparison": "权益对比",
+  "subscribeNow": "立即订阅"
 }

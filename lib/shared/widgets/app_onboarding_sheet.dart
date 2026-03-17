@@ -341,6 +341,7 @@ class _OnboardingSheet extends HookWidget {
                       key: ValueKey(isFirstLaunch ? 'first_$idx' : 'new_$idx'),
                       data: page,
                       isActive: currentPage.value == idx,
+                      isLastPage: idx == pages.length - 1,
                     );
                   },
                 ),
@@ -378,11 +379,13 @@ class _OnboardingSheet extends HookWidget {
 class _OnboardingPage extends StatefulWidget {
   final _OnboardingPageData data;
   final bool isActive;
+  final bool isLastPage;
 
   const _OnboardingPage({
     super.key,
     required this.data,
     required this.isActive,
+    this.isLastPage = false,
   });
 
   @override
@@ -572,15 +575,17 @@ class _OnboardingPageState extends State<_OnboardingPage>
                         child: _buildPerksContent(widget.data.perksType),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => showStellarProgramSheet(context),
-                      icon: const Icon(Icons.open_in_new, size: 18),
-                      label: Text('onboardingViewFullDetails'.tr()),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 40),
+                    if (widget.isLastPage) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => showStellarProgramSheet(context),
+                        icon: const Icon(Icons.open_in_new, size: 18),
+                        label: Text('onboardingViewFullDetails'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 40),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                   if (widget.data.features != null &&
                       !widget.data.isPerksPage) ...[
@@ -693,19 +698,19 @@ class _RealmBoostsTable extends StatelessWidget {
             ),
           ),
           _buildBoostRow(context, 'onboardingCustomLabel'.tr(), '✓', '✓', '✓'),
-          _buildBoostRow(context, 'onboardingExtraQuota'.tr(), '✓', '✓', '✓'),
+          _buildBoostRow(context, 'onboardingExtraQuota'.tr(), '', '✓', '✓'),
           _buildBoostRow(
             context,
             'onboardingBoostedVisibility'.tr(),
-            '✓',
+            '',
             '✓',
             '✓',
           ),
           _buildBoostRow(
             context,
             'onboardingMaxQuota'.tr(),
-            '✓',
-            '✓',
+            '',
+            '',
             '✓',
             isLast: true,
           ),
@@ -799,7 +804,7 @@ class _LabelsIdentityTable extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Feature',
+                    'Features',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -820,7 +825,7 @@ class _LabelsIdentityTable extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    'Nova or above',
+                    'Nova',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
@@ -829,12 +834,23 @@ class _LabelsIdentityTable extends StatelessWidget {
                     ),
                   ),
                 ),
+                Expanded(
+                  child: Text(
+                    'Supernova',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          _buildLabelRow(context, 'Realm nick', 'Not included', 'Included'),
-          _buildLabelRow(context, 'Realm bio', 'Not included', 'Included'),
-          _buildLabelRow(context, 'Chat nick', 'Not included', 'Included'),
+          _buildLabelRow(context, 'Realm nick', 'Not Incl.', 'Incl.', 'Incl.'),
+          _buildLabelRow(context, 'Realm bio', 'Not Incl.', 'Incl.', 'Incl.'),
+          _buildLabelRow(context, 'Chat nick', 'Not Incl.', 'Incl.', 'Incl.'),
         ],
       ),
     );
@@ -844,7 +860,8 @@ class _LabelsIdentityTable extends StatelessWidget {
     BuildContext context,
     String feature,
     String stellar,
-    String nova, {
+    String nova,
+    String supernova, {
     bool isLast = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -872,49 +889,18 @@ class _LabelsIdentityTable extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              'onboardingLevel'.tr(),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+          for (var label in [stellar, nova, supernova])
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              'onboardingLv1'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'onboardingLv2'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'onboardingLv3'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
         ],
       ),
     );
