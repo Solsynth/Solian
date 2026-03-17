@@ -1660,5 +1660,7 @@
   "onboardingCustomStatus": "自定义状态",
   "onboardingProfileTheme": "个人主题",
   "benefitsComparison": "权益对比",
-  "subscribeNow": "立即订阅"
+  "subscribeNow": "立即订阅",
+  "subscriptionAutoRenewDisclaimer": "自动续订订阅。可随时在 App Store 中取消。",
+  "termsLink": "服务条款"
 }
