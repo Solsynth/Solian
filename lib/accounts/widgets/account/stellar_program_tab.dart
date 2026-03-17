@@ -760,8 +760,23 @@ class StellarProgramTab extends HookConsumerWidget {
         if (group == null) {
           return Center(child: Text('noTiersAvailable'.tr()));
         }
-        final tiers = group.catalog.items.toList()
-          ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+
+        final effectiveMethod = showAfdianTab
+            ? (tabController.index == 0 ? 2 : 0)
+            : (tabController.index == 0 ? 1 : 0);
+
+        final tiers = group.catalog.items.where((tier) {
+          if (effectiveMethod == 0) {
+            return tier.allowedPaymentMethods.contains('solian.wallet');
+          }
+          if (effectiveMethod == 1) {
+            return tier.allowedPaymentMethods.contains('apple_store');
+          }
+          if (effectiveMethod == 2) {
+            return tier.allowedPaymentMethods.contains('afdian');
+          }
+          return false;
+        }).toList()..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));
@@ -1856,16 +1871,9 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
         widget.currentMembership?.identifier == tier.identifier;
     final tierColor = _parseColor(tier.displayConfig?.color);
 
-    final supportsWallet = tier.allowedPaymentMethods.contains('solian.wallet');
-    final supportsIap = tier.allowedPaymentMethods.contains('apple_store');
-    final supportsAfdian = tier.allowedPaymentMethods.contains('afdian');
     final effectiveMethod = widget.showAfdianTab
         ? (widget.tabController.index == 0 ? 2 : 0)
         : (widget.tabController.index == 0 ? 1 : 0);
-    final isSupported =
-        (effectiveMethod == 0 && supportsWallet) ||
-        (effectiveMethod == 1 && supportsIap) ||
-        (effectiveMethod == 2 && supportsAfdian);
 
     String priceDisplay;
     if (effectiveMethod == 1 && tier.providerMappings.appleStore.isNotEmpty) {
@@ -1891,7 +1899,7 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
         borderRadius: BorderRadius.circular(16),
         elevation: 2,
         child: InkWell(
-          onTap: isCurrentTier || !isSupported
+          onTap: isCurrentTier
               ? null
               : () => widget.onPurchase(tier, effectiveMethod),
           borderRadius: BorderRadius.circular(16),
@@ -1900,17 +1908,11 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
             decoration: BoxDecoration(
               color: isCurrentTier
                   ? tierColor.withOpacity(0.08)
-                  : !isSupported
-                  ? Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withOpacity(0.5)
                   : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isCurrentTier
                     ? tierColor
-                    : !isSupported
-                    ? Theme.of(context).colorScheme.outline.withOpacity(0.1)
                     : Theme.of(context).colorScheme.outline.withOpacity(0.2),
                 width: isCurrentTier ? 2 : 1,
               ),
@@ -2021,7 +2023,7 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
                     ),
                   ),
                 ),
-                if (!isCurrentTier && isSupported) ...[
+                if (!isCurrentTier) ...[
                   const Gap(12),
                   SizedBox(
                     width: double.infinity,

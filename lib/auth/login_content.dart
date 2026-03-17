@@ -617,8 +617,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
           ref.watch(sharedPreferencesProvider),
           token,
           refreshToken: resp.data['refresh_token'] as String?,
-          expiresIn: int.tryParse(resp.data['expires_in']),
-          refreshExpiresIn: int.tryParse(resp.data['refresh_expires_in']),
+          expiresIn: (resp.data['expires_in'] as num?)?.toInt(),
+          refreshExpiresIn: (resp.data['refresh_expires_in'] as num?)?.toInt(),
         );
         ref.invalidate(tokenProvider);
         if (!context.mounted) return;
