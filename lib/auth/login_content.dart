@@ -42,8 +42,9 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
 Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   final userNotifier = ref.read(userInfoProvider.notifier);
   await userNotifier.fetchUser();
+  if (!context.mounted) return;
   final apiClient = ref.read(apiClientProvider);
-  subscribePushNotification(apiClient);
+  await subscribePushNotification(apiClient, context: context);
   final wsNotifier = ref.read(websocketStateProvider.notifier);
   wsNotifier.connect();
   if (context.mounted && Navigator.canPop(context)) {

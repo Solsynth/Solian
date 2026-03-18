@@ -678,8 +678,9 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
           ref.invalidate(tokenProvider);
           final userNotifier = ref.read(userInfoProvider.notifier);
           await userNotifier.fetchUser();
+          if (!context.mounted) return;
           final apiClient = ref.read(apiClientProvider);
-          subscribePushNotification(apiClient);
+          await subscribePushNotification(apiClient, context: context);
           final wsNotifier = ref.read(websocketStateProvider.notifier);
           wsNotifier.connect();
           if (context.mounted) Navigator.pop(context, true);

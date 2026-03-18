@@ -46,6 +46,7 @@ const kAppShowFediverseContent = 'app_show_fediverse_content';
 const kAppShowChatSystemMessages = 'app_show_chat_system_messages';
 const kAppShowChatEventMessages = kAppShowChatSystemMessages;
 const kAppChatEventMessageMode = 'app_chat_event_message_mode';
+const kAppPushProvider = 'app_push_provider';
 const kAppRealmDisplayMode = 'app_realm_display_mode';
 const kChatEventMessageModeVerbose = 'verbose';
 const kChatEventMessageModeImportant = 'important';

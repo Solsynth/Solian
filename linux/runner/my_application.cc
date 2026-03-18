@@ -1,5 +1,7 @@
 #include "my_application.h"
 
+#include <cstdlib>
+
 #include <flutter_linux/flutter_linux.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
@@ -56,6 +58,7 @@ static void my_application_activate(GApplication *application)
 
   gtk_window_set_default_size(window, 1280, 720);
   gtk_widget_show(GTK_WIDGET(window));
+  if (std::getenv("FLUTTER_HEADLESS")) gtk_widget_hide(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);

@@ -108,9 +108,9 @@ class StartupSplashScreen extends HookConsumerWidget {
           isCritical: false,
           action: () async {
             final user = await ref.read(userInfoProvider.future);
-            if (user == null) return;
+            if (!context.mounted || user == null) return;
             final apiClient = ref.read(apiClientProvider);
-            await subscribePushNotification(apiClient);
+            await subscribePushNotification(apiClient, context: context);
           },
         ),
         _BootstrapStage(

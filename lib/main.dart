@@ -36,6 +36,7 @@ import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
+import 'package:island/core/services/unifiedpush_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -43,8 +44,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   talker.info('Handling a background message: ${message.messageId}');
 }
 
-void main() async {
+void main(List<String> args) async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await initializeUnifiedPush(args);
+
+  if (!kIsWeb && Platform.isLinux && args.contains('--unifiedpush-bg')) {
+    talker.info('[UnifiedPush] Linux background receiver initialized.');
+    return;
+  }
+
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     talker.info(
       "[SplashScreen] Keeping the flash screen to loading other resources...",
