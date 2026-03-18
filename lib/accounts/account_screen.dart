@@ -242,6 +242,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
+                    'icon': Symbols.military_tech,
+                    'title': 'badges',
+                    'onTap': () {
+                      context.router.push(const BadgesRoute());
+                    },
+                  },
+                  {
                     'icon': Symbols.people,
                     'title': 'relationships',
                     'onTap': () {

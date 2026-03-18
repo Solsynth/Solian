@@ -1955,5 +1955,8 @@
   "subscribeNow": "Subscribe Now",
   "subscriptionAutoRenewDisclaimer": "Auto-renewable subscription. Cancel anytime in App Store.",
   "noPurchasesToRestore": "No purchase to restore",
-  "termsLink": "Terms of Service"
+  "termsLink": "Terms of Service",
+  "badges": "Badges",
+  "active": "Active",
+  "activate": "Activate"
 }
