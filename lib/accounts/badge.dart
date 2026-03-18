@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class BadgeInfo {
   final String type;
@@ -53,3 +54,20 @@ const Map<String, BadgeInfo> kBadgeTemplates = {
     color: Colors.grey,
   ),
 };
+
+Color getBadgeColor(SnAccountBadge badge) {
+  if (badge.type == 'sponsor') {
+    final level =
+        int.tryParse(
+          (badge.meta['level'] as String?)?.replaceAll('"', '') ?? '0',
+        ) ??
+        0;
+    final clampedLevel = level.clamp(0, 36);
+    final t = clampedLevel / 36.0;
+    const redColor = Colors.red;
+    const goldenColor = Color(0xFFDAA520);
+    return Color.lerp(redColor, goldenColor, t)!;
+  }
+  final template = kBadgeTemplates[badge.type];
+  return template?.color ?? Colors.blue;
+}

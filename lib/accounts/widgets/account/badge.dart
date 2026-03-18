@@ -22,11 +22,11 @@ Color _getSponsorColor(int level) {
   // Interpolate from red to golden based on level
   final clampedLevel = level.clamp(0, 36);
   final t = clampedLevel / 36.0;
-  
+
   // Red to Golden (goldenrod - more orange-gold, less yellow)
   const redColor = Colors.red;
   const goldenColor = Color(0xFFDAA520); // Goldenrod
-  
+
   return Color.lerp(redColor, goldenColor, t)!;
 }
 
@@ -48,8 +48,7 @@ class BadgeItem extends StatelessWidget {
     // Determine badge color - special handling for sponsor badges
     Color badgeColor;
     if (badge.type == 'sponsor') {
-      final levelStr = badge.meta['level']?.toString() ?? '0';
-      final level = int.tryParse(levelStr) ?? 0;
+      final level = (badge.meta['level'] as num?)?.toInt() ?? 0;
       badgeColor = _getSponsorColor(level);
     } else {
       badgeColor = template?.color ?? Colors.blue;
@@ -63,11 +62,7 @@ class BadgeItem extends StatelessWidget {
           color: badgeColor.withOpacity(0.2),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          template?.icon ?? Icons.stars,
-          color: badgeColor,
-          size: 20,
-        ),
+        child: Icon(template?.icon ?? Icons.stars, color: badgeColor, size: 20),
       ),
     );
   }

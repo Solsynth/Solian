@@ -409,20 +409,6 @@ class StellarMembershipMark extends StatelessWidget {
   }
 }
 
-Color _getActiveBadgeColor(SnAccountBadge badge) {
-  if (badge.type == 'sponsor') {
-    final levelStr = badge.meta['level']?.toString() ?? '0';
-    final level = int.tryParse(levelStr) ?? 0;
-    final clampedLevel = level.clamp(0, 36);
-    final t = clampedLevel / 36.0;
-    const redColor = Colors.red;
-    const goldenColor = Color(0xFFDAA520);
-    return Color.lerp(redColor, goldenColor, t)!;
-  }
-  final template = kBadgeTemplates[badge.type];
-  return template?.color ?? Colors.blue;
-}
-
 class ActiveBadgeMark extends StatelessWidget {
   final SnAccountBadge badge;
   final bool hideOverlay;
@@ -445,7 +431,7 @@ class ActiveBadgeMark extends StatelessWidget {
       if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
     ].join('\n');
 
-    final badgeColor = _getActiveBadgeColor(badge);
+    final badgeColor = getBadgeColor(badge);
 
     final icon = Icon(
       template?.icon ?? Icons.stars,
