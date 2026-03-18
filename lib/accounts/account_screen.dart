@@ -249,6 +249,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
+                    'icon': Symbols.history,
+                    'title': 'actionLogs',
+                    'onTap': () {
+                      context.router.push(const ActionLogsRoute());
+                    },
+                  },
+                  {
                     'icon': Symbols.people,
                     'title': 'relationships',
                     'onTap': () {

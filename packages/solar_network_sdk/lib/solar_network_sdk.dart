@@ -4,6 +4,7 @@ export 'src/pagination/pagination.dart';
 export 'src/models/accounts/account.dart';
 export 'src/models/accounts/abuse_report.dart';
 export 'src/models/accounts/abuse_report_type.dart';
+export 'src/models/accounts/action_log.dart';
 export 'src/models/accounts/fortune.dart';
 export 'src/models/accounts/relationship.dart';
 
