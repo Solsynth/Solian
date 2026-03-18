@@ -32,6 +32,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   syncfusion_pdfviewer_windows
   tray_manager
   url_launcher_windows
+  webcrypto
   window_manager
   windows_notification
 )

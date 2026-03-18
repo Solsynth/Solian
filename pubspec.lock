@@ -3066,6 +3066,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.3"
+  unifiedpush:
+    dependency: "direct main"
+    description:
+      name: unifiedpush
+      sha256: "8ed9767f750a1dc6159a77e2171641d0cb825dc87682d1ce1b8618689b79f58e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.2.0"
+  unifiedpush_android:
+    dependency: transitive
+    description:
+      name: unifiedpush_android
+      sha256: "2e6684e0a1a39ad8d6c7bc0d197954d50686acb1b1a7614b18ab0e0126f5492a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
+  unifiedpush_linux:
+    dependency: transitive
+    description:
+      name: unifiedpush_linux
+      sha256: c062d5eedd1cec70bcd33270cc4e01ae0ff6501f33d471167c06b34a968adfeb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  unifiedpush_platform_interface:
+    dependency: "direct main"
+    description:
+      name: unifiedpush_platform_interface
+      sha256: "83372bc8d794b8b12ef6993b518d7be907dcfc2191bdf6de0ece5c4445d89880"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
+  unifiedpush_storage_interface:
+    dependency: "direct main"
+    description:
+      name: unifiedpush_storage_interface
+      sha256: b8d423a4695efc616aa21d8ab48fb5ef99d6288c68b56282b8faac1579ceabd9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   universal_io:
     dependency: transitive
     description:
@@ -3274,6 +3314,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
+  webcrypto:
+    dependency: transitive
+    description:
+      name: webcrypto
+      sha256: "6b43001c4110856ff7fa5e5e65e7b2d44bec1d8b54a4d84d5fa2c7622267c5c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -3282,6 +3330,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  webpush_encryption:
+    dependency: transitive
+    description:
+      name: webpush_encryption
+      sha256: "5b83272b91acda6ae515fcd980c94f06bf413702282497c5a68f5dfc64fed27f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   webrtc_interface:
     dependency: transitive
     description:

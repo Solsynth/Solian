@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
+import 'package:island/core/services/push_provider.dart';
+import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/talker.dart';
@@ -168,7 +170,11 @@ Future<void> subscribePushNotification(
 
   FirebaseMessaging.instance.onTokenRefresh
       .listen((fcmToken) {
-        _putTokenToRemote(apiClient, fcmToken, 1);
+        _putTokenToRemote(
+          apiClient,
+          fcmToken,
+          PushNotificationProvider.fcm.remoteType,
+        );
       })
       .onError((err) {
         talker.error("Failed to get firebase cloud messaging push token: $err");
@@ -178,20 +184,34 @@ Future<void> subscribePushNotification(
     _putTokenToRemote(
       apiClient,
       deviceToken,
-      !kIsWeb && (Platform.isIOS || Platform.isMacOS) ? 0 : 1,
+      !kIsWeb && (Platform.isIOS || Platform.isMacOS)
+          ? PushNotificationProvider.apple.remoteType
+          : PushNotificationProvider.fcm.remoteType,
     );
   } else if (detailedErrors) {
     throw Exception("Failed to get device token for push notifications.");
   }
 }
 
-Future<void> _putTokenToRemote(
-  Dio apiClient,
-  String token,
-  int provider,
-) async {
+Future<void> subscribeUnifiedPushNotification(
+  Dio apiClient, {
+  bool detailedErrors = false,
+}) async {
+  if (kIsWeb || !(Platform.isAndroid || Platform.isLinux)) {
+    return;
+  }
+
+  try {
+    await registerUnifiedPush(apiClient);
+  } catch (err) {
+    if (detailedErrors) rethrow;
+    talker.error('Failed to register UnifiedPush subscription: $err');
+  }
+}
+
+Future<void> _putTokenToRemote(Dio apiClient, String token, String type) async {
   await apiClient.put(
     "/ring/notifications/subscription",
-    data: {"provider": provider, "device_token": token},
+    data: {"type": type, "device_token": token},
   );
 }

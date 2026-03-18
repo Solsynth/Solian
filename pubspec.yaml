@@ -141,6 +141,9 @@ dependencies:
   tray_manager: ^0.5.2
   flutter_webrtc: ^1.2.1
   flutter_local_notifications: ^21.0.0
+  unifiedpush: ^6.2.0
+  unifiedpush_platform_interface: ^4.0.0
+  unifiedpush_storage_interface: ^1.0.0
   wakelock_plus: ^1.5.1
   slide_countdown: ^2.0.2
   shelf: ^1.4.2
