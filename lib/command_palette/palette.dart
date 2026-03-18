@@ -376,7 +376,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
   void _navigateToRoute(BuildContext context, WidgetRef ref, RouteItem route) {
     onDismiss();
-    // ref.read(routerProvider).go(route.path);
+    ref.read(routerProvider).navigatePath(route.path);
   }
 
   void _executeItem(BuildContext context, WidgetRef ref, dynamic item) {
