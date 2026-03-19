@@ -1975,5 +1975,8 @@
   "noQuests": "No quests available",
   "experience": "Experience",
   "badge": "Badge",
-  "sourcePoints": "Source Points"
+  "sourcePoints": "Source Points",
+  "achievementUnlocked": "Achievement Unlocked!",
+  "questCompleted": "Quest Completed!",
+  "tapToViewProgress": "Tap to view your progress"
 }

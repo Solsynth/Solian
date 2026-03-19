@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
+import 'package:island/accounts/progression_ws.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -57,6 +58,9 @@ class AppWrapper extends HookConsumerWidget {
     final bootstrapCompleted = useState(false);
     final startupGateResolved = useState(false);
     final onboardingChecked = useState(false);
+
+    // Initialize progression WebSocket listener
+    ref.watch(progressionWebSocketProvider);
 
     // Handle network status modal
     useEffect(() {
@@ -541,8 +545,7 @@ class AppWrapper extends HookConsumerWidget {
           payload['expires_in'] = data['expires_in'].toString();
         }
         if (data['refresh_expires_in'] != null) {
-          payload['refresh_expires_in'] =
-              data['refresh_expires_in'].toString();
+          payload['refresh_expires_in'] = data['refresh_expires_in'].toString();
         }
         await _launchWebAuthRedirect(
           redirectUri: redirectUri,

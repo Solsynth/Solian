@@ -1911,5 +1911,8 @@
   "noQuests": "사용 가능한 퀘스트 없음",
   "experience": "경험치",
   "badge": "배지",
-  "sourcePoints": "소스 포인트"
+  "sourcePoints": "소스 포인트",
+  "achievementUnlocked": "업적 달성!",
+  "questCompleted": "퀘스트 완료!",
+  "tapToViewProgress": "탭하여 진행 상황 보기"
 }

@@ -1581,5 +1581,8 @@
     "noQuests": "No hay misiones disponibles",
     "experience": "Experiencia",
     "badge": "Insignia",
-    "sourcePoints": "Puntos de origen"
+    "sourcePoints": "Puntos de origen",
+    "achievementUnlocked": "¡Logro desbloqueado!",
+    "questCompleted": "¡Misión completada!",
+    "tapToViewProgress": "Toca para ver tu progreso"
 }

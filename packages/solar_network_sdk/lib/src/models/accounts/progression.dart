@@ -111,3 +111,17 @@ sealed class SnProgressRewardGrant with _$SnProgressRewardGrant {
   factory SnProgressRewardGrant.fromJson(Map<String, dynamic> json) =>
       _$SnProgressRewardGrantFromJson(json);
 }
+
+@freezed
+sealed class SnProgressionCompletedPacket with _$SnProgressionCompletedPacket {
+  const factory SnProgressionCompletedPacket({
+    required String kind,
+    required String identifier,
+    required String title,
+    String? periodKey,
+    SnProgressRewardDefinition? reward,
+  }) = _SnProgressionCompletedPacket;
+
+  factory SnProgressionCompletedPacket.fromJson(Map<String, dynamic> json) =>
+      _$SnProgressionCompletedPacketFromJson(json);
+}

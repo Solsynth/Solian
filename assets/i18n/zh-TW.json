@@ -1619,5 +1619,8 @@
   "noQuests": "暫無可用任務",
   "experience": "經驗",
   "badge": "徽章",
-  "sourcePoints": "源點"
+  "sourcePoints": "源點",
+  "achievementUnlocked": "成就解鎖！",
+  "questCompleted": "任務完成！",
+  "tapToViewProgress": "點擊查看進度"
 }

@@ -1583,5 +1583,8 @@
     "noQuests": "無務",
     "experience": "驗",
     "badge": "徽",
-    "sourcePoints": "源"
+    "sourcePoints": "源",
+    "achievementUnlocked": "功解！",
+    "questCompleted": "務畢！",
+    "tapToViewProgress": "點以覽度"
 }

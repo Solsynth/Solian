@@ -1585,5 +1585,8 @@
 	"noQuests": "利用可能なクエストがありません",
 	"experience": "経験値",
 	"badge": "バッジ",
-	"sourcePoints": "ソースポイント"
+	"sourcePoints": "ソースポイント",
+	"achievementUnlocked": "実績解除！",
+	"questCompleted": "クエスト完了！",
+	"tapToViewProgress": "タップして進捗を表示"
 }

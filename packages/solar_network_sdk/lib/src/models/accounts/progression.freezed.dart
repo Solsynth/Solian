@@ -1828,4 +1828,297 @@ $SnProgressRewardDefinitionCopyWith<$Res>? get reward {
 }
 }
 
+
+/// @nodoc
+mixin _$SnProgressionCompletedPacket {
+
+ String get kind; String get identifier; String get title; String? get periodKey; SnProgressRewardDefinition? get reward;
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnProgressionCompletedPacketCopyWith<SnProgressionCompletedPacket> get copyWith => _$SnProgressionCompletedPacketCopyWithImpl<SnProgressionCompletedPacket>(this as SnProgressionCompletedPacket, _$identity);
+
+  /// Serializes this SnProgressionCompletedPacket to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnProgressionCompletedPacket&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.reward, reward) || other.reward == reward));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,kind,identifier,title,periodKey,reward);
+
+@override
+String toString() {
+  return 'SnProgressionCompletedPacket(kind: $kind, identifier: $identifier, title: $title, periodKey: $periodKey, reward: $reward)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnProgressionCompletedPacketCopyWith<$Res>  {
+  factory $SnProgressionCompletedPacketCopyWith(SnProgressionCompletedPacket value, $Res Function(SnProgressionCompletedPacket) _then) = _$SnProgressionCompletedPacketCopyWithImpl;
+@useResult
+$Res call({
+ String kind, String identifier, String title, String? periodKey, SnProgressRewardDefinition? reward
+});
+
+
+$SnProgressRewardDefinitionCopyWith<$Res>? get reward;
+
+}
+/// @nodoc
+class _$SnProgressionCompletedPacketCopyWithImpl<$Res>
+    implements $SnProgressionCompletedPacketCopyWith<$Res> {
+  _$SnProgressionCompletedPacketCopyWithImpl(this._self, this._then);
+
+  final SnProgressionCompletedPacket _self;
+  final $Res Function(SnProgressionCompletedPacket) _then;
+
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? identifier = null,Object? title = null,Object? periodKey = freezed,Object? reward = freezed,}) {
+  return _then(_self.copyWith(
+kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,periodKey: freezed == periodKey ? _self.periodKey : periodKey // ignore: cast_nullable_to_non_nullable
+as String?,reward: freezed == reward ? _self.reward : reward // ignore: cast_nullable_to_non_nullable
+as SnProgressRewardDefinition?,
+  ));
+}
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnProgressRewardDefinitionCopyWith<$Res>? get reward {
+    if (_self.reward == null) {
+    return null;
+  }
+
+  return $SnProgressRewardDefinitionCopyWith<$Res>(_self.reward!, (value) {
+    return _then(_self.copyWith(reward: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnProgressionCompletedPacket].
+extension SnProgressionCompletedPacketPatterns on SnProgressionCompletedPacket {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnProgressionCompletedPacket value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnProgressionCompletedPacket value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnProgressionCompletedPacket value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String kind,  String identifier,  String title,  String? periodKey,  SnProgressRewardDefinition? reward)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket() when $default != null:
+return $default(_that.kind,_that.identifier,_that.title,_that.periodKey,_that.reward);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String kind,  String identifier,  String title,  String? periodKey,  SnProgressRewardDefinition? reward)  $default,) {final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket():
+return $default(_that.kind,_that.identifier,_that.title,_that.periodKey,_that.reward);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String kind,  String identifier,  String title,  String? periodKey,  SnProgressRewardDefinition? reward)?  $default,) {final _that = this;
+switch (_that) {
+case _SnProgressionCompletedPacket() when $default != null:
+return $default(_that.kind,_that.identifier,_that.title,_that.periodKey,_that.reward);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnProgressionCompletedPacket implements SnProgressionCompletedPacket {
+  const _SnProgressionCompletedPacket({required this.kind, required this.identifier, required this.title, this.periodKey, this.reward});
+  factory _SnProgressionCompletedPacket.fromJson(Map<String, dynamic> json) => _$SnProgressionCompletedPacketFromJson(json);
+
+@override final  String kind;
+@override final  String identifier;
+@override final  String title;
+@override final  String? periodKey;
+@override final  SnProgressRewardDefinition? reward;
+
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnProgressionCompletedPacketCopyWith<_SnProgressionCompletedPacket> get copyWith => __$SnProgressionCompletedPacketCopyWithImpl<_SnProgressionCompletedPacket>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnProgressionCompletedPacketToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnProgressionCompletedPacket&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.reward, reward) || other.reward == reward));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,kind,identifier,title,periodKey,reward);
+
+@override
+String toString() {
+  return 'SnProgressionCompletedPacket(kind: $kind, identifier: $identifier, title: $title, periodKey: $periodKey, reward: $reward)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnProgressionCompletedPacketCopyWith<$Res> implements $SnProgressionCompletedPacketCopyWith<$Res> {
+  factory _$SnProgressionCompletedPacketCopyWith(_SnProgressionCompletedPacket value, $Res Function(_SnProgressionCompletedPacket) _then) = __$SnProgressionCompletedPacketCopyWithImpl;
+@override @useResult
+$Res call({
+ String kind, String identifier, String title, String? periodKey, SnProgressRewardDefinition? reward
+});
+
+
+@override $SnProgressRewardDefinitionCopyWith<$Res>? get reward;
+
+}
+/// @nodoc
+class __$SnProgressionCompletedPacketCopyWithImpl<$Res>
+    implements _$SnProgressionCompletedPacketCopyWith<$Res> {
+  __$SnProgressionCompletedPacketCopyWithImpl(this._self, this._then);
+
+  final _SnProgressionCompletedPacket _self;
+  final $Res Function(_SnProgressionCompletedPacket) _then;
+
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? identifier = null,Object? title = null,Object? periodKey = freezed,Object? reward = freezed,}) {
+  return _then(_SnProgressionCompletedPacket(
+kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,periodKey: freezed == periodKey ? _self.periodKey : periodKey // ignore: cast_nullable_to_non_nullable
+as String?,reward: freezed == reward ? _self.reward : reward // ignore: cast_nullable_to_non_nullable
+as SnProgressRewardDefinition?,
+  ));
+}
+
+/// Create a copy of SnProgressionCompletedPacket
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnProgressRewardDefinitionCopyWith<$Res>? get reward {
+    if (_self.reward == null) {
+    return null;
+  }
+
+  return $SnProgressRewardDefinitionCopyWith<$Res>(_self.reward!, (value) {
+    return _then(_self.copyWith(reward: value));
+  });
+}
+}
+
 // dart format on

@@ -1684,5 +1684,8 @@
   "noQuests": "暂无可用任务",
   "experience": "经验",
   "badge": "徽章",
-  "sourcePoints": "源点"
+  "sourcePoints": "源点",
+  "achievementUnlocked": "成就解锁！",
+  "questCompleted": "任务完成！",
+  "tapToViewProgress": "点击查看进度"
 }

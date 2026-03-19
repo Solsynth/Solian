@@ -207,3 +207,27 @@ Map<String, dynamic> _$SnProgressRewardGrantToJson(
   'updated_at': instance.updatedAt.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };
+
+_SnProgressionCompletedPacket _$SnProgressionCompletedPacketFromJson(
+  Map<String, dynamic> json,
+) => _SnProgressionCompletedPacket(
+  kind: json['kind'] as String,
+  identifier: json['identifier'] as String,
+  title: json['title'] as String,
+  periodKey: json['period_key'] as String?,
+  reward: json['reward'] == null
+      ? null
+      : SnProgressRewardDefinition.fromJson(
+          json['reward'] as Map<String, dynamic>,
+        ),
+);
+
+Map<String, dynamic> _$SnProgressionCompletedPacketToJson(
+  _SnProgressionCompletedPacket instance,
+) => <String, dynamic>{
+  'kind': instance.kind,
+  'identifier': instance.identifier,
+  'title': instance.title,
+  'period_key': instance.periodKey,
+  'reward': instance.reward?.toJson(),
+};
