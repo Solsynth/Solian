@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnActionLog {
 
- String get id; String get action; Map<String, dynamic> get meta; String get userAgent; String get ipAddress; GeoIpLocation? get location; String get accountId; String? get sessionId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get action; Map<String, dynamic> get meta; String? get userAgent; String? get ipAddress; GeoIpLocation? get location; String get accountId; String? get sessionId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnActionLog
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SnActionLogCopyWith<$Res>  {
   factory $SnActionLogCopyWith(SnActionLog value, $Res Function(SnActionLog) _then) = _$SnActionLogCopyWithImpl;
 @useResult
 $Res call({
- String id, String action, Map<String, dynamic> meta, String userAgent, String ipAddress, GeoIpLocation? location, String accountId, String? sessionId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String action, Map<String, dynamic> meta, String? userAgent, String? ipAddress, GeoIpLocation? location, String accountId, String? sessionId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -65,14 +65,14 @@ class _$SnActionLogCopyWithImpl<$Res>
 
 /// Create a copy of SnActionLog
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? action = null,Object? meta = null,Object? userAgent = null,Object? ipAddress = null,Object? location = freezed,Object? accountId = null,Object? sessionId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? action = null,Object? meta = null,Object? userAgent = freezed,Object? ipAddress = freezed,Object? location = freezed,Object? accountId = null,Object? sessionId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
-as String,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
-as String,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,userAgent: freezed == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
+as String?,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as GeoIpLocation?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,sessionId: freezed == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -172,7 +172,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String action,  Map<String, dynamic> meta,  String userAgent,  String ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String action,  Map<String, dynamic> meta,  String? userAgent,  String? ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnActionLog() when $default != null:
 return $default(_that.id,_that.action,_that.meta,_that.userAgent,_that.ipAddress,_that.location,_that.accountId,_that.sessionId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -193,7 +193,7 @@ return $default(_that.id,_that.action,_that.meta,_that.userAgent,_that.ipAddress
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String action,  Map<String, dynamic> meta,  String userAgent,  String ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String action,  Map<String, dynamic> meta,  String? userAgent,  String? ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnActionLog():
 return $default(_that.id,_that.action,_that.meta,_that.userAgent,_that.ipAddress,_that.location,_that.accountId,_that.sessionId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -210,7 +210,7 @@ return $default(_that.id,_that.action,_that.meta,_that.userAgent,_that.ipAddress
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String action,  Map<String, dynamic> meta,  String userAgent,  String ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String action,  Map<String, dynamic> meta,  String? userAgent,  String? ipAddress,  GeoIpLocation? location,  String accountId,  String? sessionId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnActionLog() when $default != null:
 return $default(_that.id,_that.action,_that.meta,_that.userAgent,_that.ipAddress,_that.location,_that.accountId,_that.sessionId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -237,8 +237,8 @@ class _SnActionLog implements SnActionLog {
   return EqualUnmodifiableMapView(_meta);
 }
 
-@override final  String userAgent;
-@override final  String ipAddress;
+@override final  String? userAgent;
+@override final  String? ipAddress;
 @override final  GeoIpLocation? location;
 @override final  String accountId;
 @override final  String? sessionId;
@@ -279,7 +279,7 @@ abstract mixin class _$SnActionLogCopyWith<$Res> implements $SnActionLogCopyWith
   factory _$SnActionLogCopyWith(_SnActionLog value, $Res Function(_SnActionLog) _then) = __$SnActionLogCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String action, Map<String, dynamic> meta, String userAgent, String ipAddress, GeoIpLocation? location, String accountId, String? sessionId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String action, Map<String, dynamic> meta, String? userAgent, String? ipAddress, GeoIpLocation? location, String accountId, String? sessionId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -296,14 +296,14 @@ class __$SnActionLogCopyWithImpl<$Res>
 
 /// Create a copy of SnActionLog
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? action = null,Object? meta = null,Object? userAgent = null,Object? ipAddress = null,Object? location = freezed,Object? accountId = null,Object? sessionId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? action = null,Object? meta = null,Object? userAgent = freezed,Object? ipAddress = freezed,Object? location = freezed,Object? accountId = null,Object? sessionId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnActionLog(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
-as String,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
-as String,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,userAgent: freezed == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
+as String?,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as GeoIpLocation?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,sessionId: freezed == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
