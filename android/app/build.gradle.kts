@@ -72,6 +72,13 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
 }
 
+configurations.all {
+    exclude(group = "com.google.crypto.tink", module = "tink")
+    resolutionStrategy {
+        force("com.google.crypto.tink:tink-android:1.19.0")
+    }
+}
+
 flutter {
     source = "../.."
 }
