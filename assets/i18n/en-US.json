@@ -1959,5 +1959,21 @@
   "badges": "Badges",
   "active": "Active",
   "activate": "Activate",
-  "actionLogs": "Action Logs"
+  "actionLogs": "Action Logs",
+  "passport": "Progress",
+  "achievements": "Achievements",
+  "quests": "Quests",
+  "rewards": "Rewards",
+  "completed": "Completed",
+  "completedAt": "Completed {}",
+  "nextReset": "Next reset: {}",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "progress": "Progress",
+  "noAchievements": "No achievements yet",
+  "noQuests": "No quests available",
+  "experience": "Experience",
+  "badge": "Badge",
+  "sourcePoints": "Source Points"
 }

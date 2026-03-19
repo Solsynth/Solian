@@ -249,6 +249,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
+                    'icon': Symbols.workspace_premium,
+                    'title': 'progress',
+                    'onTap': () {
+                      context.router.push(const ProgressRoute());
+                    },
+                  },
+                  {
                     'icon': Symbols.history,
                     'title': 'actionLogs',
                     'onTap': () {
