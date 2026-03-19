@@ -10,8 +10,8 @@ _SnActionLog _$SnActionLogFromJson(Map<String, dynamic> json) => _SnActionLog(
   id: json['id'] as String,
   action: json['action'] as String,
   meta: json['meta'] as Map<String, dynamic>,
-  userAgent: json['user_agent'] as String,
-  ipAddress: json['ip_address'] as String,
+  userAgent: json['user_agent'] as String?,
+  ipAddress: json['ip_address'] as String?,
   location: json['location'] == null
       ? null
       : GeoIpLocation.fromJson(json['location'] as Map<String, dynamic>),

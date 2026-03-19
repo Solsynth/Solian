@@ -130,13 +130,14 @@ class ActionLogsScreen extends ConsumerWidget {
                       size: 12,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    Text(
-                      log.ipAddress,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 12,
+                    if (log.ipAddress?.isNotEmpty ?? false)
+                      Text(
+                        log.ipAddress!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ],

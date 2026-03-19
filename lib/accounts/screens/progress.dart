@@ -12,6 +12,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final achievementsProvider =
     FutureProvider.autoDispose<List<SnAchievementState>>((ref) async {
@@ -98,9 +99,30 @@ class ProgressScreen extends ConsumerWidget {
           leading: const AutoLeadingButton(),
           bottom: TabBar(
             tabs: [
-              Tab(child: Text('achievements').tr()),
-              Tab(child: Text('quests').tr()),
-              Tab(child: Text('rewards').tr()),
+              Tab(
+                child: Text(
+                  'achievements',
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ).tr(),
+              ),
+              Tab(
+                child: Text(
+                  'quests',
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ).tr(),
+              ),
+              Tab(
+                child: Text(
+                  'rewards',
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ).tr(),
+              ),
             ],
           ),
         ),
@@ -254,7 +276,7 @@ class _ProgressHeader extends StatelessWidget {
     final progress = total > 0 ? completed / total : 0.0;
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -278,7 +300,7 @@ class _ProgressHeader extends StatelessWidget {
             const Gap(12),
             LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
+              minHeight: 6,
               borderRadius: BorderRadius.circular(4),
             ),
           ],
@@ -307,7 +329,7 @@ class _AchievementCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () => _showAchievementDetails(context),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -356,6 +378,7 @@ class _AchievementCard extends StatelessWidget {
                   ),
                   if (achievement.isCompleted)
                     Container(
+                      margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary,
@@ -369,45 +392,48 @@ class _AchievementCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const Gap(8),
-              if (!achievement.isCompleted) ...[
-                LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                const Gap(4),
-                Text(
-                  '${achievement.progressCount}/${achievement.targetCount}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
-                  ),
-                ),
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'completed'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
+              const Gap(12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!achievement.isCompleted) ...[
+                    LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ),
-                ),
-              ],
+                    const Gap(4),
+                    Text(
+                      '${achievement.progressCount}/${achievement.targetCount}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ] else ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'completed'.tr(),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ).padding(horizontal: 4),
               if (reward != null && _hasRewards(reward)) ...[
-                const Gap(8),
-                const Divider(height: 1),
-                const Gap(8),
+                const Gap(12),
                 _RewardPreview(reward: reward),
               ],
             ],
@@ -507,8 +533,6 @@ class _AchievementDetailSheet extends StatelessWidget {
           Text(achievement.summary),
           if (reward != null) ...[
             const Gap(16),
-            const Divider(),
-            const Gap(16),
             Text('rewards'.tr(), style: theme.textTheme.titleMedium),
             const Gap(12),
             if (reward.experience > 0)
@@ -581,31 +605,31 @@ class _QuestCard extends StatelessWidget {
                   ),
                   const Gap(12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
                                 quest.title,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                            _ScheduleBadge(schedule: quest.schedule),
-                          ],
-                        ),
-                        const Gap(2),
-                        Text(
-                          quest.summary,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                              const Gap(2),
+                              Text(
+                                quest.summary,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
+                        _ScheduleBadge(schedule: quest.schedule),
                       ],
                     ),
                   ),
@@ -614,68 +638,72 @@ class _QuestCard extends StatelessWidget {
                     quest.isCompleted
                         ? Symbols.check_circle
                         : Symbols.radio_button_unchecked,
+                    fill: quest.isCompleted ? 1 : 0,
                     color: quest.isCompleted
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
-              if (!quest.isCompleted) ...[
-                const Gap(12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!quest.isCompleted) ...[
+                    const Gap(12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        const Gap(8),
+                        Text(
+                          '${quest.progressCount}/${quest.targetCount}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    const Gap(8),
-                    Text(
-                      '${quest.progressCount}/${quest.targetCount}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                  ] else ...[
+                    const Gap(12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'completed'.tr(),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ] else ...[
-                const Gap(8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'completed'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                  if (!quest.isCompleted && quest.nextResetAt != null) ...[
+                    const Gap(4),
+                    Text(
+                      'nextReset'.tr(
+                        args: [quest.nextResetAt!.formatRelative(context)],
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                        fontSize: 11,
+                      ),
                     ),
-                  ),
-                ),
-              ],
-              if (!quest.isCompleted && quest.nextResetAt != null) ...[
-                const Gap(4),
-                Text(
-                  'nextReset'.tr(
-                    args: [quest.nextResetAt!.formatRelative(context)],
-                  ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.secondary,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+                  ],
+                ],
+              ).padding(horizontal: 4),
               if (reward != null && _hasRewards(reward)) ...[
-                const Gap(12),
-                const Divider(height: 1),
                 const Gap(12),
                 _RewardPreview(reward: reward),
               ],
@@ -824,7 +852,7 @@ class _QuestDetailSheet extends StatelessWidget {
                       value: quest.targetCount > 0
                           ? quest.progressCount / quest.targetCount
                           : 0,
-                      minHeight: 8,
+                      minHeight: 6,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     const Gap(4),
@@ -950,7 +978,9 @@ class _RewardGrantCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              isAchievement ? 'achievement'.tr() : 'quest'.tr(),
+                              isAchievement
+                                  ? 'achievements'.tr()
+                                  : 'quests'.tr(),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: isAchievement
@@ -976,11 +1006,9 @@ class _RewardGrantCard extends StatelessWidget {
             ),
             if (reward != null && _hasRewards(reward)) ...[
               const Gap(12),
-              const Divider(height: 1),
-              const Gap(12),
               Wrap(
-                spacing: 16,
-                runSpacing: 8,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   if (reward.experience > 0)
                     _RewardChip(
