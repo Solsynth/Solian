@@ -1978,5 +1978,21 @@
   "sourcePoints": "Source Points",
   "achievementUnlocked": "Achievement Unlocked!",
   "questCompleted": "Quest Completed!",
-  "tapToViewProgress": "Tap to view your progress"
+  "tapToViewProgress": "Tap to view your progress",
+  "achievementTitleInitialPost": "Initial Commit",
+  "achievementTitleExpertPost": "Better than 陆游 (Luyou)",
+  "achievementTitleInitialReaction": "People have emotion",
+  "achievementTitleInitialRealmJoin": "Horizons, broadened.",
+  "achievementTitleInitialPublisher": "Startup Company",
+  "achievementTitleInitialChat": "Gugugaga",
+  "achievementTitleExpertChat": "Never touch grass",
+  "questTitleDailyPost": "Daily Dispatch",
+  "achievementSummaryInitialPost": "Say hello to the Solar Network world!",
+  "achievementSummaryExpertPost": "Wrote posts more than 陆游.",
+  "achievementSummaryInitialReaction": "React to a post for the first time.",
+  "achievementSummaryInitialRealmJoin": "Join a realm.",
+  "achievementSummaryInitialPublisher": "Not backed by y combinator. Create a publisher.",
+  "achievementSummaryInitialChat": "Use chat for the first time.",
+  "achievementSummaryExpertChat": "Use chat over 10k times.",
+  "questSummaryDailyPost": "Publish one post today."
 }

@@ -1914,5 +1914,21 @@
   "sourcePoints": "소스 포인트",
   "achievementUnlocked": "업적 달성!",
   "questCompleted": "퀘스트 완료!",
-  "tapToViewProgress": "탭하여 진행 상황 보기"
+  "tapToViewProgress": "탭하여 진행 상황 보기",
+  "achievementTitleInitialPost": "첫 번째 게시물",
+  "achievementTitleExpertPost": "륙유보다 나음",
+  "achievementTitleInitialReaction": "감정이 있다",
+  "achievementTitleInitialRealmJoin": "시야 확장",
+  "achievementTitleInitialPublisher": "스타트업",
+  "achievementTitleInitialChat": "구구구가",
+  "achievementTitleExpertChat": "풀을 만지지 마라",
+  "questTitleDailyPost": "일일 게시물",
+  "achievementSummaryInitialPost": "Solar Network 세계에 인사하세요!",
+  "achievementSummaryExpertPost": "륙유보다 많은 게시물을 작성했습니다.",
+  "achievementSummaryInitialReaction": "처음으로 게시물에 반응합니다.",
+  "achievementSummaryInitialRealmJoin": "렐름에 참여하세요.",
+  "achievementSummaryInitialPublisher": "Y 콤비네이터 지원 없음. 게시자를 만드세요.",
+  "achievementSummaryInitialChat": "처음으로 채팅을 사용합니다.",
+  "achievementSummaryExpertChat": "채팅을 1만 번 이상 사용합니다.",
+  "questSummaryDailyPost": "오늘 한 편의 게시물을 발행하세요."
 }

@@ -1588,5 +1588,21 @@
 	"sourcePoints": "ソースポイント",
 	"achievementUnlocked": "実績解除！",
 	"questCompleted": "クエスト完了！",
-	"tapToViewProgress": "タップして進捗を表示"
+	"tapToViewProgress": "タップして進捗を表示",
+	"achievementTitleInitialPost": "最初の投稿",
+	"achievementTitleExpertPost": "陸游を超える",
+	"achievementTitleInitialReaction": "感情を持つ",
+	"achievementTitleInitialRealmJoin": "視野を広げる",
+	"achievementTitleInitialPublisher": "スタートアップ",
+	"achievementTitleInitialChat": " Gugugaga",
+	"achievementTitleExpertChat": "草に触れない",
+	"questTitleDailyPost": "毎日の投稿",
+	"achievementSummaryInitialPost": "Solar Networkの世界に挨拶しよう！",
+	"achievementSummaryExpertPost": "陸游以上に投稿を書きました。",
+	"achievementSummaryInitialReaction": "初めて投稿にリアクションする。",
+	"achievementSummaryInitialRealmJoin": "Realmに参加する。",
+	"achievementSummaryInitialPublisher": "Y combinatorのサポートなし。パブリッシャーを作成。",
+	"achievementSummaryInitialChat": "初めてチャットを使用する。",
+	"achievementSummaryExpertChat": "チャットを1万回以上使用する。",
+	"questSummaryDailyPost": "今日一篇投稿する。"
 }

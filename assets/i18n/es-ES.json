@@ -1584,5 +1584,21 @@
     "sourcePoints": "Puntos de origen",
     "achievementUnlocked": "¡Logro desbloqueado!",
     "questCompleted": "¡Misión completada!",
-    "tapToViewProgress": "Toca para ver tu progreso"
+    "tapToViewProgress": "Toca para ver tu progreso",
+    "achievementTitleInitialPost": "Compromiso inicial",
+    "achievementTitleExpertPost": "Mejor que 陆游 (Luyou)",
+    "achievementTitleInitialReaction": "La gente tiene emociones",
+    "achievementTitleInitialRealmJoin": "Horizontes ampliados",
+    "achievementTitleInitialPublisher": "Empresa emergente",
+    "achievementTitleInitialChat": "Gugugaga",
+    "achievementTitleExpertChat": "Nunca toques el pasto",
+    "questTitleDailyPost": "Publicación diaria",
+    "achievementSummaryInitialPost": "¡Saluda al mundo de Solar Network!",
+    "achievementSummaryExpertPost": "Escribió más publicaciones que 陆游.",
+    "achievementSummaryInitialReaction": "Reacciona a una publicación por primera vez.",
+    "achievementSummaryInitialRealmJoin": "Únete a un realm.",
+    "achievementSummaryInitialPublisher": "Sin respaldo de Y Combinator. Crea un publicador.",
+    "achievementSummaryInitialChat": "Usa el chat por primera vez.",
+    "achievementSummaryExpertChat": "Usa el chat más de 10k veces.",
+    "questSummaryDailyPost": "Publica una publicación hoy."
 }

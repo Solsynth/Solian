@@ -7,12 +7,37 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/core/utils/text.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+String _getAchievementTitle(String identifier, String defaultTitle) {
+  final key = 'achievementTitle${identifier.toCamelCase()}';
+  final translated = key.tr();
+  return translated == key ? defaultTitle : translated;
+}
+
+String _getAchievementSummary(String identifier, String defaultSummary) {
+  final key = 'achievementSummary${identifier.toCamelCase()}';
+  final translated = key.tr();
+  return translated == key ? defaultSummary : translated;
+}
+
+String _getQuestTitle(String identifier, String defaultTitle) {
+  final key = 'questTitle${identifier.toCamelCase()}';
+  final translated = key.tr();
+  return translated == key ? defaultTitle : translated;
+}
+
+String _getQuestSummary(String identifier, String defaultSummary) {
+  final key = 'questSummary${identifier.toCamelCase()}';
+  final translated = key.tr();
+  return translated == key ? defaultSummary : translated;
+}
 
 final achievementsProvider =
     FutureProvider.autoDispose<List<SnAchievementState>>((ref) async {
@@ -358,7 +383,10 @@ class _AchievementCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          achievement.title,
+                          _getAchievementTitle(
+                            achievement.identifier,
+                            achievement.title,
+                          ),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -366,7 +394,10 @@ class _AchievementCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          achievement.summary,
+                          _getAchievementSummary(
+                            achievement.identifier,
+                            achievement.summary,
+                          ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -445,18 +476,23 @@ class _AchievementCard extends StatelessWidget {
 
   IconData _getAchievementIcon(String? icon) {
     switch (icon) {
+      case 'ink':
       case 'post':
-        return Symbols.article;
+        return Symbols.edit;
+      case 'spark':
       case 'reaction':
         return Symbols.favorite;
+      case 'message-circle':
       case 'chat':
         return Symbols.chat_bubble;
+      case 'flag':
       case 'publisher':
-        return Symbols.newspaper;
-      case 'member':
-        return Symbols.group;
+        return Symbols.flag;
+      case 'globe':
       case 'realm':
-        return Symbols.castle;
+        return Symbols.public;
+      case 'messages-square':
+        return Symbols.chat;
       default:
         return Symbols.military_tech;
     }
@@ -499,7 +535,7 @@ class _AchievementDetailSheet extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Symbols.military_tech,
+                  _getAchievementIcon(achievement.icon),
                   size: 32,
                   color: achievement.isCompleted
                       ? theme.colorScheme.primary
@@ -511,7 +547,13 @@ class _AchievementDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(achievement.title, style: theme.textTheme.titleLarge),
+                    Text(
+                      _getAchievementTitle(
+                        achievement.identifier,
+                        achievement.title,
+                      ),
+                      style: theme.textTheme.titleLarge,
+                    ),
                     if (achievement.isCompleted)
                       Text(
                         'completedAt'.tr(
@@ -530,7 +572,9 @@ class _AchievementDetailSheet extends StatelessWidget {
             ],
           ),
           const Gap(16),
-          Text(achievement.summary),
+          Text(
+            _getAchievementSummary(achievement.identifier, achievement.summary),
+          ),
           if (reward != null) ...[
             const Gap(16),
             Text('rewards'.tr(), style: theme.textTheme.titleMedium),
@@ -558,6 +602,30 @@ class _AchievementDetailSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _getAchievementIcon(String? icon) {
+    switch (icon) {
+      case 'ink':
+      case 'post':
+        return Symbols.edit;
+      case 'spark':
+      case 'reaction':
+        return Symbols.favorite;
+      case 'message-circle':
+      case 'chat':
+        return Symbols.chat_bubble;
+      case 'flag':
+      case 'publisher':
+        return Symbols.flag;
+      case 'globe':
+      case 'realm':
+        return Symbols.public;
+      case 'messages-square':
+        return Symbols.chat;
+      default:
+        return Symbols.military_tech;
+    }
   }
 }
 
@@ -612,14 +680,17 @@ class _QuestCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                quest.title,
+                                _getQuestTitle(quest.identifier, quest.title),
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const Gap(2),
                               Text(
-                                quest.summary,
+                                _getQuestSummary(
+                                  quest.identifier,
+                                  quest.summary,
+                                ),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -716,18 +787,8 @@ class _QuestCard extends StatelessWidget {
 
   IconData _getQuestIcon(String? icon) {
     switch (icon) {
-      case 'post':
-        return Symbols.article;
-      case 'reaction':
-        return Symbols.favorite;
-      case 'chat':
-        return Symbols.chat_bubble;
-      case 'publisher':
-        return Symbols.newspaper;
-      case 'member':
-        return Symbols.group;
-      case 'realm':
-        return Symbols.castle;
+      case 'calendar':
+        return Symbols.calendar_today;
       default:
         return Symbols.assignment;
     }
@@ -817,7 +878,7 @@ class _QuestDetailSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Symbols.assignment,
+                  _getQuestIcon(quest.icon),
                   size: 32,
                   color: quest.isCompleted
                       ? theme.colorScheme.primary
@@ -829,7 +890,10 @@ class _QuestDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(quest.title, style: theme.textTheme.titleLarge),
+                    Text(
+                      _getQuestTitle(quest.identifier, quest.title),
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const Gap(4),
                     _ScheduleBadge(schedule: quest.schedule),
                   ],
@@ -838,7 +902,7 @@ class _QuestDetailSheet extends StatelessWidget {
             ],
           ),
           const Gap(16),
-          Text(quest.summary),
+          Text(_getQuestSummary(quest.identifier, quest.summary)),
           const Gap(16),
           Row(
             children: [
@@ -916,6 +980,15 @@ class _QuestDetailSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _getQuestIcon(String? icon) {
+    switch (icon) {
+      case 'calendar':
+        return Symbols.calendar_today;
+      default:
+        return Symbols.assignment;
+    }
   }
 }
 

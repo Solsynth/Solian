@@ -1687,5 +1687,21 @@
   "sourcePoints": "源点",
   "achievementUnlocked": "成就解锁！",
   "questCompleted": "任务完成！",
-  "tapToViewProgress": "点击查看进度"
+  "tapToViewProgress": "点击查看进度",
+  "achievementTitleInitialPost": "初次提交",
+  "achievementTitleExpertPost": "我比陆游还牛逼",
+  "achievementTitleInitialReaction": "人有七情",
+  "achievementTitleInitialRealmJoin": "开阔视野",
+  "achievementTitleInitialPublisher": "初创公司",
+  "achievementTitleInitialChat": "咕咕嘎嘎",
+  "achievementTitleExpertChat": "足不出户",
+  "questTitleDailyPost": "每日发布",
+  "achievementSummaryInitialPost": "向 Solar Network 说你好！",
+  "achievementSummaryExpertPost": "发帖数超过陆游（冷知识：陆游是中国留下古诗的最多的作者，足足 9362 篇）。",
+  "achievementSummaryInitialReaction": "第一次对帖子做出反应。",
+  "achievementSummaryInitialRealmJoin": "加入一个领域。",
+  "achievementSummaryInitialPublisher": "并没有被 Y Combinator 投资。\n创建一个发布者。",
+  "achievementSummaryInitialChat": "第一次使用聊天。",
+  "achievementSummaryExpertChat": "使用聊天超过一万次。",
+  "questSummaryDailyPost": "今天发布一篇帖子。"
 }

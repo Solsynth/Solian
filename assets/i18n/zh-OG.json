@@ -1586,5 +1586,21 @@
     "sourcePoints": "源",
     "achievementUnlocked": "功解！",
     "questCompleted": "務畢！",
-    "tapToViewProgress": "點以覽度"
+    "tapToViewProgress": "點以覽度",
+    "achievementTitleInitialPost": "初提交",
+    "achievementTitleExpertPost": "勝陸游",
+    "achievementTitleInitialReaction": "人有七情",
+    "achievementTitleInitialRealmJoin": "開闊視",
+    "achievementTitleInitialPublisher": "創公司",
+    "achievementTitleInitialChat": "呱呱呱",
+    "achievementTitleExpertChat": "足不出戶",
+    "questTitleDailyPost": "日發",
+    "achievementSummaryInitialPost": "向太陽網路世界說你好！",
+    "achievementSummaryExpertPost": "發帖數超過陸游。",
+    "achievementSummaryInitialReaction": "第一次對帖子做出反應。",
+    "achievementSummaryInitialRealmJoin": "加入一個領域。",
+    "achievementSummaryInitialPublisher": "非Y Combinator投資。創建一個發布者。",
+    "achievementSummaryInitialChat": "第一次使用聊天。",
+    "achievementSummaryExpertChat": "使用聊天超過一萬次。",
+    "questSummaryDailyPost": "今日發布一篇帖子。"
 }
