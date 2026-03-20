@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
@@ -72,6 +71,8 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SheetScaffold(
       titleText: 'createFund'.tr(),
       child: Column(
@@ -82,321 +83,301 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Amount Section
-                  Text(
-                    'fundAmount'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: amountController,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}'),
-                      ),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'enterAmount'.tr(),
-                      hintText: '0.00',
-                      prefixIcon: Icon(kCurrencyIconData[selectedCurrency]),
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                      ),
-                    ),
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                  ),
-
-                  const Gap(16),
-
-                  // Currency Selection
-                  Text(
-                    'selectCurrency'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  DropdownButtonFormField<String>(
-                    value: selectedCurrency,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                      ),
-                    ),
-                    items: kCurrencyIconData.keys.map((currency) {
-                      return DropdownMenuItem(
-                        value: currency,
-                        child: Row(
-                          children: [
-                            Icon(kCurrencyIconData[currency]),
-                            const Gap(8),
-                            Text(
-                              'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
-                                  .tr(),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => selectedCurrency = value);
-                      }
-                    },
-                  ),
-
-                  const Gap(16),
-
-                  // Amount of Splits Section
-                  Text(
-                    'amountOfSplits'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: splitsController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: 'enterNumberOfSplits'.tr(),
-                      hintText: selectedRecipients.isNotEmpty
-                          ? selectedRecipients.length.toString()
-                          : '1',
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                      ),
-                    ),
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                    onChanged: (value) {
-                      if (value.isEmpty && selectedRecipients.isNotEmpty) {
-                        splitsController.text = selectedRecipients.length
-                            .toString();
-                      }
-                    },
-                  ),
-
-                  const Gap(16),
-                  Text(
-                    'splitType'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<int>(
-                          title: Text('evenSplit'.tr()),
-                          subtitle: Text('equalAmountEach'.tr()),
-                          value: 0,
-                          groupValue: selectedSplitType,
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => selectedSplitType = value);
-                            }
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<int>(
-                          title: Text('randomSplit'.tr()),
-                          subtitle: Text('randomAmountEach'.tr()),
-                          value: 1,
-                          groupValue: selectedSplitType,
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => selectedSplitType = value);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const Gap(16),
-
-                  // Recipient Selection Section
-                  Text(
-                    'selectRecipients'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outline.withOpacity(0.2),
-                      ),
-                    ),
-                    child: selectedRecipients.isNotEmpty
-                        ? Column(
-                            children: [
-                              ...selectedRecipients.map((recipient) {
-                                return ListTile(
-                                  contentPadding: const EdgeInsets.only(
-                                    left: 20,
-                                    right: 12,
-                                  ),
-                                  leading: ProfilePictureWidget(
-                                    file: recipient.profile.picture,
-                                  ),
-                                  title: Text(
-                                    recipient.nick,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'selectedRecipient'.tr(),
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                  trailing: IconButton(
-                                    onPressed: () => setState(
-                                      () =>
-                                          selectedRecipients.remove(recipient),
-                                    ),
-                                    icon: Icon(
-                                      Icons.clear,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
-                                    tooltip: 'Remove recipient',
-                                  ),
-                                );
-                              }),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
                               Icon(
-                                Icons.person_add_outlined,
-                                size: 48,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                Symbols.attach_money,
+                                size: 20,
+                                color: theme.colorScheme.primary,
                               ),
                               const Gap(8),
                               Text(
-                                'noRecipientsSelected'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              const Gap(4),
-                              Text(
-                                'selectRecipientsToSendFund'.tr(),
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                textAlign: TextAlign.center,
+                                'fundDetails'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
-                          ).padding(vertical: 32),
-                  ),
-                  const Gap(12),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final recipient = await showModalBottomSheet<SnAccount>(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (context) => const AccountPickerSheet(),
-                      );
-                      if (recipient != null &&
-                          !selectedRecipients.contains(recipient)) {
-                        setState(() => selectedRecipients.add(recipient));
-                      }
-                    },
-                    icon: const Icon(Icons.person_search),
-                    label: Text(
-                      selectedRecipients.isNotEmpty
-                          ? 'addMoreRecipients'.tr()
-                          : 'selectRecipients'.tr(),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                  ),
-
-                  const Gap(16),
-
-                  // Message Section
-                  Text(
-                    'addMessage'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      labelText: 'personalMessage'.tr(),
-                      hintText: 'addPersonalMessageForRecipients'.tr(),
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
+                          ),
+                          const Gap(16),
+                          TextField(
+                            controller: amountController,
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d+\.?\d{0,2}'),
+                              ),
+                            ],
+                            decoration: InputDecoration(
+                              labelText: 'fundAmount'.tr(),
+                              hintText: '0.00',
+                            ),
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                          ),
+                          const Gap(12),
+                          DropdownButtonFormField<String>(
+                            value: selectedCurrency,
+                            decoration: InputDecoration(
+                              labelText: 'currency'.tr(),
+                            ),
+                            items: kCurrencyIconData.keys.map((currency) {
+                              return DropdownMenuItem(
+                                value: currency,
+                                child: Row(
+                                  children: [
+                                    Icon(kCurrencyIconData[currency], size: 18),
+                                    const Gap(8),
+                                    Text(
+                                      'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                                          .tr(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => selectedCurrency = value);
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    maxLines: 3,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const Gap(16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.call_split,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'splitSettings'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+                          TextField(
+                            controller: splitsController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: 'amountOfSplits'.tr(),
+                              hintText: '1',
+                            ),
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                            onChanged: (value) {
+                              if (value.isEmpty &&
+                                  selectedRecipients.isNotEmpty) {
+                                splitsController.text = selectedRecipients
+                                    .length
+                                    .toString();
+                              }
+                            },
+                          ),
+                          const Gap(16),
+                          SegmentedButton<int>(
+                            segments: [
+                              ButtonSegment(
+                                value: 0,
+                                label: Text('evenSplit'.tr()),
+                              ),
+                              ButtonSegment(
+                                value: 1,
+                                label: Text('randomSplit'.tr()),
+                              ),
+                            ],
+                            selected: {selectedSplitType},
+                            onSelectionChanged: (values) {
+                              setState(() => selectedSplitType = values.first);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Gap(16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.group,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'recipients'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+                          if (selectedRecipients.isNotEmpty)
+                            ...selectedRecipients.map(
+                              (recipient) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: ProfilePictureWidget(
+                                  file: recipient.profile.picture,
+                                ),
+                                title: Text(
+                                  recipient.nick,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: theme.colorScheme.error,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => selectedRecipients.remove(recipient),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (selectedRecipients.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest
+                                    .withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 40,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  const Gap(8),
+                                  Text(
+                                    'noRecipientsSelected'.tr(),
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const Gap(4),
+                                  Text(
+                                    'selectRecipientsToSendFund'.tr(),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const Gap(12),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              final recipient =
+                                  await showModalBottomSheet<SnAccount>(
+                                    context: context,
+                                    useRootNavigator: true,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        const AccountPickerSheet(),
+                                  );
+                              if (recipient != null &&
+                                  !selectedRecipients.contains(recipient)) {
+                                setState(
+                                  () => selectedRecipients.add(recipient),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.person_add),
+                            label: Text(
+                              selectedRecipients.isNotEmpty
+                                  ? 'addMoreRecipients'.tr()
+                                  : 'selectRecipients'.tr(),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Gap(16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.message,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'message'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+                          TextField(
+                            controller: messageController,
+                            decoration: InputDecoration(
+                              labelText: 'personalMessage'.tr(),
+                              hintText: 'addPersonalMessageForRecipients'.tr(),
+                              alignLabelWithHint: true,
+                            ),
+                            maxLines: 3,
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-
-          // Action Buttons
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -407,8 +388,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                     child: Text('cancel'.tr()),
                   ),
                 ),
-                const Gap(8),
+                const Gap(12),
                 Expanded(
+                  flex: 2,
                   child: FilledButton(
                     onPressed: _createFund,
                     child: Text('createFund'.tr()),
@@ -575,6 +557,8 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SheetScaffold(
       titleText: 'createTransfer'.tr(),
       child: Column(
@@ -585,228 +569,225 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Amount Section
-                  Text(
-                    'transferAmount'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: amountController,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}'),
-                      ),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'enterAmount'.tr(),
-                      hintText: '0.00',
-                      prefixIcon: Icon(kCurrencyIconData[selectedCurrency]),
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                      ),
-                    ),
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                  ),
-
-                  const Gap(16),
-
-                  // Currency Selection
-                  Text(
-                    'selectCurrency'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  DropdownButtonFormField<String>(
-                    value: selectedCurrency,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                      ),
-                    ),
-                    items: kCurrencyIconData.keys.map((currency) {
-                      return DropdownMenuItem(
-                        value: currency,
-                        child: Row(
-                          children: [
-                            Icon(kCurrencyIconData[currency]),
-                            const Gap(8),
-                            Text(
-                              'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
-                                  .tr(),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => selectedCurrency = value);
-                      }
-                    },
-                  ),
-
-                  const Gap(16),
-
-                  // Payee Selection Section
-                  Text(
-                    'selectPayee'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outline.withOpacity(0.2),
-                      ),
-                    ),
-                    child: selectedPayee != null
-                        ? ListTile(
-                            contentPadding: const EdgeInsets.only(
-                              left: 20,
-                              right: 12,
-                            ),
-                            leading: ProfilePictureWidget(
-                              file: selectedPayee!.profile.picture,
-                            ),
-                            title: Text(
-                              selectedPayee!.nick,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'selectedPayee'.tr(),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                            trailing: IconButton(
-                              onPressed: () =>
-                                  setState(() => selectedPayee = null),
-                              icon: Icon(
-                                Icons.clear,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                              tooltip: 'Remove payee',
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
                               Icon(
-                                Icons.person_add_outlined,
-                                size: 48,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                Symbols.attach_money,
+                                size: 20,
+                                color: theme.colorScheme.primary,
                               ),
                               const Gap(8),
                               Text(
-                                'noPayeeSelected'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              const Gap(4),
-                              Text(
-                                'selectPayeeToTransfer'.tr(),
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                textAlign: TextAlign.center,
+                                'transferDetails'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
-                          ).padding(vertical: 32),
-                  ),
-                  const Gap(12),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final payee = await showModalBottomSheet<SnAccount>(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (context) => const AccountPickerSheet(),
-                      );
-                      if (payee != null) {
-                        setState(() => selectedPayee = payee);
-                      }
-                    },
-                    icon: const Icon(Icons.person_search),
-                    label: Text('selectPayee'.tr()),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                  ),
-
-                  const Gap(16),
-
-                  // Remark Section
-                  Text(
-                    'addRemark'.tr(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: remarkController,
-                    decoration: InputDecoration(
-                      labelText: 'transferRemark'.tr(),
-                      hintText: 'addRemarkForTransfer'.tr(),
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
+                          ),
+                          const Gap(16),
+                          TextField(
+                            controller: amountController,
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d+\.?\d{0,2}'),
+                              ),
+                            ],
+                            decoration: InputDecoration(
+                              labelText: 'transferAmount'.tr(),
+                              hintText: '0.00',
+                            ),
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                          ),
+                          const Gap(12),
+                          DropdownButtonFormField<String>(
+                            value: selectedCurrency,
+                            decoration: InputDecoration(
+                              labelText: 'currency'.tr(),
+                            ),
+                            items: kCurrencyIconData.keys.map((currency) {
+                              return DropdownMenuItem(
+                                value: currency,
+                                child: Row(
+                                  children: [
+                                    Icon(kCurrencyIconData[currency], size: 18),
+                                    const Gap(8),
+                                    Text(
+                                      'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                                          .tr(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => selectedCurrency = value);
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    maxLines: 3,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const Gap(16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.person,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'payee'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+                          if (selectedPayee != null)
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: ProfilePictureWidget(
+                                file: selectedPayee!.profile.picture,
+                              ),
+                              title: Text(
+                                selectedPayee!.nick,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: Text('selectedPayee'.tr()),
+                              trailing: IconButton(
+                                icon: Icon(
+                                  Icons.close,
+                                  color: theme.colorScheme.error,
+                                ),
+                                onPressed: () =>
+                                    setState(() => selectedPayee = null),
+                              ),
+                            ),
+                          if (selectedPayee == null)
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest
+                                    .withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.person_add_outlined,
+                                    size: 40,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  const Gap(8),
+                                  Text(
+                                    'noPayeeSelected'.tr(),
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const Gap(4),
+                                  Text(
+                                    'selectPayeeToTransfer'.tr(),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const Gap(12),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              final payee =
+                                  await showModalBottomSheet<SnAccount>(
+                                    context: context,
+                                    useRootNavigator: true,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        const AccountPickerSheet(),
+                                  );
+                              if (payee != null) {
+                                setState(() => selectedPayee = payee);
+                              }
+                            },
+                            icon: const Icon(Icons.person_search),
+                            label: Text('selectPayee'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Gap(16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.notes,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const Gap(8),
+                              Text(
+                                'remark'.tr(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+                          TextField(
+                            controller: remarkController,
+                            decoration: InputDecoration(
+                              labelText: 'transferRemark'.tr(),
+                              hintText: 'addRemarkForTransfer'.tr(),
+                              alignLabelWithHint: true,
+                            ),
+                            maxLines: 3,
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-
-          // Action Buttons
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -817,8 +798,9 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                     child: Text('cancel'.tr()),
                   ),
                 ),
-                const Gap(8),
+                const Gap(12),
                 Expanded(
+                  flex: 2,
                   child: FilledButton(
                     onPressed: _createTransfer,
                     child: Text('createTransfer'.tr()),
@@ -1358,15 +1340,20 @@ class WalletScreen extends HookConsumerWidget {
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               // Balance Card with Currency Dropdown
               SliverToBoxAdapter(
-                child: _buildBalanceCard(
-                  context,
-                  allPockets,
-                  selectedCurrency,
-                  isBalanceVisible,
-                  isFullAmountVisible,
-                  balanceAnimationController,
-                  animatedBalance,
-                ).padding(horizontal: 16, top: 16, bottom: 12),
+                child: Column(
+                  children: [
+                    _buildBalanceCard(
+                      context,
+                      allPockets,
+                      selectedCurrency,
+                      isBalanceVisible,
+                      isFullAmountVisible,
+                      balanceAnimationController,
+                      animatedBalance,
+                    ).padding(horizontal: 16, top: 16),
+                    _buildBalanceStats(context, ref, selectedCurrency),
+                  ],
+                ),
               ),
 
               // Quick Action Buttons
@@ -1375,7 +1362,7 @@ class WalletScreen extends HookConsumerWidget {
                   context,
                   createTransfer,
                   createFund,
-                ).padding(horizontal: 16, bottom: 8),
+                ).padding(horizontal: 16, bottom: 8, top: 8),
               ),
 
               // Tab Bar
@@ -1410,6 +1397,155 @@ class WalletScreen extends HookConsumerWidget {
     );
   }
 
+  Widget _buildBalanceStats(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<String> selectedCurrency,
+  ) {
+    final stats = ref.watch(walletStatsProvider);
+
+    return stats.when(
+      data: (data) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: _statCard(
+                label: 'income'.tr(),
+                amount: data.totalIncome,
+                currency: selectedCurrency.value,
+                icon: Symbols.arrow_circle_down,
+                color: Colors.green,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: _statCard(
+                label: 'expense'.tr(),
+                amount: data.totalOutgoing,
+                currency: selectedCurrency.value,
+                icon: Symbols.arrow_circle_up,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      ),
+      loading: () => const SizedBox(height: 64),
+      error: (error, stack) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _currencyChip({
+    required ValueNotifier<String> selectedCurrency,
+    required List<SnWalletPocket> pockets,
+    required ThemeData theme,
+  }) {
+    return PopupMenuButton<String>(
+      initialValue: selectedCurrency.value,
+      onSelected: (value) => selectedCurrency.value = value,
+      offset: const Offset(0, 40),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimaryContainer.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              kCurrencyIconData[selectedCurrency.value] ??
+                  Symbols.monetization_on,
+              size: 16,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+            const Gap(4),
+            Text(
+              'walletCurrency${selectedCurrency.value[0].toUpperCase()}${selectedCurrency.value.substring(1).toLowerCase()}'
+                  .tr(),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Gap(4),
+            Icon(
+              Symbols.keyboard_arrow_down,
+              size: 16,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => pockets.map((pocket) {
+        return PopupMenuItem(
+          value: pocket.currency,
+          child: Row(
+            children: [
+              Icon(
+                kCurrencyIconData[pocket.currency] ?? Symbols.monetization_on,
+                size: 18,
+              ),
+              const Gap(8),
+              Text(
+                'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                    .tr(),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _statCard({
+    required String label,
+    required double amount,
+    required String currency,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  '${formatAmountWithSuffix(amount)} $currency',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBalanceCard(
     BuildContext context,
     List<SnWalletPocket> pockets,
@@ -1419,12 +1555,9 @@ class WalletScreen extends HookConsumerWidget {
     AnimationController balanceAnimationController,
     ValueNotifier<double> animatedBalance,
   ) {
-    // Responsive adjustments for narrow screens
+    final theme = Theme.of(context);
     final isWide = isWideScreen(context);
-    final dropdownPadding = isWide ? 16.0 : 8.0;
-    final iconSize = isWide ? 16.0 : 14.0;
 
-    // Helper to format amount based on visibility toggle
     String formatDisplayAmount(double amount) {
       if (!isBalanceVisible.value) {
         return '••••••';
@@ -1435,282 +1568,124 @@ class WalletScreen extends HookConsumerWidget {
       return formatAmountWithSuffix(amount);
     }
 
-    // Animated amount using TweenAnimationBuilder
     final displayAmount = isBalanceVisible.value ? animatedBalance.value : 0.0;
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: displayAmount),
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       curve: Curves.easeOutCubic,
       builder: (context, animatedValue, child) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withBlue(200),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        return Card(
+          margin: EdgeInsets.zero,
+          color: theme.colorScheme.primaryContainer,
           child: Padding(
             padding: EdgeInsets.all(isWide ? 20.0 : 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Balance Label
-                Text(
-                  'balance'.tr(),
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: isWide ? 18 : 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                // Balance Amount Row
-                if (!isWide) ...[
-                  // On narrow screens, stack the amount and currency dropdown
-                  const Gap(8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          formatDisplayAmount(animatedValue),
-                          style: GoogleFonts.ibmPlexMono(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: -0.1,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      // Toggle visibility (hide/show amount)
-                      IconButton(
-                        icon: Icon(
-                          isBalanceVisible.value
-                              ? Symbols.visibility
-                              : Symbols.visibility_off,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          isBalanceVisible.value = !isBalanceVisible.value;
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      // Toggle full amount (k/m suffix vs full number)
-                      IconButton(
-                        icon: Icon(
-                          isFullAmountVisible.value
-                              ? Symbols.unfold_less
-                              : Symbols.unfold_more,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 20,
-                        ),
-                        onPressed: isBalanceVisible.value
-                            ? () {
-                                isFullAmountVisible.value =
-                                    !isFullAmountVisible.value;
-                              }
-                            : null,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const Gap(8),
-                  // Currency dropdown below the amount on narrow screens
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: dropdownPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.account_balance_wallet,
+                      color: theme.colorScheme.onPrimaryContainer,
+                      size: 20,
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedCurrency.value,
-                        isDense: true,
-                        icon: Icon(
-                          Symbols.keyboard_arrow_down,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 16,
+                    const Gap(8),
+                    Text(
+                      'balance'.tr(),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Symbols.more_horiz,
+                        color: theme.colorScheme.onPrimaryContainer,
+                        size: 20,
+                      ),
+                      iconSize: 20,
+                      style: ButtonStyle(
+                        visualDensity: VisualDensity(
+                          vertical: -4,
+                          horizontal: -2,
                         ),
-                        dropdownColor: Theme.of(context).colorScheme.surface,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
+                      ),
+                      padding: EdgeInsets.zero,
+                      onSelected: (value) {
+                        if (value == 'visibility') {
+                          isBalanceVisible.value = !isBalanceVisible.value;
+                        } else if (value == 'full_amount') {
+                          isFullAmountVisible.value =
+                              !isFullAmountVisible.value;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'visibility',
+                          child: Row(
+                            children: [
+                              Icon(
+                                isBalanceVisible.value
+                                    ? Symbols.visibility_off
+                                    : Symbols.visibility,
+                                size: 18,
+                              ),
+                              const Gap(8),
+                              Text(
+                                isBalanceVisible.value
+                                    ? 'hideBalance'.tr()
+                                    : 'showBalance'.tr(),
+                              ),
+                            ],
+                          ),
                         ),
-                        menuMaxHeight: 200,
-                        items: pockets.map((pocket) {
-                          return DropdownMenuItem(
-                            value: pocket.currency,
+                        if (isBalanceVisible.value)
+                          PopupMenuItem(
+                            value: 'full_amount',
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  kCurrencyIconData[pocket.currency] ??
-                                      Symbols.universal_currency_alt,
-                                  size: iconSize,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
+                                  isFullAmountVisible.value
+                                      ? Symbols.unfold_less
+                                      : Symbols.unfold_more,
+                                  size: 18,
                                 ),
-                                const Gap(4),
-                                Flexible(
-                                  child: Text(
-                                    'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
-                                        .tr(),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 13,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                const Gap(8),
+                                Text(
+                                  isFullAmountVisible.value
+                                      ? 'showCompact'.tr()
+                                      : 'showFullAmount'.tr(),
                                 ),
                               ],
                             ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            selectedCurrency.value = value;
-                          }
-                        },
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      formatDisplayAmount(animatedValue),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isWide ? 40 : 32,
                       ),
                     ),
-                  ),
-                ] else ...[
-                  // On wide screens, keep the original layout
-                  const Gap(8),
-                  Row(
-                    children: [
-                      Text(
-                        formatDisplayAmount(animatedValue),
-                        style: GoogleFonts.ibmPlexMono(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                      const Gap(8),
-                      // Toggle visibility (hide/show amount)
-                      IconButton(
-                        icon: Icon(
-                          isBalanceVisible.value
-                              ? Symbols.visibility
-                              : Symbols.visibility_off,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          isBalanceVisible.value = !isBalanceVisible.value;
-                        },
-                      ),
-                      // Toggle full amount (k/m suffix vs full number)
-                      IconButton(
-                        icon: Icon(
-                          isFullAmountVisible.value
-                              ? Symbols.unfold_less
-                              : Symbols.unfold_more,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 24,
-                        ),
-                        onPressed: isBalanceVisible.value
-                            ? () {
-                                isFullAmountVisible.value =
-                                    !isFullAmountVisible.value;
-                              }
-                            : null,
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: dropdownPadding,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedCurrency.value,
-                            icon: Icon(
-                              Symbols.keyboard_arrow_down,
-                              color: Colors.white.withOpacity(0.9),
-                              size: 18,
-                            ),
-                            dropdownColor: Theme.of(
-                              context,
-                            ).colorScheme.surface,
-                            style: const TextStyle(color: Colors.white),
-                            items: pockets.map((pocket) {
-                              return DropdownMenuItem(
-                                value: pocket.currency,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      kCurrencyIconData[pocket.currency] ??
-                                          Symbols.universal_currency_alt,
-                                      size: 16,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                      shadows: [
-                                        BoxShadow(
-                                          color: Colors.black54,
-                                          blurRadius: 2,
-                                          offset: const Offset(1, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    const Gap(8),
-                                    Text(
-                                      'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
-                                          .tr(),
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
-                                        fontWeight: FontWeight.w500,
-                                        shadows: [
-                                          BoxShadow(
-                                            color: Colors.black54,
-                                            blurRadius: 2,
-                                            offset: const Offset(1, 1),
-                                          ),
-                                        ],
-                                      ),
-                                    ).padding(right: 4),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                selectedCurrency.value = value;
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    const Gap(8),
+                    _currencyChip(
+                      selectedCurrency: selectedCurrency,
+                      pockets: pockets,
+                      theme: theme,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1760,37 +1735,22 @@ class WalletScreen extends HookConsumerWidget {
     Color color,
     VoidCallback onPressed,
   ) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withOpacity(0.3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20),
+          const Gap(8),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const Gap(8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -2027,7 +1987,7 @@ class WalletScreen extends HookConsumerWidget {
                         Expanded(
                           child: Text(
                             '${formatAmountWithSuffix(fund.totalAmount)} ${fund.currency}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
