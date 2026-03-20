@@ -13,10 +13,11 @@ enum PushNotificationProvider {
   fcm,
   unifiedpush;
 
-  String get remoteType => switch (this) {
-    PushNotificationProvider.apple => 'apns',
-    PushNotificationProvider.fcm => 'fcm',
-    PushNotificationProvider.unifiedpush => 'unifiedpush',
+  int get remoteType => switch (this) {
+    PushNotificationProvider.apple => 0,
+    PushNotificationProvider.fcm => 1,
+    // 2 is for Solar Network Push
+    PushNotificationProvider.unifiedpush => 3,
   };
 
   String get storageValue => name;
