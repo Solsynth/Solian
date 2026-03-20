@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'progression.freezed.dart';
 part 'progression.g.dart';

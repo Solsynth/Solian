@@ -2010,5 +2010,12 @@
   "achievementSummaryStreakLogin365": "Stay active for 365 days in a row.",
   "achievementSummaryExpertFeaturedPost": "Get 100 of your posts featured.",
   "achievementSummaryExpertChat": "Use chat over 10k times.",
-  "questSummaryDailyPost": "Publish one post today."
+  "questSummaryDailyPost": "Publish one post today.",
+  "hideBalance": "Hide Balance",
+  "showFullAmount": "Show Full Amount",
+  "transferDetails": "Transfer Details",
+  "fundDetails": "Fund Details",
+  "splitSettings": "Split Settings",
+  "remark": "Remark",
+  "message": "Message"
 }
