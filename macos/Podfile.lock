@@ -99,6 +99,9 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - nanopb (~> 3.30910.0)
     - PromisesSwift (~> 2.1)
+  - flutter_blue_plus_darwin (0.0.2):
+    - Flutter
+    - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
@@ -260,6 +263,7 @@ DEPENDENCIES:
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - firebase_crashlytics (from `Flutter/ephemeral/.symlinks/plugins/firebase_crashlytics/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
+  - flutter_blue_plus_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
@@ -344,6 +348,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_crashlytics/macos
   firebase_messaging:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
+  flutter_blue_plus_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_local_notifications:
@@ -436,6 +442,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 7d6cdbff969127c4151c824fe432f0e301210f15
   FirebaseRemoteConfigInterop: 765ee19cd2bfa8e54937c8dae901eb634ad6787d
   FirebaseSessions: a2d06fd980431fda934c7a543901aca05fc4edcc
+  flutter_blue_plus_darwin: 20a08bfeaa0f7804d524858d3d8744bcc1b6dbc3
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_local_notifications: 1fc7ffb10a83d6a2eeeeddb152d43f1944b0aad0
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23

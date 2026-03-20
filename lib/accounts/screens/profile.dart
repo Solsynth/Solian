@@ -1321,16 +1321,17 @@ class AccountProfileScreen extends HookConsumerWidget {
                               data: data,
                               uname: name,
                               accountDeveloper: accountDeveloper,
-                            ).padding(horizontal: 4, top: 20),
+                            ),
                           ),
                           if (data.badges.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Card(
                                 margin: EdgeInsets.zero,
-                                child: BadgeList(
-                                  badges: data.badges,
-                                ).padding(horizontal: 26, vertical: 20),
-                              ).padding(left: 2, right: 4),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: BadgeList(badges: data.badges),
+                                ),
+                              ),
                             ),
                           SliverToBoxAdapter(
                             child: Column(
@@ -1340,7 +1341,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   level: data.profile.level,
                                   experience: data.profile.experience,
                                   progress: data.profile.levelingProgress,
-                                ).padding(left: 2, right: 4),
+                                ),
                                 if (data.profile.verification != null)
                                   Card(
                                     margin: EdgeInsets.zero,
@@ -1349,12 +1350,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                                     ),
                                   ),
                               ],
-                            ).padding(horizontal: 4, top: 8),
+                            ),
                           ),
                           SliverToBoxAdapter(
-                            child: _AccountProfileBio(
-                              data: data,
-                            ).padding(top: 4),
+                            child: _AccountProfileBio(data: data),
                           ),
                           if (data.profile.links.isNotEmpty)
                             SliverToBoxAdapter(
@@ -1375,9 +1374,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         slivers: [
                           SliverGap(18),
                           SliverToBoxAdapter(
-                            child: ActivityPresenceWidget(
-                              uname: name,
-                            ).padding(horizontal: 4, top: 4, bottom: 4),
+                            child: ActivityPresenceWidget(uname: name),
                           ),
                           SliverToBoxAdapter(
                             child: _AccountPublisherList(
@@ -1398,10 +1395,13 @@ class AccountProfileScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Card(
                               margin: EdgeInsets.zero,
-                              child: FortuneGraphWidget(
-                                events: accountEvents,
-                                eventCalandarUser: data.name,
-                                margin: EdgeInsets.zero,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: FortuneGraphWidget(
+                                  events: accountEvents,
+                                  eventCalandarUser: data.name,
+                                  margin: EdgeInsets.zero,
+                                ),
                               ),
                             ),
                           ),
@@ -1451,16 +1451,17 @@ class AccountProfileScreen extends HookConsumerWidget {
                         data: data,
                         uname: name,
                         accountDeveloper: accountDeveloper,
-                      ).padding(horizontal: 4, top: 8),
+                      ),
                     ),
                     if (data.badges.isNotEmpty)
                       SliverToBoxAdapter(
                         child: Card(
                           margin: EdgeInsets.zero,
-                          child: BadgeList(
-                            badges: data.badges,
-                          ).padding(horizontal: 26, vertical: 20),
-                        ).padding(horizontal: 4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: BadgeList(badges: data.badges),
+                          ),
+                        ),
                       ),
                     SliverToBoxAdapter(
                       child: Column(
@@ -1469,48 +1470,36 @@ class AccountProfileScreen extends HookConsumerWidget {
                             level: data.profile.level,
                             experience: data.profile.experience,
                             progress: data.profile.levelingProgress,
-                          ).padding(top: 8, horizontal: 8, bottom: 4),
+                          ),
                           if (data.profile.verification != null)
                             Card(
                               margin: EdgeInsets.zero,
                               child: VerificationStatusCard(
                                 mark: data.profile.verification!,
                               ),
-                            ).padding(horizontal: 4),
+                            ),
                         ],
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: _AccountProfileBio(
-                        data: data,
-                      ).padding(horizontal: 4),
-                    ),
+                    SliverToBoxAdapter(child: _AccountProfileBio(data: data)),
                     if (data.profile.links.isNotEmpty)
                       SliverToBoxAdapter(
-                        child: _AccountProfileLinks(
-                          data: data,
-                        ).padding(horizontal: 4),
+                        child: _AccountProfileLinks(data: data),
                       ),
                     if (data.contacts.any((c) => c.isPublic))
                       SliverToBoxAdapter(
-                        child: _AccountProfileContacts(
-                          data: data,
-                        ).padding(horizontal: 4),
+                        child: _AccountProfileContacts(data: data),
                       ),
                     SliverToBoxAdapter(
-                      child: ActivityPresenceWidget(
-                        uname: name,
-                      ).padding(horizontal: 8, top: 4, bottom: 4),
+                      child: ActivityPresenceWidget(uname: name),
                     ),
                     SliverToBoxAdapter(
                       child: _AccountPublisherList(
                         publishers: accountPublishers.value ?? [],
-                      ).padding(horizontal: 4),
+                      ),
                     ),
                     SliverToBoxAdapter(
-                      child: _AccountProfileDetail(
-                        data: data,
-                      ).padding(horizontal: 4),
+                      child: _AccountProfileDetail(data: data),
                     ),
                     if (user.value != null && !isCurrentUser)
                       SliverToBoxAdapter(
@@ -1521,16 +1510,19 @@ class AccountProfileScreen extends HookConsumerWidget {
                           relationshipAction: relationshipAction,
                           blockAction: blockAction,
                           directMessageAction: directMessageAction,
-                        ).padding(horizontal: 4),
+                        ),
                       ),
                     SliverToBoxAdapter(
                       child: Card(
                         margin: EdgeInsets.zero,
-                        child: FortuneGraphWidget(
-                          events: accountEvents,
-                          eventCalandarUser: data.name,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: FortuneGraphWidget(
+                            events: accountEvents,
+                            eventCalandarUser: data.name,
+                          ),
                         ),
-                      ).padding(horizontal: 4),
+                      ),
                     ),
                   ],
                 ),

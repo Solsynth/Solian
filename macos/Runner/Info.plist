@@ -41,6 +41,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow Solian to use your camera for Solar Network video call.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>
