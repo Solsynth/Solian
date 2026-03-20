@@ -6,8 +6,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/main.dart';
-import 'package:island/route.dart';
-import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -71,25 +69,18 @@ class ProgressionWebSocketNotifier extends Notifier<void> {
       return;
     }
 
-    final reward = packet.reward;
-
     OverlayEntry? entry;
 
     entry = OverlayEntry(
       builder: (context) => _ProgressionCompletionOverlay(
         kind: packet.kind,
         title: packet.title,
-        reward: reward,
+        identifier: packet.identifier,
+        reward: packet.reward,
         onDismiss: () {
           entry?.remove();
           _isShowing = false;
           _showNextCompletion();
-        },
-        onViewDetails: () {
-          entry?.remove();
-          _isShowing = false;
-          _showNextCompletion();
-          _navigateToProgress();
         },
       ),
     );
@@ -97,23 +88,15 @@ class ProgressionWebSocketNotifier extends Notifier<void> {
     globalOverlay.currentState?.insert(entry);
   }
 
-  void _navigateToProgress() {
-    try {
-      final router = ref.read(routerProvider);
-      router.push(const ProgressRoute());
-    } catch (e) {
-      // Router not available
-    }
-  }
-
   void testShowCompletion({
     required String kind,
     required String title,
+    String? identifier,
     SnProgressRewardDefinition? reward,
   }) {
     final packet = SnProgressionCompletedPacket(
       kind: kind,
-      identifier: 'test_${DateTime.now().millisecondsSinceEpoch}',
+      identifier: identifier ?? 'test_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       reward: reward,
     );
@@ -125,16 +108,16 @@ class ProgressionWebSocketNotifier extends Notifier<void> {
 class _ProgressionCompletionOverlay extends StatefulWidget {
   final String kind;
   final String title;
+  final String identifier;
   final SnProgressRewardDefinition? reward;
   final VoidCallback onDismiss;
-  final VoidCallback onViewDetails;
 
   const _ProgressionCompletionOverlay({
     required this.kind,
     required this.title,
+    required this.identifier,
     this.reward,
     required this.onDismiss,
-    required this.onViewDetails,
   });
 
   @override
@@ -146,6 +129,7 @@ class _ProgressionCompletionOverlayState
     extends State<_ProgressionCompletionOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
 
@@ -153,14 +137,32 @@ class _ProgressionCompletionOverlayState
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
+      reverseDuration: const Duration(milliseconds: 200),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _slideAnimation = Tween<double>(
+      begin: 80.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 0.3,
+          end: 1.1,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 1.1,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 60,
+      ),
+    ]).animate(_controller);
 
     _opacityAnimation = Tween<double>(
       begin: 0.0,
@@ -192,83 +194,68 @@ class _ProgressionCompletionOverlayState
     final theme = Theme.of(context);
     final isAchievement = widget.kind == 'achievement';
     final color = isAchievement ? Colors.amber : Colors.blue;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Material(
       color: Colors.transparent,
-      child: FadeTransition(
-        opacity: _opacityAnimation,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _dismiss,
-                child: Container(color: Colors.transparent),
-              ),
-            ),
-            Center(
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Card(
-                    elevation: 8,
-                    child: InkWell(
-                      onTap: widget.onViewDetails,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                isAchievement
-                                    ? Symbols.military_tech
-                                    : Symbols.assignment,
-                                size: 36,
-                                color: color,
-                              ),
-                            ),
-                            const Gap(16),
-                            Text(
-                              isAchievement
-                                  ? 'achievementUnlocked'.tr()
-                                  : 'questCompleted'.tr(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: color,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Gap(8),
-                            Text(
-                              widget.title,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            if (widget.reward != null &&
-                                _hasRewards(widget.reward!)) ...[
-                              const Gap(16),
-                              const Divider(),
-                              const Gap(12),
-                              _RewardPreview(reward: widget.reward!),
-                            ],
-                            const Gap(16),
-                            Text(
-                              'tapToViewProgress'.tr(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: bottomPadding + 16,
+            child: FadeTransition(
+              opacity: _opacityAnimation,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _slideAnimation.value),
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      alignment: Alignment.bottomCenter,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Center(
+                  child: GestureDetector(
+                    onTap: _dismiss,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        maxWidth: 500,
+                        minWidth: 200,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: color.withOpacity(0.3),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(32),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          child: _CompletionPillContent(
+                            kind: widget.kind,
+                            title: widget.title,
+                            identifier: widget.identifier,
+                            color: color,
+                            reward: widget.reward,
+                          ),
                         ),
                       ),
                     ),
@@ -276,10 +263,110 @@ class _ProgressionCompletionOverlayState
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class _CompletionPillContent extends StatelessWidget {
+  final String kind;
+  final String title;
+  final String identifier;
+  final Color color;
+  final SnProgressRewardDefinition? reward;
+
+  const _CompletionPillContent({
+    required this.kind,
+    required this.title,
+    required this.identifier,
+    required this.color,
+    this.reward,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isAchievement = kind == 'achievement';
+    final displayTitle = _getLocalizedTitle(identifier, title);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isAchievement ? Symbols.military_tech : Symbols.assignment,
+              size: 22,
+              color: color,
+            ),
+          ),
+          const Gap(12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isAchievement
+                    ? 'achievementUnlocked'.tr()
+                    : 'questCompleted'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
+              Text(
+                displayTitle,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          if (reward != null && _hasRewards(reward!)) ...[
+            const Gap(12),
+            Container(
+              width: 1,
+              height: 32,
+              color: theme.colorScheme.outlineVariant,
+            ),
+            const Gap(12),
+            _RewardRowCompact(reward: reward!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _getLocalizedTitle(String identifier, String defaultTitle) {
+    final isAchievement = kind == 'achievement';
+    final key = isAchievement
+        ? 'achievementTitle${_toCamelCase(identifier)}'
+        : 'questTitle${_toCamelCase(identifier)}';
+    final translated = key.tr();
+    return translated == key ? defaultTitle : translated;
+  }
+
+  String _toCamelCase(String input) {
+    if (input.isEmpty) return input;
+    return input
+        .split('-')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+              : '',
+        )
+        .join();
   }
 
   bool _hasRewards(SnProgressRewardDefinition reward) {
@@ -289,56 +376,54 @@ class _ProgressionCompletionOverlayState
   }
 }
 
-class _RewardPreview extends StatelessWidget {
+class _RewardRowCompact extends StatelessWidget {
   final SnProgressRewardDefinition reward;
 
-  const _RewardPreview({required this.reward});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 4,
-      alignment: WrapAlignment.center,
-      children: [
-        if (reward.experience > 0)
-          _RewardChip(icon: Symbols.star, label: '+${reward.experience} EXP'),
-        if (reward.sourcePoints > 0)
-          _RewardChip(icon: Symbols.toll, label: '+${reward.sourcePoints}'),
-        if (reward.badge != null)
-          _RewardChip(
-            icon: Symbols.military_tech,
-            label: reward.badge!.label ?? 'badge'.tr(),
-          ),
-      ],
-    );
-  }
-}
-
-class _RewardChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _RewardChip({required this.icon, required this.label});
+  const _RewardRowCompact({required this.reward});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
-          const Gap(4),
-          Text(label, style: theme.textTheme.bodySmall),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (reward.experience > 0) ...[
+          Icon(Symbols.star, size: 14, color: theme.colorScheme.primary),
+          const Gap(2),
+          Text(
+            '+${reward.experience}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
         ],
-      ),
+        if (reward.sourcePoints > 0) ...[
+          if (reward.experience > 0) const Gap(8),
+          Icon(Symbols.toll, size: 14, color: theme.colorScheme.secondary),
+          const Gap(2),
+          Text(
+            '+${reward.sourcePoints}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+        if (reward.badge != null) ...[
+          if (reward.experience > 0 || reward.sourcePoints > 0) const Gap(8),
+          Icon(Symbols.military_tech, size: 14, color: Colors.amber),
+          const Gap(2),
+          Text(
+            reward.badge!.label ?? 'badge'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
