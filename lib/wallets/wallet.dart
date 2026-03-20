@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -1035,160 +1034,149 @@ Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
 
 class TransactionDetailSheet extends StatelessWidget {
   final SnTransaction transaction;
+  final String? currentWalletId;
 
-  const TransactionDetailSheet({super.key, required this.transaction});
+  const TransactionDetailSheet({
+    super.key,
+    required this.transaction,
+    this.currentWalletId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isIncome =
-        transaction.payeeWalletId == null ||
-        transaction.payeeWallet?.accountId == null;
+    final theme = Theme.of(context);
+    final isIncome = currentWalletId == transaction.payeeWalletId;
+    final amountColor = isIncome ? Colors.green : Colors.red;
 
-    return SheetScaffold(
-      titleText: 'transactionDetails'.tr(),
-      heightFactor: 0.75,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Amount
-            Text(
-              'amount'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const Gap(4),
-            Text(
-              '${formatAmountWithSuffix(transaction.amount)} ${transaction.currency}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isIncome ? Colors.green : Colors.red,
-              ),
-            ),
-            const Gap(16),
-
-            // Remarks
-            if (transaction.remarks != null &&
-                transaction.remarks!.isNotEmpty) ...[
-              Text(
-                'remarks'.tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: amountColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isIncome
+                      ? Symbols.arrow_circle_down
+                      : Symbols.arrow_circle_up,
+                  color: amountColor,
+                  size: 24,
                 ),
               ),
-              const Gap(4),
-              Text(
-                transaction.remarks!,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
               const Gap(16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isIncome ? 'income'.tr() : 'expense'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: amountColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Gap(2),
+                    Text(
+                      '${isIncome ? '+' : '-'}${formatAmountWithSuffix(transaction.amount)} ${transaction.currency}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: amountColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-
-            // Date
+          ),
+          const Gap(24),
+          const Gap(1),
+          const Gap(16),
+          _DetailRow(
+            label: 'date'.tr(),
+            value: DateFormat.yMMMd().add_Hm().format(transaction.createdAt),
+            theme: theme,
+          ),
+          const Gap(12),
+          _DetailRow(
+            label: 'transactionType'.tr(),
+            value: _getTransactionTypeText(transaction.type),
+            theme: theme,
+          ),
+          const Gap(24),
+          Text(
+            'participants'.tr(),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Gap(12),
+          _ParticipantRow(
+            label: 'from'.tr(),
+            account: transaction.payerWallet?.account,
+            icon: Symbols.arrow_outward,
+            theme: theme,
+          ),
+          const Gap(8),
+          _ParticipantRow(
+            label: 'to'.tr(),
+            account: transaction.payeeWallet?.account,
+            icon: Symbols.call_received,
+            theme: theme,
+          ),
+          if (transaction.remarks != null &&
+              transaction.remarks!.isNotEmpty) ...[
+            const Gap(24),
             Text(
-              'date'.tr(),
-              style: TextStyle(
-                fontSize: 16,
+              'remarks'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            const Gap(4),
-            Text(
-              DateFormat.yMd().add_Hm().format(transaction.createdAt),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const Gap(16),
-
-            // Payer
-            Text(
-              'payer'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const Gap(4),
-            AccountPfcRegion(
-              uname: transaction.payerWallet?.account?.name,
-              child: Row(
-                spacing: 8,
-                children: [
-                  if (transaction.payerWallet?.account != null)
-                    ProfilePictureWidget(
-                      file: transaction.payerWallet!.account!.profile.picture,
-                      radius: 12,
-                    ),
-                  Text(
-                    transaction.payerWallet?.account?.nick ??
-                        'systemWallet'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            const Gap(16),
-
-            // Payee
-            Text(
-              'payee'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const Gap(4),
-            AccountPfcRegion(
-              uname: transaction.payeeWallet?.account?.name,
-              child: Row(
-                spacing: 8,
-                children: [
-                  if (transaction.payeeWallet?.account != null)
-                    ProfilePictureWidget(
-                      file: transaction.payeeWallet!.account!.profile.picture,
-                      radius: 12,
-                    ),
-                  Text(
-                    transaction.payeeWallet?.account?.nick ??
-                        'systemWallet'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            const Gap(16),
-
-            // Transaction Type
-            Text(
-              'transactionType'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const Gap(4),
-            Text(
-              _getTransactionTypeText(transaction.type),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            const Gap(8),
+            Text(transaction.remarks!, style: theme.textTheme.bodyMedium),
           ],
-        ),
+          const Gap(24),
+          const Gap(1),
+          const Gap(16),
+          Text(
+            'technicalDetails'.tr(),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Gap(12),
+          _DetailRow(
+            label: 'transactionId'.tr(),
+            value: transaction.id,
+            theme: theme,
+          ),
+          const Gap(8),
+          _DetailRow(
+            label: 'payerWalletId'.tr(),
+            value: transaction.payerWalletId ?? '-',
+            theme: theme,
+          ),
+          const Gap(8),
+          _DetailRow(
+            label: 'payeeWalletId'.tr(),
+            value: transaction.payeeWalletId ?? '-',
+            theme: theme,
+          ),
+          const Gap(24),
+        ],
       ),
     );
   }
 
   String _getTransactionTypeText(int type) {
-    // Assuming types: 0: transfer, 1: payment, etc. Adjust based on actual types
     switch (type) {
       case 0:
         return 'transfer'.tr();
@@ -1197,6 +1185,89 @@ class TransactionDetailSheet extends StatelessWidget {
       default:
         return 'unknown'.tr();
     }
+  }
+}
+
+class _ParticipantRow extends StatelessWidget {
+  final String label;
+  final SnAccount? account;
+  final IconData icon;
+  final ThemeData theme;
+
+  const _ParticipantRow({
+    required this.label,
+    required this.account,
+    required this.icon,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+        const Gap(8),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(8),
+        if (account != null) ...[
+          ProfilePictureWidget(file: account!.profile.picture, radius: 12),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              account!.nick,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ] else
+          Expanded(
+            child: Text(
+              'systemWallet'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final ThemeData theme;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
+      ],
+    );
   }
 }
 
@@ -1790,7 +1861,7 @@ class WalletScreen extends HookConsumerWidget {
             provider: transactionListProvider,
             notifier: transactionListProvider.notifier,
             itemBuilder: (context, index, transaction) {
-              final isIncome = transaction.payeeWalletId == wallet.value?.id;
+              final isIncome = wallet.value?.id == transaction.payeeWalletId;
 
               // Apply filter
               if (filter.value == 1 && !isIncome) {
@@ -1804,8 +1875,10 @@ class WalletScreen extends HookConsumerWidget {
                     context: context,
                     useRootNavigator: true,
                     isScrollControlled: true,
-                    builder: (context) =>
-                        TransactionDetailSheet(transaction: transaction),
+                    builder: (context) => TransactionDetailSheet(
+                      transaction: transaction,
+                      currentWalletId: wallet.value?.id,
+                    ),
                   );
                 },
                 child: _buildTransactionItem(context, transaction, isIncome),

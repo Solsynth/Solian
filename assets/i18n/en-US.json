@@ -1957,6 +1957,7 @@
   "noPurchasesToRestore": "No purchase to restore",
   "termsLink": "Terms of Service",
   "badges": "Badges",
+  "badgeInfoDescription": "Badges can be obtained by completing achievements, supporting the Solar Network, becoming an important member in the community and taking part in special events. The active badge will display on your account name, others will always be visible on the profile page.",
   "active": "Active",
   "activate": "Activate",
   "actionLogs": "Action Logs",
@@ -2017,5 +2018,12 @@
   "fundDetails": "Fund Details",
   "splitSettings": "Split Settings",
   "remark": "Remark",
-  "message": "Message"
+  "message": "Message",
+  "details": "Details",
+  "particpants": "Participants",
+  "participants": "Participants",
+  "technicalDetails": "Technical Details",
+  "transactionId": "Transaction ID",
+  "payerWalletId": "Payer Wallet ID",
+  "payeeWalletId": "Payee Wallet ID"
 }

@@ -48,7 +48,7 @@ class BadgeItem extends StatelessWidget {
     // Determine badge color - special handling for sponsor badges
     Color badgeColor;
     if (badge.type == 'sponsor') {
-      final level = (badge.meta['level'] as num?)?.toInt() ?? 0;
+      final level = int.tryParse(badge.meta['level'] as String? ?? '0') ?? 0;
       badgeColor = _getSponsorColor(level);
     } else {
       badgeColor = template?.color ?? Colors.blue;

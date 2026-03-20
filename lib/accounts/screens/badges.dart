@@ -9,7 +9,9 @@ import 'package:island/accounts/badge.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final badgesProvider = FutureProvider.autoDispose<List<SnAccountBadge>>((
   ref,
@@ -63,104 +65,92 @@ class BadgesScreen extends ConsumerWidget {
       body: badgesAsync.when(
         data: (badges) {
           if (badges.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.stars, size: 64, color: Colors.grey),
-                  const Gap(16),
-                  Text('noBadges'.tr()),
-                ],
-              ),
-            );
+            return _buildEmptyState(context);
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: badges.length,
-            itemBuilder: (context, index) {
-              final badge = badges[index];
-              final isActive = badge.activatedAt != null;
-              final template = kBadgeTemplates[badge.type];
-              final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
-              final templateDesc = template?.description.tr();
-              final badgeCaption = badge.caption;
-              final description = [
-                if (templateDesc != null && templateDesc.isNotEmpty)
-                  templateDesc,
-                if (badgeCaption != null && badgeCaption.isNotEmpty)
-                  badgeCaption,
-              ].join('\n');
-
-              Color badgeColor;
-              if (badge.type == 'sponsor') {
-                final levelStr = badge.meta['level']?.toString() ?? '0';
-                final level = int.tryParse(levelStr) ?? 0;
-                badgeColor = _getSponsorColor(level);
-              } else {
-                badgeColor = template?.color ?? Colors.blue;
-              }
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      template?.icon ?? Icons.stars,
-                      color: badgeColor,
-                    ),
-                  ),
-                  title: Text(name),
-                  subtitle: description.isNotEmpty ? Text(description) : null,
-                  trailing: isActive
-                      ? Chip(
-                          label: Text('active'.tr()),
-                          backgroundColor: badgeColor.withOpacity(0.2),
-                          labelStyle: TextStyle(
-                            color: badgeColor,
-                            fontSize: 12,
-                          ),
-                        )
-                      : activateState.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : TextButton(
-                          onPressed: () =>
-                              _activateBadge(context, ref, badge.id),
-                          child: Text('activate'.tr()),
-                        ),
-                  onTap: isActive
-                      ? null
-                      : () => _activateBadge(context, ref, badge.id),
+          return Column(
+            children: [
+              _badgeInfoBanner(context),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: badges.length,
+                  itemBuilder: (context, index) {
+                    final badge = badges[index];
+                    return _BadgeCard(
+                      badge: badge,
+                      isLoading: activateState.isLoading,
+                      onActivate: () => _activateBadge(context, ref, badge.id),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('failedToLoadBadges'.tr()),
-              const Gap(8),
-              TextButton(
-                onPressed: () => ref.invalidate(badgesProvider),
-                child: Text('retry'.tr()),
-              ),
-            ],
-          ),
-        ),
+        error: (error, stack) => _buildErrorState(context, ref, error),
       ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Symbols.stars,
+            size: 64,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const Gap(16),
+          Text('noBadges'.tr(), style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Symbols.error,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const Gap(16),
+          Text(
+            'failedToLoadBadges'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const Gap(8),
+          FilledButton(
+            onPressed: () => ref.invalidate(badgesProvider),
+            child: Text('retry'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _badgeInfoBanner(BuildContext context) {
+    return MaterialBanner(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      content: Row(
+        spacing: 16,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Symbols.info).padding(top: 4),
+          Expanded(child: Text('badgeInfoDescription'.tr())),
+        ],
+      ),
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.primaryContainer.withOpacity(0.3),
+      actions: const [SizedBox.shrink()],
     );
   }
 
@@ -195,10 +185,141 @@ class BadgesScreen extends ConsumerWidget {
   }
 }
 
-Color _getSponsorColor(int level) {
-  final clampedLevel = level.clamp(0, 36);
-  final t = clampedLevel / 36.0;
-  const redColor = Colors.red;
-  const goldenColor = Color(0xFFDAA520);
-  return Color.lerp(redColor, goldenColor, t)!;
+class _BadgeCard extends StatelessWidget {
+  final SnAccountBadge badge;
+  final bool isLoading;
+  final VoidCallback onActivate;
+
+  const _BadgeCard({
+    required this.badge,
+    required this.isLoading,
+    required this.onActivate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isActive = badge.activatedAt != null;
+    final template = kBadgeTemplates[badge.type];
+    final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
+    final templateDesc = template?.description.tr();
+    final badgeCaption = badge.caption;
+    final description = [
+      if (templateDesc != null && templateDesc.isNotEmpty) templateDesc,
+      if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
+    ].join('\n');
+
+    final badgeColor = getBadgeColor(badge);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isActive ? null : onActivate,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: badgeColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  template?.icon ?? Symbols.stars,
+                  color: badgeColor,
+                  size: 28,
+                ),
+              ),
+              const Gap(16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (description.isNotEmpty) ...[
+                      const Gap(4),
+                      Text(
+                        description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const Gap(12),
+              _buildBadgeStatus(context, isActive, badgeColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadgeStatus(
+    BuildContext context,
+    bool isActive,
+    Color badgeColor,
+  ) {
+    final theme = Theme.of(context);
+
+    if (isActive) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: badgeColor.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Symbols.check_circle, size: 16, color: badgeColor),
+            const Gap(4),
+            Text(
+              'active'.tr(),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: badgeColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (isLoading) {
+      return const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+
+    return FilledButton.tonal(
+      onPressed: onActivate,
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Symbols.add, size: 18),
+          const Gap(4),
+          Text('activate'.tr()),
+        ],
+      ),
+    );
+  }
 }
