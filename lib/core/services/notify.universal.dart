@@ -209,7 +209,7 @@ Future<void> subscribeUnifiedPushNotification(
   }
 }
 
-Future<void> _putTokenToRemote(Dio apiClient, String token, String type) async {
+Future<void> _putTokenToRemote(Dio apiClient, String token, int type) async {
   await apiClient.put(
     "/ring/notifications/subscription",
     data: {"type": type, "device_token": token},
