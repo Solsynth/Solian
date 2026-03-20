@@ -421,6 +421,27 @@ class _AchievementCard extends StatelessWidget {
                         color: theme.colorScheme.onPrimary,
                       ),
                     ),
+                  if (achievement.seriesTotalSteps > 1) ...[
+                    const Gap(4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${achievement.seriesCompletedSteps}/${achievement.seriesTotalSteps}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const Gap(12),
@@ -705,14 +726,40 @@ class _QuestCard extends StatelessWidget {
                     ),
                   ),
                   const Gap(8),
-                  Icon(
-                    quest.isCompleted
-                        ? Symbols.check_circle
-                        : Symbols.radio_button_unchecked,
-                    fill: quest.isCompleted ? 1 : 0,
-                    color: quest.isCompleted
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        quest.isCompleted
+                            ? Symbols.check_circle
+                            : Symbols.radio_button_unchecked,
+                        fill: quest.isCompleted ? 1 : 0,
+                        color: quest.isCompleted
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      if (quest.seriesTotalSteps > 1) ...[
+                        const Gap(4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '${quest.seriesCompletedSteps}/${quest.seriesTotalSteps}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSecondaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),

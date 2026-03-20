@@ -57,6 +57,11 @@ sealed class SnAchievementState with _$SnAchievementState {
     @Default(false) bool isCompleted,
     DateTime? completedAt,
     SnProgressRewardDefinition? reward,
+    String? seriesIdentifier,
+    String? seriesTitle,
+    @Default(0) int seriesOrder,
+    @Default(0) int seriesTotalSteps,
+    @Default(0) int seriesCompletedSteps,
   }) = _SnAchievementState;
 
   factory SnAchievementState.fromJson(Map<String, dynamic> json) =>
@@ -81,6 +86,11 @@ sealed class SnQuestState with _$SnQuestState {
     DateTime? nextResetAt,
     SnQuestScheduleConfig? schedule,
     SnProgressRewardDefinition? reward,
+    String? seriesIdentifier,
+    String? seriesTitle,
+    @Default(0) int seriesOrder,
+    @Default(0) int seriesTotalSteps,
+    @Default(0) int seriesCompletedSteps,
   }) = _SnQuestState;
 
   factory SnQuestState.fromJson(Map<String, dynamic> json) =>
