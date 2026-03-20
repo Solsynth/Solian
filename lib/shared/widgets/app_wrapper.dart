@@ -60,7 +60,10 @@ class AppWrapper extends HookConsumerWidget {
     final onboardingChecked = useState(false);
 
     // Initialize progression WebSocket listener
-    ref.watch(progressionWebSocketProvider);
+    useEffect(() {
+      ref.read(progressionWebSocketProvider);
+      return null;
+    }, []);
 
     // Handle network status modal
     useEffect(() {
