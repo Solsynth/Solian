@@ -84,6 +84,12 @@ _SnAchievementState _$SnAchievementStateFromJson(Map<String, dynamic> json) =>
           : SnProgressRewardDefinition.fromJson(
               json['reward'] as Map<String, dynamic>,
             ),
+      seriesIdentifier: json['series_identifier'] as String?,
+      seriesTitle: json['series_title'] as String?,
+      seriesOrder: (json['series_order'] as num?)?.toInt() ?? 0,
+      seriesTotalSteps: (json['series_total_steps'] as num?)?.toInt() ?? 0,
+      seriesCompletedSteps:
+          (json['series_completed_steps'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$SnAchievementStateToJson(_SnAchievementState instance) =>
@@ -100,6 +106,11 @@ Map<String, dynamic> _$SnAchievementStateToJson(_SnAchievementState instance) =>
       'is_completed': instance.isCompleted,
       'completed_at': instance.completedAt?.toIso8601String(),
       'reward': instance.reward?.toJson(),
+      'series_identifier': instance.seriesIdentifier,
+      'series_title': instance.seriesTitle,
+      'series_order': instance.seriesOrder,
+      'series_total_steps': instance.seriesTotalSteps,
+      'series_completed_steps': instance.seriesCompletedSteps,
     };
 
 _SnQuestState _$SnQuestStateFromJson(Map<String, dynamic> json) =>
@@ -131,6 +142,12 @@ _SnQuestState _$SnQuestStateFromJson(Map<String, dynamic> json) =>
           : SnProgressRewardDefinition.fromJson(
               json['reward'] as Map<String, dynamic>,
             ),
+      seriesIdentifier: json['series_identifier'] as String?,
+      seriesTitle: json['series_title'] as String?,
+      seriesOrder: (json['series_order'] as num?)?.toInt() ?? 0,
+      seriesTotalSteps: (json['series_total_steps'] as num?)?.toInt() ?? 0,
+      seriesCompletedSteps:
+          (json['series_completed_steps'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$SnQuestStateToJson(_SnQuestState instance) =>
@@ -150,6 +167,11 @@ Map<String, dynamic> _$SnQuestStateToJson(_SnQuestState instance) =>
       'next_reset_at': instance.nextResetAt?.toIso8601String(),
       'schedule': instance.schedule?.toJson(),
       'reward': instance.reward?.toJson(),
+      'series_identifier': instance.seriesIdentifier,
+      'series_title': instance.seriesTitle,
+      'series_order': instance.seriesOrder,
+      'series_total_steps': instance.seriesTotalSteps,
+      'series_completed_steps': instance.seriesCompletedSteps,
     };
 
 _SnProgressRewardGrant _$SnProgressRewardGrantFromJson(
