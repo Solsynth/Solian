@@ -5,10 +5,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/core/config.dart';
 
 // Conditional imports based on platform
 import 'notify.windows.dart' as windows_notify;
 import 'notify.universal.dart' as universal_notify;
+import 'push_provider.dart';
 
 // Platform-specific delegation
 Future<void> initializeLocalNotifications() async {
@@ -41,13 +43,32 @@ StreamSubscription? setupNotificationListener(
 Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,
+  BuildContext? context,
 }) async {
   if (kIsWeb) {
     // No push notification subscription on web
     return;
   }
+  final effectiveContext = context;
+  if (effectiveContext == null) {
+    throw ArgumentError(
+      'BuildContext is required to register push notifications.',
+    );
+  }
+
+  final prefs = ProviderScope.containerOf(
+    effectiveContext,
+    listen: false,
+  ).read(sharedPreferencesProvider);
+  final provider = await resolvePushProvider(effectiveContext, prefs);
+
   if (Platform.isWindows) {
     return windows_notify.subscribePushNotification(
+      apiClient,
+      detailedErrors: detailedErrors,
+    );
+  } else if (provider == PushNotificationProvider.unifiedpush) {
+    return universal_notify.subscribeUnifiedPushNotification(
       apiClient,
       detailedErrors: detailedErrors,
     );

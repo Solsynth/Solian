@@ -52,112 +52,167 @@ class _AccountBasicInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasBackground = data.profile.background != null;
+    final showBackground = isWideScreen(context) && hasBackground;
+
     return Card(
-      child: Builder(
-        builder: (context) {
-          final hasBackground = data.profile.background != null;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isWideScreen(context) && hasBackground)
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 7,
-                        child: CloudImageWidget(
-                          file: data.profile.background,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showBackground)
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 7,
+                    child: CloudImageWidget(
+                      file: data.profile.background,
+                      fit: BoxFit.cover,
                     ),
-                    Positioned(
-                      bottom: -24,
-                      left: 16,
-                      child: ProfilePictureWidget(
-                        file: data.profile.picture,
-                        radius: 32,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              Builder(
-                builder: (context) {
-                  final showBackground = isWideScreen(context) && hasBackground;
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: showBackground ? 0 : 20,
-                    children: [
-                      if (!showBackground)
-                        ProfilePictureWidget(
-                          file: data.profile.picture,
-                          radius: 32,
+                Positioned(
+                  bottom: -24,
+                  left: 16,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.surface,
+                        width: 3,
+                      ),
+                    ),
+                    child: ProfilePictureWidget(
+                      file: data.profile.picture,
+                      radius: 32,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          Padding(
+            padding: EdgeInsets.all(showBackground ? 16 : 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!showBackground)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.2),
+                            width: 2,
+                          ),
                         ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              spacing: 4,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Flexible(
-                                  child: AccountName(
-                                    account: data,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                        child: ProfilePictureWidget(
+                          file: data.profile.picture,
+                          radius: 40,
+                        ),
+                      ),
+                    ),
+                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            spacing: 8,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Flexible(
+                                child: AccountName(
+                                  account: data,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                if (isWideScreen(context))
-                                  Flexible(
-                                    child: Text(
-                                      '@${data.name}',
-                                    ).fontSize(11).padding(bottom: 2.5),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      theme.colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '@${data.name}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
-                              ],
-                            ),
-                            if (!isWideScreen(context))
-                              Text(
-                                '@${data.name}',
-                              ).fontSize(11).padding(bottom: 2.5),
-                            Text(
-                              (data.profile.bio.isNotEmpty)
-                                  ? data.profile.bio
-                                  : 'descriptionNone'.tr(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (accountDeveloper.value != null)
-                              Row(
-                                spacing: 7,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(8),
+                          AccountStatusWidget(
+                            uname: uname,
+                            padding: EdgeInsets.zero,
+                          ),
+                          if (accountDeveloper.value != null) ...[
+                            const Gap(12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondaryContainer
+                                    .withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                spacing: 8,
                                 children: [
-                                  const Icon(Symbols.smart_toy, size: 18),
+                                  Icon(
+                                    Symbols.smart_toy,
+                                    size: 18,
+                                    color:
+                                        theme.colorScheme.onSecondaryContainer,
+                                  ),
                                   Text(
                                     'botAutomatedBy'.tr(
                                       args: [
                                         accountDeveloper.value!.publisher!.nick,
                                       ],
                                     ),
-                                  ).fontSize(13),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme
+                                          .colorScheme
+                                          .onSecondaryContainer,
+                                    ),
+                                  ),
                                 ],
-                              ).opacity(0.75).padding(top: 4),
-                            const Gap(4),
-                            AccountStatusWidget(
-                              uname: uname,
-                              padding: EdgeInsets.zero,
+                              ),
                             ),
-                            const Gap(8),
                           ],
-                        ),
+                        ],
                       ),
-                      IconButton(
+                    ),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
                         onPressed: () {
                           SharePlus.instance.share(
                             ShareParams(
@@ -167,19 +222,18 @@ class _AccountBasicInfo extends StatelessWidget {
                             ),
                           );
                         },
-                        icon: const Icon(Symbols.share),
+                        icon: Icon(
+                          Symbols.share,
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
-                    ],
-                  ).padding(
-                    left: 16,
-                    right: 16,
-                    top: 16 + (showBackground ? 16 : 0),
-                  );
-                },
-              ),
-            ],
-          );
-        },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -192,20 +246,56 @@ class _AccountProfileBio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
-          if (data.profile.bio.isEmpty)
-            Text('descriptionNone').tr().italic()
-          else
-            MarkdownTextContent(
-              content: data.profile.bio,
-              linesMargin: EdgeInsets.zero,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.article,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'bio',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
             ),
-        ],
-      ).padding(horizontal: 24, vertical: 20),
+            const Gap(16),
+            if (data.profile.bio.isEmpty)
+              Text(
+                'descriptionNone',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ).tr()
+            else
+              MarkdownTextContent(
+                content: data.profile.bio,
+                linesMargin: EdgeInsets.zero,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -215,153 +305,241 @@ class _AccountProfileDetail extends StatelessWidget {
 
   const _AccountProfileDetail({required this.data});
 
-  List<Widget> _buildSubcolumn() {
-    return [
-      Row(
-        spacing: 6,
-        children: [
-          const Icon(Symbols.join, size: 17, fill: 1),
-          Text(
-            'joinedAt'.tr(args: [data.createdAt.formatCustom('yyyy-MM-dd')]),
-          ),
-        ],
-      ),
-      if (data.profile.birthday != null)
-        Row(
-          spacing: 6,
-          children: [
-            const Icon(Symbols.cake, size: 17, fill: 1),
-            Text(data.profile.birthday!.formatCustom('yyyy-MM-dd')),
-            Text('·').bold(),
-            Text(
-              '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
-            ),
-          ],
-        ),
-      if (data.profile.firstName.isNotEmpty ||
-          data.profile.middleName.isNotEmpty ||
-          data.profile.lastName.isNotEmpty)
-        Row(
-          spacing: 6,
-          children: [
-            const Icon(Symbols.id_card, size: 17, fill: 1),
-            if (data.profile.firstName.isNotEmpty) Text(data.profile.firstName),
-            if (data.profile.middleName.isNotEmpty)
-              Text(data.profile.middleName),
-            if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
-      Row(
-        spacing: 6,
-        children: [
-          const Icon(Symbols.person, size: 17, fill: 1),
-          Text(
-            data.profile.gender.isEmpty
-                ? 'unspecified'.tr()
-                : data.profile.gender,
-          ),
-          Text('·').bold(),
-          Text(
-            data.profile.pronouns.isEmpty
-                ? 'unspecified'.tr()
-                : data.profile.pronouns,
-          ),
-        ],
-      ),
-      if (data.profile.location.isNotEmpty)
-        Row(
-          spacing: 6,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Symbols.location_on, size: 17, fill: 1),
-            Text(data.profile.location),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.badge,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'about',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
+            ),
+            const Gap(20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _DetailChip(
+                  icon: Symbols.calendar_month,
+                  label: 'joinedAt'.tr(
+                    args: [data.createdAt.formatCustom('yyyy-MM-dd')],
+                  ),
+                ),
+                if (data.profile.birthday != null)
+                  _DetailChip(
+                    icon: Symbols.cake,
+                    label:
+                        '${data.profile.birthday!.formatCustom('yyyy-MM-dd')} · ${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs',
+                  ),
+                if (data.profile.firstName.isNotEmpty ||
+                    data.profile.middleName.isNotEmpty ||
+                    data.profile.lastName.isNotEmpty)
+                  _DetailChip(
+                    icon: Symbols.id_card,
+                    label: [
+                      data.profile.firstName,
+                      data.profile.middleName,
+                      data.profile.lastName,
+                    ].where((s) => s.isNotEmpty).join(' '),
+                  ),
+                _DetailChip(
+                  icon: Symbols.person,
+                  label:
+                      '${data.profile.gender.isEmpty ? 'unspecified'.tr() : data.profile.gender} · ${data.profile.pronouns.isEmpty ? 'unspecified'.tr() : data.profile.pronouns}',
+                ),
+                if (data.profile.location.isNotEmpty)
+                  _DetailChip(
+                    icon: Symbols.location_on,
+                    label: data.profile.location,
+                  ),
+                Tooltip(
+                  message: 'creditsStatus'.tr(),
+                  child: _DetailChip(
+                    icon: Symbols.attribution,
+                    label:
+                        '${data.profile.socialCredits.toStringAsFixed(2)} pts · ${_getCreditsLevelText(data.profile.socialCreditsLevel)}',
+                  ),
+                ),
+                _DetailChip(
+                  icon: Symbols.fingerprint,
+                  label: data.id,
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: data.id));
+                  },
+                ),
+              ],
+            ),
+            if (data.profile.timeZone.isNotEmpty && !kIsWeb) ...[
+              const Gap(16),
+              Builder(
+                builder: (context) {
+                  try {
+                    final tzInfo = getTzInfo(data.profile.timeZone);
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.schedule,
+                            size: 20,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const Gap(12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'timeZone',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ).tr(),
+                                const Gap(4),
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    Text(
+                                      data.profile.timeZone,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            theme.colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        tzInfo.$2.formatCustomGlobal('HH:mm'),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ),
+                                    Text(
+                                      'UTC${tzInfo.$1.formatOffset()}',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } catch (e) {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+            ],
           ],
         ),
-      if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
-        Tooltip(
-          message: 'creditsStatus'.tr(),
-          child: Row(
-            spacing: 6,
-            children: [
-              Icon(Symbols.attribution, size: 17, fill: 1).padding(right: 2),
-              Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
-              Text('·').bold(),
-              switch (data.profile.socialCreditsLevel) {
-                -1 => Text('socialCreditsLevelPoor').tr(),
-                0 => Text('socialCreditsLevelNormal').tr(),
-                1 => Text('socialCreditsLevelGood').tr(),
-                2 => Text('socialCreditsLevelExcellent').tr(),
-                _ => Text('unknown').tr(),
-              },
-            ],
-          ),
+      ),
+    );
+  }
+
+  String _getCreditsLevelText(int level) {
+    switch (level) {
+      case -1:
+        return 'socialCreditsLevelPoor'.tr();
+      case 0:
+        return 'socialCreditsLevelNormal'.tr();
+      case 1:
+        return 'socialCreditsLevelGood'.tr();
+      case 2:
+        return 'socialCreditsLevelExcellent'.tr();
+      default:
+        return 'unknown'.tr();
+    }
+  }
+}
+
+class _DetailChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _DetailChip({required this.icon, required this.label, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(20),
         ),
-      InkWell(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           spacing: 6,
           children: [
-            Icon(Symbols.fingerprint, size: 17, fill: 1).padding(right: 2),
+            Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
             Flexible(
               child: Text(
-                data.id,
-                maxLines: 1,
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        onTap: () {
-          Clipboard.setData(ClipboardData(text: data.id));
-        },
       ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 24,
-        children: [
-          if (_buildSubcolumn().isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 2,
-              children: _buildSubcolumn(),
-            ),
-          if (data.profile.timeZone.isNotEmpty && !kIsWeb)
-            Builder(
-              builder: (context) {
-                try {
-                  final tzInfo = getTzInfo(data.profile.timeZone);
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('timeZone').tr().bold(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        spacing: 6,
-                        children: [
-                          Text(data.profile.timeZone),
-                          Text(tzInfo.$2.formatCustomGlobal('HH:mm')),
-                          Text(tzInfo.$1.formatOffsetLocal()).fontSize(11),
-                          Text(
-                            'UTC${tzInfo.$1.formatOffset()}',
-                          ).fontSize(11).opacity(0.75),
-                        ],
-                      ),
-                    ],
-                  );
-                } catch (e) {
-                  // Hide timezone section if timezone is invalid
-                  return const SizedBox.shrink();
-                }
-              },
-            ),
-        ],
-      ).padding(horizontal: 24, vertical: 16),
     );
   }
 }
@@ -373,29 +551,125 @@ class _AccountProfileLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('links').tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
-          for (final link in data.profile.links)
-            ListTile(
-              title: Text(link.name.capitalizeEachWord()),
-              subtitle: Text(link.url),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              trailing: const Icon(Symbols.chevron_right),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
-              onTap: () {
-                if (!link.url.startsWith('http') && !link.url.contains('://')) {
-                  launchUrlString('https://${link.url}');
-                } else {
-                  launchUrlString(link.url);
-                }
-              },
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.link,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'links',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
             ),
-        ],
+            const Gap(16),
+            ...data.profile.links.map(
+              (link) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _LinkCard(
+                  name: link.name.capitalizeEachWord(),
+                  url: link.url,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LinkCard extends StatelessWidget {
+  final String name;
+  final String url;
+
+  const _LinkCard({required this.name, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: () {
+        if (!url.startsWith('http') && !url.contains('://')) {
+          launchUrlString('https://$url');
+        } else {
+          launchUrlString(url);
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Symbols.open_in_new,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Gap(2),
+                  Text(
+                    url,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.arrow_outward,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -408,47 +682,132 @@ class _AccountProfileContacts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final publicContacts = data.contacts.where((c) => c.isPublic).toList();
     if (publicContacts.isEmpty) return const SizedBox.shrink();
 
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'contactMethod',
-          ).tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
-          for (final contact in publicContacts)
-            ListTile(
-              title: Text(contact.content),
-              subtitle: Text(switch (contact.type) {
-                0 => 'contactMethodTypeEmail'.tr(),
-                1 => 'contactMethodTypePhone'.tr(),
-                _ => 'contactMethodTypeAddress'.tr(),
-              }),
-              leading: Icon(switch (contact.type) {
-                0 => Symbols.mail,
-                1 => Symbols.phone,
-                _ => Symbols.home,
-              }),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              trailing: const Icon(Symbols.chevron_right),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
-              onTap: () {
-                switch (contact.type) {
-                  case 0:
-                    launchUrlString('mailto:${contact.content}');
-                  case 1:
-                    launchUrlString('tel:${contact.content}');
-                  default:
-                    // For address, maybe copy to clipboard or do nothing
-                    Clipboard.setData(ClipboardData(text: contact.content));
-                }
-              },
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.contact_phone,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'contactMethod',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
             ),
-        ],
+            const Gap(16),
+            ...publicContacts.map(
+              (contact) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ContactCard(contact: contact),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  final dynamic contact;
+
+  const _ContactCard({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final iconData = switch (contact.type) {
+      0 => Symbols.mail,
+      1 => Symbols.phone,
+      _ => Symbols.home,
+    };
+    final typeLabel = switch (contact.type) {
+      0 => 'contactMethodTypeEmail'.tr(),
+      1 => 'contactMethodTypePhone'.tr(),
+      _ => 'contactMethodTypeAddress'.tr(),
+    };
+
+    return InkWell(
+      onTap: () {
+        switch (contact.type) {
+          case 0:
+            launchUrlString('mailto:${contact.content}');
+          case 1:
+            launchUrlString('tel:${contact.content}');
+          default:
+            Clipboard.setData(ClipboardData(text: contact.content));
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(iconData, size: 18, color: theme.colorScheme.primary),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    typeLabel,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Gap(2),
+                  Text(
+                    contact.content,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -462,44 +821,127 @@ class _AccountPublisherList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (publishers.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'publishers',
-          ).tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
-          for (final publisher in publishers)
-            ListTile(
-              title: Text(publisher.nick),
-              subtitle: Text(
-                publisher.bio.isNotEmpty
-                    ? publisher.bio
-                          .split('\n')
-                          .where((line) => line.trim().isNotEmpty)
-                          .join('\n')
-                    : 'descriptionNone'.tr(),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              leading: ProfilePictureWidget(
-                file: publisher.picture,
-                borderRadius: publisher.type == 1 ? 8 : null,
-              ),
-              isThreeLine: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              trailing: const Icon(Symbols.chevron_right),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
-              onTap: () {
-                Navigator.pop(context, true);
-                context.router.push(
-                  PublisherProfileRoute(name: publisher.name),
-                );
-              },
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.verified,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'publishers',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
             ),
-        ],
+            const Gap(16),
+            ...publishers.map(
+              (publisher) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _PublisherCard(
+                  publisher: publisher,
+                  onTap: () {
+                    Navigator.pop(context, true);
+                    context.router.push(
+                      PublisherProfileRoute(name: publisher.name),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PublisherCard extends StatelessWidget {
+  final SnPublisher publisher;
+  final VoidCallback onTap;
+
+  const _PublisherCard({required this.publisher, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: ProfilePictureWidget(file: publisher.picture, radius: 24),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    publisher.nick,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Gap(2),
+                  Text(
+                    publisher.bio.isNotEmpty
+                        ? publisher.bio
+                              .split('\n')
+                              .where((line) => line.trim().isNotEmpty)
+                              .join('\n')
+                        : 'descriptionNone'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -524,106 +966,121 @@ class _AccountAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isBlocked =
+        accountRelationship.value != null &&
+        accountRelationship.value!.status <= -100;
+    final isFriend =
+        accountRelationship.value != null &&
+        accountRelationship.value!.status > -100;
+
     return Card(
-      child: Column(
-        spacing: 8,
-        children: [
-          Row(
-            spacing: 8,
-            children: [
-              if (accountRelationship.value == null ||
-                  accountRelationship.value!.status > -100)
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              spacing: 12,
+              children: [
                 Expanded(
-                  child: FilledButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.secondary,
-                      ),
-                      foregroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
-                    onPressed: relationshipAction,
-                    label: Text(
-                      accountRelationship.value == null
-                          ? 'addFriendShort'
-                          : 'added',
-                    ).tr(),
-                    icon: accountRelationship.value == null
-                        ? const Icon(Symbols.person_add)
-                        : const Icon(Symbols.person_check),
-                  ),
+                  child: isFriend
+                      ? FilledButton.tonal(
+                          onPressed: null,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              const Icon(Symbols.person_check, size: 18),
+                              Text('added').tr(),
+                            ],
+                          ),
+                        )
+                      : FilledButton.tonal(
+                          onPressed: relationshipAction,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              const Icon(Symbols.person_add, size: 18),
+                              Text('addFriendShort').tr(),
+                            ],
+                          ),
+                        ),
                 ),
-              if (accountRelationship.value == null ||
-                  accountRelationship.value!.status <= -100)
                 Expanded(
-                  child: FilledButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.secondary,
-                      ),
-                      foregroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.onSecondary,
-                      ),
+                  child: isBlocked
+                      ? FilledButton.tonal(
+                          onPressed: blockAction,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              const Icon(Symbols.person_cancel, size: 18),
+                              Text('unblockUser').tr(),
+                            ],
+                          ),
+                        )
+                      : OutlinedButton(
+                          onPressed: blockAction,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              const Icon(Symbols.block, size: 18),
+                              Text('blockUser').tr(),
+                            ],
+                          ),
+                        ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: directMessageAction,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 6,
+                      children: [
+                        const Icon(Symbols.chat, size: 18),
+                        Text(
+                          accountChat.value == null
+                              ? 'createDirectMessage'
+                              : 'gotoDirectMessage',
+                          maxLines: 1,
+                        ).tr(),
+                      ],
                     ),
-                    onPressed: blockAction,
-                    label: Text(
-                      accountRelationship.value == null
-                          ? 'blockUser'
-                          : 'unblockUser',
-                    ).tr(),
-                    icon: accountRelationship.value == null
-                        ? const Icon(Symbols.block)
-                        : const Icon(Symbols.person_cancel),
                   ),
                 ),
-            ],
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: directMessageAction,
-                  icon: const Icon(Symbols.message),
-                  label: Text(
-                    accountChat.value == null
-                        ? 'createDirectMessage'
-                        : 'gotoDirectMessage',
-                    maxLines: 1,
-                  ).tr(),
-                ),
-              ),
-              IconButton.filled(
-                onPressed: () {
-                  showAbuseReportSheet(
-                    context,
-                    resourceIdentifier: 'account/${data.id}',
-                  );
-                },
-                icon: Icon(
-                  Symbols.flag,
-                  color: Theme.of(context).colorScheme.onError,
-                ),
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.error,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton.filled(
+                    onPressed: () {
+                      showAbuseReportSheet(
+                        context,
+                        resourceIdentifier: 'account/${data.id}',
+                      );
+                    },
+                    icon: const Icon(Symbols.flag, size: 18),
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.colorScheme.errorContainer,
+                      foregroundColor: theme.colorScheme.onErrorContainer,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ).padding(horizontal: 16, vertical: 12),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -864,15 +1321,17 @@ class AccountProfileScreen extends HookConsumerWidget {
                               data: data,
                               uname: name,
                               accountDeveloper: accountDeveloper,
-                            ).padding(horizontal: 4, top: 20),
+                            ),
                           ),
                           if (data.badges.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Card(
-                                child: BadgeList(
-                                  badges: data.badges,
-                                ).padding(horizontal: 26, vertical: 20),
-                              ).padding(left: 2, right: 4),
+                                margin: EdgeInsets.zero,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: BadgeList(badges: data.badges),
+                                ),
+                              ),
                             ),
                           SliverToBoxAdapter(
                             child: Column(
@@ -882,7 +1341,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   level: data.profile.level,
                                   experience: data.profile.experience,
                                   progress: data.profile.levelingProgress,
-                                ).padding(left: 2, right: 4),
+                                ),
                                 if (data.profile.verification != null)
                                   Card(
                                     margin: EdgeInsets.zero,
@@ -891,12 +1350,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                                     ),
                                   ),
                               ],
-                            ).padding(horizontal: 4, top: 8),
+                            ),
                           ),
                           SliverToBoxAdapter(
-                            child: _AccountProfileBio(
-                              data: data,
-                            ).padding(top: 4),
+                            child: _AccountProfileBio(data: data),
                           ),
                           if (data.profile.links.isNotEmpty)
                             SliverToBoxAdapter(
@@ -917,9 +1374,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         slivers: [
                           SliverGap(18),
                           SliverToBoxAdapter(
-                            child: ActivityPresenceWidget(
-                              uname: name,
-                            ).padding(horizontal: 4, top: 4, bottom: 4),
+                            child: ActivityPresenceWidget(uname: name),
                           ),
                           SliverToBoxAdapter(
                             child: _AccountPublisherList(
@@ -939,10 +1394,14 @@ class AccountProfileScreen extends HookConsumerWidget {
                             ),
                           SliverToBoxAdapter(
                             child: Card(
-                              child: FortuneGraphWidget(
-                                events: accountEvents,
-                                eventCalandarUser: data.name,
-                                margin: EdgeInsets.zero,
+                              margin: EdgeInsets.zero,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: FortuneGraphWidget(
+                                  events: accountEvents,
+                                  eventCalandarUser: data.name,
+                                  margin: EdgeInsets.zero,
+                                ),
                               ),
                             ),
                           ),
@@ -992,15 +1451,17 @@ class AccountProfileScreen extends HookConsumerWidget {
                         data: data,
                         uname: name,
                         accountDeveloper: accountDeveloper,
-                      ).padding(horizontal: 4, top: 8),
+                      ),
                     ),
                     if (data.badges.isNotEmpty)
                       SliverToBoxAdapter(
                         child: Card(
-                          child: BadgeList(
-                            badges: data.badges,
-                          ).padding(horizontal: 26, vertical: 20),
-                        ).padding(horizontal: 4),
+                          margin: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: BadgeList(badges: data.badges),
+                          ),
+                        ),
                       ),
                     SliverToBoxAdapter(
                       child: Column(
@@ -1009,47 +1470,36 @@ class AccountProfileScreen extends HookConsumerWidget {
                             level: data.profile.level,
                             experience: data.profile.experience,
                             progress: data.profile.levelingProgress,
-                          ).padding(top: 8, horizontal: 8, bottom: 4),
+                          ),
                           if (data.profile.verification != null)
                             Card(
+                              margin: EdgeInsets.zero,
                               child: VerificationStatusCard(
                                 mark: data.profile.verification!,
                               ),
-                            ).padding(horizontal: 4),
+                            ),
                         ],
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: _AccountProfileBio(
-                        data: data,
-                      ).padding(horizontal: 4),
-                    ),
+                    SliverToBoxAdapter(child: _AccountProfileBio(data: data)),
                     if (data.profile.links.isNotEmpty)
                       SliverToBoxAdapter(
-                        child: _AccountProfileLinks(
-                          data: data,
-                        ).padding(horizontal: 4),
+                        child: _AccountProfileLinks(data: data),
                       ),
                     if (data.contacts.any((c) => c.isPublic))
                       SliverToBoxAdapter(
-                        child: _AccountProfileContacts(
-                          data: data,
-                        ).padding(horizontal: 4),
+                        child: _AccountProfileContacts(data: data),
                       ),
                     SliverToBoxAdapter(
-                      child: ActivityPresenceWidget(
-                        uname: name,
-                      ).padding(horizontal: 8, top: 4, bottom: 4),
+                      child: ActivityPresenceWidget(uname: name),
                     ),
                     SliverToBoxAdapter(
                       child: _AccountPublisherList(
                         publishers: accountPublishers.value ?? [],
-                      ).padding(horizontal: 4),
+                      ),
                     ),
                     SliverToBoxAdapter(
-                      child: _AccountProfileDetail(
-                        data: data,
-                      ).padding(horizontal: 4),
+                      child: _AccountProfileDetail(data: data),
                     ),
                     if (user.value != null && !isCurrentUser)
                       SliverToBoxAdapter(
@@ -1060,15 +1510,19 @@ class AccountProfileScreen extends HookConsumerWidget {
                           relationshipAction: relationshipAction,
                           blockAction: blockAction,
                           directMessageAction: directMessageAction,
-                        ).padding(horizontal: 4),
+                        ),
                       ),
                     SliverToBoxAdapter(
                       child: Card(
-                        child: FortuneGraphWidget(
-                          events: accountEvents,
-                          eventCalandarUser: data.name,
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: FortuneGraphWidget(
+                            events: accountEvents,
+                            eventCalandarUser: data.name,
+                          ),
                         ),
-                      ).padding(horizontal: 4),
+                      ),
                     ),
                   ],
                 ),

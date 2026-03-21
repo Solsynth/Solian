@@ -104,9 +104,18 @@ class WebSocketService {
           final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
           talker.info('[WebSocket] Received packet: ${packet.type}');
           if (packet.type == 'error.dupe') {
+            talker.info(
+              '[WebSocket] Duplicate device found: ${packet.errorMessage}',
+            );
             _statusStreamController.sink.add(WebSocketState.duplicateDevice());
             _channel!.sink.close();
             return;
+          } else if (packet.type == 'error') {
+            talker.info('[WebSocket] Connect error: ${packet.errorMessage}');
+            _statusStreamController.sink.add(
+              WebSocketState.error(packet.errorMessage ?? 'error'),
+            );
+            _channel!.sink.close();
           }
           _streamController.sink.add(packet);
           if (packet.type == 'pong' && _heartbeatAt != null) {

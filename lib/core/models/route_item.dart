@@ -54,7 +54,7 @@ final List<RouteItem> kAvailableRoutes = [
   ),
   RouteItem(
     name: 'discoverRealms'.tr(),
-    path: '/discovery/realms',
+    path: '/realms',
     description: 'discoverRealmsDescription'.tr(),
     searchableAliases: ['realms', 'groups', 'communities'],
     icon: Symbols.public,
@@ -82,14 +82,14 @@ final List<RouteItem> kAvailableRoutes = [
   ),
   RouteItem(
     name: 'stickerMarketplace'.tr(),
-    path: '/stickers',
+    path: '/account/stickers',
     description: 'stickerMarketplaceDescription'.tr(),
     searchableAliases: ['stickers', 'marketplace', 'emojis', 'emojis'],
     icon: Symbols.emoji_emotions,
   ),
   RouteItem(
     name: 'webFeeds'.tr(),
-    path: '/feeds',
+    path: '/account/feeds',
     description: 'webFeedsDescription'.tr(),
     searchableAliases: ['feeds', 'web feeds', 'rss', 'news'],
     icon: Symbols.feed,
@@ -149,13 +149,6 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.settings,
   ),
   RouteItem(
-    name: 'abuseReports'.tr(),
-    path: '/safety/reports/me',
-    description: 'abuseReportsDescription'.tr(),
-    searchableAliases: ['reports', 'abuse', 'safety'],
-    icon: Symbols.report,
-  ),
-  RouteItem(
     name: 'files'.tr(),
     path: '/files',
     description: 'filesDescription'.tr(),
@@ -188,13 +181,6 @@ final List<RouteItem> kAvailableRoutes = [
       'developers hub',
     ],
     icon: Symbols.code,
-  ),
-  RouteItem(
-    name: 'debugLogs'.tr(),
-    path: '/logs',
-    description: 'debugLogsDescription'.tr(),
-    searchableAliases: ['logs', 'debug', 'debug logs'],
-    icon: Symbols.bug_report,
   ),
   RouteItem(
     name: 'webArticlesStand'.tr(),

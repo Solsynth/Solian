@@ -242,6 +242,34 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
+                    'icon': Symbols.military_tech,
+                    'title': 'badges',
+                    'onTap': () {
+                      context.router.push(const BadgesRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.workspace_premium,
+                    'title': 'progress',
+                    'onTap': () {
+                      context.router.push(const ProgressRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.bluetooth,
+                    'title': 'meet',
+                    'onTap': () {
+                      context.router.push(const MeetRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.history,
+                    'title': 'actionLogs',
+                    'onTap': () {
+                      context.router.push(const ActionLogsRoute());
+                    },
+                  },
+                  {
                     'icon': Symbols.people,
                     'title': 'relationships',
                     'onTap': () {

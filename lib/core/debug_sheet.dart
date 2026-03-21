@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/progression_ws.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/screens/e2ee_keypair_screen.dart';
@@ -16,6 +17,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:island/talker.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
   final TextEditingController controller = TextEditingController();
@@ -188,6 +190,43 @@ class DebugSheet extends HookConsumerWidget {
                 showInfoAlert(
                   'This is a test info message for debugging purposes.',
                   'Test Alert',
+                );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.military_tech),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test achievement completed'),
+              onTap: () {
+                final notifier = ref.read(
+                  progressionWebSocketProvider.notifier,
+                );
+                notifier.testShowCompletion(
+                  kind: 'achievement',
+                  title: 'First Post',
+                  reward: const SnProgressRewardDefinition(
+                    experience: 100,
+                    sourcePoints: 50,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.assignment),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test quest completed'),
+              onTap: () {
+                final notifier = ref.read(
+                  progressionWebSocketProvider.notifier,
+                );
+                notifier.testShowCompletion(
+                  kind: 'quest',
+                  title: 'Daily Check-in',
+                  reward: const SnProgressRewardDefinition(experience: 50),
                 );
               },
             ),

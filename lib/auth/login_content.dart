@@ -42,8 +42,9 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
 Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   final userNotifier = ref.read(userInfoProvider.notifier);
   await userNotifier.fetchUser();
+  if (!context.mounted) return;
   final apiClient = ref.read(apiClientProvider);
-  subscribePushNotification(apiClient);
+  await subscribePushNotification(apiClient, context: context);
   final wsNotifier = ref.read(websocketStateProvider.notifier);
   wsNotifier.connect();
   if (context.mounted && Navigator.canPop(context)) {
@@ -617,8 +618,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
           ref.watch(sharedPreferencesProvider),
           token,
           refreshToken: resp.data['refresh_token'] as String?,
-          expiresIn: int.tryParse(resp.data['expires_in']),
-          refreshExpiresIn: int.tryParse(resp.data['refresh_expires_in']),
+          expiresIn: (resp.data['expires_in'] as num?)?.toInt(),
+          refreshExpiresIn: (resp.data['refresh_expires_in'] as num?)?.toInt(),
         );
         ref.invalidate(tokenProvider);
         if (!context.mounted) return;

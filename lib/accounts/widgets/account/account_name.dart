@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/badge.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -215,6 +216,11 @@ class AccountName extends StatelessWidget {
                     mark: account.profile.verification!,
                     hideOverlay: hideOverlay,
                   ),
+                if (account.profile.activeBadge != null)
+                  ActiveBadgeMark(
+                    badge: account.profile.activeBadge!,
+                    hideOverlay: hideOverlay,
+                  ),
                 if (account.automatedId != null)
                   hideOverlay
                       ? Icon(
@@ -269,6 +275,11 @@ class AccountName extends StatelessWidget {
         if (account.profile.verification != null)
           VerificationMark(
             mark: account.profile.verification!,
+            hideOverlay: hideOverlay,
+          ),
+        if (account.profile.activeBadge != null)
+          ActiveBadgeMark(
+            badge: account.profile.activeBadge!,
             hideOverlay: hideOverlay,
           ),
         if (account.automatedId != null)
@@ -390,6 +401,58 @@ class StellarMembershipMark extends StatelessWidget {
                   text: 'currentMembershipMember'.tr(args: [tierName]),
                   style: TextStyle(fontWeight: FontWeight.normal),
                 ),
+              ],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            child: icon,
+          );
+  }
+}
+
+class ActiveBadgeMark extends StatelessWidget {
+  final SnAccountBadge badge;
+  final bool hideOverlay;
+  final double size;
+  const ActiveBadgeMark({
+    super.key,
+    required this.badge,
+    this.hideOverlay = false,
+    this.size = 16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final template = kBadgeTemplates[badge.type];
+    final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
+    final templateDesc = template?.description.tr();
+    final badgeCaption = badge.caption;
+    final description = [
+      if (templateDesc != null && templateDesc.isNotEmpty) templateDesc,
+      if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
+    ].join('\n');
+
+    final badgeColor = getBadgeColor(badge);
+
+    final icon = Icon(
+      template?.icon ?? Icons.stars,
+      size: size,
+      color: badgeColor,
+      fill: 1,
+    );
+
+    return hideOverlay
+        ? icon
+        : Tooltip(
+            richMessage: TextSpan(
+              text: name,
+              children: [
+                if (description.isNotEmpty) ...[
+                  TextSpan(text: '\n'),
+                  TextSpan(
+                    text: description,
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                ],
               ],
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
