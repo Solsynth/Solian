@@ -1,47 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:island/core/config.dart';
 
 part 'notification.g.dart';
-
-Future<void> speakNotification(
-  SnNotification notification, {
-  String? voice,
-  double speechRate = 1.0,
-  double pitch = 1.0,
-  double volume = 1.0,
-  String language = 'en-US',
-}) async {
-  final tts = FlutterTts();
-  await tts.setVolume(volume);
-  await tts.setSpeechRate(speechRate);
-  await tts.setPitch(pitch);
-  await tts.setLanguage(language);
-  if (voice != null && voice.isNotEmpty) {
-    await tts.setVoice({'name': voice, 'locale': language});
-  }
-  if (!kIsWeb) {
-    await tts.setIosAudioCategory(IosTextToSpeechAudioCategory.ambient, [
-      IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-      IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-      IosTextToSpeechAudioCategoryOptions.mixWithOthers,
-    ], IosTextToSpeechAudioMode.voicePrompt);
-  }
-  final parts = <String>[];
-  if (notification.title.isNotEmpty) parts.add(notification.title);
-  if (notification.subtitle.isNotEmpty) parts.add(notification.subtitle);
-  if (notification.content.isNotEmpty) parts.add(notification.content);
-
-  if (parts.isNotEmpty) {
-    await tts.speak(parts.join('. '));
-  }
-}
 
 const kNotificationBaseDuration = Duration(seconds: 5);
 const kNotificationStackedDuration = Duration(seconds: 1);
@@ -103,19 +67,6 @@ class NotificationState extends _$NotificationState {
     return [];
   }
 
-  Future<void> _speakNotification(SnNotification notification) async {
-    final settings = ref.read(appSettingsProvider);
-    if (!settings.enableTts) return;
-    await speakNotification(
-      notification,
-      voice: settings.ttsVoice,
-      speechRate: settings.ttsSpeechRate,
-      pitch: settings.ttsPitch,
-      volume: settings.ttsVolume,
-      language: settings.ttsLanguage,
-    );
-  }
-
   void add(SnNotification notification, {Duration? duration}) {
     final newItem = NotificationItem(
       notification: notification,
@@ -124,7 +75,6 @@ class NotificationState extends _$NotificationState {
     );
     state = [...state, newItem];
     _timers[newItem.id] = Timer(newItem.duration, () => dismiss(newItem.id));
-    _speakNotification(notification);
   }
 
   void dismiss(String id) {
