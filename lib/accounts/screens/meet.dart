@@ -13,6 +13,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
 import 'package:island/accounts/nearby_service.dart';
@@ -298,9 +299,11 @@ class MeetScreen extends HookConsumerWidget {
         );
         nearbyObservationCount.value = observations.length;
         if (observations.isEmpty) return;
-        nearbyPeers.value = await nearbyService.resolveObservations(
-          observations,
-        );
+        final peers = await nearbyService.resolveObservations(observations);
+        final uniquePeers = <String, NearbyPeer>{
+          for (final peer in peers) peer.userId: peer,
+        }.values.toList();
+        nearbyPeers.value = uniquePeers;
       } catch (error) {
         nearbyError.value = error;
       } finally {
@@ -553,7 +556,6 @@ class MeetScreen extends HookConsumerWidget {
                   friendOnly: nearbyFriendOnly.value,
                   advertiseSupported: bluetoothService.supportsAdvertising,
                   observationCount: nearbyObservationCount.value,
-                  hasPeers: nearbyPeers.value.isNotEmpty,
                   isResolving: nearbyIsResolving.value,
                   onToggleDiscoverable: (value) async {
                     nearbyDiscoverable.value = value;
@@ -565,6 +567,7 @@ class MeetScreen extends HookConsumerWidget {
                   },
                   onRefresh: startNearbyPresence,
                   discoveries: nearbyDiscoveries.value,
+                  peers: nearbyPeers.value,
                 ),
                 const Gap(16),
                 _NearbyPeersCard(
@@ -1514,19 +1517,19 @@ class _MeetNearbyCard extends StatelessWidget {
   }
 }
 
-class _NearbyPresenceCard extends StatelessWidget {
+class _NearbyPresenceCard extends HookWidget {
   final bool busy;
   final bool scanning;
   final bool discoverable;
   final bool friendOnly;
   final bool advertiseSupported;
   final int observationCount;
-  final bool hasPeers;
   final bool isResolving;
   final VoidCallback onRefresh;
   final ValueChanged<bool> onToggleDiscoverable;
   final ValueChanged<bool> onToggleFriendOnly;
   final List<BluetoothHexDiscovery> discoveries;
+  final List<NearbyPeer> peers;
 
   const _NearbyPresenceCard({
     required this.busy,
@@ -1535,17 +1538,30 @@ class _NearbyPresenceCard extends StatelessWidget {
     required this.friendOnly,
     required this.advertiseSupported,
     required this.observationCount,
-    required this.hasPeers,
     required this.isResolving,
     required this.onRefresh,
     required this.onToggleDiscoverable,
     required this.onToggleFriendOnly,
     required this.discoveries,
+    required this.peers,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final animation = useAnimationController(
+      duration: const Duration(milliseconds: 2600),
+    );
+
+    useEffect(() {
+      if (scanning) {
+        animation.repeat();
+      } else {
+        animation.stop();
+        animation.reset();
+      }
+      return null;
+    }, [scanning]);
 
     return Card(
       child: Padding(
@@ -1553,155 +1569,175 @@ class _NearbyPresenceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('nearbyTitle').tr().fontSize(18).bold(),
-            const Gap(8),
-            Text(
-              'nearbyDescription'.tr(),
-              style: TextStyle(color: theme.colorScheme.secondary),
-            ),
-            const Gap(16),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: discoverable,
-              onChanged: busy || !advertiseSupported
-                  ? null
-                  : onToggleDiscoverable,
-              title: Text('nearbyDiscoverable').tr(),
-              subtitle: Text(
-                advertiseSupported
-                    ? 'nearbyDiscoverableHint'.tr()
-                    : 'nearbyDiscoverableUnsupported'.tr(),
-              ),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: friendOnly,
-              onChanged: busy ? null : onToggleFriendOnly,
-              title: Text('nearbyFriendOnly').tr(),
-              subtitle: Text('nearbyFriendOnlyHint'.tr()),
-            ),
-            const Gap(16),
-            if (scanning)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.primary,
+                      Text('nearbyTitle').tr().fontSize(18).bold(),
+                      const Gap(4),
+                      Text(
+                        scanning
+                            ? 'nearbyScanningLabel'.tr(
+                                args: [discoveries.length.toString()],
+                              )
+                            : 'nearbyIdle'.tr(),
+                        style: TextStyle(
+                          color: theme.colorScheme.secondary,
+                          fontSize: 13,
                         ),
                       ),
-                      const Gap(8),
-                      Expanded(
-                        child: Text(
-                          'nearbyScanningLabel'.tr(
-                            args: [discoveries.length.toString()],
-                          ),
-                        ),
-                      ),
-                      if (isResolving)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ),
-                            const Gap(4),
-                            Text(
-                              'nearbyResolving'.tr(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
-                  if (discoveries.isNotEmpty) ...[
-                    const Gap(12),
-                    ...discoveries
-                        .take(3)
-                        .map(
-                          (d) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _signalIcon(d.rssi),
-                                  size: 16,
-                                  color: _signalColor(d.rssi, theme),
-                                ),
-                                const Gap(8),
-                                Expanded(
-                                  child: Text(
-                                    d.name ?? 'nearbyUnknownDevice'.tr(),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Text(
-                                  '${d.rssi} dBm',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: theme.colorScheme.secondary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                ),
+                if (isResolving)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
-                    if (discoveries.length > 3)
-                      Text(
-                        'nearbyMoreDevices'.tr(
-                          args: ['${discoveries.length - 3}'],
+                        const Gap(4),
+                        Text(
+                          'nearbyResolving'.tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
                         ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.secondary,
-                        ),
-                      ),
-                  ],
-                ],
-              ),
-            if (!scanning) ...[
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const Gap(16),
+            SizedBox(
+              height: 200,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  _InfoPill(
-                    icon: discoverable ? Symbols.radar : Symbols.visibility_off,
-                    label: discoverable
-                        ? 'nearbyBroadcasting'.tr()
-                        : 'nearbyHidden'.tr(),
-                  ),
-                  _InfoPill(
-                    icon: scanning ? Symbols.radar : Symbols.sync_disabled,
-                    label: scanning ? 'nearbyScanning'.tr() : 'nearbyIdle'.tr(),
-                  ),
-                  _InfoPill(
-                    icon: Symbols.network_intelligence,
-                    label: 'nearbyObservationCount'.tr(
-                      args: [observationCount.toString()],
+                  if (scanning)
+                    _NearbyRippleField(
+                      animation: animation,
+                      color: theme.colorScheme.primary,
                     ),
-                  ),
-                  if (hasPeers)
-                    _InfoPill(
-                      icon: Symbols.group,
-                      label: 'nearbyPeersFound'.tr(),
+                  if (discoveries.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            scanning
+                                ? Symbols.bluetooth_searching
+                                : Symbols.radar,
+                            size: 40,
+                            color: theme.colorScheme.secondary,
+                          ),
+                          const Gap(8),
+                          Text(
+                            scanning
+                                ? 'nearbySearching'.tr()
+                                : 'nearbyWaiting'.tr(),
+                            style: TextStyle(
+                              color: theme.colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (peers.isNotEmpty || discoveries.isNotEmpty)
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          ...peers.map((p) => _NearbyPeerBubble(peer: p)),
+                          ...discoveries
+                              .take(8 - peers.length)
+                              .map(
+                                (d) => _NearbyDeviceBubble(
+                                  rssi: d.rssi,
+                                  name: d.name,
+                                ),
+                              ),
+                        ],
+                      ),
                     ),
                 ],
               ),
-              const Gap(8),
-            ],
+            ),
+            const Gap(16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (scanning)
+                  _InfoPill(icon: Symbols.radar, label: 'nearbyScanning'.tr()),
+                if (!scanning)
+                  _InfoPill(
+                    icon: Symbols.sync_disabled,
+                    label: 'nearbyIdle'.tr(),
+                  ),
+                _InfoPill(
+                  icon: Symbols.network_intelligence,
+                  label: observationCount > 0
+                      ? 'nearbyObservationsReady'.tr(
+                          args: [observationCount.toString()],
+                        )
+                      : 'nearbyObservationsCollecting'.tr(),
+                ),
+                if (peers.isNotEmpty)
+                  _InfoPill(
+                    icon: Symbols.group,
+                    label: 'nearbyPeersFound'.tr(),
+                  ),
+              ],
+            ),
+            const Gap(16),
+            Row(
+              children: [
+                Expanded(
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: discoverable,
+                    onChanged: busy || !advertiseSupported
+                        ? null
+                        : onToggleDiscoverable,
+                    title: Text('nearbyDiscoverable').tr(),
+                    dense: true,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: friendOnly,
+                    onChanged: busy ? null : onToggleFriendOnly,
+                    title: Text('nearbyFriendOnly').tr(),
+                    dense: true,
+                  ),
+                ),
+              ],
+            ),
             const Gap(16),
             SizedBox(
               width: double.infinity,
@@ -1716,19 +1752,145 @@ class _NearbyPresenceCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  IconData _signalIcon(int rssi) {
+class _NearbyRippleField extends StatelessWidget {
+  final Animation<double> animation;
+  final Color color;
+
+  const _NearbyRippleField({required this.animation, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        return Stack(
+          alignment: Alignment.center,
+          children: List.generate(3, (index) {
+            final progress = (animation.value + index / 3) % 1.0;
+            final size = 80 + (progress * 120);
+            final opacity = (1 - progress).clamp(0.0, 1.0) * 0.2;
+            return Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withOpacity(opacity), width: 2),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+class _NearbyDeviceBubble extends StatelessWidget {
+  final int rssi;
+  final String? name;
+
+  const _NearbyDeviceBubble({required this.rssi, this.name});
+
+  IconData get _signalIcon {
     if (rssi >= -50) return Symbols.signal_cellular_4_bar;
     if (rssi >= -65) return Symbols.signal_cellular_3_bar;
     if (rssi >= -80) return Symbols.signal_cellular_2_bar;
     return Symbols.signal_cellular_1_bar;
   }
 
-  Color _signalColor(int rssi, ThemeData theme) {
+  Color _signalColor(ThemeData theme) {
     if (rssi >= -50) return Colors.green;
     if (rssi >= -65) return Colors.lightGreen;
     if (rssi >= -80) return Colors.orange;
     return theme.colorScheme.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.colorScheme.primaryContainer,
+          ),
+          child: Icon(_signalIcon, color: _signalColor(theme), size: 24),
+        ),
+        const Gap(4),
+        SizedBox(
+          width: 60,
+          child: Text(
+            '${rssi}dBm',
+            style: TextStyle(fontSize: 10, color: theme.colorScheme.secondary),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NearbyPeerBubble extends StatelessWidget {
+  final NearbyPeer peer;
+
+  const _NearbyPeerBubble({required this.peer});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: () => showAccountProfileCard(context, peer.userId),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primaryContainer,
+            ),
+            child: peer.avatar != null
+                ? ClipOval(
+                    child: ProfilePictureWidget(file: peer.avatar, radius: 25),
+                  )
+                : Center(
+                    child: Text(
+                      peer.displayName.isNotEmpty
+                          ? peer.displayName.substring(0, 1).toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+          ),
+          const Gap(4),
+          SizedBox(
+            width: 60,
+            child: Text(
+              peer.displayName,
+              style: TextStyle(
+                fontSize: 10,
+                color: theme.colorScheme.secondary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

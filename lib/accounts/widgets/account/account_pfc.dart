@@ -244,16 +244,24 @@ class AccountPfcRegion extends StatelessWidget {
   }
 }
 
+bool _isShowingProfileCard = false;
+
 Future<void> showAccountProfileCard(
   BuildContext context,
   String uname, {
   Offset? offset,
 }) async {
-  await showPopupCard<void>(
-    offset: offset ?? Offset.zero,
-    context: context,
-    builder: (context) => AccountProfileCard(uname: uname),
-    alignment: Alignment.center,
-    dimBackground: true,
-  );
+  if (_isShowingProfileCard) return;
+  _isShowingProfileCard = true;
+  try {
+    await showPopupCard<void>(
+      offset: offset ?? Offset.zero,
+      context: context,
+      builder: (context) => AccountProfileCard(uname: uname),
+      alignment: Alignment.center,
+      dimBackground: true,
+    );
+  } finally {
+    _isShowingProfileCard = false;
+  }
 }

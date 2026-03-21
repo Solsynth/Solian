@@ -226,9 +226,9 @@ class MeetBluetoothService {
         if (parsed.isEmpty) return;
 
         for (final item in parsed) {
-          final current = _nearbyDiscoveries[item.payloadHex];
+          final current = _nearbyDiscoveries[item.deviceId];
           if (current == null || item.rssi > current.rssi) {
-            _nearbyDiscoveries[item.payloadHex] = item;
+            _nearbyDiscoveries[item.deviceId] = item;
           }
         }
 
@@ -236,7 +236,7 @@ class MeetBluetoothService {
           ..sort((a, b) => b.rssi.compareTo(a.rssi));
         _nearbyDiscoveriesController.add(items);
         talker.info(
-          '[Nearby/BLE] parsed ${items.length} discoveries for serviceUuid=$serviceUuid payloads=${items.map((e) => e.payloadHex).join(",")}',
+          '[Nearby/BLE] parsed ${items.length} devices for serviceUuid=$serviceUuid deviceIds=${items.map((e) => e.deviceId).join(",")}',
         );
       },
       onError: (error) {
