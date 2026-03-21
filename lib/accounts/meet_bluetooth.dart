@@ -45,13 +45,13 @@ class BluetoothHexDiscovery {
 }
 
 class MeetBluetoothService {
-  final ble.CentralManager _centralManager = ble.CentralManager();
   final ble.PeripheralManager _peripheralManager = ble.PeripheralManager();
   final StreamController<List<BluetoothHexDiscovery>>
   _nearbyDiscoveriesController = StreamController.broadcast();
   final StreamController<bool> _nearbyDiscoveryStateController =
       StreamController<bool>.broadcast();
-  StreamSubscription<ble.DiscoveredEventArgs>? _nearbyDiscoveredSub;
+  StreamSubscription<List<ScanResult>>? _nearbyScanResultSub;
+  StreamSubscription<bool>? _nearbyScanStateSub;
   Timer? _nearbyDiscoveryTimer;
   final Map<String, BluetoothHexDiscovery> _nearbyDiscoveries = {};
   String? _activeAdvertisementKey;
@@ -77,9 +77,13 @@ class MeetBluetoothService {
         _ => false,
       };
 
+  List<BluetoothHexDiscovery> get nearbyDiscoveries =>
+      _nearbyDiscoveries.values.toList()
+        ..sort((a, b) => b.rssi.compareTo(a.rssi));
+
   Future<void> ensureScanReady() async {
     _ensureDiscoverySupported();
-    await _requestPermissions(forAdvertise: false);
+    await _requestPermissions();
     await _ensureBluetoothOn();
   }
 
@@ -89,19 +93,14 @@ class MeetBluetoothService {
   Stream<bool> get nearbyDiscoveryStateStream =>
       _nearbyDiscoveryStateController.stream;
 
-  Future<void> ensureAdvertiseReady() async {
-    _ensureAdvertisingSupported();
-    await _requestPermissions(forAdvertise: true);
-    await _ensurePeripheralOn();
-  }
-
   Future<void> startAdvertising(String meetId) async {
     final meetBytes = _uuidToBytes(meetId);
     if (meetBytes == null) {
       throw const FormatException('Meet id must be a UUID.');
     }
     await startAdvertisingHex(
-      serviceUuid: '0000${kMeetBluetoothServiceUuid.padLeft(4, '0')}-0000-1000-8000-00805f9b34fb',
+      serviceUuid:
+          '0000${kMeetBluetoothServiceUuid.padLeft(4, '0')}-0000-1000-8000-00805f9b34fb',
       payloadHex: _bytesToHex(meetBytes).toUpperCase(),
     );
   }
@@ -116,7 +115,8 @@ class MeetBluetoothService {
     if (payload == null || payload.isEmpty) {
       throw const FormatException('Payload hex is invalid.');
     }
-    final advertisementKey = '${serviceUuid.toLowerCase()}|${payloadHex.toUpperCase()}';
+    final advertisementKey =
+        '${serviceUuid.toLowerCase()}|${payloadHex.toUpperCase()}';
     if (_activeAdvertisementKey == advertisementKey) {
       talker.info(
         '[Nearby/BLE] startAdvertising skipped serviceUuid=$serviceUuid payloadHex=$payloadHex because the same advertisement is already active',
@@ -125,8 +125,6 @@ class MeetBluetoothService {
     }
 
     const useSeparateServiceUuidField = true;
-    // Android returns ADVERTISE_FAILED_ALREADY_STARTED (3) if an old
-    // advertisement is still active, so always stop before re-arming.
     await stopAdvertising();
     if (defaultTargetPlatform == TargetPlatform.android) {
       await Future<void>.delayed(const Duration(milliseconds: 150));
@@ -207,53 +205,74 @@ class MeetBluetoothService {
 
   Future<void> startNearbyDiscoveryForService(
     String serviceUuid, {
-    Duration timeout = const Duration(seconds: 12),
+    Duration? timeout,
     int? expectedLength,
   }) async {
-    await ensureNearbyDiscoveryReady();
+    await ensureScanReady();
     await stopNearbyDiscovery();
     _nearbyDiscoveries.clear();
 
-    final targetUuid = ble.UUID.fromString(serviceUuid);
     talker.info(
-      '[Nearby/BLE] startNearbyDiscovery serviceUuid=$serviceUuid timeoutSec=${timeout.inSeconds}',
+      '[Nearby/BLE] startNearbyDiscovery serviceUuid=$serviceUuid timeoutSec=${timeout?.inSeconds ?? "infinite"}',
     );
 
-    _nearbyDiscoveredSub = _centralManager.discovered.listen((event) {
-      final parsed = _parseNearbyDiscoveryEvent(
-        event,
-        targetUuid: targetUuid,
-        expectedLength: expectedLength,
-      );
-      if (parsed == null) return;
+    _nearbyScanResultSub = FlutterBluePlus.onScanResults.listen(
+      (results) {
+        final parsed = parseHexDiscoveries(
+          results,
+          serviceUuid: serviceUuid,
+          expectedLength: expectedLength,
+        );
+        if (parsed.isEmpty) return;
 
-      final current = _nearbyDiscoveries[parsed.payloadHex];
-      if (current == null || parsed.rssi > current.rssi) {
-        _nearbyDiscoveries[parsed.payloadHex] = parsed;
+        for (final item in parsed) {
+          final current = _nearbyDiscoveries[item.payloadHex];
+          if (current == null || item.rssi > current.rssi) {
+            _nearbyDiscoveries[item.payloadHex] = item;
+          }
+        }
+
         final items = _nearbyDiscoveries.values.toList()
           ..sort((a, b) => b.rssi.compareTo(a.rssi));
         _nearbyDiscoveriesController.add(items);
         talker.info(
           '[Nearby/BLE] parsed ${items.length} discoveries for serviceUuid=$serviceUuid payloads=${items.map((e) => e.payloadHex).join(",")}',
         );
+      },
+      onError: (error) {
+        talker.error('[Nearby/BLE] scan error: $error');
+      },
+    );
+
+    _nearbyScanStateSub ??= FlutterBluePlus.isScanning.listen((isScanning) {
+      _nearbyDiscoveryStateController.add(isScanning);
+      if (!isScanning) {
+        _isNearbyDiscovering = false;
       }
     });
 
-    await _centralManager.startDiscovery(serviceUUIDs: [targetUuid]);
+    await FlutterBluePlus.startScan(
+      withServices: [Guid(serviceUuid)],
+      timeout: timeout,
+    );
     _isNearbyDiscovering = true;
     _nearbyDiscoveryStateController.add(true);
-    _nearbyDiscoveryTimer = Timer(timeout, () {
-      unawaited(stopNearbyDiscovery());
-    });
+    if (timeout != null) {
+      _nearbyDiscoveryTimer = Timer(timeout, () {
+        unawaited(stopNearbyDiscovery());
+      });
+    }
   }
 
   Future<void> stopNearbyDiscovery() async {
     _nearbyDiscoveryTimer?.cancel();
     _nearbyDiscoveryTimer = null;
-    await _nearbyDiscoveredSub?.cancel();
-    _nearbyDiscoveredSub = null;
+    await _nearbyScanResultSub?.cancel();
+    _nearbyScanResultSub = null;
     if (_isNearbyDiscovering) {
-      await _centralManager.stopDiscovery();
+      if (await FlutterBluePlus.isScanning.first) {
+        await FlutterBluePlus.stopScan();
+      }
       _isNearbyDiscovering = false;
       _nearbyDiscoveryStateController.add(false);
       talker.info('[Nearby/BLE] stopNearbyDiscovery');
@@ -377,42 +396,6 @@ class MeetBluetoothService {
     return items;
   }
 
-  Future<void> ensureNearbyDiscoveryReady() async {
-    _ensureDiscoverySupported();
-    await _requestPermissions(forAdvertise: false);
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await _centralManager.authorize();
-    }
-
-    var state = _centralManager.state;
-    if (state == ble.BluetoothLowEnergyState.unknown) {
-      state = await _centralManager.stateChanged
-          .map((event) => event.state)
-          .firstWhere(
-            (value) => value != ble.BluetoothLowEnergyState.unknown,
-            orElse: () => _centralManager.state,
-          );
-    }
-
-    if (state == ble.BluetoothLowEnergyState.poweredOn) return;
-
-    if (state == ble.BluetoothLowEnergyState.unauthorized) {
-      throw StateError(
-        'Bluetooth permission is blocked. Please allow Solian to use Bluetooth.',
-      );
-    }
-
-    if (state == ble.BluetoothLowEnergyState.unsupported) {
-      throw StateError('Bluetooth LE is not supported on this device.');
-    }
-
-    if (state == ble.BluetoothLowEnergyState.poweredOff) {
-      throw StateError('Bluetooth must be turned on before using Nearby.');
-    }
-
-    throw StateError('Bluetooth discovery is not ready yet. Current state: $state');
-  }
-
   void _ensureDiscoverySupported() {
     if (!supportsNearbyDiscovery) {
       throw UnsupportedError(
@@ -429,7 +412,51 @@ class MeetBluetoothService {
     }
   }
 
-  Future<void> _requestPermissions({required bool forAdvertise}) async {
+  Future<void> ensureAdvertiseReady() async {
+    _ensureAdvertisingSupported();
+    await _requestPermissions(forAdvertise: true);
+    await _ensurePeripheralOn();
+  }
+
+  Future<void> _ensurePeripheralOn() async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await _peripheralManager.authorize();
+    }
+
+    var state = _peripheralManager.state;
+    if (state == ble.BluetoothLowEnergyState.unknown) {
+      state = await _peripheralManager.stateChanged
+          .map((event) => event.state)
+          .firstWhere(
+            (value) => value != ble.BluetoothLowEnergyState.unknown,
+            orElse: () => _peripheralManager.state,
+          );
+    }
+
+    if (state == ble.BluetoothLowEnergyState.poweredOn) {
+      return;
+    }
+
+    if (state == ble.BluetoothLowEnergyState.unauthorized) {
+      throw StateError(
+        'Bluetooth permission is blocked. Please allow Solian to use Bluetooth.',
+      );
+    }
+
+    if (state == ble.BluetoothLowEnergyState.unsupported) {
+      throw StateError('BLE advertising is not supported on this device.');
+    }
+
+    if (state == ble.BluetoothLowEnergyState.poweredOff) {
+      throw StateError('Bluetooth must be turned on before using Nearby.');
+    }
+
+    throw StateError(
+      'Bluetooth advertiser is not ready yet. Current state: $state',
+    );
+  }
+
+  Future<void> _requestPermissions({bool forAdvertise = false}) async {
     if (kIsWeb) return;
 
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -514,90 +541,6 @@ class MeetBluetoothService {
 
     throw StateError('Bluetooth is not ready yet. Current state: $state');
   }
-
-  Future<void> _ensurePeripheralOn() async {
-    if (!supportsAdvertising) {
-      throw UnsupportedError(
-        'Bluetooth advertising is not supported on this platform.',
-      );
-    }
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await _peripheralManager.authorize();
-    }
-
-    var state = _peripheralManager.state;
-    if (state == ble.BluetoothLowEnergyState.unknown) {
-      state = await _peripheralManager.stateChanged
-          .map((event) => event.state)
-          .firstWhere(
-            (value) => value != ble.BluetoothLowEnergyState.unknown,
-            orElse: () => _peripheralManager.state,
-          );
-    }
-
-    if (state == ble.BluetoothLowEnergyState.poweredOn) {
-      return;
-    }
-
-    if (state == ble.BluetoothLowEnergyState.unauthorized) {
-      throw StateError(
-        'Bluetooth permission is blocked. Please allow Solian to use Bluetooth.',
-      );
-    }
-
-    if (state == ble.BluetoothLowEnergyState.unsupported) {
-      throw StateError('BLE advertising is not supported on this device.');
-    }
-
-    if (state == ble.BluetoothLowEnergyState.poweredOff) {
-      throw StateError('Bluetooth must be turned on before using Nearby.');
-    }
-
-    throw StateError('Bluetooth advertiser is not ready yet. Current state: $state');
-  }
-
-  BluetoothHexDiscovery? _parseNearbyDiscoveryEvent(
-    ble.DiscoveredEventArgs event, {
-    required ble.UUID targetUuid,
-    required int? expectedLength,
-  }) {
-    final advertisement = event.advertisement;
-    final matchingServiceUuids = advertisement.serviceUUIDs
-        .where((entry) => _bleUuidEquals(entry, targetUuid))
-        .map((entry) => entry.toString().toUpperCase())
-        .toList();
-    final matchingServiceData = advertisement.serviceData.entries
-        .where((entry) => _bleUuidEquals(entry.key, targetUuid))
-        .toList();
-    final manufacturerRows = advertisement.manufacturerSpecificData
-        .map(
-          (entry) =>
-              '0x${entry.id.toRadixString(16).padLeft(4, '0').toUpperCase()}:${_bytesToHex(entry.data).toUpperCase()}',
-        )
-        .toList();
-
-    if (matchingServiceUuids.isNotEmpty ||
-        matchingServiceData.isNotEmpty ||
-        manufacturerRows.isNotEmpty) {
-      talker.info(
-        '[Nearby/BLE] rawNearbyDiscovery peripheral=${event.peripheral.uuid.toString().toUpperCase()} rssi=${event.rssi} serviceUuids=${matchingServiceUuids.join(",")} serviceData=${matchingServiceData.map((e) => "${e.key.toString().toUpperCase()}:${_bytesToHex(e.value).toUpperCase()}").join(",")} manufacturer=${manufacturerRows.join(",")}',
-      );
-    }
-
-    if (matchingServiceData.isEmpty) return null;
-
-    final rawBytes = matchingServiceData.first.value;
-    if (rawBytes.isEmpty) return null;
-    if (expectedLength != null && rawBytes.length != expectedLength) return null;
-
-    return BluetoothHexDiscovery(
-      payloadHex: _bytesToHex(rawBytes).toUpperCase(),
-      deviceId: event.peripheral.uuid.toString(),
-      name: advertisement.name,
-      rssi: event.rssi,
-    );
-  }
 }
 
 _AdvertisementLayout _buildAdvertisementLayout({
@@ -630,18 +573,11 @@ class _AdvertisementLayout {
   final int totalBytes;
   final String summary;
 
-  const _AdvertisementLayout({
-    required this.totalBytes,
-    required this.summary,
-  });
+  const _AdvertisementLayout({required this.totalBytes, required this.summary});
 }
 
 bool _guidEquals(Guid left, Guid right) {
   return left.str128.toLowerCase() == right.str128.toLowerCase();
-}
-
-bool _bleUuidEquals(ble.UUID left, ble.UUID right) {
-  return _bytesToHex(left.value) == _bytesToHex(right.value);
 }
 
 String _bytesToUuid(List<int> bytes) {

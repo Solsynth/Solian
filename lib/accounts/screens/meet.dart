@@ -82,6 +82,8 @@ class MeetScreen extends HookConsumerWidget {
     final nearbyScanStateSub = useRef<StreamSubscription<bool>?>(null);
     final nearbyRefreshTimer = useRef<Timer?>(null);
     final nearbyResolveBusy = useRef(false);
+    final nearbyDiscoveries = useState<List<BluetoothHexDiscovery>>([]);
+    final nearbyIsResolving = useState(false);
 
     Future<void> startNearbyScan() async {
       if (!bluetoothService.supportsNearbyDiscovery) {
@@ -287,6 +289,7 @@ class MeetScreen extends HookConsumerWidget {
     Future<void> resolveNearbyPeers() async {
       if (nearbyResolveBusy.value) return;
       nearbyResolveBusy.value = true;
+      nearbyIsResolving.value = true;
       try {
         final observations = nearbyAggregator.value.build(
           minSeenCount: 2,
@@ -302,12 +305,14 @@ class MeetScreen extends HookConsumerWidget {
         nearbyError.value = error;
       } finally {
         nearbyResolveBusy.value = false;
+        nearbyIsResolving.value = false;
       }
     }
 
     Future<void> startNearbyPresence() async {
       nearbyBusy.value = true;
       nearbyError.value = null;
+      nearbyDiscoveries.value = [];
       try {
         final effectiveDiscoverable =
             bluetoothService.supportsAdvertising && nearbyDiscoverable.value;
@@ -327,35 +332,35 @@ class MeetScreen extends HookConsumerWidget {
         await nearbyScanResultSub.value?.cancel();
         nearbyScanResultSub.value = bluetoothService.nearbyDiscoveriesStream
             .listen(
-          (discoveries) {
-            final currentBundle = nearbyBundle.value;
-            if (currentBundle == null || discoveries.isEmpty) return;
-            if (discoveries.isEmpty) return;
+              (discoveries) {
+                nearbyDiscoveries.value = discoveries;
+                final currentBundle = nearbyBundle.value;
+                if (currentBundle == null || discoveries.isEmpty) return;
 
-            final slot = nearbyService.currentSlot(
-              currentBundle.slotDurationSec,
+                final slot = nearbyService.currentSlot(
+                  currentBundle.slotDurationSec,
+                );
+                final rssiByToken = <String, int>{
+                  for (final item in discoveries) item.payloadHex: item.rssi,
+                };
+                nearbyAggregator.value.ingest(
+                  tokens: discoveries.map((e) => e.payloadHex),
+                  slot: slot,
+                  rssiByToken: rssiByToken,
+                );
+                if (tabController.index == 2) {
+                  unawaited(resolveNearbyPeers());
+                }
+              },
+              onError: (error, _) {
+                nearbyScanning.value = false;
+                nearbyError.value = error;
+              },
             );
-            final rssiByToken = <String, int>{
-              for (final item in discoveries) item.payloadHex: item.rssi,
-            };
-            nearbyAggregator.value.ingest(
-              tokens: discoveries.map((e) => e.payloadHex),
-              slot: slot,
-              rssiByToken: rssiByToken,
-            );
-          },
-          onError: (error, _) {
-            nearbyScanning.value = false;
-            nearbyError.value = error;
-          },
-        );
         nearbyScanStateSub.value ??= bluetoothService.nearbyDiscoveryStateStream
             .listen((value) {
-          nearbyScanning.value = value;
-          if (!value && tabController.index == 2) {
-            unawaited(resolveNearbyPeers());
-          }
-        });
+              nearbyScanning.value = value;
+            });
 
         await syncNearbyAdvertising();
         nearbyRefreshTimer.value?.cancel();
@@ -549,6 +554,7 @@ class MeetScreen extends HookConsumerWidget {
                   advertiseSupported: bluetoothService.supportsAdvertising,
                   observationCount: nearbyObservationCount.value,
                   hasPeers: nearbyPeers.value.isNotEmpty,
+                  isResolving: nearbyIsResolving.value,
                   onToggleDiscoverable: (value) async {
                     nearbyDiscoverable.value = value;
                     await startNearbyPresence();
@@ -558,6 +564,7 @@ class MeetScreen extends HookConsumerWidget {
                     await startNearbyPresence();
                   },
                   onRefresh: startNearbyPresence,
+                  discoveries: nearbyDiscoveries.value,
                 ),
                 const Gap(16),
                 _NearbyPeersCard(
@@ -1515,9 +1522,11 @@ class _NearbyPresenceCard extends StatelessWidget {
   final bool advertiseSupported;
   final int observationCount;
   final bool hasPeers;
+  final bool isResolving;
   final VoidCallback onRefresh;
   final ValueChanged<bool> onToggleDiscoverable;
   final ValueChanged<bool> onToggleFriendOnly;
+  final List<BluetoothHexDiscovery> discoveries;
 
   const _NearbyPresenceCard({
     required this.busy,
@@ -1527,9 +1536,11 @@ class _NearbyPresenceCard extends StatelessWidget {
     required this.advertiseSupported,
     required this.observationCount,
     required this.hasPeers,
+    required this.isResolving,
     required this.onRefresh,
     required this.onToggleDiscoverable,
     required this.onToggleFriendOnly,
+    required this.discoveries,
   });
 
   @override
@@ -1567,38 +1578,130 @@ class _NearbyPresenceCard extends StatelessWidget {
               value: friendOnly,
               onChanged: busy ? null : onToggleFriendOnly,
               title: Text('nearbyFriendOnly').tr(),
-              subtitle: Text('nearbyFriendOnlyHint').tr(),
+              subtitle: Text('nearbyFriendOnlyHint'.tr()),
             ),
-            const Gap(8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InfoPill(
-                  icon: discoverable ? Symbols.radar : Symbols.visibility_off,
-                  label: discoverable
-                      ? 'nearbyBroadcasting'.tr()
-                      : 'nearbyHidden'.tr(),
-                ),
-                _InfoPill(
-                  icon: scanning ? Symbols.radar : Symbols.sync_disabled,
-                  label: scanning
-                      ? 'nearbyScanning'.tr()
-                      : 'meetWatchStopped'.tr(),
-                ),
-                _InfoPill(
-                  icon: Symbols.network_intelligence,
-                  label: 'nearbyObservationCount'.tr(
-                    args: [observationCount.toString()],
+            const Gap(16),
+            if (scanning)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: Text(
+                          'nearbyScanningLabel'.tr(
+                            args: [discoveries.length.toString()],
+                          ),
+                        ),
+                      ),
+                      if (isResolving)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ),
+                            const Gap(4),
+                            Text(
+                              'nearbyResolving'.tr(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
-                ),
-                if (hasPeers)
+                  if (discoveries.isNotEmpty) ...[
+                    const Gap(12),
+                    ...discoveries
+                        .take(3)
+                        .map(
+                          (d) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _signalIcon(d.rssi),
+                                  size: 16,
+                                  color: _signalColor(d.rssi, theme),
+                                ),
+                                const Gap(8),
+                                Expanded(
+                                  child: Text(
+                                    d.name ?? 'nearbyUnknownDevice'.tr(),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Text(
+                                  '${d.rssi} dBm',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    if (discoveries.length > 3)
+                      Text(
+                        'nearbyMoreDevices'.tr(
+                          args: ['${discoveries.length - 3}'],
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            if (!scanning) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
                   _InfoPill(
-                    icon: Symbols.group,
-                    label: 'nearbyPeersFound'.tr(),
+                    icon: discoverable ? Symbols.radar : Symbols.visibility_off,
+                    label: discoverable
+                        ? 'nearbyBroadcasting'.tr()
+                        : 'nearbyHidden'.tr(),
                   ),
-              ],
-            ),
+                  _InfoPill(
+                    icon: scanning ? Symbols.radar : Symbols.sync_disabled,
+                    label: scanning ? 'nearbyScanning'.tr() : 'nearbyIdle'.tr(),
+                  ),
+                  _InfoPill(
+                    icon: Symbols.network_intelligence,
+                    label: 'nearbyObservationCount'.tr(
+                      args: [observationCount.toString()],
+                    ),
+                  ),
+                  if (hasPeers)
+                    _InfoPill(
+                      icon: Symbols.group,
+                      label: 'nearbyPeersFound'.tr(),
+                    ),
+                ],
+              ),
+              const Gap(8),
+            ],
             const Gap(16),
             SizedBox(
               width: double.infinity,
@@ -1612,6 +1715,20 @@ class _NearbyPresenceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _signalIcon(int rssi) {
+    if (rssi >= -50) return Symbols.signal_cellular_4_bar;
+    if (rssi >= -65) return Symbols.signal_cellular_3_bar;
+    if (rssi >= -80) return Symbols.signal_cellular_2_bar;
+    return Symbols.signal_cellular_1_bar;
+  }
+
+  Color _signalColor(int rssi, ThemeData theme) {
+    if (rssi >= -50) return Colors.green;
+    if (rssi >= -65) return Colors.lightGreen;
+    if (rssi >= -80) return Colors.orange;
+    return theme.colorScheme.error;
   }
 }
 
