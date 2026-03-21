@@ -212,16 +212,6 @@ class MeetScreen extends HookConsumerWidget {
         );
 
         ref.invalidate(meetHistoryProvider);
-        if (entryMode.value == MeetEntryMode.tap) {
-          try {
-            await tapService.writeMeetTag(meet.id);
-            if (context.mounted) {
-              showSnackBar('meetTapReady'.tr());
-            }
-          } catch (error) {
-            showErrorAlert(error);
-          }
-        }
         await openMeetDetail(meet.id);
       } catch (error) {
         showErrorAlert(error);
@@ -248,7 +238,7 @@ class MeetScreen extends HookConsumerWidget {
     Future<void> joinTapMeet() async {
       actionBusy.value = true;
       try {
-        final payload = await tapService.readMeetTag();
+        final payload = await tapService.readPresentedMeet();
         final snapshot = await meetService.joinMeet(payload.meetId).first;
         if (context.mounted) {
           await _showTapMeetNameCard(context, snapshot.meet);
@@ -353,7 +343,7 @@ class MeetScreen extends HookConsumerWidget {
                   isLocating: isLocating.value,
                   visibility: visibility.value,
                   image: selectedImage.value,
-                  tapSupported: tapService.supportsTapMeet,
+                  tapSupported: tapService.supportsTapHost,
                   onChangeEntryMode: (value) => entryMode.value = value,
                   onChangeVisibility: (value) => visibility.value = value,
                   onUseCurrentLocation: fillCurrentLocation,
@@ -413,7 +403,7 @@ class MeetScreen extends HookConsumerWidget {
               children: [
                 _MeetTapCard(
                   busy: actionBusy.value,
-                  supported: tapService.supportsTapMeet,
+                  supported: tapService.supportsTapJoin,
                   onTapJoin: joinTapMeet,
                 ),
               ],
@@ -446,12 +436,14 @@ class MeetDetailScreen extends HookConsumerWidget {
     final currentUser = ref.watch(userInfoProvider).value;
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
+    final tapService = ref.watch(meetTapServiceProvider);
 
     final meet = useState<SnMeet?>(null);
     final error = useState<Object?>(null);
     final eventType = useState<String?>(null);
     final isWatching = useState(false);
     final isAdvertising = useState(false);
+    final isTapPresenting = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
 
@@ -459,6 +451,12 @@ class MeetDetailScreen extends HookConsumerWidget {
       if (!isAdvertising.value) return;
       await bluetoothService.stopAdvertising();
       isAdvertising.value = false;
+    }
+
+    Future<void> stopTapPresentation() async {
+      if (!isTapPresenting.value) return;
+      await tapService.stopHostPresentation();
+      isTapPresenting.value = false;
     }
 
     Future<void> stopWatching() async {
@@ -492,6 +490,7 @@ class MeetDetailScreen extends HookConsumerWidget {
               if (event.meet.isFinal) {
                 isWatching.value = false;
                 unawaited(stopAdvertising());
+                unawaited(stopTapPresentation());
                 ref.invalidate(meetHistoryProvider);
               }
             },
@@ -517,6 +516,21 @@ class MeetDetailScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> maybeStartTapPresentation() async {
+      final current = meet.value;
+      final isHost = current != null && current.hostId == currentUser?.id;
+      if (!isHost || current.status != SnMeetStatus.active) return;
+      if (_entryModeOf(current) != MeetEntryMode.tap) return;
+      if (!tapService.supportsTapHost) return;
+
+      try {
+        await tapService.startHostPresentation(current.id);
+        isTapPresenting.value = true;
+      } catch (_) {
+        isTapPresenting.value = false;
+      }
+    }
+
     Future<void> completeMeet() async {
       final current = meet.value;
       if (current == null) return;
@@ -536,12 +550,14 @@ class MeetDetailScreen extends HookConsumerWidget {
       Future.microtask(() async {
         await loadMeet();
         await maybeStartAdvertising();
+        await maybeStartTapPresentation();
         await watchMeet();
       });
 
       return () {
         unawaited(stopWatching());
         unawaited(stopAdvertising());
+        unawaited(stopTapPresentation());
       };
     }, [id]);
 
@@ -557,6 +573,7 @@ class MeetDetailScreen extends HookConsumerWidget {
         participants: participants,
         isWatching: isWatching.value,
         isAdvertising: isAdvertising.value,
+        isTapPresenting: isTapPresenting.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
         onClose: context.router.maybePop,
@@ -582,6 +599,7 @@ class MeetDetailScreen extends HookConsumerWidget {
                   participants: participants,
                   isWatching: isWatching.value,
                   isAdvertising: isAdvertising.value,
+                  isTapPresenting: isTapPresenting.value,
                 ),
                 const Gap(16),
                 _MeetDetailInfo(
@@ -626,6 +644,7 @@ class _MeetActiveListeningPage extends HookWidget {
   final List<_MeetPerson> participants;
   final bool isWatching;
   final bool isAdvertising;
+  final bool isTapPresenting;
   final bool isHost;
   final bool actionBusy;
   final VoidCallback onClose;
@@ -637,6 +656,7 @@ class _MeetActiveListeningPage extends HookWidget {
     required this.participants,
     required this.isWatching,
     required this.isAdvertising,
+    required this.isTapPresenting,
     required this.isHost,
     required this.actionBusy,
     required this.onClose,
@@ -697,31 +717,40 @@ class _MeetActiveListeningPage extends HookWidget {
                   ],
                 ),
                 const Gap(12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isAdvertising)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isAdvertising)
+                        _InfoPill(
+                          icon: Symbols.bluetooth,
+                          label: 'meetBroadcasting'.tr(),
+                        ),
+                      if (isAdvertising) const Gap(8),
+                      if (isTapPresenting)
+                        _InfoPill(
+                          icon: Symbols.contactless,
+                          label: 'meetTapReady'.tr(),
+                        ),
+                      if (isTapPresenting) const Gap(8),
                       _InfoPill(
-                        icon: Symbols.bluetooth,
-                        label: 'meetBroadcasting'.tr(),
+                        icon: entryMode == MeetEntryMode.tap
+                            ? Symbols.contactless
+                            : Symbols.bluetooth_searching,
+                        label: _entryModeLabel(entryMode, context),
                       ),
-                    if (isAdvertising) const Gap(8),
-                    _InfoPill(
-                      icon: entryMode == MeetEntryMode.tap
-                          ? Symbols.contactless
-                          : Symbols.bluetooth_searching,
-                      label: _entryModeLabel(entryMode, context),
-                    ),
-                    const Gap(8),
-                    _InfoPill(
-                      icon: isWatching
-                          ? Symbols.wifi_tethering
-                          : Symbols.wifi_off,
-                      label: isWatching
-                          ? 'meetWatching'.tr()
-                          : 'meetWatchStopped'.tr(),
-                    ),
-                  ],
+                      const Gap(8),
+                      _InfoPill(
+                        icon: isWatching
+                            ? Symbols.wifi_tethering
+                            : Symbols.wifi_off,
+                        label: isWatching
+                            ? 'meetWatching'.tr()
+                            : 'meetWatchStopped'.tr(),
+                      ),
+                    ],
+                  ),
                 ),
                 const Spacer(),
                 SizedBox(
@@ -791,6 +820,7 @@ class _MeetDetailHero extends HookWidget {
   final List<_MeetPerson> participants;
   final bool isWatching;
   final bool isAdvertising;
+  final bool isTapPresenting;
 
   const _MeetDetailHero({
     required this.meet,
@@ -798,6 +828,7 @@ class _MeetDetailHero extends HookWidget {
     required this.participants,
     required this.isWatching,
     required this.isAdvertising,
+    required this.isTapPresenting,
   });
 
   @override
@@ -862,6 +893,8 @@ class _MeetDetailHero extends HookWidget {
                       ),
                       if (isAdvertising)
                         _HeroPill(label: 'meetBroadcasting'.tr()),
+                      if (isTapPresenting)
+                        _HeroPill(label: 'meetTapReady'.tr()),
                     ],
                   ),
                   const Spacer(),
@@ -1232,7 +1265,7 @@ class _MeetStartCard extends StatelessWidget {
               Text(
                 tapSupported
                     ? 'meetTapStartHint'.tr()
-                    : 'meetTapUnsupported'.tr(),
+                    : 'meetTapHostUnsupported'.tr(),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.secondary,
                 ),
