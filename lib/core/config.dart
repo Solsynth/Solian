@@ -11,6 +11,15 @@ import 'package:window_manager/window_manager.dart';
 part 'config.freezed.dart';
 part 'config.g.dart';
 
+String localeToLanguageCode(Locale locale) {
+  final lang = locale.languageCode;
+  final country = locale.countryCode;
+  if (country != null && country.isNotEmpty) {
+    return '${lang}-${country}';
+  }
+  return lang;
+}
+
 const kTokenPairStoreKey = 'dyn_user_tk';
 
 const kNetworkServerDefault = 'https://api.solian.app';
@@ -22,6 +31,12 @@ const kAppShowBackgroundImage = 'app_show_background_image';
 const kAppColorSchemeStoreKey = 'app_color_scheme';
 const kAppCustomColorsStoreKey = 'app_custom_colors';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
+const kAppEnableTts = 'app_enable_tts';
+const kAppTtsVoice = 'app_tts_voice';
+const kAppTtsSpeechRate = 'app_tts_speech_rate';
+const kAppTtsPitch = 'app_tts_pitch';
+const kAppTtsVolume = 'app_tts_volume';
+const kAppTtsLanguage = 'app_tts_language';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppDataSavingMode = 'app_data_saving_mode';
 const kAppSoundEffects = 'app_sound_effects';
@@ -103,6 +118,12 @@ sealed class AppSettings with _$AppSettings {
     required bool appBarTransparent,
     required bool showBackgroundImage,
     required bool notifyWithHaptic,
+    required bool enableTts,
+    required String? ttsVoice,
+    required double ttsSpeechRate,
+    required double ttsPitch,
+    required double ttsVolume,
+    required String ttsLanguage,
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required ThemeColors? customColors,
@@ -148,6 +169,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       appBarTransparent: prefs.getBool(kAppbarTransparentStoreKey) ?? false,
       showBackgroundImage: prefs.getBool(kAppShowBackgroundImage) ?? true,
       notifyWithHaptic: prefs.getBool(kAppNotifyWithHaptic) ?? true,
+      enableTts: prefs.getBool(kAppEnableTts) ?? false,
+      ttsVoice: prefs.getString(kAppTtsVoice),
+      ttsSpeechRate: prefs.getDouble(kAppTtsSpeechRate) ?? 1.0,
+      ttsPitch: prefs.getDouble(kAppTtsPitch) ?? 1.0,
+      ttsVolume: prefs.getDouble(kAppTtsVolume) ?? 1.0,
+      ttsLanguage: prefs.getString(kAppTtsLanguage) ?? 'en-US',
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       customColors: _getThemeColorsFromPrefs(prefs),
@@ -264,6 +291,46 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppNotifyWithHaptic, value);
     state = state.copyWith(notifyWithHaptic: value);
+  }
+
+  void setEnableTts(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppEnableTts, value);
+    state = state.copyWith(enableTts: value);
+  }
+
+  void setTtsVoice(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      prefs.setString(kAppTtsVoice, value);
+    } else {
+      prefs.remove(kAppTtsVoice);
+    }
+    state = state.copyWith(ttsVoice: value);
+  }
+
+  void setTtsSpeechRate(double value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setDouble(kAppTtsSpeechRate, value);
+    state = state.copyWith(ttsSpeechRate: value);
+  }
+
+  void setTtsPitch(double value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setDouble(kAppTtsPitch, value);
+    state = state.copyWith(ttsPitch: value);
+  }
+
+  void setTtsVolume(double value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setDouble(kAppTtsVolume, value);
+    state = state.copyWith(ttsVolume: value);
+  }
+
+  void setTtsLanguage(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppTtsLanguage, value);
+    state = state.copyWith(ttsLanguage: value);
   }
 
   void setCustomFonts(String? value) {

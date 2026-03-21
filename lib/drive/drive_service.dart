@@ -30,6 +30,24 @@ const int driveUploadChunkSizeBytes = 5 * 1024 * 1024;
 const int driveDirectUploadMaxChunks = 2;
 const int driveDirectUploadMaxFileSizeBytes =
     driveUploadChunkSizeBytes * driveDirectUploadMaxChunks;
+const int driveChunkUploadConcurrency = 3;
+
+class _ConcurrencyLimiter {
+  final int maxConcurrent;
+  final List<Future<void>> _running = [];
+
+  _ConcurrencyLimiter(this.maxConcurrent);
+
+  Future<T> run<T>(Future<T> Function() task) async {
+    while (_running.length >= maxConcurrent) {
+      await Future.any(_running);
+    }
+
+    final future = task();
+    _running.add(future.then((_) => _running.remove(future)));
+    return future;
+  }
+}
 
 class DriveE2eeFileEnvelope {
   static const String scheme = 'file.aesgcm.v1';
@@ -366,10 +384,7 @@ class FileUploader {
   late final Dio _client = ref.watch(apiClientProvider);
   FileUploader(this.ref);
 
-  bool shouldUseDirectUpload({
-    required int totalSize,
-    int? customChunkSize,
-  }) {
+  bool shouldUseDirectUpload({required int totalSize, int? customChunkSize}) {
     if (customChunkSize != null) return false;
     return totalSize <= driveDirectUploadMaxFileSizeBytes;
   }
@@ -469,6 +484,10 @@ class FileUploader {
       '/drive/files/upload/direct',
       data: FormData.fromMap(payload),
       onSendProgress: onSendProgress,
+      options: Options(
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 5),
+      ),
     );
 
     if (response.data is! Map) {
@@ -623,6 +642,10 @@ class FileUploader {
       '/drive/files/upload/chunk/$taskId/$chunkIndex',
       data: formData,
       onSendProgress: onSendProgress,
+      options: Options(
+        sendTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
     );
     stepTimer.stop();
     debugPrint(
@@ -646,6 +669,41 @@ class FileUploader {
     );
 
     return SnCloudFile.fromJson(response.data);
+  }
+
+  /// Uploads multiple chunks concurrently with a concurrency limit.
+  Future<void> uploadChunksBatch({
+    required String taskId,
+    required List<Uint8List> chunks,
+    required int startIndex,
+    required int totalSize,
+    Function(double? progress, Duration estimate)? onProgress,
+  }) async {
+    int bytesUploaded = 0;
+    final futures = <Future<void>>[];
+    final semaphore = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+
+    for (int i = 0; i < chunks.length; i++) {
+      final chunkIndex = startIndex + i;
+      final chunk = chunks[i];
+
+      futures.add(
+        semaphore.run(() async {
+          await uploadChunk(
+            taskId: taskId,
+            chunkIndex: chunkIndex,
+            chunkData: chunk,
+            onSendProgress: (sent, total) {
+              final overallProgress = (bytesUploaded + sent) / totalSize;
+              onProgress?.call(overallProgress, Duration.zero);
+            },
+          );
+          bytesUploaded += chunk.length;
+        }),
+      );
+    }
+
+    await Future.wait(futures);
   }
 
   /// Uploads a file in chunks using the multi-part API.
@@ -769,54 +827,85 @@ class FileUploader {
 
     final taskId = createResponse['task_id'] as String;
     final chunkSize = createResponse['chunk_size'] as int;
-    // Step 2: Upload chunks
+    // Step 2: Upload chunks in batches
     final chunkTimer = Stopwatch()..start();
+    int totalChunks = 0;
     int bytesUploaded = 0;
-    int chunkIndex = 0;
+
     if (uploadData is XFile) {
-      // Stream chunks from XFile - memory efficient for large files
+      final chunks = <Uint8List>[];
       await for (final chunk in _readChunksFromStream(
         uploadData.openRead(),
         chunkSize,
       )) {
-        await uploadChunk(
+        chunks.add(chunk);
+      }
+      totalChunks = chunks.length;
+
+      for (
+        int batchStart = 0;
+        batchStart < chunks.length;
+        batchStart += driveChunkUploadConcurrency
+      ) {
+        final batchEnd =
+            (batchStart + driveChunkUploadConcurrency > chunks.length)
+            ? chunks.length
+            : batchStart + driveChunkUploadConcurrency;
+        final batch = chunks.sublist(batchStart, batchEnd);
+
+        await uploadChunksBatch(
           taskId: taskId,
-          chunkIndex: chunkIndex,
-          chunkData: chunk,
-          onSendProgress: (sent, total) {
-            final overallProgress = (bytesUploaded + sent) / totalSize;
-            onProgress?.call(overallProgress, Duration.zero);
+          chunks: batch,
+          startIndex: batchStart,
+          totalSize: totalSize,
+          onProgress: (progress, estimate) {
+            final overallProgress =
+                (bytesUploaded + (progress ?? 0) * totalSize) / totalSize;
+            onProgress?.call(overallProgress, estimate);
           },
         );
-        bytesUploaded += chunk.length;
-        chunkIndex++;
+        bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
       }
     } else if (uploadData is Uint8List) {
-      // For Uint8List, we can use the simple chunked approach
-      // since the data is already in memory
+      final chunks = <Uint8List>[];
       for (int i = 0; i < uploadData.length; i += chunkSize) {
         final end = i + chunkSize > uploadData.length
             ? uploadData.length
             : i + chunkSize;
-        final chunk = Uint8List.fromList(uploadData.sublist(i, end));
-        await uploadChunk(
+        chunks.add(Uint8List.fromList(uploadData.sublist(i, end)));
+      }
+      totalChunks = chunks.length;
+
+      for (
+        int batchStart = 0;
+        batchStart < chunks.length;
+        batchStart += driveChunkUploadConcurrency
+      ) {
+        final batchEnd =
+            (batchStart + driveChunkUploadConcurrency > chunks.length)
+            ? chunks.length
+            : batchStart + driveChunkUploadConcurrency;
+        final batch = chunks.sublist(batchStart, batchEnd);
+
+        await uploadChunksBatch(
           taskId: taskId,
-          chunkIndex: chunkIndex,
-          chunkData: chunk,
-          onSendProgress: (sent, total) {
-            final overallProgress = (bytesUploaded + sent) / totalSize;
-            onProgress?.call(overallProgress, Duration.zero);
+          chunks: batch,
+          startIndex: batchStart,
+          totalSize: totalSize,
+          onProgress: (progress, estimate) {
+            final overallProgress =
+                (bytesUploaded + (progress ?? 0) * totalSize) / totalSize;
+            onProgress?.call(overallProgress, estimate);
           },
         );
-        bytesUploaded += chunk.length;
-        chunkIndex++;
+        bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
       }
     } else {
       throw ArgumentError('Invalid fileData type');
     }
     chunkTimer.stop();
     debugPrint(
-      '[DriveUpload] Step 2 (Upload $chunkIndex chunks) total took: ${chunkTimer.elapsedMilliseconds}ms',
+      '[DriveUpload] Step 2 (Upload $totalChunks chunks) total took: ${chunkTimer.elapsedMilliseconds}ms',
     );
 
     // Step 3: Complete upload
