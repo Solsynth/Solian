@@ -1027,10 +1027,10 @@ class _TimelineModeDropdown extends StatelessWidget {
           items: const [
             DropdownMenuItem(
               value: 'personalized',
-              child: Text('Personalized'),
+              child: Text('personalized'.tr()),
             ),
-            DropdownMenuItem(value: 'top', child: Text('Top')),
-            DropdownMenuItem(value: 'latest', child: Text('Latest')),
+            DropdownMenuItem(value: 'top', child: Text('top'.tr())),
+            DropdownMenuItem(value: 'latest', child: Text('latest'.tr())),
           ],
         ),
       ),

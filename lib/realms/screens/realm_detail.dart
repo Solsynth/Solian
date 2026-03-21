@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
@@ -395,12 +393,12 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Boost',
+                    'realmBoost'.tr()),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Boost leaderboard',
+                  tooltip: 'boostLeaderboard',
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -430,7 +428,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     visualDensity: VisualDensity(vertical: -3),
                   ),
                   icon: const Icon(Symbols.volunteer_activism),
-                  label: const Text('Boost'),
+                  label: const Text('boost'.tr()),
                 ),
               ],
             ),
@@ -442,7 +440,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   spacing: 6,
                   children: [
                     Icon(Symbols.rocket_launch, size: 17, fill: 1),
-                    Text('Boost Level ${boost.boostLevel}').fontSize(12),
+                    Text('boostLevel'.tr(args:[boost.boostLevel.toString()])) ${boost.boostLevel}').fontSize(12),
                   ],
                 ),
                 const Gap(4),
@@ -451,7 +449,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   spacing: 6,
                   children: [
                     Icon(Symbols.label, size: 17, fill: 1),
-                    Text('Label cap ${boost.labelCap}').fontSize(12),
+                    Text('labelCap'.tr(args:[boost.labelCap.toString()])) ${boost.labelCap}').fontSize(12),
                   ],
                 ),
               ],
@@ -463,8 +461,10 @@ class RealmDetailScreen extends HookConsumerWidget {
                 Icon(Symbols.local_fire_department, size: 17, fill: 1),
                 Text(
                   nextThreshold == null
-                      ? 'Boost maxed out'
-                      : '${boost.boostPoints}/$nextThreshold boosts',
+                      ? 'boostMaxedOut'.tr()
+                      :'boostProgress'.tr(args:[boost.boostPoint.toString()]),
+		      'nextThreshold.toSting()'
+		      ])
                 ).fontSize(12),
               ],
             ),
@@ -482,18 +482,20 @@ class RealmDetailScreen extends HookConsumerWidget {
             const Gap(8),
             Text(
               boost.boostLevel >= 3
-                  ? 'All realm boost tiers unlocked.'
+                  ? 'boostAllUnlocked'.tr()
                   : switch (boost.boostLevel) {
-                      0 => 'Level 1 unlocks custom labels.',
-                      1 => 'Level 2 unlocks elevated promotions.',
-                      2 => 'Level 3 unlocks the highest label capacity.',
-                      _ => 'Boost progress available.',
+                      0 => 'boostLevel1Desc'.tr(),
+                      1 => 'boostLevelDesc'.tr(),
+                      2 => 'boostLevel3Desc'.tr(),
+                      _ => 'boostProgressAvaliable'.tr(),
                     },
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const Gap(6),
             Text(
-              'Boosts are active for ${boost.expiresAfterDays} days. Supported currencies: ${boost.supportedCurrencies.join(', ')}. One share is 1 gold or 1000 points.',
+              'boostFullDesc'.tr(args:[boost.expiresAfterDays.toString(),
+	      boost.supportedCurrencies.join(', '),
+	      ])
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -513,12 +515,12 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Identity',
+                    'realmIdentity'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Edit realm identity',
+                  tooltip: 'editRealmIdentity'.tr(),
                   visualDensity: VisualDensity(vertical: -3),
                   onPressed: () {
                     showModalBottomSheet(
@@ -574,8 +576,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                 (identity.nick?.isEmpty ?? true))
               Text(
                 realm.boostLevel >= 1
-                    ? 'No realm-specific profile set yet.'
-                    : 'Boost this realm to unlock custom nick and bio.',
+                    ? 'noRealmProfile'tr()
+                    : 'boostForIdentity'.tr(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             if (identity.labelId != null) ...[
@@ -607,7 +609,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             context,
                           ).colorScheme.onSecondaryContainer,
                         ),
-                        Text('Realm Label')
+                        Text('realmLabel'.tr())
                             .fontSize(12)
                             .textColor(
                               Theme.of(
@@ -659,12 +661,12 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Labels',
+                    'realmLabels'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Refresh labels',
+                  tooltip: 'refreshLabels'.tr(),
                   visualDensity: VisualDensity(vertical: -3),
                   onPressed: () => ref.invalidate(realmLabelsProvider(slug)),
                   icon: const Icon(Symbols.refresh),
@@ -682,15 +684,15 @@ class RealmDetailScreen extends HookConsumerWidget {
                           );
                         },
                   icon: const Icon(Symbols.add),
-                  label: const Text('Add'),
+                  label: const Text('add'.tr()),
                 ),
               ],
             ),
             const Gap(8),
             Text(
               boost.boostLevel < 1
-                  ? 'Boost this realm to level 1 to unlock labels.'
-                  : 'Using ${realmLabels.asData?.value.length ?? 0} / ${boost.labelCap} labels',
+                  ? 'boostForLabels'.tr()
+                  : 'labelUsed'.tr(args: [used,total]),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const Gap(12),
@@ -703,7 +705,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               data: (labels) {
                 if (labels.isEmpty) {
                   return Text(
-                    'No labels created yet.',
+                    'noLabels'.tr(),
                     style: Theme.of(context).textTheme.bodySmall,
                   );
                 }
@@ -748,7 +750,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Edit label',
+                            tooltip: 'editLabel'.tr(),
                             onPressed: boost.boostLevel < 1
                                 ? null
                                 : () {
@@ -765,12 +767,12 @@ class RealmDetailScreen extends HookConsumerWidget {
                             icon: const Icon(Symbols.edit),
                           ),
                           IconButton(
-                            tooltip: 'Delete label',
+                            tooltip: 'deleteLabel'.tr(),
                             onPressed: boost.boostLevel < 1
                                 ? null
                                 : () {
                                     showConfirmAlert(
-                                      'Delete this label?',
+                                      'deletLabelConfirm'.tr(),
                                       label.name,
                                       isDanger: true,
                                     ).then((confirm) async {
@@ -789,8 +791,6 @@ class RealmDetailScreen extends HookConsumerWidget {
                                           realmMemberListNotifierProvider(slug),
                                         );
                                         ref.invalidate(
-                                          realmIdentityProvider(slug),
-                                        );
                                       } catch (err) {
                                         showErrorAlert(err);
                                       }
@@ -1583,7 +1583,7 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       heightFactor: 0.6,
-      titleText: 'Edit Realm Identity',
+      titleText: 'editRealmIdentity'.tr(),
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 16,
@@ -1633,7 +1633,7 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
                 }
               },
               icon: const Icon(Symbols.save),
-              label: const Text('saveChanges').tr(),
+              label: const Text('saveChanges').tr()),
             ),
           ],
         ),
@@ -1850,7 +1850,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
     };
 
     return SheetScaffold(
-      titleText: 'Boost Realm',
+      titleText: 'boostRealm'.tr(),
       heightFactor: 0.7,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -1874,8 +1874,9 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   ),
                   const Gap(8),
                   Text(
-                    'Choose a wallet currency before creating the boost order. Shares stay active for 30 days after payment is applied.',
-                    style: Theme.of(context).textTheme.bodySmall,
+                   'boostCurrencyDesc'.tr(),
+                    style: 
+		     Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -1885,17 +1886,17 @@ class _RealmBoostSheet extends HookConsumerWidget {
               controller: sharesController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                hintText: 'Enter number of shares...',
+                hintText: 'enterShares'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
-            ),
+         ),
             const Gap(12),
             DropdownButtonFormField<String>(
               value: currency,
               decoration: const InputDecoration(
-                labelText: 'Currency',
+                labelText: 'currency'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -1932,7 +1933,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${shares.value} share${shares.value == 1 ? '' : 's'}',
+                          'sharesCount'.tr(args:[shares.value.toString()]),
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -1952,7 +1953,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
               onPressed: () async {
                 final value = int.tryParse(sharesController.text.trim());
                 if (value == null || value <= 0) {
-                  showSnackBar('Please enter a valid share count.');
+                  showSnackBar('invalidShares'.tr());
                   return;
                 }
 
@@ -1990,7 +1991,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                     ref.invalidate(realmLabelsProvider(realmSlug));
                     ref.invalidate(realmOverviewProvider(realmSlug));
                     showSnackBar(
-                      'Boost payment completed. Active boost points will update after the order event is processed.',
+                      'boostPaymentComplete'.tr(),
                     );
                     Navigator.of(context).pop();
                   }
@@ -2002,7 +2003,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                 }
               },
               icon: const Icon(Symbols.volunteer_activism),
-              label: const Text('Donate boost'),
+              label: const Text('donateBoost'.tr()),
             ),
           ],
         ),
@@ -2023,12 +2024,12 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
     );
 
     return SheetScaffold(
-      titleText: 'Boost Leaderboard',
+      titleText: 'boostLeaderboard'.tr(),
       child: leaderboardAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(
           child: Text(
-            'Failed to load boost leaderboard',
+            'boostLeaderboardFailed'.tr(),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
@@ -2041,7 +2042,7 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                   const Icon(Symbols.leaderboard, size: 40),
                   const Gap(12),
                   Text(
-                    'No boosts yet',
+                    'noBoosts'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -2119,12 +2120,12 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                                 ),
                               ),
                             Text(
-                              '${entry.boosts} boost order${entry.boosts == 1 ? '' : 's'}',
+                              'boostOders'.tr(args: [entry.boosts.toString()]),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             if (entry.lastBoostedAt != null)
                               Text(
-                                'Last boosted ${DateFormat.yMd().add_jm().format(entry.lastBoostedAt!.toLocal())}',
+                                'lastBoosted'.tr(args: [formattedDate],
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                           ],
@@ -2146,7 +2147,7 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           Text(
-                            '${entry.shares.toStringAsFixed(0)} shares',
+                            'shares'.tr(args: [entry.shares.toStringAsFixed]),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],

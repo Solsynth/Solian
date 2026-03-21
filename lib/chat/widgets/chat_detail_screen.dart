@@ -820,7 +820,7 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       heightFactor: 0.4,
-      titleText: 'Edit Chat Identity',
+      titleText: 'edit_chat_identity'.tr(),
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 16,

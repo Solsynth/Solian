@@ -48,9 +48,9 @@ class RealmMemberCard extends HookConsumerWidget {
   });
 
   String _getRoleLabel(int role) {
-    if (role >= 100) return 'Owner';
-    if (role >= 50) return 'Admin';
-    return 'Member';
+    if (role >= 100) return 'owner'.tr();
+    if (role >= 50) return 'admin'.tr();
+    return 'member'.tr();
   }
 
   IconData _getRoleIcon(int role) {
@@ -102,7 +102,7 @@ class RealmMemberCard extends HookConsumerWidget {
         );
         await refreshAfterAction();
         if (context.mounted) {
-          showSnackBar('Member removed');
+          showSnackBar('memberRemoved'.tr());
           Navigator.of(context).maybePop();
         }
       } catch (err) {
@@ -122,7 +122,7 @@ class RealmMemberCard extends HookConsumerWidget {
         );
         await refreshAfterAction();
         if (context.mounted) {
-          showSnackBar('Role updated');
+          showSnackBar('roleUpdated'.tr());
           Navigator.of(context).maybePop();
         }
       } catch (err) {
@@ -150,7 +150,7 @@ class RealmMemberCard extends HookConsumerWidget {
             const Gap(12),
             Expanded(
               child: Text(
-                'Realm Member',
+                'Realm Member'.tr()),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w600,
@@ -345,7 +345,7 @@ class RealmMemberCard extends HookConsumerWidget {
               if (isSelf)
                 Chip(
                   avatar: const Icon(Symbols.person, size: 18),
-                  label: const Text('You'),
+                  label: const Text('you'.tr()),
                 ),
             ],
           ),
@@ -358,7 +358,7 @@ class RealmMemberCard extends HookConsumerWidget {
                   children: [
                     const Icon(Icons.admin_panel_settings_outlined, size: 16),
                     Text(
-                      'Role Actions',
+                      'roleActions'.tr()),
                       style: Theme.of(context).textTheme.labelMedium,
                     ),
                   ],
@@ -371,17 +371,17 @@ class RealmMemberCard extends HookConsumerWidget {
                     if (role != 0)
                       FilledButton.tonal(
                         onPressed: loading.value ? null : () => updateRole(0),
-                        child: const Text('Member'),
-                      ),
+                        child: const Text('member'.tr()),
+                      )
                     if (role < 100)
                       FilledButton.tonal(
                         onPressed: loading.value ? null : () => updateRole(50),
-                        child: const Text('Admin'),
+                        child: const Text('admin'.tr()),
                       ),
                     if (role < 50)
                       FilledButton.tonal(
                         onPressed: loading.value ? null : () => updateRole(100),
-                        child: const Text('Owner'),
+                        child: const Text('owner'.tr()),
                       ),
                   ],
                 ),
@@ -396,7 +396,7 @@ class RealmMemberCard extends HookConsumerWidget {
                   children: [
                     const Icon(Symbols.group, size: 16),
                     Text(
-                      'Membership Actions',
+                      'membershipActions'.tr()),
                       style: Theme.of(context).textTheme.labelMedium,
                     ),
                   ],
@@ -408,7 +408,7 @@ class RealmMemberCard extends HookConsumerWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   label: Text(
-                    'Remove member',
+                    'removeMember'.tr()),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
