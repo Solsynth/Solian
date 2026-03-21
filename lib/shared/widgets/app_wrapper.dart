@@ -432,15 +432,6 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
-    if (uri.host == 'meets' && uri.pathSegments.isNotEmpty) {
-      context.router.navigatePath('/account/me/meet/${uri.pathSegments.first}');
-      if (!kIsWeb &&
-          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-        windowManager.show();
-      }
-      return;
-    }
-
     // final router = ref.read(routerProvider);
     if (path == '/dashboard') {
       context.router.navigate(const DashboardRoute());

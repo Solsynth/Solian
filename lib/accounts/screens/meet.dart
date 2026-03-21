@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -16,9 +15,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
-import 'package:island/accounts/meet_tap.dart';
-import 'package:island/accounts/widgets/account/account_nameplate.dart';
-import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -27,8 +23,6 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
-import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -38,7 +32,7 @@ final meetHistoryProvider = FutureProvider.autoDispose<List<SnMeet>>((
   return ref.watch(meetServiceProvider).listMeets(take: 20);
 });
 
-enum MeetEntryMode { nearby, tap }
+enum MeetEntryMode { nearby }
 
 @RoutePage()
 class MeetScreen extends HookConsumerWidget {
@@ -50,14 +44,13 @@ class MeetScreen extends HookConsumerWidget {
     final initialMeetId = routeData.queryParams.optString('meet_id') ?? '';
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
-    final tapService = ref.watch(meetTapServiceProvider);
     final meetHistory = ref.watch(meetHistoryProvider);
 
     final joinController = useTextEditingController(text: initialMeetId);
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 4,
+      initialLength: 3,
       initialIndex: initialMeetId.isNotEmpty ? 1 : 0,
     );
     final entryMode = useState(MeetEntryMode.nearby);
@@ -200,7 +193,6 @@ class MeetScreen extends HookConsumerWidget {
         }
         metadata['entry_mode'] = switch (entryMode.value) {
           MeetEntryMode.nearby => 'nearby',
-          MeetEntryMode.tap => 'tap',
         };
 
         final meet = await meetService.createMeet(
@@ -233,40 +225,6 @@ class MeetScreen extends HookConsumerWidget {
       actionBusy.value = true;
       try {
         await openMeetDetail(normalized);
-      } finally {
-        actionBusy.value = false;
-      }
-    }
-
-    Future<void> joinTapMeet() async {
-      actionBusy.value = true;
-      try {
-        final data = await Clipboard.getData(Clipboard.kTextPlain);
-        final payload = tapService.parsePayload(data?.text ?? '');
-        if (payload == null) {
-          throw StateError('Copy a Solian Meet link or meet ID first.');
-        }
-        await openMeetDetail(payload.meetId);
-      } catch (error) {
-        showErrorAlert(error);
-      } finally {
-        actionBusy.value = false;
-      }
-    }
-
-    Future<void> scanMeetWithCamera() async {
-      final payload = await showModalBottomSheet<MeetTapPayload>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => _MeetQrScannerSheet(service: tapService),
-      );
-      if (payload == null) return;
-
-      actionBusy.value = true;
-      try {
-        await openMeetDetail(payload.meetId);
       } finally {
         actionBusy.value = false;
       }
@@ -305,7 +263,7 @@ class MeetScreen extends HookConsumerWidget {
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -324,14 +282,6 @@ class MeetScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'meetNearbyTab'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'meetScan'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -364,7 +314,6 @@ class MeetScreen extends HookConsumerWidget {
                   isLocating: isLocating.value,
                   visibility: visibility.value,
                   image: selectedImage.value,
-                  tapSupported: true,
                   onChangeEntryMode: (value) => entryMode.value = value,
                   onChangeVisibility: (value) => visibility.value = value,
                   onUseCurrentLocation: fillCurrentLocation,
@@ -422,17 +371,6 @@ class MeetScreen extends HookConsumerWidget {
             ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _MeetTapCard(
-                  busy: actionBusy.value,
-                  supported: true,
-                  onTapJoin: joinTapMeet,
-                  onScan: scanMeetWithCamera,
-                ),
-              ],
-            ),
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
                 _MeetHistorySection(
                   history: meetHistory,
                   onOpen: (meet) => openMeetDetail(meet.id),
@@ -456,7 +394,6 @@ class MeetDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(userInfoProvider).value;
-    final client = ref.watch(apiClientProvider);
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
 
@@ -467,8 +404,6 @@ class MeetDetailScreen extends HookConsumerWidget {
     final isAdvertising = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
-    final latestArrival = useState<_MeetPerson?>(null);
-    final knownParticipantIds = useRef<Set<String>>(<String>{});
 
     Future<void> stopAdvertising() async {
       if (!isAdvertising.value) return;
@@ -487,23 +422,8 @@ class MeetDetailScreen extends HookConsumerWidget {
       try {
         final item = await meetService.getMeet(id);
         meet.value = item;
-        knownParticipantIds.value = _participantIdsOf(item);
       } catch (err) {
         error.value = err;
-      }
-    }
-
-    Future<void> requestFriend(SnAccount account) async {
-      if (account.id == currentUser?.id) return;
-
-      showLoadingModal(context);
-      try {
-        await client.post('/passport/relationships/${account.id}/friends');
-        showSnackBar('pendingRequest'.tr());
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
       }
     }
 
@@ -517,21 +437,8 @@ class MeetDetailScreen extends HookConsumerWidget {
           .joinMeet(id)
           .listen(
             (event) {
-              final previousIds = Set<String>.from(knownParticipantIds.value);
-              final nextIds = _participantIdsOf(event.meet);
               meet.value = event.meet;
               eventType.value = event.type;
-              knownParticipantIds.value = nextIds;
-              if (event.type == 'participant_joined') {
-                final newcomer = _findLatestArrival(
-                  meet: event.meet,
-                  previousIds: previousIds,
-                  currentUserId: currentUser?.id,
-                );
-                if (newcomer != null) {
-                  latestArrival.value = newcomer;
-                }
-              }
               if (event.meet.isFinal) {
                 isWatching.value = false;
                 unawaited(stopAdvertising());
@@ -602,10 +509,6 @@ class MeetDetailScreen extends HookConsumerWidget {
         isAdvertising: isAdvertising.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
-        latestArrival: latestArrival.value,
-        currentUserId: currentUser?.id,
-        canRequestFriend: current.visibility == SnMeetVisibility.public,
-        onRequestFriend: requestFriend,
         onClose: context.router.maybePop,
         onComplete: completeMeet,
       );
@@ -629,10 +532,7 @@ class MeetDetailScreen extends HookConsumerWidget {
                   participants: participants,
                   isWatching: isWatching.value,
                   isAdvertising: isAdvertising.value,
-                  isScanShareReady:
-                      entryMode == MeetEntryMode.tap &&
-                      current.hostId == currentUser?.id &&
-                      current.status == SnMeetStatus.active,
+                  isScanShareReady: false,
                 ),
                 const Gap(16),
                 _MeetDetailInfo(
@@ -679,10 +579,6 @@ class _MeetActiveListeningPage extends HookWidget {
   final bool isAdvertising;
   final bool isHost;
   final bool actionBusy;
-  final _MeetPerson? latestArrival;
-  final String? currentUserId;
-  final bool canRequestFriend;
-  final ValueChanged<SnAccount> onRequestFriend;
   final VoidCallback onClose;
   final VoidCallback onComplete;
 
@@ -694,10 +590,6 @@ class _MeetActiveListeningPage extends HookWidget {
     required this.isAdvertising,
     required this.isHost,
     required this.actionBusy,
-    required this.latestArrival,
-    required this.currentUserId,
-    required this.canRequestFriend,
-    required this.onRequestFriend,
     required this.onClose,
     required this.onComplete,
   });
@@ -709,24 +601,6 @@ class _MeetActiveListeningPage extends HookWidget {
     )..repeat();
     final theme = Theme.of(context);
     final topic = meet.metadata['topic']?.toString();
-    final scanUri = MeetTapService().buildMeetUri(meet.id);
-
-    if (entryMode == MeetEntryMode.tap) {
-      return _MeetScanExchangePage(
-        meet: meet,
-        participants: participants,
-        isWatching: isWatching,
-        isHost: isHost,
-        actionBusy: actionBusy,
-        scanUri: scanUri,
-        latestArrival: latestArrival,
-        currentUserId: currentUserId,
-        canRequestFriend: canRequestFriend,
-        onRequestFriend: onRequestFriend,
-        onClose: onClose,
-        onComplete: onComplete,
-      );
-    }
 
     return AppScaffold(
       isNoBackground: true,
@@ -785,17 +659,8 @@ class _MeetActiveListeningPage extends HookWidget {
                           label: 'meetBroadcasting'.tr(),
                         ),
                       if (isAdvertising) const Gap(8),
-                      if (entryMode == MeetEntryMode.tap && isHost)
-                        _InfoPill(
-                          icon: Symbols.qr_code_2,
-                          label: 'meetScanReady'.tr(),
-                        ),
-                      if (entryMode == MeetEntryMode.tap && isHost)
-                        const Gap(8),
                       _InfoPill(
-                        icon: entryMode == MeetEntryMode.tap
-                            ? Symbols.contactless
-                            : Symbols.bluetooth_searching,
+                        icon: Symbols.bluetooth_searching,
                         label: _entryModeLabel(entryMode, context),
                       ),
                       const Gap(8),
@@ -839,10 +704,6 @@ class _MeetActiveListeningPage extends HookWidget {
                   ),
                 ),
                 const Spacer(),
-                if (entryMode == MeetEntryMode.tap && isHost) ...[
-                  _MeetScanCodeCard(uri: scanUri),
-                  const Gap(16),
-                ],
                 Text(
                   'meetParticipantsCount'.tr(args: ['${participants.length}']),
                   style: TextStyle(color: theme.colorScheme.secondary),
@@ -955,8 +816,6 @@ class _MeetDetailHero extends HookWidget {
                       ),
                       if (isAdvertising)
                         _HeroPill(label: 'meetBroadcasting'.tr()),
-                      if (isScanShareReady)
-                        _HeroPill(label: 'meetScanReady'.tr()),
                     ],
                   ),
                   const Spacer(),
@@ -1006,461 +865,6 @@ class _MeetDetailHero extends HookWidget {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetScanExchangePage extends HookWidget {
-  final SnMeet meet;
-  final List<_MeetPerson> participants;
-  final bool isWatching;
-  final bool isHost;
-  final bool actionBusy;
-  final Uri scanUri;
-  final _MeetPerson? latestArrival;
-  final String? currentUserId;
-  final bool canRequestFriend;
-  final ValueChanged<SnAccount> onRequestFriend;
-  final VoidCallback onClose;
-  final VoidCallback onComplete;
-
-  const _MeetScanExchangePage({
-    required this.meet,
-    required this.participants,
-    required this.isWatching,
-    required this.isHost,
-    required this.actionBusy,
-    required this.scanUri,
-    required this.latestArrival,
-    required this.currentUserId,
-    required this.canRequestFriend,
-    required this.onRequestFriend,
-    required this.onClose,
-    required this.onComplete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final pulse = useAnimationController(
-      duration: const Duration(milliseconds: 2600),
-    )..repeat(reverse: true);
-    final topic = meet.metadata['topic']?.toString();
-    final arrivalCard = useState<_MeetPerson?>(null);
-    final participantCards = participants;
-
-    useEffect(() {
-      final arrival = latestArrival;
-      if (arrival == null) return null;
-      arrivalCard.value = arrival;
-      final timer = Timer(const Duration(milliseconds: 2600), () {
-        if (arrivalCard.value?.id == arrival.id) {
-          arrivalCard.value = null;
-        }
-      });
-      return timer.cancel;
-    }, [latestArrival?.id]);
-
-    return AppScaffold(
-      isNoBackground: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.surface,
-              theme.colorScheme.primaryContainer.withOpacity(0.28),
-              theme.colorScheme.secondaryContainer.withOpacity(0.24),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: onClose,
-                      icon: const Icon(Symbols.close),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            meet.locationName?.isNotEmpty == true
-                                ? meet.locationName!
-                                : 'meetLiveTitle'.tr(),
-                          ).fontSize(18).bold(),
-                          Text(
-                            (topic?.isNotEmpty ?? false)
-                                ? topic!
-                                : 'meetScanLiveSubtitle'.tr(),
-                            style: TextStyle(
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        await Clipboard.setData(
-                          ClipboardData(text: scanUri.toString()),
-                        );
-                        showSnackBar('copyToClipboard'.tr());
-                      },
-                      icon: const Icon(Symbols.content_copy),
-                    ),
-                  ],
-                ),
-                const Gap(12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _InfoPill(
-                        icon: Symbols.badge,
-                        label: 'meetScanReady'.tr(),
-                      ),
-                      const Gap(8),
-                      _InfoPill(
-                        icon: isWatching ? Symbols.sync : Symbols.sync_disabled,
-                        label: isWatching
-                            ? 'meetWatching'.tr()
-                            : 'meetWatchStopped'.tr(),
-                      ),
-                    ],
-                  ),
-                ),
-                const Gap(16),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      _MeetScanStageCard(
-                        isHost: isHost,
-                        scanUri: scanUri,
-                        animation: pulse,
-                      ),
-                      if (arrivalCard.value != null) ...[
-                        const Gap(16),
-                        _MeetScanArrivalBanner(
-                          participant: arrivalCard.value!,
-                        ),
-                      ],
-                      const Gap(16),
-                      Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'meetScanCardsTitle',
-                              ).tr().fontSize(18).bold(),
-                              const Gap(6),
-                              Text(
-                                isHost
-                                    ? 'meetScanCardsHostHint'.tr()
-                                    : 'meetScanCardsGuestHint'.tr(),
-                                style: TextStyle(
-                                  color: theme.colorScheme.secondary,
-                                ),
-                              ),
-                              const Gap(16),
-                              if (participantCards.isEmpty)
-                                _MeetInfoCard(
-                                  icon: Symbols.id_card,
-                                  title: 'meetParticipantsEmpty'.tr(),
-                                  description: 'meetScanCardsEmpty'.tr(),
-                                )
-                              else
-                                Column(
-                                  children: participantCards
-                                      .map(
-                                        (participant) => Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 12,
-                                          ),
-                                          child: _MeetNameCard(
-                                            participant: participant,
-                                            canRequestFriend:
-                                                canRequestFriend,
-                                            currentUserId: currentUserId,
-                                            onRequestFriend: onRequestFriend,
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  'meetParticipantsCount'.tr(args: ['${participants.length}']),
-                  style: TextStyle(color: theme.colorScheme.secondary),
-                ),
-                const Gap(16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: onClose,
-                        child: Text('close').tr(),
-                      ),
-                    ),
-                    if (isHost) ...[
-                      const Gap(12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: actionBusy ? null : onComplete,
-                          child: Text('meetComplete').tr(),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetScanStageCard extends StatelessWidget {
-  final bool isHost;
-  final Uri scanUri;
-  final Animation<double> animation;
-
-  const _MeetScanStageCard({
-    required this.isHost,
-    required this.scanUri,
-    required this.animation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          children: [
-            Text(
-              isHost
-                  ? 'meetScanStageHostTitle'.tr()
-                  : 'meetScanStageGuestTitle'.tr(),
-            ).fontSize(20).bold(),
-            const Gap(8),
-            Text(
-              isHost
-                  ? 'meetScanStageHostHint'.tr()
-                  : 'meetScanStageGuestHint'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: theme.colorScheme.secondary),
-            ),
-            const Gap(20),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, _) {
-                    final scale = 0.92 + (animation.value * 0.12);
-                    return Transform.scale(
-                      scale: scale,
-                      child: Container(
-                        width: 220,
-                        height: 220,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.colorScheme.primary.withOpacity(0.08),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                if (isHost)
-                  _MeetScanCodeCard(uri: scanUri)
-                else
-                  Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(32),
-                      color: theme.colorScheme.surfaceContainerHighest,
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Symbols.qr_code_scanner,
-                      size: 88,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetNameCard extends HookWidget {
-  final _MeetPerson participant;
-  final bool canRequestFriend;
-  final String? currentUserId;
-  final ValueChanged<SnAccount> onRequestFriend;
-
-  const _MeetNameCard({
-    required this.participant,
-    required this.canRequestFriend,
-    required this.currentUserId,
-    required this.onRequestFriend,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useAnimationController(
-      duration: const Duration(milliseconds: 460),
-    );
-
-    useEffect(() {
-      controller.forward();
-      return null;
-    }, const []);
-
-    final account = participant.account;
-    if (account == null) {
-      return _MeetSimpleNameCard(participant: participant);
-    }
-
-    final allowFriendRequest =
-        canRequestFriend && account.id != currentUserId;
-
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: controller, curve: Curves.easeOut),
-      child: SlideTransition(
-        position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
-            .animate(
-              CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
-            ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Stack(
-              children: [
-                AccountNameplate(
-                  name: account.name,
-                  isOutlined: false,
-                  padding: EdgeInsets.zero,
-                ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.32),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      participant.subtitle,
-                      style: const TextStyle(color: Colors.white),
-                    ).fontSize(12),
-                  ),
-                ),
-              ],
-            ),
-            if (allowFriendRequest)
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10, right: 6),
-                  child: FilledButton.tonalIcon(
-                    onPressed: () => onRequestFriend(account),
-                    icon: const Icon(Symbols.person_add),
-                    label: Text('meetAddFriend').tr(),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetSimpleNameCard extends StatelessWidget {
-  final _MeetPerson participant;
-
-  const _MeetSimpleNameCard({required this.participant});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.surfaceContainerHighest,
-              theme.colorScheme.primaryContainer.withOpacity(0.35),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                Symbols.person,
-                color: theme.colorScheme.primary,
-                size: 28,
-              ),
-            ),
-            const Gap(14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(participant.fallbackName).fontSize(18).bold(),
-                  const Gap(4),
-                  Text(
-                    participant.subtitle,
-                    style: TextStyle(color: theme.colorScheme.secondary),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Symbols.id_card, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -1578,7 +982,6 @@ class _MeetStartCard extends StatelessWidget {
   final bool isLocating;
   final SnMeetVisibility visibility;
   final SnCloudFile? image;
-  final bool tapSupported;
   final ValueChanged<MeetEntryMode> onChangeEntryMode;
   final ValueChanged<SnMeetVisibility> onChangeVisibility;
   final VoidCallback onUseCurrentLocation;
@@ -1597,7 +1000,6 @@ class _MeetStartCard extends StatelessWidget {
     required this.isLocating,
     required this.visibility,
     required this.image,
-    required this.tapSupported,
     required this.onChangeEntryMode,
     required this.onChangeVisibility,
     required this.onUseCurrentLocation,
@@ -1615,17 +1017,9 @@ class _MeetStartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              entryMode == MeetEntryMode.tap
-                  ? 'meetScanStartTitle'.tr()
-                  : 'meetStartTitle'.tr(),
-            ).fontSize(18).bold(),
+            Text('meetStartTitle').tr().fontSize(18).bold(),
             const Gap(8),
-            Text(
-              entryMode == MeetEntryMode.tap
-                  ? 'meetScanStartDescription'.tr()
-                  : 'meetStartDescription'.tr(),
-            ),
+            Text('meetStartDescription').tr(),
             const Gap(16),
             SegmentedButton<MeetEntryMode>(
               segments: [
@@ -1633,12 +1027,6 @@ class _MeetStartCard extends StatelessWidget {
                   value: MeetEntryMode.nearby,
                   icon: const Icon(Symbols.bluetooth_searching),
                   label: Text('meetNearbyTab').tr(),
-                ),
-                ButtonSegment(
-                  value: MeetEntryMode.tap,
-                  enabled: tapSupported,
-                  icon: const Icon(Symbols.qr_code_2),
-                  label: Text('meetScan').tr(),
                 ),
               ],
               selected: {entryMode},
@@ -1763,31 +1151,12 @@ class _MeetStartCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: busy ? null : onStart,
-                icon: Icon(
-                  entryMode == MeetEntryMode.tap
-                      ? Symbols.qr_code_2
-                      : Symbols.add_circle,
-                ),
+                icon: const Icon(Symbols.add_circle),
                 label: Text(
-                  entryMode == MeetEntryMode.tap
-                      ? 'meetScanPrepare'.tr()
-                      : (advertising
-                            ? 'meetRestartBroadcast'.tr()
-                            : 'meetStartNow'.tr()),
+                  advertising ? 'meetRestartBroadcast'.tr() : 'meetStartNow'.tr(),
                 ),
               ),
             ),
-            if (entryMode == MeetEntryMode.tap) ...[
-              const Gap(12),
-              Text(
-                tapSupported
-                    ? 'meetScanStartHint'.tr()
-                    : 'meetScanUnsupported'.tr(),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -1892,145 +1261,6 @@ class _MeetJoinCard extends StatelessWidget {
               ).tr(),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetTapCard extends StatelessWidget {
-  final bool busy;
-  final bool supported;
-  final VoidCallback onTapJoin;
-  final VoidCallback onScan;
-
-  const _MeetTapCard({
-    required this.busy,
-    required this.supported,
-    required this.onTapJoin,
-    required this.onScan,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.primaryContainer,
-              theme.colorScheme.surfaceContainerHighest,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withOpacity(0.72),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Symbols.qr_code_scanner,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const Gap(12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('meetScanTitle').tr().fontSize(18).bold(),
-                        const Gap(4),
-                        Text('meetScanDescription').tr(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Gap(20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withOpacity(0.72),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  children: [
-                    Animate(
-                      onPlay: (controller) => controller.repeat(reverse: true),
-                      effects: [
-                        MoveEffect(
-                          begin: Offset.zero,
-                          end: const Offset(0, -6),
-                          duration: 900.ms,
-                          curve: Curves.easeInOut,
-                        ),
-                      ],
-                      child: Icon(
-                        Symbols.waving_hand,
-                        size: 42,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const Gap(12),
-                    Text(
-                      'meetScanClipboardPrompt',
-                      textAlign: TextAlign.center,
-                    ).tr().fontSize(16).bold(),
-                    const Gap(6),
-                    Text(
-                      supported
-                          ? 'meetScanJoinHint'.tr()
-                          : 'meetScanUnsupported'.tr(),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              const Gap(20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: busy || !supported ? null : onScan,
-                  icon: Icon(
-                    busy ? Symbols.progress_activity : Symbols.qr_code_scanner,
-                  ),
-                  label: Text(
-                    busy ? 'meetScanOpening'.tr() : 'meetScanOpenCamera'.tr(),
-                  ),
-                ),
-              ),
-              const Gap(10),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.tonalIcon(
-                  onPressed: busy || !supported ? null : onTapJoin,
-                  icon: Icon(
-                    busy ? Symbols.progress_activity : Symbols.content_paste_go,
-                  ),
-                  label: Text(
-                    busy
-                        ? 'meetScanOpening'.tr()
-                        : 'meetScanOpenClipboard'.tr(),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -2658,182 +1888,6 @@ class _MeetMapPin extends StatelessWidget {
   }
 }
 
-class _MeetScanCodeCard extends StatelessWidget {
-  final Uri uri;
-
-  const _MeetScanCodeCard({required this.uri});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final data = uri.toString();
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            QrImageView(
-              data: data,
-              size: 148,
-              backgroundColor: Colors.white,
-              eyeStyle: QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: theme.colorScheme.primary,
-              ),
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: theme.colorScheme.onSurface,
-              ),
-            ).clipRRect(all: 8),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetQrScannerSheet extends HookWidget {
-  final MeetTapService service;
-
-  const _MeetQrScannerSheet({required this.service});
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useMemoized(
-      () => MobileScannerController(
-        formats: const [BarcodeFormat.qrCode],
-        detectionSpeed: DetectionSpeed.noDuplicates,
-      ),
-    );
-    final didHandle = useState(false);
-
-    useEffect(() {
-      return controller.dispose;
-    }, [controller]);
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      child: Material(
-        color: Theme.of(context).colorScheme.surface,
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.82,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: MobileScanner(
-                  controller: controller,
-                  onDetect: (capture) {
-                    if (didHandle.value) return;
-                    final raw = capture.barcodes
-                        .map((e) => e.rawValue?.trim())
-                        .whereType<String>()
-                        .firstWhere(
-                          (value) => value.isNotEmpty,
-                          orElse: () => '',
-                        );
-                    if (raw.isEmpty) return;
-
-                    final payload = service.parsePayload(raw);
-                    if (payload == null) return;
-                    didHandle.value = true;
-                    Navigator.of(context).pop(payload);
-                  },
-                ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.52),
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.52),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        IconButton.filledTonal(
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          icon: const Icon(Symbols.close),
-                        ),
-                        const Spacer(),
-                        IconButton.filledTonal(
-                          onPressed: controller.toggleTorch,
-                          icon: const Icon(Symbols.flashlight_on),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Center(
-                child: Container(
-                  width: 236,
-                  height: 236,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.18),
-                        blurRadius: 24,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: 28,
-                child: Card(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withOpacity(0.92),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('meetScanCameraPrompt').tr().fontSize(16).bold(),
-                        const Gap(6),
-                        Text(
-                          'meetScanCameraHint'.tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _MeetRippleField extends StatelessWidget {
   final Animation<double> animation;
   final Color color;
@@ -3093,126 +2147,6 @@ List<_MeetPerson> _displayParticipants(SnMeet? meet, SnAccount? currentUser) {
   return people;
 }
 
-Set<String> _participantIdsOf(SnMeet meet) {
-  final ids = <String>{meet.hostId};
-  for (final participant in meet.participants) {
-    ids.add(participant.accountId);
-  }
-  return ids;
-}
-
-_MeetPerson? _findLatestArrival({
-  required SnMeet meet,
-  required Set<String> previousIds,
-  required String? currentUserId,
-}) {
-  final people = _displayParticipants(meet, null);
-  for (final person in people.reversed) {
-    if (person.id == currentUserId) continue;
-    if (previousIds.contains(person.id)) continue;
-    return person;
-  }
-  return null;
-}
-
-class _MeetScanArrivalBanner extends HookWidget {
-  final _MeetPerson participant;
-
-  const _MeetScanArrivalBanner({required this.participant});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final controller = useAnimationController(
-      duration: const Duration(milliseconds: 700),
-    );
-    final account = participant.account;
-
-    useEffect(() {
-      controller.forward();
-      return null;
-    }, const []);
-
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.08),
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
-        ),
-        child: ScaleTransition(
-          scale: Tween<double>(begin: 0.96, end: 1).animate(
-            CurvedAnimation(parent: controller, curve: Curves.easeOutBack),
-          ),
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    theme.colorScheme.primaryContainer.withOpacity(0.92),
-                    theme.colorScheme.tertiaryContainer.withOpacity(0.82),
-                  ],
-                ),
-              ),
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withOpacity(0.65),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Symbols.waving_hand,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('meetScanJoinedTitle').tr().fontSize(18).bold(),
-                            const Gap(4),
-                            Text(
-                              'meetScanJoinedHint'.tr(),
-                              style: TextStyle(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Gap(16),
-                  if (account != null)
-                    AccountNameplate(
-                      name: account.name,
-                      isOutlined: false,
-                      padding: EdgeInsets.zero,
-                    )
-                  else
-                    _MeetSimpleNameCard(participant: participant),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 String _statusLabel(SnMeetStatus status, BuildContext context) {
   return switch (status) {
     SnMeetStatus.active => 'meetStatusActive'.tr(),
@@ -3232,14 +2166,12 @@ String _visibilityLabel(SnMeetVisibility visibility, BuildContext context) {
 }
 
 MeetEntryMode _entryModeOf(SnMeet? meet) {
-  final raw = meet?.metadata['entry_mode']?.toString().trim().toLowerCase();
-  return raw == 'tap' ? MeetEntryMode.tap : MeetEntryMode.nearby;
+  return MeetEntryMode.nearby;
 }
 
 String _entryModeLabel(MeetEntryMode mode, BuildContext context) {
   return switch (mode) {
     MeetEntryMode.nearby => 'meetNearbyTab'.tr(),
-    MeetEntryMode.tap => 'meetScan'.tr(),
   };
 }
 

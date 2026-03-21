@@ -119,7 +119,6 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   flutter_math_fork: ^0.7.4
   share_plus: ^12.0.1
-  mobile_scanner: ^7.2.0
   # https://github.com/KasemJaffer/receive_sharing_intent/pull/333
   receive_sharing_intent:
     git:
