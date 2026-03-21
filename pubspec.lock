@@ -2077,6 +2077,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  nfc_host_card_emulation:
+    dependency: "direct main"
+    description:
+      name: nfc_host_card_emulation
+      sha256: "9e0b4e9d57d91fa5ef8ef69c42874398ab8cc923bc3090eafb22ffbdc94308af"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   nm:
     dependency: transitive
     description:
