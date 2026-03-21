@@ -289,15 +289,6 @@ class AppWrapper extends HookConsumerWidget {
         reverseDuration: const Duration(milliseconds: 500),
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeOut,
-        layoutBuilder: (currentChild, previousChildren) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              ...previousChildren,
-              ...[currentChild].whereType<Widget>(),
-            ],
-          );
-        },
         transitionBuilder: (widget, animation) {
           return FadeTransition(opacity: animation, child: widget);
         },

@@ -434,6 +434,14 @@ final backgroundImageFileProvider = FutureProvider<File?>((ref) async {
   return file.existsSync() ? file : null;
 });
 
+final backgroundImageProvider = Provider<File?>((ref) {
+  final asyncValue = ref.watch(backgroundImageFileProvider);
+  if (asyncValue.hasValue) {
+    return asyncValue.value;
+  }
+  return null;
+});
+
 class AppBackground extends ConsumerWidget {
   final Widget child;
   final bool isRoot;
@@ -442,36 +450,33 @@ class AppBackground extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final imageFileAsync = ref.watch(backgroundImageFileProvider);
-    final settings = ref.watch(appSettingsProvider);
+    final backgroundFile = ref.watch(backgroundImageProvider);
+    final showBackground = ref.watch(
+      appSettingsProvider.select((s) => s.showBackgroundImage),
+    );
 
     if (isRoot || !isWideScreen(context)) {
-      return imageFileAsync.whenOrNull(
-            data: (file) {
-              if (file != null && settings.showBackgroundImage) {
-                return Material(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      backgroundBlendMode: BlendMode.darken,
-                      color: Theme.of(context).colorScheme.surface,
-                      image: DecorationImage(
-                        opacity: 0.2,
-                        image: FileImage(file),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: child,
-                  ),
-                );
-              }
-              return Material(
-                color: Theme.of(context).colorScheme.surface,
-                child: child,
-              );
-            },
-          ) ??
-          Material(color: Theme.of(context).colorScheme.surface, child: child);
+      if (backgroundFile != null && showBackground) {
+        return Material(
+          color: Theme.of(context).colorScheme.surface,
+          child: Container(
+            decoration: BoxDecoration(
+              backgroundBlendMode: BlendMode.darken,
+              color: Theme.of(context).colorScheme.surface,
+              image: DecorationImage(
+                opacity: 0.2,
+                image: FileImage(backgroundFile),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: child,
+          ),
+        );
+      }
+      return Material(
+        color: Theme.of(context).colorScheme.surface,
+        child: child,
+      );
     }
 
     return Material(color: Colors.transparent, child: child);
