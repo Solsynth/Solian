@@ -219,15 +219,18 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [id]);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
-    final websocketState = ref.watch(websocketStateProvider);
     final previousLifecycleState = useRef<AppLifecycleState?>(null);
     final isResyncingAfterResume = useState(false);
     final wsDisconnectedSinceBackground = useRef(false);
+    final wasWsConnected = useRef<bool?>(null);
 
-    bool isWsConnected() =>
-        websocketState.maybeWhen(connected: () => true, orElse: () => false);
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+
+    bool checkWsConnected() {
+      final wsState = ref.read(websocketStateProvider);
+      return wsState.maybeWhen(connected: () => true, orElse: () => false);
+    }
 
     useEffect(() {
       final nextState = lifecycleState.value;
@@ -243,7 +246,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           nextState == AppLifecycleState.inactive ||
           nextState == AppLifecycleState.hidden ||
           nextState == AppLifecycleState.detached) {
-        wsDisconnectedSinceBackground.value = !isWsConnected();
+        wsDisconnectedSinceBackground.value = !checkWsConnected();
         Future.microtask(saveLastReadAnchor);
       }
 
@@ -267,7 +270,31 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       previousLifecycleState.value = nextState;
       return null;
-    }, [lifecycleState.value, websocketState, messagesNotifier]);
+    }, [lifecycleState.value, messagesNotifier]);
+
+    useEffect(() {
+      final isConnected = checkWsConnected();
+      final previousConnected = wasWsConnected.value;
+
+      if (previousConnected == false &&
+          isConnected &&
+          !isResyncingAfterResume.value) {
+        isResyncingAfterResume.value = true;
+        Future<void>(() async {
+          try {
+            await messagesNotifier.syncMessages();
+            await messagesNotifier.loadInitial(forceRemoteRefresh: false);
+          } finally {
+            if (context.mounted) {
+              isResyncingAfterResume.value = false;
+            }
+          }
+        });
+      }
+
+      wasWsConnected.value = isConnected;
+      return null;
+    }, [messagesNotifier]);
 
     useEffect(() {
       return () {
