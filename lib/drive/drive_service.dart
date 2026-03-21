@@ -614,6 +614,10 @@ class FileUploader {
     final response = await _client.post(
       '/drive/files/upload/create',
       data: payload,
+      options: Options(
+        sendTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
     );
     stepTimer.stop();
     debugPrint(
@@ -659,8 +663,8 @@ class FileUploader {
     final response = await _client.post(
       '/drive/files/upload/complete/$taskId',
       options: Options(
-        sendTimeout: Duration(minutes: 1),
-        receiveTimeout: Duration(minutes: 1),
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 5),
       ),
     );
     stepTimer.stop();
