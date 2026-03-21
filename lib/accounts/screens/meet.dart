@@ -1662,21 +1662,17 @@ class _NearbyPresenceCard extends HookWidget {
                     )
                   else if (peers.isNotEmpty || discoveries.isNotEmpty)
                     Center(
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          ...peers.map((p) => _NearbyPeerBubble(peer: p)),
-                          ...discoveries
-                              .take(8 - peers.length)
-                              .map(
-                                (d) => _NearbyDeviceBubble(
-                                  rssi: d.rssi,
-                                  name: d.name,
-                                ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: peers.isNotEmpty
+                            ? _NearbyPeersRow(
+                                key: ValueKey('peers-${peers.length}'),
+                                peers: peers,
+                              )
+                            : _NearbyDevicesRow(
+                                key: ValueKey('devices-${discoveries.length}'),
+                                discoveries: discoveries,
                               ),
-                        ],
                       ),
                     ),
                 ],
@@ -1850,38 +1846,62 @@ class _NearbyPeerBubble extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: theme.colorScheme.primaryContainer,
-            ),
-            child: peer.avatar != null
-                ? ClipOval(
-                    child: ProfilePictureWidget(file: peer.avatar, radius: 25),
-                  )
-                : Center(
-                    child: Text(
-                      peer.displayName.isNotEmpty
-                          ? peer.displayName.substring(0, 1).toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.onPrimaryContainer,
+          Stack(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.primaryContainer,
+                ),
+                child: peer.avatar != null
+                    ? ClipOval(
+                        child: ProfilePictureWidget(
+                          file: peer.avatar,
+                          radius: 30,
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          peer.displayName.isNotEmpty
+                              ? peer.displayName.substring(0, 1).toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
                       ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 2,
                     ),
                   ),
+                ),
+              ),
+            ],
           ),
-          const Gap(4),
+          const Gap(6),
           SizedBox(
-            width: 60,
+            width: 70,
             child: Text(
               peer.displayName,
               style: TextStyle(
-                fontSize: 10,
-                color: theme.colorScheme.secondary,
+                fontSize: 11,
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -1890,6 +1910,76 @@ class _NearbyPeerBubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NearbyPeersRow extends StatelessWidget {
+  final List<NearbyPeer> peers;
+
+  const _NearbyPeersRow({super.key, required this.peers});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 16,
+      runSpacing: 16,
+      children: peers
+          .take(8)
+          .map(
+            (p) => TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: Duration(milliseconds: 300 + peers.indexOf(p) * 50),
+              curve: Curves.elasticOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Opacity(
+                    opacity: value,
+                    child: _NearbyPeerBubble(peer: p),
+                  ),
+                );
+              },
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _NearbyDevicesRow extends StatelessWidget {
+  final List<BluetoothHexDiscovery> discoveries;
+
+  const _NearbyDevicesRow({super.key, required this.discoveries});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 12,
+      runSpacing: 12,
+      children: discoveries
+          .take(8)
+          .map(
+            (d) => TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: Duration(
+                milliseconds: 200 + discoveries.indexOf(d) * 30,
+              ),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Opacity(
+                    opacity: value,
+                    child: _NearbyDeviceBubble(rssi: d.rssi, name: d.name),
+                  ),
+                );
+              },
+            ),
+          )
+          .toList(),
     );
   }
 }
