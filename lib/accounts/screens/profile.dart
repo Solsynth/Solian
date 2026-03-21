@@ -59,7 +59,7 @@ class _AccountBasicInfo extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (showBackground)
             Stack(
@@ -99,7 +99,7 @@ class _AccountBasicInfo extends StatelessWidget {
           Padding(
             padding: EdgeInsets.all(showBackground ? 16 : 20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!showBackground)
                   Padding(
@@ -127,6 +127,7 @@ class _AccountBasicInfo extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Gap(12),
                           Row(
                             spacing: 8,
                             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -135,7 +136,7 @@ class _AccountBasicInfo extends StatelessWidget {
                               Flexible(
                                 child: AccountName(
                                   account: data,
-                                  style: theme.textTheme.titleLarge?.copyWith(
+                                  style: theme.textTheme.bodyLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -159,7 +160,7 @@ class _AccountBasicInfo extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const Gap(8),
+                          const Gap(4),
                           AccountStatusWidget(
                             uname: uname,
                             padding: EdgeInsets.zero,
@@ -340,7 +341,7 @@ class _AccountProfileDetail extends StatelessWidget {
                 ).tr(),
               ],
             ),
-            const Gap(20),
+            const Gap(12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -584,15 +585,17 @@ class _AccountProfileLinks extends StatelessWidget {
                 ).tr(),
               ],
             ),
-            const Gap(16),
-            ...data.profile.links.map(
-              (link) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _LinkCard(
-                  name: link.name.capitalizeEachWord(),
-                  url: link.url,
-                ),
-              ),
+            const Gap(12),
+            Column(
+              spacing: 8,
+              children: data.profile.links
+                  .map(
+                    (link) => _LinkCard(
+                      name: link.name.capitalizeEachWord(),
+                      url: link.url,
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),
@@ -717,12 +720,12 @@ class _AccountProfileContacts extends StatelessWidget {
                 ).tr(),
               ],
             ),
-            const Gap(16),
-            ...publicContacts.map(
-              (contact) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _ContactCard(contact: contact),
-              ),
+            const Gap(12),
+            Column(
+              spacing: 8,
+              children: publicContacts
+                  .map((contact) => _ContactCard(contact: contact))
+                  .toList(),
             ),
           ],
         ),
@@ -1312,29 +1315,29 @@ class AccountProfileScreen extends HookConsumerWidget {
               : null,
           body: isWideScreen(context)
               ? Row(
+                  spacing: 12,
                   children: [
                     Flexible(
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: _AccountBasicInfo(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 12,
+                          children: [
+                            _AccountBasicInfo(
                               data: data,
                               uname: name,
                               accountDeveloper: accountDeveloper,
                             ),
-                          ),
-                          if (data.badges.isNotEmpty)
-                            SliverToBoxAdapter(
-                              child: Card(
+                            if (data.badges.isNotEmpty)
+                              Card(
                                 margin: EdgeInsets.zero,
                                 child: Padding(
                                   padding: const EdgeInsets.all(20),
                                   child: BadgeList(badges: data.badges),
                                 ),
                               ),
-                            ),
-                          SliverToBoxAdapter(
-                            child: Column(
+                            Column(
                               spacing: 12,
                               children: [
                                 LevelingProgressCard(
@@ -1351,39 +1354,29 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   ),
                               ],
                             ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: _AccountProfileBio(data: data),
-                          ),
-                          if (data.profile.links.isNotEmpty)
-                            SliverToBoxAdapter(
-                              child: _AccountProfileLinks(data: data),
-                            ),
-                          if (data.contacts.any((c) => c.isPublic))
-                            SliverToBoxAdapter(
-                              child: _AccountProfileContacts(data: data),
-                            ),
-                          SliverToBoxAdapter(
-                            child: _AccountProfileDetail(data: data),
-                          ),
-                        ],
+                            _AccountProfileBio(data: data),
+                            if (data.profile.links.isNotEmpty)
+                              _AccountProfileLinks(data: data),
+                            if (data.contacts.any((c) => c.isPublic))
+                              _AccountProfileContacts(data: data),
+                            _AccountProfileDetail(data: data),
+                          ],
+                        ),
                       ),
                     ),
                     Flexible(
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverGap(18),
-                          SliverToBoxAdapter(
-                            child: ActivityPresenceWidget(uname: name),
-                          ),
-                          SliverToBoxAdapter(
-                            child: _AccountPublisherList(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        child: Column(
+                          children: [
+                            ActivityPresenceWidget(uname: name),
+                            const SizedBox(height: 12),
+                            _AccountPublisherList(
                               publishers: accountPublishers.value ?? [],
                             ),
-                          ),
-                          if (user.value != null && !isCurrentUser)
-                            SliverToBoxAdapter(
-                              child: _AccountAction(
+                            const SizedBox(height: 12),
+                            if (user.value != null && !isCurrentUser) ...[
+                              _AccountAction(
                                 data: data,
                                 accountRelationship: accountRelationship,
                                 accountChat: accountChat,
@@ -1391,9 +1384,9 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 blockAction: blockAction,
                                 directMessageAction: directMessageAction,
                               ),
-                            ),
-                          SliverToBoxAdapter(
-                            child: Card(
+                              const SizedBox(height: 12),
+                            ],
+                            Card(
                               margin: EdgeInsets.zero,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
@@ -1404,8 +1397,8 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -1447,82 +1440,71 @@ class AccountProfileScreen extends HookConsumerWidget {
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: _AccountBasicInfo(
-                        data: data,
-                        uname: name,
-                        accountDeveloper: accountDeveloper,
-                      ),
-                    ),
-                    if (data.badges.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: BadgeList(badges: data.badges),
-                          ),
-                        ),
-                      ),
-                    SliverToBoxAdapter(
                       child: Column(
+                        spacing: 12,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          LevelingProgressCard(
-                            level: data.profile.level,
-                            experience: data.profile.experience,
-                            progress: data.profile.levelingProgress,
+                          _AccountBasicInfo(
+                            data: data,
+                            uname: name,
+                            accountDeveloper: accountDeveloper,
                           ),
-                          if (data.profile.verification != null)
+                          if (data.badges.isNotEmpty)
                             Card(
                               margin: EdgeInsets.zero,
-                              child: VerificationStatusCard(
-                                mark: data.profile.verification!,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: BadgeList(badges: data.badges),
                               ),
                             ),
-                        ],
-                      ),
-                    ),
-                    SliverToBoxAdapter(child: _AccountProfileBio(data: data)),
-                    if (data.profile.links.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: _AccountProfileLinks(data: data),
-                      ),
-                    if (data.contacts.any((c) => c.isPublic))
-                      SliverToBoxAdapter(
-                        child: _AccountProfileContacts(data: data),
-                      ),
-                    SliverToBoxAdapter(
-                      child: ActivityPresenceWidget(uname: name),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _AccountPublisherList(
-                        publishers: accountPublishers.value ?? [],
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _AccountProfileDetail(data: data),
-                    ),
-                    if (user.value != null && !isCurrentUser)
-                      SliverToBoxAdapter(
-                        child: _AccountAction(
-                          data: data,
-                          accountRelationship: accountRelationship,
-                          accountChat: accountChat,
-                          relationshipAction: relationshipAction,
-                          blockAction: blockAction,
-                          directMessageAction: directMessageAction,
-                        ),
-                      ),
-                    SliverToBoxAdapter(
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: FortuneGraphWidget(
-                            events: accountEvents,
-                            eventCalandarUser: data.name,
+                          Column(
+                            spacing: 12,
+                            children: [
+                              LevelingProgressCard(
+                                level: data.profile.level,
+                                experience: data.profile.experience,
+                                progress: data.profile.levelingProgress,
+                              ),
+                              if (data.profile.verification != null)
+                                Card(
+                                  margin: EdgeInsets.zero,
+                                  child: VerificationStatusCard(
+                                    mark: data.profile.verification!,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                      ),
+                          _AccountProfileBio(data: data),
+                          if (data.profile.links.isNotEmpty)
+                            _AccountProfileLinks(data: data),
+                          if (data.contacts.any((c) => c.isPublic))
+                            _AccountProfileContacts(data: data),
+                          ActivityPresenceWidget(uname: name),
+                          _AccountPublisherList(
+                            publishers: accountPublishers.value ?? [],
+                          ),
+                          _AccountProfileDetail(data: data),
+                          if (user.value != null && !isCurrentUser)
+                            _AccountAction(
+                              data: data,
+                              accountRelationship: accountRelationship,
+                              accountChat: accountChat,
+                              relationshipAction: relationshipAction,
+                              blockAction: blockAction,
+                              directMessageAction: directMessageAction,
+                            ),
+                          Card(
+                            margin: EdgeInsets.zero,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: FortuneGraphWidget(
+                                events: accountEvents,
+                                eventCalandarUser: data.name,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).padding(horizontal: 8, vertical: 8),
                     ),
                   ],
                 ),
