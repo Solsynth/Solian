@@ -1075,14 +1075,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.7"
-  flutter_nfc_kit:
-    dependency: "direct main"
-    description:
-      name: flutter_nfc_kit
-      sha256: a2b324785173930f1b5afac8b190637d612593b994ecfd0a5334b72a841b9298
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.6.2"
   flutter_otp_text_field:
     dependency: "direct main"
     description:
@@ -2061,14 +2053,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.5"
-  ndef:
-    dependency: "direct main"
-    description:
-      name: ndef
-      sha256: "198ba3798e80cea381648569d84059dbba64cd140079fb7b0d9c3f1e0f5973f3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0"
   nested:
     dependency: transitive
     description:
@@ -2077,14 +2061,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  nfc_host_card_emulation:
-    dependency: "direct main"
-    description:
-      name: nfc_host_card_emulation
-      sha256: "9e0b4e9d57d91fa5ef8ef69c42874398ab8cc923bc3090eafb22ffbdc94308af"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   nm:
     dependency: transitive
     description:

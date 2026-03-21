@@ -17,7 +17,6 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
 import 'package:island/accounts/meet_tap.dart';
-import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -26,6 +25,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -238,10 +238,10 @@ class MeetScreen extends HookConsumerWidget {
     Future<void> joinTapMeet() async {
       actionBusy.value = true;
       try {
-        final payload = await tapService.readPresentedMeet();
-        final snapshot = await meetService.joinMeet(payload.meetId).first;
-        if (context.mounted) {
-          await _showTapMeetNameCard(context, snapshot.meet);
+        final data = await Clipboard.getData(Clipboard.kTextPlain);
+        final payload = tapService.parsePayload(data?.text ?? '');
+        if (payload == null) {
+          throw StateError('Copy a Solian Meet link or meet ID first.');
         }
         await openMeetDetail(payload.meetId);
       } catch (error) {
@@ -284,7 +284,7 @@ class MeetScreen extends HookConsumerWidget {
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -310,7 +310,7 @@ class MeetScreen extends HookConsumerWidget {
               ),
               Tab(
                 child: Text(
-                  'meetTap'.tr(),
+                  'meetScan'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -343,7 +343,7 @@ class MeetScreen extends HookConsumerWidget {
                   isLocating: isLocating.value,
                   visibility: visibility.value,
                   image: selectedImage.value,
-                  tapSupported: tapService.supportsTapHost,
+                  tapSupported: true,
                   onChangeEntryMode: (value) => entryMode.value = value,
                   onChangeVisibility: (value) => visibility.value = value,
                   onUseCurrentLocation: fillCurrentLocation,
@@ -403,7 +403,7 @@ class MeetScreen extends HookConsumerWidget {
               children: [
                 _MeetTapCard(
                   busy: actionBusy.value,
-                  supported: tapService.supportsTapJoin,
+                  supported: true,
                   onTapJoin: joinTapMeet,
                 ),
               ],
@@ -436,14 +436,12 @@ class MeetDetailScreen extends HookConsumerWidget {
     final currentUser = ref.watch(userInfoProvider).value;
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
-    final tapService = ref.watch(meetTapServiceProvider);
 
     final meet = useState<SnMeet?>(null);
     final error = useState<Object?>(null);
     final eventType = useState<String?>(null);
     final isWatching = useState(false);
     final isAdvertising = useState(false);
-    final isTapPresenting = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
 
@@ -451,12 +449,6 @@ class MeetDetailScreen extends HookConsumerWidget {
       if (!isAdvertising.value) return;
       await bluetoothService.stopAdvertising();
       isAdvertising.value = false;
-    }
-
-    Future<void> stopTapPresentation() async {
-      if (!isTapPresenting.value) return;
-      await tapService.stopHostPresentation();
-      isTapPresenting.value = false;
     }
 
     Future<void> stopWatching() async {
@@ -490,7 +482,6 @@ class MeetDetailScreen extends HookConsumerWidget {
               if (event.meet.isFinal) {
                 isWatching.value = false;
                 unawaited(stopAdvertising());
-                unawaited(stopTapPresentation());
                 ref.invalidate(meetHistoryProvider);
               }
             },
@@ -516,21 +507,6 @@ class MeetDetailScreen extends HookConsumerWidget {
       }
     }
 
-    Future<void> maybeStartTapPresentation() async {
-      final current = meet.value;
-      final isHost = current != null && current.hostId == currentUser?.id;
-      if (!isHost || current.status != SnMeetStatus.active) return;
-      if (_entryModeOf(current) != MeetEntryMode.tap) return;
-      if (!tapService.supportsTapHost) return;
-
-      try {
-        await tapService.startHostPresentation(current.id);
-        isTapPresenting.value = true;
-      } catch (_) {
-        isTapPresenting.value = false;
-      }
-    }
-
     Future<void> completeMeet() async {
       final current = meet.value;
       if (current == null) return;
@@ -550,14 +526,12 @@ class MeetDetailScreen extends HookConsumerWidget {
       Future.microtask(() async {
         await loadMeet();
         await maybeStartAdvertising();
-        await maybeStartTapPresentation();
         await watchMeet();
       });
 
       return () {
         unawaited(stopWatching());
         unawaited(stopAdvertising());
-        unawaited(stopTapPresentation());
       };
     }, [id]);
 
@@ -573,7 +547,6 @@ class MeetDetailScreen extends HookConsumerWidget {
         participants: participants,
         isWatching: isWatching.value,
         isAdvertising: isAdvertising.value,
-        isTapPresenting: isTapPresenting.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
         onClose: context.router.maybePop,
@@ -599,7 +572,10 @@ class MeetDetailScreen extends HookConsumerWidget {
                   participants: participants,
                   isWatching: isWatching.value,
                   isAdvertising: isAdvertising.value,
-                  isTapPresenting: isTapPresenting.value,
+                  isScanShareReady:
+                      entryMode == MeetEntryMode.tap &&
+                      current.hostId == currentUser?.id &&
+                      current.status == SnMeetStatus.active,
                 ),
                 const Gap(16),
                 _MeetDetailInfo(
@@ -644,7 +620,6 @@ class _MeetActiveListeningPage extends HookWidget {
   final List<_MeetPerson> participants;
   final bool isWatching;
   final bool isAdvertising;
-  final bool isTapPresenting;
   final bool isHost;
   final bool actionBusy;
   final VoidCallback onClose;
@@ -656,7 +631,6 @@ class _MeetActiveListeningPage extends HookWidget {
     required this.participants,
     required this.isWatching,
     required this.isAdvertising,
-    required this.isTapPresenting,
     required this.isHost,
     required this.actionBusy,
     required this.onClose,
@@ -670,6 +644,7 @@ class _MeetActiveListeningPage extends HookWidget {
     )..repeat();
     final theme = Theme.of(context);
     final topic = meet.metadata['topic']?.toString();
+    final scanUri = MeetTapService().buildMeetUri(meet.id);
 
     return AppScaffold(
       isNoBackground: true,
@@ -728,12 +703,13 @@ class _MeetActiveListeningPage extends HookWidget {
                           label: 'meetBroadcasting'.tr(),
                         ),
                       if (isAdvertising) const Gap(8),
-                      if (isTapPresenting)
+                      if (entryMode == MeetEntryMode.tap && isHost)
                         _InfoPill(
-                          icon: Symbols.contactless,
-                          label: 'meetTapReady'.tr(),
+                          icon: Symbols.qr_code_2,
+                          label: 'meetScanReady'.tr(),
                         ),
-                      if (isTapPresenting) const Gap(8),
+                      if (entryMode == MeetEntryMode.tap && isHost)
+                        const Gap(8),
                       _InfoPill(
                         icon: entryMode == MeetEntryMode.tap
                             ? Symbols.contactless
@@ -781,6 +757,10 @@ class _MeetActiveListeningPage extends HookWidget {
                   ),
                 ),
                 const Spacer(),
+                if (entryMode == MeetEntryMode.tap && isHost) ...[
+                  _MeetScanCodeCard(uri: scanUri),
+                  const Gap(16),
+                ],
                 Text(
                   'meetParticipantsCount'.tr(args: ['${participants.length}']),
                   style: TextStyle(color: theme.colorScheme.secondary),
@@ -820,7 +800,7 @@ class _MeetDetailHero extends HookWidget {
   final List<_MeetPerson> participants;
   final bool isWatching;
   final bool isAdvertising;
-  final bool isTapPresenting;
+  final bool isScanShareReady;
 
   const _MeetDetailHero({
     required this.meet,
@@ -828,7 +808,7 @@ class _MeetDetailHero extends HookWidget {
     required this.participants,
     required this.isWatching,
     required this.isAdvertising,
-    required this.isTapPresenting,
+    required this.isScanShareReady,
   });
 
   @override
@@ -893,8 +873,8 @@ class _MeetDetailHero extends HookWidget {
                       ),
                       if (isAdvertising)
                         _HeroPill(label: 'meetBroadcasting'.tr()),
-                      if (isTapPresenting)
-                        _HeroPill(label: 'meetTapReady'.tr()),
+                      if (isScanShareReady)
+                        _HeroPill(label: 'meetScanReady'.tr()),
                     ],
                   ),
                   const Spacer(),
@@ -1100,13 +1080,13 @@ class _MeetStartCard extends StatelessWidget {
           children: [
             Text(
               entryMode == MeetEntryMode.tap
-                  ? 'meetTapStartTitle'.tr()
+                  ? 'meetScanStartTitle'.tr()
                   : 'meetStartTitle'.tr(),
             ).fontSize(18).bold(),
             const Gap(8),
             Text(
               entryMode == MeetEntryMode.tap
-                  ? 'meetTapStartDescription'.tr()
+                  ? 'meetScanStartDescription'.tr()
                   : 'meetStartDescription'.tr(),
             ),
             const Gap(16),
@@ -1120,8 +1100,8 @@ class _MeetStartCard extends StatelessWidget {
                 ButtonSegment(
                   value: MeetEntryMode.tap,
                   enabled: tapSupported,
-                  icon: const Icon(Symbols.contactless),
-                  label: Text('meetTap').tr(),
+                  icon: const Icon(Symbols.qr_code_2),
+                  label: Text('meetScan').tr(),
                 ),
               ],
               selected: {entryMode},
@@ -1248,12 +1228,12 @@ class _MeetStartCard extends StatelessWidget {
                 onPressed: busy ? null : onStart,
                 icon: Icon(
                   entryMode == MeetEntryMode.tap
-                      ? Symbols.contactless
+                      ? Symbols.qr_code_2
                       : Symbols.add_circle,
                 ),
                 label: Text(
                   entryMode == MeetEntryMode.tap
-                      ? 'meetTapPrepare'.tr()
+                      ? 'meetScanPrepare'.tr()
                       : (advertising
                             ? 'meetRestartBroadcast'.tr()
                             : 'meetStartNow'.tr()),
@@ -1264,8 +1244,8 @@ class _MeetStartCard extends StatelessWidget {
               const Gap(12),
               Text(
                 tapSupported
-                    ? 'meetTapStartHint'.tr()
-                    : 'meetTapHostUnsupported'.tr(),
+                    ? 'meetScanStartHint'.tr()
+                    : 'meetScanUnsupported'.tr(),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.secondary,
                 ),
@@ -1424,7 +1404,7 @@ class _MeetTapCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
-                      Symbols.contactless,
+                      Symbols.qr_code_scanner,
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -1433,9 +1413,9 @@ class _MeetTapCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('meetTapTitle').tr().fontSize(18).bold(),
+                        Text('meetScanTitle').tr().fontSize(18).bold(),
                         const Gap(4),
-                        Text('meetTapDescription').tr(),
+                        Text('meetScanDescription').tr(),
                       ],
                     ),
                   ),
@@ -1468,12 +1448,12 @@ class _MeetTapCard extends StatelessWidget {
                       ),
                     ),
                     const Gap(12),
-                    Text('meetTapPrompt').tr().fontSize(16).bold(),
+                    Text('meetScanClipboardPrompt').tr().fontSize(16).bold(),
                     const Gap(6),
                     Text(
                       supported
-                          ? 'meetTapHint'.tr()
-                          : 'meetTapUnsupported'.tr(),
+                          ? 'meetScanJoinHint'.tr()
+                          : 'meetScanUnsupported'.tr(),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -1485,10 +1465,12 @@ class _MeetTapCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: busy || !supported ? null : onTapJoin,
                   icon: Icon(
-                    busy ? Symbols.progress_activity : Symbols.contactless,
+                    busy ? Symbols.progress_activity : Symbols.content_paste_go,
                   ),
                   label: Text(
-                    busy ? 'meetTapScanning'.tr() : 'meetTapJoin'.tr(),
+                    busy
+                        ? 'meetScanOpening'.tr()
+                        : 'meetScanOpenClipboard'.tr(),
                   ),
                 ),
               ),
@@ -1826,6 +1808,42 @@ class _MeetMapPin extends StatelessWidget {
   }
 }
 
+class _MeetScanCodeCard extends StatelessWidget {
+  final Uri uri;
+
+  const _MeetScanCodeCard({required this.uri});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final data = uri.toString();
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            QrImageView(
+              data: data,
+              size: 148,
+              backgroundColor: Colors.white,
+              eyeStyle: QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: theme.colorScheme.primary,
+              ),
+              dataModuleStyle: QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: theme.colorScheme.onSurface,
+              ),
+            ).clipRRect(all: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MeetRippleField extends StatelessWidget {
   final Animation<double> animation;
   final Color color;
@@ -2111,7 +2129,7 @@ MeetEntryMode _entryModeOf(SnMeet? meet) {
 String _entryModeLabel(MeetEntryMode mode, BuildContext context) {
   return switch (mode) {
     MeetEntryMode.nearby => 'meetNearbyTab'.tr(),
-    MeetEntryMode.tap => 'meetTap'.tr(),
+    MeetEntryMode.tap => 'meetScan'.tr(),
   };
 }
 
@@ -2140,103 +2158,4 @@ latlong.LatLng? _parseMeetPoint(String? wkt) {
   if (longitude == null || latitude == null) return null;
 
   return latlong.LatLng(latitude, longitude);
-}
-
-Future<void> _showTapMeetNameCard(BuildContext context, SnMeet meet) async {
-  final host = meet.host;
-  if (host == null) return;
-
-  await showOverlayDialog<void>(
-    barrierDismissible: false,
-    builder: (context, close) {
-      return HookBuilder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          useEffect(() {
-            final timer = Timer(
-              const Duration(milliseconds: 1400),
-              () => close(null),
-            );
-            return timer.cancel;
-          }, const []);
-
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Material(
-              color: Colors.transparent,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Animate(
-                    onPlay: (controller) => controller.repeat(),
-                    effects: [
-                      ScaleEffect(
-                        begin: const Offset(0.82, 0.82),
-                        end: const Offset(1.08, 1.08),
-                        duration: 1800.ms,
-                        curve: Curves.easeOut,
-                      ),
-                      FadeEffect(begin: 1, end: 0, duration: 1800.ms),
-                    ],
-                    child: Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.colorScheme.primary.withOpacity(0.08),
-                      ),
-                    ),
-                  ),
-                  Animate(
-                    effects: [
-                      FadeEffect(
-                        begin: 0,
-                        end: 1,
-                        duration: 260.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
-                      ScaleEffect(
-                        begin: const Offset(0.94, 0.94),
-                        end: const Offset(1, 1),
-                        duration: 420.ms,
-                        curve: Curves.easeOutBack,
-                      ),
-                    ],
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      elevation: 0,
-                      color: theme.colorScheme.surface,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('meetTapMatched').tr().fontSize(18).bold(),
-                            const Gap(8),
-                            Text(
-                              'meetTapMatchedDescription'.tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ),
-                            const Gap(12),
-                            AccountNameplate(
-                              name: host.name,
-                              isOutlined: false,
-                              padding: EdgeInsets.zero,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
 }
