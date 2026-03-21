@@ -8,6 +8,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 enum SnMeetStatus { active, completed, expired, cancelled, unknown }
 
+enum SnMeetVisibility { public, private, unknown }
+
 class SnMeetParticipant {
   final String meetId;
   final String accountId;
@@ -38,8 +40,11 @@ class SnMeet {
   final String hostId;
   final SnAccount? host;
   final SnMeetStatus status;
+  final SnMeetVisibility visibility;
   final DateTime? expiresAt;
   final DateTime? completedAt;
+  final String? notes;
+  final SnCloudFile? image;
   final String? locationName;
   final String? locationAddress;
   final String? locationWkt;
@@ -51,8 +56,11 @@ class SnMeet {
     required this.hostId,
     required this.host,
     required this.status,
+    required this.visibility,
     required this.expiresAt,
     required this.completedAt,
+    required this.notes,
+    required this.image,
     required this.locationName,
     required this.locationAddress,
     required this.locationWkt,
@@ -78,10 +86,15 @@ class SnMeet {
           ? SnAccount.fromJson(json['host'] as Map<String, dynamic>)
           : null,
       status: _parseMeetStatus(json['status']),
+      visibility: _parseMeetVisibility(json['visibility']),
       expiresAt: _tryParseDate(json['expires_at'] ?? json['expiresAt']),
       completedAt: _tryParseDate(
         json['completed_at'] ?? json['completedAt'],
       ),
+      notes: json['notes']?.toString(),
+      image: json['image'] is Map<String, dynamic>
+          ? SnCloudFile.fromJson(json['image'] as Map<String, dynamic>)
+          : null,
       locationName: json['location_name']?.toString(),
       locationAddress: json['location_address']?.toString(),
       locationWkt: json['location_wkt']?.toString(),
@@ -122,19 +135,41 @@ class MeetService {
 
   const MeetService(this._client);
 
+  Dio _streamClient() {
+    final options = _client.options.copyWith(
+      receiveTimeout: Duration.zero,
+      sendTimeout: Duration.zero,
+    );
+    final dio = Dio(options);
+    dio.interceptors.addAll(_client.interceptors);
+    return dio;
+  }
+
   Future<SnMeet> createMeet({
+    SnMeetVisibility visibility = SnMeetVisibility.private,
+    String? notes,
+    String? imageId,
     String? locationName,
     String? locationAddress,
+    String? locationWkt,
     Map<String, dynamic>? metadata,
     int? expiresInSeconds,
   }) async {
     final response = await _client.post(
       '/passport/meets',
       data: {
+        'visibility': switch (visibility) {
+          SnMeetVisibility.public => 0,
+          SnMeetVisibility.private || SnMeetVisibility.unknown => 1,
+        },
+        if (notes?.trim().isNotEmpty ?? false) 'notes': notes!.trim(),
+        if (imageId?.trim().isNotEmpty ?? false) 'image_id': imageId!.trim(),
         if (locationName?.trim().isNotEmpty ?? false)
           'location_name': locationName!.trim(),
         if (locationAddress?.trim().isNotEmpty ?? false)
           'location_address': locationAddress!.trim(),
+        if (locationWkt?.trim().isNotEmpty ?? false)
+          'location_wkt': locationWkt!.trim(),
         ...?(metadata != null && metadata.isNotEmpty
             ? {'metadata': metadata}
             : null),
@@ -146,13 +181,48 @@ class MeetService {
     return SnMeet.fromJson(Map<String, dynamic>.from(response.data as Map));
   }
 
+  Future<List<SnMeet>> listMeets({
+    SnMeetStatus? status,
+    bool hostOnly = false,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await _client.get(
+      '/passport/meets',
+      queryParameters: {
+        if (status != null) 'status': switch (status) {
+          SnMeetStatus.active => 0,
+          SnMeetStatus.completed => 1,
+          SnMeetStatus.expired => 2,
+          SnMeetStatus.cancelled => 3,
+          SnMeetStatus.unknown => null,
+        },
+        'host_only': hostOnly,
+        'offset': offset,
+        'take': take,
+      },
+    );
+
+    final data = response.data;
+    if (data is! List) return const [];
+    return data
+        .whereType<Map>()
+        .map((item) => SnMeet.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  Future<SnMeet> getMeet(String meetId) async {
+    final response = await _client.get('/passport/meets/$meetId');
+    return SnMeet.fromJson(Map<String, dynamic>.from(response.data as Map));
+  }
+
   Stream<SnMeetEvent> joinMeet(String meetId) async* {
-    final response = await _client.post(
+    final response = await _streamClient().post(
       '/passport/meets/$meetId/join',
       options: Options(
         responseType: ResponseType.stream,
-        receiveTimeout: null,
-        sendTimeout: null,
+        receiveTimeout: Duration.zero,
+        sendTimeout: Duration.zero,
         headers: {'Accept': 'text/event-stream'},
       ),
     );
@@ -225,5 +295,13 @@ SnMeetStatus _parseMeetStatus(dynamic value) {
     2 || '2' || 'Expired' || 'expired' => SnMeetStatus.expired,
     3 || '3' || 'Cancelled' || 'cancelled' => SnMeetStatus.cancelled,
     _ => SnMeetStatus.unknown,
+  };
+}
+
+SnMeetVisibility _parseMeetVisibility(dynamic value) {
+  return switch (value) {
+    0 || '0' || 'Public' || 'public' => SnMeetVisibility.public,
+    1 || '1' || 'Private' || 'private' => SnMeetVisibility.private,
+    _ => SnMeetVisibility.unknown,
   };
 }

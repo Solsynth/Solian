@@ -16,6 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_udid
   flutter_webrtc
   gal
+  geolocator_windows
   hotkey_manager_windows
   irondash_engine_context
   livekit_client

@@ -71,6 +71,10 @@
 	<string>Grant access to Calander help us to shows Solar Calander with your own events.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Grant access to Camera will allow Solian take photo or video for your post.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>NFC is used for Tap Meet cards and real-world meet exchange.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow the Solar Network verify your ownership of the logged in account and continue
 			your action quickly.</string>

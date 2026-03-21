@@ -43,6 +43,8 @@
 	<string>Allow Solian to use your camera for Solar Network video call.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>

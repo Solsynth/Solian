@@ -2456,6 +2456,57 @@ class LoginRoute extends _i74.PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [_i52.MeetDetailScreen]
+class MeetDetailRoute extends _i74.PageRouteInfo<MeetDetailRouteArgs> {
+  MeetDetailRoute({
+    _i75.Key? key,
+    required String id,
+    List<_i74.PageRouteInfo>? children,
+  }) : super(
+         MeetDetailRoute.name,
+         args: MeetDetailRouteArgs(key: key, id: id),
+         rawPathParams: {'id': id},
+         initialChildren: children,
+       );
+
+  static const String name = 'MeetDetailRoute';
+
+  static _i74.PageInfo page = _i74.PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<MeetDetailRouteArgs>(
+        orElse: () => MeetDetailRouteArgs(id: pathParams.getString('id')),
+      );
+      return _i52.MeetDetailScreen(key: args.key, id: args.id);
+    },
+  );
+}
+
+class MeetDetailRouteArgs {
+  const MeetDetailRouteArgs({this.key, required this.id});
+
+  final _i75.Key? key;
+
+  final String id;
+
+  @override
+  String toString() {
+    return 'MeetDetailRouteArgs{key: $key, id: $id}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MeetDetailRouteArgs) return false;
+    return key == other.key && id == other.id;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ id.hashCode;
+}
+
+/// generated route for
 /// [_i52.MeetScreen]
 class MeetRoute extends _i74.PageRouteInfo<void> {
   const MeetRoute({List<_i74.PageRouteInfo>? children})
