@@ -17,6 +17,8 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
 import 'package:island/accounts/meet_tap.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -25,6 +27,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -251,6 +254,24 @@ class MeetScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> scanMeetWithCamera() async {
+      final payload = await showModalBottomSheet<MeetTapPayload>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => _MeetQrScannerSheet(service: tapService),
+      );
+      if (payload == null) return;
+
+      actionBusy.value = true;
+      try {
+        await openMeetDetail(payload.meetId);
+      } finally {
+        actionBusy.value = false;
+      }
+    }
+
     useEffect(() {
       void handleTabChange() {
         if (tabController.index == 1 &&
@@ -405,6 +426,7 @@ class MeetScreen extends HookConsumerWidget {
                   busy: actionBusy.value,
                   supported: true,
                   onTapJoin: joinTapMeet,
+                  onScan: scanMeetWithCamera,
                 ),
               ],
             ),
@@ -434,6 +456,7 @@ class MeetDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(userInfoProvider).value;
+    final client = ref.watch(apiClientProvider);
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
 
@@ -444,6 +467,8 @@ class MeetDetailScreen extends HookConsumerWidget {
     final isAdvertising = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
+    final latestArrival = useState<_MeetPerson?>(null);
+    final knownParticipantIds = useRef<Set<String>>(<String>{});
 
     Future<void> stopAdvertising() async {
       if (!isAdvertising.value) return;
@@ -462,8 +487,23 @@ class MeetDetailScreen extends HookConsumerWidget {
       try {
         final item = await meetService.getMeet(id);
         meet.value = item;
+        knownParticipantIds.value = _participantIdsOf(item);
       } catch (err) {
         error.value = err;
+      }
+    }
+
+    Future<void> requestFriend(SnAccount account) async {
+      if (account.id == currentUser?.id) return;
+
+      showLoadingModal(context);
+      try {
+        await client.post('/passport/relationships/${account.id}/friends');
+        showSnackBar('pendingRequest'.tr());
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
       }
     }
 
@@ -477,8 +517,21 @@ class MeetDetailScreen extends HookConsumerWidget {
           .joinMeet(id)
           .listen(
             (event) {
+              final previousIds = Set<String>.from(knownParticipantIds.value);
+              final nextIds = _participantIdsOf(event.meet);
               meet.value = event.meet;
               eventType.value = event.type;
+              knownParticipantIds.value = nextIds;
+              if (event.type == 'participant_joined') {
+                final newcomer = _findLatestArrival(
+                  meet: event.meet,
+                  previousIds: previousIds,
+                  currentUserId: currentUser?.id,
+                );
+                if (newcomer != null) {
+                  latestArrival.value = newcomer;
+                }
+              }
               if (event.meet.isFinal) {
                 isWatching.value = false;
                 unawaited(stopAdvertising());
@@ -549,6 +602,10 @@ class MeetDetailScreen extends HookConsumerWidget {
         isAdvertising: isAdvertising.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
+        latestArrival: latestArrival.value,
+        currentUserId: currentUser?.id,
+        canRequestFriend: current.visibility == SnMeetVisibility.public,
+        onRequestFriend: requestFriend,
         onClose: context.router.maybePop,
         onComplete: completeMeet,
       );
@@ -622,6 +679,10 @@ class _MeetActiveListeningPage extends HookWidget {
   final bool isAdvertising;
   final bool isHost;
   final bool actionBusy;
+  final _MeetPerson? latestArrival;
+  final String? currentUserId;
+  final bool canRequestFriend;
+  final ValueChanged<SnAccount> onRequestFriend;
   final VoidCallback onClose;
   final VoidCallback onComplete;
 
@@ -633,6 +694,10 @@ class _MeetActiveListeningPage extends HookWidget {
     required this.isAdvertising,
     required this.isHost,
     required this.actionBusy,
+    required this.latestArrival,
+    required this.currentUserId,
+    required this.canRequestFriend,
+    required this.onRequestFriend,
     required this.onClose,
     required this.onComplete,
   });
@@ -645,6 +710,23 @@ class _MeetActiveListeningPage extends HookWidget {
     final theme = Theme.of(context);
     final topic = meet.metadata['topic']?.toString();
     final scanUri = MeetTapService().buildMeetUri(meet.id);
+
+    if (entryMode == MeetEntryMode.tap) {
+      return _MeetScanExchangePage(
+        meet: meet,
+        participants: participants,
+        isWatching: isWatching,
+        isHost: isHost,
+        actionBusy: actionBusy,
+        scanUri: scanUri,
+        latestArrival: latestArrival,
+        currentUserId: currentUserId,
+        canRequestFriend: canRequestFriend,
+        onRequestFriend: onRequestFriend,
+        onClose: onClose,
+        onComplete: onComplete,
+      );
+    }
 
     return AppScaffold(
       isNoBackground: true,
@@ -924,6 +1006,461 @@ class _MeetDetailHero extends HookWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetScanExchangePage extends HookWidget {
+  final SnMeet meet;
+  final List<_MeetPerson> participants;
+  final bool isWatching;
+  final bool isHost;
+  final bool actionBusy;
+  final Uri scanUri;
+  final _MeetPerson? latestArrival;
+  final String? currentUserId;
+  final bool canRequestFriend;
+  final ValueChanged<SnAccount> onRequestFriend;
+  final VoidCallback onClose;
+  final VoidCallback onComplete;
+
+  const _MeetScanExchangePage({
+    required this.meet,
+    required this.participants,
+    required this.isWatching,
+    required this.isHost,
+    required this.actionBusy,
+    required this.scanUri,
+    required this.latestArrival,
+    required this.currentUserId,
+    required this.canRequestFriend,
+    required this.onRequestFriend,
+    required this.onClose,
+    required this.onComplete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final pulse = useAnimationController(
+      duration: const Duration(milliseconds: 2600),
+    )..repeat(reverse: true);
+    final topic = meet.metadata['topic']?.toString();
+    final arrivalCard = useState<_MeetPerson?>(null);
+    final participantCards = participants;
+
+    useEffect(() {
+      final arrival = latestArrival;
+      if (arrival == null) return null;
+      arrivalCard.value = arrival;
+      final timer = Timer(const Duration(milliseconds: 2600), () {
+        if (arrivalCard.value?.id == arrival.id) {
+          arrivalCard.value = null;
+        }
+      });
+      return timer.cancel;
+    }, [latestArrival?.id]);
+
+    return AppScaffold(
+      isNoBackground: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surface,
+              theme.colorScheme.primaryContainer.withOpacity(0.28),
+              theme.colorScheme.secondaryContainer.withOpacity(0.24),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: onClose,
+                      icon: const Icon(Symbols.close),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(
+                            meet.locationName?.isNotEmpty == true
+                                ? meet.locationName!
+                                : 'meetLiveTitle'.tr(),
+                          ).fontSize(18).bold(),
+                          Text(
+                            (topic?.isNotEmpty ?? false)
+                                ? topic!
+                                : 'meetScanLiveSubtitle'.tr(),
+                            style: TextStyle(
+                              color: theme.colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: scanUri.toString()),
+                        );
+                        showSnackBar('copyToClipboard'.tr());
+                      },
+                      icon: const Icon(Symbols.content_copy),
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _InfoPill(
+                        icon: Symbols.badge,
+                        label: 'meetScanReady'.tr(),
+                      ),
+                      const Gap(8),
+                      _InfoPill(
+                        icon: isWatching ? Symbols.sync : Symbols.sync_disabled,
+                        label: isWatching
+                            ? 'meetWatching'.tr()
+                            : 'meetWatchStopped'.tr(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(16),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _MeetScanStageCard(
+                        isHost: isHost,
+                        scanUri: scanUri,
+                        animation: pulse,
+                      ),
+                      if (arrivalCard.value != null) ...[
+                        const Gap(16),
+                        _MeetScanArrivalBanner(
+                          participant: arrivalCard.value!,
+                        ),
+                      ],
+                      const Gap(16),
+                      Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'meetScanCardsTitle',
+                              ).tr().fontSize(18).bold(),
+                              const Gap(6),
+                              Text(
+                                isHost
+                                    ? 'meetScanCardsHostHint'.tr()
+                                    : 'meetScanCardsGuestHint'.tr(),
+                                style: TextStyle(
+                                  color: theme.colorScheme.secondary,
+                                ),
+                              ),
+                              const Gap(16),
+                              if (participantCards.isEmpty)
+                                _MeetInfoCard(
+                                  icon: Symbols.id_card,
+                                  title: 'meetParticipantsEmpty'.tr(),
+                                  description: 'meetScanCardsEmpty'.tr(),
+                                )
+                              else
+                                Column(
+                                  children: participantCards
+                                      .map(
+                                        (participant) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 12,
+                                          ),
+                                          child: _MeetNameCard(
+                                            participant: participant,
+                                            canRequestFriend:
+                                                canRequestFriend,
+                                            currentUserId: currentUserId,
+                                            onRequestFriend: onRequestFriend,
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  'meetParticipantsCount'.tr(args: ['${participants.length}']),
+                  style: TextStyle(color: theme.colorScheme.secondary),
+                ),
+                const Gap(16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onClose,
+                        child: Text('close').tr(),
+                      ),
+                    ),
+                    if (isHost) ...[
+                      const Gap(12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: actionBusy ? null : onComplete,
+                          child: Text('meetComplete').tr(),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetScanStageCard extends StatelessWidget {
+  final bool isHost;
+  final Uri scanUri;
+  final Animation<double> animation;
+
+  const _MeetScanStageCard({
+    required this.isHost,
+    required this.scanUri,
+    required this.animation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            Text(
+              isHost
+                  ? 'meetScanStageHostTitle'.tr()
+                  : 'meetScanStageGuestTitle'.tr(),
+            ).fontSize(20).bold(),
+            const Gap(8),
+            Text(
+              isHost
+                  ? 'meetScanStageHostHint'.tr()
+                  : 'meetScanStageGuestHint'.tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(color: theme.colorScheme.secondary),
+            ),
+            const Gap(20),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, _) {
+                    final scale = 0.92 + (animation.value * 0.12);
+                    return Transform.scale(
+                      scale: scale,
+                      child: Container(
+                        width: 220,
+                        height: 220,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.primary.withOpacity(0.08),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (isHost)
+                  _MeetScanCodeCard(uri: scanUri)
+                else
+                  Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(32),
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Symbols.qr_code_scanner,
+                      size: 88,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetNameCard extends HookWidget {
+  final _MeetPerson participant;
+  final bool canRequestFriend;
+  final String? currentUserId;
+  final ValueChanged<SnAccount> onRequestFriend;
+
+  const _MeetNameCard({
+    required this.participant,
+    required this.canRequestFriend,
+    required this.currentUserId,
+    required this.onRequestFriend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useAnimationController(
+      duration: const Duration(milliseconds: 460),
+    );
+
+    useEffect(() {
+      controller.forward();
+      return null;
+    }, const []);
+
+    final account = participant.account;
+    if (account == null) {
+      return _MeetSimpleNameCard(participant: participant);
+    }
+
+    final allowFriendRequest =
+        canRequestFriend && account.id != currentUserId;
+
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: controller, curve: Curves.easeOut),
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
+            .animate(
+              CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
+            ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Stack(
+              children: [
+                AccountNameplate(
+                  name: account.name,
+                  isOutlined: false,
+                  padding: EdgeInsets.zero,
+                ),
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.32),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      participant.subtitle,
+                      style: const TextStyle(color: Colors.white),
+                    ).fontSize(12),
+                  ),
+                ),
+              ],
+            ),
+            if (allowFriendRequest)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10, right: 6),
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => onRequestFriend(account),
+                    icon: const Icon(Symbols.person_add),
+                    label: Text('meetAddFriend').tr(),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetSimpleNameCard extends StatelessWidget {
+  final _MeetPerson participant;
+
+  const _MeetSimpleNameCard({required this.participant});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surfaceContainerHighest,
+              theme.colorScheme.primaryContainer.withOpacity(0.35),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                Symbols.person,
+                color: theme.colorScheme.primary,
+                size: 28,
+              ),
+            ),
+            const Gap(14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(participant.fallbackName).fontSize(18).bold(),
+                  const Gap(4),
+                  Text(
+                    participant.subtitle,
+                    style: TextStyle(color: theme.colorScheme.secondary),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Symbols.id_card, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -1365,11 +1902,13 @@ class _MeetTapCard extends StatelessWidget {
   final bool busy;
   final bool supported;
   final VoidCallback onTapJoin;
+  final VoidCallback onScan;
 
   const _MeetTapCard({
     required this.busy,
     required this.supported,
     required this.onTapJoin,
+    required this.onScan,
   });
 
   @override
@@ -1448,7 +1987,10 @@ class _MeetTapCard extends StatelessWidget {
                       ),
                     ),
                     const Gap(12),
-                    Text('meetScanClipboardPrompt').tr().fontSize(16).bold(),
+                    Text(
+                      'meetScanClipboardPrompt',
+                      textAlign: TextAlign.center,
+                    ).tr().fontSize(16).bold(),
                     const Gap(6),
                     Text(
                       supported
@@ -1463,6 +2005,19 @@ class _MeetTapCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
+                  onPressed: busy || !supported ? null : onScan,
+                  icon: Icon(
+                    busy ? Symbols.progress_activity : Symbols.qr_code_scanner,
+                  ),
+                  label: Text(
+                    busy ? 'meetScanOpening'.tr() : 'meetScanOpenCamera'.tr(),
+                  ),
+                ),
+              ),
+              const Gap(10),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonalIcon(
                   onPressed: busy || !supported ? null : onTapJoin,
                   icon: Icon(
                     busy ? Symbols.progress_activity : Symbols.content_paste_go,
@@ -1534,77 +2089,42 @@ class _MeetHistorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: history.when(
-          data: (items) {
-            if (items.isEmpty) {
-              return Column(
+    return history.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('meetHistory').tr().fontSize(18).bold(),
                   const Gap(8),
                   Text('meetHistoryEmpty').tr(),
                 ],
-              );
-            }
+              ),
+            ),
+          );
+        }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('meetHistory').tr().fontSize(18).bold(),
-                const Gap(12),
-                ...items.map((meet) {
-                  final subtitle = [
-                    if (meet.locationName?.isNotEmpty ?? false)
-                      meet.locationName!,
-                    if (meet.notes?.isNotEmpty ?? false) meet.notes!,
-                  ].join(' · ');
-
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: meet.image != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 46,
-                              height: 46,
-                              child: CloudImageWidget(
-                                file: meet.image,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          )
-                        : const CircleAvatar(
-                            child: Icon(Symbols.groups, size: 20),
-                          ),
-                    title: Text(
-                      subtitle.isNotEmpty
-                          ? subtitle
-                          : _statusLabel(meet.status, context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      [
-                        _entryModeLabel(_entryModeOf(meet), context),
-                        _statusLabel(meet.status, context),
-                        _visibilityLabel(meet.visibility, context),
-                        if (meet.expiresAt != null)
-                          DateFormat.yMd().add_Hm().format(meet.expiresAt!),
-                      ].join(' · '),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(Symbols.chevron_right),
-                    onTap: () => onOpen(meet),
-                  );
-                }),
-              ],
-            );
-          },
-          loading: () => Column(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('meetHistory').tr().fontSize(18).bold(),
+            const Gap(12),
+            ...items.map(
+              (meet) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _MeetHistoryCard(meet: meet, onTap: () => onOpen(meet)),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('meetHistory').tr().fontSize(18).bold(),
@@ -1612,8 +2132,338 @@ class _MeetHistorySection extends StatelessWidget {
               const LinearProgressIndicator(),
             ],
           ),
-          error: (error, _) =>
-              ResponseErrorWidget(error: error, onRetry: onRetry),
+        ),
+      ),
+      error: (error, _) => ResponseErrorWidget(error: error, onRetry: onRetry),
+    );
+  }
+}
+
+class _MeetHistoryCard extends StatelessWidget {
+  final SnMeet meet;
+  final VoidCallback onTap;
+
+  const _MeetHistoryCard({required this.meet, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final participants = _displayParticipants(meet, null);
+    final entryMode = _entryModeOf(meet);
+    final topic = meet.metadata['topic']?.toString();
+    final title = meet.locationName?.isNotEmpty == true
+        ? meet.locationName!
+        : (topic?.isNotEmpty == true ? topic! : _statusLabel(meet.status, context));
+    final locationPoint = _parseMeetPoint(meet.locationWkt);
+    final hasImage = meet.image != null;
+    final hasLocation = locationPoint != null;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Show image if available, otherwise show map if location available
+            if (hasImage)
+              // Full-size image (16:9 aspect ratio)
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CloudImageWidget(file: meet.image, fit: BoxFit.cover),
+                    // Gradient overlay for text readability
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.6),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Status pills
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _HeroPill(label: _statusLabel(meet.status, context)),
+                          _HeroPill(label: _entryModeLabel(entryMode, context)),
+                        ],
+                      ),
+                    ),
+                    // Title overlay
+                    Positioned(
+                      bottom: 10,
+                      left: 12,
+                      right: 12,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (hasLocation)
+              // Show map card when no image but location available
+              SizedBox(
+                height: 180,
+                child: Stack(
+                  children: [
+                    _MeetLocationMapCard(
+                      point: locationPoint,
+                      locationName: meet.locationName,
+                      locationAddress: meet.locationAddress,
+                    ),
+                    // Status pills overlay
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _HeroPill(label: _statusLabel(meet.status, context)),
+                          _HeroPill(label: _entryModeLabel(entryMode, context)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              // No image and no location - show simple header
+              Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      theme.colorScheme.primaryContainer,
+                      theme.colorScheme.secondaryContainer,
+                    ],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Center(
+                        child: Icon(
+                          Symbols.groups,
+                          size: 48,
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                    // Status pills
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _HeroPill(label: _statusLabel(meet.status, context)),
+                          _HeroPill(label: _entryModeLabel(entryMode, context)),
+                        ],
+                      ),
+                    ),
+                    // Title overlay
+                    Positioned(
+                      bottom: 10,
+                      left: 12,
+                      right: 12,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Content section
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Notes or description
+                  if (meet.notes?.isNotEmpty == true) ...[
+                    Text(
+                      meet.notes!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const Gap(10),
+                  ],
+                  // Meta info row
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.schedule,
+                        size: 14,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      const Gap(4),
+                      Text(
+                        meet.expiresAt != null
+                            ? DateFormat.yMd().add_Hm().format(meet.expiresAt!)
+                            : _visibilityLabel(meet.visibility, context),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                      const Gap(12),
+                      Icon(
+                        Symbols.group,
+                        size: 14,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      const Gap(4),
+                      Text(
+                        '${participants.length}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Symbols.chevron_right,
+                        size: 18,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ],
+                  ),
+                  // Participants avatars
+                  if (participants.isNotEmpty) ...[
+                    const Gap(12),
+                    SizedBox(
+                      height: 36,
+                      child: Row(
+                        children: [
+                          // Stacked avatars
+                          ...participants.take(5).toList().asMap().entries.map(
+                            (entry) {
+                              final index = entry.key;
+                              final participant = entry.value;
+                              return Transform.translate(
+                                offset: Offset(-index * 10.0, 0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: theme.colorScheme.surface,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: participant.account != null
+                                      ? ProfilePictureWidget(
+                                          file: participant
+                                              .account!.profile.picture,
+                                          radius: 16,
+                                        )
+                                      : CircleAvatar(
+                                          radius: 16,
+                                          backgroundColor: theme
+                                              .colorScheme.primaryContainer,
+                                          child: Icon(
+                                            Symbols.person,
+                                            size: 14,
+                                            color: theme
+                                                .colorScheme.onPrimaryContainer,
+                                          ),
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Show remaining count if more than 5
+                          if (participants.length > 5)
+                            Transform.translate(
+                              offset: Offset(-5 * 10.0, 0),
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: theme.colorScheme.secondaryContainer,
+                                  border: Border.all(
+                                    color: theme.colorScheme.surface,
+                                    width: 2,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '+${participants.length - 5}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        theme.colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          const Spacer(),
+                          // Participant names hint
+                          Flexible(
+                            child: Text(
+                              participants
+                                  .take(2)
+                                  .map(
+                                    (p) =>
+                                        p.account?.nick.isNotEmpty == true
+                                            ? p.account!.nick
+                                            : '@${p.account?.name ?? p.fallbackName}',
+                                  )
+                                  .join(', ') +
+                                  (participants.length > 2
+                                      ? ' +${participants.length - 2}'
+                                      : ''),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1838,6 +2688,146 @@ class _MeetScanCodeCard extends StatelessWidget {
               ),
             ).clipRRect(all: 8),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetQrScannerSheet extends HookWidget {
+  final MeetTapService service;
+
+  const _MeetQrScannerSheet({required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useMemoized(
+      () => MobileScannerController(
+        formats: const [BarcodeFormat.qrCode],
+        detectionSpeed: DetectionSpeed.noDuplicates,
+      ),
+    );
+    final didHandle = useState(false);
+
+    useEffect(() {
+      return controller.dispose;
+    }, [controller]);
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.82,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: MobileScanner(
+                  controller: controller,
+                  onDetect: (capture) {
+                    if (didHandle.value) return;
+                    final raw = capture.barcodes
+                        .map((e) => e.rawValue?.trim())
+                        .whereType<String>()
+                        .firstWhere(
+                          (value) => value.isNotEmpty,
+                          orElse: () => '',
+                        );
+                    if (raw.isEmpty) return;
+
+                    final payload = service.parsePayload(raw);
+                    if (payload == null) return;
+                    didHandle.value = true;
+                    Navigator.of(context).pop(payload);
+                  },
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.52),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.52),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      children: [
+                        IconButton.filledTonal(
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Symbols.close),
+                        ),
+                        const Spacer(),
+                        IconButton.filledTonal(
+                          onPressed: controller.toggleTorch,
+                          icon: const Icon(Symbols.flashlight_on),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: Container(
+                  width: 236,
+                  height: 236,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.18),
+                        blurRadius: 24,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 28,
+                child: Card(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surface.withOpacity(0.92),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('meetScanCameraPrompt').tr().fontSize(16).bold(),
+                        const Gap(6),
+                        Text(
+                          'meetScanCameraHint'.tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2101,6 +3091,126 @@ List<_MeetPerson> _displayParticipants(SnMeet? meet, SnAccount? currentUser) {
   }
 
   return people;
+}
+
+Set<String> _participantIdsOf(SnMeet meet) {
+  final ids = <String>{meet.hostId};
+  for (final participant in meet.participants) {
+    ids.add(participant.accountId);
+  }
+  return ids;
+}
+
+_MeetPerson? _findLatestArrival({
+  required SnMeet meet,
+  required Set<String> previousIds,
+  required String? currentUserId,
+}) {
+  final people = _displayParticipants(meet, null);
+  for (final person in people.reversed) {
+    if (person.id == currentUserId) continue;
+    if (previousIds.contains(person.id)) continue;
+    return person;
+  }
+  return null;
+}
+
+class _MeetScanArrivalBanner extends HookWidget {
+  final _MeetPerson participant;
+
+  const _MeetScanArrivalBanner({required this.participant});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = useAnimationController(
+      duration: const Duration(milliseconds: 700),
+    );
+    final account = participant.account;
+
+    useEffect(() {
+      controller.forward();
+      return null;
+    }, const []);
+
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
+        ),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.96, end: 1).animate(
+            CurvedAnimation(parent: controller, curve: Curves.easeOutBack),
+          ),
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.colorScheme.primaryContainer.withOpacity(0.92),
+                    theme.colorScheme.tertiaryContainer.withOpacity(0.82),
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withOpacity(0.65),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Symbols.waving_hand,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('meetScanJoinedTitle').tr().fontSize(18).bold(),
+                            const Gap(4),
+                            Text(
+                              'meetScanJoinedHint'.tr(),
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(16),
+                  if (account != null)
+                    AccountNameplate(
+                      name: account.name,
+                      isOutlined: false,
+                      padding: EdgeInsets.zero,
+                    )
+                  else
+                    _MeetSimpleNameCard(participant: participant),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 String _statusLabel(SnMeetStatus status, BuildContext context) {
