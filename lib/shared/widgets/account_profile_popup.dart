@@ -23,7 +23,7 @@ class AccountProfilePopupCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [if (header != null) header!, child],
+          children: [?header, child],
         ),
       ),
     );
