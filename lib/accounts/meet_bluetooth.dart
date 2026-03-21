@@ -75,7 +75,9 @@ class MeetBluetoothService {
     await _channel.invokeMethod('stopAdvertising');
   }
 
-  Future<void> startScan({Duration timeout = const Duration(seconds: 12)}) async {
+  Future<void> startScan({
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
     await ensureScanReady();
     if (await FlutterBluePlus.isScanning.first) {
       await FlutterBluePlus.stopScan();
@@ -163,10 +165,21 @@ class MeetBluetoothService {
     }
 
     if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final current = await Permission.bluetooth.status;
+      if (current.isGranted) return;
+
       final status = await Permission.bluetooth.request();
-      if (!status.isGranted) {
-        throw StateError('Bluetooth permission is required to use Meet.');
+      if (status.isGranted) return;
+
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        throw StateError(
+          'Bluetooth permission is blocked on iPhone. Please allow Solian in Settings > Privacy & Security > Bluetooth.',
+        );
       }
+
+      throw StateError(
+        'Bluetooth permission is required on iPhone to discover nearby Meet sessions.',
+      );
     }
   }
 
